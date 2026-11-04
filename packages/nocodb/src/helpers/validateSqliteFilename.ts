@@ -105,6 +105,16 @@ export function validateAndNormalizeSqliteConfig(
     conn.filename = validateSqliteFilename(conn.filename);
   }
   const inner = conn.connection;
+  // knex opens a string connection as the filename, unchecked.
+  if (
+    inner != null &&
+    typeof inner !== 'object' &&
+    [c.client, conn.client, _subType].some((client) =>
+      String(client ?? '').includes('sqlite'),
+    )
+  ) {
+    NcError.badRequest('Invalid SQLite connection');
+  }
   if (inner && typeof inner === 'object' && inner.filename != null) {
     inner.filename = validateSqliteFilename(inner.filename);
   }

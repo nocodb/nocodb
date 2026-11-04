@@ -52,6 +52,11 @@ export function isTraceActive(): boolean {
   return false;
 }
 
+/** CE has no scope → always false. */
+export async function isTraceRecordable(): Promise<boolean> {
+  return false;
+}
+
 /**
  * CE stub. EE wraps `fn` in a trace scope so nested `@TraceCommand`
  * decorators take the silent re-entrant skip branch — used by

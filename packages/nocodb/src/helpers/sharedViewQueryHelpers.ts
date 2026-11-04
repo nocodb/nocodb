@@ -1,12 +1,10 @@
 import type { NcContext } from '~/interface/config';
 import type { View } from '~/models';
-import type { FilterType } from 'nocodb-sdk';
 import { Column, Model } from '~/models';
 import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
 import {
-  filtersReferenceHiddenColumn,
+  ARRAY_QUERY_KEYS,
   restrictQueryToExposedColumns,
-  stripHiddenColumnFilters,
 } from '~/helpers/nestedLinkQueryHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { isExposedGroupByRef } from '~/helpers/sharedViewGroupByRef';
@@ -23,13 +21,7 @@ import {
  * enumerating the canonical names here once left `?w=(Secret,eq,x)` compiling
  * against the model's full `aliasColObjMap`, i.e. the gate open.
  */
-const SANITIZED_QUERY_KEYS = [
-  ...LIST_ARG_ALIAS_KEYS,
-  'filterArrJson',
-  'filterArr',
-  'sortArrJson',
-  'sortArr',
-];
+const SANITIZED_QUERY_KEYS = [...LIST_ARG_ALIAS_KEYS, ...ARRAY_QUERY_KEYS];
 
 /** Query keys `restrictSharedViewColumnReferences` inspects. */
 const GROUP_BY_QUERY_KEYS = [
@@ -113,7 +105,8 @@ export async function restrictSharedViewQuery(
   const { exposedColumnIds, columns, aliasColObjMap } =
     scope ?? (await resolveSharedViewQueryScope(context, { model, view }));
 
-  // `where` + `sort` — same strip semantics as the nested-link restriction.
+  // `where` / `sort` / `filterArr(Json)` / `sortArr(Json)` — same strip
+  // semantics as the nested-link restriction.
   await restrictQueryToExposedColumns(context, {
     model,
     columns,
@@ -121,34 +114,6 @@ export async function restrictSharedViewQuery(
     exposedColumnIds,
     aliasColObjMap,
   });
-
-  // `filterArrJson` / `filterArr` — a pre-parsed tree keyed by `fk_column_id`,
-  // bypassing the xwhere parser. Both spellings: either can reach the compiler.
-  for (const key of ['filterArrJson', 'filterArr']) {
-    const raw = query[key];
-    if (!raw) continue;
-
-    const wasString = typeof raw === 'string';
-    let parsed: unknown = raw;
-    if (wasString) {
-      try {
-        parsed = JSON.parse(raw);
-      } catch {
-        continue; // malformed — leave it for the downstream parser to reject
-      }
-    }
-    if (!Array.isArray(parsed)) continue;
-
-    const filters = parsed as FilterType[];
-    if (!filtersReferenceHiddenColumn(filters, exposedColumnIds)) continue;
-
-    const survivors = stripHiddenColumnFilters(filters, exposedColumnIds);
-    query[key] = survivors.length
-      ? wasString
-        ? JSON.stringify(survivors)
-        : survivors
-      : undefined;
-  }
 
   // `fields` (and its `f` alias) — CE's list path ignores caller fields (getAst
   // gets `query: {}`), but the EE optimized path forwards them and
@@ -173,38 +138,6 @@ export async function restrictSharedViewQuery(
 
     if (kept.length === requested.length) continue;
     query[key] = kept.length ? (wasArray ? kept : kept.join(',')) : undefined;
-  }
-
-  // `sortArrJson` / `sortArr` — `{ field | fk_column_id, direction }` entries.
-  for (const key of ['sortArrJson', 'sortArr']) {
-    const raw = query[key];
-    if (!raw) continue;
-
-    const wasString = typeof raw === 'string';
-    let parsed: unknown = raw;
-    if (wasString) {
-      try {
-        parsed = JSON.parse(raw);
-      } catch {
-        continue;
-      }
-    }
-    if (!Array.isArray(parsed)) continue;
-
-    const kept = (parsed as { field?: string; fk_column_id?: string }[]).filter(
-      (entry) => {
-        const colId = entry?.fk_column_id ?? aliasColObjMap[entry?.field]?.id;
-        // Unresolvable references are harmless downstream — keep them.
-        return !colId || exposedColumnIds.has(colId);
-      },
-    );
-    if (kept.length === (parsed as unknown[]).length) continue;
-
-    query[key] = kept.length
-      ? wasString
-        ? JSON.stringify(kept)
-        : kept
-      : undefined;
   }
 }
 
@@ -291,10 +224,7 @@ export async function restrictSharedViewColumnReferences(
   // public group-by controller forwards the query verbatim. The value may name
   // several comma-joined columns; see `isExposedGroupByRef`.
   for (const key of GROUP_BY_QUERY_KEYS) {
-    if (
-      query[key] &&
-      !isExposedGroupByRef(query[key], { isExposed })
-    ) {
+    if (query[key] && !isExposedGroupByRef(query[key], { isExposed })) {
       rejected.push(query[key]);
       delete query[key];
     }

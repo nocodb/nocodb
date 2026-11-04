@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
+import { LINK_UTILIZATION_ROW_KEY, PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -98,6 +98,8 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     return []
   }
 })
+
+const utilization = computed(() => props.row?.[LINK_UTILIZATION_ROW_KEY] ?? null)
 </script>
 
 <template>
@@ -149,49 +151,57 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 
           <!-- Only show sub-fields if linked table is accessible -->
           <div
-            v-if="isLinkedTableAccessible && fields.length > 0 && showExtraFields"
+            v-if="(isLinkedTableAccessible && fields.length > 0 && showExtraFields) || utilization"
             class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5"
           >
-            <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
-              <div v-if="!isRowEmpty({ row }, field)" class="flex flex-col gap-[-1]">
-                <NcTooltip class="z-10 flex" placement="bottomLeft" :arrow-point-at-center="false">
-                  <template #title>
-                    <LazySmartsheetHeaderVirtualCell
-                      v-if="isVirtualCol(field)"
-                      class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
-                      :column="field"
-                      :hide-menu="true"
-                      hide-icon-tooltip
-                    />
-                    <LazySmartsheetHeaderCell
-                      v-else
-                      class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
-                      :column="field"
-                      :hide-menu="true"
-                      hide-icon-tooltip
-                    />
-                  </template>
-                  <div class="nc-link-record-cell flex w-full max-w-full">
-                    <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(field)"
-                      v-model="row[field.title]"
-                      :row="row"
-                      :column="field"
-                      class="!h-auto"
-                    />
-                    <LazySmartsheetCell
-                      v-else
-                      v-model="row[field.title]"
-                      :column="field"
-                      :edit-enabled="false"
-                      :read-only="true"
-                      class="!h-auto"
-                    />
-                  </div>
-                </NcTooltip>
+            <!-- An interface element's "Preview utilization", attached by the server. -->
+            <VirtualCellComponentsUtilizationPreview
+              v-if="isEeUI && utilization"
+              :value="utilization"
+              class="flex-none ml-1 sm:max-w-1/3"
+            />
+            <template v-if="isLinkedTableAccessible && showExtraFields">
+              <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
+                <div v-if="!isRowEmpty({ row }, field)" class="flex flex-col gap-[-1]">
+                  <NcTooltip class="z-10 flex" placement="bottomLeft" :arrow-point-at-center="false">
+                    <template #title>
+                      <LazySmartsheetHeaderVirtualCell
+                        v-if="isVirtualCol(field)"
+                        class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
+                        :column="field"
+                        :hide-menu="true"
+                        hide-icon-tooltip
+                      />
+                      <LazySmartsheetHeaderCell
+                        v-else
+                        class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
+                        :column="field"
+                        :hide-menu="true"
+                        hide-icon-tooltip
+                      />
+                    </template>
+                    <div class="nc-link-record-cell flex w-full max-w-full">
+                      <LazySmartsheetVirtualCell
+                        v-if="isVirtualCol(field)"
+                        v-model="row[field.title]"
+                        :row="row"
+                        :column="field"
+                        class="!h-auto"
+                      />
+                      <LazySmartsheetCell
+                        v-else
+                        v-model="row[field.title]"
+                        :column="field"
+                        :edit-enabled="false"
+                        :read-only="true"
+                        class="!h-auto"
+                      />
+                    </div>
+                  </NcTooltip>
+                </div>
+                <div v-else class="flex flex-row w-full max-w-72 h-5 pl-1 items-center justify-start">-</div>
               </div>
-              <div v-else class="flex flex-row w-full max-w-72 h-5 pl-1 items-center justify-start">-</div>
-            </div>
+            </template>
           </div>
         </div>
         <div v-if="showExpandButton" class="flex-none flex items-center w-7" @click.stop>

@@ -30,6 +30,20 @@ export interface DocumentType {
   password?: string | null;
 }
 
+/** One hit of the `documentSearch` operation. Title hits come first, then content hits. */
+export interface DocumentSearchResultType {
+  id: string;
+  title: string;
+  parent_id: string | null;
+  icon: string | null;
+  /** Titles of the visible ancestors, root first. */
+  path: string[];
+  match: 'title' | 'content';
+  /** The block around the first match, trimmed; absent when the body doesn't contain the query. */
+  snippet?: string;
+  updated_at?: string;
+}
+
 export interface DocumentShareMeta {
   include_subtree?: boolean;
 }

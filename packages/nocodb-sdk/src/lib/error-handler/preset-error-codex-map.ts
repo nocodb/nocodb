@@ -635,6 +635,22 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => message,
     code: 400,
   },
+  [NcErrorType.ERR_WORKFLOW_EMPTY_NODE]: {
+    message: 'This workflow has no steps to run',
+    code: 400,
+  },
+  [NcErrorType.ERR_WORKFLOW_TRIGGER_NODE_NOT_FOUND]: {
+    message: 'The trigger this run was started from is not in the workflow',
+    code: 400,
+  },
+  [NcErrorType.ERR_WORKFLOW_NODE_EXECUTION_FAILED]: {
+    message: (message: string) => message,
+    code: 400,
+  },
+  [NcErrorType.ERR_WORKFLOW_MAX_ITERATIONS_EXCEEDED]: {
+    message: 'This run exceeded the maximum number of steps',
+    code: 400,
+  },
   [NcErrorType.ERR_METHOD_NOT_ALLOWED]: {
     message: (method: string) => `Method ${method} not allowed`,
     code: 405,

@@ -39,6 +39,8 @@ interface RecentView {
   baseId: string
   /** ISO time the view was last opened in this session. */
   viewedAt?: string
+  /** Lane bases are left out of the workspace base list, so pruning can't prove one gone. */
+  isLane?: boolean
 }
 
 export const useViewsStore = defineStore('viewsStore', () => {
@@ -620,7 +622,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
         // If the first collaborative grid view changed, trigger getMeta
         if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && tableId) {
-          await getMeta(table.base_id, tableId, true)
+          await getMeta({ baseId: table.base_id, tableIdOrTitle: tableId, force: true })
         }
 
         // Refresh command palette
@@ -759,7 +761,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       // If the first collaborative grid view changed after deletion, trigger getMeta
       if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && view.fk_model_id) {
-        await getMeta(view.base_id, view.fk_model_id, true)
+        await getMeta({ baseId: view.base_id, tableIdOrTitle: view.fk_model_id, force: true })
       }
 
       // Remove from recent views
@@ -834,7 +836,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
         if (viewIndex !== -1) {
           if (extra?.is_default_view && tableId) {
-            await getMeta(baseId, tableId, true)
+            await getMeta({ baseId, tableIdOrTitle: tableId, force: true })
           }
 
           // Replace with the response from API
@@ -1043,6 +1045,38 @@ export const useViewsStore = defineStore('viewsStore', () => {
     } else if (tableId && viewId) {
       allRecentViews.value = allRecentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
     }
+  }
+
+  // Saved recents outlive their views (deleted in another tab, access revoked). Drop the ones the
+  // loaded stores prove gone and refresh titles; a base whose tables or views aren't loaded is kept.
+  // Only a successful load of this workspace's base list counts; lanes are never in that list.
+  function pruneRecentViews() {
+    const wsBases = bases.workspaceBasesMap.get(activeWorkspaceId.value)
+    if (!wsBases) return
+
+    allRecentViews.value = allRecentViews.value.flatMap((rv) => {
+      if (rv.workspaceId !== activeWorkspaceId.value) return [rv]
+
+      const base = wsBases.get(rv.baseId) ?? bases.bases.get(rv.baseId)
+      if (!base && !rv.isLane) return []
+
+      const tables = tablesStore.baseTables.get(rv.baseId)
+      const table = tables?.find((t) => t.id === rv.tableID)
+      if (tables && !table) return []
+
+      const views = viewsByTable.value.get(getViewsKey(rv.baseId, rv.tableID))
+      const view = rv.viewId ? views?.find((v) => v.id === rv.viewId) : undefined
+      if (views && rv.viewId && !view) return []
+
+      return [
+        {
+          ...rv,
+          baseName: base?.title ?? rv.baseName,
+          tableName: table?.title ?? rv.tableName,
+          viewName: view?.title ?? rv.viewName,
+        },
+      ]
+    })
   }
 
   const updateTabTitle = () => {
@@ -1334,7 +1368,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         )
       ) {
         // default view col order and visibility is stored in column meta so we have to load it again
-        await getMeta(destView.base_id!, destView.fk_model_id!, true)
+        await getMeta({ baseId: destView.base_id!, tableIdOrTitle: destView.fk_model_id!, force: true })
       }
 
       if (res?.view && destView.fk_model_id && destView.base_id) {
@@ -1478,10 +1512,42 @@ export const useViewsStore = defineStore('viewsStore', () => {
         iconColor: parseProp(base?.meta).iconColor,
         isDefault: !!view.is_default,
         viewedAt: new Date().toISOString(),
+        isLane: !!base?.is_lane_instance,
       },
       ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
     ]
   })
+
+  // Recent views survive reloads (Cmd+L), stored per user and workspace; loading merges so
+  // views opened this session stay on top.
+  watch(
+    () => [user.value?.id, activeWorkspaceId.value] as const,
+    ([userId, workspaceId], prev) => {
+      // Signed out, or someone else signed in: clear before loading, so only this user's list merges.
+      if (!userId || (prev && prev[0] !== userId)) allRecentViews.value = []
+      if (!userId || !workspaceId) return
+      const saved: RecentView[] = userLocalStorageInfoManager.get(userId, workspaceId, 'recentViews') ?? []
+      const seen = new Set(allRecentViews.value.map((v) => `${v.tableID}:${v.viewId}`))
+      allRecentViews.value = [...allRecentViews.value, ...saved.filter((v) => !seen.has(`${v.tableID}:${v.viewId}`))]
+    },
+    { immediate: true },
+  )
+
+  watch(
+    allRecentViews,
+    (views) => {
+      const userId = user.value?.id
+      const workspaceId = activeWorkspaceId.value
+      if (!userId || !workspaceId) return
+      userLocalStorageInfoManager.set(
+        userId,
+        workspaceId,
+        'recentViews',
+        views.filter((v) => v.workspaceId === workspaceId).slice(0, 50),
+      )
+    },
+    { deep: true },
+  )
 
   watch(
     () => [activeView.value?.title, activeView.value?.id],
@@ -1575,6 +1641,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     changeView,
     hasOnlyOneGridViewInTable,
     removeFromRecentViews,
+    pruneRecentViews,
     refreshViewTabTitle: refreshViewTabTitle.trigger,
     updateViewCoverImageColumnId,
     duplicateView,

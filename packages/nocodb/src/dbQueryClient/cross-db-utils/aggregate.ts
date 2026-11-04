@@ -12,6 +12,7 @@ import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregatio
 import conditionV2 from '~/db/conditionV2';
 import { Filter, GridViewColumn, Model } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { NcError } from '~/helpers/catchError';
 
 export interface AggregateColumnSpec {
   col: Column;
@@ -28,12 +29,16 @@ export interface AggregateColumnSpec {
   resultKey: string;
   /**
    * Response label, set only when the field carries more than one
-   * aggregation — otherwise the field title is the label, as before.
+   * aggregation (`<title>__<aggregation>`) — otherwise the field title is the
+   * label, as before.
    */
   displayKey?: string;
   /** Aggregation comes from the view's saved footer, not the request. */
   fromSavedView?: boolean;
 }
+
+/** Joins a field title and an aggregation in a multi-aggregation result key. */
+export const AGGREGATE_KEY_SEPARATOR = '__';
 
 /**
  * Assign each spec its SQL key and response label.
@@ -42,14 +47,29 @@ export interface AggregateColumnSpec {
  * aggregations on one field collided: the request `Amount/sum, Amount/avg,
  * Amount/count_filled` came back as a single `{"Amount": <count>}` — a
  * well-formed answer to a question nobody asked.
+ *
+ * A repeated `(field, aggregation)` pair is computed once. A label that still
+ * collides (a field titled `Amount__sum` next to `Amount` with sum and avg) is
+ * rejected, since one value would silently overwrite the other.
  */
-function withResultKeys(specs: AggregateColumnSpec[]): AggregateColumnSpec[] {
+export function withResultKeys(
+  context: NcContext,
+  specs: AggregateColumnSpec[],
+): AggregateColumnSpec[] {
+  const seen = new Set<string>();
+  const unique = specs.filter(({ col, aggregation }) => {
+    const pair = `${col.id}:${aggregation}`;
+    if (seen.has(pair)) return false;
+    seen.add(pair);
+    return true;
+  });
+
   const perColumn = new Map<string, number>();
-  for (const { col } of specs) {
+  for (const { col } of unique) {
     perColumn.set(col.id, (perColumn.get(col.id) ?? 0) + 1);
   }
 
-  return specs.map((spec) => {
+  const keyed = unique.map((spec) => {
     if ((perColumn.get(spec.col.id) ?? 0) < 2) {
       return { ...spec, resultKey: spec.col.id };
     }
@@ -57,9 +77,25 @@ function withResultKeys(specs: AggregateColumnSpec[]): AggregateColumnSpec[] {
     return {
       ...spec,
       resultKey: `${spec.col.id}__${spec.aggregation}`,
-      displayKey: `${spec.col.title}.${spec.aggregation}`,
+      displayKey: `${spec.col.title}${AGGREGATE_KEY_SEPARATOR}${spec.aggregation}`,
     };
   });
+
+  // Only a suffixed label can collide: titles are unique within a table.
+  const labels = new Set(
+    keyed.filter((spec) => !spec.displayKey).map((spec) => spec.col.title),
+  );
+  for (const { displayKey } of keyed) {
+    if (!displayKey) continue;
+    if (labels.has(displayKey)) {
+      NcError.get(context).badRequest(
+        `Aggregation result key "${displayKey}" would be produced twice. Rename the field or drop one of the aggregations.`,
+      );
+    }
+    labels.add(displayKey);
+  }
+
+  return keyed;
 }
 
 /**
@@ -264,7 +300,7 @@ export async function resolveAggregateColumns({
         });
       }
     }
-    return withResultKeys(aggregateColumns);
+    return withResultKeys(baseModel.context, aggregateColumns);
   }
 
   if (overrideMode) {
@@ -280,5 +316,5 @@ export async function resolveAggregateColumns({
     }
   }
 
-  return withResultKeys(aggregateColumns);
+  return withResultKeys(baseModel.context, aggregateColumns);
 }

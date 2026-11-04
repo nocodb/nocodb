@@ -140,6 +140,7 @@ export default class View implements ViewType {
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
   row_coloring_mode?: ROW_COLORING_MODE;
+  attachment_mode_column_id?: string;
   allow_sync?: boolean;
   created_by?: string;
   owned_by?: string;
@@ -1887,6 +1888,7 @@ export default class View implements ViewType {
 
   static async share(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
     const view = await this.get(context, viewId);
+    if (!view) NcError.get(context).viewNotFound(viewId);
     if (!view.uuid) {
       const uuid = uuidv4();
       view.uuid = uuid;
@@ -3155,6 +3157,30 @@ export default class View implements ViewType {
         : []),
     ]);
 
+    const copyFromView =
+      view.copy_from_id &&
+      (await View.get(context, view.copy_from_id, false, ncMeta));
+    await copyFromView?.getView();
+
+    // A duplicate inherits the source's meta and attachment mode unless the
+    // body sets them. Only within the same table: both reference its columns.
+    const inheritFromSource =
+      copyFromView && copyFromView.fk_model_id === view.fk_model_id;
+
+    if (inheritFromSource && !insertObj.meta && copyFromView.meta) {
+      insertObj.meta = copyFromView.meta;
+    }
+
+    if (
+      isEE &&
+      inheritFromSource &&
+      insertObj.attachment_mode_column_id === undefined &&
+      copyFromView.attachment_mode_column_id
+    ) {
+      insertObj.attachment_mode_column_id =
+        copyFromView.attachment_mode_column_id;
+    }
+
     if (isEE) {
       if (!insertObj?.attachment_mode_column_id) {
         insertObj.expanded_record_mode = ExpandedFormMode.FIELD;
@@ -3177,11 +3203,6 @@ export default class View implements ViewType {
     }
 
     insertObj.meta = stringifyMetaProp(insertObj);
-
-    const copyFromView =
-      view.copy_from_id &&
-      (await View.get(context, view.copy_from_id, false, ncMeta));
-    await copyFromView?.getView();
 
     // When duplicating a view, keep the copy inside the same section as the
     // source view. A caller-supplied value always wins — including `null`,

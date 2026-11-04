@@ -48,7 +48,8 @@ export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', ()
     return baseAuthorizations.value
   }
 
-  const updateAuthorizationTools = async (tokenId: string, tools: string[]) => {
+  // Only the fields sent change: `tools` on a per-tool grant, `opt_in_tools` on any scoped one.
+  const updateAuthorization = async (tokenId: string, changes: { tools?: string[]; opt_in_tools?: string[] }) => {
     try {
       const { permissions } = (await $api.internal.postOperation(
         NO_SCOPE,
@@ -56,7 +57,7 @@ export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', ()
         {
           operation: 'oAuthAuthorizationUpdate',
         },
-        { tokenId, tools },
+        { tokenId, ...changes },
       )) as { permissions: string }
 
       for (const list of [authorizations, baseAuthorizations]) {
@@ -103,7 +104,7 @@ export const useOAuthAuthorizations = defineStore('oauthAuthorizationsStore', ()
     isLoading,
     loadAuthorizations,
     loadBaseAuthorizations,
-    updateAuthorizationTools,
+    updateAuthorization,
     revokeAuthorization,
   }
 })

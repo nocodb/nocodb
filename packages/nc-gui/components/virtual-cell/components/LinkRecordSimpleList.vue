@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
+import { LINK_UTILIZATION_ROW_KEY } from 'nocodb-sdk'
 
 interface SimpleListItem {
   /**
@@ -607,6 +608,13 @@ onUnmounted(() => {
                 />
                 <template v-else>{{ displayValueOf(item.row) }}</template>
               </div>
+              <!-- An interface element's "Preview utilization", attached by the server. -->
+              <VirtualCellComponentsUtilizationPreview
+                v-if="isEeUI && item.row?.[LINK_UTILIZATION_ROW_KEY]"
+                :value="item.row[LINK_UTILIZATION_ROW_KEY]"
+                variant="inline"
+                class="flex-none"
+              />
               <NcTooltip
                 v-if="canExpandRecords"
                 :title="$t('labels.expandRecord')"

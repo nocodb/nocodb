@@ -12,6 +12,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Profiler } from '~/helpers/profiler';
+import { dataWrapper } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { COMPOUND_SELECT_CHUNK_SIZE } from '~/constants';
 import { chunkArray } from '~/utils/tsUtils';
@@ -173,6 +174,17 @@ export const LTARColsUpdater = (param: {
       // skip if not LTAR or Links
       if (!isLinksOrLTAR(col)) continue;
 
+      // Linked records carry the related table's PK, which can be named
+      // differently from this table's (`actor_id` / `film_id`)
+      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
+      const relatedModel = await Model.get(
+        colOptions.getRelContext().refContext,
+        colOptions.fk_related_model_id,
+      );
+      await relatedModel.getColumns();
+      const relatedPk = (rec: Record<string, any>) =>
+        dataWrapper(rec).extractPksValue(relatedModel, true);
+
       for (const d of datas) {
         const rowId = baseModel.extractPksValues(d, true);
         const value = getLinkValue(d, col);
@@ -224,14 +236,12 @@ export const LTARColsUpdater = (param: {
         }
 
         const idsToLink = [
-          ...(Array.isArray(value) ? value : [value]).map((rec) =>
-            baseModel.extractPksValues(rec, true),
-          ),
+          ...(Array.isArray(value) ? value : [value]).map(relatedPk),
         ];
 
         // check for any missing links then unlink
         const idsToUnlink = existingLinks
-          .map((link) => baseModel.extractPksValues(link, true))
+          .map(relatedPk)
           .filter((existingLinkPk) => {
             const index = idsToLink.findIndex((linkPk) => {
               return existingLinkPk === linkPk;

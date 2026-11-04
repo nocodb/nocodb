@@ -11,7 +11,7 @@ import type { ColumnType, LinkToAnotherRecordType } from './Api';
 import type { DateAxisSummaryConfig } from './interface/pageConfigs';
 import { RelationTypes } from './globals';
 import { parseProp } from './helperFunctions';
-import {
+import UITypes, {
   isBtLikeV2Junction,
   isLinksOrLTAR,
   isLinkV2,
@@ -90,6 +90,35 @@ export function isFkBelongsToLink(col: LinkColumn): boolean {
 export function isUtilizationResourceLink(col?: LinkColumn | null): boolean {
   if (!col || !isLinksOrLTAR(col) || !col.colOptions) return false;
   return isBtLikeV2Junction(col) || isFkBelongsToLink(col);
+}
+
+/** A many-to-many link: several resources per row. */
+export function isUtilizationMultiResourceLink(
+  col?: LinkColumn | null
+): boolean {
+  if (!col || !isLinksOrLTAR(col) || !col.colOptions) return false;
+  return linkType(col) === RelationTypes.MANY_TO_MANY;
+}
+
+/** A field that can name the resource: a User field or a single- or many-record link. */
+export function isUtilizationResourceColumn(col?: LinkColumn | null): boolean {
+  if (!col) return false;
+  return (
+    col.uidt === UITypes.User ||
+    isUtilizationResourceLink(col) ||
+    isUtilizationMultiResourceLink(col)
+  );
+}
+
+/**
+ * How a row's hours divide among several resources when the setup doesn't say.
+ * Many-to-many links split; User fields keep the full amount, as setups saved
+ * before the option was shown did.
+ */
+export function defaultMultipleResources(
+  col?: LinkColumn | null
+): UtilizationMultiResourceMode {
+  return isUtilizationMultiResourceLink(col) ? 'split' : 'full';
 }
 
 /** A time-off table's link to the resource table: a foreign key or a junction. */
@@ -258,6 +287,8 @@ export interface ComputeUtilizationParams {
   /** Weekdays that count; absent → every day. */
   workingDays?: number[] | null;
   multipleResources?: UtilizationMultiResourceMode;
+  /** Working hours per resource, read off the resource itself; wins over task values. */
+  resourceCapacity?: Record<string, number | null>;
 }
 
 export interface ComputeUtilizationResult {
@@ -411,7 +442,9 @@ export function computeUtilization(
   const groups: ComputeUtilizationResult['groups'] = [];
 
   for (const [key, acc] of byResource) {
-    const capacityPerDay = (acc.capacity ?? fallbackCapacity) * capFactor;
+    const capacityPerDay =
+      (params.resourceCapacity?.[key] ?? acc.capacity ?? fallbackCapacity) *
+      capFactor;
     const groupBuckets = buckets.map(() => ({
       allocated: 0,
       available: 0,
@@ -508,6 +541,24 @@ export function formatUtilizationPercent(percent: number | null): string {
 }
 
 /**
+ * Whether a utilization summary has everything it needs to compute. An
+ * unfinished one is still saved on the view so its setup isn't lost.
+ */
+export function isUtilizationSummaryComplete(
+  summary?: DateAxisSummaryConfig | null
+): boolean {
+  const util = summary?.utilization;
+  if (!summary?.fk_column_id || !util?.fk_resource_column_id) return false;
+  if (!util.fk_available_column_id && !(Number(util.available_value) > 0))
+    return false;
+  const off = util.time_off;
+  return (
+    !off ||
+    !!(off.fk_model_id && off.fk_link_column_id && off.fk_start_column_id)
+  );
+}
+
+/**
  * Re-points a saved date-axis summary at another copy of the base (duplicate
  * / import). Returns `undefined` when a field it needs has no counterpart;
  * time off is dropped alone when only its table or fields are missing.
@@ -561,4 +612,50 @@ export function remapDateAxisSummaryIds(
     time_off: timeOff,
   };
   return next;
+}
+
+/**
+ * "Preview utilization" on a link field of a record page: each candidate's
+ * utilization over the record's own dates, before and after linking it.
+ */
+export interface LinkUtilizationPreviewConfig {
+  /** Start of the record's work (this table); the window the preview measures. */
+  fk_from_column_id?: string | null;
+  fk_to_column_id?: string | null;
+  /** Hours each record needs (this table). */
+  fk_hours_column_id?: string | null;
+  allocated_rate: UtilizationAllocatedRate;
+  /** Working hours read off the linked record, e.g. a person's weekly hours. */
+  fk_available_column_id?: string | null;
+  /** Fixed working hours, used when no field is picked. */
+  available_value?: number | null;
+  available_rate: UtilizationAvailableRate;
+  working_days?: number[] | null;
+  color_conditions?: UtilizationColorCondition[];
+  default_color?: UtilizationColor;
+  sort_least_utilized?: boolean;
+}
+
+/** Per-candidate value attached to each link-picker row. */
+export interface LinkUtilizationPreviewValue {
+  current: UtilizationValue;
+  /** With this record linked to the candidate. */
+  after: UtilizationValue;
+  /** Already linked: `after` equals `current`. */
+  linked?: boolean;
+  /** The element's colour setup, when it has one; absent = defaults. */
+  color_conditions?: UtilizationColorCondition[];
+  default_color?: UtilizationColor;
+}
+
+/** Key a picker row carries its `LinkUtilizationPreviewValue` under. */
+export const LINK_UTILIZATION_ROW_KEY = '__nc_utilization';
+
+export function isLinkUtilizationPreviewComplete(
+  config?: LinkUtilizationPreviewConfig | null
+): boolean {
+  if (!config?.fk_from_column_id || !config.fk_hours_column_id) return false;
+  return (
+    !!config.fk_available_column_id || Number(config.available_value) > 0
+  );
 }

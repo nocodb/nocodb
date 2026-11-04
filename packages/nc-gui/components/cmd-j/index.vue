@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Client } from 'typesense'
-import { useVModel } from '@vueuse/core'
-import type { SortedResult } from '#imports'
+import type { CmdCommand, CommandPaletteType } from '~/lib/types'
+import { cmdRowDomId } from '~/utils/commandPaletteUtils'
 
 const props = defineProps<{
   open: boolean
@@ -12,11 +12,17 @@ const emits = defineEmits(['update:open'])
 
 const vOpen = useVModel(props, 'open', emits)
 
-const { user } = useGlobal()
+const ROW_HEIGHT = 36
 
-const modalEl = ref<HTMLElement | null>(null)
-const cmdInputEl = ref<HTMLElement | null>(null)
-const selectedIndex = ref(0)
+const inputEl = ref<HTMLInputElement>()
+
+const selectedId = ref<string>()
+
+/** Set once the user moves the selection; new results reset it to the first row until then. */
+const navigated = ref(false)
+
+/** Enter pressed before the results for the typed text arrived: it runs the first of them once they do. */
+const pendingEnter = ref(false)
 
 const typesenseClient = new Client({
   apiKey: 'lNKDTZdJrE76Sg8WEyeN9mXT29l1xq7Q',
@@ -29,213 +35,214 @@ const typesenseClient = new Client({
   ],
 })
 
-const { search, query } = useTypesenseSearch(typesenseClient, 'noco-docs-v2')
+// An empty query lists popular pages, fetched only while the palette is open.
+const { search, query } = useTypesenseSearch(typesenseClient, 'noco-docs-v2', 100, () => vOpen.value)
 
-const hide = () => {
+const { docsQuery } = useCommand()
+
+const cmdOrCtrlKey = isMac() ? 'Meta' : 'Ctrl'
+
+const isLoading = computed(() => query.isLoading.value)
+
+// Results come page first, then its headings and text; a result without a url has nowhere to go.
+const commands = computed<CmdCommand[]>(() => {
+  const data = query.data.value
+  if (!Array.isArray(data)) return []
+
+  // Many pages share headings like "Filter", so the hint is the lvl1 › lvl2 path. The index has two levels:
+  // a heading row is itself lvl2, so its path is just the page.
+  const seen = new Set<string>()
+  return data
+    .filter((result) => !!result.url)
+    .flatMap((result): CmdCommand[] => {
+      const pageUrl = result.url.split('#')[0]!
+      const hint =
+        result.type === 'page'
+          ? undefined
+          : [result.page, result.section !== result.content ? result.section : undefined].filter(Boolean).join(' › ')
+      // Two "Filter" headings on one page would be the same row twice.
+      const key = `${pageUrl}\n${result.content}\n${hint ?? ''}`
+      if (seen.has(key)) return []
+      seen.add(key)
+      return [
+        {
+          id: result.id,
+          title: result.content,
+          hint,
+          icon: {
+            type: 'icon',
+            name: result.type === 'page' ? 'ncFileText' : result.type === 'heading' ? 'ncHash' : 'ncAlignLeft',
+          },
+          run: () => window.open(`https://nocodb.com${result.url}`, '_blank', 'noopener,noreferrer'),
+        },
+      ]
+    })
+})
+
+const rows = computed(() => commands.value)
+
+const { list, containerProps, wrapperProps } = useVirtualList(rows, { itemHeight: ROW_HEIGHT })
+
+function hide() {
   vOpen.value = false
-  search.value = ''
-  selectedIndex.value = 0
 }
 
-const navigateToResult = (result: SortedResult) => {
-  window.open(`https://nocodb.com${result.url}`, '_blank')
+function ensureVisible(id: string) {
+  const container = containerProps.ref.value
+  const rowIndex = rows.value.findIndex((command) => command.id === id)
+  if (!container || rowIndex === -1) return
+
+  const top = rowIndex * ROW_HEIGHT
+  const bottom = top + ROW_HEIGHT
+  if (top < container.scrollTop) container.scrollTop = top
+  else if (bottom > container.scrollTop + container.clientHeight) container.scrollTop = bottom - container.clientHeight
+}
+
+function moveSelection(step: number) {
+  const ids = rows.value.map((command) => command.id)
+  if (!ids.length) return
+
+  const index = selectedId.value ? ids.indexOf(selectedId.value) : -1
+  navigated.value = true
+  selectedId.value = ids[(index + step + ids.length) % ids.length]
+  ensureVisible(selectedId.value)
+}
+
+function hoverRow(id: string) {
+  navigated.value = true
+  selectedId.value = id
+}
+
+function execute(command: CmdCommand) {
+  command.run?.()
   hide()
 }
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (!vOpen.value || !query.data?.value?.length) return
+function onKeydown(e: KeyboardEvent) {
+  if (e.isComposing || e.keyCode === 229) return
 
   switch (e.key) {
     case 'ArrowDown':
       e.preventDefault()
-      selectedIndex.value = Math.min(selectedIndex.value + 1, query.data.value.length - 1)
-      break
+      moveSelection(1)
+      return
     case 'ArrowUp':
       e.preventDefault()
-      selectedIndex.value = Math.max(selectedIndex.value - 1, 0)
-      break
-    case 'Enter':
+      moveSelection(-1)
+      return
+    case 'Enter': {
       e.preventDefault()
-      if (query.data.value[selectedIndex.value]) {
-        navigateToResult(query.data.value[selectedIndex.value])
+      if (query.settledSearch.value !== search.value) {
+        pendingEnter.value = true
+        return
       }
-      break
-  }
-
-  document.querySelector(`.cmdj-action.selected`)?.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center',
-    inline: 'nearest',
-  })
-}
-
-onClickOutside(modalEl, () => {
-  hide()
-})
-
-useEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    hide()
-  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-    hide()
-  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
-    hide()
-  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
-    if (vOpen.value || !user?.value?.id) {
-      hide()
+      const command = rows.value.find((c) => c.id === selectedId.value)
+      if (command) execute(command)
       return
     }
-    vOpen.value = true
-    nextTick(() => {
-      cmdInputEl.value?.focus()
-    })
-  } else {
-    handleKeyDown(e)
+    case 'Escape':
+      e.preventDefault()
+      e.stopPropagation()
+      hide()
   }
+}
+
+watch(vOpen, (isOpen) => {
+  if (!isOpen) return
+  // "Search docs for …" from Cmd+K opens on its query; Cmd+J itself opens empty.
+  search.value = docsQuery.value
+  docsQuery.value = ''
+  selectedId.value = undefined
+  navigated.value = false
+  pendingEnter.value = false
+  nextTick(() => inputEl.value?.focus())
 })
 
-watch(vOpen, () => {
-  if (vOpen.value) {
-    nextTick(() => {
-      cmdInputEl.value?.focus()
-    })
-  } else {
-    selectedIndex.value = 0
+watch(search, () => {
+  navigated.value = false
+  pendingEnter.value = false
+})
+
+// After the `rows` watcher below has moved the selection to the new first row.
+watch(
+  query.settledSearch,
+  (settled) => {
+    if (!pendingEnter.value || settled !== search.value) return
+    pendingEnter.value = false
+    const command = query.error.value ? undefined : rows.value.find((c) => c.id === selectedId.value)
+    if (command) execute(command)
+  },
+  { flush: 'post' },
+)
+
+watch(rows, (list) => {
+  if (!navigated.value || !selectedId.value || !list.some((command) => command.id === selectedId.value)) {
+    selectedId.value = list[0]?.id
+    containerProps.ref.value?.scrollTo({ top: 0 })
   }
 })
 </script>
 
 <template>
-  <div v-if="vOpen" class="cmdk-modal cmdj-modal" :class="{ 'cmdk-modal-active cmdj-modal-active': vOpen }">
-    <div ref="modalEl" class="cmdk-modal-content cmdj-modal-content relative h-[25.25rem]">
-      <div class="cmdk-input-wrapper border-b-1 border-nc-border-gray-medium">
-        <GeneralIcon class="h-4 w-4 text-nc-content-gray-muted" icon="search" />
+  <CmdKShell v-model:open="vOpen" active-cmd="cmd-j" :set-active-cmd-view="setActiveCmdView" modal-class="cmdj-modal">
+    <template #header>
+      <div class="nc-cmdk-input-row">
+        <GeneralIcon class="nc-cmdk-input-icon" icon="ncFileSearch" />
         <input
-          ref="cmdInputEl"
+          ref="inputEl"
           v-model="search"
           class="cmdk-input cmdj-input"
-          :placeholder="$t('placeholder.searchThroughDocs')"
           type="text"
+          data-testid="nc-cmdj-input"
+          :placeholder="$t('labels.commandPalette.searchDocsPlaceholder')"
+          role="combobox"
+          aria-autocomplete="list"
+          :aria-expanded="!!rows.length"
+          aria-controls="nc-cmdj-listbox"
+          :aria-activedescendant="selectedId ? cmdRowDomId(selectedId) : undefined"
+          @keydown="onKeydown"
         />
+        <GeneralLoader v-if="isLoading && search" />
+        <GeneralShortcutLabel v-else :keys="[cmdOrCtrlKey, 'J']" class="text-nc-content-gray-muted" />
       </div>
+    </template>
 
-      <div class="cmdk-results-container overflow-y-auto max-h-80">
-        <div v-if="!search?.length" class="flex flex-col p-4 gap-4 items-center justify-center text-sm">
-          <img
-            src="~assets/img/placeholder/no-search-result-found.png"
-            class="!w-[240px] flex-none"
-            alt="Search through our documentation"
-          />
-          <div class="text-nc-content-gray-muted">{{ $t('labels.docsSearchPrompt') }}</div>
-        </div>
-        <div
-          v-else-if="(query.data.value === 'empty' || query.data.value?.length === 0) && !query.isLoading.value"
-          class="flex flex-col p-4 gap-4 items-center justify-center text-sm"
-        >
-          <img
-            src="~assets/img/placeholder/no-search-result-found.png"
-            class="!w-[240px] flex-none"
-            alt="Your search did not match any results"
-          />
-          <div class="text-nc-content-gray-muted">{{ $t('msg.info.docsSearchNoResults') }}</div>
-        </div>
-
-        <div v-else-if="!query.isLoading.value" class="cmdk-results">
-          <template v-for="(result, index) in query.data.value" :key="result.id">
-            <div
-              class="cmdk-action cmdj-action"
-              :class="{ 'selected': selectedIndex === index, 'pl-4': result.type !== 'page' }"
-              @click="navigateToResult(result)"
-              @mouseenter="selectedIndex = index"
-            >
-              <div class="cmdk-action-content">
-                <div v-if="result.type === 'page'" class="pr-4">
-                  <GeneralIcon icon="file" class="h-4 w-4" />
-                </div>
-                <div
-                  :class="{
-                    'pl-4': result.type !== 'page',
-                  }"
-                  class="cmdk-action-text flex-1"
-                >
-                  <div class="cmdk-action-title text-md">{{ result.content }}</div>
-                </div>
-              </div>
-            </div>
-          </template>
-        </div>
-        <div v-else class="flex flex-col p-4 gap-4 justify-center text-sm">
-          <div>{{ $t('labels.searching') }}</div>
-        </div>
-      </div>
-
-      <CmdFooter active-cmd="cmd-j" :set-active-cmd-view="setActiveCmdView" />
+    <div v-if="isLoading && !rows.length" class="nc-cmdk-empty">
+      <GeneralLoader :size="24" />
     </div>
-  </div>
+    <div v-else-if="!search && !rows.length" class="nc-cmdk-empty">
+      <GeneralIcon icon="ncFileSearch" class="h-6 w-6 text-nc-content-gray-muted" />
+      <div class="text-body text-nc-content-gray">{{ $t('labels.docsSearchPrompt') }}</div>
+    </div>
+    <div v-else-if="!rows.length" class="nc-cmdk-empty">
+      <GeneralIcon icon="search" class="h-6 w-6 text-nc-content-gray-muted" />
+      <div class="text-body text-nc-content-gray">{{ $t('msg.info.docsSearchNoResults') }}</div>
+    </div>
+    <!-- Outside the virtual list so row offsets stay exact; px-2 matches .cmdk-actions, and the
+         inline flex beats the shell's `.nc-cmdk-body > *` flex-1. -->
+    <div v-if="!search && rows.length" class="px-2" style="flex: none" role="presentation">
+      <div class="nc-cmdk-section" :style="{ height: `${ROW_HEIGHT}px` }">
+        {{ $t('labels.commandPalette.sections.popularDocs') }}
+      </div>
+    </div>
+    <div v-if="rows.length" v-bind="containerProps" class="cmdk-actions nc-scrollbar-thin">
+      <div id="nc-cmdj-listbox" v-bind="wrapperProps" role="listbox">
+        <CmdKRow
+          v-for="item in list"
+          :key="item.data.id"
+          class="cmdj-action"
+          :class="{ 'pl-4': item.data.icon?.type === 'icon' && item.data.icon.name !== 'ncFileText' }"
+          :command="item.data"
+          :selected="selectedId === item.data.id"
+          :height="ROW_HEIGHT"
+          @hover="hoverRow(item.data.id)"
+          @select="execute(item.data)"
+        >
+          <template #trailing>
+            <GeneralIcon icon="ncExternalLink" class="h-3.5 w-3.5 text-nc-content-gray-muted opacity-0 nc-cmdk-row-hover-icon" />
+          </template>
+        </CmdKRow>
+      </div>
+    </div>
+  </CmdKShell>
 </template>
-
-<style lang="scss">
-/* TODO Move styles to Windi Classes */
-
-:root {
-  --cmdk-secondary-background-color: rgb(230, 230, 230);
-  --cmdk-secondary-text-color: rgb(101, 105, 111);
-  --cmdk-selected-background: rgb(245, 245, 245);
-
-  --cmdk-icon-color: var(--cmdk-secondary-text-color);
-  --cmdk-icon-size: 1.2em;
-
-  --cmdk-modal-background: var(--nc-bg-elevated);
-}
-
-.dark .cmdk-modal {
-  color: var(--nc-content-gray-subtle);
-}
-
-.cmdk-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1100;
-
-  color: rgb(60, 65, 73);
-  font-size: 16px;
-
-  .cmdk-action {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    outline: none;
-    transition: all 0.1s ease;
-    width: 100%;
-    font-size: 0.9em;
-    border-left: 4px solid transparent;
-    cursor: pointer;
-
-    &:hover,
-    &.selected {
-      cursor: pointer;
-      background-color: var(--color-gray-100);
-      border-left: 4px solid var(--color-brand-400);
-      outline: none;
-    }
-
-    .cmdk-action-content {
-      display: flex;
-      align-items: center;
-      flex-shrink: 0.01;
-      flex-grow: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding: 0.75em 1em;
-      width: 640px;
-      min-width: 0;
-    }
-  }
-}
-</style>

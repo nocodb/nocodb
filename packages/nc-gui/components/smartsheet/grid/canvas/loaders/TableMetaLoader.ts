@@ -1,17 +1,11 @@
 import type { TableType } from 'nocodb-sdk'
+import type { GetMetaParams } from '~/composables/useMetas'
 
 export class TableMetaLoader {
   private loadingCache = new Map<string, string>() // Cache for ongoing loading promises
 
   constructor(
-    private getMeta: (
-      baseId: string,
-      tableIdOrTitle: string,
-      force?: boolean,
-      skipIfCacheMiss?: boolean,
-      disableError?: boolean,
-      navigateOnNotFound?: boolean,
-    ) => Promise<TableType | null>,
+    private getMeta: (params: GetMetaParams) => Promise<TableType | null>,
     private onSettled?: () => void,
     private baseId?: string,
   ) {}
@@ -30,7 +24,7 @@ export class TableMetaLoader {
 
     this.loadingCache.set(cacheKey, cacheKey)
     try {
-      await this.getMeta(effectiveBaseId, tableIdOrTitle, undefined, undefined, true)
+      await this.getMeta({ baseId: effectiveBaseId, tableIdOrTitle, disableError: true })
       this.onSettled?.()
     } finally {
       this.loadingCache.delete(cacheKey)

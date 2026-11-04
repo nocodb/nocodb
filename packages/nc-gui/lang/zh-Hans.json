@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "没有更多操作可以重做",
     "noRecentViews": "没有最近的视图",
     "expandLinkFields": "展开链接字段",
-    "expandLinkFieldsDesc": "返回链接的记录数据而不是计数",
+    "expandLinkFieldsDesc": "输出中的链接字段保存的是关联记录，而不是数量",
     "inheritedFromParent": "继承自父类",
     "pageOrUrl": "页面或网址",
     "linkTitle": "链接标题",
@@ -4072,7 +4072,6 @@
     "relationSettings": "关联设置",
     "restoreVersion": "恢复 v{version}",
     "runningScript": "正在运行脚本 ...",
-    "removeSummary": "移除摘要",
     "rowFiltered": "行已筛选",
     "rowMoved": "行已移动",
     "rowHidden": "行已隐藏",
@@ -4780,7 +4779,7 @@
       },
       "optIn": {
         "title": "选择性启用的工具",
-        "description": "会永久删除或在 NocoDB 之外执行操作的工具，例如运行自动化或触发 Webhook。除非你在此处启用，否则连接永远不会获得这些工具。"
+        "description": "会永久删除数据或在 NocoDB 之外执行操作的工具，例如运行自动化或触发 Webhook。除非你在这里开启，否则它们始终处于关闭状态。"
       }
     },
     "noBaseAccess": "无项目访问权限",
@@ -5778,7 +5777,88 @@
     "workflowValueDynamicDescription": "使用此自动化中前一步骤的变量",
     "workflowRunAs": "运行身份",
     "workflowChangeRunAs": "更改运行身份",
-    "workflowServiceAccount": "服务账号"
+    "workflowServiceAccount": "服务账号",
+    "wsEmpty": {
+      "title": "开始你的第一个项目",
+      "subtitle": "项目保存你的数据，以及基于这些数据构建的应用。",
+      "sharedTitle": "还没有人与你共享内容",
+      "sharedSubtitle": "你被邀请加入的项目和应用会显示在这里。"
+    },
+    "workspaceHome": {
+      "uploadFile": "上传 CSV 或 Excel",
+      "pickTemplate": "或者选择一个起始模板",
+      "untitledBase": "未命名项目",
+      "templates": {
+        "projectManagement": {
+          "label": "项目管理",
+          "prompt": "一个项目跟踪表，包含项目和任务，每个任务都有负责人、状态、优先级和截止日期。"
+        },
+        "product": {
+          "label": "产品",
+          "prompt": "一个产品路线图，包含功能、每个功能解决的问题、优先级、状态和目标版本。"
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "一个营销日历，包含活动、每个活动投放的渠道、预算、负责人和上线日期。"
+        },
+        "sales": {
+          "label": "销售",
+          "prompt": "一个销售 CRM，包含公司、联系人和商机，每个商机都有阶段、金额和预计成交日期。"
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "一个支持工单台，包含工单、提交工单的客户、优先级、状态和负责的客服。"
+        },
+        "hr": {
+          "label": "人力资源",
+          "prompt": "一个应聘者跟踪表，包含在招岗位、按招聘阶段划分的候选人，以及带日期和面试官备注的面试记录。"
+        }
+      }
+    },
+    "yourConnections": "你的连接",
+    "workingHours": "工作时间",
+    "workingDays": "工作日",
+    "wsNav": {
+      "groupBilling": "套餐",
+      "groupAdmin": "管理",
+      "membersPage": "工作区成员",
+      "iconHint": "显示在侧边栏和工作区切换器中。",
+      "nameHint": "此工作区在整个 NocoDB 中的名称。",
+      "workspaceId": "工作区 ID",
+      "workspaceIdHint": "可用于 API 调用，或在联系支持时提供。",
+      "allTypes": "所有类型",
+      "allTeams": "所有团队",
+      "teamsCreatedHere": "在此创建",
+      "teamsScimManaged": "由 SCIM 管理",
+      "upgradeTitleAudits": "工作区审计日志",
+      "upgradeDescAudits": "查看本工作区内的每一次改动，以及是谁做的。",
+      "upgradeTitleSso": "单点登录",
+      "upgradeDescSso": "允许成员通过你的身份提供商登录。",
+      "desc": {
+        "members": "谁属于这个工作区，以及他们的默认角色。",
+        "teams": "可以整体添加到项目中的成员分组。",
+        "integrations": "在整个工作区共享的已连接账号和凭据。",
+        "general": "工作区的名称、图标和 ID。",
+        "skills": "AI 助手在整个工作区内遵循的指令。",
+        "security": "适用于本工作区所有人的登录要求。",
+        "dangerZone": "退出或永久删除此工作区。",
+        "billing": "你的套餐、席位、付款方式和发票。",
+        "usage": "此工作区相对其套餐额度的用量。",
+        "audits": "本工作区内的每一次改动，以及是谁做的。",
+        "sso": "通过你的身份提供商登录。"
+      }
+    },
+    "workspaceMode": "工作区模式",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "zoomTo50Percent": "缩放到 50%",
+    "zoomTo100Percent": "缩放到 100%",
+    "workflowValueStatic": "静态",
+    "workflowValueStaticDescription": "直接输入值",
+    "workspaceNoAccess": "工作区（无访问权限）",
+    "yAxis": "Y 轴",
+    "workspaceSettings": "工作区设置",
+    "wrapLongText": "长文本自动换行"
   },
   "activity": {
     "useTemplate": "使用模板",
@@ -7138,8 +7218,6 @@
       "selectFieldFirst": "请先选择 {field}，以便加载这些选项。",
       "viewFolderDeleteConfirmation": "此文件夹中的视图将被移至顶层。",
       "saveDraftToBrowser": "将草稿保存到浏览器",
-      "showAppFirst": "在侧边栏中优先显示应用",
-      "showAppFirstDesc": "在该项目的侧边栏中，将 Apps 放在数据上方。",
       "recordSavedButHidden": "记录已保存成功，但因你的访问权限而被隐藏。",
       "seeChangesToRecord": "查看此记录的更改",
       "revisionHistoryUpgrade": "你拥有 {limit} 的修订历史。升级后可查看完整历史。",
@@ -7242,7 +7320,20 @@
       "mcpSetupCursorStep3": "添加创建令牌后提供的 JSON 配置。",
       "mcpSetupIntroWindsurf": "通过 4 个简单步骤开始在 Windsurf 中使用 NocoDB MCP",
       "mcpSetupWindsurfStep1": "进入 Windsurf 设置，并在左侧边栏选择 Cascade 选项卡",
-      "mcpSetupWindsurfStep2": "点击 Manage MCP。"
+      "mcpSetupWindsurfStep2": "点击 Manage MCP。",
+      "abuseReport": {
+        "queueDescription": "通过公开链接提交的举报。停用链接可将其下线，或者封禁其背后的账号。",
+        "disableConfirm": "公开链接将对所有人失效，与之相关的所有未处理举报都会标记为已解决。所有者可以用新链接重新共享该项目。",
+        "blockConfirm": "{email} 已在所有设备上退出登录，无法再登录或使用 API 令牌。你可以在用户管理中解除封禁。",
+        "noAccounts": "没有账号与此项目关联。",
+        "superAdminNotBlockable": "超级管理员无法被封禁。",
+        "description": "你认为此页面被用于钓鱼、冒充、诈骗或其他滥用行为吗？请告知此 {productName} 实例的管理员。",
+        "detailsMin": "请用至少 {min} 个字符描述该问题。",
+        "thanksTitle": "感谢你的举报",
+        "thanksDescription": "我们已收到你的举报。此 {productName} 实例的管理员会进行审核。",
+        "contactEmailHint": "来自公开视图、表单、界面和仪表板的举报会发送到此邮箱。留空则发送给所有超级管理员。"
+      },
+      "actWithYourOwnPermissions": "以你自己的权限在这些资源中执行操作"
     },
     "error": {
       "failedToCreateSync": "创建同步失败",
@@ -7455,7 +7546,46 @@
       "inviteLinkRevoked": "此邀请链接已被撤销",
       "inviteLinkExhausted": "此邀请链接的使用次数已用完",
       "inviteLinkUnavailable": "此邀请链接已失效",
-      "invalidEmailDomain": "请输入类似 acme.io 的域名"
+      "invalidEmailDomain": "请输入类似 acme.io 的域名",
+      "attachmentInvalidUrl": "请输入以 http:// 或 https:// 开头的 URL，或使用变量的模板",
+      "attachmentAlreadyAttached": "此文件已经添加为附件。",
+      "attachmentOpenWorkflowToUpload": "请打开工作流以上传文件",
+      "attachmentNoLongerAvailable": "此文件已不可用",
+      "attachmentsTooLarge": "文件超出了每封邮件 {size} 的限制",
+      "factoryMachineNameRequired": "请为这台机器命名",
+      "factoryMachineNameDuplicate": "已存在同名的机器",
+      "vaultUnreachable": "使用这些设置无法连接到保险库",
+      "vaultAliasStart": "名称必须以字母开头",
+      "vaultAliasCharacters": "名称只能包含字母和数字 — 不能有空格、连字符或下划线",
+      "vaultAliasReserved": "“{name}”是保留名称，请另选一个",
+      "fieldSaveFailed": "无法保存字段“{field}”：{error}",
+      "fieldSavesFailed": "无法保存 {count} 个字段（{fields}）。首个错误：{error}",
+      "projectNameRequired": "项目名称为必填项",
+      "attachmentUrlDownloadFailed": "NocoDB 无法从该 URL 下载此文件。请先移除，然后重新添加该文件。",
+      "emailImageSize": "邮件正文中的图片必须小于 {size}。徽标通常远小于 100 KB。",
+      "emailImageType": "请使用 PNG、JPEG、GIF 或 WebP 格式的图片",
+      "emailImageCount": "一封邮件正文最多可包含 {count} 张图片",
+      "emailImageTotalSize": "邮件正文中的图片总大小必须小于 {size}",
+      "emailImageNoWorkflow": "请打开工作流以添加图片",
+      "emailImageUploadFailed": "无法上传该图片",
+      "emailImageMissing": "此图片已不可用，将不会包含在邮件中。请移除后重新插入。",
+      "vaultSecretNeedsProperty": "此密钥包含多个字段。请选择要使用的字段，否则运行时连接会失败。",
+      "vaultUnknownAlias": "你没有可用的名为“{name}”的保险库。",
+      "atLeastOneOperationRequired": "至少需要选择一项操作",
+      "triggerFormRequired": "必须选择一个触发表单",
+      "failedToStartListening": "无法开始接收更新",
+      "unknownPermissionRequested": "此服务器不提供该权限",
+      "authorizationWillBeRefused": "由于上面的权限设置，此请求将被拒绝。",
+      "vaultAliasNotAllowed": "你无权使用保险库“{name}”。请向工作区所有者申请权限，或直接输入凭据。",
+      "selectTargetField": "请选择目标字段！",
+      "parentTableNoPrimaryKey": "父表没有主键列",
+      "childTableNoPrimaryKey": "子表没有主键列",
+      "noWorkspaceAvailable": "没有可用的工作区",
+      "invalidJson": "无效的 JSON",
+      "invalidTokensJson": "这不是令牌导出文件。应包含 light、dark、font 或 radiusScale 之类的键。",
+      "renameFileFailed": "重命名文件时出错",
+      "failedToLoadMetadataDiff": "无法加载元数据差异",
+      "failedToLoadMonacoEditor": "无法加载 Monaco Editor"
     },
     "toast": {
       "inviteUrlCopy": "复制邀请链接到剪贴板",
@@ -7598,9 +7728,9 @@
       "failed": "注册失败",
       "paused": "已暂停"
     },
-    "agentToolsAndAccessSubtitle": "智能体可以使用什么？添加它能访问的工具、页面和连接。",
+    "agentToolsAndAccessSubtitle": "这个智能体可以读取和修改哪些内容？请为每一项选择一个级别。",
     "agentNoFilters": "还没有条件",
-    "agentInstructionsSubtitle": "智能体每次运行时应该做什么？这里是最佳实践。",
+    "agentInstructionsSubtitle": "先给它起个名字，再像给同事交接工作那样写清楚它该做什么。",
     "communitySkillsSubtitle": "在上方搜索 skills.sh 上分享的 Skills，然后打开其中一个，在安装前阅读它的 SKILL.md。",
     "environmentBlockedBySync": "无法为存在活动同步的项目打开环境。请先移除同步配置。",
     "chatArtifactPublicLinkHint": "任何拿到链接的人都能查看此内容。",
@@ -7765,7 +7895,14 @@
       "confirmCta": "确认迁移",
       "migrating": "正在迁移..."
     },
-    "skillsRegistryErrorTitle": "无法搜索技能注册表"
+    "skillsRegistryErrorTitle": "无法搜索技能注册表",
+    "airtableImportReportSummary": "已跳过 {skipped} 项 · 已近似处理 {approximated} 项 · 失败 {failed} 项",
+    "airtableImportReportTruncated": "报告只列出了 {total} 项中的前 {shown} 项。下载日志可查看完整列表。",
+    "factoryMachineReadyNow": "机器已就绪。新会话将使用它。",
+    "factoryMachineSwitched": "新会话将使用版本 {version}。",
+    "factoryMachineDefaultNow": "新会话现在在 {machine} 上启动。",
+    "factoryMachineUpgrading": "正在升级 {machine}。构建完成后，新会话将使用它。",
+    "factoryAppInstallUnavailable": "{provider} 暂时还不能连接到编码智能体。这需要安装应用，而这里尚未为 {provider} 配置任何应用。"
   },
   "trash": {
     "restore": "恢复",
@@ -8151,7 +8288,6 @@
       "lastSignedInAt": "上次登录 {time}",
       "lastUsed": "最近使用",
       "lastUsedAt": "最近使用 {time}",
-      "canDelete": "可以删除数据",
       "toolsTitle": "工具与权限",
       "neverMoreThanRole": "绝不会超出你本人在该项目中的角色（{role}）。",
       "neverMoreThanAccess": "绝不会超出你本人对该项目的访问权限。",

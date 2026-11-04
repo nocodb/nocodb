@@ -267,6 +267,7 @@ export const permissionScopes = {
     'nestedDataList',
     'nestedDataLink',
     'nestedDataUnlink',
+    'nestedDataLinkSwap',
     'nestedDataReorder',
     'nestedListCopyPasteOrDeleteAll',
     'baseUserList',
@@ -311,6 +312,7 @@ export const permissionScopes = {
 
     // AI
     'aiUtils',
+    'aiCmdkInterpret',
     'aiData',
     'aiBaseSchema',
     'aiDataGenerateRows',
@@ -490,6 +492,8 @@ const rolePermissions:
       // decision 2026-09-19). The invite form caps the offered role at the
       // inviter's own, so a viewer can only ever bring in another viewer.
       userInvite: true,
+      // Cmd+K NocoAI readings: sends field metadata only, never row data.
+      aiCmdkInterpret: true,
       // batch envelope — per-sub-op ACL is enforced inside the handler,
       // so the envelope itself is granted to everyone with base access.
       batch: true,
@@ -615,6 +619,7 @@ const rolePermissions:
 
       nestedDataLink: true,
       nestedDataUnlink: true,
+      nestedDataLinkSwap: true,
       nestedDataReorder: true,
       nestedListCopyPasteOrDeleteAll: true,
       // TODO add ACL with base scope
@@ -883,6 +888,7 @@ export const sourceRestrictions = {
     nestedDataBulkCopyPasteOrDeleteAll: true,
     nestedDataBulkLinkByDisplayValue: true,
     nestedDataUnlink: true,
+    nestedDataLinkSwap: true,
     nestedDataLink: true,
     nestedDataReorder: true,
   },
@@ -891,6 +897,8 @@ export const sourceRestrictions = {
 export default rolePermissions;
 
 const permissionDescriptions: Record<string, string> = {
+  aiCmdkInterpret: 'interpret a Cmd+K query using AI',
+
   // cloudOrg permissions
   orgUserAdd: 'add users to the organization',
   orgUserRemove: 'remove users from the organization',
@@ -1102,6 +1110,7 @@ const permissionDescriptions: Record<string, string> = {
   relationDataRemove: 'remove related data',
   relationDataAdd: 'add related data',
   nestedDataBulkLinkByDisplayValue: 'bulk link records by display value',
+  nestedDataLinkSwap: 'replace linked records in one step',
   baseUserList: 'view list of users in the base',
 
   baseInviteLinkList: 'view invite links for a base',

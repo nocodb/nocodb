@@ -59,6 +59,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const commentsDrawer = ref(true)
 
+    // Cmd+K asks the sidebar to switch feeds; the sidebar applies it and resets it.
+    const requestedSidebarFeed = ref<'comments' | 'audits' | null>(null)
+
     const saveRowAndStay = ref(0)
 
     const isSaving = ref(false)
@@ -66,6 +69,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const changedColumns = shallowRef<Set<string>>(new Set<string>())
 
     const localOnlyChanges = ref<Record<string, any>>({})
+
+    // Typing in a field editor teleported out of the form's DOM (e.g. the long-text
+    // expand popup), keyed by column id.
+    const fieldInputHook = createEventHook<string>()
 
     const basesStore = useBases()
 
@@ -1002,6 +1009,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       resolveComment,
       isCommentsLoading,
       saveComment,
+      requestedSidebarFeed,
       isYou,
       commentsDrawer,
       row,
@@ -1014,6 +1022,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       hasLtarChanges: rowStore.hasLtarChanges,
       pendingLtarOps: rowStore.pendingLtarOps,
       localOnlyChanges,
+      onFieldInput: fieldInputHook.on,
+      notifyFieldInput: fieldInputHook.trigger,
       loadRow,
       primaryKey,
       saveRowAndStay,

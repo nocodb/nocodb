@@ -11,6 +11,7 @@ import {
   HookOperationCode,
   isDateMonthFormat,
   isLinksOrLTAR,
+  isUnratedRating,
   UITypes,
 } from 'nocodb-sdk';
 import type {
@@ -329,11 +330,15 @@ export async function validateCondition(
               break;
             case 'empty':
             case 'blank':
-              res = isBlank(data[field]);
+              res =
+                isBlank(data[field]) ||
+                isUnratedRating(column.uidt, data[field]);
               break;
             case 'notempty':
             case 'notblank':
-              res = !isBlank(data[field]);
+              res =
+                !isBlank(data[field]) &&
+                !isUnratedRating(column.uidt, data[field]);
               break;
             case 'checked':
               res = !!data[field];

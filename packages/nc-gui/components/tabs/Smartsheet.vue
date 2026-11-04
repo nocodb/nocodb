@@ -200,7 +200,7 @@ const onDrop = async (event: DragEvent) => {
     // if dragged item or opened view is not a table, return
     if (data.type !== 'table' || meta.value?.type !== 'table') return
 
-    const childMeta = await getMeta(meta.value.base_id!, data.id)
+    const childMeta = await getMeta({ baseId: meta.value.base_id!, tableIdOrTitle: data.id })
     const parentMeta = getMetaByKey(activeProjectId.value, meta.value.id!)
 
     if (!childMeta || !parentMeta) return
@@ -431,6 +431,7 @@ watch(isViewsLoading, async () => {
 
       <!-- Table Tools shell — a route-driven modal over the view (open while the slug names a tool). -->
       <LazySmartsheetDetails />
+      <SmartsheetCommandProvider v-if="activeView && meta" />
     </div>
     <LazySmartsheetExpandedFormDetached />
     <DetachedExpandedText />

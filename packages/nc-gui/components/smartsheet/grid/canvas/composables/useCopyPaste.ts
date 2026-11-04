@@ -530,7 +530,7 @@ export function useCopyPaste({
               },
             )
 
-            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+            await getMeta({ baseId: meta?.value?.base_id as string, tableIdOrTitle: meta?.value?.id as string, force: true })
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
         } else {
@@ -913,10 +913,10 @@ export function useCopyPaste({
 
             const relatedBaseId =
               (columnObj.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta?.value?.base_id
-            const relatedTableMeta = await getMeta(
-              relatedBaseId as string,
-              (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
-            )
+            const relatedTableMeta = await getMeta({
+              baseId: relatedBaseId as string,
+              tableIdOrTitle: (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+            })
 
             // update old row to allow undo redo as bt column update only through foreignKeyColumn title
             rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
@@ -1431,7 +1431,8 @@ export function useCopyPaste({
     }
   }
 
-  async function copyValue(ctx?: Cell, path: Array<number> = []) {
+  // `notify: false` (Cmd+K) skips the toasts and throws on failure so the caller can show it inline.
+  async function copyValue(ctx?: Cell, path: Array<number> = [], { notify = true } = {}) {
     try {
       if (selection.value.start !== null && selection.value.end !== null && !selection.value.isSingleCell()) {
         const cprows = await getRows(selection.value.start.row, selection.value.end.row, path)
@@ -1439,11 +1440,13 @@ export function useCopyPaste({
         const cpcols = unref(fields).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
 
         await copyTable(cprows, cpcols)
-        message.toast(
-          t(`msg.toast.nCell${cprows.length * cpcols.length === 1 ? '' : 's'}Copied`, {
-            n: cprows.length * cpcols.length,
-          }),
-        )
+        if (notify) {
+          message.toast(
+            t(`msg.toast.nCell${cprows.length * cpcols.length === 1 ? '' : 's'}Copied`, {
+              n: cprows.length * cpcols.length,
+            }),
+          )
+        }
       } else {
         const dataCache = getDataCache(path)
 
@@ -1487,14 +1490,17 @@ export function useCopyPaste({
 
           setCellClipboardDataItem(clipboardItem)
 
-          message.toast(
-            t(`msg.toast.nCellCopied`, {
-              n: 1,
-            }),
-          )
+          if (notify) {
+            message.toast(
+              t(`msg.toast.nCellCopied`, {
+                n: 1,
+              }),
+            )
+          }
         }
       }
     } catch (e) {
+      if (!notify) throw new Error(t('msg.error.copyToClipboardError'))
       console.log(e)
       message.error(t('msg.error.copyToClipboardError'))
     }
@@ -1576,5 +1582,5 @@ export function useCopyPaste({
     }
   }
   useEventListener(document, 'paste', handlePaste)
-  return { copyValue, clearCell, isPasteable, handleAttachmentCellDrop }
+  return { copyValue, copyTable, clearCell, isPasteable, handleAttachmentCellDrop }
 }

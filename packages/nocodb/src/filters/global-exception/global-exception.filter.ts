@@ -12,7 +12,11 @@ import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import type { MappedExceptionResponse } from '~/filters/global-exception/exception-mapper';
 import { throttlerLogger } from '~/helpers/throttlerLogger';
-import { isMcpEndpoint, JSON_RPC_PARSE_ERROR } from '~/mcp/mcp-http';
+import {
+  isMcpEndpoint,
+  JSON_RPC_PARSE_ERROR,
+  toJsonRpcError,
+} from '~/mcp/mcp-http';
 import { DBErrorKind } from '~/helpers/db-error/utils';
 import { mapExceptionToResponse } from '~/filters/global-exception/exception-mapper';
 import {
@@ -191,6 +195,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         `Failed to decorate error response: ${e?.message}`,
         e?.stack,
       );
+    }
+
+    // MCP routes keep status and headers but answer in JSON-RPC
+    if (isMcpEndpoint(request.path)) {
+      return response.status(mapped.status).json(toJsonRpcError(mapped.body));
     }
 
     return response.status(mapped.status).json(mapped.body);

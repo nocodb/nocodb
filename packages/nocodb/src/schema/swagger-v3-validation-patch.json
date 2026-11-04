@@ -235,7 +235,7 @@
             "type": "number",
             "description": "Decimal field precision. Defaults to 0",
             "minimum": 0,
-            "maximum": 5
+            "maximum": 8
           },
           "separator": {
             "type": "string",
@@ -292,7 +292,7 @@
             "type": "number",
             "description": "Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.",
             "minimum": 0,
-            "maximum": 5
+            "maximum": 8
           },
           "enable_conditions": {
             "type": "boolean",

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createMcpHandler, McpServer } from '@modelcontextprotocol/server';
 import { toNodeHandler } from '@modelcontextprotocol/node';
-import { z } from 'zod-v4';
+import { z } from 'zod';
 import { extractRolesObj, NcApiVersion, UITypes } from 'nocodb-sdk';
 import type { FetchLikeMcpHandler } from '@modelcontextprotocol/node';
 import type { McpToolMode, NcContext, NcRequest, UserType } from 'nocodb-sdk';
@@ -566,9 +566,9 @@ export class McpService {
                     .describe('Attachment path. Required if `url` is not set.'),
                   signedPath: z.string().nullish(),
                 })
-                .passthrough()
+                .loose()
                 .refine((f) => !!(f.url || f.path), {
-                  message: 'An attachment needs a `url` or a `path`',
+                  error: 'An attachment needs a `url` or a `path`',
                 }),
             )
             .describe('Array of attachment objects from NocoDB'),
@@ -900,7 +900,7 @@ export class McpService {
         annotations: {
           title: 'Create Records',
           readOnlyHint: false,
-          destructiveHint: false,
+          destructiveHint: true,
           idempotentHint: false,
           openWorldHint: false,
         },
@@ -1364,7 +1364,7 @@ export class McpService {
         annotations: {
           title: 'Link Records',
           readOnlyHint: false,
-          destructiveHint: false,
+          destructiveHint: true,
           idempotentHint: true,
           openWorldHint: false,
         },

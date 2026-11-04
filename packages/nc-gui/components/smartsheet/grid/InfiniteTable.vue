@@ -1933,15 +1933,17 @@ onBeforeUnmount(async () => {
   const viewMetaValue = view.value
   const dataValue = cachedRows.value.values()
   if (viewMetaValue) {
-    getMeta(viewMetaValue.base_id as string, viewMetaValue.fk_model_id, false, true).then((res) => {
-      const metaValue = res
-      if (!metaValue) return
-      saveOrUpdateRecords({
-        metaValue,
-        viewMetaValue,
-        data: dataValue,
-      })
-    })
+    getMeta({ baseId: viewMetaValue.base_id as string, tableIdOrTitle: viewMetaValue.fk_model_id, skipIfCacheMiss: true }).then(
+      (res) => {
+        const metaValue = res
+        if (!metaValue) return
+        saveOrUpdateRecords({
+          metaValue,
+          viewMetaValue,
+          data: dataValue,
+        })
+      },
+    )
   }
 
   // reset hooks
@@ -1980,7 +1982,11 @@ watch(
         switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {
-          const oldMeta = await getMeta(base.value?.id as string, old.fk_model_id!, false, true)
+          const oldMeta = await getMeta({
+            baseId: base.value?.id as string,
+            tableIdOrTitle: old.fk_model_id!,
+            skipIfCacheMiss: true,
+          })
           if (oldMeta) {
             await saveOrUpdateRecords({
               viewMetaValue: old,

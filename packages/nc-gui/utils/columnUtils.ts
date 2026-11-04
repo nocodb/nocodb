@@ -574,6 +574,12 @@ const showEditRestrictedColumnTooltip = (col: ColumnType) => {
   )
 }
 
+// Matches what the single-field menu allows, plus system columns, so bulk permissions skip the rest.
+const isFieldPermissionEditable = (col: ColumnType, isSyncedTable?: boolean) => {
+  if (col.pk || isSystemColumn(col) || !showEditRestrictedColumnTooltip(col)) return false
+  return !(isSyncedTable && col.readonly)
+}
+
 const disableMakeCellEditable = (col: ColumnType) => {
   return showEditRestrictedColumnTooltip(col) && !isLinksOrLTAR(col)
 }
@@ -665,6 +671,7 @@ export {
   isSearchableColumn,
   showReadonlyColumnTooltip,
   showEditRestrictedColumnTooltip,
+  isFieldPermissionEditable,
   disableMakeCellEditable,
   canUseForRollupLinkField,
   canUseForLookupLinkField,

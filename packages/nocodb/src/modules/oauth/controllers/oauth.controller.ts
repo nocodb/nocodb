@@ -84,6 +84,7 @@ export class OAuthController {
       resource,
       scopes,
       tools,
+      opt_in_tools,
     } = body;
 
     if (!client_id || !redirect_uri) {
@@ -127,6 +128,7 @@ export class OAuthController {
           resource,
           scopes,
           tools,
+          optInTools: opt_in_tools,
         });
 
       const successRedirectUrl =

@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "Nincs több újra elvégzendő művelet",
     "noRecentViews": "Nincsenek új nézetek",
     "expandLinkFields": "Linkmezők bővítése",
-    "expandLinkFieldsDesc": "Visszaadja az összekapcsolt rekord adatait a számolás helyett",
+    "expandLinkFieldsDesc": "A kimenetben a hivatkozásmezők a kapcsolt rekordokat tartalmazzák, nem a darabszámot",
     "inheritedFromParent": "A szülőtől örökölt",
     "pageOrUrl": "Oldal vagy URL",
     "linkTitle": "Link cím",
@@ -4072,7 +4072,6 @@
     "relationSettings": "Kapcsolat beállításai",
     "restoreVersion": "v{version} visszaállítása",
     "runningScript": "Szkript futtatása ...",
-    "removeSummary": "Összefoglaló eltávolítása",
     "rowFiltered": "Sor kiszűrve",
     "rowMoved": "Sor áthelyezve",
     "rowHidden": "Sor elrejtve",
@@ -4779,7 +4778,7 @@
       },
       "optIn": {
         "title": "Opcionális eszközök",
-        "description": "Olyan eszközök, amelyek véglegesen törölnek vagy a NocoDB-n kívül hatnak, például automatizálást futtatnak vagy webhookot indítanak. Egy kapcsolat soha nem kapja meg őket, amíg itt be nem kapcsolja."
+        "description": "Olyan eszközök, amelyek véglegesen törölnek vagy a NocoDB-n kívül hatnak, például automatizálást futtatnak vagy webhookot hívnak meg. Kikapcsolva maradnak, amíg itt be nem kapcsolod őket."
       }
     },
     "noBaseAccess": "Nincs projekthozzáférés",
@@ -5771,7 +5770,88 @@
     "workflowValueDynamicDescription": "Változók használata ennek az automatizálásnak egy korábbi lépéséből",
     "workflowRunAs": "Futtatás mint",
     "workflowChangeRunAs": "Futtatás mint módosítása",
-    "workflowServiceAccount": "Szolgáltatásfiók"
+    "workflowServiceAccount": "Szolgáltatásfiók",
+    "wsEmpty": {
+      "title": "Indítsd el az első projektedet",
+      "subtitle": "Egy projekt tartalmazza az adataidat és a rájuk épülő alkalmazásokat.",
+      "sharedTitle": "Még semmit sem osztottak meg veled",
+      "sharedSubtitle": "Azok a projektek és alkalmazások jelennek meg itt, amelyekbe meghívnak."
+    },
+    "workspaceHome": {
+      "uploadFile": "CSV vagy Excel feltöltése",
+      "pickTemplate": "Vagy válassz kiindulási sablont",
+      "untitledBase": "Névtelen projekt",
+      "templates": {
+        "projectManagement": {
+          "label": "Projektmenedzsment",
+          "prompt": "Projektkövető projektekkel és feladatokkal, ahol minden feladatnak van felelőse, státusza, prioritása és határideje."
+        },
+        "product": {
+          "label": "Termék",
+          "prompt": "Termék-ütemterv a funkciókkal, az általuk megoldott problémával, prioritással, státusszal és célzott kiadással."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Marketingnaptár kampányokkal, az egyes kampányok csatornáival, költségkerettel, felelőssel és indulási dátummal."
+        },
+        "sales": {
+          "label": "Értékesítés",
+          "prompt": "Értékesítési CRM cégekkel, kapcsolattartókkal és üzletekkel, ahol minden üzletnek van szakasza, értéke és várható lezárási dátuma."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Ügyfélszolgálat jegyekkel, az egyes jegyeket bejelentő ügyféllel, prioritással, státusszal és a hozzárendelt ügyintézővel."
+        },
+        "hr": {
+          "label": "Humán erőforrás",
+          "prompt": "Jelentkezőkövető a nyitott pozíciókkal, a kiválasztási szakasz szerinti jelöltekkel, valamint az interjúkkal, azok időpontjával és az értékelők jegyzeteivel."
+        }
+      }
+    },
+    "yourConnections": "A kapcsolataid",
+    "workingHours": "Munkaidő",
+    "workingDays": "Munkanapok",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Munkaterület tagjai",
+      "iconHint": "Az oldalsávban és a munkaterület-váltóban jelenik meg.",
+      "nameHint": "Hogyan nevezzük ezt a munkaterületet a NocoDB egészében.",
+      "workspaceId": "Munkaterület azonosítója",
+      "workspaceIdHint": "Használd az API-val, vagy amikor a támogatáshoz fordulsz.",
+      "allTypes": "Minden típus",
+      "allTeams": "Minden csapat",
+      "teamsCreatedHere": "Itt létrehozva",
+      "teamsScimManaged": "SCIM-mel kezelt",
+      "upgradeTitleAudits": "Munkaterület auditnaplója",
+      "upgradeDescAudits": "Nézd meg az összes módosítást ebben a munkaterületben, és hogy ki végezte.",
+      "upgradeTitleSso": "Egyszeri bejelentkezés",
+      "upgradeDescSso": "Engedd, hogy a tagok az identitásszolgáltatódon keresztül jelentkezzenek be.",
+      "desc": {
+        "members": "Kik tartoznak ehhez a munkaterülethez, és mi az alapértelmezett szerepkörük.",
+        "teams": "Tagcsoportok, amelyeket együtt adhatsz hozzá projektekhez.",
+        "integrations": "A munkaterület egészében megosztott kapcsolt fiókok és hitelesítő adatok.",
+        "general": "A munkaterület neve, ikonja és azonosítója.",
+        "skills": "Utasítások, amelyeket az MI-asszisztens ebben a munkaterületben követ.",
+        "security": "Bejelentkezési követelmények a munkaterület minden tagjára.",
+        "dangerZone": "Kilépés a munkaterületből vagy annak végleges törlése.",
+        "billing": "A csomagod, a helyek, a fizetési mód és a számlák.",
+        "usage": "Mennyit használ fel ez a munkaterület a csomagja korlátaiból.",
+        "audits": "Minden ebben a munkaterületben végzett módosítás, és hogy ki végezte.",
+        "sso": "Bejelentkezés az identitásszolgáltatódon keresztül."
+      }
+    },
+    "workspaceMode": "Munkaterület mód",
+    "zoomIn": "Nagyítás",
+    "zoomOut": "Kicsinyítés",
+    "zoomTo50Percent": "Nagyítás 50%-ra",
+    "zoomTo100Percent": "Nagyítás 100%-ra",
+    "workflowValueStatic": "Statikus",
+    "workflowValueStaticDescription": "Add meg közvetlenül az értékeket",
+    "workspaceNoAccess": "Munkaterület (nincs hozzáférés)",
+    "yAxis": "Y tengely",
+    "workspaceSettings": "Munkaterület beállításai",
+    "wrapLongText": "Hosszú szöveg tördelése"
   },
   "activity": {
     "useTemplate": "Sablon használata",
@@ -7131,8 +7211,6 @@
       "selectFieldFirst": "Előbb válassza ki a(z) {field} mezőt, hogy betöltődjenek ezek a lehetőségek.",
       "viewFolderDeleteConfirmation": "A mappában lévő nézetek a legfelső szintre kerülnek.",
       "saveDraftToBrowser": "Piszkozat mentése a böngészőbe",
-      "showAppFirst": "Az alkalmazás megjelenítése elsőként az oldalsávon",
-      "showAppFirstDesc": "Az Apps kerüljön az Adatok fölé ennek a projektnek az oldalsávjában.",
       "recordSavedButHidden": "A rekord mentése sikerült, de a hozzáférési jogosultságai miatt rejtve van.",
       "seeChangesToRecord": "A rekord változásainak megtekintése",
       "revisionHistoryUpgrade": "{limit} változástörténet áll rendelkezésére. A teljes előzmény megtekintéséhez váltson magasabb csomagra.",
@@ -7235,7 +7313,20 @@
       "mcpSetupCursorStep3": "Adja hozzá azt a JSON konfigurációt, amelyet a token létrehozása után kap.",
       "mcpSetupIntroWindsurf": "Kezdje el használni a NocoDB MCP-t a Windsurf alkalmazással 4 egyszerű lépésben",
       "mcpSetupWindsurfStep1": "Nyissa meg a Windsurf beállításait, és válassza a bal oldali sávban a Cascade fület",
-      "mcpSetupWindsurfStep2": "Kattintson a Manage MCP elemre."
+      "mcpSetupWindsurfStep2": "Kattintson a Manage MCP elemre.",
+      "abuseReport": {
+        "queueDescription": "Nyilvános hivatkozásokból érkezett bejelentések. Tilts le egy hivatkozást, hogy elérhetetlenné tedd, vagy tiltsd le a mögötte álló fiókokat.",
+        "disableConfirm": "A nyilvános hivatkozás mindenki számára megszűnik működni, és a vele kapcsolatos összes nyitott bejelentés lezárul. A tulajdonos új hivatkozással újra megoszthatja az elemet.",
+        "blockConfirm": "{email} mindenhonnan ki lett jelentkeztetve, és többé nem tud bejelentkezni vagy API-tokeneket használni. A tiltást a felhasználókezelésben oldhatod fel.",
+        "noAccounts": "Ehhez az elemhez nem kapcsolódik fiók.",
+        "superAdminNotBlockable": "A szuperadminisztrátorokat nem lehet letiltani.",
+        "description": "Úgy gondolod, hogy ezt az oldalt adathalászatra, megszemélyesítésre, csalásra vagy más visszaélésre használják? Jelezd ennek a(z) {productName} példánynak az adminisztrátorai felé.",
+        "detailsMin": "Kérjük, írd le a problémát legalább {min} karakterben.",
+        "thanksTitle": "Köszönjük a bejelentésedet",
+        "thanksDescription": "A bejelentésedet megkaptuk. Ennek a(z) {productName} példánynak az adminisztrátorai megvizsgálják.",
+        "contactEmailHint": "A nyilvános nézetekből, űrlapokból, felületekről és irányítópultokról érkező bejelentéseket erre a címre küldjük. Hagyd üresen, ha minden szuperadminisztrátornak menjen."
+      },
+      "actWithYourOwnPermissions": "Járj el saját jogosultságaiddal ezekben az erőforrásokban"
     },
     "error": {
       "failedToCreateSync": "Sikertelen szinkronizálás létrehozása",
@@ -7448,7 +7539,46 @@
       "inviteLinkRevoked": "Ezt a meghívó linket visszavonták",
       "inviteLinkExhausted": "Ezt a meghívó linket teljesen felhasználták",
       "inviteLinkUnavailable": "Ez a meghívó link már nem működik",
-      "invalidEmailDomain": "Adjon meg egy domaint, például acme.io"
+      "invalidEmailDomain": "Adjon meg egy domaint, például acme.io",
+      "attachmentInvalidUrl": "Adj meg egy http:// vagy https:// előtaggal kezdődő URL-t, vagy egy változókat használó sablont",
+      "attachmentAlreadyAttached": "Ez a fájl már csatolva van.",
+      "attachmentOpenWorkflowToUpload": "Fájlok feltöltéséhez nyisd meg a munkafolyamatot",
+      "attachmentNoLongerAvailable": "Ez a fájl már nem érhető el",
+      "attachmentsTooLarge": "A fájlok meghaladják az e-mailenkénti {size} korlátot",
+      "factoryMachineNameRequired": "Adj nevet a gépnek",
+      "factoryMachineNameDuplicate": "Már létezik ilyen nevű gép",
+      "vaultUnreachable": "Ezekkel a beállításokkal nem sikerült elérni a széfet",
+      "vaultAliasStart": "A névnek betűvel kell kezdődnie",
+      "vaultAliasCharacters": "A név csak betűket és számjegyeket tartalmazhat — szóköz, kötőjel és aláhúzás nélkül",
+      "vaultAliasReserved": "A(z) „{name}” foglalt név, válassz másikat",
+      "fieldSaveFailed": "A(z) „{field}” mezőt nem sikerült menteni: {error}",
+      "fieldSavesFailed": "{count} mezőt nem sikerült menteni ({fields}). Első hiba: {error}",
+      "projectNameRequired": "A projekt neve kötelező",
+      "attachmentUrlDownloadFailed": "A NocoDB nem tudta letölteni ezt a fájlt az URL-jéről. Távolítsd el, és add hozzá újra a fájlt.",
+      "emailImageSize": "Az e-mail törzsében lévő képeknek {size} alattinak kell lenniük. Egy logó általában jóval 100 KB alatt marad.",
+      "emailImageType": "Használj PNG, JPEG, GIF vagy WebP képet",
+      "emailImageCount": "Egy e-mail törzse legfeljebb {count} képet tartalmazhat",
+      "emailImageTotalSize": "Az e-mail törzsében lévő képek összesen nem haladhatják meg a(z) {size} méretet",
+      "emailImageNoWorkflow": "Képek hozzáadásához nyisd meg a munkafolyamatot",
+      "emailImageUploadFailed": "A képet nem sikerült feltölteni",
+      "emailImageMissing": "Ez a kép már nem érhető el, és kimarad az e-mailből. Távolítsd el, és szúrd be újra.",
+      "vaultSecretNeedsProperty": "Ez a titok több mezőt tartalmaz. Válaszd ki, melyiket használja, különben futtatáskor meghiúsul a kapcsolat.",
+      "vaultUnknownAlias": "Nem érhető el számodra „{name}” nevű széf.",
+      "atLeastOneOperationRequired": "Legalább egy műveletet ki kell választani",
+      "triggerFormRequired": "Ki kell választanod egy indító űrlapot",
+      "failedToStartListening": "Nem sikerült elindítani a frissítések figyelését",
+      "unknownPermissionRequested": "Ezt a jogosultságot a kiszolgáló nem kínálja",
+      "authorizationWillBeRefused": "Ezt a kérést a fenti jogosultságok miatt elutasítjuk.",
+      "vaultAliasNotAllowed": "Nem használhatod a(z) „{name}” széfet. Kérj hozzáférést a munkaterület egyik tulajdonosától, vagy add meg közvetlenül a hitelesítő adatot.",
+      "selectTargetField": "Válassz célmezőt!",
+      "parentTableNoPrimaryKey": "A szülőtáblának nincs elsődleges kulcs oszlopa",
+      "childTableNoPrimaryKey": "A gyermektáblának nincs elsődleges kulcs oszlopa",
+      "noWorkspaceAvailable": "Nincs elérhető munkaterület",
+      "invalidJson": "Érvénytelen JSON",
+      "invalidTokensJson": "Ez nem token-export. A light, dark, font vagy radiusScale hasonló kulcsok várhatók.",
+      "renameFileFailed": "Hiba a fájl átnevezésekor",
+      "failedToLoadMetadataDiff": "Nem sikerült betölteni a metaadat-eltéréseket",
+      "failedToLoadMonacoEditor": "Nem sikerült betölteni a Monaco Editort"
     },
     "toast": {
       "inviteUrlCopy": "Meghívó URL átmásolva a vágólapra",
@@ -7591,9 +7721,9 @@
       "failed": "A regisztráció sikertelen",
       "paused": "Szüneteltetve"
     },
-    "agentToolsAndAccessSubtitle": "Mit használhat az ügynök? Adj hozzá eszközöket, oldalakat és kapcsolatokat, amelyeket elérhet.",
+    "agentToolsAndAccessSubtitle": "Mit olvashat és módosíthat ez az ügynök? Válassz szintet mindegyikhez.",
     "agentNoFilters": "Még nincsenek feltételek",
-    "agentInstructionsSubtitle": "Mit tegyen az ügynök minden egyes futáskor? Íme a bevált gyakorlatok.",
+    "agentInstructionsSubtitle": "Adj neki nevet, majd írd le, mit csináljon, ahogy egy munkatársat is eligazítanál.",
     "communitySkillsSubtitle": "Keress fent a skills.sh oldalon megosztott skillek között, majd nyiss meg egyet, és telepítés előtt olvasd el a SKILL.md fájlját.",
     "environmentBlockedBySync": "Nem nyitható meg környezet olyan projekthez, amelyen aktív szinkronizálás fut. Előbb távolítsd el a szinkronizálási konfigurációkat.",
     "chatArtifactPublicLinkHint": "Bárki megtekintheti, akinek megvan a hivatkozás.",
@@ -7758,7 +7888,14 @@
       "confirmCta": "Áttelepítés megerősítése",
       "migrating": "Áttelepítés..."
     },
-    "skillsRegistryErrorTitle": "Nem sikerült keresni a képességjegyzékben"
+    "skillsRegistryErrorTitle": "Nem sikerült keresni a képességjegyzékben",
+    "airtableImportReportSummary": "{skipped} kihagyva · {approximated} közelítve · {failed} sikertelen",
+    "airtableImportReportTruncated": "A jelentés {total} elem közül az első {shown} elemet sorolja fel. A teljes listához töltsd le a naplókat.",
+    "factoryMachineReadyNow": "A gép készen áll. Az új munkamenetek ezt használják.",
+    "factoryMachineSwitched": "Az új munkamenetek a(z) {version} verziót fogják használni.",
+    "factoryMachineDefaultNow": "Az új munkamenetek mostantól ezen indulnak: {machine}.",
+    "factoryMachineUpgrading": "A(z) {machine} frissítése folyamatban. Az új munkamenetek akkor használják, amikor a build elkészül.",
+    "factoryAppInstallUnavailable": "A(z) {provider} még nem köthető össze kódoló ügynökökkel. Ehhez alkalmazástelepítés kell, és a(z) {provider} szolgáltatáshoz itt nincs beállítva ilyen."
   },
   "trash": {
     "restore": "Visszaállítás",
@@ -8144,7 +8281,6 @@
       "lastSignedInAt": "Utolsó bejelentkezés: {time}",
       "lastUsed": "Utoljára használva",
       "lastUsedAt": "Utoljára használva: {time}",
-      "canDelete": "Törölhet adatokat",
       "toolsTitle": "Eszközök és engedélyek",
       "neverMoreThanRole": "Soha nem több, mint az Ön saját szerepköre ebben a projektben ({role}).",
       "neverMoreThanAccess": "Soha nem több, mint az Ön saját hozzáférése ehhez a projekthez.",

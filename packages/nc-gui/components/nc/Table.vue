@@ -147,17 +147,16 @@ watch(
 const handleUpdateCellWidth = () => {
   if (!tableHeader.value || !tableHeadWidth.value) return
 
-  ncDelay(500).then(() => [
-    nextTick(() => {
-      const headerCells = tableHeader.value?.querySelectorAll('th > div')
+  nextTick(() => {
+    const headerCells = tableHeader.value?.querySelectorAll('th > div')
 
-      if (headerCells && headerCells.length) {
-        headerCells.forEach((el, i) => {
-          headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
-        })
-      }
-    }),
-  ])
+    if (headerCells && headerCells.length) {
+      headerCells.forEach((el, i) => {
+        // Computed width ignores transforms, so a modal's zoom-in can't shrink the measurement.
+        headerCellWidth.value[i] = parseFloat(getComputedStyle(el).width) || undefined
+      })
+    }
+  })
 }
 
 watch(

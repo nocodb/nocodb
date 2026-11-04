@@ -39,6 +39,10 @@ export interface WorkflowExecutionGetResponseV3Type {
    * @format date-time
    */
   finished_at?: string | null;
+  /** The execution whose record write triggered this one; null when not triggered by a workflow */
+  parent_execution_id?: string | null;
+  /** Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule */
+  execution_depth?: number;
   /**
    * Timestamp when the execution record was created
    * @format date-time
@@ -72,6 +76,10 @@ export interface WorkflowExecutionListV3Type {
      * @format date-time
      */
     finished_at?: string | null;
+    /** The execution whose record write triggered this one; null when not triggered by a workflow */
+    parent_execution_id?: string | null;
+    /** Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule */
+    execution_depth?: number;
     /**
      * Timestamp when the execution record was created
      * @format date-time
@@ -343,6 +351,12 @@ export interface WorkflowExecutionDataV3Type {
   resumeAt?: number;
   /** ID of the node to resume execution from */
   nextNodeId?: string;
+  /** Why a `skipped` execution was not run by the trigger loop guard: the event came from this workflow's own write, or the trigger chain reached its limit of 3 */
+  skipReason?: 'self_triggered' | 'chain_depth_exceeded';
+  /** How many trigger events this `skipped` execution stands for, e.g. every record of a bulk change; the trigger data keeps the first */
+  skippedCount?: number;
+  /** Plain-language reason shown with the status, e.g. why a run was not run or was stopped */
+  errorMessage?: string;
 }
 
 /**
@@ -2517,6 +2531,50 @@ export type FilterUpdateV3Type = {
 
 export type FilterCreateV3Type = FilterV3Type | FilterGroupLevel1V3Type;
 
+export type FilterCreateUpdateResponseV3Type =
+  | FilterResponseV3Type
+  | FilterGroupResponseV3Type;
+
+/**
+ * A filter group as returned by the API. Nested filters are `FilterResponse`, so their `value` is always a string (or `null`).
+ */
+export interface FilterGroupResponseV3Type {
+  /** Unique identifier for the group. */
+  id: string;
+  /** Parent ID of this filter-group. */
+  parent_id?: string;
+  /** Logical operator for combining filters in the group. */
+  group_operator: 'AND' | 'OR';
+  /** Whether the group is switched on. A switched-off group is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated group comes back switched on. */
+  enabled?: boolean;
+  /** Nested filters or filter groups. */
+  filters: (
+    | FilterResponseV3Type
+    | FilterGroupResponseV3Type
+    | (FilterResponseV3Type & FilterGroupResponseV3Type)
+  )[];
+}
+
+/**
+ * A filter as returned by the API. Same shape as `Filter`, except that `value` always comes back as a string (or `null`).
+ */
+export interface FilterResponseV3Type {
+  /** Unique identifier for the filter. */
+  id?: string;
+  /** Parent ID of the filter, specifying this filters group association. Defaults to **root**. */
+  parent_id?: string;
+  /** Field ID to which this filter applies. */
+  field_id: string;
+  /** Primary comparison operator (e.g., eq, gt, lt). */
+  operator: string;
+  /** Secondary comparison operator (if applicable). */
+  sub_operator?: string | null;
+  /** Value for comparison, always returned as a string: a filter created with `100` reads back as `"100"`, and `true` as `"true"`. */
+  value?: string | null;
+  /** Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on. */
+  enabled?: boolean;
+}
+
 export interface FilterGroupV3Type {
   /** Unique identifier for the group. */
   id: string;
@@ -2557,7 +2615,7 @@ export interface FilterGroupLevel3V3Type {
 
 export interface FilterListResponseV3Type {
   /** List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**. A view with no filters still returns that root group, with an empty `filters` array and `group_operator` set to `null`. */
-  list: FilterGroupV3Type[];
+  list: FilterGroupResponseV3Type[];
 }
 
 export interface FilterV3Type {
@@ -2571,7 +2629,7 @@ export interface FilterV3Type {
   operator: string;
   /** Secondary comparison operator (if applicable). */
   sub_operator?: string | null;
-  /** Value for comparison. */
+  /** Value for comparison. Numbers and booleans are accepted, but stored and returned as strings (see `FilterResponse`). */
   value?: string | number | boolean | null;
   /** Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on. */
   enabled?: boolean;
@@ -3095,7 +3153,7 @@ export interface FieldOptionsRollupV3Type {
   /**
    * Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.
    * @min 0
-   * @max 5
+   * @max 8
    */
   precision?: number;
   /** Apply the linked field's filters when computing the rollup. */
@@ -3367,7 +3425,7 @@ export interface FieldOptionsPercentV3Type {
   /**
    * Number of decimal places. Defaults to 2.
    * @min 0
-   * @max 5
+   * @max 8
    */
   precision?: number;
 }
@@ -3389,7 +3447,7 @@ export interface FieldOptionsCurrencyV3Type {
   /**
    * Number of decimal places. Defaults to 2.
    * @min 0
-   * @max 5
+   * @max 8
    */
   precision?: number;
   /** Currency code (ISO 4217). Refer https://simplelocalize.io/data/locales/. Withdrawn codes such as BYR or GHC are still accepted so existing columns keep validating. */
@@ -3610,7 +3668,7 @@ export interface FieldOptionsDecimalV3Type {
   /**
    * Decimal field precision. Defaults to 0
    * @min 0
-   * @max 5
+   * @max 8
    */
   precision?: number;
   /** Thousand/decimal separator style. `locale` uses the runtime locale, `none_period` / `none_comma` disable thousand grouping. */
@@ -3782,14 +3840,14 @@ export type ViewV3Type = {
         options?: ViewOptionsGridV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
-        filters?: FilterCreateUpdateV3Type;
+        filters?: FilterCreateUpdateResponseV3Type;
         /**
          * List of fields to be displayed in the view.
          *
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3800,14 +3858,14 @@ export type ViewV3Type = {
         options?: ViewOptionsGalleryV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
-        filters?: FilterCreateUpdateV3Type;
+        filters?: FilterCreateUpdateResponseV3Type;
         /**
          * List of fields to be displayed in the view.
          *
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3818,14 +3876,14 @@ export type ViewV3Type = {
         options: ViewOptionsKanbanV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
-        filters?: FilterCreateUpdateV3Type;
+        filters?: FilterCreateUpdateResponseV3Type;
         /**
          * List of fields to be displayed in the view.
          *
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3836,14 +3894,14 @@ export type ViewV3Type = {
         options: ViewOptionsCalendarV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
-        filters?: FilterCreateUpdateV3Type;
+        filters?: FilterCreateUpdateResponseV3Type;
         /**
          * List of fields to be displayed in the view.
          *
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3855,14 +3913,14 @@ export type ViewV3Type = {
         options: ViewOptionsTimelineV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
-        filters?: FilterCreateUpdateV3Type;
+        filters?: FilterCreateUpdateResponseV3Type;
         /**
          * List of fields to be displayed in the view.
          *
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3874,14 +3932,14 @@ export type ViewV3Type = {
         options?: ViewOptionsGanttV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
-        filters?: FilterCreateUpdateV3Type;
+        filters?: FilterCreateUpdateResponseV3Type;
         /**
          * List of fields to be displayed in the view.
          *
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3892,14 +3950,14 @@ export type ViewV3Type = {
         options?: ViewOptionsMapV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
-        filters?: FilterCreateUpdateV3Type;
+        filters?: FilterCreateUpdateResponseV3Type;
         /**
          * List of fields to be displayed in the view.
          *
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3929,7 +3987,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3947,7 +4005,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3965,7 +4023,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -3983,7 +4041,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4002,7 +4060,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4021,7 +4079,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4039,7 +4097,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4054,7 +4112,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
       }
@@ -4075,7 +4133,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4092,7 +4150,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4109,7 +4167,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4126,7 +4184,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4144,7 +4202,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4162,7 +4220,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4179,7 +4237,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4193,7 +4251,7 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
       } & {
@@ -4217,7 +4275,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4235,7 +4293,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4253,7 +4311,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4271,7 +4329,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4290,7 +4348,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4309,7 +4367,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4327,7 +4385,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
@@ -4342,7 +4400,7 @@ export type ViewCreateV3Type = ViewBaseV3Type &
          * - If not specified, all fields are displayed by default.
          * - If an empty array is provided, only the display value field will be shown.
          * - In case of partial list, fields not included in the list will be excluded from the view.
-         * - A `field_id` that does not exist on the table is rejected with `404`.
+         * - A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
          */
         fields?: ViewFieldsV3Type;
       }
@@ -4555,7 +4613,7 @@ export type ViewRowColourV3Type =
 - If not specified, all fields are displayed by default.
 - If an empty array is provided, only the display value field will be shown.
 - In case of partial list, fields not included in the list will be excluded from the view.
-- A `field_id` that does not exist on the table is rejected with `404`.
+- A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`).
 */
 export type ViewFieldsV3Type = {
   /** Unique identifier for the field. */
@@ -4565,7 +4623,7 @@ export type ViewFieldsV3Type = {
   /**
    * Width of the field in pixels.
    *
-   *  **Applicable only for grid view.**
+   *  **Applicable to grid views, and to list views when sent per level under `options.levels[].fields`.** Accepted but not stored on other view types.
    */
   width?: number;
   /**
@@ -8174,6 +8232,8 @@ export interface SharedViewReqType {
   meta?: MetaType;
   /** Password to restrict access */
   password?: StringOrNullType;
+  /** Custom URL path of the shared view; `null` removes it */
+  custom_url_path?: StringOrNullType;
 }
 
 /**
@@ -14992,6 +15052,8 @@ export class Api<
         viewId?: string;
         /** Comma separated list of pks */
         skipPks?: string;
+        /** JSON array of filters scoping the rows to update, as accepted by the list endpoints */
+        filterArrJson?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -15461,6 +15523,8 @@ export class Api<
         limit?: number;
         /** @min 0 */
         offset?: number;
+        /** JSON array of filters applied on top of the view's own */
+        filterArrJson?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -16880,10 +16944,15 @@ export class Api<
           permissions?: Record<string, any>;
         }[];
         /**
-         * MCP tool allowlist for this authorization. Every name must exist in the server's tool catalog. Only meaningful alongside scopes.
+         * MCP tool allowlist for this authorization. Every name must exist in the server's tool catalog. Only meaningful alongside scopes. Opt-in tools (deleteBase, executeWorkflow, testHook) are refused here: they are switched on through opt_in_tools.
          * @example ["listTables","listRecords"]
          */
         tools?: string[];
+        /**
+         * Opt-in MCP tools the user switched on for this authorization on the consent screen; all are off unless named here. Nothing in the client's authorization request sets them. Refused (invalid_scope) without scopes. A name that is not an opt-in tool, or, on a consent locked by scope, a tool the requested scope cannot reach (e.g. deleteBase without base:delete), is refused with a 400. EE only.
+         * @example ["deleteBase"]
+         */
+        opt_in_tools?: string[];
       },
       params: RequestParams = {}
     ) =>
@@ -19801,6 +19870,8 @@ export class Api<
         page?: number;
         /** Rows per page */
         pageSize?: number;
+        /** Text to search for */
+        search?: string;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -19930,6 +20001,8 @@ export class Api<
         page?: number;
         /** Rows per page */
         pageSize?: number;
+        /** Text to search for */
+        search?: string;
       },
       params: RequestParams = {}
     ) =>

@@ -947,31 +947,31 @@ importers:
     dependencies:
       '@ai-sdk/amazon-bedrock':
         specifier: ^4.0.3
-        version: 4.0.12(zod@3.25.76)
+        version: 4.0.12(zod@4.6.6)
       '@ai-sdk/anthropic':
         specifier: ^3.0.133
-        version: 3.0.133(zod@3.25.76)
+        version: 3.0.133(zod@4.6.6)
       '@ai-sdk/azure':
         specifier: ^3.0.1
-        version: 3.0.7(zod@3.25.76)
+        version: 3.0.7(zod@4.6.6)
       '@ai-sdk/deepseek':
         specifier: ^2.0.1
-        version: 2.0.4(zod@3.25.76)
+        version: 2.0.4(zod@4.6.6)
       '@ai-sdk/devtools':
         specifier: ^0.0.19
         version: 0.0.19
       '@ai-sdk/google':
         specifier: ^3.0.1
-        version: 3.0.6(zod@3.25.76)
+        version: 3.0.6(zod@4.6.6)
       '@ai-sdk/groq':
         specifier: ^3.0.1
-        version: 3.0.4(zod@3.25.76)
+        version: 3.0.4(zod@4.6.6)
       '@ai-sdk/openai':
         specifier: ^3.0.1
-        version: 3.0.7(zod@3.25.76)
+        version: 3.0.7(zod@4.6.6)
       '@ai-sdk/openai-compatible':
         specifier: ^0.2.14
-        version: 0.2.16(zod@3.25.76)
+        version: 0.2.16(zod@4.6.6)
       '@ai-sdk/provider':
         specifier: ^3.0.0
         version: 3.0.2
@@ -1094,7 +1094,7 @@ importers:
         version: 4.3.20
       ai:
         specifier: ^6.0.3
-        version: 6.0.22(zod@3.25.76)
+        version: 6.0.22(zod@4.6.6)
       airtable:
         specifier: ^0.12.2
         version: 0.12.2(encoding@0.1.13)
@@ -1331,7 +1331,7 @@ importers:
         version: 3.2.2
       openai:
         specifier: ^5.8.2
-        version: 5.23.2(ws@8.21.3)(zod@3.25.76)
+        version: 5.23.2(ws@8.21.3)(zod@4.6.6)
       os-locale:
         specifier: ^6.0.2
         version: 6.0.2
@@ -1442,7 +1442,7 @@ importers:
         version: 1.8.1(@napi-rs/canvas@0.1.77)
       unstructured-client:
         specifier: ^0.16.0
-        version: 0.16.0(zod@3.25.76)
+        version: 0.16.0(zod@4.6.6)
       uuid:
         specifier: ^11.1.1
         version: 11.1.1
@@ -1453,8 +1453,8 @@ importers:
         specifier: https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz
         version: https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: 4.6.6
+        version: 4.6.6
       zod-v4:
         specifier: npm:zod@^4.6.6
         version: zod@4.6.7
@@ -19233,8 +19233,8 @@ packages:
     resolution: {integrity: sha512-zK7YHHz4ZXpW89AHXUPbQVGKI7uvkd3hzusTdotCg1UxyaVtg0zFJSTfW/Dq5f7OBBVnq6cZIaC8Ti4hb6dtCA==}
     engines: {node: '>= 14'}
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+  zod@4.6.6:
+    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
 
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
@@ -19252,40 +19252,40 @@ snapshots:
       lodash: 4.18.1
       typical: 7.3.0
 
-  '@ai-sdk/amazon-bedrock@4.0.12(zod@3.25.76)':
+  '@ai-sdk/amazon-bedrock@4.0.12(zod@4.6.6)':
     dependencies:
-      '@ai-sdk/anthropic': 3.0.9(zod@3.25.76)
+      '@ai-sdk/anthropic': 3.0.9(zod@4.6.6)
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
       '@smithy/eventstream-codec': 4.0.3
       '@smithy/util-utf8': 4.0.0
       aws4fetch: 1.0.20
-      zod: 3.25.76
+      zod: 4.6.6
 
-  '@ai-sdk/anthropic@3.0.133(zod@3.25.76)':
+  '@ai-sdk/anthropic@3.0.133(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 3.0.19
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
+      zod: 4.6.6
 
-  '@ai-sdk/anthropic@3.0.9(zod@3.25.76)':
+  '@ai-sdk/anthropic@3.0.9(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
+      zod: 4.6.6
 
-  '@ai-sdk/azure@3.0.7(zod@3.25.76)':
+  '@ai-sdk/azure@3.0.7(zod@4.6.6)':
     dependencies:
-      '@ai-sdk/openai': 3.0.7(zod@3.25.76)
+      '@ai-sdk/openai': 3.0.7(zod@4.6.6)
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
+      zod: 4.6.6
 
-  '@ai-sdk/deepseek@2.0.4(zod@3.25.76)':
+  '@ai-sdk/deepseek@2.0.4(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
+      zod: 4.6.6
 
   '@ai-sdk/devtools@0.0.19':
     dependencies:
@@ -19293,51 +19293,51 @@ snapshots:
       '@hono/node-server': 1.19.17(hono@4.13.11)
       hono: 4.13.11
 
-  '@ai-sdk/gateway@3.0.10(zod@3.25.76)':
+  '@ai-sdk/gateway@3.0.10(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
       '@vercel/oidc': 3.1.0
-      zod: 3.25.76
+      zod: 4.6.6
 
-  '@ai-sdk/google@3.0.6(zod@3.25.76)':
+  '@ai-sdk/google@3.0.6(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
+      zod: 4.6.6
 
-  '@ai-sdk/groq@3.0.4(zod@3.25.76)':
+  '@ai-sdk/groq@3.0.4(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
+      zod: 4.6.6
 
-  '@ai-sdk/openai-compatible@0.2.16(zod@3.25.76)':
+  '@ai-sdk/openai-compatible@0.2.16(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 2.2.8(zod@4.6.6)
+      zod: 4.6.6
 
-  '@ai-sdk/openai@3.0.7(zod@3.25.76)':
+  '@ai-sdk/openai@3.0.7(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
-      zod: 3.25.76
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
+      zod: 4.6.6
 
-  '@ai-sdk/provider-utils@2.2.8(zod@3.25.76)':
+  '@ai-sdk/provider-utils@2.2.8(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
       nanoid: 5.1.16
       secure-json-parse: 2.7.0
-      zod: 3.25.76
+      zod: 4.6.6
 
-  '@ai-sdk/provider-utils@4.0.61(zod@3.25.76)':
+  '@ai-sdk/provider-utils@4.0.61(zod@4.6.6)':
     dependencies:
       '@ai-sdk/provider': 3.0.19
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.1.1
       undici: 6.29.1
-      zod: 3.25.76
+      zod: 4.6.6
 
   '@ai-sdk/provider@1.1.3':
     dependencies:
@@ -24531,7 +24531,7 @@ snapshots:
 
   '@modelcontextprotocol/core@2.3.1':
     dependencies:
-      zod: 4.6.7
+      zod: 4.6.6
 
   '@modelcontextprotocol/node@2.1.1(@modelcontextprotocol/server@2.3.1)':
     dependencies:
@@ -24542,7 +24542,7 @@ snapshots:
   '@modelcontextprotocol/server@2.3.1':
     dependencies:
       '@modelcontextprotocol/core': 2.3.1
-      zod: 4.6.7
+      zod: 4.6.6
 
   '@module-federation/error-codes@0.13.1': {}
 
@@ -29879,13 +29879,13 @@ snapshots:
       clean-stack: 4.2.0
       indent-string: 5.0.0
 
-  ai@6.0.22(zod@3.25.76):
+  ai@6.0.22(zod@4.6.6):
     dependencies:
-      '@ai-sdk/gateway': 3.0.10(zod@3.25.76)
+      '@ai-sdk/gateway': 3.0.10(zod@4.6.6)
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.61(zod@3.25.76)
+      '@ai-sdk/provider-utils': 4.0.61(zod@4.6.6)
       '@opentelemetry/api': 1.9.0
-      zod: 3.25.76
+      zod: 4.6.6
 
   airtable@0.12.2(encoding@0.1.13):
     dependencies:
@@ -37437,10 +37437,10 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  openai@5.23.2(ws@8.21.3)(zod@3.25.76):
+  openai@5.23.2(ws@8.21.3)(zod@4.6.6):
     optionalDependencies:
       ws: 8.21.3
-      zod: 3.25.76
+      zod: 4.6.6
 
   openapi-types@12.1.3: {}
 
@@ -40838,11 +40838,11 @@ snapshots:
       db0: 0.3.4(mysql2@3.24.3(@types/node@22.15.23))(sqlite3@5.1.7)
       ioredis: 5.10.1
 
-  unstructured-client@0.16.0(zod@3.25.76):
+  unstructured-client@0.16.0(zod@4.6.6):
     dependencies:
       async: 3.2.6
       pdf-lib: 1.17.1
-      zod: 3.25.76
+      zod: 4.6.6
 
   untun@0.1.3:
     dependencies:
@@ -41825,7 +41825,7 @@ snapshots:
       compress-commons: 6.0.2
       readable-stream: 4.7.0
 
-  zod@3.25.76: {}
+  zod@4.6.6: {}
 
   zod@4.6.7: {}
 

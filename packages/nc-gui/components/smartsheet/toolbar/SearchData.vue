@@ -9,6 +9,8 @@ const reloadAggregate = inject(ReloadAggregateHookInj)
 
 const activeView = inject(ActiveViewInj, ref())
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
@@ -288,6 +290,16 @@ watch(
     immediate: true,
   },
 )
+
+useSearchCommands({
+  view: activeView,
+  isPublic,
+  tableTitle: computed(() => meta.value?.title),
+  showSearch: handleShowSearchInput,
+  setQuery: (query) => {
+    search.value.query = query
+  },
+})
 </script>
 
 <template>

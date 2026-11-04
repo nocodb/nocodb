@@ -70,6 +70,10 @@ import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import { OperationName } from '~/command-registry/op-names';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
+import {
+  canManageViewShare,
+  viewWithoutShareSecrets,
+} from '~/helpers/publicViewSecrets';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
 @Injectable()
@@ -744,11 +748,8 @@ export class TablesService {
       ])
     ) {
       await table.getViews();
-      // Mask the bcrypt password hash before returning to the caller.
       if (table.views?.length) {
-        table.views = table.views.map((v) =>
-          View.maskPasswordForResponse(v),
-        ) as View[];
+        table.views = table.views.map((v) => viewWithoutShareSecrets(v, true));
       }
     } else {
       // todo: optimise
@@ -756,11 +757,14 @@ export class TablesService {
         await this.xcVisibilityMetaGet(context, table.base_id, [table])
       );
       //await View.list(param.tableId)
-      table.views = viewList.filter((view: any) => {
-        return Object.keys(param.user?.roles || {}).some(
-          (role) => param.user?.roles[role] && !view.disabled[role],
-        );
-      });
+      const canManageShare = canManageViewShare(param.user);
+      table.views = viewList
+        .filter((view: any) => {
+          return Object.keys(param.user?.roles || {}).some(
+            (role) => param.user?.roles[role] && !view.disabled[role],
+          );
+        })
+        .map((view) => viewWithoutShareSecrets(view, canManageShare));
     }
 
     // expose tracked-field sets of field-tracking LMT/LMB columns

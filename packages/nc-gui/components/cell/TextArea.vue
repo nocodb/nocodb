@@ -92,6 +92,8 @@ const isAiEdited = useVModel(props, 'isAiEdited', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
+const expandedFormStore = useExpandedFormStore()
+
 const textAreaRef = ref<HTMLTextAreaElement>()
 const inputWrapperRef = ref<HTMLElement | null>(null)
 
@@ -320,6 +322,13 @@ const onExpand = () => {
     return
   }
   isVisible.value = true
+}
+
+// The popup is teleported out of the form, so the form can't see its input events.
+function onExpandedInput() {
+  const columnId = column?.value?.id
+  if (!isExpandedFormOpen.value || !columnId) return
+  expandedFormStore?.notifyFieldInput(columnId)
 }
 
 // Enter on a link inside the Smart Text preview keeps its default.
@@ -1037,6 +1046,7 @@ useResizeObserver(inputWrapperRef, () => {
           'expanded-cell-input-ai': props.isAi,
         }"
         @keydown.enter.stop
+        @input.capture="onExpandedInput"
       >
         <div
           v-if="column"

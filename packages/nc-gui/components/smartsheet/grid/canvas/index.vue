@@ -70,7 +70,7 @@ const props = defineProps<{
     rowOverwrite?: Record<string, any>,
     path?: Array<number>,
   ) => Row | undefined
-  deleteRow?: (rowIndex: number, path?: Array<number>) => Promise<void>
+  deleteRow?: (rowIndex: number, path?: Array<number>, options?: { notify?: boolean }) => Promise<void>
   updateOrSaveRow: (
     row: Row,
     property?: string,
@@ -81,7 +81,7 @@ const props = defineProps<{
   ) => Promise<any>
   deleteSelectedRows: (path?: Array<number>) => Promise<void>
   clearInvalidRows?: (path?: Array<number>) => void
-  deleteRangeOfRows: (cellRange: CellRange, path?: Array<number>) => Promise<void>
+  deleteRangeOfRows: (cellRange: CellRange, path?: Array<number>, options?: { notify?: boolean }) => Promise<void>
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
@@ -391,6 +391,7 @@ const {
 
   // Copy & Paste
   copyValue,
+  copyTable,
   clearCell,
   clearSelectedRangeOfCells,
 
@@ -431,6 +432,11 @@ const {
   isInFreezeDividerZone,
   handleFreezeDividerMouseDown,
   isFreezeDividerDragging,
+
+  // Cmd+K summaries
+  getSelectionScope,
+  computeSelectionAggregation,
+  formatAggregationValue,
 } = useCanvasTable({
   anchorActiveCell: anchorActiveCellToSheet,
   rowHeightEnum,
@@ -881,6 +887,14 @@ const isMultiHeaderMenuActive = computed(() => {
 const selectedHeaderColumns = computed<ColumnType[]>(() => {
   if (!isMultiHeaderMenuActive.value) return []
   return getSelectedHeaderColumnsOrdered()
+})
+
+/** One selected header drives the Cmd+K field context (a headless column menu), for whoever can open that menu. */
+const cmdkFieldColumn = computed<ColumnType | undefined>(() => {
+  if (interfacePageDataApi || selectedHeaderColumnIds.value.size !== 1) return undefined
+  if (!isUIAllowed('fieldEdit') || !isFieldEditAllowed.value) return undefined
+  const [id] = selectedHeaderColumnIds.value
+  return columns.value.find((col) => col.columnObj?.id === id)?.columnObj
 })
 
 watch(vSelectedAllRecords, (val) => {
@@ -3025,6 +3039,23 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
   }
 }
 
+/** Insert left/right from Cmd+K: anchor the create dropdown on the selected column, as the header menu does. */
+function addColumnBesideCmdkField(columnOrderData: Pick<ColumnReqType, 'column_order'>) {
+  const column = cmdkFieldColumn.value
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!column?.id || !rect) return
+
+  const { column: col, xOffset } = findColumnPosition(column.id, scrollLeft.value)
+  overlayStyle.value = {
+    top: `${rect.top}px`,
+    left: `${rect.left + xOffset}px`,
+    width: `${parseCellWidth(col?.width ?? 180)}px`,
+    height: `${headerRowHeight.value}px`,
+    position: 'fixed',
+  }
+  addEmptyColumn(columnOrderData, true)
+}
+
 function openColumnCreate(data: any) {
   scroller.value?.scrollTo({
     left: totalWidth.value,
@@ -3090,6 +3121,8 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string, ov
 }
 
 async function openNewRecordHandler({ overwrite, path }) {
+  // The grid hides its add-record menu, form option included, past the visible-row limit.
+  if (removeInlineAddRecord.value) return
   // Add an empty row
   const newRow = await addEmptyRow(undefined, true, undefined, overwrite, path)
   // Expand the form
@@ -3110,7 +3143,53 @@ const callAddNewRow = (context: { row: number; col: number; path: Array<number> 
   }
 }
 
-const duplicateRow = async (context: { row: number; col: number; path: Array<number> }) => {
+useGridCommands({
+  view,
+  meta,
+  columns,
+  activeCell,
+  selection,
+  isGroupBy,
+  readOnly,
+  isSelectionReadOnly,
+  isSelectedOnlyAI,
+  isSelectedOnlyScript,
+  actionManager,
+  copyValue,
+  clearCell,
+  clearSelectedRangeOfCells,
+  triggerRefreshCanvas,
+  isViewOperationsAllowed,
+  isDataEditAllowed,
+  isPrimaryKeyAvailable,
+  isOrderColumnExists,
+  isInsertBelowDisabled,
+  isAddingEmptyRowAllowed,
+  removeInlineAddRecord,
+  getSelectionScope,
+  computeSelectionAggregation,
+  formatAggregationValue,
+  isPublicView,
+  isLocked,
+  interfacePageDataApi,
+  selectedHeaderColumnIds,
+  selectedAllRecords: vSelectedAllRecords,
+  fieldColumn: cmdkFieldColumn,
+  groupDataCache,
+  getDataCache,
+  getRows,
+  bulkUpdateRows,
+  updateOrSaveRow,
+  deleteRow,
+  deleteRangeOfRows,
+  expandForm,
+  addRow: callAddNewRow,
+  duplicateRow,
+  scrollToCell,
+  sendRecord: handleSendRecord,
+})
+
+async function duplicateRow(context: { row: number; col: number; path: Array<number> }, { notify = true } = {}) {
   const dataCache = getDataCache(context?.path)
 
   const { cachedRows } = dataCache
@@ -3132,7 +3211,7 @@ const duplicateRow = async (context: { row: number; col: number; path: Array<num
 
   const rowObj = await addEmptyRow(context.row + 1, false, beforeRowId ?? undefined, clonedRow, context?.path)
 
-  if (rowObj) message.toast(t('msg.success.rowDuplicated'))
+  if (rowObj && notify) message.toast(t('msg.success.rowDuplicated'))
 }
 
 const onNavigate = async (dir: NavigateDir) => {
@@ -3187,7 +3266,7 @@ const bulkUpdataContext = (path: Array<number>) => {
 const showSendRecordModal = ref(false)
 const sendRecordRowId = ref<string | null>(null)
 
-const handleSendRecord = (rowId: string) => {
+function handleSendRecord(rowId: string) {
   sendRecordRowId.value = rowId
   showSendRecordModal.value = true
 }
@@ -3758,6 +3837,40 @@ watch(
 defineExpose({
   scrollToRow: scrollToCell,
   openColumnCreate,
+  // Unchecks rows in every cache, group caches included.
+  clearRowSelection: () => {
+    for (const cache of [getDataCache(), ...groupDataCache.value.values()]) {
+      cache.cachedRows.value.forEach((row) => {
+        if (row.rowMeta.selected) row.rowMeta.selected = false
+      })
+    }
+    vSelectedAllRecords.value = false
+    vSelectedAllRecordsSkipPks.value = {}
+    triggerRefreshCanvas()
+  },
+  // Re-checks rows by primary key once a bulk save's reload brings them back; reports what it found.
+  recheckRows: (pks: Set<string>) => {
+    let found = 0
+    let checked = 0
+    for (const cache of [getDataCache(), ...groupDataCache.value.values()]) {
+      cache.cachedRows.value.forEach((row) => {
+        if (!pks.has(String(extractPkFromRow(row.row, meta.value?.columns as ColumnType[])))) return
+        found++
+        if (!row.rowMeta.selected) {
+          row.rowMeta.selected = true
+          checked++
+        }
+      })
+    }
+    if (checked) triggerRefreshCanvas()
+    return { found, checked }
+  },
+  // Same clipboard payload as copying a cell range, over the visible fields.
+  copyRows: (rows: Row[]) =>
+    copyTable(
+      rows,
+      columns.value.flatMap((c) => (c.columnObj && c.id !== 'row_number' ? [c.columnObj] : [])),
+    ),
 })
 
 const routeQuery = computed(() => route.query as Record<string, string>)
@@ -4164,6 +4277,16 @@ watch(
       :file-count="dragFileCount"
     />
   </div>
+
+  <SmartsheetHeaderColumnMenu
+    v-if="cmdkFieldColumn"
+    :key="cmdkFieldColumn.id"
+    headless
+    :is-open="false"
+    :column="cmdkFieldColumn"
+    @edit="handleEditColumn"
+    @add-column="addColumnBesideCmdkField"
+  />
 
   <LazySmartsheetHeaderUpdateDisplayValue
     v-if="displayValueDropColumnId"

@@ -599,6 +599,8 @@ const copyCustomUrl = async (custUrl = '') => {
         <GeneralCopyUrl v-model:url="url" />
       </div>
 
+      <DlgShareAndCollaborateSharedLinkNotice />
+
       <div class="nc-share-options">
         <DlgShareAndCollaborateCustomUrl
           v-if="activeView && showEEFeatures"

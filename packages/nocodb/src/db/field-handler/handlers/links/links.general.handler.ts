@@ -11,6 +11,12 @@ import type {
 import type { Column, Filter } from '~/models';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
+// `Link.Id` (ids of the linked records); stored filter meta is free-form.
+const isIdSubField = (filter: Filter) => {
+  const sub = filter.meta?.ltarSubField;
+  return typeof sub === 'string' && sub.toLowerCase() === 'id';
+};
+
 export class LinksGeneralHandler extends GenericFieldHandler {
   override async filter(
     knex: CustomKnex,
@@ -18,8 +24,9 @@ export class LinksGeneralHandler extends GenericFieldHandler {
     column: Column,
     options: FilterOptions,
   ) {
-    // V2 MO/OO: single-record semantics — filter by display value (like BT)
-    if (isBtLikeV2Junction(column)) {
+    // V2 MO/OO: single-record semantics — filter by display value (like BT).
+    // `Link.Id`: the linked records' ids, not their count.
+    if (isBtLikeV2Junction(column) || isIdSubField(filter)) {
       return new LtarGeneralHandler().filter(knex, filter, column, options);
     }
 
@@ -32,7 +39,7 @@ export class LinksGeneralHandler extends GenericFieldHandler {
     column: Column,
     options: FilterOptions = {},
   ): Promise<FilterVerificationResult> {
-    if (isBtLikeV2Junction(column)) {
+    if (isBtLikeV2Junction(column) || isIdSubField(filter)) {
       return new LtarGeneralHandler().verifyFilter(filter, column, options);
     }
     return super.verifyFilter(filter, column);

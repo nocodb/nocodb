@@ -91,7 +91,7 @@ const duplicateVirtualColumn = async () => {
         },
       } as ColumnReqType,
     )
-    await getMeta(meta!.value!.base_id!, meta!.value!.id!, true)
+    await getMeta({ baseId: meta!.value!.base_id!, tableIdOrTitle: meta!.value!.id!, force: true })
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger()

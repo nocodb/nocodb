@@ -52,7 +52,11 @@ const onDelete = async () => {
 
   isLoading.value = true
   try {
-    const meta = (await getMeta(toBeDeletedTable.base_id as string, toBeDeletedTable.id as string, true)) as TableType
+    const meta = (await getMeta({
+      baseId: toBeDeletedTable.base_id as string,
+      tableIdOrTitle: toBeDeletedTable.id as string,
+      force: true,
+    })) as TableType
     const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
     if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.source_id)) {
@@ -60,10 +64,10 @@ const onDelete = async () => {
         relationColumns.map(async (c, i) => {
           // Use fk_related_base_id for cross-base relationships
           const relatedBaseId = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || toBeDeletedTable.base_id
-          const refMeta = (await getMeta(
-            relatedBaseId as string,
-            (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
-          )) as TableType
+          const refMeta = (await getMeta({
+            baseId: relatedBaseId as string,
+            tableIdOrTitle: (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
+          })) as TableType
           return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
         }),
       )
@@ -122,10 +126,17 @@ const onDelete = async () => {
       }
     } else if (activeTable.value?.id) {
       // get cached meta for active table
-      const activeTableMeta = await getMeta(activeTable.value?.base_id as string, activeTable.value?.id as string)
+      const activeTableMeta = await getMeta({
+        baseId: activeTable.value?.base_id as string,
+        tableIdOrTitle: activeTable.value?.id as string,
+      })
       // if active table has any link to another record column, then force refetch the meta
       if (activeTableMeta && activeTableMeta.columns?.find((c) => isLinksOrLTAR(c))) {
-        await getMeta(activeTable.value?.base_id as string, activeTable.value?.id as string, true)
+        await getMeta({
+          baseId: activeTable.value?.base_id as string,
+          tableIdOrTitle: activeTable.value?.id as string,
+          force: true,
+        })
       }
     }
 

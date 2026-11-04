@@ -92,4 +92,54 @@ export class RatingGeneralHandler extends DecimalGeneralHandler {
       },
     };
   }
+
+  // The column defaults to 0 and clearing a star writes 0, so 0 is unrated.
+  override async filterBlank(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter & { groupby?: boolean };
+      column: Column;
+    },
+    options: FilterOptions,
+  ) {
+    // Group-by's Empty group is NULL only; 0-rated records have their own 0 group.
+    if (rootArgs.filter.groupby) {
+      return super.filterBlank(args, rootArgs, options);
+    }
+
+    const { sourceField } = args;
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          nestedQb.whereNull(sourceField as any).orWhere(sourceField as any, 0);
+        });
+      },
+    };
+  }
+
+  override async filterNotblank(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          nestedQb
+            .whereNotNull(sourceField as any)
+            .whereNot(sourceField as any, 0);
+        });
+      },
+    };
+  }
 }

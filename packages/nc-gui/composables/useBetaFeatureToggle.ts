@@ -267,16 +267,6 @@ const FEATURES = [
     isEngineering: true,
   },
   {
-    id: 'build_modes',
-    title: 'Build modes',
-    description:
-      'Pick what the workspace home builds — an app, an agent or tables — instead of always tables. Each needs its own plan.',
-    enabled: false,
-    version: 1,
-    isAdvanced: true,
-    isEE: true,
-  },
-  {
     // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
     // would silently reset the toggle for anyone who had it on.
     id: 'marketplace',
@@ -303,6 +293,16 @@ const FEATURES = [
     id: 'multiple_sso_clients',
     title: 'Multiple SSO providers',
     description: 'Allow configuring more than one SAML / OpenID provider.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'cmdk_relative_where_edits',
+    title: 'Cmd+K relative bulk edits',
+    description:
+      'Run relative edits on every record matching a condition from Cmd+K, like "add 10 to amount where stage is won".',
     enabled: false,
     version: 1,
     isEngineering: true,

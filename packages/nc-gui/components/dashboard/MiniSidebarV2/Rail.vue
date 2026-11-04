@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import { useStorage } from '@vueuse/core'
 import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
 
 interface NavItem {
   key: string
@@ -17,7 +19,7 @@ const route = router.currentRoute
 
 const { navigateToProject, isMobileMode } = useGlobal()
 
-const { $e: _$e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -343,11 +345,33 @@ const mainItems = computed<NavItem[]>(() =>
       ],
 )
 
-// Base settings' "Show app first": a base built through the App flow leads with its apps.
-const railItems = computed(() =>
-  isAppFirstBase(resolvedProject.value)
-    ? [...mainItems.value].sort((a, b) => Number(b.key === 'apps') - Number(a.key === 'apps'))
-    : mainItems.value,
+// Per browser for now, not per user.
+const railOrder = useStorage<string[]>('nc-rail-item-order', [])
+
+const savedRailOrder = computed(() => (ncIsArray(railOrder.value) ? railOrder.value.filter(ncIsString) : []))
+
+const railItems = computed(() => sortRailItems(mainItems.value, savedRailOrder.value))
+
+function onRailItemMoved(e: { moved?: { element: NavItem; oldIndex: number; newIndex: number } }) {
+  if (!e.moved) return
+
+  railOrder.value = moveRailItem(
+    savedRailOrder.value,
+    railItems.value.map((item) => item.key),
+    e.moved.oldIndex,
+    e.moved.newIndex,
+  )
+
+  $e('c:sidebar:rail:reorder', { item: e.moved.element.key })
+}
+
+// A base built as an app puts Apps first in a browser that has no order yet; from then on that order holds.
+watch(
+  () => isAppFirstBase(resolvedProject.value) && mainItems.value.some((item) => item.key === 'apps'),
+  (leadsWithApps) => {
+    if (leadsWithApps && !savedRailOrder.value.length) railOrder.value = ['apps']
+  },
+  { immediate: true },
 )
 
 const handleOpenBookmarkPanel = () => {
@@ -359,6 +383,15 @@ const handleOpenBookmarkPanel = () => {
 }
 
 const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettingsSlugFromRoute(route.value))
+
+useSidebarCommands({
+  key: 'rail',
+  items: mainItems,
+  isItemActive: (item) =>
+    item.active ?? (activeSidebarTab.value === item.key && !isChatFullScreen.value && !isBaseSettingsOpen.value),
+  isNotificationOpen,
+  isBookmarksFlyoutOpen,
+})
 </script>
 
 <template>
@@ -392,18 +425,33 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
 
     <DashboardMiniSidebarV2AppTiles v-if="showAppOnlyInstallTile" variant="rail" />
 
-    <!-- Main nav items -->
-    <DashboardMiniSidebarV2AppsMovedTip v-for="(item, idx) of railItems" :key="idx" :enabled="item.key === 'apps'">
-      <DashboardMiniSidebarV2RailItem
-        :icon="item.icon"
-        :label="item.label"
-        :panel-key="item.key"
-        :active="item.active ?? (activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen)"
-        :disabled="item.disabled"
-        :has-alert="item.hasAlert"
-        @click="item.onClick?.()"
-      />
-    </DashboardMiniSidebarV2AppsMovedTip>
+    <!-- Main nav items: drag to reorder -->
+    <Draggable
+      v-if="railItems.length"
+      :model-value="railItems"
+      item-key="key"
+      class="nc-rail-items"
+      ghost-class="nc-rail-item-ghost"
+      :disabled="isMobileMode"
+      data-testid="nc-rail-items"
+      @change="onRailItemMoved"
+    >
+      <template #item="{ element: item }">
+        <div class="w-full">
+          <DashboardMiniSidebarV2AppsMovedTip :enabled="item.key === 'apps'">
+            <DashboardMiniSidebarV2RailItem
+              :icon="item.icon"
+              :label="item.label"
+              :panel-key="item.key"
+              :active="item.active ?? (activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen)"
+              :disabled="item.disabled"
+              :has-alert="item.hasAlert"
+              @click="item.onClick?.()"
+            />
+          </DashboardMiniSidebarV2AppsMovedTip>
+        </div>
+      </template>
+    </Draggable>
 
     <NcDivider
       v-if="mainItems.length && !isActiveBaseAppOnlyInstall && !isTemplatesPageOpened"
@@ -494,6 +542,14 @@ const isSettingsActive = computed(() => isBaseSettingsOpen.value || !!wsSettings
 
 .nc-rail-logo {
   @apply flex items-center justify-center cursor-pointer opacity-90 hover:opacity-100 transition-all duration-150 p-1.5 rounded-lg;
+}
+
+.nc-rail-items {
+  @apply flex flex-col gap-2 items-center w-full;
+}
+
+.nc-rail-item-ghost {
+  @apply opacity-40;
 }
 
 .nc-rail-bottom-group {

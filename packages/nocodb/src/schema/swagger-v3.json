@@ -3628,7 +3628,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                  "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                 }
               }
             }
@@ -3687,7 +3687,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                  "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                 }
               }
             }
@@ -3746,7 +3746,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                  "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                 }
               }
             }
@@ -12110,7 +12110,7 @@
             },
             "width": {
               "type": "integer",
-              "description": "Width of the field in pixels.\n\n **Applicable only for grid view.**"
+              "description": "Width of the field in pixels.\n\n **Applicable to grid views, and to list views when sent per level under `options.levels[].fields`.** Accepted but not stored on other view types."
             },
             "aggregation": {
               "$ref": "#/components/schemas/ViewAggregationEnum",
@@ -12122,7 +12122,7 @@
             "show"
           ]
         },
-        "description": "List of fields to be displayed in the view. \n\n- If not specified, all fields are displayed by default.\n- If an empty array is provided, only the display value field will be shown.\n- In case of partial list, fields not included in the list will be excluded from the view.\n- A `field_id` that does not exist on the table is rejected with `404`."
+        "description": "List of fields to be displayed in the view. \n\n- If not specified, all fields are displayed by default.\n- If an empty array is provided, only the display value field will be shown.\n- In case of partial list, fields not included in the list will be excluded from the view.\n- A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`)."
       },
       "ViewRowColour": {
         "type": "object",
@@ -13220,7 +13220,7 @@
                     "description": "List of sorts to be applied to the view."
                   },
                   "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                    "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                   },
                   "fields": {
                     "$ref": "#/components/schemas/ViewFields"
@@ -13252,7 +13252,7 @@
                     "description": "List of sorts to be applied to the view."
                   },
                   "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                    "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                   },
                   "fields": {
                     "$ref": "#/components/schemas/ViewFields"
@@ -13284,7 +13284,7 @@
                     "description": "List of sorts to be applied to the view."
                   },
                   "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                    "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                   },
                   "fields": {
                     "$ref": "#/components/schemas/ViewFields"
@@ -13319,7 +13319,7 @@
                     "description": "List of sorts to be applied to the view."
                   },
                   "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                    "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                   },
                   "fields": {
                     "$ref": "#/components/schemas/ViewFields"
@@ -13354,7 +13354,7 @@
                     "description": "List of sorts to be applied to the view."
                   },
                   "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                    "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                   },
                   "fields": {
                     "$ref": "#/components/schemas/ViewFields"
@@ -13389,7 +13389,7 @@
                     "description": "List of sorts to be applied to the view."
                   },
                   "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                    "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                   },
                   "fields": {
                     "$ref": "#/components/schemas/ViewFields"
@@ -13421,7 +13421,7 @@
                     "description": "List of sorts to be applied to the view."
                   },
                   "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                    "$ref": "#/components/schemas/FilterCreateUpdateResponse"
                   },
                   "fields": {
                     "$ref": "#/components/schemas/ViewFields"
@@ -13690,7 +13690,7 @@
             "type": "number",
             "description": "Decimal field precision. Defaults to 0",
             "minimum": 0,
-            "maximum": 5
+            "maximum": 8
           },
           "separator": {
             "type": "string",
@@ -13726,7 +13726,7 @@
             "type": "number",
             "description": "Number of decimal places. Defaults to 2.",
             "minimum": 0,
-            "maximum": 5
+            "maximum": 8
           },
           "currency_code": {
             "type": "string",
@@ -13956,7 +13956,7 @@
             "type": "number",
             "description": "Number of decimal places. Defaults to 2.",
             "minimum": 0,
-            "maximum": 5
+            "maximum": 8
           }
         },
         "additionalProperties": false
@@ -14328,7 +14328,7 @@
             "type": "number",
             "description": "Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.",
             "minimum": 0,
-            "maximum": 5
+            "maximum": 8
           },
           "enable_conditions": {
             "type": "boolean",
@@ -15497,7 +15497,7 @@
               "boolean",
               "null"
             ],
-            "description": "Value for comparison."
+            "description": "Value for comparison. Numbers and booleans are accepted, but stored and returned as strings (see `FilterResponse`)."
           },
           "enabled": {
             "type": "boolean",
@@ -15516,7 +15516,7 @@
           "list": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/FilterGroup"
+              "$ref": "#/components/schemas/FilterGroupResponse"
             },
             "description": "List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**. A view with no filters still returns that root group, with an empty `filters` array and `group_operator` set to `null`."
           }
@@ -15662,6 +15662,111 @@
           "id",
           "group_operator",
           "filters"
+        ]
+      },
+      "FilterResponse": {
+        "type": "object",
+        "title": "FilterResponse",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the filter.",
+            "readOnly": true
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "Parent ID of the filter, specifying this filters group association. Defaults to **root**."
+          },
+          "field_id": {
+            "type": "string",
+            "description": "Field ID to which this filter applies."
+          },
+          "operator": {
+            "type": "string",
+            "description": "Primary comparison operator (e.g., eq, gt, lt)."
+          },
+          "sub_operator": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Secondary comparison operator (if applicable)."
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Value for comparison, always returned as a string: a filter created with `100` reads back as `\"100\"`, and `true` as `\"true\"`."
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on.",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "field_id",
+          "operator"
+        ],
+        "description": "A filter as returned by the API. Same shape as `Filter`, except that `value` always comes back as a string (or `null`)."
+      },
+      "FilterGroupResponse": {
+        "type": "object",
+        "title": "FilterGroupResponse",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the group.",
+            "readOnly": true
+          },
+          "parent_id": {
+            "type": "string",
+            "description": "Parent ID of this filter-group."
+          },
+          "group_operator": {
+            "type": "string",
+            "enum": [
+              "AND",
+              "OR"
+            ],
+            "description": "Logical operator for combining filters in the group."
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the group is switched on. A switched-off group is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated group comes back switched on.",
+            "readOnly": true
+          },
+          "filters": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FilterResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/FilterGroupResponse"
+                }
+              ]
+            },
+            "description": "Nested filters or filter groups."
+          }
+        },
+        "required": [
+          "id",
+          "group_operator",
+          "filters"
+        ],
+        "description": "A filter group as returned by the API. Nested filters are `FilterResponse`, so their `value` is always a string (or `null`)."
+      },
+      "FilterCreateUpdateResponse": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/FilterResponse"
+          },
+          {
+            "$ref": "#/components/schemas/FilterGroupResponse"
+          }
         ]
       },
       "FilterCreate": {
@@ -19376,6 +19481,19 @@
           "nextNodeId": {
             "type": "string",
             "description": "ID of the node to resume execution from"
+          },
+          "skipReason": {
+            "type": "string",
+            "enum": ["self_triggered", "chain_depth_exceeded"],
+            "description": "Why a `skipped` execution was not run by the trigger loop guard: the event came from this workflow's own write, or the trigger chain reached its limit of 3"
+          },
+          "skippedCount": {
+            "type": "integer",
+            "description": "How many trigger events this `skipped` execution stands for, e.g. every record of a bulk change; the trigger data keeps the first"
+          },
+          "errorMessage": {
+            "type": "string",
+            "description": "Plain-language reason shown with the status, e.g. why a run was not run or was stopped"
           }
         },
         "required": ["id", "workflowId", "status", "startTime", "nodeResults"]
@@ -19813,6 +19931,14 @@
                   "format": "date-time",
                   "description": "Timestamp when the execution finished"
                 },
+                "parent_execution_id": {
+                  "type": ["string", "null"],
+                  "description": "The execution whose record write triggered this one; null when not triggered by a workflow"
+                },
+                "execution_depth": {
+                  "type": "integer",
+                  "description": "Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule"
+                },
                 "created_at": {
                   "type": "string",
                   "format": "date-time",
@@ -19855,6 +19981,14 @@
             "type": ["string", "null"],
             "format": "date-time",
             "description": "Timestamp when the execution finished"
+          },
+          "parent_execution_id": {
+            "type": ["string", "null"],
+            "description": "The execution whose record write triggered this one; null when not triggered by a workflow"
+          },
+          "execution_depth": {
+            "type": "integer",
+            "description": "Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule"
           },
           "created_at": {
             "type": "string",

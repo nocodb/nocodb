@@ -1,5 +1,6 @@
 import { ColumnType } from '~/lib/Api';
 import type { WorkflowNodeRetryPolicy } from '~/lib/workflow/node';
+import type { WorkflowSkipReason } from '~/lib/workflow/constants';
 
 enum VariableType {
   String = 'string',
@@ -86,6 +87,14 @@ interface VariableDefinition {
     // Upstream node the variable comes from (stamped by the config panel when grouping)
     sourceNodeId?: string;
     sourceNodeTitle?: string;
+
+    // Picker search matches the name only: the key repeats field names that other rows
+    // already match on (the rows `withListVariables` adds).
+    searchByName?: boolean;
+
+    // A Link field would split this value on its commas (a plain join of display values);
+    // its picker hides it in favour of the quoted join.
+    splitsInLinks?: boolean;
   };
 
   // Nested variables for objects/arrays
@@ -247,6 +256,10 @@ interface WorkflowExecutionState {
   errorCode?: WorkflowExecutionErrorCode;
   // Shown with errorCode, e.g. the operator's suspension reason.
   errorMessage?: string;
+  // Why a `skipped` run was not run; errorMessage carries the plain-language text.
+  skipReason?: WorkflowSkipReason;
+  // Events this one skipped row stands for (a bulk change); triggerData keeps the first.
+  skippedCount?: number;
   hold?: WorkflowExecutionHold;
   startTime: number;
   endTime?: number;
@@ -316,6 +329,9 @@ interface IWorkflowExecution {
   heartbeat_at?: string;
   control?: WorkflowExecutionControl | null;
   fk_retry_of_id?: string | null;
+  // The run whose write triggered this one, and how many trigger hops led here.
+  parent_execution_id?: string | null;
+  execution_depth?: number;
 }
 
 interface NodeConfig {

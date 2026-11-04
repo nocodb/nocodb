@@ -24,6 +24,7 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import { isReplay } from '~/helpers/replayScope';
+import { compareByKey } from '~/cache/listOrder';
 import {
   getModelContext,
   setModelContext,
@@ -31,6 +32,16 @@ import {
 } from '~/helpers/modelContext';
 
 const logger = new Logger('Filter');
+
+/**
+ * Sort a meta-DB read the way a cache hit sorts it. Legacy rows can have a
+ * NULL `order`, which SQLite/MySQL put first and the cache puts last.
+ */
+export function sortByFilterOrder<T extends { order?: number }>(
+  rows: T[],
+): T[] {
+  return rows?.sort(compareByKey('order'));
+}
 
 /**
  * Link flat filter rows into root filters with their `children` populated.
@@ -289,19 +300,17 @@ export default class Filter implements FilterType {
       MetaTable.FILTER_EXP,
       insertObj,
     );
-    if (filter?.children?.length) {
-      await Promise.all(
-        filter.children.map((f) =>
-          this.insert(
-            context,
-            {
-              ...f,
-              fk_parent_id: row.id,
-              [referencedModelColName]: filter[referencedModelColName],
-            },
-            ncMeta,
-          ),
-        ),
+    // Sequential: each child reads the next `order` before inserting, so
+    // concurrent inserts would all take the same one.
+    for (const f of filter?.children ?? []) {
+      await this.insert(
+        context,
+        {
+          ...f,
+          fk_parent_id: row.id,
+          [referencedModelColName]: filter[referencedModelColName],
+        },
+        ncMeta,
       );
     }
     return await this.redisPostInsert(context, row.id, filter, ncMeta);
@@ -638,18 +647,20 @@ export default class Filter implements FilterType {
   ): Promise<Filter[]> {
     if (!columnId) return null;
 
-    const filters = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.FILTER_EXP,
-      {
-        condition: {
-          fk_column_id: columnId,
+    const filters = sortByFilterOrder(
+      await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: {
+            fk_column_id: columnId,
+          },
+          orderBy: {
+            order: 'asc',
+          },
         },
-        orderBy: {
-          order: 'asc',
-        },
-      },
+      ),
     );
 
     return filters?.map((f) => this.castType(f, context));
@@ -696,18 +707,20 @@ export default class Filter implements FilterType {
     let { list: childFilters } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !childFilters.length) {
-      childFilters = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: {
-            fk_parent_id: this.id,
+      childFilters = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: {
+              fk_parent_id: this.id,
+            },
+            orderBy: {
+              order: 'asc',
+            },
           },
-          orderBy: {
-            order: 'asc',
-          },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -793,16 +806,18 @@ export default class Filter implements FilterType {
         condition.fk_button_col_id = buttonColId;
       }
 
-      filters = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition,
-          orderBy: {
-            order: 'asc',
+      filters = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition,
+            orderBy: {
+              order: 'asc',
+            },
           },
-        },
+        ),
       );
 
       let filterCacheScope: FilterCacheScope;
@@ -1064,16 +1079,18 @@ export default class Filter implements FilterType {
     const { isNoneList } = cachedList;
 
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: { fk_view_id: viewId },
-          orderBy: {
-            order: 'asc',
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: { fk_view_id: viewId },
+            orderBy: {
+              order: 'asc',
+            },
           },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1101,16 +1118,18 @@ export default class Filter implements FilterType {
     const { isNoneList } = cachedList;
 
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: { fk_hook_id: hookId },
-          orderBy: {
-            order: 'asc',
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: { fk_hook_id: hookId },
+            orderBy: {
+              order: 'asc',
+            },
           },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1140,16 +1159,18 @@ export default class Filter implements FilterType {
     const { isNoneList } = cachedList;
 
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: { fk_view_id: viewId },
-          orderBy: {
-            order: 'asc',
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: { fk_view_id: viewId },
+            orderBy: {
+              order: 'asc',
+            },
           },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1178,16 +1199,18 @@ export default class Filter implements FilterType {
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: { fk_hook_id: hookId },
-          orderBy: {
-            order: 'asc',
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: { fk_hook_id: hookId },
+            orderBy: {
+              order: 'asc',
+            },
           },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1216,16 +1239,18 @@ export default class Filter implements FilterType {
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: { fk_rls_policy_id: rlsPolicyId },
-          orderBy: {
-            order: 'asc',
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: { fk_rls_policy_id: rlsPolicyId },
+            orderBy: {
+              order: 'asc',
+            },
           },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1297,16 +1322,18 @@ export default class Filter implements FilterType {
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: { fk_parent_column_id: parentColId },
-          orderBy: {
-            order: 'asc',
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: { fk_parent_column_id: parentColId },
+            orderBy: {
+              order: 'asc',
+            },
           },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1338,19 +1365,21 @@ export default class Filter implements FilterType {
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: {
-            fk_parent_id: parentId,
-            // fk_view_id: viewId,
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: {
+              fk_parent_id: parentId,
+              // fk_view_id: viewId,
+            },
+            orderBy: {
+              order: 'asc',
+            },
           },
-          orderBy: {
-            order: 'asc',
-          },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1384,19 +1413,21 @@ export default class Filter implements FilterType {
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: {
-            fk_parent_id: parentId,
-            fk_hook_id: hookId,
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: {
+              fk_parent_id: parentId,
+              fk_hook_id: hookId,
+            },
+            orderBy: {
+              order: 'asc',
+            },
           },
-          orderBy: {
-            order: 'asc',
-          },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1430,19 +1461,21 @@ export default class Filter implements FilterType {
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: {
-            fk_parent_id: parentId,
-            fk_parent_column_id: parentColId,
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: {
+              fk_parent_id: parentId,
+              fk_parent_column_id: parentColId,
+            },
+            orderBy: {
+              order: 'asc',
+            },
           },
-          orderBy: {
-            order: 'asc',
-          },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1519,16 +1552,18 @@ export default class Filter implements FilterType {
     const { isNoneList } = cachedList;
 
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: { fk_link_col_id: linkColumnId },
-          orderBy: {
-            order: 'asc',
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: { fk_link_col_id: linkColumnId },
+            orderBy: {
+              order: 'asc',
+            },
           },
-        },
+        ),
       );
       await NocoCache.setList(
         context,
@@ -1623,16 +1658,18 @@ export default class Filter implements FilterType {
     const { isNoneList } = cachedList;
 
     if (!isNoneList && !filterObjs.length) {
-      filterObjs = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILTER_EXP,
-        {
-          condition: { fk_button_col_id: buttonColId },
-          orderBy: {
-            order: 'asc',
+      filterObjs = sortByFilterOrder(
+        await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            condition: { fk_button_col_id: buttonColId },
+            orderBy: {
+              order: 'asc',
+            },
           },
-        },
+        ),
       );
       await NocoCache.setList(
         context,

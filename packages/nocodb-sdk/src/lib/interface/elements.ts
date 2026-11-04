@@ -10,6 +10,7 @@ import type { Validation } from '../form';
 import type { InterfaceRoles } from '../enums';
 import type { AttachmentResType } from '~/lib/Api';
 import type { InterfaceVisualizationConfig } from './pageConfigs';
+import type { LinkUtilizationPreviewConfig } from '~/lib/timelineUtilization';
 import type {
   ButtonAppearanceAfter,
   ButtonConfirmation,
@@ -382,6 +383,11 @@ export interface InterfaceFieldElementConfig {
     filters?: InterfaceFilterGroup | null;
   };
   /**
+   * Single-record links: show each picker candidate's utilization over this
+   * record's dates. Absent = off.
+   */
+  preview_utilization?: LinkUtilizationPreviewConfig | null;
+  /**
    * Links/LTAR `show_as: 'view'` — the embed's end-user toolbar actions
    * (search / sort / filter / group / row height). Element-scoped twin of the
    * table page's `user_actions` minus `buttons`. Absent = every toggle off
@@ -422,8 +428,7 @@ export interface InterfaceFieldElementConfig {
     /**
      * Links/LTAR `style: 'cards'` — related-table column ids rendered on each
      * card beside the title, in display order (the "Field visibility and
-     * order" curation). Absent = the default heuristic (first few plain
-     * columns after the display value).
+     * order" curation). Absent = title-only cards (display value only).
      */
     card_field_ids?: string[];
     /**

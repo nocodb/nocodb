@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "不再需要重做動作",
     "noRecentViews": "最近沒有觀看",
     "expandLinkFields": "展開連結欄位",
-    "expandLinkFieldsDesc": "傳回連結記錄資料，而非計數",
+    "expandLinkFieldsDesc": "輸出中的連結欄位會保存關聯的記錄，而不是數量",
     "inheritedFromParent": "從父代繼承",
     "pageOrUrl": "頁面或 URL",
     "linkTitle": "連結標題",
@@ -4072,7 +4072,6 @@
     "relationSettings": "關聯設定",
     "restoreVersion": "還原 v{version}",
     "runningScript": "正在執行指令碼 ...",
-    "removeSummary": "移除摘要",
     "rowFiltered": "列已篩選",
     "rowMoved": "列已移動",
     "rowHidden": "列已隱藏",
@@ -4780,7 +4779,7 @@
       },
       "optIn": {
         "title": "選擇性啟用的工具",
-        "description": "會永久刪除或在 NocoDB 之外執行動作的工具，例如執行自動化或觸發 Webhook。除非你在此處啟用，否則連線永遠不會取得這些工具。"
+        "description": "會永久刪除資料或在 NocoDB 之外執行動作的工具，例如執行自動化或觸發 Webhook。除非你在這裡開啟，否則它們一直處於關閉狀態。"
       }
     },
     "noBaseAccess": "無專案存取權",
@@ -5778,7 +5777,88 @@
     "workflowValueDynamicDescription": "使用此自動化中前一步驟的變數",
     "workflowRunAs": "執行身分",
     "workflowChangeRunAs": "變更執行身分",
-    "workflowServiceAccount": "服務帳戶"
+    "workflowServiceAccount": "服務帳戶",
+    "wsEmpty": {
+      "title": "開始你的第一個專案",
+      "subtitle": "專案保存你的資料，以及建立在這些資料上的應用程式。",
+      "sharedTitle": "還沒有人與你分享任何內容",
+      "sharedSubtitle": "你受邀加入的專案與應用程式會顯示在這裡。"
+    },
+    "workspaceHome": {
+      "uploadFile": "上傳 CSV 或 Excel",
+      "pickTemplate": "或是挑選一個起始範本",
+      "untitledBase": "未命名專案",
+      "templates": {
+        "projectManagement": {
+          "label": "專案管理",
+          "prompt": "一份專案追蹤表，包含專案與任務，每個任務都有負責人、狀態、優先順序與到期日。"
+        },
+        "product": {
+          "label": "產品",
+          "prompt": "一份產品藍圖，包含功能、每個功能解決的問題、優先順序、狀態與目標版本。"
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "一份行銷行事曆，包含活動、每個活動投放的管道、預算、負責人與上線日期。"
+        },
+        "sales": {
+          "label": "銷售",
+          "prompt": "一套銷售 CRM，包含公司、聯絡人與商機，每筆商機都有階段、金額與預計成交日期。"
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "一個支援服務台，包含工單、提出工單的客戶、優先順序、狀態與指派的客服人員。"
+        },
+        "hr": {
+          "label": "人力資源",
+          "prompt": "一份應徵者追蹤表，包含開放職缺、依招募階段分類的候選人，以及附有日期與面試官備註的面試紀錄。"
+        }
+      }
+    },
+    "yourConnections": "你的連線",
+    "workingHours": "工作時間",
+    "workingDays": "工作日",
+    "wsNav": {
+      "groupBilling": "方案",
+      "groupAdmin": "管理",
+      "membersPage": "工作區成員",
+      "iconHint": "顯示在側邊欄與工作區切換器中。",
+      "nameHint": "這個工作區在整個 NocoDB 中的名稱。",
+      "workspaceId": "工作區 ID",
+      "workspaceIdHint": "可搭配 API 使用，或在聯絡支援時提供。",
+      "allTypes": "所有類型",
+      "allTeams": "所有團隊",
+      "teamsCreatedHere": "在此建立",
+      "teamsScimManaged": "由 SCIM 管理",
+      "upgradeTitleAudits": "工作區稽核紀錄",
+      "upgradeDescAudits": "查看這個工作區中的每一項變更，以及是誰做的。",
+      "upgradeTitleSso": "單一登入",
+      "upgradeDescSso": "讓成員透過你的身分提供者登入。",
+      "desc": {
+        "members": "誰屬於這個工作區，以及他們的預設角色。",
+        "teams": "可以整組加入專案的成員群組。",
+        "integrations": "在整個工作區共用的已連結帳號與認證資訊。",
+        "general": "工作區的名稱、圖示與 ID。",
+        "skills": "AI 助理在整個工作區中遵循的指示。",
+        "security": "適用於這個工作區所有人的登入要求。",
+        "dangerZone": "離開或永久刪除這個工作區。",
+        "billing": "你的方案、席位、付款方式與帳單。",
+        "usage": "這個工作區相對於方案額度的用量。",
+        "audits": "這個工作區中的每一項變更，以及是誰做的。",
+        "sso": "透過你的身分提供者登入。"
+      }
+    },
+    "workspaceMode": "工作區模式",
+    "zoomIn": "放大",
+    "zoomOut": "縮小",
+    "zoomTo50Percent": "縮放至 50%",
+    "zoomTo100Percent": "縮放至 100%",
+    "workflowValueStatic": "靜態",
+    "workflowValueStaticDescription": "直接輸入值",
+    "workspaceNoAccess": "工作區（無存取權）",
+    "yAxis": "Y 軸",
+    "workspaceSettings": "工作區設定",
+    "wrapLongText": "長文字自動換行"
   },
   "activity": {
     "useTemplate": "使用範本",
@@ -7138,8 +7218,6 @@
       "selectFieldFirst": "請先選取 {field}，以便載入這些選項。",
       "viewFolderDeleteConfirmation": "此資料夾中的檢視將移至最上層。",
       "saveDraftToBrowser": "將草稿儲存到瀏覽器",
-      "showAppFirst": "在側邊欄中優先顯示應用程式",
-      "showAppFirstDesc": "在這個專案的側邊欄中，把 Apps 放在資料上方。",
       "recordSavedButHidden": "記錄已成功儲存，但因您的存取權限而被隱藏。",
       "seeChangesToRecord": "檢視此記錄的變更",
       "revisionHistoryUpgrade": "您擁有 {limit} 的修訂記錄。升級後可檢視完整記錄。",
@@ -7242,7 +7320,20 @@
       "mcpSetupCursorStep3": "加入建立權杖後提供的 JSON 設定。",
       "mcpSetupIntroWindsurf": "透過 4 個簡單步驟開始在 Windsurf 中使用 NocoDB MCP",
       "mcpSetupWindsurfStep1": "進入 Windsurf 設定，並在左側邊欄選取 Cascade 分頁",
-      "mcpSetupWindsurfStep2": "點擊 Manage MCP。"
+      "mcpSetupWindsurfStep2": "點擊 Manage MCP。",
+      "abuseReport": {
+        "queueDescription": "透過公開連結提交的檢舉。停用連結可將其下架，或封鎖其背後的帳號。",
+        "disableConfirm": "公開連結會對所有人失效，與之相關的所有未處理檢舉都會標示為已解決。擁有者可以用新連結再次分享該項目。",
+        "blockConfirm": "{email} 已在所有裝置登出，無法再登入或使用 API 權杖。你可以在使用者管理中解除封鎖。",
+        "noAccounts": "沒有帳號與這個項目關聯。",
+        "superAdminNotBlockable": "超級管理員無法被封鎖。",
+        "description": "你認為這個頁面被用於網路釣魚、假冒身分、詐騙或其他濫用行為嗎？請通知這個 {productName} 執行個體的管理員。",
+        "detailsMin": "請用至少 {min} 個字描述這個問題。",
+        "thanksTitle": "感謝你的檢舉",
+        "thanksDescription": "我們已收到你的檢舉。這個 {productName} 執行個體的管理員會進行審核。",
+        "contactEmailHint": "來自公開檢視、表單、介面與儀表板的檢舉會寄送到這個信箱。留空則寄給所有超級管理員。"
+      },
+      "actWithYourOwnPermissions": "以你自己的權限在這些資源中執行操作"
     },
     "error": {
       "failedToCreateSync": "建立同步失敗",
@@ -7455,7 +7546,46 @@
       "inviteLinkExhausted": "此邀請連結的使用次數已用盡",
       "inviteLinkUnavailable": "此邀請連結已失效",
       "invalidEmailDomain": "請輸入類似 acme.io 的網域",
-      "projectNotAccessible": "無法存取專案"
+      "projectNotAccessible": "無法存取專案",
+      "attachmentInvalidUrl": "請輸入以 http:// 或 https:// 開頭的 URL，或是使用變數的範本",
+      "attachmentAlreadyAttached": "這個檔案已經加入附件。",
+      "attachmentOpenWorkflowToUpload": "請開啟工作流程以上傳檔案",
+      "attachmentNoLongerAvailable": "這個檔案已無法使用",
+      "attachmentsTooLarge": "檔案超過每封郵件 {size} 的限制",
+      "factoryMachineNameRequired": "請為這台機器命名",
+      "factoryMachineNameDuplicate": "已有同名的機器",
+      "vaultUnreachable": "使用這些設定無法連線到保險庫",
+      "vaultAliasStart": "名稱必須以字母開頭",
+      "vaultAliasCharacters": "名稱只能包含字母與數字 — 不可有空格、連字號或底線",
+      "vaultAliasReserved": "「{name}」是保留名稱，請改用其他名稱",
+      "fieldSaveFailed": "無法儲存欄位「{field}」：{error}",
+      "fieldSavesFailed": "無法儲存 {count} 個欄位（{fields}）。第一個錯誤：{error}",
+      "projectNameRequired": "專案名稱為必填",
+      "attachmentUrlDownloadFailed": "NocoDB 無法從該 URL 下載這個檔案。請先移除，再重新加入檔案。",
+      "emailImageSize": "郵件內文中的圖片必須小於 {size}。標誌通常遠小於 100 KB。",
+      "emailImageType": "請使用 PNG、JPEG、GIF 或 WebP 格式的圖片",
+      "emailImageCount": "一封郵件內文最多可放入 {count} 張圖片",
+      "emailImageTotalSize": "郵件內文中的圖片總大小必須小於 {size}",
+      "emailImageNoWorkflow": "請開啟工作流程以加入圖片",
+      "emailImageUploadFailed": "無法上傳這張圖片",
+      "emailImageMissing": "這張圖片已無法使用，將不會包含在郵件中。請移除後重新插入。",
+      "vaultSecretNeedsProperty": "這組密鑰包含多個欄位。請選擇要使用的欄位，否則執行時連線會失敗。",
+      "vaultUnknownAlias": "你沒有可用、名為「{name}」的保險庫。",
+      "atLeastOneOperationRequired": "至少必須選擇一項操作",
+      "triggerFormRequired": "你必須選擇一個觸發表單",
+      "failedToStartListening": "無法開始接收更新",
+      "unknownPermissionRequested": "這台伺服器不提供該權限",
+      "authorizationWillBeRefused": "由於上述權限設定，這項要求將被拒絕。",
+      "vaultAliasNotAllowed": "你無權使用保險庫「{name}」。請向工作區擁有者申請存取權，或直接輸入認證資訊。",
+      "selectTargetField": "請選擇目標欄位！",
+      "parentTableNoPrimaryKey": "父資料表沒有主索引鍵欄位",
+      "childTableNoPrimaryKey": "子資料表沒有主索引鍵欄位",
+      "noWorkspaceAvailable": "沒有可用的工作區",
+      "invalidJson": "無效的 JSON",
+      "invalidTokensJson": "這不是權杖匯出檔。應包含 light、dark、font 或 radiusScale 之類的鍵。",
+      "renameFileFailed": "重新命名檔案時發生錯誤",
+      "failedToLoadMetadataDiff": "無法載入中繼資料差異",
+      "failedToLoadMonacoEditor": "無法載入 Monaco Editor"
     },
     "toast": {
       "inviteUrlCopy": "已將邀請連結複製到剪貼簿",
@@ -7598,9 +7728,9 @@
       "failed": "註冊失敗",
       "paused": "已暫停"
     },
-    "agentToolsAndAccessSubtitle": "智慧代理可以使用什麼？新增它能存取的工具、頁面和連線。",
+    "agentToolsAndAccessSubtitle": "這個代理人可以讀取與變更哪些內容？請為每一項選擇一個層級。",
     "agentNoFilters": "還沒有條件",
-    "agentInstructionsSubtitle": "智慧代理每次執行時應該做什麼？這裡是最佳做法。",
+    "agentInstructionsSubtitle": "先替它取個名字，再像交接工作給同事那樣寫清楚它該做什麼。",
     "communitySkillsSubtitle": "在上方搜尋 skills.sh 上分享的 Skills，然後開啟其中一個，在安裝前閱讀它的 SKILL.md。",
     "environmentBlockedBySync": "無法為具有進行中同步的專案開啟環境。請先移除同步設定。",
     "chatArtifactPublicLinkHint": "任何拿到連結的人都能檢視此內容。",
@@ -7765,7 +7895,14 @@
       "confirmCta": "確認轉移",
       "migrating": "正在轉移..."
     },
-    "skillsRegistryErrorTitle": "無法搜尋技能登錄檔"
+    "skillsRegistryErrorTitle": "無法搜尋技能登錄檔",
+    "airtableImportReportSummary": "已略過 {skipped} 項 · 已近似處理 {approximated} 項 · 失敗 {failed} 項",
+    "airtableImportReportTruncated": "報告只列出 {total} 項中的前 {shown} 項。下載紀錄檔可查看完整清單。",
+    "factoryMachineReadyNow": "機器已就緒。新的工作階段會使用它。",
+    "factoryMachineSwitched": "新的工作階段將使用版本 {version}。",
+    "factoryMachineDefaultNow": "新的工作階段現在會在 {machine} 上啟動。",
+    "factoryMachineUpgrading": "正在升級 {machine}。建置完成後，新的工作階段就會使用它。",
+    "factoryAppInstallUnavailable": "{provider} 目前還無法連接到程式設計代理人。這需要安裝應用程式，而這裡尚未為 {provider} 設定任何應用程式。"
   },
   "trash": {
     "restore": "還原",
@@ -8151,7 +8288,6 @@
       "lastSignedInAt": "上次登入 {time}",
       "lastUsed": "最近使用",
       "lastUsedAt": "最近使用 {time}",
-      "canDelete": "可以刪除資料",
       "toolsTitle": "工具與權限",
       "neverMoreThanRole": "絕不會超過你本人在這個專案中的角色（{role}）。",
       "neverMoreThanAccess": "絕不會超過你本人對這個專案的存取權限。",

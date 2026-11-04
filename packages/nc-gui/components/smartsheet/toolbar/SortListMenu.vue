@@ -137,10 +137,11 @@ const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
-const addSort = (column: ColumnType) => {
+const addSort = (column: ColumnType, direction?: 'asc' | 'desc') => {
   _addSort(column)
 
   const createdSort = sorts.value[sorts.value.length - 1]
+  if (direction) createdSort.direction = direction
 
   if (isList.value && listViewStore?.selectedLevelId.value) {
     createdSort.fk_level_id = listViewStore.selectedLevelId.value
@@ -222,6 +223,18 @@ watch(
   },
   { immediate: true },
 )
+
+useSortCommands({
+  view,
+  isPublic,
+  isRestrictedEditor,
+  availableColumns,
+  addSort,
+  open,
+  sorts: displayedSorts,
+  deleteSort: (sort) => deleteSort(sort, getSortIndex(sort)),
+  isPersonalViewNonOwner,
+})
 </script>
 
 <template>

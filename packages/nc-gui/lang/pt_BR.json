@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "Sem mais ações para refazer",
     "noRecentViews": "Nenhuma visualização recente",
     "expandLinkFields": "Expandir campos de ligação",
-    "expandLinkFieldsDesc": "Retornar dados de registro vinculados em vez da contagem",
+    "expandLinkFieldsDesc": "Os campos de link na saída contêm os registros vinculados em vez de uma contagem",
     "inheritedFromParent": "Herdado do pai",
     "pageOrUrl": "Página ou URL",
     "linkTitle": "Título do link",
@@ -4069,7 +4069,6 @@
     "relationSettings": "Configurações da relação",
     "restoreVersion": "Restaurar a v{version}",
     "runningScript": "Executando script...",
-    "removeSummary": "Remover resumo",
     "rowFiltered": "Linha filtrada",
     "rowMoved": "Linha movida",
     "rowHidden": "Linha oculta",
@@ -4776,7 +4775,7 @@
       },
       "optIn": {
         "title": "Ferramentas opcionais",
-        "description": "Ferramentas que excluem de vez ou agem fora do NocoDB, como executar uma automação ou disparar um webhook. Uma conexão nunca as recebe a menos que você as ative aqui."
+        "description": "Ferramentas que excluem permanentemente ou agem fora do NocoDB, como executar uma automação ou disparar um webhook. Elas ficam desativadas até você ativá-las aqui."
       }
     },
     "noBaseAccess": "Sem acesso ao projeto",
@@ -5764,7 +5763,88 @@
     "workflowValueDynamicDescription": "Usar variáveis de uma etapa anterior desta automação",
     "workflowRunAs": "Executar como",
     "workflowChangeRunAs": "Alterar executar como",
-    "workflowServiceAccount": "Conta de serviço"
+    "workflowServiceAccount": "Conta de serviço",
+    "wsEmpty": {
+      "title": "Comece seu primeiro projeto",
+      "subtitle": "Um projeto guarda seus dados e os aplicativos criados sobre eles.",
+      "sharedTitle": "Ainda não compartilharam nada com você",
+      "sharedSubtitle": "Os projetos e aplicativos para os quais você for convidado aparecem aqui."
+    },
+    "workspaceHome": {
+      "uploadFile": "Enviar CSV ou Excel",
+      "pickTemplate": "Ou escolha um modelo para começar",
+      "untitledBase": "Projeto sem título",
+      "templates": {
+        "projectManagement": {
+          "label": "Gestão de projetos",
+          "prompt": "Um acompanhamento de projetos com projetos e tarefas, cada tarefa com responsável, status, prioridade e prazo."
+        },
+        "product": {
+          "label": "Produto",
+          "prompt": "Um roadmap de produto com funcionalidades, o problema que cada uma resolve, prioridade, status e versão alvo."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Um calendário de marketing com campanhas, os canais em que cada uma roda, orçamento, responsável e data de lançamento."
+        },
+        "sales": {
+          "label": "Vendas",
+          "prompt": "Um CRM de vendas com empresas, contatos e negócios, em que cada negócio tem uma etapa, um valor e uma data prevista de fechamento."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Uma central de atendimento com tickets, o cliente que abriu cada um, prioridade, status e o agente designado."
+        },
+        "hr": {
+          "label": "RH",
+          "prompt": "Um acompanhamento de candidaturas com vagas abertas, candidatos por etapa de contratação e entrevistas com datas e anotações dos avaliadores."
+        }
+      }
+    },
+    "yourConnections": "Suas conexões",
+    "workingHours": "Horário de trabalho",
+    "workingDays": "Dias úteis",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Membros do espaço de trabalho",
+      "iconHint": "Exibido na barra lateral e no seletor de espaços de trabalho.",
+      "nameHint": "Como este espaço de trabalho é chamado em todo o NocoDB.",
+      "workspaceId": "ID do espaço de trabalho",
+      "workspaceIdHint": "Use-o com a API ou ao entrar em contato com o suporte.",
+      "allTypes": "Todos os tipos",
+      "allTeams": "Todas as equipes",
+      "teamsCreatedHere": "Criada aqui",
+      "teamsScimManaged": "Gerenciada por SCIM",
+      "upgradeTitleAudits": "Log de auditoria do espaço de trabalho",
+      "upgradeDescAudits": "Veja todas as alterações feitas neste espaço de trabalho e quem as fez.",
+      "upgradeTitleSso": "Login único",
+      "upgradeDescSso": "Permita que os membros façam login pelo seu provedor de identidade.",
+      "desc": {
+        "members": "Quem faz parte deste espaço de trabalho e qual é a função padrão de cada um.",
+        "teams": "Grupos de membros que você pode adicionar juntos aos projetos.",
+        "integrations": "Contas conectadas e credenciais compartilhadas em todo o espaço de trabalho.",
+        "general": "O nome, o ícone e o ID do espaço de trabalho.",
+        "skills": "Instruções que o assistente de IA segue em todo este espaço de trabalho.",
+        "security": "Requisitos de login para todos neste espaço de trabalho.",
+        "dangerZone": "Sair ou excluir permanentemente este espaço de trabalho.",
+        "billing": "Seu plano, os assentos, a forma de pagamento e as faturas.",
+        "usage": "O que este espaço de trabalho consome dos limites do seu plano.",
+        "audits": "Todas as alterações feitas neste espaço de trabalho e quem as fez.",
+        "sso": "Login pelo seu provedor de identidade."
+      }
+    },
+    "workspaceMode": "Modo de espaço de trabalho",
+    "zoomIn": "Aproximar",
+    "zoomOut": "Afastar",
+    "zoomTo50Percent": "Zoom em 50%",
+    "zoomTo100Percent": "Zoom em 100%",
+    "workflowValueStatic": "Estático",
+    "workflowValueStaticDescription": "Inserir os valores diretamente",
+    "workspaceNoAccess": "Espaço de trabalho (sem acesso)",
+    "yAxis": "Eixo Y",
+    "workspaceSettings": "Configurações do espaço de trabalho",
+    "wrapLongText": "Quebrar texto longo"
   },
   "activity": {
     "useTemplate": "Usar modelo",
@@ -7124,8 +7204,6 @@
       "selectFieldFirst": "Selecione {field} primeiro para carregar estas opções.",
       "viewFolderDeleteConfirmation": "As visualizações desta pasta serão movidas para o nível superior.",
       "saveDraftToBrowser": "Salvar rascunho no navegador",
-      "showAppFirst": "Mostrar o aplicativo primeiro na barra lateral",
-      "showAppFirstDesc": "Colocar Apps acima de Dados na barra lateral deste projeto.",
       "recordSavedButHidden": "Registro salvo com sucesso, mas está oculto por causa das suas permissões de acesso.",
       "seeChangesToRecord": "Ver as alterações deste registro",
       "revisionHistoryUpgrade": "Você tem {limit} de histórico de revisões. Faça upgrade para ver o histórico completo.",
@@ -7228,7 +7306,20 @@
       "mcpSetupCursorStep3": "Adicione a configuração JSON fornecida depois de criar um token.",
       "mcpSetupIntroWindsurf": "Comece a usar o NocoDB MCP com o Windsurf em 4 passos simples",
       "mcpSetupWindsurfStep1": "Acesse as configurações do Windsurf e selecione a aba Cascade na barra lateral esquerda",
-      "mcpSetupWindsurfStep2": "Clique em Manage MCP."
+      "mcpSetupWindsurfStep2": "Clique em Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Denúncias feitas a partir de links públicos. Desative um link para retirá-lo do ar ou bloqueie as contas por trás dele.",
+        "disableConfirm": "O link público para de funcionar para todos, e todas as denúncias abertas sobre ele são resolvidas. O proprietário pode compartilhar o item de novo com um novo link.",
+        "blockConfirm": "{email} foi desconectado em todos os lugares e não pode mais fazer login nem usar tokens de API. Você pode desbloqueá-lo no gerenciamento de usuários.",
+        "noAccounts": "Nenhuma conta está vinculada a este item.",
+        "superAdminNotBlockable": "Superadministradores não podem ser bloqueados.",
+        "description": "Você acredita que esta página está sendo usada para phishing, falsidade ideológica, golpes ou outros fins abusivos? Avise os administradores desta instância do {productName}.",
+        "detailsMin": "Descreva o problema com pelo menos {min} caracteres.",
+        "thanksTitle": "Obrigado pela sua denúncia",
+        "thanksDescription": "Sua denúncia foi recebida. Os administradores desta instância do {productName} vão analisá-la.",
+        "contactEmailHint": "As denúncias de visualizações, formulários, interfaces e painéis públicos são enviadas por e-mail para este endereço. Deixe em branco para enviar a todos os superadministradores."
+      },
+      "actWithYourOwnPermissions": "Agir com suas próprias permissões nesses recursos"
     },
     "error": {
       "failedToCreateSync": "Falha ao criar sincronização",
@@ -7441,7 +7532,46 @@
       "inviteLinkRevoked": "Este link de convite foi revogado",
       "inviteLinkExhausted": "Este link de convite já foi totalmente usado",
       "inviteLinkUnavailable": "Este link de convite não funciona mais",
-      "invalidEmailDomain": "Informe um domínio como acme.io"
+      "invalidEmailDomain": "Informe um domínio como acme.io",
+      "attachmentInvalidUrl": "Informe uma URL que comece com http:// ou https://, ou um modelo que use variáveis",
+      "attachmentAlreadyAttached": "Este arquivo já está anexado.",
+      "attachmentOpenWorkflowToUpload": "Abra o fluxo de trabalho para enviar arquivos",
+      "attachmentNoLongerAvailable": "Este arquivo não está mais disponível",
+      "attachmentsTooLarge": "Os arquivos excedem o limite de {size} por e-mail",
+      "factoryMachineNameRequired": "Dê um nome à máquina",
+      "factoryMachineNameDuplicate": "Já existe uma máquina com esse nome",
+      "vaultUnreachable": "Não foi possível acessar o cofre com essas configurações",
+      "vaultAliasStart": "O nome deve começar com uma letra",
+      "vaultAliasCharacters": "O nome só pode conter letras e dígitos — sem espaços, hifens ou sublinhados",
+      "vaultAliasReserved": "«{name}» é um nome reservado, escolha outro",
+      "fieldSaveFailed": "Não foi possível salvar o campo «{field}»: {error}",
+      "fieldSavesFailed": "Não foi possível salvar {count} campos ({fields}). Primeiro erro: {error}",
+      "projectNameRequired": "O nome do projeto é obrigatório",
+      "attachmentUrlDownloadFailed": "O NocoDB não conseguiu baixar este arquivo pela URL. Remova-o e adicione o arquivo novamente.",
+      "emailImageSize": "As imagens no corpo de um e-mail devem ter menos de {size}. Um logotipo costuma ficar bem abaixo de 100 KB.",
+      "emailImageType": "Use uma imagem PNG, JPEG, GIF ou WebP",
+      "emailImageCount": "O corpo de um e-mail pode conter até {count} imagens",
+      "emailImageTotalSize": "As imagens no corpo de um e-mail devem somar menos de {size}",
+      "emailImageNoWorkflow": "Abra o fluxo de trabalho para adicionar imagens",
+      "emailImageUploadFailed": "Não foi possível enviar a imagem",
+      "emailImageMissing": "Esta imagem não está mais disponível e será deixada de fora do e-mail. Remova-a e insira-a novamente.",
+      "vaultSecretNeedsProperty": "Este segredo contém vários campos. Escolha qual usar, ou a conexão vai falhar na execução.",
+      "vaultUnknownAlias": "Nenhum cofre chamado «{name}» está disponível para você.",
+      "atLeastOneOperationRequired": "É preciso selecionar pelo menos uma operação",
+      "triggerFormRequired": "Você precisa selecionar um formulário de gatilho",
+      "failedToStartListening": "Falha ao começar a escutar as atualizações",
+      "unknownPermissionRequested": "Esta permissão não é oferecida por este servidor",
+      "authorizationWillBeRefused": "Esta solicitação será recusada por causa das permissões acima.",
+      "vaultAliasNotAllowed": "Você não tem permissão para usar o cofre «{name}». Peça acesso a um proprietário do espaço de trabalho ou informe a credencial diretamente.",
+      "selectTargetField": "Selecione um campo de destino!",
+      "parentTableNoPrimaryKey": "A tabela pai não tem uma coluna de chave primária",
+      "childTableNoPrimaryKey": "A tabela filha não tem uma coluna de chave primária",
+      "noWorkspaceAvailable": "Nenhum espaço de trabalho disponível",
+      "invalidJson": "JSON inválido",
+      "invalidTokensJson": "Não é uma exportação de tokens. Esperam-se chaves como light, dark, font ou radiusScale.",
+      "renameFileFailed": "Erro ao renomear o arquivo",
+      "failedToLoadMetadataDiff": "Falha ao carregar as diferenças de metadados",
+      "failedToLoadMonacoEditor": "Falha ao carregar o Monaco Editor"
     },
     "toast": {
       "inviteUrlCopy": "URL convidar copiado para a área de transferência",
@@ -7584,9 +7714,9 @@
       "failed": "Falha no registro",
       "paused": "Pausado"
     },
-    "agentToolsAndAccessSubtitle": "O que o agente pode usar? Adicione ferramentas, páginas e conexões que ele possa acessar.",
+    "agentToolsAndAccessSubtitle": "O que este agente pode ler e alterar? Escolha um nível para cada um.",
     "agentNoFilters": "Ainda não há condições",
-    "agentInstructionsSubtitle": "O que o agente deve fazer sempre que é executado? Veja as boas práticas.",
+    "agentInstructionsSubtitle": "Dê um nome a ele e escreva o que ele deve fazer, como você faria ao orientar um colega.",
     "communitySkillsSubtitle": "Pesquise acima os skills compartilhados no skills.sh e abra um para ler o SKILL.md dele antes de instalar.",
     "environmentBlockedBySync": "Não é possível abrir um ambiente para um projeto com sincronização ativa. Remova primeiro as configurações de sincronização.",
     "chatArtifactPublicLinkHint": "Qualquer pessoa com o link pode ver isto.",
@@ -7751,7 +7881,14 @@
       "confirmCta": "Confirmar migração",
       "migrating": "Migrando..."
     },
-    "skillsRegistryErrorTitle": "Não foi possível pesquisar no registro de skills"
+    "skillsRegistryErrorTitle": "Não foi possível pesquisar no registro de skills",
+    "airtableImportReportSummary": "{skipped} ignorados · {approximated} aproximados · {failed} com falha",
+    "airtableImportReportTruncated": "O relatório lista os primeiros {shown} de {total} itens. Baixe os logs para ver a lista completa.",
+    "factoryMachineReadyNow": "Máquina pronta. As novas sessões vão usá-la.",
+    "factoryMachineSwitched": "As novas sessões vão usar a versão {version}.",
+    "factoryMachineDefaultNow": "As novas sessões agora começam em {machine}.",
+    "factoryMachineUpgrading": "Atualizando {machine}. As novas sessões vão usá-la quando a build estiver pronta.",
+    "factoryAppInstallUnavailable": "O {provider} ainda não pode ser conectado a agentes de código. É necessária uma instalação de aplicativo, e não há nenhuma configurada para o {provider} aqui."
   },
   "trash": {
     "restore": "RESTAURAR",
@@ -8136,7 +8273,6 @@
       "lastSignedInAt": "Último login {time}",
       "lastUsed": "Último uso",
       "lastUsedAt": "Último uso {time}",
-      "canDelete": "Pode excluir dados",
       "toolsTitle": "Ferramentas e permissões",
       "neverMoreThanRole": "Nunca mais do que sua própria função neste projeto ({role}).",
       "neverMoreThanAccess": "Nunca mais do que seu próprio acesso a este projeto.",

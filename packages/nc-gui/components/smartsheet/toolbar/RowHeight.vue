@@ -96,6 +96,14 @@ const _wrapHeaders = computed({
 })
 
 useMenuCloseOnEsc(open)
+
+useRowHeightCommands({
+  view,
+  isDisabled: computed(() => isPublic.value || isLocked.value),
+  options: rowHeightOptions,
+  current: currentRowHeight,
+  update: updateRowHeight,
+})
 </script>
 
 <template>

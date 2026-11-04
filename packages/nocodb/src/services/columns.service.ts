@@ -8012,14 +8012,22 @@ export class ColumnsService implements IColumnsService {
     // itself, so nothing is lost — and `error` must stay set, the field is
     // still broken. Everything else validates as before, so a reference that
     // still resolves is re-checked (circular refs included).
-    const isDanglingNoOp = async (keys: string[]) => {
+    // The looked-up / rolled-up field being deleted counts the same way.
+    const isDanglingNoOp = async (keys: string[], targetKey: string) => {
       if (!keys.every((key) => colBody[key] === column.colOptions?.[key])) {
         return false;
       }
       const relationColumn = await Column.get(context, {
         colId: colBody.fk_relation_column_id,
       });
-      return !relationColumn;
+      if (!relationColumn) return true;
+
+      const relation =
+        await relationColumn.getColOptions<LinkToAnotherRecordColumn>();
+      if (!relation) return true;
+
+      const { refContext } = relation.getRelContext();
+      return !(await Column.get(refContext, { colId: colBody[targetKey] }));
     };
 
     // re-check related-base access only when the relation or target changes
@@ -8044,7 +8052,10 @@ export class ColumnsService implements IColumnsService {
         'fk_lookup_column_id',
         'fk_relation_column_id',
       ]) &&
-      !(await isDanglingNoOp(['fk_lookup_column_id', 'fk_relation_column_id']))
+      !(await isDanglingNoOp(
+        ['fk_lookup_column_id', 'fk_relation_column_id'],
+        'fk_lookup_column_id',
+      ))
     ) {
       // Perform additional validation for lookup payload
       await validateLookupPayload(context, colBody, column.id);
@@ -8057,11 +8068,10 @@ export class ColumnsService implements IColumnsService {
         'fk_rollup_column_id',
         'rollup_function',
       ]) &&
-      !(await isDanglingNoOp([
-        'fk_relation_column_id',
+      !(await isDanglingNoOp(
+        ['fk_relation_column_id', 'fk_rollup_column_id', 'rollup_function'],
         'fk_rollup_column_id',
-        'rollup_function',
-      ]))
+      ))
     ) {
       // Perform additional validation for rollup payload
       await validateRollupPayload(context, colBody);

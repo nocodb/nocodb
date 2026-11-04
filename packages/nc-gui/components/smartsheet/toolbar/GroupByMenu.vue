@@ -8,8 +8,10 @@ import {
   ViewTypes,
   isLinksOrLTAR,
   isSystemColumn,
+  isUtilizationMultiResourceLink,
 } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+import { isMultiValueGroupColumn } from '~/utils/groupbyUtils'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
 interface Props {
@@ -38,7 +40,8 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } = useViewColumnsOrThrow()
+const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields, fields, canUpdateViewMeta } =
+  useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit, localGroupBy, canSyncGroupBy, hideEmptyGroups } = useViewGroupByOrThrow()
 
@@ -69,6 +72,13 @@ interface Group {
 
 const _groupBy = ref<Group[]>([])
 
+// Timeline groups one level; a multi-value field there can split into a group per value.
+const splitCandidateColumn = computed(() => {
+  const id = _groupBy.value[0]?.fk_column_id
+  const column = id ? metaColumnById.value?.[id] : undefined
+  return isMultiValueGroupColumn(column) ? column : undefined
+})
+
 // Synced group-bys from gridViewCols (server-persisted)
 const syncedGroupByEntries = computed<Group[]>(() => {
   const tempGroupBy: Group[] = []
@@ -85,6 +95,17 @@ const syncedGroupByEntries = computed<Group[]>(() => {
   })
   tempGroupBy.sort((a, b) => a.order - b.order)
   return tempGroupBy
+})
+
+// A shared link can't group by a hidden field (its groups would show the
+// field's values), so it shows the rows ungrouped — say so to the view's editors.
+const sharedLinkHiddenGroupFields = computed(() => {
+  if (!view.value?.uuid || isPublic.value || canUpdateViewMeta?.value === false) return []
+  const shown = new Set((fields.value ?? []).filter((f) => f.show).map((f) => f.fk_column_id))
+  return syncedGroupByEntries.value
+    .map((g) => (g.fk_column_id ? metaColumnById.value?.[g.fk_column_id] : undefined))
+    .filter((c): c is ColumnType => !!c && !c.pk && !c.pv && !shown.has(c.id))
+    .map((c) => c.title)
 })
 
 // Views that persist the per-group enable/disable toggle (`group_by_enabled`).
@@ -133,6 +154,8 @@ const availableColumns = computed(() => {
           showSystemFields.value
         )
       } else {
+        // A timeline splits a many-to-many link into a group per linked record.
+        if (view.value?.type === ViewTypes.TIMELINE && isUtilizationMultiResourceLink(c)) return true
         /** ignore hasmany and manytomany relations if it's using within sort menu */
         return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType)?.type !== RelationTypes.BELONGS_TO)
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
@@ -241,6 +264,11 @@ const saveGroupBy = async () => {
 }
 
 const addFieldToGroupBy = (column: ColumnType) => {
+  // Header-menu and Cmd+K adds can name a field already grouped, or arrive at the level limit.
+  if (_groupBy.value.length >= groupByLimit || _groupBy.value.some((g) => g.fk_column_id === column.id)) {
+    showCreateGroupBy.value = false
+    return
+  }
   _groupBy.value.push({ fk_column_id: column.id, sort: 'asc', order: _groupBy.value.length + 1, enabled: true })
   saveGroupBy()
   showCreateGroupBy.value = false
@@ -323,6 +351,7 @@ const smartSheetListener = async (event: SmartsheetStoreEvents, payload: any = {
     if (columns?.length) {
       const existing = new Set(_groupBy.value.map((g) => g.fk_column_id))
       for (const col of columns) {
+        if (_groupBy.value.length >= groupByLimit) break
         if (!col?.id || existing.has(col.id)) continue
         _groupBy.value.push({ fk_column_id: col.id, sort: 'asc', order: _groupBy.value.length + 1 })
         existing.add(col.id)
@@ -412,6 +441,23 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
     })
   })
 }
+
+useGroupByCommands({
+  view,
+  meta,
+  isPublic,
+  isRestrictedEditor,
+  fieldsToGroupBy,
+  groupedByColumnIds,
+  groupByLimit,
+  metaColumnById,
+  showSystemFields,
+  open,
+  groupBy: _groupBy,
+  seedGroupByFromState,
+  saveGroupBy,
+  addOrRemove: smartSheetListener,
+})
 </script>
 
 <template>
@@ -584,6 +630,15 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
             </Draggable>
           </div>
 
+          <div
+            v-if="sharedLinkHiddenGroupFields.length"
+            class="mt-2 flex items-start gap-1.5 text-bodySm text-nc-content-gray-subtle"
+            data-testid="nc-group-by-shared-link-note"
+          >
+            <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5 mt-0.5 text-nc-content-orange-medium" />
+            <span>{{ $t('msg.info.sharedLinkGroupHidden', { fields: sharedLinkHiddenGroupFields.join(', ') }) }}</span>
+          </div>
+
           <!-- Add Sub Group button -->
           <div v-if="!isPersonalViewNonOwner" class="flex items-center justify-between mt-2 empty:hidden">
             <NcDropdown
@@ -631,6 +686,12 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               @open="open = false"
             />
           </div>
+
+          <SmartsheetToolbarTimelineGroupSplit
+            v-if="isEeUI && view?.type === ViewTypes.TIMELINE && splitCandidateColumn"
+            :column="splitCandidateColumn"
+            :disabled="isLocked"
+          />
 
           <!-- Hide empty groups toggle -->
           <div

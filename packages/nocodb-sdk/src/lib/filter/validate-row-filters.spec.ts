@@ -430,6 +430,27 @@ describe('validateRowFilters', () => {
         })
       ).toBe(false);
     });
+
+    it('treats an unrated Rating (0 or null) as blank', () => {
+      const columns: ColumnType[] = [
+        { id: 'rt', title: 'Wertung', uidt: UITypes.Rating },
+      ];
+      const matches = (comparison_op: string, Wertung: number | null) =>
+        validateRowFilters({
+          filters: [{ fk_column_id: 'rt', comparison_op }] as FilterType[],
+          data: { Wertung },
+          columns,
+          client: mockClient,
+          metas: mockMetas,
+        });
+
+      expect(matches('blank', 0)).toBe(true);
+      expect(matches('blank', null)).toBe(true);
+      expect(matches('blank', 3)).toBe(false);
+      expect(matches('notblank', 0)).toBe(false);
+      expect(matches('notblank', null)).toBe(false);
+      expect(matches('notblank', 3)).toBe(true);
+    });
   });
 
   // Test cases for Date/DateTime filters
@@ -1432,6 +1453,15 @@ describe('validateRowFilters — column type resolution', () => {
       } as any,
     },
     {
+      id: 'lkRating',
+      title: 'LkRating',
+      uidt: UITypes.Lookup,
+      colOptions: {
+        fk_relation_column_id: 'rel',
+        fk_lookup_column_id: 'c_rating',
+      } as any,
+    },
+    {
       id: 'fNum',
       title: 'FNum',
       uidt: UITypes.Formula,
@@ -1489,6 +1519,7 @@ describe('validateRowFilters — column type resolution', () => {
         },
         { id: 'c_num', title: 'CNum', uidt: UITypes.Number },
         { id: 'c_date', title: 'CDate', uidt: UITypes.Date },
+        { id: 'c_rating', title: 'CRating', uidt: UITypes.Rating },
       ],
     },
   };
@@ -1543,6 +1574,19 @@ describe('validateRowFilters — column type resolution', () => {
           LkText: ['a'],
         })
       ).toBe(true);
+    });
+
+    it('a lookup of only unrated (0) Ratings is blank, like the SQL filter', () => {
+      const matches = (comparison_op: string, LkRating: any[], value?: any) =>
+        run(
+          [{ fk_column_id: 'lkRating', comparison_op, value } as FilterType],
+          { LkRating }
+        );
+      expect(matches('blank', [0, 0])).toBe(true);
+      expect(matches('blank', [0, 3])).toBe(false);
+      expect(matches('notblank', [0, 0])).toBe(false);
+      expect(matches('notblank', [0, 3])).toBe(true);
+      expect(matches('eq', [0, 3], 0)).toBe(true);
     });
 
     it('numeric lookup compares element-wise (any value matches)', () => {

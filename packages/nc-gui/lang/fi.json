@@ -1689,7 +1689,7 @@
     "noMoreActionsToRedo": "Ei enää uudelleensuoritettavia toimia",
     "noRecentViews": "Ei viimeaikaisia näkymiä",
     "expandLinkFields": "Laajenna linkitä kentät",
-    "expandLinkFieldsDesc": "Palauta linkitetyt tietueen tiedot laskujen sijaan",
+    "expandLinkFieldsDesc": "Tulosteen linkkikentät sisältävät linkitetyt tietueet lukumäärän sijaan",
     "inheritedFromParent": "Peritty vanhemmasta",
     "pageOrUrl": "Sivu tai URL",
     "linkTitle": "Linkin otsikko",
@@ -4072,7 +4072,6 @@
     "relationSettings": "Suhteen asetukset",
     "restoreVersion": "Palauta versio {version}",
     "runningScript": "Suoritetaan skriptiä ...",
-    "removeSummary": "Poista yhteenveto",
     "rowFiltered": "Rivi suodatettu",
     "rowMoved": "Rivi siirretty",
     "rowHidden": "Rivi piilotettu",
@@ -4780,7 +4779,7 @@
       },
       "optIn": {
         "title": "Valinnaiset työkalut",
-        "description": "Työkalut, jotka poistavat lopullisesti tai toimivat NocoDB:n ulkopuolella, kuten automaation suorittaminen tai webhookin laukaiseminen. Yhteys ei koskaan saa niitä, ellet ota niitä käyttöön tässä."
+        "description": "Työkalut, jotka poistavat pysyvästi tai toimivat NocoDB:n ulkopuolella, kuten automaation suorittaminen tai webhookin laukaiseminen. Ne pysyvät pois käytöstä, kunnes otat ne täällä käyttöön."
       }
     },
     "noBaseAccess": "Ei käyttöoikeutta projektiin",
@@ -5775,7 +5774,88 @@
     "workflowValueDynamicDescription": "Käytä muuttujia tämän automaation aiemmasta vaiheesta",
     "workflowRunAs": "Suorita käyttäjänä",
     "workflowChangeRunAs": "Vaihda suoritustili",
-    "workflowServiceAccount": "Palvelutili"
+    "workflowServiceAccount": "Palvelutili",
+    "wsEmpty": {
+      "title": "Aloita ensimmäinen projektisi",
+      "subtitle": "Projekti sisältää tietosi ja niiden päälle rakennetut sovellukset.",
+      "sharedTitle": "Sinulle ei ole vielä jaettu mitään",
+      "sharedSubtitle": "Projektit ja sovellukset, joihin sinut kutsutaan, näkyvät täällä."
+    },
+    "workspaceHome": {
+      "uploadFile": "Lataa CSV tai Excel",
+      "pickTemplate": "Tai valitse aloituspohja",
+      "untitledBase": "Nimetön projekti",
+      "templates": {
+        "projectManagement": {
+          "label": "Projektinhallinta",
+          "prompt": "Projektiseuranta, jossa on projektit ja tehtävät, ja jokaisella tehtävällä on vastuuhenkilö, tila, prioriteetti ja eräpäivä."
+        },
+        "product": {
+          "label": "Tuote",
+          "prompt": "Tuotteen tiekartta, jossa on ominaisuudet, kunkin ratkaisema ongelma, prioriteetti, tila ja tavoitejulkaisu."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Markkinointikalenteri, jossa on kampanjat, kanavat joissa kukin pyörii, budjetti, vastuuhenkilö ja julkaisupäivä."
+        },
+        "sales": {
+          "label": "Myynti",
+          "prompt": "Myynnin CRM, jossa on yritykset, yhteyshenkilöt ja kaupat, ja jokaisella kaupalla on vaihe, arvo ja arvioitu päätöspäivä."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Tukipalvelu, jossa on tiketit, kunkin tiketin tehnyt asiakas, prioriteetti, tila ja vastuulle määrätty agentti."
+        },
+        "hr": {
+          "label": "Henkilöstö",
+          "prompt": "Hakijaseuranta, jossa on avoimet tehtävät, hakijat rekrytointivaiheittain sekä haastattelut päivämäärineen ja arvioijien muistiinpanoineen."
+        }
+      }
+    },
+    "yourConnections": "Yhteytesi",
+    "workingHours": "Työajat",
+    "workingDays": "Työpäivät",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Työtilan jäsenet",
+      "iconHint": "Näkyy sivupalkissa ja työtilan valitsimessa.",
+      "nameHint": "Millä nimellä tämä työtila näkyy koko NocoDB:ssä.",
+      "workspaceId": "Työtilan tunnus",
+      "workspaceIdHint": "Käytä sitä API:n kanssa tai ottaessasi yhteyttä tukeen.",
+      "allTypes": "Kaikki tyypit",
+      "allTeams": "Kaikki tiimit",
+      "teamsCreatedHere": "Luotu täällä",
+      "teamsScimManaged": "SCIM-hallinnoitu",
+      "upgradeTitleAudits": "Työtilan auditointiloki",
+      "upgradeDescAudits": "Katso jokainen tässä työtilassa tehty muutos ja sen tekijä.",
+      "upgradeTitleSso": "Kertakirjautuminen",
+      "upgradeDescSso": "Anna jäsenten kirjautua sisään identiteetintarjoajasi kautta.",
+      "desc": {
+        "members": "Keitä tähän työtilaan kuuluu ja mikä on heidän oletusroolinsa.",
+        "teams": "Jäsenryhmät, jotka voit lisätä projekteihin kerralla.",
+        "integrations": "Yhdistetyt tilit ja tunnistetiedot, jotka on jaettu koko työtilaan.",
+        "general": "Työtilan nimi, kuvake ja tunnus.",
+        "skills": "Ohjeet, joita tekoälyavustaja noudattaa koko tässä työtilassa.",
+        "security": "Kirjautumisvaatimukset kaikille tässä työtilassa.",
+        "dangerZone": "Poistu tästä työtilasta tai poista se pysyvästi.",
+        "billing": "Tilauksesi, paikat, maksutapa ja laskut.",
+        "usage": "Mitä tämä työtila kuluttaa tilauksensa rajoista.",
+        "audits": "Jokainen tässä työtilassa tehty muutos ja sen tekijä.",
+        "sso": "Kirjautuminen identiteetintarjoajasi kautta."
+      }
+    },
+    "workspaceMode": "Työtilatila",
+    "zoomIn": "Lähennä",
+    "zoomOut": "Loitonna",
+    "zoomTo50Percent": "Zoomaa 50 %:iin",
+    "zoomTo100Percent": "Zoomaa 100 %:iin",
+    "workflowValueStatic": "Staattinen",
+    "workflowValueStaticDescription": "Syötä arvot suoraan",
+    "workspaceNoAccess": "Työtila (ei käyttöoikeutta)",
+    "yAxis": "Y-akseli",
+    "workspaceSettings": "Työtilan asetukset",
+    "wrapLongText": "Rivitä pitkä teksti"
   },
   "activity": {
     "useTemplate": "Käytä mallia",
@@ -7135,8 +7215,6 @@
       "selectFieldFirst": "Valitse ensin {field} ladataksesi nämä vaihtoehdot.",
       "viewFolderDeleteConfirmation": "Tämän kansion näkymät siirretään ylimmälle tasolle.",
       "saveDraftToBrowser": "Tallenna luonnos selaimeen",
-      "showAppFirst": "Näytä sovellus ensimmäisenä sivupalkissa",
-      "showAppFirstDesc": "Siirrä Apps tämän projektin sivupalkissa Datan yläpuolelle.",
       "recordSavedButHidden": "Tietue tallennettiin, mutta se on piilotettu käyttöoikeuksiesi vuoksi.",
       "seeChangesToRecord": "Katso tämän tietueen muutokset",
       "revisionHistoryUpgrade": "Sinulla on {limit} versiohistoriaa. Päivitä pakettia nähdäksesi koko historian.",
@@ -7239,7 +7317,20 @@
       "mcpSetupCursorStep3": "Lisää JSON-määritys, joka annetaan tunnuksen luomisen jälkeen.",
       "mcpSetupIntroWindsurf": "Aloita NocoDB MCP:n käyttö Windsurfin kanssa neljässä helpossa vaiheessa",
       "mcpSetupWindsurfStep1": "Avaa Windsurfin asetukset ja valitse vasemmasta sivupalkista Cascade-välilehti",
-      "mcpSetupWindsurfStep2": "Napsauta Manage MCP."
+      "mcpSetupWindsurfStep2": "Napsauta Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Julkisista linkeistä tehdyt ilmoitukset. Poista linkki käytöstä sulkeaksesi sen tai estä sen takana olevat tilit.",
+        "disableConfirm": "Julkinen linkki lakkaa toimimasta kaikilta, ja kaikki sitä koskevat avoimet ilmoitukset merkitään ratkaistuiksi. Omistaja voi jakaa kohteen uudelleen uudella linkillä.",
+        "blockConfirm": "{email} on kirjattu ulos kaikkialta eikä voi enää kirjautua sisään tai käyttää API-tunnuksia. Voit poistaa eston käyttäjähallinnasta.",
+        "noAccounts": "Tähän kohteeseen ei ole liitetty tilejä.",
+        "superAdminNotBlockable": "Pääkäyttäjiä ei voi estää.",
+        "description": "Uskotko, että tätä sivua käytetään tietojenkalasteluun, toisena esiintymiseen, huijauksiin tai muihin väärinkäytöksiin? Kerro siitä tämän {productName}-ympäristön ylläpitäjille.",
+        "detailsMin": "Kuvaile ongelmaa vähintään {min} merkillä.",
+        "thanksTitle": "Kiitos ilmoituksestasi",
+        "thanksDescription": "Ilmoituksesi on vastaanotettu. Tämän {productName}-ympäristön ylläpitäjät käsittelevät sen.",
+        "contactEmailHint": "Julkisista näkymistä, lomakkeista, käyttöliittymistä ja koontinäytöistä tehdyt ilmoitukset lähetetään tähän osoitteeseen. Jätä tyhjäksi, niin ne lähetetään kaikille pääkäyttäjille."
+      },
+      "actWithYourOwnPermissions": "Toimi näissä resursseissa omilla käyttöoikeuksillasi"
     },
     "error": {
       "failedToCreateSync": "Synkronoinnin luominen epäonnistui",
@@ -7452,7 +7543,46 @@
       "inviteLinkRevoked": "Tämä kutsulinkki on peruutettu",
       "inviteLinkExhausted": "Tämä kutsulinkki on käytetty kokonaan",
       "inviteLinkUnavailable": "Tämä kutsulinkki ei toimi enää",
-      "invalidEmailDomain": "Anna verkkotunnus, kuten acme.io"
+      "invalidEmailDomain": "Anna verkkotunnus, kuten acme.io",
+      "attachmentInvalidUrl": "Anna URL-osoite, joka alkaa http:// tai https://, tai muuttujia käyttävä malli",
+      "attachmentAlreadyAttached": "Tämä tiedosto on jo liitetty.",
+      "attachmentOpenWorkflowToUpload": "Avaa työnkulku ladataksesi tiedostoja",
+      "attachmentNoLongerAvailable": "Tämä tiedosto ei ole enää saatavilla",
+      "attachmentsTooLarge": "Tiedostot ylittävät {size}:n rajan sähköpostia kohden",
+      "factoryMachineNameRequired": "Anna koneelle nimi",
+      "factoryMachineNameDuplicate": "Tämänniminen kone on jo olemassa",
+      "vaultUnreachable": "Holviin ei saatu yhteyttä näillä asetuksilla",
+      "vaultAliasStart": "Nimen on alettava kirjaimella",
+      "vaultAliasCharacters": "Nimi voi sisältää vain kirjaimia ja numeroita — ei välilyöntejä, väliviivoja tai alaviivoja",
+      "vaultAliasReserved": "”{name}” on varattu nimi, valitse toinen",
+      "fieldSaveFailed": "Kenttää ”{field}” ei voitu tallentaa: {error}",
+      "fieldSavesFailed": "{count} kenttää ei voitu tallentaa ({fields}). Ensimmäinen virhe: {error}",
+      "projectNameRequired": "Projektin nimi vaaditaan",
+      "attachmentUrlDownloadFailed": "NocoDB ei voinut ladata tätä tiedostoa sen URL-osoitteesta. Poista se ja lisää tiedosto uudelleen.",
+      "emailImageSize": "Sähköpostin rungon kuvien on oltava alle {size}. Logo jää yleensä selvästi alle 100 kt:n.",
+      "emailImageType": "Käytä PNG-, JPEG-, GIF- tai WebP-kuvaa",
+      "emailImageCount": "Sähköpostin runko voi sisältää enintään {count} kuvaa",
+      "emailImageTotalSize": "Sähköpostin rungon kuvien yhteiskoon on jäätävä alle {size}",
+      "emailImageNoWorkflow": "Avaa työnkulku lisätäksesi kuvia",
+      "emailImageUploadFailed": "Kuvan lataaminen ei onnistunut",
+      "emailImageMissing": "Tämä kuva ei ole enää saatavilla, ja se jätetään pois sähköpostista. Poista se ja lisää se uudelleen.",
+      "vaultSecretNeedsProperty": "Tämä salaisuus sisältää useita kenttiä. Valitse käytettävä kenttä, muuten yhteys epäonnistuu suoritettaessa.",
+      "vaultUnknownAlias": "Käytettävissäsi ei ole holvia nimeltä ”{name}”.",
+      "atLeastOneOperationRequired": "Vähintään yksi toiminto on valittava",
+      "triggerFormRequired": "Sinun on valittava käynnistävä lomake",
+      "failedToStartListening": "Päivitysten kuuntelun aloittaminen epäonnistui",
+      "unknownPermissionRequested": "Palvelin ei tarjoa tätä käyttöoikeutta",
+      "authorizationWillBeRefused": "Tämä pyyntö hylätään yllä olevien käyttöoikeuksien vuoksi.",
+      "vaultAliasNotAllowed": "Sinulla ei ole oikeutta käyttää holvia ”{name}”. Pyydä käyttöoikeutta työtilan omistajalta tai syötä tunnistetiedot suoraan.",
+      "selectTargetField": "Valitse kohdekenttä!",
+      "parentTableNoPrimaryKey": "Ylätaulukossa ei ole perusavainsaraketta",
+      "childTableNoPrimaryKey": "Alitaulukossa ei ole perusavainsaraketta",
+      "noWorkspaceAvailable": "Työtiloja ei ole käytettävissä",
+      "invalidJson": "Virheellinen JSON",
+      "invalidTokensJson": "Tämä ei ole token-vienti. Odotetaan avaimia kuten light, dark, font tai radiusScale.",
+      "renameFileFailed": "Virhe tiedoston nimeä muutettaessa",
+      "failedToLoadMetadataDiff": "Metatietojen erojen lataaminen epäonnistui",
+      "failedToLoadMonacoEditor": "Monaco Editorin lataaminen epäonnistui"
     },
     "toast": {
       "inviteUrlCopy": "Kopioitus kutsua URL-osoitteen leikepöydälle",
@@ -7595,9 +7725,9 @@
       "failed": "Rekisteröinti epäonnistui",
       "paused": "Keskeytetty"
     },
-    "agentToolsAndAccessSubtitle": "Mitä agentti voi käyttää? Lisää työkaluja, sivuja ja yhteyksiä, joihin sillä on pääsy.",
+    "agentToolsAndAccessSubtitle": "Mitä tämä agentti saa lukea ja muuttaa? Valitse kullekin taso.",
     "agentNoFilters": "Ei vielä ehtoja",
-    "agentInstructionsSubtitle": "Mitä agentin pitäisi tehdä joka kerta, kun se suoritetaan? Tässä parhaat käytännöt.",
+    "agentInstructionsSubtitle": "Anna sille nimi ja kirjoita sitten, mitä sen pitäisi tehdä, kuten perehdyttäisit työkaverin.",
     "communitySkillsSubtitle": "Hae yltä skills.sh-palvelussa jaettuja Skills-kokonaisuuksia ja avaa jokin niistä lukeaksesi sen SKILL.md-tiedoston ennen asentamista.",
     "environmentBlockedBySync": "Ympäristöä ei voi avata projektille, jossa on aktiivinen synkronointi. Poista ensin synkronointimääritykset.",
     "chatArtifactPublicLinkHint": "Kuka tahansa linkin saanut voi katsoa tämän.",
@@ -7762,7 +7892,14 @@
       "confirmCta": "Vahvista siirto",
       "migrating": "Siirretään..."
     },
-    "skillsRegistryErrorTitle": "Taitorekisteristä ei voitu hakea"
+    "skillsRegistryErrorTitle": "Taitorekisteristä ei voitu hakea",
+    "airtableImportReportSummary": "{skipped} ohitettu · {approximated} likimääräistetty · {failed} epäonnistui",
+    "airtableImportReportTruncated": "Raportissa on {total} kohteesta {shown} ensimmäistä. Lataa lokit nähdäksesi koko listan.",
+    "factoryMachineReadyNow": "Kone on valmis. Uudet istunnot käyttävät sitä.",
+    "factoryMachineSwitched": "Uudet istunnot käyttävät versiota {version}.",
+    "factoryMachineDefaultNow": "Uudet istunnot käynnistyvät nyt koneella {machine}.",
+    "factoryMachineUpgrading": "Päivitetään konetta {machine}. Uudet istunnot käyttävät sitä, kun koonti on valmis.",
+    "factoryAppInstallUnavailable": "{provider} ei voi vielä olla yhteydessä koodiagentteihin. Ne vaativat sovellusasennuksen, eikä sellaista ole määritetty {provider}-palvelulle täällä."
   },
   "trash": {
     "restore": "Palauta",
@@ -8148,7 +8285,6 @@
       "lastSignedInAt": "Viimeksi kirjautunut {time}",
       "lastUsed": "Viimeksi käytetty",
       "lastUsedAt": "Viimeksi käytetty {time}",
-      "canDelete": "Voi poistaa tietoja",
       "toolsTitle": "Työkalut ja oikeudet",
       "neverMoreThanRole": "Ei koskaan enempää kuin oma roolisi tässä projektissa ({role}).",
       "neverMoreThanAccess": "Ei koskaan enempää kuin oma käyttöoikeutesi tähän projektiin.",

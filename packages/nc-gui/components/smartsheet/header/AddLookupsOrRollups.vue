@@ -173,7 +173,7 @@ const createLookupsOrRollup = async () => {
       },
     )
 
-    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+    await getMeta({ baseId: meta?.value?.base_id as string, tableIdOrTitle: meta?.value?.id as string, force: true })
 
     value.value = false
   } catch (e) {
@@ -210,7 +210,7 @@ watch(
 )
 
 onMounted(async () => {
-  relatedModel.value = await getMeta(relatedBaseId.value as string, fkRelatedModelId.value)
+  relatedModel.value = await getMeta({ baseId: relatedBaseId.value as string, tableIdOrTitle: fkRelatedModelId.value })
 })
 </script>
 

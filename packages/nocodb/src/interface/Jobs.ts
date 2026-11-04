@@ -76,6 +76,8 @@ export enum JobTypes {
   TableSyncRun = 'table-sync-run',
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
+  CloudDbMoveBack = 'cloud-db-moveback',
+  CloudDbMoveBackWatchdog = 'cloud-db-moveback-watchdog',
   AttachmentUrlUpload = 'attachment-url-upload',
   ExecuteAction = 'execute-action',
   ReseatSubscription = 'reseat-subscription',
@@ -150,6 +152,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.HqRoadmapNotify,
   JobTypes.HqRoadmapImpactRefresh,
   JobTypes.FactoryMachineImageDelete,
+  JobTypes.CloudDbMoveBackWatchdog,
 ];
 
 // No client is handed these job ids, so nothing polls them on /jobs/listen.
@@ -160,6 +163,7 @@ export const UNPOLLED_JOB_TYPES: ReadonlySet<string> = new Set([
   JobTypes.HookErrorNotification,
   JobTypes.UpdateWsStat,
   JobTypes.UpdateUsageStats,
+  JobTypes.CloudDbMoveBackWatchdog,
 ]);
 
 export enum JobStatus {
@@ -587,4 +591,6 @@ export interface DataImportJobData extends JobData {
   parserConfig: FileImportParserConfig;
   options: FileImportOptions;
   req: NcRequest;
+  /** Set by an interface page import: only these columns are written (no links, no new fields). */
+  scope?: { allowedColumnIds: string[] };
 }

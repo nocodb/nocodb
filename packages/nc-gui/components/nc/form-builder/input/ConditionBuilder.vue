@@ -413,7 +413,7 @@ onMounted(() => {
                         class="nc-property-select flex-1"
                         dropdown-class-name="nc-dropdown-filter-property"
                         show-search
-                        allow-clear
+                        :allow-clear="!disabled"
                         :filter-option="(input: string, option: any) => option.label?.toLowerCase()?.includes(input.toLowerCase())"
                         @update:value="updateCondition(index, 'leftValue', $event || '')"
                       >

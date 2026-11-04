@@ -112,7 +112,7 @@ const createLookups = async () => {
       },
     )
 
-    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
+    await getMeta({ baseId: meta?.value?.base_id as string, tableIdOrTitle: meta?.value?.id as string, force: true })
 
     message.success(
       selectedFieldsCount.value > 1
@@ -158,7 +158,7 @@ function switchToSearchMode() {
 
 watch(isOpened, async (val) => {
   if (val) {
-    relatedModel.value = await getMeta(fkRelatedBaseId.value as string, fkRelatedModelId.value)
+    relatedModel.value = await getMeta({ baseId: fkRelatedBaseId.value as string, tableIdOrTitle: fkRelatedModelId.value })
     isInSearchMode.value = false
     searchField.value = ''
   } else {

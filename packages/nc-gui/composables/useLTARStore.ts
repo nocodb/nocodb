@@ -287,7 +287,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const skipGetMeta = isCrossBase && (isPublic.value || isSharedBase.value)
       if (!skipGetMeta) {
         try {
-          await getMeta(relatedBaseId, tableId, false, false, true)
+          await getMeta({ baseId: relatedBaseId, tableIdOrTitle: tableId, disableError: true })
         } catch {}
       }
       if (!metas.value[metaKey] && !interfaceDataApi) {
@@ -482,7 +482,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
       const relatedBaseId = currColOptions.fk_related_base_id || column.value.base_id
 
-      await getMeta(relatedBaseId, currColOptions.fk_related_model_id as string, false, false, true)
+      await getMeta({ baseId: relatedBaseId, tableIdOrTitle: currColOptions.fk_related_model_id as string, disableError: true })
 
       const currColRelatedTableMeta = getMetaByKey(relatedBaseId, currColOptions?.fk_related_model_id as string)
 

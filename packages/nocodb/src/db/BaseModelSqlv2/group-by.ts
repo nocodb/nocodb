@@ -4,6 +4,9 @@ import {
   isBtLikeV2Junction,
   isFieldTrackingLmbCol,
   isFieldTrackingLmtCol,
+  isLinksOrLTAR,
+  isMMOrMMLike,
+  isVirtualCol,
   UITypes,
 } from 'nocodb-sdk';
 import type { ClientType } from 'nocodb-sdk';
@@ -13,6 +16,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type {
   BarcodeColumn,
   FormulaColumn,
+  LinkToAnotherRecordColumn,
   QrCodeColumn,
   RollupColumn,
 } from '~/models';
@@ -27,16 +31,19 @@ import {
   lmbFieldQueryBuilder,
   lmtFieldQueryBuilder,
 } from '~/db/formulav2/lmtFieldQueryBuilder';
-import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
+import generateLookupSelectQuery, {
+  getDisplayValueOfRefTable,
+} from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { NcError } from '~/helpers/catchError';
 import {
   applyPaginate,
   extractSortsObject,
+  getAliasedSoftDeleteFilter,
   getAs,
   getColumnName,
 } from '~/helpers/dbHelpers';
-import { BaseUser, Column, Filter, Sort, View } from '~/models';
+import { BaseUser, Column, Filter, Model, Sort, View } from '~/models';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
 import { setModelContext } from '~/helpers/modelContext';
@@ -137,6 +144,9 @@ const checkboxGroupKey = ({
   return baseModel.dbDriver.raw('COALESCE(??, 0)', [columnName]);
 };
 
+// Split groups read every linked record at once, up to this many.
+const SPLIT_GROUP_MAX = 10000;
+
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   // knex drops `nulls` for a raw expression, so pg/Oracle would put NULL last
   // on asc. Spell the clause out so groups order like row sorts (NULL smallest).
@@ -197,6 +207,196 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       alias,
     );
 
+  // Split groups: one group per linked record of a many-to-many link, keyed by
+  // its id, with the rows linked to it (a row with two people counts in both).
+  // Rows linked to nobody form the empty group.
+  const splitLinkList = async (
+    args: { where?: string; filterArr?: Filter[] },
+    column: Column,
+  ) => {
+    const knex = baseModel.dbDriver;
+    const relation = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const { mmContext, parentContext } = await relation.getParentChildContext(
+      column,
+    );
+    const selfCol = await relation.getChildColumn();
+    const relatedCol = await relation.getParentColumn();
+    const relatedModel = await relatedCol.getModel();
+    const mmModel = await relation.getMMModel();
+    const mmSelf = await relation.getMMChildColumn();
+    const mmRelated = await relation.getMMParentColumn();
+    if (!selfCol || !relatedCol || !relatedModel || !mmModel) return [];
+
+    const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: mmModel,
+      dbDriver: knex,
+    });
+    const relatedBaseModel = await Model.getBaseModelSQL(parentContext, {
+      model: relatedModel,
+      dbDriver: knex,
+    });
+    const display = await getDisplayValueOfRefTable(
+      baseModel.context,
+      column as Column<LinkToAnotherRecordColumn>,
+    );
+    // A computed display value has no column to read: label by id instead.
+    const labelCol = display && !isVirtualCol(display) ? display : relatedCol;
+    const pk = baseModel.model.primaryKey;
+
+    // Only live linked records: a trashed one is no group, and a record linked
+    // only to trashed ones belongs to the empty group, as its rows filter reads.
+    const relatedSoftDelete = await getAliasedSoftDeleteFilter(
+      relatedBaseModel,
+      '__nc_sr',
+    );
+    const liveRelated = () => {
+      const sub = knex
+        .select('*')
+        .from(relatedBaseModel.getTnPath(relatedModel.table_name, '__nc_sr'));
+      if (relatedSoftDelete) sub.where(relatedSoftDelete);
+      return sub.as('__nc_sr');
+    };
+
+    const { where } = baseModel._getListArgs(args as any);
+    const aliasColObjMap = await baseModel.model.getAliasColObjMap(
+      await baseModel.model.getColumns(),
+    );
+    // Qualified: the joined tables have their own soft-delete column.
+    const softDeleteFilter = await getAliasedSoftDeleteFilter(
+      baseModel,
+      typeof baseModel.tnPath === 'string'
+        ? baseModel.tnPath
+        : baseModel.model.table_name,
+    );
+    const applyScope = async (qb: Knex.QueryBuilder) => {
+      const { filters: filterObj } = extractFilterFromXwhere(
+        baseModel.context,
+        where,
+        aliasColObjMap,
+      );
+      await conditionV2(
+        baseModel,
+        [
+          ...(baseModel.viewId
+            ? [
+                new Filter({
+                  children:
+                    (await Filter.rootFilterList(baseModel.context, {
+                      viewId: baseModel.viewId,
+                    })) || [],
+                  is_group: true,
+                }),
+              ]
+            : []),
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
+          new Filter({
+            children: filterObj,
+            is_group: true,
+            logical_op: 'and',
+          }),
+        ],
+        qb,
+      );
+      if (softDeleteFilter) qb.where(softDeleteFilter);
+    };
+
+    const applyScopeIn = async (target: Knex.QueryBuilder) => {
+      const scoped = knex(baseModel.tnPath).select(
+        knex.raw('??.??', [baseModel.tnPath, pk?.column_name]) as any,
+      );
+      await applyScope(scoped);
+      target.whereIn(
+        knex.raw('??.??', [baseModel.tnPath, pk?.column_name]) as any,
+        scoped as any,
+      );
+    };
+
+    const qb = knex(baseModel.tnPath)
+      .join(
+        mmBaseModel.getTnPath(mmModel.table_name, '__nc_sj'),
+        `__nc_sj.${mmSelf.column_name}`,
+        knex.raw('??.??', [baseModel.tnPath, selfCol.column_name]) as any,
+      )
+      .join(
+        liveRelated(),
+        `__nc_sr.${relatedCol.column_name}`,
+        `__nc_sj.${mmRelated.column_name}`,
+      )
+      .select(
+        knex.raw('?? as ??', [`__nc_sr.${relatedCol.column_name}`, 'id']),
+        knex.raw('?? as ??', [`__nc_sr.${labelCol.column_name}`, 'label']),
+        knex.raw('COUNT(DISTINCT ??) as ??', [
+          `${baseModel.tnPath}.${pk?.column_name}`,
+          'count',
+        ]),
+      )
+      .groupBy(
+        `__nc_sr.${relatedCol.column_name}`,
+        `__nc_sr.${labelCol.column_name}`,
+      );
+    await applyScopeIn(qb);
+    // Stable order, matching the client's sort, so the cut is the same on every
+    // load; one row past the cap tells the client the list was truncated.
+    qb.orderBy(`__nc_sr.${labelCol.column_name}`)
+      .orderBy(`__nc_sr.${relatedCol.column_name}`)
+      .limit(SPLIT_GROUP_MAX + 1);
+
+    const emptyQb = knex(baseModel.tnPath)
+      .select(
+        knex.raw('COUNT(DISTINCT ??) as ??', [
+          `${baseModel.tnPath}.${pk?.column_name}`,
+          'count',
+        ]),
+      )
+      .whereNotExists(
+        knex
+          .select(knex.raw('1'))
+          .from(mmBaseModel.getTnPath(mmModel.table_name, '__nc_sj'))
+          .join(
+            liveRelated(),
+            `__nc_sr.${relatedCol.column_name}`,
+            `__nc_sj.${mmRelated.column_name}`,
+          )
+          .where(
+            `__nc_sj.${mmSelf.column_name}`,
+            knex.raw('??.??', [baseModel.tnPath, selfCol.column_name]),
+          ),
+      );
+    await applyScopeIn(emptyQb);
+
+    const parseOpts = {
+      skipDateConversion: true,
+      skipAttachmentConversion: true,
+      skipUserConversion: true,
+    };
+    const [rows, emptyRows] = (await Promise.all([
+      baseModel.execAndParse(qb, null, parseOpts),
+      baseModel.execAndParse(emptyQb, null, parseOpts),
+    ])) as [
+      Array<{ id: unknown; label: unknown; count: unknown }>,
+      Array<{ count: unknown }>,
+    ];
+    const emptyCount = Number(emptyRows?.[0]?.count) || 0;
+    return [
+      ...(emptyCount
+        ? [{ count: emptyCount, [column.title]: null, __nc_split_id: null }]
+        : []),
+      ...rows.map((r) => ({
+        count: Number(r.count) || 0,
+        [column.title]: JSON.stringify([
+          r.label === null || r.label === undefined || r.label === ''
+            ? String(r.id)
+            : r.label,
+        ]),
+        __nc_split_id: String(r.id),
+      })),
+    ];
+  };
+
   const list = async (args: {
     where?: string;
     column_name: string;
@@ -207,6 +407,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     filterArr?: Filter[];
     sortArr?: Sort[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
+    split_values?: boolean | string;
   }) => {
     const { where, ...rest } = baseModel._getListArgs(args as any);
 
@@ -246,6 +447,29 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           model: baseModel.model,
           view,
         });
+      }
+    }
+
+    // Split groups for a many-to-many link: one per linked record.
+    if (
+      args.split_values &&
+      String(args.split_values) !== 'false' &&
+      !args.column_name.includes(',')
+    ) {
+      const column = columns.find(
+        (c) =>
+          c.column_name === args.column_name || c.title === args.column_name,
+      );
+      if (
+        column &&
+        isLinksOrLTAR(column) &&
+        isMMOrMMLike(column) &&
+        !isBtLikeV2Junction(column)
+      ) {
+        if (exposedColumnIds && !exposedColumnIds.has(column.id)) {
+          NcError.get(baseModel.context).fieldNotFound(args.column_name);
+        }
+        return await splitLinkList(args, column);
       }
     }
 
@@ -873,7 +1097,29 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     offset?;
     filterArr?: Filter[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
+    split_values?: boolean | string;
   }) => {
+    // Split groups: count the groups the split list returns, not the combinations.
+    if (
+      args.split_values &&
+      String(args.split_values) !== 'false' &&
+      args.column_name &&
+      !args.column_name.includes(',')
+    ) {
+      const column = (await baseModel.model.getColumns()).find(
+        (c) =>
+          c.column_name === args.column_name || c.title === args.column_name,
+      );
+      if (
+        column &&
+        isLinksOrLTAR(column) &&
+        isMMOrMMLike(column) &&
+        !isBtLikeV2Junction(column)
+      ) {
+        return (await list(args)).length;
+      }
+    }
+
     const { where } = baseModel._getListArgs(args as any);
 
     args.column_name = args.column_name || '';

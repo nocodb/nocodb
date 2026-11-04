@@ -427,7 +427,7 @@ onMounted(async () => {
   ) {
     isMetaLoading.value = true
     try {
-      meta.value = (await getMeta(baseId.value, tableId.value))!
+      meta.value = (await getMeta({ baseId: baseId.value, tableIdOrTitle: tableId.value }))!
 
       if (props.type === ViewTypes.MAP) {
         viewSelectFieldOptions.value = meta
@@ -491,7 +491,7 @@ onMounted(async () => {
           if (relatedModelId) {
             // Cross-base links resolve the next hop under the related base
             const relatedBaseId = relationColOptions?.fk_related_base_id || currentBaseId
-            await getMeta(relatedBaseId, relatedModelId, false, false, true)
+            await getMeta({ baseId: relatedBaseId, tableIdOrTitle: relatedModelId, disableError: true })
 
             const lookupColumn = getMetaByKey(relatedBaseId, relatedModelId)?.columns?.find(
               (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,

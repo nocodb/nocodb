@@ -95,7 +95,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
-      await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
+      await getMeta({ baseId: activeTable.value.base_id!, tableIdOrTitle: activeTable.value.id!, force: true })
     }
   }
 
@@ -149,7 +149,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
-      await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
+      await getMeta({ baseId: activeTable.value.base_id!, tableIdOrTitle: activeTable.value.id!, force: true })
     }
   }
 
@@ -243,7 +243,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
         })
       }
     } finally {
-      await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
+      await getMeta({ baseId: activeTable.value.base_id!, tableIdOrTitle: activeTable.value.id!, force: true })
     }
 
     $e('a:webhook:add', {
@@ -259,6 +259,9 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   const pendingDeepLinkHookId = ref<string | null>(null)
   const pendingDeepLinkHookTab = ref<string | null>(null)
 
+  // Set by Cmd+K "Create webhook…": the webhooks tab starts a new webhook once it is open.
+  const pendingCreateHook = ref(false)
+
   return {
     hooks,
     loadHooksList,
@@ -269,6 +272,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     hasV2Webhooks,
     pendingDeepLinkHookId,
     pendingDeepLinkHookTab,
+    pendingCreateHook,
   }
 })
 

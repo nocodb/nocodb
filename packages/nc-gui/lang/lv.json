@@ -1687,7 +1687,7 @@
     "noMoreActionsToRedo": "No more actions to redo",
     "noRecentViews": "No recent views",
     "expandLinkFields": "Expand link fields",
-    "expandLinkFieldsDesc": "Return linked record data instead of count",
+    "expandLinkFieldsDesc": "Saišu lauki izvadē satur saistītos ierakstus, nevis to skaitu",
     "inheritedFromParent": "Inherited from parent",
     "pageOrUrl": "Page or URL",
     "linkTitle": "Link title",
@@ -4068,7 +4068,6 @@
     "relationSettings": "Relācijas iestatījumi",
     "restoreVersion": "Atjaunot v{version}",
     "runningScript": "Izpilda skriptu ...",
-    "removeSummary": "Noņemt kopsavilkumu",
     "rowFiltered": "Rinda filtrēta",
     "rowMoved": "Rinda pārvietota",
     "rowHidden": "Rinda paslēpta",
@@ -4776,7 +4775,7 @@
       },
       "optIn": {
         "title": "Izvēles rīki",
-        "description": "Rīki, kas dzēš neatgriezeniski vai darbojas ārpus NocoDB, piemēram, palaiž automatizāciju vai nosūta webhook. Savienojums tos nekad nesaņem, ja vien tos šeit neieslēdzat."
+        "description": "Rīki, kas dzēš neatgriezeniski vai darbojas ārpus NocoDB, piemēram, palaiž automatizāciju vai izsauc tīmekļa āķi. Tie paliek izslēgti, līdz tos šeit ieslēdzat."
       }
     },
     "noBaseAccess": "Nav piekļuves projektam",
@@ -5770,7 +5769,88 @@
     "workflowValueDynamicDescription": "Izmantot mainīgos no šīs automatizācijas iepriekšējā soļa",
     "workflowRunAs": "Palaist kā",
     "workflowChangeRunAs": "Mainīt palaist kā",
-    "workflowServiceAccount": "Pakalpojuma konts"
+    "workflowServiceAccount": "Pakalpojuma konts",
+    "wsEmpty": {
+      "title": "Sāciet savu pirmo projektu",
+      "subtitle": "Projekts satur jūsu datus un uz tiem veidotās lietotnes.",
+      "sharedTitle": "Ar jums vēl nekas nav kopīgots",
+      "sharedSubtitle": "Projekti un lietotnes, uz kurām jūs uzaicina, parādās šeit."
+    },
+    "workspaceHome": {
+      "uploadFile": "Augšupielādēt CSV vai Excel",
+      "pickTemplate": "Vai arī izvēlieties veidni, ar ko sākt",
+      "untitledBase": "Projekts bez nosaukuma",
+      "templates": {
+        "projectManagement": {
+          "label": "Projektu vadība",
+          "prompt": "Projektu uzskaite ar projektiem un uzdevumiem, kur katram uzdevumam ir atbildīgais, statuss, prioritāte un termiņš."
+        },
+        "product": {
+          "label": "Produkts",
+          "prompt": "Produkta ceļvedis ar funkcijām, problēmu, ko katra risina, prioritāti, statusu un mērķa laidienu."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Mārketinga kalendārs ar kampaņām, kanāliem, kuros katra notiek, budžetu, atbildīgo un palaišanas datumu."
+        },
+        "sales": {
+          "label": "Pārdošana",
+          "prompt": "Pārdošanas CRM ar uzņēmumiem, kontaktpersonām un darījumiem, kur katram darījumam ir posms, vērtība un paredzamais noslēgšanas datums."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Atbalsta dienests ar pieteikumiem, klientu, kurš katru iesniedzis, prioritāti, statusu un piešķirto aģentu."
+        },
+        "hr": {
+          "label": "Personāls",
+          "prompt": "Pieteikumu uzskaite ar atvērtajām vakancēm, kandidātiem pa atlases posmiem un pārrunām ar datumiem un vērtētāju piezīmēm."
+        }
+      }
+    },
+    "yourConnections": "Jūsu savienojumi",
+    "workingHours": "Darba laiks",
+    "workingDays": "Darba dienas",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Darbtelpas dalībnieki",
+      "iconHint": "Redzams sānjoslā un darbtelpu pārslēdzējā.",
+      "nameHint": "Kā šī darbtelpa tiek saukta visā NocoDB.",
+      "workspaceId": "Darbtelpas ID",
+      "workspaceIdHint": "Izmantojiet to ar API vai sazinoties ar atbalsta dienestu.",
+      "allTypes": "Visi veidi",
+      "allTeams": "Visas komandas",
+      "teamsCreatedHere": "Izveidota šeit",
+      "teamsScimManaged": "Pārvaldīta ar SCIM",
+      "upgradeTitleAudits": "Darbtelpas audita žurnāls",
+      "upgradeDescAudits": "Skatiet katru šajā darbtelpā veikto izmaiņu un to, kurš to veicis.",
+      "upgradeTitleSso": "Vienotā pieteikšanās",
+      "upgradeDescSso": "Ļaujiet dalībniekiem pieteikties caur jūsu identitātes nodrošinātāju.",
+      "desc": {
+        "members": "Kas pieder šai darbtelpai un kāda ir viņu noklusējuma loma.",
+        "teams": "Dalībnieku grupas, ko varat pievienot projektiem kopā.",
+        "integrations": "Pievienotie konti un akreditācijas dati, kas koplietoti visā darbtelpā.",
+        "general": "Darbtelpas nosaukums, ikona un ID.",
+        "skills": "Norādījumi, kuriem MI asistents seko visā šajā darbtelpā.",
+        "security": "Pieteikšanās prasības visiem šajā darbtelpā.",
+        "dangerZone": "Pamest šo darbtelpu vai neatgriezeniski to dzēst.",
+        "billing": "Jūsu plāns, vietas, maksājuma veids un rēķini.",
+        "usage": "Cik šī darbtelpa patērē no sava plāna ierobežojumiem.",
+        "audits": "Katra šajā darbtelpā veiktā izmaiņa un tas, kurš to veicis.",
+        "sso": "Pieteikšanās caur jūsu identitātes nodrošinātāju."
+      }
+    },
+    "workspaceMode": "Darbtelpas režīms",
+    "zoomIn": "Tuvināt",
+    "zoomOut": "Tālināt",
+    "zoomTo50Percent": "Mērogs 50 %",
+    "zoomTo100Percent": "Mērogs 100 %",
+    "workflowValueStatic": "Statiska",
+    "workflowValueStaticDescription": "Ievadiet vērtības tieši",
+    "workspaceNoAccess": "Darbtelpa (nav piekļuves)",
+    "yAxis": "Y ass",
+    "workspaceSettings": "Darbtelpas iestatījumi",
+    "wrapLongText": "Aplauzt garu tekstu"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -7130,8 +7210,6 @@
       "selectFieldFirst": "Vispirms atlasiet {field}, lai ielādētu šīs iespējas.",
       "viewFolderDeleteConfirmation": "Šīs mapes skatījumi tiks pārvietoti uz augšējo līmeni.",
       "saveDraftToBrowser": "Saglabāt melnrakstu pārlūkprogrammā",
-      "showAppFirst": "Rādīt lietotni sānjoslā pirmo",
-      "showAppFirstDesc": "Novietot Apps virs Datiem šī projekta sānjoslā.",
       "recordSavedButHidden": "Ieraksts tika saglabāts, taču ir paslēpts jūsu piekļuves tiesību dēļ.",
       "seeChangesToRecord": "Skatīt šī ieraksta izmaiņas",
       "revisionHistoryUpgrade": "Jums ir {limit} versiju vēstures. Pārejiet uz augstāku plānu, lai redzētu visu vēsturi.",
@@ -7234,7 +7312,20 @@
       "mcpSetupCursorStep3": "Pievienojiet JSON konfigurāciju, kas tiek sniegta pēc pilnvaras izveides.",
       "mcpSetupIntroWindsurf": "Sāciet lietot NocoDB MCP kopā ar Windsurf 4 vienkāršos soļos",
       "mcpSetupWindsurfStep1": "Atveriet Windsurf iestatījumus un kreisajā sānjoslā atlasiet cilni Cascade",
-      "mcpSetupWindsurfStep2": "Noklikšķiniet uz Manage MCP."
+      "mcpSetupWindsurfStep2": "Noklikšķiniet uz Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Ziņojumi, kas iesniegti no publiskām saitēm. Atspējojiet saiti, lai to noņemtu, vai bloķējiet kontus aiz tās.",
+        "disableConfirm": "Publiskā saite pārstāj darboties visiem, un visi atvērtie ziņojumi par to tiek atrisināti. Īpašnieks var vienumu kopīgot atkal ar jaunu saiti.",
+        "blockConfirm": "{email} ir izrakstīts visur un vairs nevar pieteikties vai izmantot API marķierus. Bloķēšanu varat atcelt lietotāju pārvaldībā.",
+        "noAccounts": "Ar šo vienumu nav saistīts neviens konts.",
+        "superAdminNotBlockable": "Superadministratorus nevar bloķēt.",
+        "description": "Vai jums šķiet, ka šī lapa tiek izmantota pikšķerēšanai, uzdošanās par citu, krāpniecībai vai citiem ļaunprātīgiem nolūkiem? Paziņojiet par to šīs {productName} instances administratoriem.",
+        "detailsMin": "Lūdzu, aprakstiet problēmu vismaz {min} rakstzīmēs.",
+        "thanksTitle": "Paldies par jūsu ziņojumu",
+        "thanksDescription": "Jūsu ziņojums ir saņemts. Šīs {productName} instances administratori to izskatīs.",
+        "contactEmailHint": "Ziņojumi no publiskiem skatiem, veidlapām, saskarnēm un informācijas paneļiem tiek sūtīti uz šo adresi. Atstājiet tukšu, lai tos saņemtu visi superadministratori."
+      },
+      "actWithYourOwnPermissions": "Rīkojieties šajos resursos ar savām atļaujām"
     },
     "error": {
       "failedToCreateSync": "Failed to create sync",
@@ -7447,7 +7538,46 @@
       "inviteLinkRevoked": "Šī uzaicinājuma saite ir atsaukta",
       "inviteLinkExhausted": "Šī uzaicinājuma saite ir pilnībā izmantota",
       "inviteLinkUnavailable": "Šī uzaicinājuma saite vairs nedarbojas",
-      "invalidEmailDomain": "Ievadiet domēnu, piemēram, acme.io"
+      "invalidEmailDomain": "Ievadiet domēnu, piemēram, acme.io",
+      "attachmentInvalidUrl": "Ievadiet URL, kas sākas ar http:// vai https://, vai veidni, kurā izmantoti mainīgie",
+      "attachmentAlreadyAttached": "Šis fails jau ir pievienots.",
+      "attachmentOpenWorkflowToUpload": "Atveriet darbplūsmu, lai augšupielādētu failus",
+      "attachmentNoLongerAvailable": "Šis fails vairs nav pieejams",
+      "attachmentsTooLarge": "Faili pārsniedz {size} ierobežojumu vienai e-pasta vēstulei",
+      "factoryMachineNameRequired": "Dodiet mašīnai nosaukumu",
+      "factoryMachineNameDuplicate": "Mašīna ar šādu nosaukumu jau pastāv",
+      "vaultUnreachable": "Ar šiem iestatījumiem glabātavu nevarēja sasniegt",
+      "vaultAliasStart": "Nosaukumam jāsākas ar burtu",
+      "vaultAliasCharacters": "Nosaukumā drīkst būt tikai burti un cipari — bez atstarpēm, defisēm un pasvītrojumiem",
+      "vaultAliasReserved": "“{name}” ir rezervēts nosaukums, izvēlieties citu",
+      "fieldSaveFailed": "Neizdevās saglabāt lauku “{field}”: {error}",
+      "fieldSavesFailed": "Neizdevās saglabāt {count} laukus ({fields}). Pirmā kļūda: {error}",
+      "projectNameRequired": "Projekta nosaukums ir obligāts",
+      "attachmentUrlDownloadFailed": "NocoDB nevarēja lejupielādēt šo failu no tā URL. Noņemiet to un pievienojiet failu vēlreiz.",
+      "emailImageSize": "Attēliem e-pasta pamattekstā jābūt mazākiem par {size}. Logotips parasti ir krietni mazāks par 100 KB.",
+      "emailImageType": "Izmantojiet PNG, JPEG, GIF vai WebP attēlu",
+      "emailImageCount": "E-pasta vēstules pamattekstā var būt ne vairāk kā {count} attēli",
+      "emailImageTotalSize": "Attēliem e-pasta pamattekstā kopā jābūt mazākiem par {size}",
+      "emailImageNoWorkflow": "Atveriet darbplūsmu, lai pievienotu attēlus",
+      "emailImageUploadFailed": "Attēlu neizdevās augšupielādēt",
+      "emailImageMissing": "Šis attēls vairs nav pieejams un netiks iekļauts vēstulē. Noņemiet to un ievietojiet vēlreiz.",
+      "vaultSecretNeedsProperty": "Šis noslēpums satur vairākus laukus. Izvēlieties, kuru izmantot, citādi savienojums izpildes laikā neizdosies.",
+      "vaultUnknownAlias": "Jums nav pieejama neviena glabātava ar nosaukumu “{name}”.",
+      "atLeastOneOperationRequired": "Jāizvēlas vismaz viena darbība",
+      "triggerFormRequired": "Jums jāizvēlas iedarbinošā veidlapa",
+      "failedToStartListening": "Neizdevās sākt atjauninājumu klausīšanos",
+      "unknownPermissionRequested": "Serveris šādu atļauju nepiedāvā",
+      "authorizationWillBeRefused": "Šis pieprasījums tiks noraidīts iepriekš norādīto atļauju dēļ.",
+      "vaultAliasNotAllowed": "Jums nav atļauts izmantot glabātavu “{name}”. Palūdziet piekļuvi darbtelpas īpašniekam vai ievadiet akreditācijas datus tieši.",
+      "selectTargetField": "Lūdzu, izvēlieties mērķa lauku!",
+      "parentTableNoPrimaryKey": "Vecāka tabulai nav primārās atslēgas kolonnas",
+      "childTableNoPrimaryKey": "Bērna tabulai nav primārās atslēgas kolonnas",
+      "noWorkspaceAvailable": "Nav pieejama neviena darbtelpa",
+      "invalidJson": "Nederīgs JSON",
+      "invalidTokensJson": "Šis nav marķieru eksports. Tiek gaidītas atslēgas, piemēram, light, dark, font vai radiusScale.",
+      "renameFileFailed": "Kļūda, pārdēvējot failu",
+      "failedToLoadMetadataDiff": "Neizdevās ielādēt metadatu atšķirības",
+      "failedToLoadMonacoEditor": "Neizdevās ielādēt Monaco Editor"
     },
     "toast": {
       "inviteUrlCopy": "Uzaicinājuma saite nokopēta starpliktuvē",
@@ -7590,9 +7720,9 @@
       "failed": "Reģistrācija neizdevās",
       "paused": "Apturēts"
     },
-    "agentToolsAndAccessSubtitle": "Ko aģents var izmantot? Pievienojiet rīkus, lapas un savienojumus, kuriem tas var piekļūt.",
+    "agentToolsAndAccessSubtitle": "Ko šis aģents drīkst lasīt un mainīt? Izvēlieties līmeni katram.",
     "agentNoFilters": "Vēl nav nosacījumu",
-    "agentInstructionsSubtitle": "Kas aģentam jādara katrā palaišanas reizē? Lūk, ieteicamā prakse.",
+    "agentInstructionsSubtitle": "Dodiet tam nosaukumu un pēc tam aprakstiet, kas tam jādara, tāpat kā instruētu kolēģi.",
     "communitySkillsSubtitle": "Meklējiet augšā skills, kas koplietoti vietnē skills.sh, un atveriet kādu, lai pirms instalēšanas izlasītu tā SKILL.md.",
     "environmentBlockedBySync": "Projektam ar aktīvu sinhronizāciju nevar atvērt vidi. Vispirms noņemiet sinhronizācijas konfigurācijas.",
     "chatArtifactPublicLinkHint": "Ikviens, kam ir saite, var to apskatīt.",
@@ -7757,7 +7887,14 @@
       "confirmCta": "Apstiprināt migrāciju",
       "migrating": "Notiek migrācija..."
     },
-    "skillsRegistryErrorTitle": "Neizdevās meklēt prasmju reģistrā"
+    "skillsRegistryErrorTitle": "Neizdevās meklēt prasmju reģistrā",
+    "airtableImportReportSummary": "{skipped} izlaisti · {approximated} aptuveni · {failed} neizdevās",
+    "airtableImportReportTruncated": "Pārskatā redzami pirmie {shown} no {total} vienumiem. Lejupielādējiet žurnālus, lai redzētu pilnu sarakstu.",
+    "factoryMachineReadyNow": "Mašīna ir gatava. Jaunās sesijas to izmanto.",
+    "factoryMachineSwitched": "Jaunās sesijas izmantos versiju {version}.",
+    "factoryMachineDefaultNow": "Jaunās sesijas tagad sākas uz {machine}.",
+    "factoryMachineUpgrading": "Notiek {machine} jaunināšana. Jaunās sesijas to izmantos, tiklīdz būve būs gatava.",
+    "factoryAppInstallUnavailable": "{provider} vēl nevar savienot ar koda aģentiem. Tiem nepieciešama lietotnes instalācija, un {provider} šeit nav neviena iestatīta."
   },
   "trash": {
     "restore": "Restore",
@@ -8143,7 +8280,6 @@
       "lastSignedInAt": "Pēdējoreiz pieteicies {time}",
       "lastUsed": "Pēdējoreiz lietota",
       "lastUsedAt": "Pēdējoreiz lietota {time}",
-      "canDelete": "Var dzēst datus",
       "toolsTitle": "Rīki un atļaujas",
       "neverMoreThanRole": "Nekad vairāk par jūsu pašu lomu šajā projektā ({role}).",
       "neverMoreThanAccess": "Nekad vairāk par jūsu pašu piekļuvi šim projektam.",

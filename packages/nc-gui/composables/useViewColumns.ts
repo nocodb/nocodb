@@ -160,7 +160,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         for (const level of levels) {
           if (level.fk_model_id && level.fk_model_id !== meta.value?.id) {
             try {
-              await _getMeta(meta.value!.base_id!, level.fk_model_id)
+              await _getMeta({ baseId: meta.value!.base_id!, tableIdOrTitle: level.fk_model_id })
             } catch (e) {
               // silently ignore — level table meta may not be accessible
             }
@@ -973,7 +973,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
   'useViewColumnsOrThrow',
 )
 
-export { useProvideViewColumns }
+export { useProvideViewColumns, useViewColumns }
 
 export function useViewColumnsOrThrow() {
   const viewColumns = useViewColumns()

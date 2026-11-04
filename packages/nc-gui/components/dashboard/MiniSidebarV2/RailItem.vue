@@ -33,8 +33,10 @@ const emits = defineEmits<{
   (e: 'click'): void
 }>()
 
-// Rail spellings (labels.rail*) carry a zero-width space so long words wrap; keep it out of the tooltip and aria-label.
-const plainLabel = computed(() => props.label.replace(/\u200B/g, ''))
+// Rail spellings (labels.rail*) mark a line break with a zero-width space; keep it out of the tooltip and aria-label.
+const labelLines = computed(() => props.label.split('\u200B'))
+
+const plainLabel = computed(() => labelLines.value.join(''))
 
 const tooltipText = computed(() => props.tooltip || plainLabel.value)
 
@@ -89,7 +91,9 @@ function onActivateKey(e: KeyboardEvent) {
       </span>
 
       <span v-if="label || $slots.label" class="nc-rail-item-label">
-        <slot name="label">{{ label }}</slot>
+        <slot name="label">
+          <template v-for="(line, idx) of labelLines" :key="idx"><br v-if="idx" />{{ line }}</template>
+        </slot>
       </span>
     </div>
   </NcTooltip>

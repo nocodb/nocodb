@@ -192,6 +192,7 @@ import {
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import {
+  NC_BULK_UPDATE_UNDO_LIMIT,
   QUERY_STRING_FIELD_ID_ON_RESULT,
   QUERY_STRING_LINKS_AS_LTAR,
   UPDATE_BY_PK_CHUNK_SIZE,
@@ -208,8 +209,10 @@ import {
 import {
   captureForTrace,
   isTraceActive,
+  isTraceRecordable,
 } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
+import { pickChangedFieldsForUpdatePrev } from '~/utils/dataUtils';
 
 const debugCount = debug('nc:db:query:basemodel:count');
 
@@ -1207,7 +1210,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         undefined,
@@ -1236,7 +1238,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
-          ...(args.filterArr || []),
         ],
         qb,
         undefined,
@@ -1338,14 +1339,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     sortArr?: Sort[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
-    // Prepend RLS conditions to filterArr for groupBy
+    // The client filters get their own group: a top-level 'or' filter would
+    // otherwise OR past the RLS group.
     const rlsConditionsGB = await this.getRlsConditions();
     if (rlsConditionsGB.length) {
       args = {
         ...args,
         filterArr: [
           new Filter({ children: rlsConditionsGB, is_group: true }),
-          ...(args.filterArr || []),
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
         ],
       };
     }
@@ -1360,14 +1366,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     filterArr?: Filter[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
-    // Prepend RLS conditions to filterArr for groupByCount
+    // See groupBy: client filters are grouped so they can't OR past RLS.
     const rlsConditionsGBC = await this.getRlsConditions();
     if (rlsConditionsGBC.length) {
       args = {
         ...args,
         filterArr: [
           new Filter({ children: rlsConditionsGBC, is_group: true }),
-          ...(args.filterArr || []),
+          new Filter({
+            children: args.filterArr || [],
+            is_group: true,
+            logical_op: 'and',
+          }),
         ],
       };
     }
@@ -5018,6 +5028,62 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             )
           : updateData;
 
+        // Matched PKs, read once and shared by the undo and hook snapshots.
+        // Undo records only tabbed user requests (see maybeRecordUndoEntry).
+        const undoable =
+          !!cookie?.ncTabId &&
+          !args.skipValidationAndHooks &&
+          this.model.primaryKeys?.length > 0 &&
+          (await isTraceRecordable());
+        const captureUndoPrev =
+          undoable && Number(count) <= NC_BULK_UPDATE_UNDO_LIMIT;
+        if (undoable && !captureUndoPrev) captureForTrace('notUndoable', true);
+        let affectedPks: string[] | undefined;
+
+        // Undo snapshot: the changed fields of every matched row, read before the
+        // UPDATE. Past the cap, or if the read fails, nothing is captured and the
+        // op isn't recorded; the update itself still runs.
+        if (captureUndoPrev) {
+          try {
+            affectedPks = await this.collectAffectedPks(qb.clone());
+            const aliasColMap = await this.model.getAliasColObjMap(columns);
+            const changedColIds = Object.keys(data)
+              .map(
+                (k) =>
+                  aliasColMap[k] ??
+                  columns.find((c) => c.column_name === k || c.id === k),
+              )
+              .filter((c) => c && !isLinksOrLTAR(c))
+              .map((c) => c.id);
+            const prevRows = await this.chunkList({
+              pks: affectedPks,
+              args: {
+                ignoreViewFilterAndSort: true,
+                fields: [
+                  ...this.model.primaryKeys.map((pk) => pk.id),
+                  ...changedColIds,
+                ],
+              },
+            });
+            captureForTrace(
+              'recordPrev',
+              prevRows.map((row) =>
+                pickChangedFieldsForUpdatePrev(
+                  row,
+                  data,
+                  columns,
+                  this.model.primaryKeys,
+                ),
+              ),
+            );
+          } catch (e) {
+            captureForTrace('notUndoable', true);
+            logger.warn(
+              `bulkUpdateAll on ${this.model.id}: undo snapshot failed, the update won't be undoable: ${e?.message}`,
+            );
+          }
+        }
+
         // Snapshot the affected rows (PKs + pre-update values) against the
         // pre-update filter — the update may change the very columns the filter
         // matched on, so re-selecting afterward would target the wrong rows.
@@ -5027,7 +5093,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // Webhook bookkeeping must never fail the update itself, same as
           // bulkAudit.
           try {
-            bulkUpdateHookPks = await this.collectAffectedPks(qb.clone());
+            bulkUpdateHookPks =
+              affectedPks ?? (await this.collectAffectedPks(qb.clone()));
 
             // The prev snapshot has to be read before the UPDATE, so unlike the
             // emission below it can't be streamed — it would hold the whole

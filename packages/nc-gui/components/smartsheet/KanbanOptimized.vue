@@ -1969,6 +1969,46 @@ const cardFields = (record: RowType) => {
 
   return fieldsWithoutDisplay.value.filter((col) => !isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col))
 }
+
+const { isAllowed: isPermissionAllowed } = usePermissions()
+
+const kanbanCommands = useKanbanCommands({
+  hasEditPermission,
+  canAddDeleteRows,
+  loadVisibleStacks,
+  reconcileCardMove,
+  collapseStack: handleCollapseStack,
+  deleteStack: handleDeleteStackClick,
+  collapseAllStacks: handleCollapseAllStack,
+  expandAllStacks: handleExpandAllStack,
+  openNewRecordForm: handleOpenNewRecordForm,
+  openStackEditor: (stackId) => {
+    isRenameOrNewStack.value = stackId ? groupingFieldColOptions.value.find((s) => s.id === stackId) ?? null : addNewStackObj
+  },
+})
+
+const { onStackEnter, onStackLeave } = kanbanCommands
+
+const { onCardEnter, onCardLeave } = useCardCommands({
+  key: 'kanban-card',
+  isBlocked: computed(() => expandedFormDlg.value || expandedFormOnRowIdDlg.value),
+  canExpand: interfaceClickIntoDetails,
+  canDelete: () =>
+    !isLocked.value &&
+    hasEditPermission.value &&
+    canAddDeleteRows.value &&
+    (!meta.value?.id || isPermissionAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_DELETE)),
+  displayField,
+  expandForm: (record) => expandForm(record),
+  deleteRow: (record) => deleteRow(record),
+  canEdit: computed(() => hasEditPermission.value && !isPublic.value && !isLocked.value),
+  saveField: kanbanCommands.saveField,
+  sendRecord: (record) => {
+    contextMenuTarget.value = record
+    showSendRecordModal.value = true
+  },
+  extraCommands: kanbanCommands.cardCommands,
+})
 </script>
 
 <template>
@@ -2032,6 +2072,9 @@ const cardFields = (record: RowType) => {
                     (isMobileMode && stack.id === uncategorizedStackId && !formattedData.get(stack.title)?.length),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
+                @mouseenter="onStackEnter(stack.id)"
+                @mousemove="onStackEnter(stack.id)"
+                @mouseleave="onStackLeave(stack.id)"
               >
                 <!-- Non Collapsed Stacks -->
                 <a-card
@@ -2366,6 +2409,9 @@ const cardFields = (record: RowType) => {
                                   :style="getCardColorStyle(record)"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
+                                  @mouseenter="onCardEnter(record)"
+                                  @mousemove="onCardEnter(record)"
+                                  @mouseleave="onCardLeave(record)"
                                 >
                                   <SmartsheetRecordPresenceBadge
                                     v-if="isEeUI"

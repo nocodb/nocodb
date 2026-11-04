@@ -20,6 +20,11 @@ import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
+import {
+  canManageViewShare,
+  viewWithoutShareSecrets,
+} from '~/helpers/publicViewSecrets';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { isReplay } from '~/helpers/replayScope';
 import {
@@ -119,6 +124,7 @@ export class ViewsService {
         roles?: Record<string, boolean> | string;
         base_roles?: Record<string, boolean>;
         id: string;
+        isPublicBase?: boolean;
       };
     },
   ) {
@@ -149,7 +155,10 @@ export class ViewsService {
       );
     });
 
-    return filteredViewList;
+    const canManageShare = canManageViewShare(param.user);
+    return filteredViewList.map((view) =>
+      viewWithoutShareSecrets(view, canManageShare),
+    );
   }
 
   async shareView(
@@ -789,14 +798,17 @@ export class ViewsService {
       });
     }
 
+    // Only share settings: lock, title and uuid go through viewUpdate.
+    const shareFields = extractProps(param.sharedView, ['password', 'meta']);
+
     const result = await View.update(context, param.viewId, {
-      ...param.sharedView,
+      ...shareFields,
       fk_custom_url_id: customUrl?.id ?? null,
     });
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_UPDATE, {
       user: param.user,
-      sharedView: { ...view, ...param.sharedView },
+      sharedView: { ...view, ...shareFields },
       oldSharedView: { ...view },
       view,
       req: param.req,

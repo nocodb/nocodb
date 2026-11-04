@@ -231,7 +231,7 @@ watch(
   selectedTable,
   async (table) => {
     if (table?.base_id && table?.id) {
-      await getMeta(table.base_id, table.id)
+      await getMeta({ baseId: table.base_id, tableIdOrTitle: table.id })
     }
   },
   { immediate: true },
@@ -274,7 +274,7 @@ const getNextColumnId = () => {
 
 const onRelationColChange = async () => {
   if (selectedTable.value) {
-    await getMeta(selectedTable.value.base_id, selectedTable.value.id)
+    await getMeta({ baseId: selectedTable.value.base_id, tableIdOrTitle: selectedTable.value.id })
   }
   vModel.value.fk_lookup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()

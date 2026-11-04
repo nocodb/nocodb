@@ -1,6 +1,14 @@
 <script lang="ts" setup>
 import { type ColumnType, type LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import {
+  RelationTypes,
+  UITypes,
+  ViewTypes,
+  isHiddenCol,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isUtilizationMultiResourceLink,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   // As we need to focus search box when the parent is opened
@@ -13,6 +21,8 @@ const emits = defineEmits(['created'])
 const { isParentOpen, columns } = toRefs(props)
 
 const meta = inject(MetaInj, ref())
+
+const view = inject(ActiveViewInj, ref())
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
@@ -39,6 +49,8 @@ const options = computed<ColumnType[]>(
 
           return showSystemFields.value
         } else {
+          // A timeline splits a many-to-many link into a group per linked record.
+          if (view.value?.type === ViewTypes.TIMELINE && isUtilizationMultiResourceLink(c)) return true
           /** ignore multi-record relations (hm/om/mm) if it's using within group menu */
           return !(
             isLinksOrLTAR(c) &&

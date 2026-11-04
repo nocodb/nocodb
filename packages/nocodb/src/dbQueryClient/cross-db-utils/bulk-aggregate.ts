@@ -127,29 +127,32 @@ export const bulkAggregate =
       ]),
     );
 
+    if (!bulkFilterList?.length) {
+      return {};
+    }
+
+    const knex = await NcConnectionMgrv2.get(source);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: knex,
+      model,
+      source,
+    });
+
+    const { where, aggregation } = baseModel._getListArgs(args);
+
+    // Loads the column map `resolveAggregateColumns` reads.
+    const columns = await baseModel.model.getColumns();
+
+    // Also outside the try: a result-key collision must reach the client as a 400.
+    const aggregateColumns = await resolveAggregateColumns({
+      baseModel,
+      view,
+      aggregation,
+    });
+
     try {
-      if (!bulkFilterList?.length) {
-        return {};
-      }
-
-      const knex = await NcConnectionMgrv2.get(source);
-      const baseModel = await Model.getBaseModelSQL(context, {
-        id: model.id,
-        viewId: view?.id,
-        dbDriver: knex,
-        model,
-        source,
-      });
-
-      const { where, aggregation } = baseModel._getListArgs(args);
-
-      const columns = await baseModel.model.getColumns();
-
-      const aggregateColumns = await resolveAggregateColumns({
-        baseModel,
-        view,
-        aggregation,
-      });
       if (!aggregateColumns.length) {
         return {};
       }

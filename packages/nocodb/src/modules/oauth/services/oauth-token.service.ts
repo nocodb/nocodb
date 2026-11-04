@@ -469,7 +469,7 @@ export class OauthTokenService {
   async updateUserAuthorization(
     userId: string,
     tokenId: string,
-    payload: { tools?: string[] },
+    payload: { tools?: string[]; opt_in_tools?: string[] },
   ) {
     const token = await OAuthToken.get(tokenId);
 
@@ -483,9 +483,13 @@ export class OauthTokenService {
       );
     }
 
-    const permissions = await this.buildUpdatedPermissions(token, payload);
+    // Built from the row as written, so a base recorded meanwhile is kept.
+    const permissions = await OAuthToken.updatePermissionsWith(
+      tokenId,
+      (current) => this.buildUpdatedPermissions(current, payload),
+    );
 
-    if (!(await OAuthToken.updatePermissions(tokenId, permissions))) {
+    if (permissions === null) {
       NcError.notFound('OAuth authorization not found');
     }
 
@@ -495,7 +499,7 @@ export class OauthTokenService {
   /** CE records no tools on a consent, so there is nothing to edit. */
   protected async buildUpdatedPermissions(
     _token: OAuthToken,
-    _payload: { tools?: string[] },
+    _payload: { tools?: string[]; opt_in_tools?: string[] },
   ): Promise<string> {
     NcError.badRequest('This authorization cannot be edited');
   }

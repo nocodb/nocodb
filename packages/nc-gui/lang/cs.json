@@ -1688,7 +1688,7 @@
     "noMoreActionsToRedo": "Žádné další akce k reakci",
     "noRecentViews": "Žádné nedávné zobrazení",
     "expandLinkFields": "Rozbalit pole odkazů",
-    "expandLinkFieldsDesc": "Vrátit data propojeného záznamu namísto počtu",
+    "expandLinkFieldsDesc": "Propojovací pole ve výstupu obsahují propojené záznamy místo jejich počtu",
     "inheritedFromParent": "Zděděno od rodiče",
     "pageOrUrl": "Stránka nebo URL",
     "linkTitle": "Název odkazu",
@@ -4068,7 +4068,6 @@
     "relationSettings": "Nastavení vztahu",
     "restoreVersion": "Obnovit v{version}",
     "runningScript": "Spouštění skriptu ...",
-    "removeSummary": "Odebrat souhrn",
     "rowFiltered": "Řádek vyfiltrován",
     "rowMoved": "Řádek přesunut",
     "rowHidden": "Řádek skryt",
@@ -4775,7 +4774,7 @@
       },
       "optIn": {
         "title": "Volitelné nástroje",
-        "description": "Nástroje, které trvale mažou nebo působí mimo NocoDB, například spuštění automatizace nebo odeslání webhooku. Připojení je nikdy nezíská, dokud je zde nezapnete."
+        "description": "Nástroje, které trvale mažou nebo zasahují mimo NocoDB, například spustí automatizaci nebo odpálí webhook. Zůstávají vypnuté, dokud je zde nezapnete."
       }
     },
     "noBaseAccess": "Žádný přístup k projektu",
@@ -5764,7 +5763,88 @@
     "workflowValueDynamicDescription": "Použít proměnné z předchozího kroku této automatizace",
     "workflowRunAs": "Spustit jako",
     "workflowChangeRunAs": "Změnit spustit jako",
-    "workflowServiceAccount": "Servisní účet"
+    "workflowServiceAccount": "Servisní účet",
+    "wsEmpty": {
+      "title": "Založte svůj první projekt",
+      "subtitle": "Projekt obsahuje vaše data a aplikace nad nimi postavené.",
+      "sharedTitle": "Zatím s vámi nikdo nic nesdílel",
+      "sharedSubtitle": "Projekty a aplikace, do kterých vás pozvou, se objeví zde."
+    },
+    "workspaceHome": {
+      "uploadFile": "Nahrát CSV nebo Excel",
+      "pickTemplate": "Nebo si vyberte šablonu na začátek",
+      "untitledBase": "Projekt bez názvu",
+      "templates": {
+        "projectManagement": {
+          "label": "Řízení projektů",
+          "prompt": "Evidence projektů s projekty a úkoly, kde každý úkol má odpovědnou osobu, stav, prioritu a termín."
+        },
+        "product": {
+          "label": "Produkt",
+          "prompt": "Produktový plán s funkcemi, problémem, který každá z nich řeší, prioritou, stavem a cílovou verzí."
+        },
+        "marketing": {
+          "label": "Marketing",
+          "prompt": "Marketingový kalendář s kampaněmi, kanály, na kterých každá běží, rozpočtem, odpovědnou osobou a datem spuštění."
+        },
+        "sales": {
+          "label": "Prodej",
+          "prompt": "Prodejní CRM s firmami, kontakty a obchodními případy, kde každý případ má fázi, hodnotu a očekávané datum uzavření."
+        },
+        "support": {
+          "label": "Support",
+          "prompt": "Zákaznická podpora s tikety, zákazníkem, který je vznesl, prioritou, stavem a přiděleným agentem."
+        },
+        "hr": {
+          "label": "Personalistika",
+          "prompt": "Evidence uchazečů s otevřenými pozicemi, kandidáty podle fáze náboru a pohovory s termíny a poznámkami hodnotitelů."
+        }
+      }
+    },
+    "yourConnections": "Vaše připojení",
+    "workingHours": "Pracovní doba",
+    "workingDays": "Pracovní dny",
+    "wsNav": {
+      "groupBilling": "Plan",
+      "groupAdmin": "Admin",
+      "membersPage": "Členové pracovního prostoru",
+      "iconHint": "Zobrazuje se v postranním panelu a v přepínači pracovních prostorů.",
+      "nameHint": "Jak se tento pracovní prostor jmenuje v celém NocoDB.",
+      "workspaceId": "ID pracovního prostoru",
+      "workspaceIdHint": "Použijte ho s API nebo při kontaktování podpory.",
+      "allTypes": "Všechny typy",
+      "allTeams": "Všechny týmy",
+      "teamsCreatedHere": "Vytvořeno zde",
+      "teamsScimManaged": "Spravováno přes SCIM",
+      "upgradeTitleAudits": "Záznam auditu pracovního prostoru",
+      "upgradeDescAudits": "Prohlédněte si každou změnu provedenou v tomto pracovním prostoru a kdo ji provedl.",
+      "upgradeTitleSso": "Jednotné přihlášení",
+      "upgradeDescSso": "Umožněte členům přihlašovat se přes vašeho poskytovatele identity.",
+      "desc": {
+        "members": "Kdo patří do tohoto pracovního prostoru a jaká je jeho výchozí role.",
+        "teams": "Skupiny členů, které můžete přidávat do projektů najednou.",
+        "integrations": "Připojené účty a přihlašovací údaje sdílené napříč pracovním prostorem.",
+        "general": "Název, ikona a ID pracovního prostoru.",
+        "skills": "Pokyny, kterými se asistent s umělou inteligencí řídí v celém tomto pracovním prostoru.",
+        "security": "Požadavky na přihlášení pro všechny v tomto pracovním prostoru.",
+        "dangerZone": "Opustit tento pracovní prostor nebo ho trvale smazat.",
+        "billing": "Váš tarif, místa, způsob platby a faktury.",
+        "usage": "Kolik tento pracovní prostor spotřebovává z limitů svého tarifu.",
+        "audits": "Každá změna provedená v tomto pracovním prostoru a kdo ji provedl.",
+        "sso": "Přihlášení přes vašeho poskytovatele identity."
+      }
+    },
+    "workspaceMode": "Režim pracovního prostoru",
+    "zoomIn": "Přiblížit",
+    "zoomOut": "Oddálit",
+    "zoomTo50Percent": "Přiblížit na 50 %",
+    "zoomTo100Percent": "Přiblížit na 100 %",
+    "workflowValueStatic": "Statická",
+    "workflowValueStaticDescription": "Zadejte hodnoty přímo",
+    "workspaceNoAccess": "Pracovní prostor (bez přístupu)",
+    "yAxis": "Osa Y",
+    "workspaceSettings": "Nastavení pracovního prostoru",
+    "wrapLongText": "Zalomit dlouhý text"
   },
   "activity": {
     "useTemplate": "Použít šablonu",
@@ -7124,8 +7204,6 @@
       "selectFieldFirst": "Nejprve vyberte {field}, aby se tyto možnosti načetly.",
       "viewFolderDeleteConfirmation": "Pohledy v této složce budou přesunuty na nejvyšší úroveň.",
       "saveDraftToBrowser": "Uložit koncept do prohlížeče",
-      "showAppFirst": "Zobrazit aplikaci v postranním panelu jako první",
-      "showAppFirstDesc": "Umístit Apps nad Data v postranním panelu tohoto projektu.",
       "recordSavedButHidden": "Záznam byl uložen, ale je skrytý kvůli vašim přístupovým oprávněním.",
       "seeChangesToRecord": "Zobrazit změny tohoto záznamu",
       "revisionHistoryUpgrade": "Máte {limit} historie revizí. Pro zobrazení celé historie přejděte na vyšší tarif.",
@@ -7228,7 +7306,20 @@
       "mcpSetupCursorStep3": "Přidejte konfiguraci JSON, kterou dostanete po vytvoření tokenu.",
       "mcpSetupIntroWindsurf": "Začněte používat NocoDB MCP s Windsurf ve 4 jednoduchých krocích",
       "mcpSetupWindsurfStep1": "Otevřete nastavení Windsurf a v levém postranním panelu vyberte kartu Cascade",
-      "mcpSetupWindsurfStep2": "Klikněte na Manage MCP."
+      "mcpSetupWindsurfStep2": "Klikněte na Manage MCP.",
+      "abuseReport": {
+        "queueDescription": "Hlášení podaná z veřejných odkazů. Odkaz zakažte, abyste ho stáhli z oběhu, nebo zablokujte účty, které za ním stojí.",
+        "disableConfirm": "Veřejný odkaz přestane fungovat všem a všechna otevřená hlášení k němu se vyřeší. Vlastník může položku znovu sdílet pod novým odkazem.",
+        "blockConfirm": "{email} je všude odhlášen a nemůže se už přihlásit ani používat API tokeny. Blokaci můžete zrušit ve správě uživatelů.",
+        "noAccounts": "K této položce nejsou připojeny žádné účty.",
+        "superAdminNotBlockable": "Superadministrátory nelze blokovat.",
+        "description": "Domníváte se, že se tato stránka používá k phishingu, vydávání se za někoho jiného, podvodům nebo jinému zneužití? Dejte vědět správcům této instance {productName}.",
+        "detailsMin": "Popište prosím problém alespoň {min} znaky.",
+        "thanksTitle": "Děkujeme za vaše hlášení",
+        "thanksDescription": "Vaše hlášení jsme přijali. Správci této instance {productName} ho posoudí.",
+        "contactEmailHint": "Hlášení z veřejných pohledů, formulářů, rozhraní a dashboardů se posílají e-mailem sem. Ponechte prázdné, aby chodila všem superadministrátorům."
+      },
+      "actWithYourOwnPermissions": "Jednat v těchto zdrojích s vašimi vlastními oprávněními"
     },
     "error": {
       "failedToCreateSync": "Nepodařilo se vytvořit synchronizaci",
@@ -7441,7 +7532,46 @@
       "inviteLinkRevoked": "Tento pozvánkový odkaz byl zrušen",
       "inviteLinkExhausted": "Tento pozvánkový odkaz byl zcela vyčerpán",
       "inviteLinkUnavailable": "Tento pozvánkový odkaz už nefunguje",
-      "invalidEmailDomain": "Zadejte doménu, například acme.io"
+      "invalidEmailDomain": "Zadejte doménu, například acme.io",
+      "attachmentInvalidUrl": "Zadejte URL začínající na http:// nebo https://, případně šablonu s proměnnými",
+      "attachmentAlreadyAttached": "Tento soubor je už přiložen.",
+      "attachmentOpenWorkflowToUpload": "Pro nahrání souborů otevřete pracovní postup",
+      "attachmentNoLongerAvailable": "Tento soubor už není k dispozici",
+      "attachmentsTooLarge": "Soubory překračují limit {size} na jeden e-mail",
+      "factoryMachineNameRequired": "Pojmenujte stroj",
+      "factoryMachineNameDuplicate": "Stroj s tímto názvem už existuje",
+      "vaultUnreachable": "S tímto nastavením se nepodařilo trezor kontaktovat",
+      "vaultAliasStart": "Název musí začínat písmenem",
+      "vaultAliasCharacters": "Název může obsahovat jen písmena a číslice — žádné mezery, pomlčky ani podtržítka",
+      "vaultAliasReserved": "„{name}“ je vyhrazený název, zvolte jiný",
+      "fieldSaveFailed": "Pole „{field}“ se nepodařilo uložit: {error}",
+      "fieldSavesFailed": "Nepodařilo se uložit {count} polí ({fields}). První chyba: {error}",
+      "projectNameRequired": "Název projektu je povinný",
+      "attachmentUrlDownloadFailed": "NocoDB nedokázal stáhnout tento soubor z jeho URL. Odeberte ho a přidejte soubor znovu.",
+      "emailImageSize": "Obrázky v těle e-mailu musí být menší než {size}. Logo se obvykle vejde hluboko pod 100 KB.",
+      "emailImageType": "Použijte obrázek PNG, JPEG, GIF nebo WebP",
+      "emailImageCount": "Tělo e-mailu může obsahovat nejvýše {count} obrázků",
+      "emailImageTotalSize": "Obrázky v těle e-mailu musí mít dohromady méně než {size}",
+      "emailImageNoWorkflow": "Pro přidání obrázků otevřete pracovní postup",
+      "emailImageUploadFailed": "Obrázek se nepodařilo nahrát",
+      "emailImageMissing": "Tento obrázek už není k dispozici a v e-mailu bude vynechán. Odeberte ho a vložte znovu.",
+      "vaultSecretNeedsProperty": "Tento tajný klíč obsahuje více polí. Vyberte to, které se má použít, jinak připojení při běhu selže.",
+      "vaultUnknownAlias": "Není vám dostupný žádný trezor s názvem „{name}“.",
+      "atLeastOneOperationRequired": "Musí být vybrána alespoň jedna operace",
+      "triggerFormRequired": "Musíte vybrat spouštěcí formulář",
+      "failedToStartListening": "Nepodařilo se spustit naslouchání aktualizacím",
+      "unknownPermissionRequested": "Toto oprávnění server nenabízí",
+      "authorizationWillBeRefused": "Tento požadavek bude odmítnut kvůli oprávněním uvedeným výše.",
+      "vaultAliasNotAllowed": "Nemáte povoleno používat trezor „{name}“. Požádejte o přístup vlastníka pracovního prostoru nebo zadejte přihlašovací údaje přímo.",
+      "selectTargetField": "Vyberte cílové pole!",
+      "parentTableNoPrimaryKey": "Nadřazená tabulka nemá sloupec s primárním klíčem",
+      "childTableNoPrimaryKey": "Podřízená tabulka nemá sloupec s primárním klíčem",
+      "noWorkspaceAvailable": "Není dostupný žádný pracovní prostor",
+      "invalidJson": "Neplatný JSON",
+      "invalidTokensJson": "Nejde o export tokenů. Očekávají se klíče jako light, dark, font nebo radiusScale.",
+      "renameFileFailed": "Chyba při přejmenování souboru",
+      "failedToLoadMetadataDiff": "Nepodařilo se načíst rozdíly metadat",
+      "failedToLoadMonacoEditor": "Nepodařilo se načíst Monaco Editor"
     },
     "toast": {
       "inviteUrlCopy": "Zkopírování adresy URL pozvánky do schránky",
@@ -7584,9 +7714,9 @@
       "failed": "Registrace se nezdařila",
       "paused": "Pozastaveno"
     },
-    "agentToolsAndAccessSubtitle": "Co může agent používat? Přidejte nástroje, stránky a připojení, ke kterým má přístup.",
+    "agentToolsAndAccessSubtitle": "Co může tento agent číst a měnit? Zvolte pro každou oblast úroveň.",
     "agentNoFilters": "Zatím žádné podmínky",
-    "agentInstructionsSubtitle": "Co má agent dělat při každém spuštění? Tady jsou doporučené postupy.",
+    "agentInstructionsSubtitle": "Pojmenujte ho a pak napište, co má dělat, jako byste zaškolovali kolegu.",
     "communitySkillsSubtitle": "Vyhledejte výše skills sdílené na skills.sh a některý otevřete, abyste si před instalací přečetli jeho SKILL.md.",
     "environmentBlockedBySync": "Pro projekt s aktivní synchronizací nelze otevřít prostředí. Nejprve odeberte konfigurace synchronizace.",
     "chatArtifactPublicLinkHint": "Kdokoli s odkazem si to může prohlédnout.",
@@ -7751,7 +7881,14 @@
       "confirmCta": "Potvrdit migraci",
       "migrating": "Probíhá migrace..."
     },
-    "skillsRegistryErrorTitle": "Registr dovedností se nepodařilo prohledat"
+    "skillsRegistryErrorTitle": "Registr dovedností se nepodařilo prohledat",
+    "airtableImportReportSummary": "{skipped} přeskočeno · {approximated} přibližně · {failed} selhalo",
+    "airtableImportReportTruncated": "Report uvádí prvních {shown} z {total} položek. Kompletní seznam najdete ve stažených protokolech.",
+    "factoryMachineReadyNow": "Stroj je připraven. Nové relace ho používají.",
+    "factoryMachineSwitched": "Nové relace budou používat verzi {version}.",
+    "factoryMachineDefaultNow": "Nové relace se nyní spouštějí na stroji {machine}.",
+    "factoryMachineUpgrading": "Probíhá upgrade stroje {machine}. Nové relace ho začnou používat, jakmile bude sestavení hotové.",
+    "factoryAppInstallUnavailable": "{provider} zatím nelze připojit ke kódovacím agentům. Vyžadují instalaci aplikace a pro {provider} tu žádná nastavená není."
   },
   "trash": {
     "restore": "Obnovit",
@@ -8137,7 +8274,6 @@
       "lastSignedInAt": "Naposledy přihlášen {time}",
       "lastUsed": "Naposledy použito",
       "lastUsedAt": "Naposledy použito {time}",
-      "canDelete": "Může mazat data",
       "toolsTitle": "Nástroje a oprávnění",
       "neverMoreThanRole": "Nikdy více než vaše vlastní role v tomto projektu ({role}).",
       "neverMoreThanAccess": "Nikdy více než váš vlastní přístup k tomuto projektu.",

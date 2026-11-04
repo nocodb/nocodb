@@ -164,8 +164,15 @@ const active = inject(ActiveCellInj, ref(false))
 function onCellClick(e: Event) {
   if (e.type !== 'click') return
   if (isExpandedForm.value || isForm.value || active.value) {
-    // Interface new record with no links yet: skip the empty linked list, open the picker.
-    if (isInterfaceUi.value && isNew.value && !localCellValue.value.length && !isSimpleLinkRecordList.value) {
+    // New record with no links yet: open the picker, not the empty linked list. Covers interfaces and every
+    // IsFormInj surface but the expanded form: form view and builder, AI button and workflow field editors.
+    if (
+      (isInterfaceUi.value || (isForm.value && !isExpandedForm.value)) &&
+      isNew.value &&
+      hasEditPermission.value &&
+      !localCellValue.value.length &&
+      !isSimpleLinkRecordList.value
+    ) {
       return openListDlg()
     }
 

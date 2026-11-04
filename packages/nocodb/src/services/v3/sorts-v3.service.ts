@@ -17,6 +17,13 @@ import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 
+// A sort created without a direction is stored with the column default 'false',
+// which every reader treats as ascending; report it as 'asc'.
+const withDirection = <T extends { direction?: string }>(sort: T): T =>
+  !sort || (sort.direction && sort.direction !== 'false')
+    ? sort
+    : { ...sort, direction: 'asc' };
+
 @Injectable()
 export class SortsV3Service {
   private revBuilder = builderGenerator<
@@ -32,7 +39,9 @@ export class SortsV3Service {
   constructor(protected readonly sortsService: SortsService) {}
 
   async sortGet(context: NcContext, param: { sortId: string }) {
-    return sortBuilder().build(await this.sortsService.sortGet(context, param));
+    return withDirection(
+      sortBuilder().build(await this.sortsService.sortGet(context, param)),
+    );
   }
 
   async sortDelete(
@@ -192,7 +201,7 @@ export class SortsV3Service {
       },
       ncMeta,
     );
-    return sortBuilder().build(sort);
+    return withDirection(sortBuilder().build(sort));
   }
 
   async sortList(
@@ -200,9 +209,11 @@ export class SortsV3Service {
     param: { viewId: string },
     ncMeta = Noco.ncMeta,
   ) {
-    return sortBuilder().build(
-      await Sort.list(context, { viewId: param.viewId }, ncMeta),
-    ) as SortType[];
+    return (
+      sortBuilder().build(
+        await Sort.list(context, { viewId: param.viewId }, ncMeta),
+      ) as SortType[]
+    ).map(withDirection);
   }
 
   /** Sorts scoped to a single list level (`fk_level_id`). */
@@ -214,6 +225,6 @@ export class SortsV3Service {
     const sorts = (
       await Sort.list(context, { viewId: param.viewId }, ncMeta)
     ).filter((s) => (s as any).fk_level_id === param.levelId);
-    return sortBuilder().build(sorts) as SortType[];
+    return (sortBuilder().build(sorts) as SortType[]).map(withDirection);
   }
 }

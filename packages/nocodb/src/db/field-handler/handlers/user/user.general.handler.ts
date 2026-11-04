@@ -14,6 +14,7 @@ import { escapeBindingPlaceholders, sanitize } from '~/helpers/sqlSanitize';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import { BaseUser, type Column, Filter } from '~/models';
 
 const USER_ID_OPS = new Set([
@@ -156,7 +157,8 @@ export class UserGeneralHandler extends GenericFieldHandler {
   /**
    * Stored user values are ids, so an email in a filter value is mapped to
    * its base user's id. An email that matches no user is kept as-is and
-   * therefore still matches nothing.
+   * therefore still matches nothing. Public requests never resolve: they do
+   * not see emails, and resolving would reveal whether one is a member.
    */
   protected async resolveEmailFilterValue(
     context: NcContext,
@@ -164,7 +166,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
     comparisonOp: string,
     val: string,
   ): Promise<string> {
-    if (!USER_ID_OPS.has(comparisonOp)) return val;
+    if (context.is_public || !USER_ID_OPS.has(comparisonOp)) return val;
     // Non-strings (e.g. resolved current-user ids) pass through untouched.
     if (typeof val !== 'string' || !val.includes('@')) return val;
 
@@ -395,10 +397,11 @@ export class UserGeneralHandler extends GenericFieldHandler {
       // matches nothing.
       if (user.id === val) return true;
       const filterVal = val.toLowerCase();
+      // Public responses show the derived name, never the email.
       const displayValue = (
-        user.display_name ||
-        user.email ||
-        ''
+        context.is_public
+          ? extractDisplayNameFromEmail(user.email ?? '', user.display_name)
+          : user.display_name || user.email || ''
       ).toLowerCase();
 
       if (filterVal.startsWith('%') && filterVal.endsWith('%')) {

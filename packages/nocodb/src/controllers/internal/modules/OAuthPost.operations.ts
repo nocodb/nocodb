@@ -74,7 +74,7 @@ export class OAuthPostOperations
         return await this.oAuthTokenService.updateUserAuthorization(
           req.user.id,
           payload.tokenId,
-          { tools: payload.tools },
+          { tools: payload.tools, opt_in_tools: payload.opt_in_tools },
         );
       case 'oAuthClientRegenerateSecret':
         return await this.oAuthClientService.regenerateClientSecret(context, {

@@ -41,7 +41,7 @@ const optionsToExclude = computed(() => {
 const isLoading = ref(false)
 
 const reloadTable = async () => {
-  await getMeta(meta!.value!.base_id, meta!.value!.id!, true)
+  await getMeta({ baseId: meta!.value!.base_id, tableIdOrTitle: meta!.value!.id!, force: true })
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   reloadDataHook?.trigger({ shouldShowLoading: false, inPlace: true })
 }

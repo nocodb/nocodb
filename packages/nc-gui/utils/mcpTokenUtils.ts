@@ -1,5 +1,5 @@
 import { ApiTokenPermissionLevel } from 'nocodb-sdk'
-import type { ApiTokenScopeEntry, McpTokenPermissionsJson } from 'nocodb-sdk'
+import type { ApiTokenPermissions, ApiTokenScopeEntry, McpTokenPermissionsJson } from 'nocodb-sdk'
 import type { SupportedDocsType } from '~/lib/types'
 
 /**
@@ -35,6 +35,34 @@ export function mcpGrantCategoryLevel(scopes: ApiTokenScopeEntry[]): ApiTokenPer
       levels.includes(level),
     ) ?? ApiTokenPermissionLevel.NONE
   )
+}
+
+const LEVEL_RANK: Record<string, number> = {
+  [ApiTokenPermissionLevel.NONE]: 0,
+  [ApiTokenPermissionLevel.READ]: 1,
+  [ApiTokenPermissionLevel.WRITE]: 2,
+  [ApiTokenPermissionLevel.DELETE]: 3,
+}
+
+/**
+ * The widest level each category holds across a category-shaped grant's
+ * scopes. A tool any one scope reaches is reachable, so this stands for them all.
+ */
+export function mcpWidestPermissions(scopes: ApiTokenScopeEntry[]): ApiTokenPermissions {
+  const widest: ApiTokenPermissions = {}
+
+  for (const scope of scopes) {
+    for (const [category, level] of Object.entries(scope.permissions ?? {})) {
+      if (!level) continue
+
+      const key = category as keyof ApiTokenPermissions
+      const held = widest[key]
+
+      if (!held || LEVEL_RANK[level]! > LEVEL_RANK[held]!) widest[key] = level
+    }
+  }
+
+  return widest
 }
 
 /** Setup docs offered next to a connection's client config. */

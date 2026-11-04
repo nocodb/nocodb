@@ -1,5 +1,6 @@
 import {
   FormulaDataTypes,
+  getNodejsTimezone,
   isBtLikeV2Junction,
   JSEPNode,
   UITypes,
@@ -215,6 +216,63 @@ export async function isNumericValueArg(
   }
 
   return nodeKind(arg);
+}
+
+const UTC_TIMEZONE_REGEX = /^(Etc\/)?(UTC|UCT|GMT|GMT[+-]?0|Universal|Zulu)$/i;
+
+// Server timezone (TZ env) DATETIME_FORMAT renders a datetime in. Returns
+// undefined for UTC, where the UTC-normalised value is already correct.
+export function getDatetimeFormatTimezone(): string | undefined {
+  const timezone = getNodejsTimezone(
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
+  if (!timezone || UTC_TIMEZONE_REGEX.test(timezone)) return undefined;
+  return timezone;
+}
+
+const DATETIME_INSTANT_UIDTS = new Set<string>([
+  UITypes.DateTime,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+]);
+
+// True only for expressions known to be a datetime instant. Date fields,
+// formula columns and anything unidentified are not shifted (a Date would move
+// to the previous/next day).
+export function isDatetimeInstantNode(node: MapFnArgs['pt']): boolean {
+  if (node?.dataType !== FormulaDataTypes.DATE) return false;
+
+  if (node.type === JSEPNode.IDENTIFIER) {
+    return DATETIME_INSTANT_UIDTS.has(node.referencedColumn?.uidt);
+  }
+
+  if (node.type !== JSEPNode.CALL_EXP) return false;
+
+  const args: MapFnArgs['pt'][] = node.arguments ?? [];
+  // result branches that can carry the value
+  let branches: MapFnArgs['pt'][];
+  switch (node.callee?.name?.toUpperCase()) {
+    case 'NOW':
+      return true;
+    case 'DATEADD':
+      branches = args.slice(0, 1);
+      break;
+    case 'IF':
+      branches = args.slice(1, 3);
+      break;
+    case 'SWITCH':
+      branches = args.filter(
+        (_, i) => (i > 0 && i % 2 === 0) || (i === args.length - 1 && i > 0),
+      );
+      break;
+    default:
+      return false;
+  }
+
+  const valueBranches = branches.filter(
+    (b) => b && b.dataType !== FormulaDataTypes.NULL,
+  );
+  return valueBranches.length > 0 && valueBranches.every(isDatetimeInstantNode);
 }
 
 export const ALLOWED_DATEADD_UNITS = new Set([

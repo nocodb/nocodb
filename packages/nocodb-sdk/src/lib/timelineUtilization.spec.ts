@@ -8,7 +8,9 @@ import {
   dayNumberWeekday,
   formatUtilizationPercent,
   instantToDayNumber,
+  isLinkUtilizationPreviewComplete,
   isUtilizationResourceLink,
+  isUtilizationSummaryComplete,
   isUtilizationTimeOffLink,
   isUtilizationTimeOffSource,
   MONDAY_TO_FRIDAY,
@@ -398,5 +400,102 @@ describe('timelineUtilization', () => {
     }
     expect(isUtilizationResourceLink({ uidt: UITypes.User })).toBe(false);
     expect(isUtilizationResourceLink(null)).toBe(false);
+  });
+
+  it('treats a summary as complete only once utilization can compute', () => {
+    const base = {
+      aggregation: 'utilization',
+      fk_column_id: 'hours',
+      utilization: {
+        allocated_rate: 'total' as const,
+        available_rate: 'week' as const,
+        fk_resource_column_id: 'owner',
+        available_value: 40,
+      },
+    };
+    expect(isUtilizationSummaryComplete(base)).toBe(true);
+    expect(isUtilizationSummaryComplete({ ...base, fk_column_id: '' })).toBe(
+      false
+    );
+    expect(
+      isUtilizationSummaryComplete({
+        ...base,
+        utilization: { ...base.utilization, fk_resource_column_id: '' },
+      })
+    ).toBe(false);
+    expect(
+      isUtilizationSummaryComplete({
+        ...base,
+        utilization: { ...base.utilization, available_value: null },
+      })
+    ).toBe(false);
+    expect(
+      isUtilizationSummaryComplete({
+        ...base,
+        utilization: {
+          ...base.utilization,
+          available_value: null,
+          fk_available_column_id: 'capacity',
+        },
+      })
+    ).toBe(true);
+    expect(
+      isUtilizationSummaryComplete({
+        ...base,
+        utilization: {
+          ...base.utilization,
+          time_off: {
+            fk_model_id: 'pto',
+            fk_link_column_id: '',
+            fk_start_column_id: '',
+            fk_end_column_id: null,
+            label: 'PTO',
+          },
+        },
+      })
+    ).toBe(false);
+  });
+  it('reads capacity off the resource ahead of task values', () => {
+    const res = computeUtilization({
+      buckets: [week1],
+      tasks: [
+        {
+          fromDay: day('2026-09-07'),
+          toDay: day('2026-09-11'),
+          allocated: 20,
+          resources: ['a', 'b'],
+          available: 10,
+        },
+      ],
+      allocatedRate: 'total',
+      availableRate: 'week',
+      workingDays: MONDAY_TO_FRIDAY,
+      multipleResources: 'full',
+      resourceCapacity: { a: 40 },
+    });
+    const byKey = Object.fromEntries(res.groups.map((g) => [g.key, g.total]));
+    expect(byKey.a).toEqual({ allocated: 20, available: 40, time_off: 0 });
+    // No override for b: the task's own value applies.
+    expect(byKey.b).toEqual({ allocated: 20, available: 10, time_off: 0 });
+  });
+
+  it('needs dates, hours and working hours for a link preview', () => {
+    const base = { allocated_rate: 'total', available_rate: 'week' } as const;
+    expect(isLinkUtilizationPreviewComplete(base)).toBe(false);
+    expect(
+      isLinkUtilizationPreviewComplete({
+        ...base,
+        fk_from_column_id: 's',
+        fk_hours_column_id: 'h',
+      })
+    ).toBe(false);
+    expect(
+      isLinkUtilizationPreviewComplete({
+        ...base,
+        fk_from_column_id: 's',
+        fk_hours_column_id: 'h',
+        available_value: 40,
+      })
+    ).toBe(true);
   });
 });

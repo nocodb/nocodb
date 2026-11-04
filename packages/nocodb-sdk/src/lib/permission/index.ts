@@ -28,6 +28,7 @@ export enum PermissionKey {
   /** Who may point a credential at this vault's secrets — as good as reading them. */
   VAULT_REFERENCE = 'VAULT_REFERENCE',
   INTERFACE_PAGE_CSV_EXPORT = 'INTERFACE_PAGE_CSV_EXPORT',
+  INTERFACE_PAGE_CSV_IMPORT = 'INTERFACE_PAGE_CSV_IMPORT',
 }
 
 export enum PermissionGrantedType {
@@ -235,7 +236,21 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to export this page as CSV.',
   },
+  [PermissionKey.INTERFACE_PAGE_CSV_IMPORT]: {
+    // Import writes records, so it never opens below editors.
+    minimumRole: PermissionRole.EDITOR,
+    label: 'Who can import CSV',
+    description: 'can import CSV',
+    userSelectorDescription:
+      'Only members selected here will be able to import CSV into this page.',
+  },
 };
+
+/** Permission keys that live on an interface page (`PermissionEntity.INTERFACE_PAGE`). */
+export const INTERFACE_PAGE_PERMISSION_KEYS = [
+  PermissionKey.INTERFACE_PAGE_CSV_EXPORT,
+  PermissionKey.INTERFACE_PAGE_CSV_IMPORT,
+];
 
 /**
  * Permission keys whose no-row default is "Everyone" and whose option set is

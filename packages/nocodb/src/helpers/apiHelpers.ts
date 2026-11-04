@@ -1,6 +1,7 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import ajvErrors from 'ajv-errors';
+import { API_TOKEN_PREFIX } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
 import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
@@ -117,4 +118,14 @@ export function getApiTokenFromHeader(
   if (value.toLowerCase().startsWith('bearer ')) {
     return value.slice(7).trim();
   }
+}
+
+/**
+ * A non-secret hint naming an API token in logs: the stored `token_prefix`
+ * length for `nc_pat_` tokens, a few characters otherwise. Never the token.
+ */
+export function apiTokenLogHint(token?: string): string {
+  if (!token) return '<none>';
+  const visible = token.startsWith(API_TOKEN_PREFIX) ? 12 : 4;
+  return token.length > visible ? `${token.slice(0, visible)}…` : '<short>';
 }

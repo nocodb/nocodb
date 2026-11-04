@@ -922,7 +922,7 @@ export function getIconTileTint(color: string, isDark = false): IconTileTint {
  * one colour twice. It stays in `themeV3Colors` for its ~175 existing usages. Teal
  * takes the slot — nothing else in the palette lands within 21° of it.
  */
-const DEFAULT_PALETTE_HUES = ['gray', 'red', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink'] as const
+export const DEFAULT_PALETTE_HUES = ['gray', 'red', 'orange', 'yellow', 'green', 'teal', 'blue', 'purple', 'pink'] as const
 
 /** Ramp stops for the three light rows: wash, tint, vivid. 500 is peak chroma in every ramp. */
 const DEFAULT_PALETTE_TONES = ['100', '300', '500'] as const

@@ -479,7 +479,10 @@ export class DatasService {
     } catch (e) {}
 
     const data = await baseModel.groupBy(listArgs);
-    const count = await baseModel.groupByCount(listArgs);
+    // A split list already holds every group: counting would run it again.
+    const count = data.some((r) => '__nc_split_id' in r)
+      ? data.length
+      : await baseModel.groupByCount(listArgs);
 
     return new PagedResponseImpl(data, {
       ...query,

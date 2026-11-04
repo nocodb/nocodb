@@ -4,6 +4,8 @@ import { ClientType, FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
 import commonFns, {
   escapePlaceholders,
   extractDatetimeFormat,
+  getDatetimeFormatTimezone,
+  isDatetimeInstantNode,
   isNumericValueArg,
   safeDateAddUnitSQL,
   treatArgAsConditionalExp,
@@ -355,11 +357,20 @@ const pg = {
   },
   DATETIME_FORMAT: async ({ fn, knex, pt }: MapFnArgs) => {
     const format = extractDatetimeFormat(pt);
-    const dateExpr = (await fn(pt?.arguments[0])).builder;
+    let dateExpr = `${(await fn(pt?.arguments[0])).builder}`;
+    const timezone = getDatetimeFormatTimezone();
+    if (timezone && isDatetimeInstantNode(pt?.arguments[0])) {
+      // EPOCH reads a plain timestamp as UTC and a timestamptz as its instant,
+      // so both resolve to the same instant regardless of the session timezone
+      dateExpr = `to_timestamp(EXTRACT(EPOCH FROM (${dateExpr}))) AT TIME ZONE '${timezone.replace(
+        /'/g,
+        "''",
+      )}'`;
+    }
     return {
       builder: knex.raw(
         `${escapePlaceholders(
-          getDatetimeFormatHandler(ClientType.PG).build(`${dateExpr}`, format),
+          getDatetimeFormatHandler(ClientType.PG).build(dateExpr, format),
         )}::text`,
       ),
     };

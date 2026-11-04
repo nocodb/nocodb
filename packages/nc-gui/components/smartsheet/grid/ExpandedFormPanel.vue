@@ -333,6 +333,30 @@ const guardedSwitch = (perform: () => void) => {
   perform()
 }
 
+useRecordNavCommands({
+  key: () => `record-nav:panel:${meta.value?.id}:${activeRowId.value}`,
+  isOpen: () => isOpen.value,
+  isNew,
+  canPrev: () => hasPrev.value,
+  canNext: () => hasNext.value,
+  prev: () => guardedNavigate('prev'),
+  next: () => guardedNavigate('next'),
+  navShortcuts: ['ArrowUp', 'ArrowDown'],
+  canSave: () => isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isSaveDisabled.value,
+  save,
+  saveShortcut: [isMac() ? 'Meta' : 'Ctrl', 'S'],
+  hasUnsavedChanges,
+  // Same buffers the discard dialog drops, then the saved values come back.
+  discard: async () => {
+    clearColumns()
+    if (_row.value?.rowMeta) _row.value.rowMeta.ltarState = {}
+    pendingLtarOps.value = []
+    await _loadRow(activeRowId.value ?? undefined)
+  },
+  close: onClose,
+  panel: { isFullscreen, isSidebarShown: useDualPane, toggleSidebar, setFullscreen },
+})
+
 // Register guarded variant so grid-driven row clicks surface the discard modal
 // instead of silently overwriting unsaved edits. Reset on unmount so a stale
 // closure isn't held by the store.

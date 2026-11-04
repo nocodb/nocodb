@@ -30,6 +30,7 @@ import { SyncSource, View } from '~/models';
 import { omitSyncToken } from '~/models/SyncSource';
 import { NcError } from '~/helpers/catchError';
 import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
+import { pickBulkAllQuery } from '~/helpers/dataHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
@@ -130,6 +131,7 @@ export class UiPostOperations
     'ganttViewUpdate' as const,
     'nestedDataLink' as const,
     'nestedDataUnlink' as const,
+    'nestedDataLinkSwap' as const,
     'nestedDataReorder' as const,
     'nestedDataListCopyPasteOrDeleteAll' as const,
     'nestedDataBulkCopyPasteOrDeleteAll' as const,
@@ -565,6 +567,16 @@ export class UiPostOperations
           cookie: req,
           user: req.user,
         });
+      case 'nestedDataLinkSwap':
+        return await this.dataTableService.nestedLinkSwap(context, {
+          modelId: req.query.tableId as string,
+          rowId: payload?.rowId,
+          viewId: req.query.viewId as string,
+          columnId: payload?.columnId,
+          link: payload?.link,
+          unlink: payload?.unlink,
+          cookie: req,
+        });
       case 'nestedDataReorder':
         return await this.dataTableService.nestedReorder(context, {
           modelId: req.query.tableId as string,
@@ -694,7 +706,7 @@ export class UiPostOperations
         return await this.bulkDataAliasService.bulkDataDeleteAll(context, {
           baseName: context.base_id,
           tableName: req.query.tableId!,
-          query: req.query,
+          query: pickBulkAllQuery(req.query, ['where', 'viewId', 'skipPks']),
           viewName: req.query.viewId,
           req,
         });

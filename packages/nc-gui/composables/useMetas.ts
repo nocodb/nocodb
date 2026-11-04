@@ -1,6 +1,15 @@
 import type { WatchStopHandle } from 'vue'
 import type { TableType } from 'nocodb-sdk'
 
+export interface GetMetaParams {
+  baseId: string
+  tableIdOrTitle: string
+  force?: boolean
+  skipIfCacheMiss?: boolean
+  disableError?: boolean
+  navigateOnNotFound?: boolean
+}
+
 export const useMetas = createSharedComposable(() => {
   const { internalGet } = useInternalBatch()
 
@@ -77,14 +86,14 @@ export const useMetas = createSharedComposable(() => {
   }
 
   // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea
-  const getMeta = async (
-    baseId: string,
-    tableIdOrTitle: string,
+  const getMeta = async ({
+    baseId,
+    tableIdOrTitle,
     force = false,
     skipIfCacheMiss = false,
     disableError = false,
     navigateOnNotFound = false,
-  ): Promise<TableType | null> => {
+  }: GetMetaParams): Promise<TableType | null> => {
     if (!baseId) {
       console.error('[getMeta] baseId is required but was not provided')
       return null

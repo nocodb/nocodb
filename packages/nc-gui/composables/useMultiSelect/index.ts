@@ -1279,7 +1279,7 @@ export function useMultiSelect(
               },
             )
 
-            await getMeta(meta.value!.base_id!, meta?.value?.id as string, true)
+            await getMeta({ baseId: meta.value!.base_id!, tableIdOrTitle: meta?.value?.id as string, force: true })
 
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
@@ -1489,7 +1489,7 @@ export function useMultiSelect(
 
             const colOpts = columnObj.colOptions as LinkToAnotherRecordType
             const relatedBaseId = colOpts.fk_related_base_id || (base.value?.id as string)
-            const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id!)
+            const relatedTableMeta = await getMeta({ baseId: relatedBaseId, tableIdOrTitle: colOpts.fk_related_model_id! })
 
             // mirror the bt column value to the foreign-key column title in oldRow so subsequent diffs see the right shape
             rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]

@@ -54,6 +54,10 @@ const isBlankValue = (value: any) =>
   value === undefined ||
   (Array.isArray(value) && value.length === 0);
 
+// Rating columns default to 0 and clearing a star writes 0, so 0 means unrated.
+export const isUnratedRating = (uidt: UITypes, value: any) =>
+  uidt === UITypes.Rating && Number(value) === 0;
+
 // "HH:mm[:ss]" (or a datetime carrying a time) → seconds since midnight, for
 // ordered Time comparisons. Returns NaN when no time component is present.
 const timeToSeconds = (value: any): number => {
@@ -725,11 +729,11 @@ export class RowFilterValidator {
         break;
       case 'empty':
       case 'blank':
-        res = isBlankValue(value);
+        res = isBlankValue(value) || isUnratedRating(effectiveUidt, value);
         break;
       case 'notempty':
       case 'notblank':
-        res = !isBlankValue(value);
+        res = !isBlankValue(value) && !isUnratedRating(effectiveUidt, value);
         break;
       case 'checked':
         res = !!value;
@@ -1002,11 +1006,18 @@ export class RowFilterValidator {
     const present = arr.filter(
       (v) => !(v === null || v === undefined || v === '')
     );
+    const rated = present.filter((v) => !isUnratedRating(effectiveUidt, v));
 
-    if (['empty', 'blank', 'null', 'gb_null'].includes(op)) {
+    if (['empty', 'blank'].includes(op)) {
+      return rated.length === 0;
+    }
+    if (['notempty', 'notblank'].includes(op)) {
+      return rated.length > 0;
+    }
+    if (['null', 'gb_null'].includes(op)) {
       return present.length === 0;
     }
-    if (['notempty', 'notblank', 'notnull'].includes(op)) {
+    if (op === 'notnull') {
       return present.length > 0;
     }
 

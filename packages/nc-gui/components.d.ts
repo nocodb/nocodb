@@ -81,7 +81,6 @@ declare module 'vue' {
     MdiCamera: typeof import('~icons/mdi/camera')['default']
     MdiCheck: typeof import('~icons/mdi/check')['default']
     MdiChevronRight: typeof import('~icons/mdi/chevron-right')['default']
-    MdiClockOutline: typeof import('~icons/mdi/clock-outline')['default']
     MdiClose: typeof import('~icons/mdi/close')['default']
     MdiCodeTags: typeof import('~icons/mdi/code-tags')['default']
     MdiContentCopy: typeof import('~icons/mdi/content-copy')['default']

@@ -1,16 +1,8 @@
 import type { TableType, UnifiedMetaType } from 'nocodb-sdk'
+import type { GetMetaParams } from '~/composables/useMetas'
 
-export const validateFormulaGetMeta = (
-  getMeta: (
-    baseId: string,
-    tableIdOrTitle: string,
-    force?: boolean,
-    skipIfCacheMiss?: boolean,
-    disableError?: boolean,
-    navigateOnNotFound?: boolean,
-  ) => Promise<TableType | null>,
-) => {
+export const validateFormulaGetMeta = (getMeta: (params: GetMetaParams) => Promise<TableType | null>) => {
   return (async (context, { id }) => {
-    return getMeta(context.base_id, id, false, false)
+    return getMeta({ baseId: context.base_id, tableIdOrTitle: id })
   }) as UnifiedMetaType.IGetModel
 }

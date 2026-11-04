@@ -25,6 +25,8 @@ const LOCAL_CONCURRENCY_LIMIT = {
   [JobTypes.AtImport]: 2,
   [JobTypes.ThumbnailGenerator]: 1,
   [JobTypes.AttachmentUrlUpload]: 1,
+  // Each move-back is a full pg_dump into the shared data DB.
+  [JobTypes.CloudDbMoveBack]: 1,
 };
 
 export const LOCAL_JOB_COUNT_MAP = new Map<string, number>();

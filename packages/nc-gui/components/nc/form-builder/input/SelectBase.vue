@@ -35,7 +35,7 @@ const baseOptions = computed(() => {
     v-model:value="vModel"
     :disabled="disabled"
     :show-search="baseOptions.length > 4"
-    allow-clear
+    :allow-clear="!disabled"
     :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
     :placeholder="$t('placeholder.formBuilderSelectProject')"
     :dropdown-match-select-width="dropdownMatchSelectWidth"

@@ -15,11 +15,26 @@ import {
 } from '~/helpers/formulaFnHelper';
 import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
+// LEAST / GREATEST take two or more arguments; MIN(x) is x
+const leastGreatestFn =
+  (name: 'LEAST' | 'GREATEST') =>
+  async ({ fn, knex, pt }: MapFnArgs) => {
+    if (pt.arguments?.length === 1) {
+      return {
+        builder: knex.raw(`(${(await fn(pt.arguments[0])).builder})`),
+      };
+    }
+    pt.callee.name = name;
+  };
+
 const mysql2 = {
   ...commonFns,
   LEN: 'CHAR_LENGTH',
-  MIN: 'LEAST',
-  MAX: 'GREATEST',
+  MIN: leastGreatestFn('LEAST'),
+  MAX: leastGreatestFn('GREATEST'),
+  // the names older columns stored: the former string mappings were persisted
+  LEAST: leastGreatestFn('LEAST'),
+  GREATEST: leastGreatestFn('GREATEST'),
   SEARCH: async (args: MapFnArgs) => {
     args.pt.callee.name = 'LOCATE';
     const temp = args.pt.arguments[0];

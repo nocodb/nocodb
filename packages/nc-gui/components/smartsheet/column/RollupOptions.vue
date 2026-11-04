@@ -469,7 +469,8 @@ watch(
         // a saved formula rollup with no precision shows the cell's default
         ...(isEdit.value &&
           isFormulaMode.value && {
-            precision: getRollupFormulaDefaultPrecision(getColumnParsedTree(vModel.value)),
+            // the formula being edited, else the saved one
+            precision: getRollupFormulaDefaultPrecision(formulaParsedTree.value ?? getColumnParsedTree(vModel.value)),
           }),
       }
     }

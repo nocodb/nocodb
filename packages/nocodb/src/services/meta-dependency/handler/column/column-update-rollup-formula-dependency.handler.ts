@@ -380,7 +380,12 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     );
     if (!target || target.deleted) return true;
     if (!CASCADE_ERROR_UIDTS.includes(target.uidt)) return false;
-    return !!(await target.getColOptions<{ error?: string }>(ncMeta))?.error;
+    const targetOptions = await target.getColOptions<{
+      error?: string;
+      data_error?: boolean;
+    }>(ncMeta);
+    // a data error heals by itself, so it is no reason to skip re-typing
+    return !!targetOptions?.error && !targetOptions.data_error;
   }
 
   // Re-validates a formula rollup; true when its tree or error changed (and

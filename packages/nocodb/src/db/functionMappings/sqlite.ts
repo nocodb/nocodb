@@ -19,9 +19,17 @@ import {
 } from '~/helpers/formulaFnHelper';
 import { getDatetimeFormatHandler } from '~/db/datetime-format';
 
+// scalar min() / max() take two or more arguments: min(x) is the aggregate
+const minMaxFn = async ({ fn, knex, pt }: MapFnArgs) =>
+  pt.arguments?.length === 1
+    ? { builder: knex.raw(`(${(await fn(pt.arguments[0])).builder})`) }
+    : undefined;
+
 const sqlite3 = {
   ...commonFns,
   LEN: 'LENGTH',
+  MIN: minMaxFn,
+  MAX: minMaxFn,
   async CEILING(args) {
     return {
       builder: args.knex.raw(

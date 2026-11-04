@@ -63,7 +63,13 @@ const SCALAR_AGGREGATE_NAMES: readonly string[] = [
   'MIN',
   'MAX',
   'CONCAT',
+  'CONCATENATE',
 ];
+
+/** Plain formula function an aggregate name means when it does not aggregate */
+export const ROLLUP_SCALAR_ALIASES: Readonly<Record<string, string>> = {
+  CONCATENATE: 'CONCAT',
+};
 
 export function getRollupAggregate(
   name: string,
@@ -74,11 +80,6 @@ export function getRollupAggregate(
   if (inValueExpression && SCALAR_AGGREGATE_NAMES.includes(upper))
     return undefined;
   return AGGREGATES_BY_NAME.get(upper);
-}
-
-/** Whether the arguments of call `name` are per-value expressions (SUM, ARRAYUNIQUE …, not MIN / AND …) */
-export function takesValueExpressions(name: string): boolean {
-  return !!getRollupModifier(name) || !!getRollupAggregate(name, true);
 }
 
 export function getRollupModifier(name: string): RollupModifier | undefined {
@@ -315,7 +316,7 @@ const DATE_ONLY_DATEADD_UNITS: readonly unknown[] = [
 
 /**
  * MIN / MAX of a Date field, optionally moved by DATEADD in whole days,
- * weeks, months or years: never carries a time of day.
+ * weeks, months or years, or chosen by IF / SWITCH: never carries a time of day.
  */
 function isDateOnlyRollupFormula(node?: ParsedFormulaNode): boolean {
   if (node?.type !== JSEPNode.CALL_EXP) return false;
@@ -328,7 +329,22 @@ function isDateOnlyRollupFormula(node?: ParsedFormulaNode): boolean {
       node.referencedColumn?.uidt === UITypes.Date
     );
   }
-  if (node.callee?.name?.toUpperCase() !== 'DATEADD') return false;
+  const callee = node.callee?.name?.toUpperCase();
+  if (callee === 'IF' || callee === 'SWITCH') {
+    const rest = node.arguments?.slice(1) ?? [];
+    // SWITCH(expr, pattern, result, …, [default])
+    const results =
+      callee === 'IF'
+        ? rest
+        : rest.filter((_, i) => i % 2 === 1 || i === rest.length - 1);
+    const isBlank = (n: ParsedFormulaNode) =>
+      n.type === JSEPNode.CALL_EXP && n.callee?.name?.toUpperCase() === 'BLANK';
+    return (
+      results.some((n) => !isBlank(n)) &&
+      results.every((n) => isBlank(n) || isDateOnlyRollupFormula(n))
+    );
+  }
+  if (callee !== 'DATEADD') return false;
   const [date, count, unit] = node.arguments ?? [];
   return (
     isDateOnlyRollupFormula(date) &&

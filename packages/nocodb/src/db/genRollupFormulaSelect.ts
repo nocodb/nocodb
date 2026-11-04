@@ -698,7 +698,10 @@ export default async function genRollupFormulaSelect(params: {
       leafDateTimeDt !== undefined
     ) {
       if (baseModelSqlv2.isPg) {
-        const utc = /time zone|timestamptz/i.test(leafDateTimeDt)
+        // the formula builder already converts every other dt to UTC
+        const utc = ['timestamp with time zone', 'timestamptz'].includes(
+          leafDateTimeDt,
+        )
           ? `(${v}) AT TIME ZONE 'UTC'`
           : v;
         v = `(TO_CHAR(${utc}, 'YYYY-MM-DD HH24:MI:SS') || '+00:00')`;

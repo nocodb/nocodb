@@ -290,8 +290,12 @@ async function refIsBroken(
   if (!ref) return false;
   if (ref.deleted) return true;
   if (!CASCADE_ERROR_UIDTS.has(ref.uidt)) return false;
-  const opt = await ref.getColOptions<{ error?: string }>(ncMeta);
-  return !!opt?.error;
+  const opt = await ref.getColOptions<{
+    error?: string;
+    data_error?: boolean;
+  }>(ncMeta);
+  // a rollup's data error heals by itself; it doesn't break what reads it
+  return !!opt?.error && !opt.data_error;
 }
 
 async function dependentStillBroken(

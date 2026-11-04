@@ -18,6 +18,7 @@ import {
   haveFormulaColumn,
 } from '~/helpers/dbHelpers';
 import { clearSingleQueryCacheForRenamedColumnReferences } from '~/helpers/singleQueryCacheInvalidator';
+import { NcBaseError, NcBaseErrorv2 } from '~/helpers/catchError';
 import { setModelContext } from '~/helpers/modelContext';
 import { MetaTable } from '~/utils/globals';
 
@@ -101,6 +102,8 @@ function driverNumber(e: object): number | undefined {
  */
 export function isRollupDataError(e: unknown): boolean {
   if (isTransientError(e) || isExternalSourceError(e)) return false;
+  // raised by the app (bad request, missing field), not by the database on a value
+  if (e instanceof NcBaseError || e instanceof NcBaseErrorv2) return false;
   if (typeof e !== 'object' || e === null) return true;
 
   const mssqlNumber = driverNumber(e);
@@ -192,7 +195,14 @@ async function changedSinceProbe(context: NcContext, probed: RollupColumn) {
 }
 
 const probeKey = (rollup: RollupColumn) =>
-  `${rollup.fk_column_id}:${rollup.fk_rollup_column_id}:${rollup.rollup_formula}`;
+  `${rollup.fk_column_id}:${rollup.fk_relation_column_id}:${rollup.fk_rollup_column_id}:${rollup.rollup_formula}`;
+
+// entries are keyed by formula text, so expired ones would otherwise pile up
+function pruneExpired(map: Map<string, number>, now: number) {
+  for (const [key, until] of map) {
+    if (until <= now) map.delete(key);
+  }
+}
 
 // lookups and rollups of this field, on any table, embed its SQL
 async function clearPlansOf(context: NcContext, column: Column) {
@@ -226,13 +236,12 @@ function probeAndFlag(column: Column, rollup: RollupColumn) {
       if (isError) return 'inconclusive';
       try {
         await execRollupDryRun(baseModel, builder);
+        pruneExpired(healthyUntil, Date.now());
         healthyUntil.set(key, Date.now() + HEALTHY_TTL_MS);
         return 'healthy';
       } catch (e) {
-        // says nothing about the formula
-        if (isTransientError(e) || isExternalSourceError(e)) {
-          return 'inconclusive';
-        }
+        // a lock timeout or a permission error says nothing about the formula
+        if (!isRollupDataError(e)) return 'inconclusive';
         if (await changedSinceProbe(context, rollup)) return 'changed';
 
         await RollupColumn.update(context, column.id, {
@@ -321,6 +330,52 @@ async function flagIfFailing(
     );
   }
   return true;
+}
+
+/**
+ * True when a column reads a data-flagged rollup through lookups, rollups or
+ * formulas: its compiled plan holds the error value, so caching it would
+ * outlive the heal.
+ */
+export async function readsDataFlaggedRollup(
+  columns: Column[],
+  seen = new Set<string>(),
+): Promise<boolean> {
+  for (const column of columns) {
+    if (seen.has(column.id)) continue;
+    seen.add(column.id);
+    try {
+      const next: Column[] = [];
+      if (column.uidt === UITypes.Lookup) {
+        const lookup = await column.getColOptions<LookupColumn>();
+        const target =
+          lookup && !lookup.error ? await lookup.getLookupColumn() : null;
+        if (target) next.push(target);
+      } else if (column.uidt === UITypes.Rollup) {
+        const rollup = await column.getColOptions<RollupColumn>();
+        if (rollup?.data_error) return true;
+        const target =
+          rollup && !rollup.error ? await rollup.getRollupColumn() : null;
+        if (target) next.push(target);
+      } else if (column.uidt === UITypes.Formula) {
+        const formula = await column.getColOptions<FormulaColumn>();
+        const tree: ParsedFormulaNode | undefined = formula?.getParsedTree();
+        for (const colId of new Set(referencedColumnIds(tree))) {
+          const referenced = await Column.get(column.context, { colId });
+          if (referenced) next.push(referenced);
+        }
+      }
+      if (next.length && (await readsDataFlaggedRollup(next, seen))) {
+        return true;
+      }
+    } catch (e) {
+      // a missing colOptions row is not a reason to skip caching
+      logger.warn(
+        `Rollup plan check failed on ${column.id}: ${errorMessage(e)}`,
+      );
+    }
+  }
+  return false;
 }
 
 /** True when a formula rollup behind the failed read was flagged. */

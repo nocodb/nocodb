@@ -65,6 +65,7 @@ export class MysqlDataMigration implements FormulaDataMigrationDriver {
             column: formulaColumn,
             validateFormula: false,
             parsedTree: formulaColumnOption.getParsedTree(),
+            tableAlias: formulaValueTableAlias,
           })
         ).builder,
         ...getPrimaryKeySelectColumns({

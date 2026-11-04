@@ -51,10 +51,10 @@ import {
   hasFreeRollupValues,
   isRollupFormula,
   MAX_ROLLUP_AGGREGATES,
+  ROLLUP_SCALAR_ALIASES,
   ROLLUP_VALUES_KEYWORD,
   RollupAggregate,
   RollupModifier,
-  takesValueExpressions,
 } from '~/lib/formula/rollupFormula';
 
 // Where a node sits in a rollup formula: outside aggregates, as the value set
@@ -87,6 +87,32 @@ const concatenateValues = (node: ParsedFormulaNode) =>
   rollupCall(RollupAggregate.CONCATENATE, [node]);
 
 /**
+ * Arguments of an aggregate / modifier call that carry the value set. Outside
+ * aggregates they are read as outer expressions first (COUNTA(MAX(values))
+ * counts one aggregate); a callee with no scalar version, or `perValue`, then
+ * reads them per value (SUM(MAX(values, 0))).
+ */
+function valueSetArgIndexes(
+  node: CallExpressionNode,
+  scope: RollupScope,
+  perValue = false
+): number[] {
+  const indexes = (inValueExpression: boolean) =>
+    (node.arguments ?? [])
+      .map((arg, i) => (hasFreeRollupValues(arg, inValueExpression) ? i : -1))
+      .filter((i) => i >= 0);
+  if (scope !== 'outer') return indexes(true);
+  const outer = indexes(false);
+  const name = node.callee.name.toUpperCase();
+  if (
+    outer.length ||
+    (!perValue && (formulas[name] || ROLLUP_SCALAR_ALIASES[name]))
+  )
+    return outer;
+  return indexes(true);
+}
+
+/**
  * Rewrite a variadic aggregate into the aggregate of the value set combined
  * with the other arguments: SUM(values, 10) → ADD(SUM(values), 10),
  * COUNTA(values, x) → ADD(COUNTA(values), COUNTA(x)),
@@ -95,13 +121,12 @@ const concatenateValues = (node: ParsedFormulaNode) =>
 function splitVariadicAggregate(
   node: CallExpressionNode,
   aggregate: RollupAggregate,
-  position?: { index: number; length: number }
+  position?: { index: number; length: number },
+  perValue = false
 ): ParsedFormulaNode {
   const args = node.arguments ?? [];
-  const perValue = takesValueExpressions(node.callee.name);
-  const setIndexes = args
-    .map((arg, i) => (hasFreeRollupValues(arg, perValue) ? i : -1))
-    .filter((i) => i >= 0);
+  // only reached outside aggregates: nested ones throw first
+  const setIndexes = valueSetArgIndexes(node, 'outer', perValue);
   if (setIndexes.length !== 1 || aggregate === RollupAggregate.AVERAGE) {
     throw new FormulaError(
       FormulaErrorType.INVALID_ARG,
@@ -1113,7 +1138,8 @@ export async function validateFormulaAndExtractTreeWithType({
     res: CallExpressionNode,
     scope: RollupScope,
     aggregate?: RollupAggregate,
-    modifier?: RollupModifier
+    modifier?: RollupModifier,
+    perValue = false
   ): Promise<ParsedFormulaNode> => {
     const calleeName = parsedTree.callee.name.toUpperCase();
     const position = nodePosition(parsedTree);
@@ -1148,7 +1174,7 @@ export async function validateFormulaAndExtractTreeWithType({
       (parsedTree.arguments?.length ?? 0) > 1
     ) {
       return validateAndExtract(
-        splitVariadicAggregate(parsedTree, aggregate, position),
+        splitVariadicAggregate(parsedTree, aggregate, position, perValue),
         scope
       );
     }
@@ -1273,7 +1299,9 @@ export async function validateFormulaAndExtractTreeWithType({
 
   const validateAndExtract = async (
     parsedTree: ParsedFormulaNode,
-    scope: RollupScope = 'outer'
+    scope: RollupScope = 'outer',
+    // an aggregate name with a scalar version, read one way (see below)
+    reading?: 'scalar' | 'aggregate'
   ): Promise<ParsedFormulaNode> => {
     const res: ParsedFormulaNode = { ...parsedTree };
     // children of a per-value expression stay per-value
@@ -1288,12 +1316,11 @@ export async function validateFormulaAndExtractTreeWithType({
         // in a per-value expression MIN / AND … are the scalar functions
         const aggregate = getRollupAggregate(calleeName, scope !== 'outer');
         const modifier = getRollupModifier(calleeName);
-        const perValue = takesValueExpressions(calleeName);
+        const perValue = reading === 'aggregate';
         if (
           (aggregate || modifier) &&
-          parsedTree.arguments?.some((arg) =>
-            hasFreeRollupValues(arg, perValue)
-          )
+          reading !== 'scalar' &&
+          valueSetArgIndexes(parsedTree, scope, perValue).length
         ) {
           // nothing has written to `res` yet: hand over an equal call-typed copy
           return validateRollupCall(
@@ -1301,7 +1328,35 @@ export async function validateFormulaAndExtractTreeWithType({
             { ...parsedTree },
             scope,
             aggregate,
-            modifier
+            modifier,
+            perValue
+          );
+        }
+        // COUNTALL(IF(OR(values = 1, values = 2), 1, 0)): the scalar call as
+        // before, aggregating per value only when that is invalid
+        if (
+          (aggregate || modifier) &&
+          !reading &&
+          valueSetArgIndexes(parsedTree, scope, true).length
+        ) {
+          try {
+            return await validateAndExtract(parsedTree, scope, 'scalar');
+          } catch (scalarError) {
+            try {
+              return await validateAndExtract(parsedTree, scope, 'aggregate');
+            } catch {
+              throw scalarError;
+            }
+          }
+        }
+        const scalarName = ROLLUP_SCALAR_ALIASES[calleeName];
+        if (scalarName) {
+          return validateAndExtract(
+            {
+              ...parsedTree,
+              callee: { ...parsedTree.callee, name: scalarName },
+            },
+            scope
           );
         }
         // SUM(foo): report the bad argument, not a missing SUM

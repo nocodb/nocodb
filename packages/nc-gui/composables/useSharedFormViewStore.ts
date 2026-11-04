@@ -629,7 +629,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           },
         )
 
-        $e('a:form:edit-submit')
+        $e('a:form-view:shared:record:update')
 
         // Notify any same-origin grid tabs that opened this edit form so they
         // can refresh the affected row without a full reload. Wrapped in

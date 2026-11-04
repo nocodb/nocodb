@@ -95,7 +95,7 @@ const handleCopyFormEditUrl = async () => {
 
     const editUrl = `${location.origin}/nc/form/${viewUuid}?editRow=${encodeURIComponent(token)}`
     await copyBtnRef.value?.copyContent(editUrl)
-    $e('c:button:open-form:copy-url', { via: 'mouse' })
+    $e('c:cell:button:form-url:copy', { via: 'mouse' })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -372,7 +372,7 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      $e('a:button:open-form:click', { public: isPublic.value })
+      $e('c:cell:button:form:open', { public: isPublic.value })
 
       let token: string | undefined
       let viewUuid: string | undefined

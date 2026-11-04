@@ -73,7 +73,7 @@ async function shareSelectedForm() {
 
     patchViewInStore(viewId, response)
 
-    $e('c:button:open-form:share-linked-form', { via: 'inline' })
+    $e('c:field:button:form:share', { via: 'inline' })
 
     message.success({
       title: t('msg.info.formSharedPublicly'),
@@ -85,7 +85,7 @@ async function shareSelectedForm() {
           onClick: async () => {
             try {
               await unshareForm(viewId)
-              $e('c:button:open-form:share-linked-form:undo')
+              $e('c:field:button:form:share:undo')
               message.toast(t('msg.info.formShareReverted'))
             } catch (e: any) {
               message.error(await extractSdkResponseErrorMsg(e))

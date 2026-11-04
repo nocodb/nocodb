@@ -1475,7 +1475,7 @@ export function useCopyPaste({
                 if (url) {
                   await copy(url)
                   actionManager.markRecentlyCopied(rowPk, columnObj.id!)
-                  $e('c:button:open-form:copy-url', { via: 'keyboard' })
+                  $e('c:cell:button:form-url:copy', { via: 'keyboard' })
                   message.toast(t('msg.info.copiedToClipboard'))
                   return
                 }

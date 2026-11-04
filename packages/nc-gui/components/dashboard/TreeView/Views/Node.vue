@@ -2,6 +2,8 @@
 import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { LockType } from '#imports'
+import { readViewRecordIndicators } from '~/lib/viewRecordIndicators'
+import { useViewRecordIndicators } from '~/composables/useViewRecordIndicators'
 
 interface Props {
   view: ViewType
@@ -34,7 +36,7 @@ const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { alias?: string; created_by?: string }>
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -52,6 +54,29 @@ const { basesUser } = storeToRefs(useBases())
 
 const table = computed(() => props.table)
 const injectedTable = ref(table.value)
+
+const recordIndicatorSettings = computed(() => readViewRecordIndicators(vModel.value.meta))
+const recordIndicatorTarget = computed(() => {
+  const userId = user.value?.id
+  const baseId = vModel.value.base_id || table.value?.base_id
+  const tableId = vModel.value.fk_model_id || table.value?.id
+  const viewId = vModel.value.id
+  return userId && baseId && tableId && viewId ? { userId, baseId, tableId, viewId } : null
+})
+const { count: recordCount, status: recordCountStatus } = useViewRecordIndicators(
+  recordIndicatorTarget,
+  recordIndicatorSettings,
+  (target, signal) => $api.dbViewRow.count(NOCO, target.baseId, target.tableId, target.viewId, undefined, { signal }),
+  $api,
+)
+const boldRecordIndicator = computed(
+  () => recordIndicatorSettings.value.boldNonEmpty && recordCountStatus.value === 'ready' && (recordCount.value ?? 0) > 0,
+)
+const recordCountLabel = computed(() => {
+  if (recordCountStatus.value === 'loading') return t('labels.viewRecordIndicators.loading')
+  if (recordCountStatus.value !== 'ready') return t('labels.viewRecordIndicators.unavailable')
+  return t('labels.viewRecordIndicators.count', { count: recordCount.value })
+})
 
 provide(ActiveViewInj, vModel)
 provide(MetaInj, injectedTable)
@@ -424,12 +449,25 @@ watch(isDropdownOpen, async () => {
           <div
             data-testid="sidebar-view-title"
             :class="{
-              'font-medium text-nc-content-brand-disabled': activeView?.id === vModel.id,
+              'font-medium': activeView?.id === vModel.id && !boldRecordIndicator,
+              'text-nc-content-brand-disabled': activeView?.id === vModel.id,
+              'font-bold': boldRecordIndicator,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onDblClick"
           >
             {{ vModel.alias || vModel.title }}
+            <span
+              v-if="recordIndicatorSettings.showCount"
+              data-testid="sidebar-view-record-count"
+              class="ml-1 tabular-nums"
+              :data-state="recordCountStatus"
+              :aria-label="recordCountLabel"
+              :title="recordCountLabel"
+              aria-live="polite"
+            >
+              {{ recordCountStatus === 'ready' ? recordCount : recordCountStatus === 'loading' ? '…' : '—' }}
+            </span>
           </div>
         </NcTooltip>
         <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex mx-0.5">

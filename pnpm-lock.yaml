@@ -671,6 +671,9 @@ importers:
         specifier: ^0.1.15
         version: 0.1.15(typescript@5.8.3)
     devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.10
+        version: 6.0.10(vite@8.2.4(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(vue@3.5.43(typescript@5.8.3))
       '@antfu/eslint-config':
         specifier: ^0.26.3
         version: 0.26.3(eslint@8.57.1)(typescript@5.8.3)

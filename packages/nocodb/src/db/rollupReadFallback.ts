@@ -35,7 +35,7 @@ import {
 import { clearSingleQueryCacheForRenamedColumnReferences } from '~/helpers/singleQueryCacheInvalidator';
 import { NcBaseError, NcBaseErrorv2 } from '~/helpers/catchError';
 import { setModelContext } from '~/helpers/modelContext';
-import { CacheGetType, MetaTable } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 
 const logger = new Logger('rollupReadFallback');
@@ -113,8 +113,9 @@ let flagGeneration = 0;
 export const rollupFlagGeneration = () => flagGeneration;
 
 // Shared by every process, so pods don't each run a heal scan per interval.
-// Holds the time it runs out; the cache TTL only cleans it up.
+// The cache TTL is the lease: it ends when the key expires.
 const healLeaseKey = (columnId: string) => `rollup_heal_lease:${columnId}`;
+const leaseTtl = (ms: number) => Math.ceil(ms / 1000);
 
 // best-effort: a cache failure must not undo a flag or a heal
 async function setHealLease(columnId: string, ms: number) {
@@ -122,33 +123,23 @@ async function setHealLease(columnId: string, ms: number) {
     await NocoCache.setExpiring(
       'root',
       healLeaseKey(columnId),
-      String(Date.now() + ms),
-      Math.ceil(ms / 1000) + 60,
+      '1',
+      leaseTtl(ms),
     );
   } catch (e) {
     logger.warn(`Rollup heal lease failed on ${columnId}: ${errorMessage(e)}`);
   }
 }
 
-// Claimed atomically; an entry past its time (kept by the TTL's margin) is
-// cleared once and claimed again.
+// claimed atomically, so two pods never both get it
 async function takeHealLease(columnId: string, ms: number) {
-  const key = healLeaseKey(columnId);
-  const claim = () =>
-    NocoCache.setIfNotExist(
-      'root',
-      key,
-      String(Date.now() + ms),
-      Math.ceil(ms / 1000) + 60,
-    );
   try {
-    if (await claim()) return true;
-    const until = Number(
-      await NocoCache.get('root', key, CacheGetType.TYPE_STRING),
+    return await NocoCache.setIfNotExist(
+      'root',
+      healLeaseKey(columnId),
+      '1',
+      leaseTtl(ms),
     );
-    if (until > Date.now()) return false;
-    await NocoCache.del('root', key);
-    return await claim();
   } catch (e) {
     logger.warn(`Rollup heal lease failed on ${columnId}: ${errorMessage(e)}`);
     return true;

@@ -175,14 +175,23 @@ export default async function genRollupFormulaSelect(params: {
     return model;
   };
   const sqlUi = SqlUiFactory.create({ client: refBaseModel.clientType });
-  const currentValuesType = (
-    await extractColumnIdentifierType({
-      col: rollupColumn,
-      columns: refModel.columns,
-      getMeta,
-      clientOrSqlUi: sqlUi,
-    })
-  ).dataType;
+  let currentValuesType: FormulaDataTypes;
+  try {
+    currentValuesType = (
+      await extractColumnIdentifierType({
+        col: rollupColumn,
+        columns: refModel.columns,
+        getMeta,
+        clientOrSqlUi: sqlUi,
+      })
+    ).dataType;
+  } catch (e) {
+    // e.g. a lookup target whose link reference dangles: a cell error
+    if (!(e instanceof FormulaError)) throw e;
+    NcError.get(context).formulaError(
+      `Rollup formula no longer fits its field: ${e.message}`,
+    );
+  }
   let parsedTree = columnOptions.parsed_tree;
   if (!parsedTree || storedValuesType(parsedTree) !== currentValuesType) {
     try {

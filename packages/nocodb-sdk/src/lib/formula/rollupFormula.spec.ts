@@ -299,13 +299,24 @@ describe('rollup formula helpers', () => {
     expect(rollupFormulaResultUidt(await validate('SUM(values) / 2'))).toBe(
       UITypes.Decimal
     );
-    // a bare MIN/MAX of a date-only field stays a date; other date results are datetimes
+    // MIN/MAX of a date-only field, moved by whole days, stays a date;
+    // other date results are datetimes
     expect(rollupFormulaResultUidt(await validate('MAX(values)', due))).toBe(
       UITypes.Date
     );
     expect(
       rollupFormulaResultUidt(
         await validate('DATEADD(MAX(values), 1, "day")', due)
+      )
+    ).toBe(UITypes.Date);
+    expect(
+      rollupFormulaResultUidt(
+        await validate('DATEADD(MAX(values), 1, "hour")', due)
+      )
+    ).toBe(UITypes.DateTime);
+    expect(
+      rollupFormulaResultUidt(
+        await validate('DATEADD(MAX(values), 1.5, "day")', due)
       )
     ).toBe(UITypes.DateTime);
     expect(rollupFormulaResultUidt(await validate('AND(values)', done))).toBe(

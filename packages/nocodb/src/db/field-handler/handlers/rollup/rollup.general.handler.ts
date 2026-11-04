@@ -168,11 +168,16 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
           baseModelSqlv2,
           new Filter({
             ...filter,
+            // list ops split the value themselves, so it must stay plain;
             // an empty like/nlike matches on '' (a NULL pattern matches nothing)
-            value: knex.raw('?', [
-              filter.value ??
-                (['like', 'nlike'].includes(filter.comparison_op) ? '' : null),
-            ]),
+            value: ['in', 'btw', 'nbtw'].includes(filter.comparison_op)
+              ? filter.value
+              : knex.raw('?', [
+                  filter.value ??
+                    (['like', 'nlike'].includes(filter.comparison_op)
+                      ? ''
+                      : null),
+                ]),
           }),
           aliasCount,
           alias,
@@ -241,8 +246,12 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     if (!resultUidt || !options.fieldHandler) {
       return super.verifyFilter(filter, column);
     }
+    // conditionV2 runs a group expand's gb_eq / gb_null as eq / blank
+    const op: string = filter.comparison_op;
+    const groupOp =
+      op === 'gb_eq' ? 'eq' : op === 'gb_null' ? 'blank' : undefined;
     return options.fieldHandler.verifyFilter(
-      filter,
+      groupOp ? new Filter({ ...filter, comparison_op: groupOp }) : filter,
       setModelContext(
         new Column({ ...column, uidt: resultUidt } as ColumnType),
         column.context,

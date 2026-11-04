@@ -11,6 +11,8 @@ import {
   ROLLUP_FORMULA_FUNCTION,
   UITypes,
   getAvailableRollupForColumn,
+  getRollupFormulaDefaultPrecision,
+  getRollupFormulaRoundDigits,
   getUITypesForFormulaDataType,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
@@ -464,6 +466,11 @@ watch(
       vModel.value.meta = {
         ...vModel.value.meta,
         ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
+        // a saved formula rollup with no precision shows the cell's default
+        ...(isEdit.value &&
+          isFormulaMode.value && {
+            precision: getRollupFormulaDefaultPrecision(getColumnParsedTree(vModel.value)),
+          }),
       }
     }
   },
@@ -482,6 +489,22 @@ watch(isFormulaMode, (formulaMode) => {
       ColumnHelper.getColumnDefaultMeta(UITypes.Rollup).precision,
     ),
   }
+})
+
+// ROUND(…, n) at the root shows n places; the digits the precision last followed
+let followedRoundDigits: number | undefined
+
+watch(formulaParsedTree, (tree, previous) => {
+  if (!tree) return
+  const digits = getRollupFormulaRoundDigits(tree)
+  // a saved column's own tree, set on open, keeps its precision
+  if (previous === undefined && tree === vModel.value.colOptions?.parsed_tree) {
+    followedRoundDigits = digits
+    return
+  }
+  const precision = nextRollupRoundPrecision(vModel.value.meta?.precision, followedRoundDigits, digits)
+  followedRoundDigits = digits
+  if (precision !== vModel.value.meta?.precision) vModel.value.meta = { ...vModel.value.meta, precision }
 })
 
 // the user's format, kept while a typed-in formula briefly yields another type

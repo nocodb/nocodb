@@ -1,6 +1,7 @@
 import {
   FormulaDataTypes,
   getLegacyDateRollupAggregation,
+  getRollupResultUidt,
   NumericalAggregations,
   UITypes,
   validateAggregationColType,
@@ -134,6 +135,15 @@ async function resolveAggregationParams({
   }
 
   const parsedFormulaType = column.colOptions?.parsed_tree?.dataType;
+
+  // a text-result rollup counts '' as empty, as a string formula does: the
+  // handlers treat a Rollup as NULL-only, and mssql/oracle still materialise it
+  if (getRollupResultUidt(column) === UITypes.SingleLineText) {
+    column = setModelContext(
+      new Column({ ...column, uidt: UITypes.Formula }),
+      context,
+    );
+  }
 
   // A pg numeric formula resolves to the IEEE value the cell shows, and a
   // single NaN would take SUM/AVG/MAX for the whole column with it. Drop the

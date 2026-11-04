@@ -51,6 +51,7 @@ import {
   ROLLUP_VALUES_KEYWORD,
   RollupAggregate,
   RollupModifier,
+  takesValueExpressions,
 } from '~/lib/formula/rollupFormula';
 
 // Where a node sits in a rollup formula: outside aggregates, as the value set
@@ -94,8 +95,9 @@ function splitVariadicAggregate(
   position?: { index: number; length: number }
 ): ParsedFormulaNode {
   const args = node.arguments ?? [];
+  const perValue = takesValueExpressions(node.callee.name);
   const setIndexes = args
-    .map((arg, i) => (hasFreeRollupValues(arg) ? i : -1))
+    .map((arg, i) => (hasFreeRollupValues(arg, perValue) ? i : -1))
     .filter((i) => i >= 0);
   if (setIndexes.length !== 1 || aggregate === RollupAggregate.AVERAGE) {
     throw new FormulaError(
@@ -1253,11 +1255,15 @@ export async function validateFormulaAndExtractTreeWithType({
       ).name.toUpperCase();
 
       if (rollup) {
-        const aggregate = getRollupAggregate(calleeName);
+        // in a per-value expression MIN / AND … are the scalar functions
+        const aggregate = getRollupAggregate(calleeName, scope !== 'outer');
         const modifier = getRollupModifier(calleeName);
+        const perValue = takesValueExpressions(calleeName);
         if (
           (aggregate || modifier) &&
-          parsedTree.arguments?.some(hasFreeRollupValues)
+          parsedTree.arguments?.some((arg) =>
+            hasFreeRollupValues(arg, perValue)
+          )
         ) {
           // nothing has written to `res` yet: hand over an equal call-typed copy
           return validateRollupCall(

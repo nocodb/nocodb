@@ -1,6 +1,7 @@
 import {
   extractFilterFromXwhere,
   FormulaDataTypes,
+  getRollupResultUidt,
   isBtLikeV2Junction,
   isFieldTrackingLmbCol,
   isFieldTrackingLmtCol,
@@ -117,6 +118,34 @@ const sqlNullIfBlank = ({
   }
 
   return baseModel.dbDriver.raw(`NULLIF(??, '')`, [columnName]);
+};
+
+// A text-result rollup folds '' into the empty group, as a string formula does;
+// undefined for any other rollup.
+const textRollupGroupKey = ({
+  baseModel,
+  column,
+  colOptions,
+  builder,
+}: {
+  baseModel: IBaseModelSqlV2;
+  column: Column;
+  colOptions: RollupColumn;
+  builder: Knex.QueryBuilder;
+}) => {
+  if (
+    getRollupResultUidt({ uidt: column.uidt, colOptions }) !==
+    UITypes.SingleLineText
+  ) {
+    return undefined;
+  }
+  return sqlNullIfBlank({
+    baseModel,
+    columnName: baseModel.dbDriver.raw(baseModel.isPg ? '(?)::text' : '(?)', [
+      builder,
+    ]),
+    isStringType: true,
+  });
 };
 
 // NULL and false both render and filter (`notchecked`) as unchecked, so they must share a
@@ -532,18 +561,33 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           );
           break;
         case UITypes.Links:
-        case UITypes.Rollup:
+        case UITypes.Rollup: {
+          const rollupColOptions = await column.getColOptions<RollupColumn>();
           columnQuery = (
             await genRollupSelectv2({
               baseModelSqlv2: baseModel,
               knex: baseModel.dbDriver,
-              columnOptions: (await column.getColOptions()) as RollupColumn,
+              columnOptions: rollupColOptions,
             })
           ).builder;
-          if (!isSubGroup) {
+          const textKey = textRollupGroupKey({
+            baseModel,
+            column,
+            colOptions: rollupColOptions,
+            builder: columnQuery,
+          });
+          if (textKey) {
+            columnQuery = textKey;
+            if (!isSubGroup) {
+              selectors.push(
+                baseModel.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
+              );
+            }
+          } else if (!isSubGroup) {
             selectors.push(columnQuery.as(alias));
           }
           break;
+        }
         case UITypes.Formula:
           try {
             const _selectQb = await baseModel.getSelectQueryBuilderForFormula(
@@ -1203,14 +1247,23 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]),
               );
             } else {
+              const builder = (
+                await genRollupSelectv2({
+                  baseModelSqlv2: baseModel,
+                  knex: baseModel.dbDriver,
+                  columnOptions: rollupColOptions,
+                })
+              ).builder;
+              const textKey = textRollupGroupKey({
+                baseModel,
+                column,
+                colOptions: rollupColOptions,
+                builder,
+              });
               selectors.push(
-                (
-                  await genRollupSelectv2({
-                    baseModelSqlv2: baseModel,
-                    knex: baseModel.dbDriver,
-                    columnOptions: rollupColOptions,
-                  })
-                ).builder.as(getAs(column)),
+                textKey
+                  ? baseModel.dbDriver.raw(`?? as ??`, [textKey, getAs(column)])
+                  : builder.as(getAs(column)),
               );
             }
             groupBySelectors.push(getAs(column));

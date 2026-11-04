@@ -537,6 +537,14 @@ const parseConditionV2 = async (
       // get column name for CreateTime, LastModifiedTime
       column.column_name = await getColumnName(context, column);
 
+      // compares case-sensitively on MySQL, as a string formula does
+      const isTextRollup =
+        column.uidt === UITypes.Rollup &&
+        getRollupResultUidt({
+          uidt: column.uidt,
+          colOptions: await column.getColOptions<RollupColumn>(),
+        }) === UITypes.SingleLineText;
+
       return {
         rootApply: undefined,
         clause: (qb: Knex.QueryBuilder) => {
@@ -576,7 +584,10 @@ const parseConditionV2 = async (
                 knex.clientType() === 'mysql2' ||
                 knex.clientType() === 'mysql'
               ) {
-                if ([UITypes.Rollup, UITypes.Links].includes(column.uidt)) {
+                if (
+                  [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
+                  !isTextRollup
+                ) {
                   qb = qb.where(field, val);
                 } else {
                   // mysql is case-insensitive for strings, turn to case-sensitive
@@ -599,7 +610,10 @@ const parseConditionV2 = async (
               // Currency / Duration / Year / Time route to FieldHandler —
               // only Rollup-CWC / Links-CWC reach here.
               if (knex.clientType() === 'mysql2') {
-                if ([UITypes.Rollup, UITypes.Links].includes(column.uidt)) {
+                if (
+                  [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
+                  !isTextRollup
+                ) {
                   qb = qb.where((nestedQb) => {
                     nestedQb.whereNot(field, val);
                     if (column.uidt !== UITypes.Links)

@@ -1,4 +1,4 @@
-import { ROLLUP_FORMULA_FUNCTION, UITypes } from 'nocodb-sdk'
+import { ROLLUP_FORMULA_FUNCTION, UITypes, precisionFormats } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 
 // a formula rollup starts at two decimals
@@ -48,6 +48,16 @@ export const nextRollupModePrecision = (current: number | null | undefined, form
     return formulaMode ? FORMULA_ROLLUP_PRECISION : plainDefault
   }
   return current
+}
+
+// a new root ROUND(…, n) moves the precision to n; a precision picked since stays
+export const nextRollupRoundPrecision = (
+  current: number | null | undefined,
+  previousDigits: number | undefined,
+  nextDigits: number | undefined,
+) => {
+  if (nextDigits === undefined || nextDigits === previousDigits) return current
+  return Math.min(Math.max(nextDigits, precisionFormats[0]), precisionFormats[precisionFormats.length - 1])
 }
 
 // lets only the latest of overlapping async validations apply its result

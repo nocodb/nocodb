@@ -6,6 +6,7 @@ import {
   FormulaError,
   getRollupAggregate,
   getRollupModifier,
+  isFieldTrackingLmtCol,
   isMMOrMMLike,
   JSEPNode,
   RelationTypes,
@@ -35,9 +36,11 @@ import type {
 import { BaseUser, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { excludeNonFiniteSql, isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
+import { formulaOutputsRawJson } from '~/db/formulav2/formula-query-builder.helpers';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
+import { getRefColumnIfAlias } from '~/helpers';
 import { DBQueryClient } from '~/dbQueryClient';
 
 const clone = rfdc();
@@ -261,6 +264,21 @@ export default async function genRollupFormulaSelect(params: {
     leafBaseModel = baseModel;
   }
   const leafAlias = hops.length ? hops[hops.length - 1].alias : refTableAlias;
+  // the stored type of a date-time leaf (created / modified time read their system column)
+  const leafDateTimeDt =
+    [
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ].includes(leafColumn.uidt) && !isFieldTrackingLmtCol(leafColumn)
+      ? (
+          await getRefColumnIfAlias(
+            leafBaseModel.context,
+            leafColumn,
+            leafModel.columns,
+          )
+        ).dt ?? ''
+      : undefined;
 
   const joinHops = async (qb: Knex.QueryBuilder) => {
     // fromKnex throws on dialects without a query client; only hops need one
@@ -391,14 +409,18 @@ export default async function genRollupFormulaSelect(params: {
       UITypes.CreatedBy,
       UITypes.LastModifiedBy,
     ].includes(leafColumn.uidt);
-    const attachmentSql =
+    const leafRef = knex
+      .raw('??', [`${leafAlias}.${leafColumn.column_name}`])
+      .toQuery();
+    // values over JSON are typed text, so text functions need the pg json cast
+    const leafSql =
       leafColumn.uidt === UITypes.Attachment
-        ? attachmentTextSql(
-            knex,
-            knex
-              .raw('??', [`${leafAlias}.${leafColumn.column_name}`])
-              .toQuery(),
+        ? attachmentTextSql(knex, leafRef)
+        : knex.clientType() === 'pg' &&
+          [UITypes.JSON, UITypes.GeoData, UITypes.Geometry].includes(
+            leafColumn.uidt,
           )
+        ? `(${leafRef})::text`
         : null;
 
     const { builder } = await formulaQueryBuilderv2({
@@ -419,9 +441,9 @@ export default async function genRollupFormulaSelect(params: {
           email: user.display_name || user.email,
         })),
       }),
-      ...(attachmentSql && {
+      ...(leafSql && {
         aliasToColumn: {
-          [leafColumn.id]: async () => ({ builder: knex.raw(attachmentSql) }),
+          [leafColumn.id]: async () => ({ builder: knex.raw(leafSql) }),
         },
       }),
     });
@@ -639,6 +661,29 @@ export default async function genRollupFormulaSelect(params: {
       ? FormulaDataTypes.BOOLEAN
       : valueNode.dataType ?? FormulaDataTypes.UNKNOWN;
     let v = await compileRowValue(valueNode);
+    // joined as text, a date-time reads as a text formula shows it: UTC + offset
+    if (
+      [RollupAggregate.ARRAYJOIN, RollupAggregate.CONCATENATE].includes(
+        aggregate,
+      ) &&
+      valueNode.type === JSEPNode.IDENTIFIER &&
+      valueNode.name === ROLLUP_VALUES_KEYWORD &&
+      leafDateTimeDt !== undefined
+    ) {
+      if (baseModelSqlv2.isPg) {
+        const utc = /time zone|timestamptz/i.test(leafDateTimeDt)
+          ? `(${v}) AT TIME ZONE 'UTC'`
+          : v;
+        v = `(TO_CHAR(${utc}, 'YYYY-MM-DD HH24:MI:SS') || '+00:00')`;
+      } else if (baseModelSqlv2.isMySQL) {
+        v = `CONCAT(DATE_FORMAT(${v}, '%Y-%m-%d %H:%i:%s'), '+00:00')`;
+      }
+    }
+    // pg JSON_EXTRACT yields jsonb; as text a string reads unquoted, as the
+    // driver gives it to a formula field
+    if (baseModelSqlv2.isPg && formulaOutputsRawJson(valueNode)) {
+      v = `((${v})::jsonb #>> '{}')`;
+    }
     // Oracle: long text, JSON and string formulas are CLOBs, which aggregates
     // and comparisons reject
     if (
@@ -784,8 +829,13 @@ export default async function genRollupFormulaSelect(params: {
     aggregateQbs.push(built.qb);
   }
 
-  // a bare aggregate needs no outer expression
-  if (aggregates.length === 1 && aggregates[0] === tree) {
+  // a bare aggregate needs no outer expression; text still takes the formula
+  // builder's output-length cap below
+  if (
+    aggregates.length === 1 &&
+    aggregates[0] === tree &&
+    tree.dataType !== FormulaDataTypes.STRING
+  ) {
     return { builder: aggregateQbs[0] };
   }
 

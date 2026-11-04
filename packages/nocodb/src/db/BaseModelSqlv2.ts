@@ -9276,7 +9276,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return data;
 
     const columns = this.model?.columns.concat(dependencyColumns ?? []);
-    const formulaColumns = columns?.filter((c) => c.uidt === UITypes.Formula);
+    const formulaColumns = columns?.filter(
+      (c) =>
+        c.uidt === UITypes.Formula ||
+        // a numeric rollup formula carries the same float8 values
+        [UITypes.Number, UITypes.Decimal].includes(getRollupResultUidt(c)),
+    );
     if (!formulaColumns?.length) return data;
 
     const apply = (d: Record<string, any>) => {

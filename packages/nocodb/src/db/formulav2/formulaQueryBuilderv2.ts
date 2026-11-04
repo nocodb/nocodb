@@ -246,7 +246,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         aliasToColumn[col.id] = async ({
           tableAlias,
           parentColumns: parentColumns,
-        }: TAliasToColumnParam): Promise<any> => {
+        }: TAliasToColumnParam) => {
           const qb = await genRollupSelectv2({
             baseModelSqlv2,
             knex,
@@ -292,12 +292,17 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             break;
           }
           if (knex.clientType().startsWith('mysql')) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async ({
+              tableAlias,
+            }: TAliasToColumnParam) => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex.raw(
-                  `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-                  [refCol.column_name],
+                  `CONVERT_TZ(??.??, @@GLOBAL.time_zone, '+00:00')`,
+                  [
+                    tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                    refCol.column_name,
+                  ],
                 ),
               };
             };
@@ -306,13 +311,18 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             refCol.dt !== 'timestamp with time zone' &&
             refCol.dt !== 'timestamptz'
           ) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async ({
+              tableAlias,
+            }: TAliasToColumnParam) => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex
                   .raw(
-                    `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
-                    [refCol.column_name],
+                    `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                    [
+                      tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                      refCol.column_name,
+                    ],
                   )
                   .wrap('(', ')'),
               };
@@ -321,7 +331,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             knex.clientType() === 'oracledb' &&
             (refCol.dt ?? '').toLowerCase().includes('time zone')
           ) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async ({
+              tableAlias,
+            }: TAliasToColumnParam) => {
               return {
                 // Oracle TIMESTAMP WITH [LOCAL] TIME ZONE: normalize to a plain
                 // UTC timestamp so date formulas (DATEADD, …) operate on the UTC
@@ -330,13 +342,21 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 // wall-clock+offset, so the result renders an offset off in the
                 // browser timezone.
                 builder: knex
-                  .raw(`SYS_EXTRACT_UTC(??)`, [refCol.column_name])
+                  .raw(`SYS_EXTRACT_UTC(??.??)`, [
+                    tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                    refCol.column_name,
+                  ])
                   .wrap('(', ')'),
               };
             };
           } else {
-            aliasToColumn[col.id] = () =>
-              Promise.resolve({ builder: refCol.column_name });
+            aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+              Promise.resolve({
+                builder: knex.raw(`??.??`, [
+                  tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                  refCol.column_name,
+                ]),
+              });
           }
           aliasToColumn[refCol.id] = aliasToColumn[col.id];
         }
@@ -345,7 +365,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy:
         {
-          aliasToColumn[col.id] = async (): Promise<any> => {
+          aliasToColumn[col.id] = async ({
+            tableAlias,
+          }: TAliasToColumnParam) => {
             baseUsers =
               baseUsers ??
               (await BaseUser.getUsersList(context, {
@@ -368,7 +390,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     tableAlias,
                   })
                 ).builder
-              : await getColumnName(context, col, columns);
+              : `${
+                  tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)
+                }.${await getColumnName(context, col, columns)}`;
 
             // Public responses redact user emails; a formula must not re-derive them.
             const userValue = (user: Partial<User>) =>
@@ -410,43 +434,27 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         }
         break;
       case UITypes.LongText: {
-        if (col.meta?.[LongTextAiMetaProp] === true) {
-          if (knex.clientType() === 'pg') {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
-                  col.column_name,
-                ]),
-              };
-            };
-          } else if (knex.clientType().startsWith('mysql')) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
-                  col.column_name,
-                ]),
-              };
-            };
-          } else if (knex.clientType() === 'sqlite3') {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`json_extract(??, '$.value')`, [
-                  col.column_name,
-                ]),
-              };
-            };
-          } else if (knex.clientType() === 'mssql') {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`JSON_VALUE(??, '$.value')`, [
-                  col.column_name,
-                ]),
-              };
-            };
-          }
-        } else {
-          aliasToColumn[col.id] = () =>
-            Promise.resolve({ builder: col.column_name });
+        // value extraction around the qualified column, per dialect
+        const valueSql =
+          col.meta?.[LongTextAiMetaProp] === true
+            ? knex.clientType() === 'pg'
+              ? `TRIM('"' FROM (??.??::jsonb->>'value'))`
+              : knex.clientType().startsWith('mysql')
+              ? `JSON_UNQUOTE(JSON_EXTRACT(??.??, '$.value'))`
+              : knex.clientType() === 'sqlite3'
+              ? `json_extract(??.??, '$.value')`
+              : knex.clientType() === 'mssql'
+              ? `JSON_VALUE(??.??, '$.value')`
+              : null
+            : `??.??`;
+        if (valueSql) {
+          aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+            Promise.resolve({
+              builder: knex.raw(valueSql, [
+                tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                col.column_name,
+              ]),
+            });
         }
         break;
       }

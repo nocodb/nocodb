@@ -14294,7 +14294,7 @@
       "FieldOptions_Rollup": {
         "type": "object",
         "title": "Rollup",
-        "description": "Rollups take no `display_type`. Numeric formatting is `precision` and `separator`; currency and percent come from the rolled-up field (a Currency or Percent field, or the `display_type` of a Formula or Lookup it reads).",
+        "description": "Plain rollups take no `display_type`. Numeric formatting is `precision` and `separator`; currency and percent come from the rolled-up field (a Currency or Percent field, or the `display_type` of a Formula or Lookup it reads). A formula rollup (`rollup_function` `formula`) can instead set `display_type` and `display_column_meta` to render its result as another field type.",
         "properties": {
           "related_field_id": {
             "type": "string",
@@ -14331,7 +14331,7 @@
           },
           "precision": {
             "type": "number",
-            "description": "Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.",
+            "description": "Number of decimal places for numeric rollups. Defaults to 0; a formula rollup defaults to the digits of an outer ROUND, else 0 for a whole-number result and 2 otherwise. Display-only: the API returns the unrounded value.",
             "minimum": 0,
             "maximum": 8
           },

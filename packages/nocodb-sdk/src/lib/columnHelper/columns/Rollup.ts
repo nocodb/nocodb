@@ -12,7 +12,9 @@ import {
   parseProp,
 } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
+import { isFormulaNonFiniteValue } from '~/lib/formula/non-finite';
 import {
+  getRollupFormulaDefaultPrecision,
   isRollupColOptions,
   isRollupFormula,
   rollupFormulaKeepsTargetFormat,
@@ -79,13 +81,31 @@ export const getRollupFormulaDisplayColumn = (
   return {
     ...col,
     uidt,
-    // a decimal result shows 2 places until the field says otherwise
+    // a decimal result shows the places a root ROUND asks for, else 2,
+    // until the field says otherwise
     meta:
       uidt === UITypes.Decimal && rollupMeta.precision == null
-        ? { ...rollupMeta, precision: 2 }
+        ? {
+            ...rollupMeta,
+            precision: getRollupFormulaDefaultPrecision(parsedTree),
+          }
         : rollupMeta,
   };
 };
+
+/**
+ * A rollup formula value as its display column reads it: a date result can
+ * arrive as a UTC date-time (`2024-03-11 00:00:00+00:00`); keep its calendar day.
+ */
+export const getRollupFormulaDisplayValue = <T>(
+  value: T,
+  displayColumn: ColumnType
+): T | string =>
+  displayColumn.uidt === UITypes.Date &&
+  typeof value === 'string' &&
+  /^\d{4}-\d{2}-\d{2}[ T]/.test(value)
+    ? value.slice(0, 10)
+    : value;
 
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -139,9 +159,13 @@ export class RollupHelper extends AbstractColumnHelper {
         ...params,
         col: getRollupFormulaDisplayColumn(col, childColumn),
       };
+      const displayValue = getRollupFormulaDisplayValue(
+        value,
+        displayParams.col
+      );
       return plain
-        ? ColumnHelper.parsePlainCellValue(value, displayParams)
-        : ColumnHelper.parseValue(value, displayParams);
+        ? ColumnHelper.parsePlainCellValue(displayValue, displayParams)
+        : ColumnHelper.parseValue(displayValue, displayParams);
     }
 
     if (!childColumn) return value;
@@ -214,6 +238,8 @@ export class RollupHelper extends AbstractColumnHelper {
   ): string {
     // the grid shows an errored cell as ERR!
     if (value === NC_ERROR_SENTINEL) return 'ERR!';
+    // pg IEEE values, shown as the Formula cell shows them
+    if (isFormulaNonFiniteValue(value)) return value;
     return this.parseValue(value, params, true) ?? '';
   }
 }

@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import {
+  FormulaDataTypes,
   NC_ERROR_SENTINEL,
   UITypes,
   getEffectiveDisplayColumn,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
   getRollupFormulaDisplayColumn,
+  getRollupFormulaDisplayValue,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
+  isFormulaNonFiniteValue,
   isRollupFormula,
 } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
@@ -109,6 +112,25 @@ const renderAsTextFun = computed(() => {
   return getRenderAsTextFunForUiType(childColumn.value?.uidt || UITypes.SingleLineText)
 })
 
+// pg IEEE value of a numeric formula rollup, shown as the Formula cell shows it
+const isNonFiniteResult = computed(() => {
+  const options = column.value?.colOptions
+  return (
+    !!column.value &&
+    isRollupColOptions(column.value.uidt, options) &&
+    isRollupFormula(options) &&
+    options.parsed_tree?.dataType === FormulaDataTypes.NUMERIC &&
+    isFormulaNonFiniteValue(value?.value)
+  )
+})
+
+const displayValue = computed(() => {
+  const options = column.value?.colOptions
+  return column.value && childColumn.value && isRollupColOptions(column.value.uidt, options) && isRollupFormula(options)
+    ? getRollupFormulaDisplayValue(value?.value, childColumn.value)
+    : value?.value
+})
+
 const isIntegerResult = computed(() => {
   const fn = (colOptions.value as RollupType)?.rollup_function ?? ''
 
@@ -128,13 +150,16 @@ const isIntegerResult = computed(() => {
       <span>{{ $t('labels.errorShort') }}</span>
     </NcTooltip>
   </div>
+  <div v-else-if="isNonFiniteResult" class="nc-cell-field">
+    <span class="nc-formula-non-finite text-nc-content-orange-dark">{{ value }}</span>
+  </div>
   <div v-else @dblclick="activateShowEditNonEditableFieldWarning">
     <CellInteger
       v-if="isIntegerResult && renderAsTextFun.includes((colOptions as RollupType).rollup_function!)"
       :model-value="value"
     />
     <CellDecimal v-else-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
-    <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
+    <LazySmartsheetCell v-else :model-value="displayValue" :column="childColumn" :edit-enabled="false" :read-only="true" />
     <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
       {{ $t('msg.info.computedFieldEditWarning') }}
     </div>

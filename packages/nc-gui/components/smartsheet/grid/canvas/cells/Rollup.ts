@@ -1,5 +1,6 @@
 import {
   type ColumnType,
+  FormulaDataTypes,
   NC_ERROR_SENTINEL,
   type RollupType,
   UITypes,
@@ -8,15 +9,17 @@ import {
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
   getRollupFormulaDisplayColumn,
+  getRollupFormulaDisplayValue,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
+  isFormulaNonFiniteValue,
   isIntegerUiType,
   isLTAR,
   isRollupFormula,
 } from 'nocodb-sdk'
 
 import { getRelatedBaseId } from '../utils/cell'
-import { renderCellError } from '../utils/canvas'
+import { renderCellError, renderSingleLineText } from '../utils/canvas'
 
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -57,9 +60,23 @@ export const RollupCellRenderer: CellRenderer = {
     // a formula rollup renders as its result type (or the rolled-up field for a bare SUM/MIN/MAX…);
     // inside a lookup the related metas may be missing, so it doesn't need them
     if (isRollupFormula(colOptions)) {
+      // pg IEEE value, as the Formula cell renders it
+      if (colOptions.parsed_tree?.dataType === FormulaDataTypes.NUMERIC && isFormulaNonFiniteValue(value)) {
+        renderSingleLineText(ctx, {
+          text: String(value),
+          x: (x ?? 0) + padding,
+          y,
+          maxWidth: (props.width ?? 0) - padding * 2,
+          fontFamily: `${props.pv ? 600 : 500} 13px Inter`,
+          fillStyle: getColor(themeV4Colors.orange['700']),
+          height: props.height,
+        })
+        return
+      }
       const displayColumn = getRollupFormulaDisplayColumn(column, childColumn)
       renderCell(ctx, displayColumn, {
         ...props,
+        value: getRollupFormulaDisplayValue(value, displayColumn),
         column: displayColumn,
         relatedColObj: undefined,
         relatedTableMeta: undefined,

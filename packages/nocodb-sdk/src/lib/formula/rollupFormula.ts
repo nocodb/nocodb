@@ -53,10 +53,31 @@ const MODIFIERS_BY_NAME = new Map<string, RollupModifier>(
 
 export const ROLLUP_ARRAYJOIN_DEFAULT_SEPARATOR = ', ';
 
-export function getRollupAggregate(name: string): RollupAggregate | undefined {
+// also scalar formula functions: in a per-value expression (inside an
+// aggregate, where `values` is one value) they call the scalar function
+const SCALAR_AGGREGATE_NAMES: readonly string[] = [
+  'AND',
+  'OR',
+  'XOR',
+  'MIN',
+  'MAX',
+  'CONCAT',
+];
+
+export function getRollupAggregate(
+  name: string,
+  inValueExpression = false
+): RollupAggregate | undefined {
   const upper = name?.toUpperCase();
   if (!upper) return undefined;
+  if (inValueExpression && SCALAR_AGGREGATE_NAMES.includes(upper))
+    return undefined;
   return AGGREGATES_BY_NAME.get(upper);
+}
+
+/** Whether the arguments of call `name` are per-value expressions (SUM, ARRAYUNIQUE …, not MIN / AND …) */
+export function takesValueExpressions(name: string): boolean {
+  return !!getRollupModifier(name) || !!getRollupAggregate(name, true);
 }
 
 export function getRollupModifier(name: string): RollupModifier | undefined {
@@ -81,19 +102,26 @@ export const isRollupFormula = (colOptions?: {
  * Whether `node` references `values` outside any aggregate. An aggregate call
  * binds the `values` inside it, so `MIN(SUM(values), 10)` has no free values
  * (MIN is a plain function there) while `MIN(values)` does (MIN aggregates).
+ * In a per-value expression MIN / AND … are scalar and bind nothing.
  */
-export function hasFreeRollupValues(node: ParsedFormulaNode): boolean {
+export function hasFreeRollupValues(
+  node: ParsedFormulaNode,
+  inValueExpression = false
+): boolean {
   if (!node) return false;
+  const hasFree = (n: ParsedFormulaNode) =>
+    hasFreeRollupValues(n, inValueExpression);
   switch (node.type) {
     case JSEPNode.IDENTIFIER:
       return node.name === ROLLUP_VALUES_KEYWORD;
     case JSEPNode.CALL_EXP:
-      if (getRollupAggregate(node.callee?.name)) return false;
-      return node.arguments?.some(hasFreeRollupValues) ?? false;
+      if (getRollupAggregate(node.callee?.name, inValueExpression))
+        return false;
+      return node.arguments?.some(hasFree) ?? false;
     case JSEPNode.BINARY_EXP:
-      return hasFreeRollupValues(node.left) || hasFreeRollupValues(node.right);
+      return hasFree(node.left) || hasFree(node.right);
     case JSEPNode.UNARY_EXP:
-      return hasFreeRollupValues(node.argument);
+      return hasFree(node.argument);
     default:
       return false;
   }
@@ -160,9 +188,71 @@ const integerTargetTypes = (): string[] => [
   UITypes.Count,
 ];
 
+const integerLiteral = (node?: ParsedFormulaNode): number | undefined => {
+  const value =
+    node?.type === JSEPNode.LITERAL
+      ? node.value
+      : node?.type === JSEPNode.UNARY_EXP &&
+        node.operator === '-' &&
+        node.argument?.type === JSEPNode.LITERAL &&
+        typeof node.argument.value === 'number'
+      ? -node.argument.value
+      : undefined;
+  return typeof value === 'number' && Number.isInteger(value)
+    ? value
+    : undefined;
+};
+
+const ROUND_FUNCTIONS: readonly string[] = ['ROUND', 'ROUNDDOWN', 'ROUNDUP'];
+
+/** Decimal places a root ROUND / ROUNDDOWN / ROUNDUP with literal digits rounds to */
+export function getRollupFormulaRoundDigits(
+  parsedTree?: ParsedFormulaNode
+): number | undefined {
+  if (
+    parsedTree?.type !== JSEPNode.CALL_EXP ||
+    !ROUND_FUNCTIONS.includes(parsedTree.callee?.name?.toUpperCase())
+  )
+    return undefined;
+  const digits = parsedTree.arguments?.[1];
+  // ROUND(x) rounds to a whole number
+  return digits ? integerLiteral(digits) : 0;
+}
+
+/** Decimal places a formula rollup shows while its field sets no precision */
+export function getRollupFormulaDefaultPrecision(
+  parsedTree?: ParsedFormulaNode
+): number {
+  if (rollupFormulaResultUidt(parsedTree) !== UITypes.Decimal) return 0;
+  return getRollupFormulaRoundDigits(parsedTree) ?? 2;
+}
+
 /** Whether every value of a numeric rollup formula result is a whole number */
-export function isIntegerRollupFormula(parsedTree?: ParsedFormulaNode) {
-  if (parsedTree?.type !== JSEPNode.CALL_EXP) return false;
+export function isIntegerRollupFormula(
+  parsedTree?: ParsedFormulaNode
+): boolean {
+  switch (parsedTree?.type) {
+    case JSEPNode.LITERAL:
+    case JSEPNode.UNARY_EXP:
+      if (integerLiteral(parsedTree) !== undefined) return true;
+      return (
+        parsedTree.type === JSEPNode.UNARY_EXP &&
+        parsedTree.operator === '-' &&
+        isIntegerRollupFormula(parsedTree.argument)
+      );
+    case JSEPNode.BINARY_EXP:
+      return (
+        ['+', '-', '*'].includes(parsedTree.operator) &&
+        isIntegerRollupFormula(parsedTree.left) &&
+        isIntegerRollupFormula(parsedTree.right)
+      );
+    case JSEPNode.CALL_EXP:
+      break;
+    default:
+      return false;
+  }
+  const roundDigits = getRollupFormulaRoundDigits(parsedTree);
+  if (roundDigits !== undefined && roundDigits <= 0) return true;
   const aggregate = parsedTree.rollupAggregate;
   if (
     [
@@ -213,6 +303,38 @@ export function getRollupResultUidt(column?: {
   return undefined;
 }
 
+const DATE_ONLY_DATEADD_UNITS: readonly unknown[] = [
+  'day',
+  'week',
+  'month',
+  'year',
+];
+
+/**
+ * MIN / MAX of a Date field, optionally moved by DATEADD in whole days,
+ * weeks, months or years: never carries a time of day.
+ */
+function isDateOnlyRollupFormula(node?: ParsedFormulaNode): boolean {
+  if (node?.type !== JSEPNode.CALL_EXP) return false;
+  if (node.rollupAggregate) {
+    return (
+      [RollupAggregate.MIN, RollupAggregate.MAX].includes(
+        node.rollupAggregate
+      ) &&
+      rollupFormulaKeepsTargetFormat(node) &&
+      node.referencedColumn?.uidt === UITypes.Date
+    );
+  }
+  if (node.callee?.name?.toUpperCase() !== 'DATEADD') return false;
+  const [date, count, unit] = node.arguments ?? [];
+  return (
+    isDateOnlyRollupFormula(date) &&
+    isIntegerRollupFormula(count) &&
+    unit?.type === JSEPNode.LITERAL &&
+    DATE_ONLY_DATEADD_UNITS.includes(unit.value)
+  );
+}
+
 /** Field type a rollup formula result behaves as for filters, aggregations and display */
 export function rollupFormulaResultUidt(
   parsedTree?: ParsedFormulaNode
@@ -223,9 +345,8 @@ export function rollupFormulaResultUidt(
         ? UITypes.Number
         : UITypes.Decimal;
     case FormulaDataTypes.DATE:
-      // MIN/MAX of a date-only field stays a date (no time, no timezone)
-      return rollupFormulaKeepsTargetFormat(parsedTree) &&
-        parsedTree.referencedColumn?.uidt === UITypes.Date
+      // a date-only result stays a date (no time, no timezone)
+      return isDateOnlyRollupFormula(parsedTree)
         ? UITypes.Date
         : UITypes.DateTime;
     case FormulaDataTypes.BOOLEAN:

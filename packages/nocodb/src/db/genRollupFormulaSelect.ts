@@ -32,7 +32,7 @@ import type {
   LookupColumn,
   RollupColumn,
 } from '~/models';
-import { BaseUser, Model, RollupColumn as RollupColumnModel } from '~/models';
+import { BaseUser, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { excludeNonFiniteSql, isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
@@ -170,13 +170,7 @@ export default async function genRollupFormulaSelect(params: {
         `Rollup formula no longer fits its field: ${e.message}`,
       ),
     );
-    if (columnOptions.fk_column_id) {
-      await RollupColumnModel.update(context, columnOptions.fk_column_id, {
-        parsed_tree: parsedTree,
-      }).catch(() => {
-        // best effort: the next read re-derives again
-      });
-    }
+    // in memory only: saves re-type the stored tree (retypeRollupFormulas)
   }
 
   // the formula builder rewrites trees in place

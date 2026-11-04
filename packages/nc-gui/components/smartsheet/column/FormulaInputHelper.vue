@@ -101,6 +101,9 @@ const supportedColumns = computed(() =>
     : meta?.value?.columns?.filter((col) => isFormulaSupportedColumn(col, meta.value)) || [],
 )
 
+// chips resolve against what the formula can reference: in a rollup, only `values`
+const chipsMeta = computed(() => (isRollupMode.value ? { ...meta.value, columns: supportedColumns.value } : meta.value))
+
 const rollupFunctionMetas = new Map(Object.entries(rollupFormulaFunctions))
 
 // a rollup formula offers its aggregates first, then the scalar functions that wrap them
@@ -135,10 +138,43 @@ const selected = ref(0)
 
 const isMounted = ref(false)
 
-const sortOrder: Record<string, number> = {
-  column: 0,
-  function: 1,
-  op: 2,
+const isToManyLink = (c: ColumnType) =>
+  isLinksOrLTAR(c) && !!c.colOptions && isLinkToMany(c, c.colOptions as LinkToAnotherRecordType)
+
+const formulaChips = useFormulaChips({
+  meta: chipsMeta,
+  getMeta: (baseId, tableId) => getMeta(baseId, tableId),
+  getMetaByKey,
+  iconClassFor: chipIconClass,
+})
+
+// Aggregates offered when the whole formula is a list, e.g. `{Tasks}.{Hours}`
+const listResultAggregates = computed(() => {
+  const info = props.resultInfo
+  if (!info?.isDataArray || info.type !== 'MemberExpression') return []
+  return info.dataType === 'numeric' ? ['SUM', 'AVG', 'MIN', 'MAX', 'COUNTA'] : ['COUNTA', 'CONCAT']
+})
+
+// one whole sentence per list type, so translations can word each naturally
+const listResultMessage = computed(() => {
+  switch (props.resultInfo?.dataType) {
+    case 'numeric':
+      return t('labels.formulaDotPath.listOfNumbers')
+    case 'string':
+      return t('labels.formulaDotPath.listOfText')
+    default:
+      return t('labels.formulaDotPath.listOfValues')
+  }
+})
+
+// field type a formula result is shown as, when it isn't based on one field
+const RESULT_TYPE_UIDT: Partial<Record<string, UITypes>> = {
+  [FormulaDataTypes.NUMERIC]: UITypes.Number,
+  [FormulaDataTypes.STRING]: UITypes.SingleLineText,
+  [FormulaDataTypes.DATE]: UITypes.DateTime,
+  [FormulaDataTypes.BOOLEAN]: UITypes.Checkbox,
+  [FormulaDataTypes.COND_EXP]: UITypes.Checkbox,
+  [FormulaDataTypes.INTERVAL]: UITypes.Time,
 }
 
 const getIcon = (c: ColumnType) =>
@@ -683,6 +719,14 @@ function functionMenuItems(functionNames: string[], partial: string): DotPathMen
 async function resolveDotPathMenu(match: FormulaDotPathMatch) {
   // a rollup formula has one variable, `values`, and no paths
   if (isRollupMode.value) {
+    // `values.` takes the aggregates and value-set functions as methods: `values.SUM()`
+    if (match.segments.length === 1 && match.segments[0] === ROLLUP_VALUES_KEYWORD) {
+      const items = functionMenuItems(rollupFunctionNames, match.partial.toLowerCase())
+      return {
+        sections: [{ key: 'functions', title: t('labels.formulaDotPath.listFunctions'), items }],
+        isListContext: true,
+      }
+    }
     if (match.segments.length) return null
     const partial = match.partial.toLowerCase()
     const fields: DotPathMenuItem[] = supportedColumns.value
@@ -949,7 +993,10 @@ function appendDotPathText(item: Record<string, any>) {
   // functions get the cursor between their parentheses, unless called on a value
   // and needing nothing more: `{Tasks}.{Hours}.SUM()|`
   const fnName = item.type === 'function' ? String(item.text).replace(/\(\)$/, '') : ''
-  const needsArgs = !!fnName && (!context.isMethod || (getFunctionMeta(fnName)?.validation?.args?.min ?? 0) > 1)
+  const fnMeta = fnName ? getFunctionMeta(fnName) : undefined
+  // rollup functions carry no arg rules; their syntax lists the parameters
+  const minArgs = fnMeta?.validation?.args?.min ?? (isRollupMode.value ? syntaxParams(fnMeta?.syntax ?? '').length : 0)
+  const needsArgs = !!fnName && (!context.isMethod || minArgs > 1)
   const caret = keepsParens ? start + text.length + 1 : start + text.length - (needsArgs ? 1 : 0)
   editor.setPosition(model.getPositionAt(caret))
   editor.pushUndoStop()
@@ -958,81 +1005,13 @@ function appendDotPathText(item: Record<string, any>) {
   return true
 }
 
-function appendText(item: Record<string, any>) {
-  const len = wordToComplete.value?.length || 0
-
-  if (!item?.text) return
-  const text = item.text
-
-  const position = editor.getPosition()
-
-  if (!position) {
-    return // No cursor position available
-  }
-
-  if (item.type === 'column' && replaceColumnRef(item)) {
-    wordToComplete.value = ''
-    isInsideColumnRef.value = false
-    suggestion.value = suggestionsList.value
-    return
-  }
-
-  const newColumn = Math.max(1, position.column - len)
-
-  const range = new Range(position.lineNumber, newColumn, position.lineNumber, position.column)
-
-  editor.executeEdits('', [
-    {
-      range,
-      text: '',
-      forceMoveMarkers: true,
-    },
-  ])
-
-  if (item.type === 'function') {
-    insertStringAtPosition(editor, text)
-  } else if (item.type === 'column') {
-    insertStringAtPosition(editor, `{${text}}`, true)
-  } else {
-    insertStringAtPosition(editor, text, true)
-  }
-  wordToComplete.value = ''
-
-  if (item.type === 'function' || item.type === 'op') {
-    // if function / operator is chosen, display columns only
-    suggestion.value = suggestionsList.value.filter((f) => f.type === 'column')
-  } else {
-    // show all options if column is chosen
-    suggestion.value = suggestionsList.value
-  }
+// `values.` / `values.SU` right before the cursor; `{values}.` is a regular dot path
+function matchRollupValuesMethod(textBeforeCursor: string): FormulaDotPathMatch | null {
+  const match = textBeforeCursor.match(new RegExp(`(?:^|[^\\w.{}])${ROLLUP_VALUES_KEYWORD}\\s*\\.\\s*(\\w*)$`))
+  return match ? { segments: [ROLLUP_VALUES_KEYWORD], hasBrace: false, partial: match[1] ?? '' } : null
 }
 
-function isCursorBetweenParenthesis() {
-  const cursorPosition = editor?.getPosition()
-
-  if (!cursorPosition || !editor) return false
-
-  const line = editor.getModel()?.getLineContent(cursorPosition.lineNumber)
-
-  if (!line) {
-    return false
-  }
-
-  const cursorLine = line.substring(0, cursorPosition.column - 1)
-
-  const openParenthesis = (cursorLine.match(/\(/g) || []).length
-
-  const closeParenthesis = (cursorLine.match(/\)/g) || []).length
-
-  return openParenthesis > closeParenthesis
-}
-
-// the row Enter will pick
-const isItemSelected = (item: Record<string, any>) => {
-  return orderedSuggestions.value[selected.value] === item
-}
-
-function handleInput() {
+function handleInput({ browse = false }: { browse?: boolean } = {}) {
   if (!editor) return
 
   const model = editor.getModel()
@@ -1058,7 +1037,12 @@ function handleInput() {
     return
   }
 
-  priority.value = isCursorBetweenParenthesis() ? -1 : 1
+  const match =
+    (isRollupMode.value ? matchRollupValuesMethod(text.slice(0, offset)) : null) ??
+    matchFormulaDotPath(text.slice(0, offset)) ??
+    matchFormulaFirstReference(text.slice(0, offset)) ??
+    // an empty editor, or Ctrl+Space anywhere, lists everything
+    (browse || !text.trim() ? { segments: [], hasBrace: false, partial: '' } : null)
 
   selected.value = 0
   suggestion.value = []

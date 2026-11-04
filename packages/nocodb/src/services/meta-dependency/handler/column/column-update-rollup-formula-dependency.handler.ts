@@ -28,7 +28,10 @@ import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
 import { NcBaseError, NcBaseErrorv2 } from '~/helpers/catchError';
 import { validateRollupPayload } from '~/helpers/columnHelpers';
-import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
+import {
+  getFormulasReferredTheColumn,
+  getFormulasReferringColumnViaPath,
+} from '~/helpers/formulaHelpers';
 import { clearSingleQueryCacheForColumnReferences } from '~/helpers/singleQueryCacheInvalidator';
 import { applyRollupResultTypeChange } from '~/services/meta-dependency/dependent-error-helpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
@@ -195,8 +198,8 @@ export class ColumnUpdateRollupFormulaDependencyHandler
         const column = await Column.get(ctx, { colId: id }, ncMeta);
         if (!column) continue;
 
-        // Formulas read only their own table. `Column.update` has just
-        // cleared their trees; re-derive them so rollups over them type right.
+        // `Column.update` has just cleared the trees of formulas over it;
+        // re-derive them so rollups over them type right.
         const tableColumns = await Column.list(
           ctx,
           { fk_model_id: column.fk_model_id },
@@ -210,6 +213,25 @@ export class ColumnUpdateRollupFormulaDependencyHandler
           if (formula.uidt !== UITypes.Formula) continue;
           await this.retypeFormula(ctx, formula, tableColumns, ncMeta);
           enqueue(formula.id, ctx);
+        }
+        // and formulas of other tables reaching it through `{Link}.{Field}`
+        for (const {
+          column: formula,
+          context: formulaCtx,
+        } of await getFormulasReferringColumnViaPath(ctx, column, ncMeta)) {
+          if (formula.uidt !== UITypes.Formula) continue;
+          await this.retypeFormula(
+            formulaCtx,
+            formula,
+            await Column.list(
+              formulaCtx,
+              { fk_model_id: formula.fk_model_id },
+              ncMeta,
+            ),
+            ncMeta,
+          );
+          affectedModelCtxMap.set(formula.fk_model_id, formulaCtx);
+          enqueue(formula.id, formulaCtx);
         }
 
         for (const linkedCtx of await this.linkedContexts(

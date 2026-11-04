@@ -1357,7 +1357,12 @@ const unique = computed({
           v-if="[UITypes.DateTime, UITypes.CreatedTime].includes(formState.uidt)"
           v-model:value="formState"
         />
-        <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
+        <SmartsheetColumnRollupOptions
+          v-if="formState.uidt === UITypes.Rollup"
+          v-model:value="formState"
+          :can-submit="!props.fromTableExplorer"
+          @on-submit="onShortcutSubmit"
+        />
         <SmartsheetColumnLinkedToAnotherRecordOptions
           v-if="isLinksOrLTAR(formState.uidt)"
           :key="`${formState.uidt}-${formState.id || 'new'}`"

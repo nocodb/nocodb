@@ -27,8 +27,10 @@ import {
 
 const props = defineProps<{
   value: any
+  // ⌘↵ in the formula editor saves; off where fields are saved in a batch
+  canSubmit?: boolean
 }>()
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'onSubmit'])
 const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
@@ -692,6 +694,9 @@ const handleScrollIntoView = () => {
         validate-key="rollup_formula"
         :error="validateInfos.rollup_formula?.validateStatus === 'error'"
         :editor-error="editorError"
+        :result-info="formulaParsedTree"
+        :can-submit="canSubmit"
+        @submit="emit('onSubmit')"
       />
     </div>
     <template v-if="isFormulaMode && rollupFormulaFormats.length">

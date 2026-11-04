@@ -737,9 +737,9 @@ export async function retryLinkedReadOnRollupError<T>(
   }
 }
 
-/** Settles once every running self-heal probe has finished (tests). */
+/** Settles once every running flag and self-heal probe has finished (tests). */
 export async function settleRollupHeals() {
-  await Promise.all(healProbes.values());
+  await Promise.all([...flagProbes.values(), ...healProbes.values()]);
 }
 
 /**

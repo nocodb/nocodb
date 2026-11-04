@@ -1,6 +1,5 @@
 import {
   type ColumnType,
-  type LinkToAnotherRecordType,
   NC_ERROR_SENTINEL,
   type RollupType,
   UITypes,
@@ -12,6 +11,7 @@ import {
   integerPreservingRollupFunctions,
   integerRollupFunctions,
   isIntegerUiType,
+  isLTAR,
   isRollupFormula,
 } from 'nocodb-sdk'
 
@@ -36,7 +36,8 @@ export const RollupCellRenderer: CellRenderer = {
       (c: any) => c.id === colOptions?.fk_relation_column_id,
     ) as ColumnType
 
-    const relatedColOptions = relatedColObj?.colOptions as LinkToAnotherRecordType | undefined
+    const relatedColOptions =
+      relatedColObj && isLTAR(relatedColObj.uidt, relatedColObj.colOptions) ? relatedColObj.colOptions : undefined
 
     // Get the correct base ID for the related table (handles cross-base links)
     const relatedTableMeta = relatedColOptions

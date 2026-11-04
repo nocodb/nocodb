@@ -7,6 +7,7 @@ import {
   TableType,
 } from './Api';
 import { FormulaDataTypes } from './formula/enums';
+import { isRollupColOptions, isRollupFormula } from './formula/rollupFormula';
 import { LinksVersion, LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
 import { SYNC_SYSTEM_COLUMN_TITLES } from './sync';
@@ -367,19 +368,14 @@ export function isNumericCol(
     | ColumnType
 ) {
   // a formula rollup is numeric only when its result is
-  const colOptions =
-    typeof col === 'object'
-      ? ((col as ColumnType)?.colOptions as {
-          rollup_function?: string;
-          parsed_tree?: { dataType?: FormulaDataTypes };
-        })
-      : undefined;
   if (
     typeof col === 'object' &&
     col?.uidt === UITypes.Rollup &&
-    colOptions?.rollup_function === 'formula'
+    'colOptions' in col &&
+    isRollupColOptions(col.colOptions) &&
+    isRollupFormula(col.colOptions)
   ) {
-    return colOptions.parsed_tree?.dataType === FormulaDataTypes.NUMERIC;
+    return col.colOptions.parsed_tree?.dataType === FormulaDataTypes.NUMERIC;
   }
   return numericUITypes.includes(
     <UITypes>(typeof col === 'object' ? col?.uidt : col)

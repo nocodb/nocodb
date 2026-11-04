@@ -13,6 +13,7 @@ import {
 } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import {
+  isRollupColOptions,
   isRollupFormula,
   rollupFormulaKeepsTargetFormat,
   rollupFormulaResultUidt,
@@ -28,7 +29,7 @@ import rfdc from 'rfdc';
 const clone = rfdc();
 
 // field types whose formatting a bare SUM/AVERAGE/MIN/MAX(values) keeps
-const ROLLUP_FORMULA_FORMAT_KEEPING_TYPES = [
+const ROLLUP_FORMULA_FORMAT_KEEPING_TYPES: readonly string[] = [
   UITypes.Currency,
   UITypes.Percent,
   UITypes.Duration,
@@ -48,7 +49,9 @@ export const getRollupFormulaDisplayColumn = (
   col: ColumnType,
   childColumn?: ColumnType
 ): ColumnType => {
-  const parsedTree = (col.colOptions as RollupType)?.parsed_tree;
+  const parsedTree = isRollupColOptions(col.colOptions)
+    ? col.colOptions.parsed_tree
+    : undefined;
   const rollupMeta = parseProp(col.meta);
 
   // a format picked on the field (currency, percent, date …) wins, as for formulas
@@ -59,15 +62,15 @@ export const getRollupFormulaDisplayColumn = (
   if (
     childColumn &&
     rollupFormulaKeepsTargetFormat(parsedTree) &&
-    ROLLUP_FORMULA_FORMAT_KEEPING_TYPES.includes(childColumn.uidt as UITypes)
+    ROLLUP_FORMULA_FORMAT_KEEPING_TYPES.includes(childColumn.uidt)
   ) {
     return {
       ...childColumn,
-      uidt: [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
-        childColumn.uidt as UITypes
-      )
-        ? UITypes.DateTime
-        : childColumn.uidt,
+      uidt:
+        childColumn.uidt === UITypes.CreatedTime ||
+        childColumn.uidt === UITypes.LastModifiedTime
+          ? UITypes.DateTime
+          : childColumn.uidt,
       meta: { ...parseProp(childColumn.meta), ...rollupMeta },
     };
   }

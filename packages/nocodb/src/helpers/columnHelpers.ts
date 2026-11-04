@@ -15,6 +15,7 @@ import {
   parseProp,
   RelationTypes,
   ROLLUP_FORMULA_FUNCTION,
+  SqlUiFactory,
   UITypes,
   validateFormulaAndExtractTreeWithType,
   WebhookActions,
@@ -24,7 +25,6 @@ import { REGEXSTR_INTL_LETTER, REGEXSTR_NUMERIC_ARABIC } from 'nocodb-sdk';
 import { NcError } from './ncError';
 import type {
   BoolType,
-  ClientTypeOrSqlUI,
   ColumnReqType,
   LookupColumnReqType,
   NcRequest,
@@ -412,7 +412,15 @@ export async function createOOColumn(
 
 export async function validateRollupPayload(
   context: NcContext,
-  payload: ColumnReqType | Column,
+  // `title` keeps any column request assignable; the rest is what a rollup reads
+  payload: Pick<
+    RollupColumnReqType,
+    | 'title'
+    | 'fk_relation_column_id'
+    | 'fk_rollup_column_id'
+    | 'rollup_function'
+    | 'rollup_formula'
+  > & { parsed_tree?: ParsedFormulaNode | null },
   ncMeta = Noco.ncMeta,
 ) {
   validateParams(
@@ -428,14 +436,12 @@ export async function validateRollupPayload(
 
   const column = await Column.get(
     context,
-    { colId: (payload as RollupColumnReqType).fk_relation_column_id },
+    { colId: payload.fk_relation_column_id },
     ncMeta,
   );
 
   if (!column) {
-    NcError.get(context).relationFieldNotFound(
-      (payload as RollupColumnReqType).fk_relation_column_id,
-    );
+    NcError.get(context).relationFieldNotFound(payload.fk_relation_column_id);
   }
 
   if (!isLinksOrLTAR(column)) {
@@ -449,9 +455,7 @@ export async function validateRollupPayload(
   );
 
   if (!relation) {
-    NcError.get(context).relationFieldNotFound(
-      (payload as RollupColumnReqType).fk_relation_column_id,
-    );
+    NcError.get(context).relationFieldNotFound(payload.fk_relation_column_id);
   }
 
   const { refContext } = relation.getRelContext();
@@ -506,7 +510,7 @@ export async function validateRollupPayload(
   const relatedTableColumns = await relatedTable.getColumns(ncMeta);
 
   const rollupColumn = relatedTableColumns.find(
-    (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
+    (c) => c.id === payload.fk_rollup_column_id,
   );
 
   if (!rollupColumn)
@@ -515,9 +519,7 @@ export async function validateRollupPayload(
   // Rolling up a link/lookup/barcode-style column would build SQL against a
   // column that doesn't physically exist, breaking every read of the table.
   // A formula rollup also reads links (counts) and flattens lookups.
-  const isFormula =
-    (payload as RollupColumnReqType).rollup_function ===
-    ROLLUP_FORMULA_FUNCTION;
+  const isFormula = payload.rollup_function === ROLLUP_FORMULA_FUNCTION;
   if (
     isFormula
       ? !isRollupFormulaTargetColumn(rollupColumn)
@@ -540,12 +542,8 @@ export async function validateRollupPayload(
     );
   }
 
-  const rollupPayload = payload as RollupColumnReqType & {
-    parsed_tree?: ParsedFormulaNode | null;
-  };
-
-  if (rollupPayload.rollup_function === ROLLUP_FORMULA_FUNCTION) {
-    if (!rollupPayload.rollup_formula?.trim()) {
+  if (isFormula) {
+    if (!payload.rollup_formula?.trim()) {
       NcError.get(context).badRequest(
         'A formula rollup needs a formula over `values`, e.g. SUM(values)',
       );
@@ -562,10 +560,10 @@ export async function validateRollupPayload(
       ncMeta,
     );
     try {
-      rollupPayload.parsed_tree = await validateFormulaAndExtractTreeWithType({
-        formula: rollupPayload.rollup_formula,
+      payload.parsed_tree = await validateFormulaAndExtractTreeWithType({
+        formula: payload.rollup_formula,
         columns: [],
-        clientOrSqlUi: source?.type as ClientTypeOrSqlUI,
+        clientOrSqlUi: SqlUiFactory.create({ client: source?.type }),
         getMeta: async (_, { id }) => relatedModels.get(id),
         rollup: {
           valuesColumn: rollupColumn,
@@ -582,8 +580,8 @@ export async function validateRollupPayload(
   }
 
   // switching back from a formula rollup drops its formula
-  rollupPayload.rollup_formula = null;
-  rollupPayload.parsed_tree = null;
+  payload.rollup_formula = null;
+  payload.parsed_tree = null;
 
   // a rollup target aggregates as its result type (sum of a text or date
   // result would fail every read)
@@ -594,15 +592,9 @@ export async function validateRollupPayload(
     rollupColumn.uidt === UITypes.Rollup
       ? getAvailableRollupForColumn(rollupColumn)
       : getAvailableRollupForUiType(rollupColumn.uidt);
-  if (
-    !availableFunctions.includes(
-      (payload as RollupColumnReqType).rollup_function,
-    )
-  ) {
+  if (!availableFunctions.includes(payload.rollup_function)) {
     NcError.get(context).badRequest(
-      `Rollup function (${
-        (payload as RollupColumnReqType).rollup_function
-      }) not available for type (${rollupColumn.uidt})`,
+      `Rollup function (${payload.rollup_function}) not available for type (${rollupColumn.uidt})`,
     );
   }
 }

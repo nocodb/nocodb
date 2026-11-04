@@ -113,13 +113,17 @@ async function resolveAggregationParams({
    * These column types require special handling because they are virtual columns and do not have a direct column name.
    * We generate the select query for these columns and use the generated query.
    * */
-  let column_name_query = (
-    await getColumnNameQuery({
-      baseModelSqlv2,
-      column,
-      context,
-    })
-  ).builder;
+  const columnNameQuery = await getColumnNameQuery({
+    baseModelSqlv2,
+    column,
+    context,
+  });
+  // a rollup that reads as the error sentinel has nothing to aggregate, as
+  // with a stored error above
+  if (columnNameQuery.isError) {
+    return;
+  }
+  let column_name_query = columnNameQuery.builder;
 
   // a rollup is a subquery; handlers that bind it bare (`MIN(??)`, `?? = 1`)
   // need it parenthesised

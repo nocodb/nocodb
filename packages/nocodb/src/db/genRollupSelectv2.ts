@@ -4,6 +4,7 @@ import {
   getRollupResultUidt,
   isBtLikeV2Junction,
   isMMOrMMLike,
+  isNumericCol,
   isRollupAggregatableColumn,
   isRollupFormula,
   isRollupFormulaTargetColumn,
@@ -69,7 +70,7 @@ export default async function genRollupSelectv2(param: {
   nestedLevel?: number;
   // saving a formula rollup reports its errors; reads show the cell as an error
   throwOnFormulaError?: boolean;
-}): Promise<{ builder: Knex.QueryBuilder | any; isError?: boolean }> {
+}): Promise<{ builder: Knex.QueryBuilder; isError?: boolean }> {
   const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
   let { parentColumns } = param;
 
@@ -152,7 +153,7 @@ export default async function genRollupSelectv2(param: {
   // `colOptions.error` means "dependency deleted" (cleared on restore), so this
   // partial check must never write to it.
   if (
-    isRollupFormula(columnOptions as RollupColumn)
+    isRollupFormula(columnOptions)
       ? !isRollupFormulaTargetColumn(rollupColumn)
       : !isRollupAggregatableColumn(rollupColumn)
   ) {
@@ -573,14 +574,12 @@ export default async function genRollupSelectv2(param: {
           ),
         )
           .innerJoin(
-            assocBaseModel.getTnPath(mmModel.table_name) as any,
-            knex.ref(
-              `${assocBaseModel.getTnPath(mmModel.table_name)}.${
-                mmParentCol.column_name
-              }`,
-            ) as any,
+            assocBaseModel.getTnPath(mmModel.table_name),
+            `${assocBaseModel.getTnPath(mmModel.table_name)}.${
+              mmParentCol.column_name
+            }`,
             '=',
-            knex.ref(`${refTableAlias}.${parentCol.column_name}`) as any,
+            `${refTableAlias}.${parentCol.column_name}`,
           )
           .where(
             knex.ref(
@@ -629,7 +628,7 @@ export default async function genRollupSelectv2(param: {
     }
   };
 
-  if (isRollupFormula(columnOptions as RollupColumn)) {
+  if (isRollupFormula(columnOptions)) {
     // many-to-many values follow the order of the links in the cell
     let linkOrderRef: string | undefined;
     if (relationType === RelationTypes.MANY_TO_MANY) {
@@ -655,7 +654,7 @@ export default async function genRollupSelectv2(param: {
         linkOrderRef,
         baseModelSqlv2,
         knex,
-        columnOptions: columnOptions as RollupColumn,
+        columnOptions,
         refBaseModel,
         refModel:
           rollupColumn.fk_model_id === childModel.id ? childModel : parentModel,
@@ -685,7 +684,7 @@ export default async function genRollupSelectv2(param: {
       columnOptions.rollup_function,
     )
   ) {
-    let resultType: string | undefined;
+    let resultType: FormulaDataTypes | undefined;
     if (rollupColumn.uidt === UITypes.Formula) {
       resultType = (
         await rollupColumn.getColOptions<FormulaColumn>()
@@ -705,15 +704,21 @@ export default async function genRollupSelectv2(param: {
             FormulaDataTypes.NUMERIC,
             FormulaDataTypes.BOOLEAN,
             FormulaDataTypes.UNKNOWN,
-          ].includes(resultType as FormulaDataTypes)
+            // pg sums intervals but not booleans
+            ...(baseModelSqlv2.isPg
+              ? [FormulaDataTypes.INTERVAL]
+              : [FormulaDataTypes.COND_EXP, FormulaDataTypes.LOGICAL]),
+          ].includes(resultType)
         : // checkbox sums / averages through bool casts
           [UITypes.Formula, UITypes.Rollup, UITypes.Checkbox].includes(
             rollupColumn.uidt,
           ) ||
+          isNumericCol(rollupColumn.uidt) ||
           getAvailableRollupForUiType(rollupColumn.uidt).includes(
             columnOptions.rollup_function,
           );
-    if (!numeric) {
+    // other dialects cast text to a number, so the old values still read
+    if (!numeric && (baseModelSqlv2.isPg || baseModelSqlv2.isMssql)) {
       return errorSentinel();
     }
   }

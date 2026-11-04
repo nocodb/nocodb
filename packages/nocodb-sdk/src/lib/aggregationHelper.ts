@@ -295,10 +295,12 @@ const formatAggregation = (
 const getColumnAggregations = (
   column: Pick<ColumnType, 'uidt' | 'colOptions'>
 ): string[] => {
+  const colOptions = column.colOptions;
   return getAvailableAggregations(
     column.uidt,
-    (column.colOptions as { parsed_tree?: unknown } | null | undefined)
-      ?.parsed_tree,
+    typeof colOptions === 'object' && colOptions && 'parsed_tree' in colOptions
+      ? colOptions.parsed_tree
+      : undefined,
     getRollupResultUidt(column)
   );
 };

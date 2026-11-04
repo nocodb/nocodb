@@ -57,12 +57,26 @@ import {
 // an aggregate consumes, or inside a per-value expression.
 type RollupScope = 'outer' | 'set' | 'row';
 
-const rollupCall = (name: string, args: ParsedFormulaNode[]) =>
-  ({
-    type: JSEPNode.CALL_EXP,
-    callee: { type: JSEPNode.IDENTIFIER, name },
-    arguments: args,
-  } as CallExpressionNode);
+const rollupCall = (
+  name: string,
+  args: ParsedFormulaNode[]
+): CallExpressionNode => ({
+  type: JSEPNode.CALL_EXP,
+  callee: { type: JSEPNode.IDENTIFIER, name },
+  arguments: args,
+});
+
+const hasDataType = (
+  node: Pick<ParsedFormulaNode, 'dataType'>,
+  types: FormulaDataTypes[]
+) => node.dataType !== undefined && types.includes(node.dataType);
+
+// values stored as text or json; the identifier type would leave them UNKNOWN
+const TEXT_STORED_UIDTS: string[] = [
+  UITypes.JSON,
+  UITypes.GeoData,
+  UITypes.Geometry,
+];
 
 // a value list used as text: CONCATENATE(values), no separator
 const concatenateValues = (node: ParsedFormulaNode) =>
@@ -109,7 +123,7 @@ function splitVariadicAggregate(
         );
       }
       const counted = others.filter((arg) => {
-        const value = (arg as { value?: unknown }).value;
+        const value = arg.type === JSEPNode.LITERAL ? arg.value : undefined;
         if (aggregate === RollupAggregate.COUNT)
           return typeof value === 'number';
         if (aggregate === RollupAggregate.COUNTA)
@@ -122,7 +136,7 @@ function splitVariadicAggregate(
           type: JSEPNode.LITERAL,
           value: counted,
           raw: String(counted),
-        } as ParsedFormulaNode,
+        },
       ]);
     }
     case RollupAggregate.SUM:
@@ -1067,8 +1081,8 @@ export async function validateFormulaAndExtractTreeWithType({
   };
 
   const nodePosition = (node: ParsedFormulaNode) =>
-    (node as any).indexStart >= 0
-      ? { index: (node as any).indexStart, length: (node as any).nodeLength }
+    node.indexStart >= 0
+      ? { index: node.indexStart, length: node.nodeLength }
       : undefined;
 
   const isNumericLiteral = (node: ParsedFormulaNode) =>
@@ -1245,12 +1259,25 @@ export async function validateFormulaAndExtractTreeWithType({
           (aggregate || modifier) &&
           parsedTree.arguments?.some(hasFreeRollupValues)
         ) {
+          // nothing has written to `res` yet: hand over an equal call-typed copy
           return validateRollupCall(
             parsedTree,
-            res as CallExpressionNode,
+            { ...parsedTree },
             scope,
             aggregate,
             modifier
+          );
+        }
+        // SUM(foo): report the bad argument, not a missing SUM
+        if ((aggregate || modifier) && !formulas[calleeName]) {
+          // 'set' reports a nested aggregate (SUM(SUM(values))) as such
+          for (const arg of parsedTree.arguments ?? []) {
+            await validateAndExtract(arg, 'set');
+          }
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            { position: nodePosition(parsedTree) },
+            `${calleeName} must take \`values\`, e.g. ${calleeName}(values)`
           );
         }
       }
@@ -1361,6 +1388,37 @@ export async function validateFormulaAndExtractTreeWithType({
           })
         ));
       const argTypes = validateResult.map((v: any) => v.dataType);
+
+      // COUNT etc. on a list compile to a plain SQL aggregate on any database
+      if (
+        sqlUI?.getUnsupportedFnList().includes(calleeName) &&
+        !(
+          LIST_AGGREGATE_FUNCTIONS.includes(calleeName) &&
+          validateResult.length === 1 &&
+          validateResult[0].isDataArray
+        )
+      ) {
+        throw unsupportedFnError(calleeName, parsedTree);
+      }
+
+      // a custom check skips args.type below; the database can't cast a
+      // number or checkbox to a date (DATEADD(values, 1, "day") over Number)
+      if (
+        rollup &&
+        formulas[calleeName].validation?.custom &&
+        formulas[calleeName].validation?.args?.type === FormulaDataTypes.DATE &&
+        validateResult[0] &&
+        hasDataType(validateResult[0], [
+          FormulaDataTypes.NUMERIC,
+          FormulaDataTypes.BOOLEAN,
+        ])
+      ) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_ARG,
+          { position: nodePosition(parsedTree) },
+          `The first argument of ${calleeName} must be a date`
+        );
+      }
 
       // if validation function is present, call it
       if (formulas[calleeName].validation?.custom) {
@@ -1483,13 +1541,21 @@ export async function validateFormulaAndExtractTreeWithType({
           clientOrSqlUi,
         })
       );
+      // UNKNOWN would pass SUM and arithmetic
+      if (
+        res.dataType === FormulaDataTypes.UNKNOWN &&
+        rollup.valuesColumn.uidt !== undefined &&
+        TEXT_STORED_UIDTS.includes(rollup.valuesColumn.uidt)
+      ) {
+        res.dataType = FormulaDataTypes.STRING;
+      }
     } else if (rollup && parsedTree.type === JSEPNode.IDENTIFIER) {
       // as in Airtable, `values` is the only field a rollup formula reads
       throw new FormulaError(
         FormulaErrorType.INVALID_COLUMN,
         { position: nodePosition(parsedTree) },
         `A rollup formula can only reference \`values\`, not ${JSON.stringify(
-          (parsedTree as IdentifierNode).name
+          parsedTree.name
         )}`
       );
     } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
@@ -1609,13 +1675,16 @@ export async function validateFormulaAndExtractTreeWithType({
       } else if (parsedTree.operator === '-') {
         // `-x` is validated and built as `0 - x`, sharing the binary path
         const { argument, ...unaryFields } = parsedTree;
-        return validateAndExtract({
-          ...unaryFields,
-          type: JSEPNode.BINARY_EXP,
-          operator: '-',
-          left: { type: JSEPNode.LITERAL, value: 0, raw: '0' },
-          right: argument,
-        });
+        return validateAndExtract(
+          {
+            ...unaryFields,
+            type: JSEPNode.BINARY_EXP,
+            operator: '-',
+            left: { type: JSEPNode.LITERAL, value: 0, raw: '0' },
+            right: argument,
+          },
+          scope
+        );
       } else {
         throw new FormulaError(
           FormulaErrorType.NOT_SUPPORTED,
@@ -1645,6 +1714,29 @@ export async function validateFormulaAndExtractTreeWithType({
       } else if (
         ['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)
       ) {
+        // the database has no date/time = number comparison
+        const operands = [argsLeft, argsRight];
+        if (
+          rollup &&
+          operands.some((arg) =>
+            hasDataType(arg, [FormulaDataTypes.NUMERIC])
+          ) &&
+          operands.some((arg) =>
+            hasDataType(arg, [FormulaDataTypes.DATE, FormulaDataTypes.INTERVAL])
+          )
+        ) {
+          throw new FormulaError(
+            FormulaErrorType.TYPE_MISMATCH,
+            {
+              position:
+                nodePosition(parsedTree) ??
+                nodePosition(parsedTree.left) ??
+                nodePosition(parsedTree.right),
+              columnName: ROLLUP_VALUES_KEYWORD,
+            },
+            `A date or time can't be compared with a number using ${parsedTree.operator}`
+          );
+        }
         res.dataType = FormulaDataTypes.COND_EXP;
       } else if (parsedTree.operator === '+') {
         res.dataType = FormulaDataTypes.NUMERIC;
@@ -1669,6 +1761,33 @@ export async function validateFormulaAndExtractTreeWithType({
       } else if (['&'].includes(parsedTree.operator)) {
         res.dataType = FormulaDataTypes.STRING;
       } else {
+        // the database rejects text * number, which fails every read of the table
+        if (
+          rollup &&
+          [argsLeft, argsRight].some((arg) =>
+            hasDataType(arg, [
+              FormulaDataTypes.STRING,
+              FormulaDataTypes.DATE,
+              FormulaDataTypes.INTERVAL,
+            ])
+          )
+        ) {
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              position:
+                nodePosition(parsedTree) ??
+                nodePosition(parsedTree.left) ??
+                nodePosition(parsedTree.right),
+              // operands carry no index; underline `values` instead
+              columnName: ROLLUP_VALUES_KEYWORD,
+            },
+            `The ${parsedTree.operator} operator requires numeric values` +
+              (parsedTree.operator === '-'
+                ? '; use DATEADD for dates'
+                : '; use VALUE(values) for numbers stored as text')
+          );
+        }
         res.dataType = FormulaDataTypes.NUMERIC;
       }
 
@@ -1714,11 +1833,7 @@ export async function validateFormulaAndExtractTreeWithType({
           getRollupModifier(parsedFormula.callee.name) &&
           hasFreeRollupValues(parsedFormula)))
     ) {
-      parsedFormula = {
-        type: JSEPNode.CALL_EXP,
-        callee: { type: JSEPNode.IDENTIFIER, name: RollupAggregate.ARRAYJOIN },
-        arguments: [parsedFormula],
-      } as CallExpressionNode;
+      parsedFormula = rollupCall(RollupAggregate.ARRAYJOIN, [parsedFormula]);
     }
     // TODO: better jsep expression handling
     const result = await validateAndExtract(parsedFormula);

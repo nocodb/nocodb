@@ -142,24 +142,23 @@ describe('RollupHelper currency formatting', () => {
 });
 
 describe('getRollupFormulaDisplayColumn', () => {
-  const formulaRollup = (meta: Record<string, unknown>) =>
-    ({
-      id: 'r1',
-      uidt: UITypes.Rollup,
-      meta,
-      colOptions: {
-        rollup_function: 'formula',
-        parsed_tree: {
-          type: 'BinaryExpression',
-          dataType: 'numeric',
-        },
+  const formulaRollup = (meta: Record<string, unknown>): ColumnType => ({
+    id: 'r1',
+    uidt: UITypes.Rollup,
+    meta,
+    colOptions: {
+      rollup_function: 'formula',
+      parsed_tree: {
+        type: 'BinaryExpression',
+        dataType: 'numeric',
       },
-    } as any);
+    },
+  });
 
   it('renders a decimal result with two places by default', () => {
     const col = getRollupFormulaDisplayColumn(formulaRollup({}));
     expect(col.uidt).toBe(UITypes.Decimal);
-    expect((col.meta as any).precision).toBe(2);
+    expect(col.meta).toHaveProperty('precision', 2);
   });
 
   it('uses the format picked on the field', () => {
@@ -170,7 +169,7 @@ describe('getRollupFormulaDisplayColumn', () => {
       })
     );
     expect(col.uidt).toBe(UITypes.Currency);
-    expect((col.meta as any).currency_code).toBe('EUR');
+    expect(col.meta).toHaveProperty('currency_code', 'EUR');
   });
 });
 
@@ -189,10 +188,10 @@ describe('RollupHelper plain text of a rollup formula', () => {
           rollup_function: 'formula',
           parsed_tree: { type: 'CallExpression', dataType },
         },
-      } as any,
-      meta: { columns: [] } as any,
+      },
+      meta: { title: 'T', columns: [] },
       metas: {},
-    } as any);
+    });
 
   it('renders a checkbox result as Checked / Unchecked', () => {
     expect(plain(true, 'boolean')).toBe('Checked');

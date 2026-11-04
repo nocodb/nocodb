@@ -611,7 +611,7 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
 
   if (isRollupFormula(colOptions)) {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    return parsePlainCellValue(modelValue, { ...params, col: getRollupFormulaDisplayColumn(col, childColumn) }) as string
+    return parsePlainCellValue(modelValue, { ...params, col: getRollupFormulaDisplayColumn(col, childColumn) })
   }
 
   if (!childColumn) return modelValue?.toString() ?? ''

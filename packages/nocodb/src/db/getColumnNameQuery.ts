@@ -49,6 +49,8 @@ export async function getColumnNameQuery({
   ncMeta?: MetaService;
 }): Promise<{
   builder: Knex.QueryBuilder | Knex.Raw | string;
+  // a rollup that reads as the error sentinel
+  isError?: boolean;
 }> {
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {

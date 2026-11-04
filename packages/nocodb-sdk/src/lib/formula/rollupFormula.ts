@@ -5,6 +5,7 @@ import type {
   FormulaMeta,
   ParsedFormulaNode,
 } from './types';
+import type { RollupType } from '~/lib/Api';
 
 /** `rollup_function` value of a rollup whose aggregation is a formula over `values` */
 export const ROLLUP_FORMULA_FUNCTION = 'formula';
@@ -36,27 +37,40 @@ export enum RollupModifier {
   ARRAYFLATTEN = 'ARRAYFLATTEN',
 }
 
-const AGGREGATE_ALIASES: Record<string, RollupAggregate> = {
-  AVG: RollupAggregate.AVERAGE,
-  CONCAT: RollupAggregate.CONCATENATE,
-};
+const AGGREGATES_BY_NAME = new Map<string, RollupAggregate>([
+  ...Object.values(RollupAggregate).map(
+    (aggregate): [string, RollupAggregate] => [aggregate, aggregate]
+  ),
+  ['AVG', RollupAggregate.AVERAGE],
+  ['CONCAT', RollupAggregate.CONCATENATE],
+]);
+
+const MODIFIERS_BY_NAME = new Map<string, RollupModifier>(
+  Object.values(RollupModifier).map(
+    (modifier): [string, RollupModifier] => [modifier, modifier]
+  )
+);
 
 export const ROLLUP_ARRAYJOIN_DEFAULT_SEPARATOR = ', ';
 
 export function getRollupAggregate(name: string): RollupAggregate | undefined {
   const upper = name?.toUpperCase();
   if (!upper) return undefined;
-  if (upper in AGGREGATE_ALIASES) return AGGREGATE_ALIASES[upper];
-  return Object.values(RollupAggregate).includes(upper as RollupAggregate)
-    ? (upper as RollupAggregate)
-    : undefined;
+  return AGGREGATES_BY_NAME.get(upper);
 }
 
 export function getRollupModifier(name: string): RollupModifier | undefined {
-  const upper = name?.toUpperCase();
-  return Object.values(RollupModifier).includes(upper as RollupModifier)
-    ? (upper as RollupModifier)
-    : undefined;
+  return MODIFIERS_BY_NAME.get(name?.toUpperCase());
+}
+
+/**
+ * Narrows the `colOptions` of a column already known to be a rollup: the
+ * options union is untagged, and every RollupType field is optional.
+ */
+export function isRollupColOptions(
+  colOptions: unknown
+): colOptions is RollupType {
+  return typeof colOptions === 'object' && colOptions !== null;
 }
 
 export const isRollupFormula = (colOptions?: {
@@ -72,19 +86,14 @@ export function hasFreeRollupValues(node: ParsedFormulaNode): boolean {
   if (!node) return false;
   switch (node.type) {
     case JSEPNode.IDENTIFIER:
-      return (node as { name: string }).name === ROLLUP_VALUES_KEYWORD;
-    case JSEPNode.CALL_EXP: {
-      const call = node as CallExpressionNode;
-      if (getRollupAggregate(call.callee?.name)) return false;
-      return call.arguments?.some(hasFreeRollupValues) ?? false;
-    }
+      return node.name === ROLLUP_VALUES_KEYWORD;
+    case JSEPNode.CALL_EXP:
+      if (getRollupAggregate(node.callee?.name)) return false;
+      return node.arguments?.some(hasFreeRollupValues) ?? false;
     case JSEPNode.BINARY_EXP:
-      return (
-        hasFreeRollupValues((node as any).left) ||
-        hasFreeRollupValues((node as any).right)
-      );
+      return hasFreeRollupValues(node.left) || hasFreeRollupValues(node.right);
     case JSEPNode.UNARY_EXP:
-      return hasFreeRollupValues((node as any).argument);
+      return hasFreeRollupValues(node.argument);
     default:
       return false;
   }
@@ -98,17 +107,16 @@ export function extractRollupAggregates(
   const walk = (n: ParsedFormulaNode) => {
     if (!n) return;
     if (n.type === JSEPNode.CALL_EXP) {
-      const call = n as CallExpressionNode;
-      if (call.rollupAggregate) {
-        result.push(call);
+      if (n.rollupAggregate) {
+        result.push(n);
         return;
       }
-      call.arguments?.forEach(walk);
+      n.arguments?.forEach(walk);
     } else if (n.type === JSEPNode.BINARY_EXP) {
-      walk((n as any).left);
-      walk((n as any).right);
+      walk(n.left);
+      walk(n.right);
     } else if (n.type === JSEPNode.UNARY_EXP) {
-      walk((n as any).argument);
+      walk(n.argument);
     }
   };
   walk(node);
@@ -122,34 +130,28 @@ export function extractRollupAggregates(
 export function rollupFormulaKeepsTargetFormat(
   parsedTree?: ParsedFormulaNode
 ): boolean {
-  const call = parsedTree as CallExpressionNode;
-  if (call?.type !== JSEPNode.CALL_EXP || !call.rollupAggregate) return false;
+  if (parsedTree?.type !== JSEPNode.CALL_EXP || !parsedTree.rollupAggregate)
+    return false;
   if (
     ![
       RollupAggregate.SUM,
       RollupAggregate.AVERAGE,
       RollupAggregate.MIN,
       RollupAggregate.MAX,
-    ].includes(call.rollupAggregate as RollupAggregate)
+    ].includes(parsedTree.rollupAggregate)
   )
     return false;
   // the bare `values` (through modifiers), not a per-value expression
-  let arg = call.arguments?.[0] as ParsedFormulaNode;
-  while (
-    arg?.type === JSEPNode.CALL_EXP &&
-    (arg as CallExpressionNode).rollupModifier
-  ) {
-    arg = (arg as CallExpressionNode).arguments?.[0];
+  let arg: ParsedFormulaNode = parsedTree.arguments?.[0];
+  while (arg?.type === JSEPNode.CALL_EXP && arg.rollupModifier) {
+    arg = arg.arguments?.[0];
   }
-  return (
-    arg?.type === JSEPNode.IDENTIFIER &&
-    (arg as { name: string }).name === ROLLUP_VALUES_KEYWORD
-  );
+  return arg?.type === JSEPNode.IDENTIFIER && arg.name === ROLLUP_VALUES_KEYWORD;
 }
 
 // a function, not a module constant: helperFunctions imports this file and
 // UITypes imports helperFunctions, so UITypes can be unset at load time
-const integerTargetTypes = () => [
+const integerTargetTypes = (): string[] => [
   UITypes.Number,
   UITypes.Links,
   UITypes.Rating,
@@ -160,32 +162,29 @@ const integerTargetTypes = () => [
 
 /** Whether every value of a numeric rollup formula result is a whole number */
 export function isIntegerRollupFormula(parsedTree?: ParsedFormulaNode) {
-  const call = parsedTree as CallExpressionNode;
-  if (call?.type !== JSEPNode.CALL_EXP) return false;
+  if (parsedTree?.type !== JSEPNode.CALL_EXP) return false;
+  const aggregate = parsedTree.rollupAggregate;
   if (
     [
       RollupAggregate.COUNT,
       RollupAggregate.COUNTA,
       RollupAggregate.COUNTALL,
-    ].includes(call.rollupAggregate as RollupAggregate)
+    ].includes(aggregate)
   )
     return true;
   // MIN / MAX over text is always 0
   if (
-    [RollupAggregate.MIN, RollupAggregate.MAX].includes(
-      call.rollupAggregate as RollupAggregate
-    ) &&
-    (call.arguments?.[0] as ParsedFormulaNode)?.dataType ===
-      FormulaDataTypes.STRING
+    [RollupAggregate.MIN, RollupAggregate.MAX].includes(aggregate) &&
+    parsedTree.arguments?.[0]?.dataType === FormulaDataTypes.STRING
   )
     return true;
   // SUM / MIN / MAX of a whole-number field stays whole
   return (
     [RollupAggregate.SUM, RollupAggregate.MIN, RollupAggregate.MAX].includes(
-      call.rollupAggregate as RollupAggregate
+      aggregate
     ) &&
     rollupFormulaKeepsTargetFormat(parsedTree) &&
-    integerTargetTypes().includes(call.referencedColumn?.uidt as UITypes)
+    integerTargetTypes().includes(parsedTree.referencedColumn?.uidt)
   );
 }
 
@@ -203,23 +202,14 @@ export function getRollupResultUidt(column?: {
   uidt?: string;
   colOptions?: unknown;
 }): UITypes | undefined {
-  if (column?.uidt !== UITypes.Rollup) return undefined;
-  const colOptions = column.colOptions as
-    | {
-        rollup_function?: string;
-        parsed_tree?: ParsedFormulaNode;
-        result_uidt?: string;
-      }
-    | undefined;
+  const colOptions = column?.colOptions;
+  if (column?.uidt !== UITypes.Rollup || !isRollupColOptions(colOptions))
+    return undefined;
   if (isRollupFormula(colOptions)) {
-    return rollupFormulaResultUidt(colOptions?.parsed_tree);
+    return rollupFormulaResultUidt(colOptions.parsed_tree);
   }
-  if (
-    colOptions?.result_uidt === UITypes.Date ||
-    colOptions?.result_uidt === UITypes.DateTime
-  ) {
-    return colOptions.result_uidt;
-  }
+  if (colOptions.result_uidt === UITypes.Date) return UITypes.Date;
+  if (colOptions.result_uidt === UITypes.DateTime) return UITypes.DateTime;
   return undefined;
 }
 

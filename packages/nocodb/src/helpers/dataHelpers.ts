@@ -19,9 +19,8 @@ import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type { NcContext } from '~/interface/config';
-import type Column from '~/models/Column';
 import { NcError } from '~/helpers/catchError';
-import { Model, View } from '~/models';
+import { Column, Model, View } from '~/models';
 import Base from '~/models/Base';
 import {
   LIST_ARG_ALIASES,
@@ -141,16 +140,17 @@ export async function serializeCellValue(
       if (value === NC_ERROR_SENTINEL) return 'ERR!';
       // an export serializes every row of the same column object: resolve once
       if (!rollupDisplayColumns.has(column)) {
-        const rollupOptions =
-          (column.colOptions as RollupColumn) ??
-          (await column.getColOptions<RollupColumn>());
+        const rollupOptions: RollupColumn =
+          column.colOptions ?? (await column.getColOptions<RollupColumn>());
         rollupDisplayColumns.set(
           column,
           isRollupFormula(rollupOptions)
-            ? (getRollupFormulaDisplayColumn(
-                column,
-                (await rollupOptions.getRollupColumn()) as ColumnType,
-              ) as Column)
+            ? new Column(
+                getRollupFormulaDisplayColumn(
+                  column,
+                  await rollupOptions.getRollupColumn(),
+                ),
+              )
             : null,
         );
       }

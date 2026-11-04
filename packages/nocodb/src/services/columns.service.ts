@@ -78,6 +78,7 @@ import {
   ColumnWebhookManagerBuilder,
 } from '~/utils/column-webhook-manager';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import { execRollupDryRun, rollupDryRunMessage } from '~/db/rollupReadFallback';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -8106,8 +8107,9 @@ export class ColumnsService implements IColumnsService {
 
   /**
    * Build the rollup's SQL (catches circular references) and, for a formula
-   * rollup, run it on one row so a formula the database rejects fails the
-   * save rather than every later read.
+   * rollup, run it on every row, as Formula fields do, so a formula the
+   * database rejects fails the save. A row added later that fails is flagged
+   * by the read fallback.
    */
   async dryRunRollup(
     context: NcContext,
@@ -8119,27 +8121,14 @@ export class ColumnsService implements IColumnsService {
       baseModelSqlv2: baseModel,
       knex: baseModel.dbDriver,
       throwOnFormulaError: true,
-      columnOptions: columnOptions as RollupColumn,
+      columnOptions: setModelContext(new RollupColumn(columnOptions), context),
     });
     if (!isRollupFormula(columnOptions)) return;
 
-    const knex = baseModel.dbDriver;
     try {
-      await baseModel.execAndParse(
-        knex(baseModel.getTnPath(baseModel.model))
-          .select(knex.raw('(??) as ??', [builder, '__nc_dry_run']))
-          .limit(1, { skipBinding: true }),
-        null,
-        { raw: true },
-      );
+      await execRollupDryRun(baseModel, builder);
     } catch (e) {
-      const dbError = DBErrorExtractor.get().extractDbError(e, {
-        clientType: baseModel.clientType as ClientType,
-        ignoreDefault: true,
-      });
-      NcError.get(context).formulaError(
-        dbError?.message ?? 'The rollup formula could not be evaluated',
-      );
+      NcError.get(context).formulaError(rollupDryRunMessage(baseModel, e));
     }
   }
 

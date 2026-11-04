@@ -314,14 +314,15 @@ function handleDataTypes(
   if (filterType.value === null) {
     return { filter: filterType };
   }
+  const dateUidts: string[] = [
+    UITypes.Date,
+    UITypes.DateTime,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
+  ];
   if (
-    [
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-    ].includes(
-      (getRollupWhereUidt(column, filterType.value) ?? column.uidt) as UITypes
+    dateUidts.includes(
+      getRollupWhereUidt(column, filterType.value) ?? column.uidt
     ) &&
     filterType.value
   ) {

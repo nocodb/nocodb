@@ -371,7 +371,7 @@ async function getSampleColumnValue(
         if (resultUidt) {
           return getSampleColumnValue(
             context,
-            new Column({ ...column, uidt: resultUidt } as Column),
+            new Column({ ...column, uidt: resultUidt }),
           );
         }
         return 1;

@@ -1,32 +1,33 @@
 import { validateRowFilters } from './validate-row-filters';
 import UITypes from '../UITypes';
 import { FormulaDataTypes } from '../formula/enums';
-import { ColumnType } from '~/lib/Api';
+import { ColumnType, FilterType } from '~/lib/Api';
 
 // Row colouring evaluates these conditions in the browser on raw cell values,
 // whose shape differs by database (pg booleans vs 1/0, decimals as strings).
 const rollup = (
   dataType: FormulaDataTypes,
   extra: Record<string, unknown> = {}
-): ColumnType =>
-  ({
-    id: 'r1',
-    title: 'R',
-    uidt: UITypes.Rollup,
-    colOptions: {
-      rollup_function: 'formula',
-      parsed_tree: { type: 'CallExpression', dataType, ...extra },
-    },
-  } as ColumnType);
+): ColumnType => ({
+  id: 'r1',
+  title: 'R',
+  uidt: UITypes.Rollup,
+  colOptions: {
+    rollup_function: 'formula',
+    parsed_tree: { type: 'CallExpression', dataType, ...extra },
+  },
+});
+
+type Op = FilterType['comparison_op'];
 
 const matches = (
   column: ColumnType,
   value: unknown,
-  filter: Record<string, unknown>,
+  filter: FilterType,
   client = 'pg'
 ) =>
   validateRowFilters({
-    filters: [{ fk_column_id: 'r1', logical_op: 'and', ...filter } as any],
+    filters: [{ fk_column_id: 'r1', logical_op: 'and', ...filter }],
     data: { R: value },
     columns: [column],
     client,
@@ -40,7 +41,7 @@ describe('row colouring on formula rollups', () => {
   const text = rollup(FormulaDataTypes.STRING);
   const date = rollup(FormulaDataTypes.DATE);
 
-  it.each([
+  it.each<[unknown, Op, string | undefined, boolean]>([
     ['60.50', 'eq', '60.5', true],
     [60.5, 'eq', '60.5', true],
     ['60.50', 'neq', '60.5', false],
@@ -55,7 +56,7 @@ describe('row colouring on formula rollups', () => {
     ).toBe(expected);
   });
 
-  it.each([
+  it.each<[unknown, Op, boolean]>([
     [true, 'checked', true],
     [false, 'checked', false],
     [1, 'checked', true],
@@ -70,7 +71,7 @@ describe('row colouring on formula rollups', () => {
     expect(matches(bool, value, { comparison_op: op })).toBe(expected);
   });
 
-  it.each([
+  it.each<[unknown, Op, string | undefined, boolean]>([
     ['A, B', 'like', 'b', true],
     ['A, B', 'eq', 'A, B', true],
     ['A, B', 'nlike', 'z', true],
@@ -82,7 +83,7 @@ describe('row colouring on formula rollups', () => {
     ).toBe(expected);
   });
 
-  it.each([
+  it.each<[unknown, Op, string, boolean]>([
     ['2024-01-05', 'eq', '2024-01-05', true],
     ['2024-01-05T00:00:00.000Z', 'eq', '2024-01-05', true],
     ['2024-01-05 10:00:00+00:00', 'gt', '2024-01-01', true],

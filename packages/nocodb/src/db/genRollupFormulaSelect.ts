@@ -13,14 +13,13 @@ import {
   ROLLUP_VALUES_KEYWORD,
   RollupAggregate,
   RollupModifier,
+  SqlUiFactory,
   UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import type {
   CallExpressionNode,
   CircularRefContext,
-  ClientType,
-  ClientTypeOrSqlUI,
   ParsedFormulaNode,
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
@@ -150,12 +149,13 @@ export default async function genRollupFormulaSelect(params: {
     await model?.getColumns();
     return model;
   };
+  const sqlUi = SqlUiFactory.create({ client: refBaseModel.clientType });
   const currentValuesType = (
     await extractColumnIdentifierType({
       col: rollupColumn,
       columns: refModel.columns,
       getMeta,
-      clientOrSqlUi: refBaseModel.clientType as ClientTypeOrSqlUI,
+      clientOrSqlUi: sqlUi,
     })
   ).dataType;
   let parsedTree = columnOptions.parsed_tree;
@@ -164,7 +164,7 @@ export default async function genRollupFormulaSelect(params: {
       parsedTree = await validateFormulaAndExtractTreeWithType({
         formula: columnOptions.rollup_formula,
         columns: [],
-        clientOrSqlUi: refBaseModel.clientType as ClientTypeOrSqlUI,
+        clientOrSqlUi: sqlUi,
         getMeta,
         rollup: {
           valuesColumn: rollupColumn,
@@ -262,8 +262,10 @@ export default async function genRollupFormulaSelect(params: {
   }
   const leafAlias = hops.length ? hops[hops.length - 1].alias : refTableAlias;
 
-  const dbQueryClient = DBQueryClient.get(knex.clientType() as ClientType);
   const joinHops = async (qb: Knex.QueryBuilder) => {
+    // fromKnex throws on dialects without a query client; only hops need one
+    if (!hops.length) return;
+    const dbQueryClient = DBQueryClient.fromKnex(knex);
     let fromAlias = refTableAlias;
     for (const hop of hops) {
       const { relation, relationColumn, alias } = hop;
@@ -580,8 +582,12 @@ export default async function genRollupFormulaSelect(params: {
   const literalInteger = (node: ParsedFormulaNode) => {
     const value =
       node?.type === JSEPNode.UNARY_EXP && node.operator === '-'
-        ? -Number((node.argument as { value?: unknown })?.value)
-        : Number((node as { value?: unknown })?.value);
+        ? -Number(
+            node.argument?.type === JSEPNode.LITERAL
+              ? node.argument.value
+              : undefined,
+          )
+        : Number(node?.type === JSEPNode.LITERAL ? node.value : undefined);
     if (!Number.isInteger(value)) {
       NcError.get(context).formulaError(
         'ARRAYSLICE start and end must be whole numbers',
@@ -612,11 +618,8 @@ export default async function genRollupFormulaSelect(params: {
     const modifiers: { modifier: RollupModifier; node: CallExpressionNode }[] =
       [];
     let valueNode = node.arguments[0];
-    while (
-      valueNode?.type === JSEPNode.CALL_EXP &&
-      (valueNode as CallExpressionNode).rollupModifier
-    ) {
-      const modifierNode = valueNode as CallExpressionNode;
+    while (valueNode?.type === JSEPNode.CALL_EXP && valueNode.rollupModifier) {
+      const modifierNode = valueNode;
       const modifier = getRollupModifier(modifierNode.rollupModifier);
       if (!modifier) {
         NcError.get(context).formulaError(
@@ -661,7 +664,9 @@ export default async function genRollupFormulaSelect(params: {
     const separatorNode = node.arguments[1];
     const separator =
       aggregate === RollupAggregate.ARRAYJOIN && separatorNode
-        ? String((separatorNode as { value?: unknown }).value ?? '')
+        ? separatorNode.type === JSEPNode.LITERAL
+          ? String(separatorNode.value ?? '')
+          : ''
         : undefined;
 
     const scoped = await buildScope();
@@ -700,7 +705,9 @@ export default async function genRollupFormulaSelect(params: {
     // value (and link order) per linked record, then one derived table per modifier
     scope.select(knex.raw(escapeBindings(`${v} AS ${quote(VALUE_ALIAS)}`)));
     if (orderRef) {
-      scope.select(knex.raw(`${orderValue} AS ${quote(ORDER_ALIAS)}`));
+      scope.select(
+        knex.raw(escapeBindings(`${orderValue} AS ${quote(ORDER_ALIAS)}`)),
+      );
     }
     const columns = orderRef ? [VALUE_ALIAS, ORDER_ALIAS] : [VALUE_ALIAS];
     const valueRef = quote(VALUE_ALIAS);

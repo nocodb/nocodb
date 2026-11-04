@@ -67,14 +67,14 @@ watch(
 const colOptions = computed(() => column.value?.colOptions)
 
 const childColumn = computed(() => {
-  if (!column.value || !isRollup(column.value)) return ''
+  if (!column.value || !isRollupColOptions(column.value.uidt, column.value.colOptions)) return ''
 
-  const targetCol = relatedTableMeta.value?.columns?.find(
-    (c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id,
-  )
+  const rollupOptions = column.value.colOptions
+
+  const targetCol = relatedTableMeta.value?.columns?.find((c: ColumnType) => c.id === rollupOptions?.fk_rollup_column_id)
 
   // a formula rollup renders as its result type
-  if (isRollupFormula(colOptions.value as RollupType)) return getRollupFormulaDisplayColumn(column.value, targetCol)
+  if (isRollupFormula(rollupOptions)) return getRollupFormulaDisplayColumn(column.value, targetCol)
 
   // Partial/missing related meta (no access to the related base) — derive the type from the rollup
   const col = targetCol ?? (relatedMetaResolved.value ? getFallbackRollupColumn(column.value) : undefined)

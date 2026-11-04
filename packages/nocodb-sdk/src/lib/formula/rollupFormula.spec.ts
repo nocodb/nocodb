@@ -8,10 +8,31 @@ import {
   rollupFormulaKeepsTargetFormat,
   rollupFormulaResultUidt,
 } from './rollupFormula';
-import { formulaJsep } from './jsepInstances';
-import type { CallExpressionNode, ParsedFormulaNode } from './types';
+import type {
+  BinaryExpressionNode,
+  CallExpressionNode,
+  IdentifierNode,
+  LiteralNode,
+  ParsedFormulaNode,
+} from './types';
 import UITypes from '../UITypes';
 import { UnifiedMetaType } from '~/lib/types';
+
+function callNode(node: ParsedFormulaNode | undefined): CallExpressionNode {
+  if (node?.type !== JSEPNode.CALL_EXP) {
+    throw new Error(`expected a call, got ${node?.type}`);
+  }
+  return node;
+}
+
+function binaryNode(
+  node: ParsedFormulaNode | undefined
+): BinaryExpressionNode {
+  if (node?.type !== JSEPNode.BINARY_EXP) {
+    throw new Error(`expected a binary expression, got ${node?.type}`);
+  }
+  return node;
+}
 
 const col = (
   id: string,
@@ -32,12 +53,21 @@ const name = col('name', UITypes.SingleLineText, 'varchar');
 const due = col('due', UITypes.Date, 'date');
 const done = col('done', UITypes.Checkbox, 'boolean');
 
+// the linked table holding `values`
+const getMeta: UnifiedMetaType.IGetModel = async (_context, { id }) => ({
+  id,
+  title: id,
+  base_id: 'base1',
+  fk_workspace_id: 'ws1',
+  columns: [amount, name, due, done],
+});
+
 const validate = (formula: string, valuesColumn = amount) =>
   validateFormulaAndExtractTreeWithType({
     formula,
     columns: [],
     clientOrSqlUi: 'pg',
-    getMeta: async () => undefined as any,
+    getMeta,
     rollup: {
       valuesColumn,
       valuesColumns: [amount, name, due, done],
@@ -66,7 +96,7 @@ describe('rollup formula validation', () => {
   });
 
   it('marks aggregates with their canonical name', async () => {
-    const tree = (await validate('AVG(values)')) as CallExpressionNode;
+    const tree = callNode(await validate('AVG(values)'));
     expect(tree.rollupAggregate).toBe(RollupAggregate.AVERAGE);
   });
 
@@ -80,9 +110,7 @@ describe('rollup formula validation', () => {
   });
 
   it('allows per-value expressions inside an aggregate', async () => {
-    const tree = (await validate(
-      'SUM(IF(values > 10, values, 0))'
-    )) as CallExpressionNode;
+    const tree = callNode(await validate('SUM(IF(values > 10, values, 0))'));
     expect(tree.rollupAggregate).toBe(RollupAggregate.SUM);
     expect(tree.arguments[0].type).toBe(JSEPNode.CALL_EXP);
 
@@ -91,59 +119,60 @@ describe('rollup formula validation', () => {
   });
 
   it('treats MIN as a plain function when it has no free values', async () => {
-    const tree = (await validate(
-      'MIN(SUM(values), 100)'
-    )) as CallExpressionNode;
+    const tree = callNode(await validate('MIN(SUM(values), 100)'));
     expect(tree.rollupAggregate).toBeUndefined();
-    expect((tree.arguments[0] as CallExpressionNode).rollupAggregate).toBe(
+    expect(callNode(tree.arguments[0]).rollupAggregate).toBe(
       RollupAggregate.SUM
     );
   });
 
   it('chains modifiers inside an aggregate', async () => {
-    const tree = (await validate(
-      'ARRAYJOIN(ARRAYSLICE(ARRAYUNIQUE(ARRAYCOMPACT(values)), 1, -2), " | ")',
-      name
-    )) as CallExpressionNode;
-    const slice = tree.arguments[0] as CallExpressionNode;
+    const tree = callNode(
+      await validate(
+        'ARRAYJOIN(ARRAYSLICE(ARRAYUNIQUE(ARRAYCOMPACT(values)), 1, -2), " | ")',
+        name
+      )
+    );
+    const slice = callNode(tree.arguments[0]);
     expect(slice.rollupModifier).toBe('ARRAYSLICE');
-    expect((slice.arguments[0] as CallExpressionNode).rollupModifier).toBe(
+    expect(callNode(slice.arguments[0]).rollupModifier).toBe(
       'ARRAYUNIQUE'
     );
   });
 
   it('wraps a bare value set in ARRAYJOIN', async () => {
-    const bare = (await validate('values', name)) as CallExpressionNode;
+    const bare = callNode(await validate('values', name));
     expect(bare.rollupAggregate).toBe(RollupAggregate.ARRAYJOIN);
 
-    const unique = (await validate(
-      'ARRAYUNIQUE(values)',
-      name
-    )) as CallExpressionNode;
+    const unique = callNode(await validate('ARRAYUNIQUE(values)', name));
     expect(unique.rollupAggregate).toBe(RollupAggregate.ARRAYJOIN);
-    expect((unique.arguments[0] as CallExpressionNode).rollupModifier).toBe(
+    expect(callNode(unique.arguments[0]).rollupModifier).toBe(
       'ARRAYUNIQUE'
     );
   });
 
   it('reads values outside an aggregate as joined text, as Airtable does', async () => {
-    const tree = (await validate('"Total: " & values')) as any;
+    const tree = binaryNode(await validate('"Total: " & values'));
     expect(tree.dataType).toBe(FormulaDataTypes.STRING);
-    expect(tree.right.rollupAggregate).toBe(RollupAggregate.CONCATENATE);
+    expect(callNode(tree.right).rollupAggregate).toBe(
+      RollupAggregate.CONCATENATE
+    );
 
-    const len = (await validate('LEN(ARRAYUNIQUE(values))', name)) as any;
-    expect(len.arguments[0].rollupAggregate).toBe(RollupAggregate.CONCATENATE);
+    const len = callNode(await validate('LEN(ARRAYUNIQUE(values))', name));
+    expect(callNode(len.arguments[0]).rollupAggregate).toBe(
+      RollupAggregate.CONCATENATE
+    );
   });
 
   it('splits variadic aggregates', async () => {
-    const sum = (await validate('SUM(values, 10)')) as CallExpressionNode;
+    const sum = callNode(await validate('SUM(values, 10)'));
     expect(sum.callee.name).toBe('ADD');
-    expect((sum.arguments[0] as CallExpressionNode).rollupAggregate).toBe(
+    expect(callNode(sum.arguments[0]).rollupAggregate).toBe(
       RollupAggregate.SUM
     );
-    const max = (await validate('MAX(0, values)')) as CallExpressionNode;
+    const max = callNode(await validate('MAX(0, values)'));
     expect(max.rollupAggregate).toBeUndefined();
-    expect((max.arguments[1] as CallExpressionNode).rollupAggregate).toBe(
+    expect(callNode(max.arguments[1]).rollupAggregate).toBe(
       RollupAggregate.MAX
     );
   });
@@ -163,15 +192,104 @@ describe('rollup formula validation', () => {
       await expect(validate(formula, valuesColumn)).rejects.toThrow();
     }
   });
+
+  it('rejects arithmetic the database would refuse, with a position', async () => {
+    const time = col('time', UITypes.Time, 'time');
+    for (const [formula, valuesColumn] of [
+      ['SUM(values * 2)', name],
+      ['SUM(values - 1)', due],
+      ['MAX(values) * 2', time],
+    ] as const) {
+      await expect(
+        validateFormulaAndExtractTreeWithType({
+          formula,
+          columns: [],
+          clientOrSqlUi: 'pg',
+          getMeta,
+          trackPosition: true,
+          rollup: { valuesColumn, valuesColumns: [valuesColumn] },
+        })
+      ).rejects.toMatchObject({
+        message: expect.stringMatching(/operator requires numeric values/),
+        extra: { position: expect.anything() },
+      });
+    }
+  });
+
+  it('keeps numeric arithmetic and negation', async () => {
+    for (const formula of [
+      'SUM(-values)',
+      'SUM(ABS(-values))',
+      'SUM(values * 2)',
+      'SUM(values) / COUNTA(values)',
+    ]) {
+      expect((await validate(formula)).dataType).toBe(FormulaDataTypes.NUMERIC);
+    }
+    const range = await validate('MAX(values) - MIN(values)', due);
+    expect(range.dataType).toBe(FormulaDataTypes.NUMERIC);
+    const length = await validate('MIN(values) * 2', name);
+    expect(length.dataType).toBe(FormulaDataTypes.NUMERIC);
+  });
+
+  it('rejects what the database cannot evaluate over the values type', async () => {
+    const json = col('meta', UITypes.JSON, 'jsonb');
+    const at = col('at', UITypes.DateTime, 'timestamp');
+    for (const [formula, valuesColumn] of [
+      ['SUM(values)', json],
+      ['SUM(values * 2)', json],
+      ['MAX(values) > 1', due],
+      ['OR(values > 1)', at],
+      ['SUM(IF(values > 1, 1, 0))', at],
+      ['MAX(DATEADD(values, 1, "day"))', amount],
+      ['MAX(DATEADD(values, 1, "day"))', done],
+    ] as const) {
+      await expect(validate(formula, valuesColumn)).rejects.toThrow();
+    }
+    // still valid
+    for (const [formula, valuesColumn] of [
+      ['ARRAYJOIN(values)', json],
+      ['MAX(values) > "2024-01-01"', due],
+      ['MAX(DATEADD(values, 1, "day"))', due],
+      ['OR(values > 10)', amount],
+    ] as const) {
+      await expect(validate(formula, valuesColumn)).resolves.toBeDefined();
+    }
+  });
+
+  it('names the argument an aggregate is missing', async () => {
+    await expect(validate('SUM(foo)')).rejects.toThrow(/foo/);
+    await expect(validate('SUM(1)')).rejects.toThrow(/must take `values`/);
+    await expect(validate('SUM(SUM(values))')).rejects.toThrow(
+      /inside another aggregate/
+    );
+  });
 });
 
 describe('rollup formula helpers', () => {
-  const parse = (f: string) => formulaJsep(f) as unknown as ParsedFormulaNode;
+  const values: IdentifierNode = {
+    type: JSEPNode.IDENTIFIER,
+    name: 'values',
+    raw: 'values',
+  };
+  const two: LiteralNode = { type: JSEPNode.LITERAL, value: 2, raw: '2' };
+  const call = (name: string, ...args: ParsedFormulaNode[]) =>
+    ({
+      type: JSEPNode.CALL_EXP,
+      callee: { type: JSEPNode.IDENTIFIER, name },
+      arguments: args,
+    } satisfies CallExpressionNode);
+  const times = (left: ParsedFormulaNode, right: ParsedFormulaNode) =>
+    ({
+      type: JSEPNode.BINARY_EXP,
+      operator: '*',
+      left,
+      right,
+    } satisfies BinaryExpressionNode);
 
   it('finds free values', () => {
-    expect(hasFreeRollupValues(parse('values * 2'))).toBe(true);
-    expect(hasFreeRollupValues(parse('SUM(values) * 2'))).toBe(false);
-    expect(hasFreeRollupValues(parse('ARRAYUNIQUE(values)'))).toBe(true);
+    expect(hasFreeRollupValues(times(values, two))).toBe(true);
+    expect(hasFreeRollupValues(times(call('SUM', values), two))).toBe(false);
+    expect(hasFreeRollupValues(call('ARRAYUNIQUE', values))).toBe(true);
   });
 
   it('resolves the display type', async () => {

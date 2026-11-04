@@ -22,7 +22,7 @@ export const jsepIndexHook = {
         // because arguments are always at the right side, we start from earliest argument
         lastIndex = env.node.arguments
           .map((k) => k.indexStart)
-          .filter((k) => k)
+          .filter((k) => k >= 0)
           .reduce((acc, cur) => (acc < cur ? acc : cur), lastIndex);
       }
       // get the last index of needle

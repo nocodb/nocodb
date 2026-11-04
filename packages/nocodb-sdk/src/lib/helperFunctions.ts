@@ -8,7 +8,11 @@ import {
   LinkToAnotherRecordType,
 } from './Api';
 import { FormulaDataTypes } from './formula/enums';
-import { getRollupResultUidt } from './formula/rollupFormula';
+import {
+  getRollupResultUidt,
+  isRollupColOptions,
+  isRollupFormula,
+} from './formula/rollupFormula';
 import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
 // import {RelationTypes} from "./globals";
@@ -68,9 +72,9 @@ const getAvailableRollupForColumn = (column: ColumnType) => {
   // a formula rollup aggregates as its result type, like a formula
   const isFormulaRollup =
     column.uidt === UITypes.Rollup &&
-    (column.colOptions as { rollup_function?: string })?.rollup_function ===
-      'formula';
-  if (isFormulaRollup || [UITypes.Formula].includes(column.uidt as UITypes)) {
+    isRollupColOptions(column.colOptions) &&
+    isRollupFormula(column.colOptions);
+  if (isFormulaRollup || column.uidt === UITypes.Formula) {
     return getAvailableRollupForFormulaType(
       (column.colOptions as FormulaType as any)?.parsed_tree?.dataType ??
         FormulaDataTypes.UNKNOWN
@@ -208,10 +212,12 @@ const isRollupAggregatableColumn = (
 const isRollupFormulaTargetColumn = (
   col: UITypes | { uidt: UITypes | string }
 ) => {
-  const uidt = (typeof col === 'object' ? col?.uidt : col) as UITypes;
+  const uidt = typeof col === 'object' ? col?.uidt : col;
   return (
-    isRollupAggregatableColumn(uidt) ||
-    [UITypes.Links, UITypes.Lookup, UITypes.LinkToAnotherRecord].includes(uidt)
+    isRollupAggregatableColumn(col) ||
+    uidt === UITypes.Links ||
+    uidt === UITypes.Lookup ||
+    uidt === UITypes.LinkToAnotherRecord
   );
 };
 

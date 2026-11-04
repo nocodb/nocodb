@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import type {
-  ColumnType,
-  FormulaType,
-  LinkToAnotherRecordType,
-  ParsedFormulaNode,
-  RollupType,
-  TableType,
-  UnifiedMetaType,
-} from 'nocodb-sdk'
+import type { RuleObject } from 'ant-design-vue/es/form'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, ParsedFormulaNode, TableType, UnifiedMetaType } from 'nocodb-sdk'
 import {
   ColumnHelper,
   FormulaDataTypes,
@@ -128,7 +121,8 @@ const columns = computed<ColumnType[]>(() => {
 
   // a formula rollup also reads Links counts and flattens Lookup / LinkToAnotherRecord fields
   return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns?.filter(
-    (c: ColumnType) => getValidRollupColumn(c) || (isRollupFormulaTargetColumn(c as { uidt: UITypes }) && !isSystemColumn(c)),
+    (c: ColumnType) =>
+      getValidRollupColumn(c) || (!!c.uidt && isRollupFormulaTargetColumn({ uidt: c.uidt }) && !isSystemColumn(c)),
   )
 })
 
@@ -189,10 +183,14 @@ const onRelationColChange = async () => {
   if (selectedTable.value) {
     await getMeta({ baseId: selectedTable.value.base_id, tableIdOrTitle: selectedTable.value.id })
   }
-  const usedTargetIds = (meta.value?.columns || [])
-    .filter((c) => c.uidt === UITypes.Rollup)
-    .map((c) => (c.colOptions as RollupType)?.fk_rollup_column_id)
-  vModel.value.fk_rollup_column_id = pickDefaultRollupTargetId(columns.value || [], usedTargetIds, getValidRollupColumn)
+  const usedTargetIds = (meta.value?.columns || []).flatMap((c) =>
+    isRollupColOptions(c.uidt, c.colOptions) ? [c.colOptions?.fk_rollup_column_id] : [],
+  )
+  vModel.value.fk_rollup_column_id = pickDefaultRollupTargetId(
+    columns.value || [],
+    usedTargetIds,
+    (c) => !!getValidRollupColumn(c),
+  )
   onDataTypeChange()
 }
 
@@ -202,17 +200,19 @@ const availableRollupPerColumn = computed(() => {
   const fnMap: Record<string, { text: string; value: string }[]> = {}
   columns.value?.forEach((column) => {
     if (!column?.id) return
-    fnMap[column.id] = rollupAllFunctions
-      .map((obj) => {
-        return {
-          ...obj,
-          text: t(obj.text),
-        }
-      })
-      // links and lookups take only a formula
-      .filter((func) => getValidRollupColumn(column) && getAvailableRollupForColumn(column).includes(func.value))
-    // a formula can aggregate any field
-    fnMap[column.id].push({ text: t('datatype.Formula'), value: ROLLUP_FORMULA_FUNCTION })
+    fnMap[column.id] = [
+      ...rollupAllFunctions
+        .map((obj) => {
+          return {
+            ...obj,
+            text: t(obj.text),
+          }
+        })
+        // links and lookups take only a formula
+        .filter((func) => getValidRollupColumn(column) && getAvailableRollupForColumn(column).includes(func.value)),
+      // a formula can aggregate any field
+      { text: t('datatype.Formula'), value: ROLLUP_FORMULA_FUNCTION },
+    ]
   })
   return fnMap
 })
@@ -224,18 +224,21 @@ const relatedTableColumns = computed<ColumnType[]>(() => {
   return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns || []
 })
 
-function extractRollupFormulaTree(formula: string) {
+// `baseId`: the linked table's base, which its columns belong to
+function extractRollupFormulaTree(formula: string, target: ColumnType, baseId: string) {
+  const toMetaColumn = (c: ColumnType): UnifiedMetaType.IColumn => ({ ...c, base_id: baseId })
+  const valuesColumn = toMetaColumn(target)
   return validateFormulaAndExtractTreeWithType({
     formula,
     // gives the validator a base/table to resolve metas from
-    column: rollupTargetColumn.value as UnifiedMetaType.IColumn,
+    column: valuesColumn,
     columns: [],
     clientOrSqlUi: sqlUi.value,
     getMeta: validateFormulaGetMeta(getMeta),
     trackPosition: true,
     rollup: {
-      valuesColumn: rollupTargetColumn.value as UnifiedMetaType.IColumn,
-      valuesColumns: relatedTableColumns.value as UnifiedMetaType.IColumn[],
+      valuesColumn,
+      valuesColumns: relatedTableColumns.value.map(toMetaColumn),
     },
   })
 }
@@ -246,13 +249,16 @@ const validationTracker = createLatestCallTracker()
 async function validateRollupFormula(formula?: string) {
   if (!isFormulaMode.value) return
   if (!formula?.trim()) throw new Error(t('general.required'))
-  if (!rollupTargetColumn.value) return
+  const target = rollupTargetColumn.value
+  const table = selectedTable.value
+  if (!target || !table) return
   const token = validationTracker.start()
   try {
-    await extractRollupFormulaTree(formula)
+    await extractRollupFormulaTree(formula, target, table.base_id)
     if (validationTracker.isLatest(token)) editorError.value = { ...defaultEditorError }
-  } catch (e: any) {
-    const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
+  } catch (e: unknown) {
+    const errorMessage =
+      e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e instanceof Error ? e.message : String(e)
     if (validationTracker.isLatest(token)) {
       editorError.value =
         e instanceof FormulaError && e.extra?.position
@@ -264,7 +270,7 @@ async function validateRollupFormula(formula?: string) {
 }
 
 setAdditionalValidations({
-  rollup_formula: [{ validator: (_: any, formula: string) => validateRollupFormula(formula) }],
+  rollup_formula: [{ validator: (_rule: RuleObject, formula?: string) => validateRollupFormula(formula) }],
 })
 
 const treeTracker = createLatestCallTracker()
@@ -274,9 +280,11 @@ const deriveFormulaTree = useDebounceFn(async () => {
   const formula = vModel.value.rollup_formula
   // started first: a derivation still in flight must not land after this
   const token = treeTracker.start()
-  if (!isFormulaMode.value || !formula?.trim() || !rollupTargetColumn.value) return
+  const target = rollupTargetColumn.value
+  const table = selectedTable.value
+  if (!isFormulaMode.value || !formula?.trim() || !target || !table) return
   try {
-    const tree = await extractRollupFormulaTree(formula)
+    const tree = await extractRollupFormulaTree(formula, target, table.base_id)
     if (treeTracker.isLatest(token)) formulaParsedTree.value = tree
   } catch {
     if (treeTracker.isLatest(token)) formulaParsedTree.value = undefined
@@ -289,8 +297,8 @@ watch([() => vModel.value.rollup_formula, () => vModel.value.fk_rollup_column_id
 function defaultRollupFormula() {
   const target = rollupTargetColumn.value
   // formulas and formula rollups go by their result type
-  const resultType = (target?.colOptions as FormulaType)?.parsed_tree?.dataType
-  const isNumeric = resultType ? resultType === FormulaDataTypes.NUMERIC : isNumericCol(target?.uidt as UITypes)
+  const resultType = getColumnParsedTree(target)?.dataType
+  const isNumeric = resultType ? resultType === FormulaDataTypes.NUMERIC : !!target?.uidt && isNumericCol({ uidt: target.uidt })
   return isNumeric ? 'SUM(values)' : 'ARRAYJOIN(values)'
 }
 
@@ -358,6 +366,17 @@ watch(
   },
 )
 
+// the linked table's meta can load after the formula was checked without it
+watch(
+  () => [rollupTargetColumn.value?.id, rollupTargetColumn.value?.uidt],
+  ([id], [prevId]) => {
+    if (!isFormulaMode.value || !id || !vModel.value.rollup_formula) return
+    deriveFormulaTree()
+    // a switch of the rolled-up field is validated by the watcher above
+    if (prevId === undefined || id === prevId) validate('rollup_formula').catch(() => {})
+  },
+)
+
 watch(
   () => vModel.value.fk_relation_column_id,
   (newValue) => {
@@ -392,9 +411,10 @@ if (!vModel.value.meta.separator) {
 
 // formats a formula result can take, as offered for formula fields
 const rollupFormulaFormats = computed(() => {
-  if (!isFormulaMode.value || !formulaParsedTree.value?.dataType) return []
+  const dataType = formulaParsedTree.value?.dataType
+  if (!isFormulaMode.value || !dataType) return []
   try {
-    return getUITypesForFormulaDataType(formulaParsedTree.value.dataType as FormulaDataTypes).map((uidt) => ({
+    return getUITypesForFormulaDataType(dataType).map((uidt) => ({
       value: uidt,
       label: t(`datatype.${uidt}`),
       icon: h(resolveComponent('SmartsheetHeaderIcon'), { column: { uidt } }),

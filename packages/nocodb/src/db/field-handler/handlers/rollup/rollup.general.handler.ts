@@ -131,14 +131,12 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
             ? +filter.value
             : filter.value;
         return options.fieldHandler.applyFilter(
-          value === filter.value
-            ? filter
-            : new Filter({ ...filter, value } as Partial<Filter>),
+          value === filter.value ? filter : new Filter({ ...filter, value }),
           setModelContext(
-            new Column({ ...column, uidt: resultUidt } as ColumnType),
+            new Column({ ...column, uidt: resultUidt }),
             column.context,
           ),
-          { ...options, customWhereClause: expression as any },
+          { ...options, customWhereClause: expression },
         );
       }
       if (resultUidt === UITypes.SingleLineText) {
@@ -175,10 +173,10 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
               filter.value ??
                 (['like', 'nlike'].includes(filter.comparison_op) ? '' : null),
             ]),
-          } as any),
+          }),
           aliasCount,
           alias,
-          expression as any,
+          expression,
         );
       }
     }
@@ -200,12 +198,12 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
           ? +filter.value
           : filter.value;
       return options.fieldHandler.applyFilter(
-        new Filter({ ...filter, value } as Partial<Filter>),
+        new Filter({ ...filter, value }),
         setModelContext(
-          new Column({ ...column, uidt: UITypes.Decimal } as ColumnType),
+          new Column({ ...column, uidt: UITypes.Decimal }),
           column.context,
         ),
-        { ...options, customWhereClause: knex.raw('(?)', [builder]) as any },
+        { ...options, customWhereClause: knex.raw('(?)', [builder]) },
       );
     }
 

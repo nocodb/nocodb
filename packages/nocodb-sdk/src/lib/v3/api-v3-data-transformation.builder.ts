@@ -5,7 +5,11 @@ import UITypes, {
   ratingIconList,
 } from '~/lib/UITypes';
 import { LongTextAiMetaProp, VIEW_GRID_DEFAULT_WIDTH } from '~/lib/globals';
-import { ROLLUP_FORMULA_FUNCTION } from '~/lib/formula/rollupFormula';
+import {
+  isRollupColOptions,
+  isRollupFormula,
+  ROLLUP_FORMULA_FUNCTION,
+} from '~/lib/formula/rollupFormula';
 import {
   resolveColumnSeparator,
   SeparatorType,
@@ -619,10 +623,11 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
     // whole options object into meta, so a stale meta.formula would otherwise
     // read back on a rollup that no longer is a formula
     if (data.type === UITypes.Rollup) {
-      const rollupOptions = data.colOptions as
-        | { rollup_function?: string; rollup_formula?: string }
-        | undefined;
-      if (rollupOptions?.rollup_function === ROLLUP_FORMULA_FUNCTION) {
+      const rollupOptions = data.colOptions;
+      if (
+        isRollupColOptions(rollupOptions) &&
+        isRollupFormula(rollupOptions)
+      ) {
         options.formula = rollupOptions.rollup_formula;
       } else {
         delete options.formula;

@@ -138,7 +138,6 @@ import {
   getBaseModelSqlFromModelId,
   getCompositePkValue,
   getListArgs,
-  haveFormulaColumn,
   isDataAuditEnabled as isDataAuditEnabledFn,
   isPrimitiveType,
   linkedRecordColumnIds,
@@ -203,6 +202,10 @@ import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { StageTimer } from '~/helpers/stageTimer';
+import {
+  flagFailingRollups,
+  shouldRetryFailedRead,
+} from '~/db/rollupReadFallback';
 import {
   isExternalSourceError,
   isTransientError,
@@ -545,7 +548,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         skipFormulaRetry ||
         validateFormula ||
-        !haveFormulaColumn(await this.model.getColumns())
+        !(await shouldRetryFailedRead(this, await this.model.getColumns()))
       )
         throw e;
       logger.log(e);
@@ -872,7 +875,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } catch (e) {
       const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
+      if (
+        skipFormulaRetry ||
+        validateFormula ||
+        !(await shouldRetryFailedRead(this, columns))
+      )
         throw e;
       logger.log(e);
       return this.findOne(args, true);
@@ -1129,14 +1136,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } catch (e) {
       const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
+      if (
+        skipFormulaRetry ||
+        validateFormula ||
+        !(await shouldRetryFailedRead(this, columns))
+      )
         throw e;
       logger.log(e);
-      return this.list(args, {
-        ignoreViewFilterAndSort,
-        ignorePagination,
-        validateFormula: true,
-      });
+      return this.list(args, { ...options, validateFormula: true });
     }
 
     return data?.map((d) => {
@@ -1155,6 +1162,38 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     ignoreViewFilterAndSort = false,
     throwErrorIfInvalidParams = false,
   ): Promise<any> {
+    try {
+      return await this.countRecords(
+        args,
+        ignoreViewFilterAndSort,
+        throwErrorIfInvalidParams,
+      );
+    } catch (e) {
+      // a filter on a formula rollup that fails on the data matches no rows once flagged
+      if (
+        isTransientError(e) ||
+        isExternalSourceError(e) ||
+        !(await flagFailingRollups(this, await this.model.getColumns()))
+      )
+        throw e;
+      return await this.countRecords(
+        args,
+        ignoreViewFilterAndSort,
+        throwErrorIfInvalidParams,
+      );
+    }
+  }
+
+  private async countRecords(
+    args: {
+      where?: string;
+      limit?;
+      filterArr?: Filter[];
+      customConditions?: Filter[];
+    },
+    ignoreViewFilterAndSort: boolean,
+    throwErrorIfInvalidParams: boolean,
+  ): Promise<number | string | undefined> {
     const columns = await this.model.getColumns();
     const { where } = this._getListArgs(args);
 
@@ -1356,7 +1395,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ],
       };
     }
-    return await baseModelGroupBy(this, logger).list(args);
+    try {
+      return await baseModelGroupBy(this, logger).list(args);
+    } catch (e) {
+      // a formula rollup that fails on the data groups as an error once flagged
+      if (
+        isTransientError(e) ||
+        isExternalSourceError(e) ||
+        !(await flagFailingRollups(this, await this.model.getColumns()))
+      )
+        throw e;
+      return await baseModelGroupBy(this, logger).list(args);
+    }
   }
 
   async groupByCount(args: {
@@ -1382,7 +1432,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ],
       };
     }
-    return await baseModelGroupBy(this, logger).count(args);
+    try {
+      return await baseModelGroupBy(this, logger).count(args);
+    } catch (e) {
+      if (
+        isTransientError(e) ||
+        isExternalSourceError(e) ||
+        !(await flagFailingRollups(this, await this.model.getColumns()))
+      )
+        throw e;
+      return await baseModelGroupBy(this, logger).count(args);
+    }
   }
 
   // #region relation list count part 1

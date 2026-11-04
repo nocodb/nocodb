@@ -5,11 +5,11 @@ import {
   isRollupFormula,
   MetaEventType,
   ROLLUP_FORMULA_FUNCTION,
+  SqlUiFactory,
   UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import type {
-  ClientTypeOrSqlUI,
   NcContext,
   ParsedFormulaNode,
   RollupColumnReqType,
@@ -125,7 +125,7 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     },
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const newCol = (param.newEntity ?? param.oldEntity) as Column;
+    const newCol: Column = param.newEntity ?? param.oldEntity;
     if (!newCol?.id) return;
 
     try {
@@ -333,7 +333,7 @@ export class ColumnUpdateRollupFormulaDependencyHandler
         formula: colOptions.formula,
         columns: tableColumns,
         column: formula,
-        clientOrSqlUi: source.type as ClientTypeOrSqlUI,
+        clientOrSqlUi: SqlUiFactory.create({ client: source.type }),
         getMeta: async (metaContext, { id }) => {
           const related = await Model.get(metaContext, id, false, ncMeta);
           await related?.getColumns(ncMeta);
@@ -454,7 +454,7 @@ export class ColumnUpdateRollupFormulaDependencyHandler
           action: 'column_update',
           payload: { table: model, column: {}, skipDataReload: true },
         },
-      } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
+      });
     }
   }
 }

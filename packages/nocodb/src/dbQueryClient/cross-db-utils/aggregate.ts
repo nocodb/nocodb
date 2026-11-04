@@ -8,6 +8,12 @@ import type { Knex } from 'knex';
 import type { NcContext } from '~/interface/config';
 import type { Column, View } from '~/models';
 import type { AggregateCtx, DBQueryClient } from '~/dbQueryClient/types';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { flagFailingRollups } from '~/db/rollupReadFallback';
+import {
+  isExternalSourceError,
+  isTransientError,
+} from '~/helpers/db-error/utils';
 import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import conditionV2 from '~/db/conditionV2';
 import { Filter, GridViewColumn, Model } from '~/models';
@@ -101,17 +107,18 @@ export function withResultKeys(
 /**
  * Shared, dialect-agnostic single-filter-set aggregation orchestration.
  */
-export const aggregate =
-  (_client: DBQueryClient, logger?: Logger) =>
-  async (
+export const aggregate = (_client: DBQueryClient, logger?: Logger) => {
+  const run = async (
     context: NcContext,
     ctx: AggregateCtx,
+    retried = false,
   ): Promise<Record<string, unknown>> => {
     const { model, view, source, args } = ctx;
+    let baseModel: BaseModelSqlv2 | undefined;
 
     try {
       const knex = await NcConnectionMgrv2.get(source);
-      const baseModel = await Model.getBaseModelSQL(context, {
+      baseModel = await Model.getBaseModelSQL(context, {
         id: model.id,
         viewId: view?.id,
         dbDriver: knex,
@@ -231,10 +238,22 @@ export const aggregate =
 
       return result;
     } catch (e) {
+      // a formula rollup that fails on the data aggregates as an error once flagged
+      if (
+        !retried &&
+        baseModel &&
+        !isTransientError(e) &&
+        !isExternalSourceError(e) &&
+        (await flagFailingRollups(baseModel, await model.getColumns()))
+      ) {
+        return run(context, ctx, true);
+      }
       logger?.error?.((e as Error).message, (e as Error).stack);
       throw e;
     }
   };
+  return (context: NcContext, ctx: AggregateCtx) => run(context, ctx);
+};
 
 /**
  * Resolve the `(column, aggregation-type)` pairs to compute. Shared by both

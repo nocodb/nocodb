@@ -95,6 +95,11 @@ const concatenateValues = (node: ParsedFormulaNode) =>
  * counts one aggregate); a callee with no scalar version, or `perValue`, then
  * reads them per value (SUM(MAX(values, 0))).
  */
+// SUM aggregates `values` in a rollup; its plain formula form is not read there
+const hasScalarVersion = (name: string) =>
+  name !== RollupAggregate.SUM &&
+  !!(formulas[name] || ROLLUP_SCALAR_ALIASES[name]);
+
 function valueSetArgIndexes(
   node: CallExpressionNode,
   scope: RollupScope,
@@ -107,11 +112,7 @@ function valueSetArgIndexes(
   if (scope !== 'outer') return indexes(true);
   const outer = indexes(false);
   const name = node.callee.name.toUpperCase();
-  if (
-    outer.length ||
-    (!perValue && (formulas[name] || ROLLUP_SCALAR_ALIASES[name]))
-  )
-    return outer;
+  if (outer.length || (!perValue && hasScalarVersion(name))) return outer;
   return indexes(true);
 }
 
@@ -1363,7 +1364,7 @@ export async function validateFormulaAndExtractTreeWithType({
           );
         }
         // SUM(foo): report the bad argument, not a missing SUM
-        if ((aggregate || modifier) && !formulas[calleeName]) {
+        if ((aggregate || modifier) && !hasScalarVersion(calleeName)) {
           // 'set' reports a nested aggregate (SUM(SUM(values))) as such
           for (const arg of parsedTree.arguments ?? []) {
             await validateAndExtract(arg, 'set');

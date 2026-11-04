@@ -685,19 +685,18 @@ async function resolveDotPathMenu(match: FormulaDotPathMatch) {
   if (isRollupMode.value) {
     if (match.segments.length) return null
     const partial = match.partial.toLowerCase()
-    return {
-      sections: [
-        {
-          key: 'fields',
-          title: t('objects.fields'),
-          items: supportedColumns.value
-            .filter((c) => c.title!.toLowerCase().includes(partial))
-            .map((c) => ({ key: `field:${c.id}`, kind: 'field', label: c.title!, hint: dotPathFieldHint(c), column: c })),
-        },
-        { key: 'functions', title: t('labels.formulaDotPath.functions'), items: functionMenuItems(availableFunctions.value, partial) },
-      ] as DotPathMenuSection[],
-      isListContext: false,
-    }
+    const fields: DotPathMenuItem[] = supportedColumns.value
+      .filter((c) => c.title!.toLowerCase().includes(partial))
+      .map((c) => ({ key: `field:${c.id}`, kind: 'field', label: c.title!, hint: dotPathFieldHint(c), column: c }))
+    const sections: DotPathMenuSection[] = [
+      { key: 'fields', title: t('objects.fields'), items: fields },
+      {
+        key: 'functions',
+        title: t('labels.formulaDotPath.functions'),
+        items: functionMenuItems(availableFunctions.value, partial),
+      },
+    ]
+    return { sections, isListContext: false }
   }
 
   let tableMeta: TableType | undefined | null = meta.value
@@ -930,7 +929,14 @@ function appendDotPathText(item: Record<string, any>) {
   }
   // picking `IF` right before an existing `(` keeps that call's own parentheses
   const keepsParens = item.type === 'function' && value[end] === '('
-  const text = item.type === 'column' ? (isRollupMode.value ? item.text : `{${item.text}}`) : keepsParens ? String(item.text).replace(/\(\)$/, '') : item.text
+  const text =
+    item.type === 'column'
+      ? isRollupMode.value
+        ? item.text
+        : `{${item.text}}`
+      : keepsParens
+      ? String(item.text).replace(/\(\)$/, '')
+      : item.text
 
   editor.executeEdits('', [
     {

@@ -2,6 +2,7 @@ import { validateFormulaAndExtractTreeWithType } from './validate-extract-tree';
 import { FormulaDataTypes, JSEPNode } from './enums';
 import {
   extractRollupAggregates,
+  getRollupResultUidt,
   hasFreeRollupValues,
   RollupAggregate,
   rollupFormulaKeepsTargetFormat,
@@ -211,5 +212,41 @@ describe('rollup formula helpers', () => {
     expect(rollupFormulaResultUidt(await validate('SUM(values)'))).toBe(
       UITypes.Decimal
     );
+  });
+
+  it('resolves a rollup result type: formula, then date min/max, then number', async () => {
+    const rollup = (colOptions: Record<string, unknown>) =>
+      getRollupResultUidt({ uidt: UITypes.Rollup, colOptions });
+
+    // a formula takes its formula's type, even over a stale result_uidt
+    expect(
+      rollup({
+        rollup_function: 'formula',
+        parsed_tree: await validate('AND(values)', done),
+        result_uidt: UITypes.Date,
+      })
+    ).toBe(UITypes.Checkbox);
+    expect(
+      rollup({
+        rollup_function: 'formula',
+        parsed_tree: await validate('MAX(values)', due),
+      })
+    ).toBe(UITypes.Date);
+    // min/max over a date field takes the date type resolved on read
+    expect(rollup({ rollup_function: 'max', result_uidt: UITypes.Date })).toBe(
+      UITypes.Date
+    );
+    expect(
+      rollup({ rollup_function: 'min', result_uidt: UITypes.DateTime })
+    ).toBe(UITypes.DateTime);
+    // anything else is a number: no type of its own
+    expect(rollup({ rollup_function: 'max' })).toBeUndefined();
+    expect(rollup({ rollup_function: 'sum' })).toBeUndefined();
+    expect(
+      getRollupResultUidt({
+        uidt: UITypes.Formula,
+        colOptions: { rollup_function: 'formula' },
+      })
+    ).toBeUndefined();
   });
 });

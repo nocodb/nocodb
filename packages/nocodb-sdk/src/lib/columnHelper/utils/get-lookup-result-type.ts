@@ -1,10 +1,7 @@
 import { ColumnType } from '~/lib/Api';
 import UITypes from '~/lib/UITypes';
 import { FormulaDataTypes } from '~/lib/formula/enums';
-import {
-  isRollupFormula,
-  rollupFormulaResultUidt,
-} from '~/lib/formula/rollupFormula';
+import { getRollupResultUidt } from '~/lib/formula/rollupFormula';
 import { parseProp } from '~/lib/helperFunctions';
 import { resolveLookupLeafColumn } from './get-lookup-column-type';
 import {
@@ -98,13 +95,8 @@ export function getColumnResultType(
         (column.colOptions as any)?.parsed_tree?.dataType
       );
     }
-    case UITypes.Rollup: {
-      if (isRollupFormula(column.colOptions as any))
-        return rollupFormulaResultUidt((column.colOptions as any)?.parsed_tree);
-      // v1: rollups are treated as numeric. (Edge case: min/max of a date column
-      // is a date result — refine if needed.)
-      return UITypes.Decimal;
-    }
+    case UITypes.Rollup:
+      return getRollupResultUidt(column) ?? UITypes.Decimal;
     default:
       return column.uidt as UITypes;
   }

@@ -20,7 +20,10 @@ import {
 } from '~/lib/formula/types';
 import { handleFormulaError } from '~/lib/formula/handle-formula-error';
 import { formulas } from '~/lib/formula/formulas';
-import { formulaJsep, formulaJsepWithIndex } from '~/lib/formula/jsepInstances';
+import {
+  parseFormula,
+  parseFormulaWithIndex,
+} from '~/lib/formula/jsepInstances';
 import { ClientTypeOrSqlUI } from '~/lib/formula/types';
 import { SqlUiFactory } from '~/lib/sqlUi';
 import {
@@ -102,7 +105,13 @@ function splitVariadicAggregate(
   if (setIndexes.length !== 1 || aggregate === RollupAggregate.AVERAGE) {
     throw new FormulaError(
       FormulaErrorType.INVALID_ARG,
-      { position },
+      aggregate === RollupAggregate.AVERAGE
+        ? { key: 'msg.formula.rollupAverageValuesOnly', position }
+        : {
+            key: 'msg.formula.rollupAggregateValuesOnce',
+            calleeName: node.callee.name,
+            position,
+          },
       aggregate === RollupAggregate.AVERAGE
         ? 'AVERAGE takes only the values in a rollup, e.g. AVERAGE(values)'
         : `${node.callee.name} can aggregate values only once`
@@ -120,7 +129,11 @@ function splitVariadicAggregate(
       if (others.some((arg) => arg.type !== JSEPNode.LITERAL)) {
         throw new FormulaError(
           FormulaErrorType.INVALID_ARG,
-          { position },
+          {
+            key: 'msg.formula.rollupCountLiteralItems',
+            calleeName: node.callee.name,
+            position,
+          },
           `${node.callee.name} takes values plus literal items, e.g. COUNTA(values, "x")`
         );
       }
@@ -912,8 +925,7 @@ export async function validateFormulaAndExtractTreeWithType({
     unifiedMeta.getContextFromObject(
       (column?.base_id && column) ??
         columns?.[0] ??
-        rollup?.valuesColumn ??
-        ({} as any)
+        rollup?.valuesColumn ?? { base_id: undefined }
     ),
     {
       id:
@@ -1109,7 +1121,7 @@ export async function validateFormulaAndExtractTreeWithType({
     if (aggregate && scope !== 'outer') {
       throw new FormulaError(
         FormulaErrorType.NOT_SUPPORTED,
-        { position },
+        { key: 'msg.formula.rollupNestedAggregate', calleeName, position },
         `${calleeName}(values) cannot be used inside another aggregate`
       );
     }
@@ -1120,7 +1132,11 @@ export async function validateFormulaAndExtractTreeWithType({
     if (modifier && scope !== 'set') {
       throw new FormulaError(
         FormulaErrorType.NOT_SUPPORTED,
-        { position },
+        {
+          key: 'msg.formula.rollupModifierFirstArgument',
+          calleeName,
+          position,
+        },
         `${calleeName} must be the first argument of an aggregate, e.g. ARRAYJOIN(${calleeName}(values))`
       );
     }
@@ -1147,7 +1163,16 @@ export async function validateFormulaAndExtractTreeWithType({
     if (args.length < minArgs || args.length > maxArgs) {
       throw new FormulaError(
         FormulaErrorType.INVALID_ARG,
-        { position },
+        {
+          key:
+            minArgs === maxArgs
+              ? 'msg.formula.rollupExactArguments'
+              : 'msg.formula.rollupArgumentsRange',
+          calleeName,
+          minArgs,
+          maxArgs,
+          position,
+        },
         minArgs === maxArgs
           ? `${calleeName} takes exactly ${minArgs} argument when aggregating values`
           : `${calleeName} takes ${minArgs} to ${maxArgs} arguments`
@@ -1163,14 +1188,14 @@ export async function validateFormulaAndExtractTreeWithType({
       ) {
         throw new FormulaError(
           FormulaErrorType.INVALID_ARG,
-          { position },
+          { key: 'msg.formula.rollupArrayJoinSeparator', position },
           'ARRAYJOIN separator must be a text literal, e.g. ", "'
         );
       }
       if (modifier === RollupModifier.ARRAYSLICE && !isNumericLiteral(arg)) {
         throw new FormulaError(
           FormulaErrorType.INVALID_ARG,
-          { position },
+          { key: 'msg.formula.rollupArraySliceBounds', position },
           'ARRAYSLICE start and end must be whole numbers'
         );
       }
@@ -1201,7 +1226,12 @@ export async function validateFormulaAndExtractTreeWithType({
         ) {
           throw new FormulaError(
             FormulaErrorType.INVALID_ARG,
-            { position },
+            {
+              key: 'msg.formula.rollupNumericValuesRequired',
+              calleeName,
+              valueType,
+              position,
+            },
             `${calleeName} requires numeric values but found ${valueType}`
           );
         }
@@ -1282,7 +1312,11 @@ export async function validateFormulaAndExtractTreeWithType({
           }
           throw new FormulaError(
             FormulaErrorType.INVALID_ARG,
-            { position: nodePosition(parsedTree) },
+            {
+              key: 'msg.formula.rollupAggregateRequiresValues',
+              calleeName,
+              position: nodePosition(parsedTree),
+            },
             `${calleeName} must take \`values\`, e.g. ${calleeName}(values)`
           );
         }
@@ -1421,7 +1455,11 @@ export async function validateFormulaAndExtractTreeWithType({
       ) {
         throw new FormulaError(
           FormulaErrorType.INVALID_ARG,
-          { position: nodePosition(parsedTree) },
+          {
+            key: 'msg.formula.firstArgumentMustBeDate',
+            calleeName,
+            position: nodePosition(parsedTree),
+          },
           `The first argument of ${calleeName} must be a date`
         );
       }
@@ -1559,7 +1597,11 @@ export async function validateFormulaAndExtractTreeWithType({
       // as in Airtable, `values` is the only field a rollup formula reads
       throw new FormulaError(
         FormulaErrorType.INVALID_COLUMN,
-        { position: nodePosition(parsedTree) },
+        {
+          key: 'msg.formula.rollupOnlyValuesReference',
+          fieldName: parsedTree.name,
+          position: nodePosition(parsedTree),
+        },
         `A rollup formula can only reference \`values\`, not ${JSON.stringify(
           parsedTree.name
         )}`
@@ -1739,6 +1781,8 @@ export async function validateFormulaAndExtractTreeWithType({
                 nodePosition(parsedTree.left) ??
                 nodePosition(parsedTree.right),
               columnName: ROLLUP_VALUES_KEYWORD,
+              key: 'msg.formula.rollupDateNumberComparison',
+              operator: parsedTree.operator,
             },
             `A date or time can't be compared with a number using ${parsedTree.operator}`
           );
@@ -1787,6 +1831,11 @@ export async function validateFormulaAndExtractTreeWithType({
                 nodePosition(parsedTree.right),
               // operands carry no index; underline `values` instead
               columnName: ROLLUP_VALUES_KEYWORD,
+              key:
+                parsedTree.operator === '-'
+                  ? 'msg.formula.rollupOperatorNumericDate'
+                  : 'msg.formula.rollupOperatorNumericText',
+              operator: parsedTree.operator,
             },
             `The ${parsedTree.operator} operator requires numeric values` +
               (parsedTree.operator === '-'
@@ -1828,8 +1877,9 @@ export async function validateFormulaAndExtractTreeWithType({
   };
 
   try {
-    const jsepInstance = trackPosition ? formulaJsepWithIndex : formulaJsep;
-    let parsedFormula = jsepInstance(formula) as unknown as ParsedFormulaNode;
+    let parsedFormula = (trackPosition ? parseFormulaWithIndex : parseFormula)(
+      formula
+    );
     // a bare value set (`values`, `ARRAYUNIQUE(values)`) shows as a joined list
     if (
       rollup &&
@@ -1848,7 +1898,7 @@ export async function validateFormulaAndExtractTreeWithType({
       if (!aggregateCount) {
         throw new FormulaError(
           FormulaErrorType.INVALID_ARG,
-          {},
+          { key: 'msg.formula.rollupMustAggregate' },
           'A rollup formula must aggregate `values`, e.g. SUM(values)'
         );
       }
@@ -1856,7 +1906,11 @@ export async function validateFormulaAndExtractTreeWithType({
       if (aggregateCount > MAX_ROLLUP_AGGREGATES) {
         throw new FormulaError(
           FormulaErrorType.INVALID_ARG,
-          {},
+          {
+            key: 'msg.formula.rollupMaxAggregates',
+            maxAggregates: MAX_ROLLUP_AGGREGATES,
+            aggregateCount,
+          },
           `A rollup formula can use at most ${MAX_ROLLUP_AGGREGATES} aggregates, found ${aggregateCount}`
         );
       }
@@ -1867,7 +1921,7 @@ export async function validateFormulaAndExtractTreeWithType({
       ex instanceof RangeError
         ? new FormulaError(
             FormulaErrorType.INVALID_SYNTAX,
-            {},
+            { key: 'msg.formula.formulaTooComplex' },
             'The formula is too long or too deeply nested'
           )
         : ex;

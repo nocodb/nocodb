@@ -624,10 +624,7 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
     // read back on a rollup that no longer is a formula
     if (data.type === UITypes.Rollup) {
       const rollupOptions = data.colOptions;
-      if (
-        isRollupColOptions(rollupOptions) &&
-        isRollupFormula(rollupOptions)
-      ) {
+      if (isRollupColOptions(rollupOptions) && isRollupFormula(rollupOptions)) {
         options.formula = rollupOptions.rollup_formula;
       } else {
         delete options.formula;

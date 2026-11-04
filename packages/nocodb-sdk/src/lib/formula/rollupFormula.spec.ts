@@ -2,6 +2,7 @@ import { validateFormulaAndExtractTreeWithType } from './validate-extract-tree';
 import { FormulaDataTypes, JSEPNode } from './enums';
 import {
   extractRollupAggregates,
+  getRollupFormulaDefaultPrecision,
   getRollupResultUidt,
   hasFreeRollupValues,
   RollupAggregate,
@@ -25,9 +26,7 @@ function callNode(node: ParsedFormulaNode | undefined): CallExpressionNode {
   return node;
 }
 
-function binaryNode(
-  node: ParsedFormulaNode | undefined
-): BinaryExpressionNode {
+function binaryNode(node: ParsedFormulaNode | undefined): BinaryExpressionNode {
   if (node?.type !== JSEPNode.BINARY_EXP) {
     throw new Error(`expected a binary expression, got ${node?.type}`);
   }
@@ -135,9 +134,7 @@ describe('rollup formula validation', () => {
     );
     const slice = callNode(tree.arguments[0]);
     expect(slice.rollupModifier).toBe('ARRAYSLICE');
-    expect(callNode(slice.arguments[0]).rollupModifier).toBe(
-      'ARRAYUNIQUE'
-    );
+    expect(callNode(slice.arguments[0]).rollupModifier).toBe('ARRAYUNIQUE');
   });
 
   it('wraps a bare value set in ARRAYJOIN', async () => {
@@ -146,9 +143,7 @@ describe('rollup formula validation', () => {
 
     const unique = callNode(await validate('ARRAYUNIQUE(values)', name));
     expect(unique.rollupAggregate).toBe(RollupAggregate.ARRAYJOIN);
-    expect(callNode(unique.arguments[0]).rollupModifier).toBe(
-      'ARRAYUNIQUE'
-    );
+    expect(callNode(unique.arguments[0]).rollupModifier).toBe('ARRAYUNIQUE');
   });
 
   it('reads values outside an aggregate as joined text, as Airtable does', async () => {
@@ -341,6 +336,17 @@ describe('rollup formula helpers', () => {
     expect(rollupFormulaResultUidt(await validate('SUM(values)'))).toBe(
       UITypes.Decimal
     );
+  });
+
+  it('defaults the precision to the root ROUND digits, else 2 for decimals and 0 otherwise', async () => {
+    const precision = async (formula: string, valuesColumn = amount) =>
+      getRollupFormulaDefaultPrecision(await validate(formula, valuesColumn));
+    expect(await precision('ROUND(AVERAGE(values), 3)')).toBe(3);
+    expect(await precision('SUM(values) / 2')).toBe(2);
+    expect(await precision('COUNTALL(values)')).toBe(0);
+    expect(await precision('ROUND(SUM(values))')).toBe(0);
+    expect(await precision('ARRAYJOIN(values)', name)).toBe(0);
+    expect(getRollupFormulaDefaultPrecision(undefined)).toBe(0);
   });
 
   it('resolves a rollup result type: formula, then date min/max, then number', async () => {

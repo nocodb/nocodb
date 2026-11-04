@@ -516,7 +516,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         NcError.get(baseModel.context).fieldNotFound(col);
       }
 
-      if (column.colOptions?.error) {
+      // an errored rollup groups every row under the error sentinel, which the
+      // client renders as ERR! and expands with `gb_eq`
+      if (column.colOptions?.error && column.uidt !== UITypes.Rollup) {
         NcError.get(baseModel.context).badRequest(
           `Cannot group by column '${column.title}': ${column.colOptions.error}`,
         );

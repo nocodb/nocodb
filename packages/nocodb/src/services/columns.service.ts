@@ -3769,18 +3769,13 @@ export class ColumnsService implements IColumnsService {
         });
 
         // create nested replace statement for each user
-        const setStatement = baseUsers.reduce(
-          (acc, user) => {
-            const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
-              user.id,
-              user.email,
-            ]);
-            return escapeBindingPlaceholders(qb.toQuery());
-          },
-          escapeBindingPlaceholders(
-            sqlClient.knex.raw(`??`, [column.column_name]).toQuery(),
-          ),
-        );
+        const setStatement = baseUsers.reduce((acc, user) => {
+          const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
+            user.id,
+            user.email,
+          ]);
+          return escapeBindingPlaceholders(qb.toQuery());
+        }, escapeBindingPlaceholders(sqlClient.knex.raw(`??`, [column.column_name]).toQuery()));
 
         const updateSql = sqlClient.knex
           .raw(`UPDATE ?? SET ?? = ${setStatement};`, [
@@ -8055,6 +8050,22 @@ export class ColumnsService implements IColumnsService {
         );
       }
     };
+
+    // a PATCH of only the formula / function keeps the saved relation and target
+    if (
+      UITypes.Rollup === column.uidt &&
+      (colBody.rollup_formula !== undefined ||
+        colBody.rollup_function !== undefined)
+    ) {
+      const saved = await column.getColOptions<RollupColumn>();
+      for (const key of [
+        'fk_relation_column_id',
+        'fk_rollup_column_id',
+        'rollup_function',
+      ] as const) {
+        if (colBody[key] === undefined) colBody[key] = saved?.[key];
+      }
+    }
 
     // Validate rollup or lookup payload before proceeding with the update
     if (

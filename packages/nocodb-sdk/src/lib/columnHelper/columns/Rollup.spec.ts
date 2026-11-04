@@ -5,6 +5,7 @@ import {
 import {
   ColumnHelper,
   getRollupFormulaDisplayColumn,
+  getRollupFormulaTextColumn,
 } from '~/lib/columnHelper';
 import UITypes from '~/lib/UITypes';
 import {
@@ -170,6 +171,60 @@ describe('getRollupFormulaDisplayColumn', () => {
     );
     expect(col.uidt).toBe(UITypes.Currency);
     expect(col.meta).toHaveProperty('currency_code', 'EUR');
+  });
+});
+
+describe('getRollupFormulaTextColumn', () => {
+  const formulaRollup = (
+    dataType: string,
+    meta: Record<string, unknown> = {}
+  ): ColumnType => ({
+    id: 'r1',
+    uidt: UITypes.Rollup,
+    source_id: 'src1',
+    meta,
+    colOptions: {
+      rollup_function: 'formula',
+      parsed_tree: {
+        type: 'CallExpression',
+        dataType,
+        referencedColumn: { id: 'c1', uidt: UITypes.SingleLineText },
+      },
+    },
+  });
+
+  it('turns a text result into a text Formula column', () => {
+    const col = getRollupFormulaTextColumn(formulaRollup('string'));
+    expect(col).toMatchObject({
+      id: 'r1',
+      uidt: UITypes.Formula,
+      source_id: 'src1',
+      colOptions: { parsed_tree: { dataType: 'string' } },
+    });
+    // the Formula cell would otherwise render it as the rolled-up field
+    expect(col?.colOptions).toHaveProperty(
+      'parsed_tree.referencedColumn',
+      undefined
+    );
+  });
+
+  it('leaves other results, picked formats and plain rollups alone', () => {
+    expect(
+      getRollupFormulaTextColumn(formulaRollup('numeric'))
+    ).toBeUndefined();
+    expect(getRollupFormulaTextColumn(formulaRollup('date'))).toBeUndefined();
+    expect(
+      getRollupFormulaTextColumn(
+        formulaRollup('string', { display_type: UITypes.Email })
+      )
+    ).toBeUndefined();
+    expect(
+      getRollupFormulaTextColumn({
+        id: 'r2',
+        uidt: UITypes.Rollup,
+        colOptions: { rollup_function: 'sum' },
+      })
+    ).toBeUndefined();
   });
 });
 

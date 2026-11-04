@@ -634,7 +634,8 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
           // Errored rollup/link (e.g. its relation was cascade-deleted): the
           // error sentinel, as on the EE query clients.
-          if (rollupColOptions?.error) {
+          // a data error goes through genRollupSelectv2, which may self-heal it
+          if (rollupColOptions?.error && !rollupColOptions.data_error) {
             qb.select(
               baseModel.dbDriver.raw(`? as ??`, [
                 column.uidt === UITypes.Rollup ? NC_ERROR_SENTINEL : null,

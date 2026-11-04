@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, isBtLikeV2Junction, isMMOrMMLike } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  RelationTypes,
+  getRollupFormulaTextColumn,
+  isBtLikeV2Junction,
+  isMMOrMMLike,
+} from 'nocodb-sdk'
 import { isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import { NavigateDir } from '#imports'
 
@@ -70,7 +77,13 @@ const virtualCellType = computed(() => {
 const virtualCellClassName = computed(() => {
   let className = `nc-virtual-cell-${(column.value.uidt || 'default').toLowerCase()}`
 
-  if (isGrid.value && !isForm.value && virtualCellType.value === 'rollup' && !isExpandedForm.value) {
+  if (
+    isGrid.value &&
+    !isForm.value &&
+    virtualCellType.value === 'rollup' &&
+    !isExpandedForm.value &&
+    !getRollupFormulaTextColumn(column.value)
+  ) {
     className += ' text-right justify-end'
   }
   if (isPrimaryCol.value && !isForm.value) {

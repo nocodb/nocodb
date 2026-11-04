@@ -244,7 +244,7 @@ export const aggregate = (_client: DBQueryClient, logger?: Logger) => {
         baseModel &&
         !isTransientError(e) &&
         !isExternalSourceError(e) &&
-        (await flagFailingRollups(baseModel, await model.getColumns()))
+        (await flagFailingRollups(baseModel, await model.getColumns(), e))
       ) {
         return run(context, ctx, true);
       }

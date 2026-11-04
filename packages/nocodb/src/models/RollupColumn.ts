@@ -50,6 +50,10 @@ async function resolveResultUidt(
   }
 }
 
+// Prefixes an `error` the read fallback stored from the data, which a later
+// read may clear; read() strips it into `data_error`.
+export const ROLLUP_DATA_ERROR_MARK = '[data] ';
+
 export default class RollupColumn implements RollupType {
   id: string;
   base_id?: string;
@@ -63,6 +67,8 @@ export default class RollupColumn implements RollupType {
   error: string;
   // Resolved on read, never stored
   result_uidt?: UITypes.Date | UITypes.DateTime;
+  // Resolved on read, never stored: `error` came from the data, not validation
+  data_error?: boolean;
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);
@@ -170,6 +176,10 @@ export default class RollupColumn implements RollupType {
     // a cached copy may hold it serialized
     column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
     const instance = new RollupColumn(column);
+    if (instance.error?.startsWith(ROLLUP_DATA_ERROR_MARK)) {
+      instance.error = instance.error.slice(ROLLUP_DATA_ERROR_MARK.length);
+      instance.data_error = true;
+    }
     setModelContext(instance, context);
     const resultUidt = await resolveResultUidt(instance, ncMeta);
     if (resultUidt) instance.result_uidt = resultUidt;

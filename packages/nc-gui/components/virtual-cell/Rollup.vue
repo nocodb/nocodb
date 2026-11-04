@@ -8,6 +8,7 @@ import {
   getRollupColumnMeta,
   getRollupFormulaDisplayColumn,
   getRollupFormulaDisplayValue,
+  getRollupFormulaTextColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
   isFormulaNonFiniteValue,
@@ -124,6 +125,14 @@ const isNonFiniteResult = computed(() => {
   )
 })
 
+// a text formula result renders as a text Formula cell (links, pg timestamps)
+const formulaTextColumn = computed(() => (column.value ? getRollupFormulaTextColumn(column.value) : undefined))
+
+provide(
+  ColumnInj,
+  computed(() => formulaTextColumn.value ?? column.value),
+)
+
 const displayValue = computed(() => {
   const options = column.value?.colOptions
   return column.value && childColumn.value && isRollupColOptions(column.value.uidt, options) && isRollupFormula(options)
@@ -153,6 +162,7 @@ const isIntegerResult = computed(() => {
   <div v-else-if="isNonFiniteResult" class="nc-cell-field">
     <span class="nc-formula-non-finite text-nc-content-orange-dark">{{ value }}</span>
   </div>
+  <VirtualCellFormula v-else-if="formulaTextColumn" />
   <div v-else @dblclick="activateShowEditNonEditableFieldWarning">
     <CellInteger
       v-if="isIntegerResult && renderAsTextFun.includes((colOptions as RollupType).rollup_function!)"

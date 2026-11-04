@@ -108,12 +108,14 @@ describe('rollup formula history: display', () => {
   // check needs a negative offset to fail: run with TZ=America/New_York.
   it('keeps the day of a date computed from a date field in any timezone', async () => {
     const tree = await validate('DATEADD(MAX(values), 1, "day")', due);
-    expect(getRollupFormulaDisplayColumn({
-      id: 'r1',
-      uidt: UITypes.Rollup,
-      meta: {},
-      colOptions: { rollup_function: 'formula', parsed_tree: tree },
-    }).uidt).toBe(UITypes.Date);
+    expect(
+      getRollupFormulaDisplayColumn({
+        id: 'r1',
+        uidt: UITypes.Rollup,
+        meta: {},
+        colOptions: { rollup_function: 'formula', parsed_tree: tree },
+      }).uidt
+    ).toBe(UITypes.Date);
     // as the API returns it (date-time rewrite of a pg timestamp)
     expect(plain('2024-03-11 00:00:00+00:00', tree)).toMatch(/^2024-03-11/);
   });

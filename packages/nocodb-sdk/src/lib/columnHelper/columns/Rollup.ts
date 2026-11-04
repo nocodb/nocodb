@@ -97,6 +97,31 @@ export const getRollupFormulaDisplayColumn = (
  * A rollup formula value as its display column reads it: a date result can
  * arrive as a UTC date-time (`2024-03-11 00:00:00+00:00`); keep its calendar day.
  */
+/**
+ * A rollup formula with a text result, as a text Formula field, so it renders
+ * as the Formula cell renders text (links, pg timestamps). Undefined otherwise.
+ */
+export const getRollupFormulaTextColumn = (
+  col: ColumnType
+): ColumnType | undefined => {
+  if (
+    col.uidt !== UITypes.Rollup ||
+    !isRollupColOptions(col.colOptions) ||
+    !isRollupFormula(col.colOptions) ||
+    parseProp(col.meta).display_type
+  )
+    return undefined;
+  const parsedTree = col.colOptions.parsed_tree;
+  if (rollupFormulaResultUidt(parsedTree) !== UITypes.SingleLineText)
+    return undefined;
+  return {
+    ...col,
+    uidt: UITypes.Formula,
+    // the rolled-up field is not the result's type here
+    colOptions: { parsed_tree: { ...parsedTree, referencedColumn: undefined } },
+  };
+};
+
 export const getRollupFormulaDisplayValue = <T>(
   value: T,
   displayColumn: ColumnType

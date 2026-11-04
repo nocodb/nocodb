@@ -14,8 +14,13 @@ export const jsepIndexHook = {
       }
 
       // search needle, either the callee name, identifier raw, etc
+      // a {Field} identifier starts at its brace, so match its raw text
       const needle: string =
-        env.node.name ?? env.node.raw ?? env.node.callee?.name;
+        (env.node.type === jsep.IDENTIFIER && env.node.raw) ||
+        (env.node.name ??
+          env.node.raw ??
+          env.node.callee?.name ??
+          env.node.property?.raw);
       // current token index
       let lastIndex = this.index;
       if (env.node.arguments) {

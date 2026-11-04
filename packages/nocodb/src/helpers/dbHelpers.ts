@@ -679,7 +679,8 @@ export function haveFormulaColumn(columns: Column[]) {
 }
 
 /**
- * True when any Formula/Button column carries a stored error.
+ * True when any Formula/Button column carries a stored error, or a Rollup one
+ * the read fallback stored.
  *
  * Such a column compiles to `'ERR' as …` (or is dropped, for Button), so a plan
  * built now is poisoned. Caching it puts the model on the cache-hit path, which
@@ -695,10 +696,22 @@ export async function hasFlaggedFormulaColumn(
   columns: Column[],
 ): Promise<boolean> {
   for (const col of columns) {
-    if (col.uidt !== UITypes.Formula && col.uidt !== UITypes.Button) continue;
+    if (
+      col.uidt !== UITypes.Formula &&
+      col.uidt !== UITypes.Button &&
+      col.uidt !== UITypes.Rollup
+    )
+      continue;
     try {
-      const colOptions = await col.getColOptions<{ error?: string }>();
-      if (colOptions?.error) return true;
+      const colOptions = await col.getColOptions<{
+        error?: string;
+        data_error?: boolean;
+      }>();
+      // a rollup flagged from its data self-heals while compiling
+      if (
+        col.uidt === UITypes.Rollup ? colOptions?.data_error : colOptions?.error
+      )
+        return true;
     } catch {
       // a missing colOptions row is not a reason to skip caching
     }

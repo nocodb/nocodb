@@ -313,7 +313,8 @@ const isDateValuedAggregation = (
   column: Pick<ColumnType, 'uidt' | 'colOptions'>,
   aggregation: string
 ): boolean => {
-  const agg = getLegacyDateRollupAggregation(column, aggregation) ?? aggregation;
+  const agg =
+    getLegacyDateRollupAggregation(column, aggregation) ?? aggregation;
   return (
     agg === DateAggregations.EarliestDate || agg === DateAggregations.LatestDate
   );

@@ -46,9 +46,10 @@ const AGGREGATES_BY_NAME = new Map<string, RollupAggregate>([
 ]);
 
 const MODIFIERS_BY_NAME = new Map<string, RollupModifier>(
-  Object.values(RollupModifier).map(
-    (modifier): [string, RollupModifier] => [modifier, modifier]
-  )
+  Object.values(RollupModifier).map((modifier): [string, RollupModifier] => [
+    modifier,
+    modifier,
+  ])
 );
 
 export const ROLLUP_ARRAYJOIN_DEFAULT_SEPARATOR = ', ';
@@ -174,7 +175,9 @@ export function rollupFormulaKeepsTargetFormat(
   while (arg?.type === JSEPNode.CALL_EXP && arg.rollupModifier) {
     arg = arg.arguments?.[0];
   }
-  return arg?.type === JSEPNode.IDENTIFIER && arg.name === ROLLUP_VALUES_KEYWORD;
+  return (
+    arg?.type === JSEPNode.IDENTIFIER && arg.name === ROLLUP_VALUES_KEYWORD
+  );
 }
 
 // a function, not a module constant: helperFunctions imports this file and

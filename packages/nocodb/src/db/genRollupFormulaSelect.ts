@@ -8,6 +8,8 @@ import {
   getRollupModifier,
   isFieldTrackingLmtCol,
   isMMOrMMLike,
+  isSupportedDisplayValueColumn,
+  isVirtualCol,
   JSEPNode,
   RelationTypes,
   ROLLUP_ARRAYJOIN_DEFAULT_SEPARATOR,
@@ -42,6 +44,7 @@ import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { getRefColumnIfAlias } from '~/helpers';
 import { DBQueryClient } from '~/dbQueryClient';
+import { getDbMajor } from '~/db/util/dbVersion';
 
 const clone = rfdc();
 
@@ -89,6 +92,11 @@ function attachmentTextSql(knex: XKnex, col: string): string | null {
       return null;
   }
 }
+
+// Oracle text as VARCHAR2. DBMS_LOB.SUBSTR counts characters, so a CLOB is cut
+// at 1000: 4000 bytes at up to 4 bytes per character (else ORA-06502)
+export const oracleVarcharSql = (sql: string, fitsVarchar: boolean) =>
+  `DBMS_LOB.SUBSTR(TO_CLOB(${sql}), ${fitsVarchar ? 4000 : 1000}, 1)`;
 
 const VALUE_ALIAS = '__nc_v';
 const ORDER_ALIAS = '__nc_o';
@@ -233,11 +241,14 @@ export default async function genRollupFormulaSelect(params: {
     const model = await Model.get(refContext, relation.fk_related_model_id);
     if (!model) return null;
     await model.getColumns();
+    // a stale override (since retyped) falls back to the primary field, as the SDK typing does
     const next = lookup
       ? await lookup.getLookupColumn()
       : (relation.fk_display_value_column_id &&
           model.columns.find(
-            (c) => c.id === relation.fk_display_value_column_id,
+            (c) =>
+              c.id === relation.fk_display_value_column_id &&
+              isSupportedDisplayValueColumn(c),
           )) ||
         model.columns.find((c) => c.pv);
     if (!next) return null;
@@ -266,11 +277,9 @@ export default async function genRollupFormulaSelect(params: {
   const leafAlias = hops.length ? hops[hops.length - 1].alias : refTableAlias;
   // the stored type of a date-time leaf (created / modified time read their system column)
   const leafDateTimeDt =
-    [
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-    ].includes(leafColumn.uidt) && !isFieldTrackingLmtCol(leafColumn)
+    [UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+      leafColumn.uidt,
+    ) && !isFieldTrackingLmtCol(leafColumn)
       ? (
           await getRefColumnIfAlias(
             leafBaseModel.context,
@@ -458,6 +467,22 @@ export default async function genRollupFormulaSelect(params: {
     return v;
   };
 
+  // text is non-blank, as pg sees it: MySQL / MSSQL `= ''` ignore trailing spaces
+  const nonBlankSql = (v: string) => {
+    if (baseModelSqlv2.isMySQL) return `LENGTH(${asText(v)}) > 0`;
+    if (baseModelSqlv2.isMssql) return `DATALENGTH(${asText(v)}) > 0`;
+    return `${asText(v)} <> ''`;
+  };
+
+  // text deduped byte for byte, as pg does; MySQL / MSSQL collations fold case,
+  // accents and trailing spaces. Only a key: the value itself stays text.
+  const exactKeySql = (v: string, type: FormulaDataTypes) => {
+    if (type !== FormulaDataTypes.STRING) return v;
+    if (baseModelSqlv2.isMySQL) return `CAST(${v} AS BINARY)`;
+    if (baseModelSqlv2.isMssql) return `CAST(${asText(v)} AS VARBINARY(MAX))`;
+    return v;
+  };
+
   // 1 when a value counts as truthy, else 0
   const truthySql = (v: string, type: FormulaDataTypes) => {
     if (BOOLEANISH.includes(type)) {
@@ -469,9 +494,9 @@ export default async function genRollupFormulaSelect(params: {
       return `CASE WHEN ${v} IS NOT NULL AND ${v} <> 0 THEN 1 ELSE 0 END`;
     }
     if (type === FormulaDataTypes.STRING && !baseModelSqlv2.isOracle) {
-      return `CASE WHEN ${v} IS NOT NULL AND ${asText(
+      return `CASE WHEN ${v} IS NOT NULL AND ${nonBlankSql(
         v,
-      )} <> '' THEN 1 ELSE 0 END`;
+      )} THEN 1 ELSE 0 END`;
     }
     return `CASE WHEN ${v} IS NOT NULL THEN 1 ELSE 0 END`;
   };
@@ -479,7 +504,7 @@ export default async function genRollupFormulaSelect(params: {
   // drops blank values (Oracle stores '' as NULL)
   const compactSql = (v: string, type: FormulaDataTypes) =>
     type === FormulaDataTypes.STRING && !baseModelSqlv2.isOracle
-      ? `${v} IS NOT NULL AND ${asText(v)} <> ''`
+      ? `${v} IS NOT NULL AND ${nonBlankSql(v)}`
       : `${v} IS NOT NULL`;
 
   // a condition as each dialect stores a checkbox
@@ -578,7 +603,9 @@ export default async function genRollupFormulaSelect(params: {
           : `COUNT(CASE WHEN 1 = 0 THEN 1 END)`;
       case RollupAggregate.COUNTA:
         return valueType === FormulaDataTypes.STRING && !baseModelSqlv2.isOracle
-          ? `COUNT(${d}CASE WHEN ${asText(v)} <> '' THEN ${v} END)`
+          ? `COUNT(${d}CASE WHEN ${nonBlankSql(v)} THEN ${
+              opts.distinct ? exactKeySql(v, valueType) : v
+            } END)`
           : `COUNT(${d}${v})`;
       case RollupAggregate.COUNTALL:
         return `COUNT(*)`;
@@ -690,7 +717,15 @@ export default async function genRollupFormulaSelect(params: {
       baseModelSqlv2.isOracle &&
       [FormulaDataTypes.STRING, FormulaDataTypes.UNKNOWN].includes(valueType)
     ) {
-      v = `DBMS_LOB.SUBSTR(TO_CLOB(${v}), 4000, 1)`;
+      // a physical VARCHAR2 field already fits 4000 bytes (NVARCHAR2 may not,
+      // once in the database charset)
+      const fitsVarchar =
+        valueNode.type === JSEPNode.IDENTIFIER &&
+        valueNode.name === ROLLUP_VALUES_KEYWORD &&
+        (leafColumn.uidt === UITypes.Attachment ||
+          (!isVirtualCol(leafColumn) &&
+            /^(var)?char/i.test(leafColumn.dt ?? '')));
+      v = oracleVarcharSql(v, fitsVarchar);
     }
     // a single NaN/±Infinity would take the whole aggregate
     if (
@@ -727,6 +762,28 @@ export default async function genRollupFormulaSelect(params: {
       (unique && !DISTINCT_CAPABLE.includes(aggregate)) ||
       // MSSQL rejects an aggregate over a subquery
       (baseModelSqlv2.isMssql && /\bselect\b/i.test(v));
+
+    // window functions and JSON_TABLE; 0 = version unknown, assume a modern server
+    const mysqlMajor = baseModelSqlv2.isMySQL ? getDbMajor(knex) : 0;
+    if (mysqlMajor > 0 && mysqlMajor < 8) {
+      const needsMysql8 = modifiers.some(
+        (m) => m.modifier === RollupModifier.ARRAYSLICE,
+      )
+        ? 'ARRAYSLICE'
+        : /\bJSON_TABLE\(/.test(v) &&
+          (aggregate !== RollupAggregate.COUNTALL ||
+            needsDerivedTable ||
+            modifiers.length > 0)
+        ? 'Rolling up attachments'
+        : needsDerivedTable && orderRefs.length > 1
+        ? 'ARRAYUNIQUE'
+        : null;
+      if (needsMysql8) {
+        NcError.get(context).formulaError(
+          `${needsMysql8} needs MySQL 8.0 or later`,
+        );
+      }
+    }
 
     if (!needsDerivedTable) {
       if (modifiers.some((m) => m.modifier === RollupModifier.ARRAYCOMPACT)) {
@@ -772,13 +829,23 @@ export default async function genRollupFormulaSelect(params: {
         }
       } else if (modifier === RollupModifier.ARRAYUNIQUE) {
         // each value once, at the position of its first link
-        stage = orderRef
-          ? knex
-              .from(stage.as(stageAlias()))
-              .select(VALUE_ALIAS)
-              .min({ [ORDER_ALIAS]: ORDER_ALIAS })
-              .groupBy(VALUE_ALIAS)
-          : knex.from(stage.as(stageAlias())).distinct(VALUE_ALIAS);
+        const key = exactKeySql(valueRef, valueType);
+        if (key !== valueRef) {
+          // grouped by the exact key; the group's values are all the same text
+          stage = knex
+            .from(stage.as(stageAlias()))
+            .select(knex.raw('MIN(??) AS ??', [VALUE_ALIAS, VALUE_ALIAS]))
+            .groupByRaw(key);
+          if (orderRef) stage.min({ [ORDER_ALIAS]: ORDER_ALIAS });
+        } else {
+          stage = orderRef
+            ? knex
+                .from(stage.as(stageAlias()))
+                .select(VALUE_ALIAS)
+                .min({ [ORDER_ALIAS]: ORDER_ALIAS })
+                .groupBy(VALUE_ALIAS)
+            : knex.from(stage.as(stageAlias())).distinct(VALUE_ALIAS);
+        }
       } else if (modifier === RollupModifier.ARRAYSLICE) {
         const [start, end] = modifierNode.arguments
           .slice(1)
@@ -831,11 +898,8 @@ export default async function genRollupFormulaSelect(params: {
 
   // a bare aggregate needs no outer expression; text still takes the formula
   // builder's output-length cap below
-  if (
-    aggregates.length === 1 &&
-    aggregates[0] === tree &&
-    tree.dataType !== FormulaDataTypes.STRING
-  ) {
+  const isBareAggregate = aggregates.length === 1 && aggregates[0] === tree;
+  if (isBareAggregate && tree.dataType !== FormulaDataTypes.STRING) {
     return { builder: aggregateQbs[0] };
   }
 
@@ -866,8 +930,9 @@ export default async function genRollupFormulaSelect(params: {
 
   let sql = escapeBindings(builder.toQuery());
   // Oracle string formulas can yield a CLOB, which can't be sorted or grouped
+  // (a bare string aggregate is a LISTAGG, already VARCHAR2)
   if (baseModelSqlv2.isOracle && tree.dataType === FormulaDataTypes.STRING) {
-    sql = `DBMS_LOB.SUBSTR(TO_CLOB(${sql}), 4000, 1)`;
+    sql = oracleVarcharSql(sql, isBareAggregate);
   }
   const qb = knex.select(knex.raw(sql));
   return {

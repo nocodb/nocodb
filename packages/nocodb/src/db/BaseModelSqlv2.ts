@@ -548,7 +548,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         skipFormulaRetry ||
         validateFormula ||
-        !(await shouldRetryFailedRead(this, await this.model.getColumns()))
+        !(await shouldRetryFailedRead(this, await this.model.getColumns(), e))
       )
         throw e;
       logger.log(e);
@@ -878,7 +878,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         skipFormulaRetry ||
         validateFormula ||
-        !(await shouldRetryFailedRead(this, columns))
+        !(await shouldRetryFailedRead(this, columns, e))
       )
         throw e;
       logger.log(e);
@@ -1139,7 +1139,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         skipFormulaRetry ||
         validateFormula ||
-        !(await shouldRetryFailedRead(this, columns))
+        !(await shouldRetryFailedRead(this, columns, e))
       )
         throw e;
       logger.log(e);
@@ -1173,7 +1173,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         isTransientError(e) ||
         isExternalSourceError(e) ||
-        !(await flagFailingRollups(this, await this.model.getColumns()))
+        !(await flagFailingRollups(this, await this.model.getColumns(), e))
       )
         throw e;
       return await this.countRecords(
@@ -1402,7 +1402,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         isTransientError(e) ||
         isExternalSourceError(e) ||
-        !(await flagFailingRollups(this, await this.model.getColumns()))
+        !(await flagFailingRollups(this, await this.model.getColumns(), e))
       )
         throw e;
       return await baseModelGroupBy(this, logger).list(args);
@@ -1438,7 +1438,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         isTransientError(e) ||
         isExternalSourceError(e) ||
-        !(await flagFailingRollups(this, await this.model.getColumns()))
+        !(await flagFailingRollups(this, await this.model.getColumns(), e))
       )
         throw e;
       return await baseModelGroupBy(this, logger).count(args);

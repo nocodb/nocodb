@@ -12,6 +12,7 @@ import XcMigrationSourcev0 from '~/meta/migrations/XcMigrationSourcev0';
 import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
 import { XKnex } from '~/db/CustomKnex';
+import { applyMysqlConnectionDefaults } from '~/helpers/mysqlConnectionDefaults';
 import { NcConfig } from '~/utils/nc-config';
 import Noco from '~/Noco';
 import {
@@ -56,10 +57,12 @@ export class MetaService {
     if (sharedKnex) {
       this._knex = sharedKnex;
     } else {
-      this._knex = XKnex({
+      const metaDbConfig = {
         ...this._config.meta.db,
         useNullAsDefault: true,
-      });
+      };
+      applyMysqlConnectionDefaults(metaDbConfig);
+      this._knex = XKnex(metaDbConfig);
     }
     this.trx = trx;
     this.nested = nested;

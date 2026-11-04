@@ -22,9 +22,11 @@ import type {
   FormulaColumn,
   LinksColumn,
   LinkToAnotherRecordColumn,
+  LookupColumn,
   RollupColumn,
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
+import { healRollupDataError } from '~/db/rollupReadFallback';
 import { NcError } from '~/helpers/ncError';
 import { NcBaseErrorv2 } from '~/helpers/catchError';
 import { RelationManager } from '~/db/relation-manager';
@@ -85,7 +87,13 @@ export default async function genRollupSelectv2(param: {
     };
   };
 
-  if ((columnOptions as RollupColumn).error) {
+  if (
+    columnOptions.error &&
+    !(
+      'data_error' in columnOptions &&
+      (await healRollupDataError(baseModelSqlv2, columnOptions))
+    )
+  ) {
     return errorSentinel();
   }
 
@@ -162,11 +170,19 @@ export default async function genRollupSelectv2(param: {
 
   // an errored rollup / lookup target reads as the error sentinel text, which
   // a SUM / filter can't take: the whole read would fail, not this cell
-  if (
-    [UITypes.Rollup, UITypes.Lookup].includes(rollupColumn.uidt) &&
-    (await rollupColumn.getColOptions<{ error?: string }>())?.error
-  ) {
-    return errorSentinel();
+  if ([UITypes.Rollup, UITypes.Lookup].includes(rollupColumn.uidt)) {
+    const targetOptions = await rollupColumn.getColOptions<
+      RollupColumn | LookupColumn
+    >();
+    if (
+      targetOptions?.error &&
+      !(
+        'data_error' in targetOptions &&
+        (await healRollupDataError(baseModelSqlv2, targetOptions))
+      )
+    ) {
+      return errorSentinel();
+    }
   }
 
   const childCol = await relationColumnOption.getChildColumn();

@@ -10,6 +10,7 @@ import {
   getRollupColumnMeta,
   getRollupFormulaDisplayColumn,
   getRollupFormulaDisplayValue,
+  getRollupFormulaTextColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
   isFormulaNonFiniteValue,
@@ -20,6 +21,13 @@ import {
 
 import { getRelatedBaseId } from '../utils/cell'
 import { renderCellError, renderSingleLineText } from '../utils/canvas'
+import { FormulaCellRenderer } from './Formula'
+
+// a text formula result behaves as a text Formula cell (links, long-text expand)
+const asFormulaTextCell = <T extends { column: CanvasGridColumn }>(props: T): T | undefined => {
+  const textColumn = props.column.columnObj && getRollupFormulaTextColumn(props.column.columnObj)
+  return textColumn ? { ...props, column: { ...props.column, columnObj: textColumn } } : undefined
+}
 
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -71,6 +79,11 @@ export const RollupCellRenderer: CellRenderer = {
           fillStyle: getColor(themeV4Colors.orange['700']),
           height: props.height,
         })
+        return
+      }
+      const textColumn = getRollupFormulaTextColumn(column)
+      if (textColumn) {
+        FormulaCellRenderer.render(ctx, { ...props, padding, column: textColumn })
         return
       }
       const displayColumn = getRollupFormulaDisplayColumn(column, childColumn)
@@ -144,5 +157,17 @@ export const RollupCellRenderer: CellRenderer = {
     }
 
     renderCell(ctx, renderProps.column, renderProps)
+  },
+  handleClick: async (props) => {
+    const textProps = asFormulaTextCell(props)
+    return textProps ? FormulaCellRenderer.handleClick!(textProps) : false
+  },
+  handleKeyDown: async (props) => {
+    const textProps = asFormulaTextCell(props)
+    return textProps ? FormulaCellRenderer.handleKeyDown!(textProps) : false
+  },
+  handleHover: async (props) => {
+    const textProps = asFormulaTextCell(props)
+    if (textProps) return FormulaCellRenderer.handleHover!(textProps)
   },
 }

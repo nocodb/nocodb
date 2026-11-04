@@ -11,6 +11,7 @@ import Noco from '~/Noco';
 import { RedisVersionTracker } from '~/utils/RedisVersionTracker';
 import { LRUMap } from '~/utils/LRUMap';
 import { applyDbSsrfProtection } from '~/helpers/dbSsrfLookup';
+import { applyMysqlConnectionDefaults } from '~/helpers/mysqlConnectionDefaults';
 import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 
 const CONNECTION_CACHE_MAX_SIZE = +(
@@ -184,6 +185,7 @@ export default class NcConnectionMgrv2 {
       knexConfig,
       isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
     );
+    applyMysqlConnectionDefaults(knexConfig);
 
     const knex = XKnex(knexConfig);
 

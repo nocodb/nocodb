@@ -82,7 +82,8 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     // an errored rollup reads as the error sentinel text: no typed comparison
     // fits it, and an error is never blank or equal to a value — except the
     // sentinel itself (a group-by expand), where the polarity flips
-    if (isError) {
+    // a working rollup holds no error cell
+    if (isError || filter.value === NC_ERROR_SENTINEL) {
       const negated = [
         'neq',
         'not',
@@ -92,7 +93,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
         'notchecked',
       ].includes(filter.comparison_op);
       const matchesAll =
-        filter.value === NC_ERROR_SENTINEL ? !negated : negated;
+        isError && filter.value === NC_ERROR_SENTINEL ? !negated : negated;
       return {
         clause: (qb: Knex.QueryBuilder) => {
           qb.whereRaw(matchesAll ? '1 = 1' : '1 = 0');
@@ -239,6 +240,8 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     column: Column,
     options: FilterOptions = {},
   ): Promise<FilterVerificationResult> {
+    // the error group's key, which filter() matches on an errored rollup
+    if (filter.value === NC_ERROR_SENTINEL) return { isValid: true };
     const resultUidt = getRollupResultUidt({
       uidt: column.uidt,
       colOptions: await column.getColOptions<RollupColumn>(),

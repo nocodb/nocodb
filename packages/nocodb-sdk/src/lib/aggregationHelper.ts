@@ -1,4 +1,5 @@
-import UITypes, { getRollupResultUidt } from './UITypes';
+import UITypes from './UITypes';
+import { getRollupResultUidt } from '~/lib/formula/rollupFormula';
 import { FormulaDataTypes } from '~/lib/formula/enums';
 import type { ColumnType } from '~/lib/Api';
 import { getDateTimeValue, getDateValue } from '~/lib/dateTimeHelper';
@@ -71,14 +72,16 @@ const LegacyDateRollupAggregations: Record<string, DateAggregations> = {
 const getLegacyDateRollupAggregation = (
   column: Pick<ColumnType, 'uidt' | 'colOptions'>,
   aggregation: string
-): DateAggregations | undefined =>
-  getRollupResultUidt(column)
+): DateAggregations | undefined => {
+  const resultUidt = getRollupResultUidt(column);
+  return resultUidt === UITypes.Date || resultUidt === UITypes.DateTime
     ? LegacyDateRollupAggregations[aggregation]
     : undefined;
+};
 
 /**
- * `rollupResultUidt` is a rollup's resolved date type (`colOptions.result_uidt`);
- * a date rollup takes the date aggregations instead of the numeric ones.
+ * `rollupResultUidt` is a rollup's result type (`getRollupResultUidt`); a
+ * rollup takes that type's aggregations instead of the numeric ones.
  */
 const getAvailableAggregations = (
   type: string,
@@ -86,10 +89,7 @@ const getAvailableAggregations = (
   rollupResultUidt?: string
 ): string[] => {
   let returnAggregations = [];
-  if (
-    type === UITypes.Rollup &&
-    (rollupResultUidt === UITypes.Date || rollupResultUidt === UITypes.DateTime)
-  ) {
+  if (type === UITypes.Rollup && rollupResultUidt) {
     type = rollupResultUidt;
   }
   if (type === UITypes.Formula && parsed_tree?.dataType) {
@@ -117,6 +117,7 @@ const getAvailableAggregations = (
         returnAggregations = [...Object.values(CommonAggregations)];
         break;
     }
+    return returnAggregations;
   }
 
   switch (type) {
@@ -294,14 +295,11 @@ const formatAggregation = (
 const getColumnAggregations = (
   column: Pick<ColumnType, 'uidt' | 'colOptions'>
 ): string[] => {
-  const colOptions = column.colOptions as
-    | { parsed_tree?: unknown; result_uidt?: string }
-    | null
-    | undefined;
   return getAvailableAggregations(
     column.uidt,
-    colOptions?.parsed_tree,
-    colOptions?.result_uidt
+    (column.colOptions as { parsed_tree?: unknown } | null | undefined)
+      ?.parsed_tree,
+    getRollupResultUidt(column)
   );
 };
 

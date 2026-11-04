@@ -1,7 +1,24 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, isColumnInError, isHiddenCol } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
+import {
+  type ColumnType,
+  FormulaDataTypes,
+  LIST_AGGREGATE_FUNCTIONS,
+  type LinkToAnotherRecordType,
+  MAX_DOT_PATH_HOPS,
+  ROLLUP_VALUES_KEYWORD,
+  type TableType,
+  UITypes,
+  UITypesName,
+  type UnifiedMetaType,
+  getMethodFunctions,
+  isColumnInError,
+  isHiddenCol,
+  isLinkToMany,
+  isLinksOrLTAR,
+  isSystemColumn,
+  rollupFormulaFunctions,
+  validateFormulaAndExtractTreeWithType,
+} from 'nocodb-sdk'
 import {
   KeyCode,
   KeyMod,
@@ -24,12 +41,21 @@ interface Props {
   suggestionHeight?: 'small' | 'medium' | 'large'
   disableSuggestionHeaders?: boolean
   disabledFormulas?: string[]
+  // type of the whole formula, to suggest an aggregate when it is a list
+  resultInfo?: { type?: string; dataType?: string; isDataArray?: boolean; referencedColumn?: { uidt?: string } }
+  // ⌘↵ emits `submit`
+  canSubmit?: boolean
+  // rollup formula mode: the rolled-up field, offered as the `values` variable
+  rollupValuesColumn?: ColumnType
+  // validateInfos key the editor reports errors on
+  validateKey?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   suggestionHeight: 'large',
   disableSuggestionHeaders: false,
   disabledFormulas: () => [],
+  validateKey: 'formula_raw',
 })
 
 const emits = defineEmits(['update:value'])
@@ -65,11 +91,27 @@ const supportedColumns = computed(
         return false
       }
 
-      return true
-    }) || [],
+const isRollupMode = computed(() => !!props.rollupValuesColumn)
+
+const fieldValidateInfo = computed(() => validateInfos[props.validateKey])
+
+const supportedColumns = computed(() =>
+  props.rollupValuesColumn
+    ? [{ ...props.rollupValuesColumn, title: ROLLUP_VALUES_KEYWORD }]
+    : meta?.value?.columns?.filter((col) => isFormulaSupportedColumn(col, meta.value)) || [],
 )
 
-const suggestionPreviewed = ref<Record<any, string> | undefined>()
+const rollupFunctionMetas = new Map(Object.entries(rollupFormulaFunctions))
+
+// a rollup formula offers its aggregates first, then the scalar functions that wrap them
+const rollupFunctionNames = [...rollupFunctionMetas.keys()]
+
+const availableFunctions = computed(() =>
+  (isRollupMode.value
+    ? [...rollupFunctionNames, ...formulaList.filter((fn: string) => !rollupFunctionNames.includes(fn))]
+    : formulaList
+  ).filter((fn: string) => !props.disabledFormulas.includes(`${fn}()`)),
+)
 
 // If -1 Show Fields first, if 1 show Formulas first
 const priority = ref(0)
@@ -104,50 +146,32 @@ const getIcon = (c: ColumnType) =>
     column: c,
   })
 
-const suggestionsList = computed(() => {
-  const unsupportedFnList = sqlUi.value?.getUnsupportedFnList() || []
-  return (
-    [
-      ...availableFunctions.map((fn: string) => ({
-        text: `${fn}()`,
-        type: 'function',
-        description: formulas[fn].description,
-        syntax: formulas[fn].syntax,
-        examples: formulas[fn].examples,
-        docsUrl: formulas[fn].docsUrl,
-        unsupported: unsupportedFnList.includes(fn),
-      })),
-      ...supportedColumns.value
-        .filter((c) => {
-          // skip system LTAR columns
-          if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
-          // v1 logic? skip the current column
-          if (!column) return true
-          return column.value?.id !== c.id
-        })
-        .map((c: any) => ({
-          text: c.title,
-          type: 'column',
-          icon: markRaw(getIcon(c)),
-          uidt: c.uidt,
-        })),
-      ...availableBinOps.map((op: string) => ({
-        text: op,
-        type: 'op',
-      })),
-    ]
-      // move unsupported functions to the end
-      .sort((a: Record<string, any>, b: Record<string, any>) => {
-        if (a.unsupported && !b.unsupported) {
-          return 1
-        }
-        if (!a.unsupported && b.unsupported) {
-          return -1
-        }
-        return 0
-      })
-      .filter((s) => !props.disabledFormulas.includes(s.text))
-  )
+  const isValid = fieldValidateInfo.value?.validateStatus !== 'error' && !props.editorError?.isError
+  // editors without a result type (Button URL) keep the form item's own message
+  if (!props.resultInfo) return null
+  const info = props.resultInfo
+
+  const errorMessage = isValid
+    ? undefined
+    : props.editorError?.isError
+    ? props.editorError.message
+    : (fieldValidateInfo.value?.help as unknown[] | undefined)
+        ?.flat()
+        .filter((m) => typeof m === 'string')
+        .join(' ')
+  // a formula field's own type says nothing about its result; show what it returns
+  const referencedUidt = info.referencedColumn?.uidt as UITypes | undefined
+  const uidt =
+    referencedUidt && referencedUidt !== UITypes.Formula
+      ? referencedUidt
+      : RESULT_TYPE_UIDT[info.dataType ?? ''] ?? referencedUidt
+
+  return {
+    isValid,
+    errorMessage,
+    uidt: isValid ? uidt : undefined,
+    typeLabel: uidt ? UITypesName[uidt as keyof typeof UITypesName] ?? uidt : undefined,
+  }
 })
 
 // set default suggestion list
@@ -282,6 +306,37 @@ onMounted(async () => {
       height: 120,
     })
 
+    // a re-created editor would otherwise lose an error held from before
+    applyEditorError()
+
+    formulaChips.attach(editor)
+
+    editor.onKeyDown(handleDotMenuKey)
+
+    // Esc closes the menu until the next click or keystroke, not until the text changes
+    editor.onKeyDown((e) => {
+      if (e.keyCode !== KeyCode.Escape) isDotMenuDismissed.value = false
+    })
+    editor.onMouseDown(() => {
+      isDotMenuDismissed.value = false
+    })
+
+    // ⌘↵ / Ctrl+↵ saves the field
+    editor.onKeyDown((e) => {
+      if (e.keyCode !== KeyCode.Enter || !(e.metaKey || e.ctrlKey)) return
+      e.preventDefault()
+      e.stopPropagation()
+      if (!props.canSubmit) return
+      closeDotMenu()
+      $e('c:field:formula:save')
+      emits('submit')
+    })
+
+    // Ctrl+Space browses everything available at the caret, replacing Monaco's own suggest
+    editor.addCommand((isMac() ? KeyMod.WinCtrl : KeyMod.CtrlCmd) | KeyCode.Space, () => openBrowseMenu())
+
+    editor.onDidBlurEditorText(() => closeDotMenu())
+
     editor.onDidChangeModelContent(async () => {
       value.value = editor.getValue()
       await handleInputDeb()
@@ -404,6 +459,66 @@ onMounted(async () => {
   }
 })
 
+// Everything available at the caret: Ctrl+Space and the field button
+function openBrowseMenu({ fromButton = false }: { fromButton?: boolean } = {}) {
+  if (!editor) return
+  isDotMenuDismissed.value = false
+  if (fromButton) editor.focus()
+  const model = editor.getModel()
+  const position = editor.getPosition()
+  const before = model && position ? model.getValue().slice(0, model.getOffsetAt(position)) : ''
+  // right after a reference, continue its path as if `.` was typed
+  if (before.endsWith('}')) {
+    editor.trigger('keyboard', 'type', { text: '.' })
+    return
+  }
+  // right after any other value, an insert would need an operator first; the button still
+  // opens the menu, since nothing else on screen would explain why it did nothing
+  if (!fromButton && /[)"'\d]$/.test(before) && !matchFormulaFirstReference(before)) return
+  handleInput({ browse: true })
+}
+
+function openSwapMenu(element: Element | null | undefined, position: Position | null | undefined) {
+  const model = editor.getModel()
+  if (!model || !position) return
+  const offset = model.getOffsetAt(position)
+
+  // a chip: put the caret just inside its `{`, so a pick replaces the whole reference
+  if (element?.closest('.nc-fx-chip-text, .nc-fx-chip-start, .nc-fx-chip-end')) {
+    const chip = formulaChips.chips.value.find((c) => c.column && offset >= c.start && offset <= c.end)
+    if (!chip) return
+    preferredMenuLabel = chip.column?.title
+    editor.setPosition(model.getPositionAt(chip.start + 1))
+    handleInput()
+    return
+  }
+
+  // a function name, e.g. `IF` in `IF(` or `ROUND` in `{Hours}.ROUND(`
+  const word = model.getWordAtPosition(position)
+  if (!word) return
+  const name = word.word.toUpperCase()
+  const afterWord = model.getValue()[model.getOffsetAt({ lineNumber: position.lineNumber, column: word.endColumn })]
+  if (afterWord !== '(' || !getFunctionMeta(name) || isCursorInsideString(model.getValue(), offset)) return
+  preferredMenuLabel = name
+  editor.setPosition({ lineNumber: position.lineNumber, column: word.startColumn })
+  handleInput({ browse: true })
+}
+
+// the menu keeps the editor focused, so a click elsewhere has to close it
+useEventListener(document, 'pointerdown', (e) => {
+  if (!dotMenu.value) return
+  const target = e.target as HTMLElement | null
+  if (monacoRoot.value?.contains(target) || target?.closest('.nc-formula-dot-menu-wrapper')) return
+  closeDotMenu()
+})
+
+// the menu is fixed-positioned; keep it at the caret when the form scrolls or the window resizes
+function repositionDotMenu() {
+  if (dotMenu.value) dotMenu.value.position = dotMenuPosition()
+}
+useEventListener(window, 'resize', repositionDotMenu)
+useEventListener(document, 'scroll', repositionDotMenu, { capture: true, passive: true })
+
 useResizeObserver(monacoRoot, (entries) => {
   if (!editor) return
   const entry = entries[0]
@@ -413,6 +528,78 @@ useResizeObserver(monacoRoot, (entries) => {
     height,
   })
 })
+
+function chipIconClass(column: ColumnType) {
+  const cls = chipIconClasses.get(column.id!)
+  if (!cls && !chipIconColumns.value.some((c) => c.id === column.id)) {
+    chipIconColumns.value.push(column)
+    nextTick(registerChipIcons)
+  }
+  return cls
+}
+
+// has-many / belongs-to / many-to-many icons carry their colour in the SVG strokes
+function linkIconColor(svg: SVGElement) {
+  for (const el of svg.querySelectorAll('[stroke], [fill]')) {
+    for (const attr of ['stroke', 'fill']) {
+      const color = el.getAttribute(attr)
+      if (color && !['none', 'transparent', 'currentColor'].includes(color)) return color
+    }
+  }
+  return getComputedStyle(svg).color
+}
+
+// Turns the header icons rendered in the hidden host into CSS mask classes
+function registerChipIcons() {
+  const host = chipIconHost.value
+  if (!host) return
+
+  let styleEl = document.getElementById('nc-formula-chip-icons') as HTMLStyleElement | null
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = 'nc-formula-chip-icons'
+    document.head.appendChild(styleEl)
+  }
+
+  let added = false
+  for (const el of host.querySelectorAll<HTMLElement>('[data-icon-key]')) {
+    const key = el.dataset.iconKey!
+    if (chipIconClasses.has(key)) continue
+    const svg = el.querySelector('svg')
+    if (!svg) continue
+    const cls = `nc-fx-ico-${key.replace(/[^\w-]/g, '')}${isDark.value ? '-dark' : ''}`
+    chipIconClasses.set(key, cls)
+    added = true
+    // the sheet is shared by every editor instance; add each rule once
+    if (styleEl.textContent?.includes(`.${cls}::before`)) continue
+    const url = `url("data:image/svg+xml;utf8,${encodeURIComponent(svg.outerHTML)}")`
+    // link icons keep their relation colour, as in the grid header
+    const column = chipIconColumns.value.find((c) => c.id === key)
+    const tint = column && isLinksOrLTAR(column) ? `background-color:${linkIconColor(svg)}!important` : ''
+    styleEl.textContent += `.${cls}::before{-webkit-mask-image:${url};mask-image:${url};${tint}}`
+  }
+  if (added) formulaChips.refresh()
+}
+
+function getFunctionMeta(fn: string) {
+  return (isRollupMode.value && rollupFunctionMetas.get(fn)) || formulas[fn]
+}
+
+function formulaDescription(fn: string) {
+  return getFunctionMeta(fn)?.description
+}
+
+// `{Tasks}.{Hours}` + `.SUM()`
+function appendListAggregate(fn: string) {
+  const model = editor?.getModel()
+  if (!model) return
+  const end = model.getPositionAt(model.getValue().trimEnd().length)
+  editor.executeEdits('nc-formula-aggregate', [
+    { range: new Range(end.lineNumber, end.column, end.lineNumber, end.column), text: `.${fn}()`, forceMoveMarkers: true },
+  ])
+  editor.setPosition(model.getPositionAt(model.getValue().trimEnd().length))
+  editor.focus()
+}
 
 function insertStringAtPosition(editor: MonacoEditor.IStandaloneCodeEditor, text: string, skipCursorMove = false) {
   const position = editor.getPosition()
@@ -439,17 +626,311 @@ function insertStringAtPosition(editor: MonacoEditor.IStandaloneCodeEditor, text
   editor.focus()
 }
 
-function replaceColumnRef(item: Record<string, any>) {
+function dotPathFieldRank(c: ColumnType) {
+  if (c.pv) return 0
+  if (c.pk || c.system || isSystemColumn(c)) return 2
+  return 1
+}
+
+function dotPathFieldHint(c: ColumnType) {
+  if (isLinksOrLTAR(c)) {
+    return isToManyLink(c) ? t('labels.formulaDotPath.linkMany') : t('labels.formulaDotPath.linkOne')
+  }
+  const typeName = UITypesName[c.uidt as keyof typeof UITypesName] ?? c.uidt
+  return c.pv ? `${typeName} · ${t('labels.formulaDotPath.displayValue')}` : typeName
+}
+
+// Type of `{A}.{B}` as a formula would see it, e.g. a list of numbers
+async function dotPathValueType(segments: string[]) {
+  try {
+    const tree = await validateFormulaAndExtractTreeWithType({
+      formula: segments.map((segment) => `{${segment}}`).join('.'),
+      columns: (meta.value?.columns ?? []) as UnifiedMetaType.IColumn[],
+      clientOrSqlUi: sqlUi.value,
+      getMeta: validateFormulaGetMeta(getMeta),
+    })
+    return { dataType: tree.dataType, isDataArray: !!tree.isDataArray }
+  } catch {
+    return null
+  }
+}
+
+function functionMenuItems(functionNames: string[], partial: string): DotPathMenuItem[] {
+  const unsupportedFnList = sqlUi.value?.getUnsupportedFnList() || []
+  return (
+    functionNames
+      .filter((fn) => getFunctionMeta(fn) && fn.toLowerCase().startsWith(partial))
+      .map((fn) => {
+        const fnMeta = getFunctionMeta(fn)!
+        return {
+          key: `fn:${fn}`,
+          kind: 'function' as const,
+          label: fn,
+          hint: '',
+          description: fnMeta.description,
+          syntax: fnMeta.syntax,
+          examples: fnMeta.examples,
+          docsUrl: fnMeta.docsUrl,
+          unsupported: unsupportedFnList.includes(fn) && !LIST_AGGREGATE_FUNCTIONS.includes(fn),
+        }
+      })
+      // functions the database can't run go last
+      .sort((a, b) => Number(!!a.unsupported) - Number(!!b.unsupported))
+  )
+}
+
+// Menu contents for the reference after `{A}.{B}.`, or null when the path does not resolve
+async function resolveDotPathMenu(match: FormulaDotPathMatch) {
+  // a rollup formula has one variable, `values`, and no paths
+  if (isRollupMode.value) {
+    if (match.segments.length) return null
+    const partial = match.partial.toLowerCase()
+    return {
+      sections: [
+        {
+          key: 'fields',
+          title: t('objects.fields'),
+          items: supportedColumns.value
+            .filter((c) => c.title!.toLowerCase().includes(partial))
+            .map((c) => ({ key: `field:${c.id}`, kind: 'field', label: c.title!, hint: dotPathFieldHint(c), column: c })),
+        },
+        { key: 'functions', title: t('labels.formulaDotPath.functions'), items: functionMenuItems(availableFunctions.value, partial) },
+      ] as DotPathMenuSection[],
+      isListContext: false,
+    }
+  }
+
+  let tableMeta: TableType | undefined | null = meta.value
+  let isList = false
+  let last: ColumnType | undefined
+  const breadcrumb = [meta.value?.title ?? '']
+
+  for (const [i, title] of match.segments.entries()) {
+    last = tableMeta?.columns?.find((c) => c.title === title)
+    if (!last) return null
+    if (!isLinksOrLTAR(last)) {
+      // only the last reference may be a plain value, followed by a function
+      if (i !== match.segments.length - 1) return null
+      break
+    }
+    const colOptions = last.colOptions as LinkToAnotherRecordType
+    isList = isList || isLinkToMany(last, colOptions)
+    tableMeta = await getMeta(
+      colOptions.fk_related_base_id || last.base_id || meta.value?.base_id || '',
+      colOptions.fk_related_model_id!,
+    )
+    if (!tableMeta) return null
+    breadcrumb.push(last.title ?? '')
+  }
+
+  const partial = match.partial.toLowerCase()
+  // the first reference suggests from this table
+  const isFirstReference = !match.segments.length
+  const isLinkContext = !!last && isLinksOrLTAR(last)
+
+  const fields: DotPathMenuItem[] =
+    isLinkContext || isFirstReference
+      ? [...(tableMeta?.columns ?? [])]
+          // display value first, system fields last
+          .sort((a, b) => dotPathFieldRank(a) - dotPathFieldRank(b))
+          .filter(
+            (c) =>
+              isFormulaSupportedColumn(c, tableMeta ?? undefined) &&
+              !(c.uidt === UITypes.LinkToAnotherRecord && c.system) &&
+              // link plumbing the grid never shows; still valid when typed
+              c.uidt !== UITypes.ForeignKey &&
+              // a formula can't reference itself
+              !(isFirstReference && c.id === column?.value?.id) &&
+              !!c.title?.toLowerCase().includes(partial),
+          )
+          .map((c) => ({
+            key: `field:${c.id}`,
+            kind: 'field',
+            label: c.title!,
+            hint: dotPathFieldHint(c),
+            column: c,
+            isLink: isLinksOrLTAR(c) && breadcrumb.length <= MAX_DOT_PATH_HOPS,
+            isList: isList || isToManyLink(c),
+          }))
+      : []
+
+  // `{` starts a field reference, so only a bare word also matches functions
+  let functionNames: string[] = []
+  if (isFirstReference) {
+    functionNames = match.hasBrace ? [] : availableFunctions.value
+  } else if (!isLinkContext) {
+    // after a value, only functions that take it: `{Hours}.ROUND()`, `{Tasks}.{Title}.COUNTA()`.
+    // A path ending on a link offers fields only — bare `{Tasks}` is the link count, not a list.
+    const value = await dotPathValueType(match.segments)
+    functionNames = (getMethodFunctions(value?.dataType, value?.isDataArray ?? isList) ?? availableFunctions.value).filter(
+      (fn) => !props.disabledFormulas.includes(`${fn}()`),
+    )
+  }
+  const functions = functionMenuItems(functionNames, partial)
+
+  const fieldSection: DotPathMenuSection = { key: 'fields', title: t('objects.fields'), items: fields }
+  const functionSection: DotPathMenuSection = {
+    key: 'functions',
+    title: isList ? t('labels.formulaDotPath.listFunctions') : t('labels.formulaDotPath.functions'),
+    items: functions,
+  }
+  // a typed bare word is more often a function name; browsing starts with fields
+  const sections =
+    isFirstReference && !match.hasBrace && match.partial ? [functionSection, fieldSection] : [fieldSection, functionSection]
+
+  return {
+    sections,
+    isListContext: isList,
+  }
+}
+
+// Just below the caret, kept inside the viewport
+function dotMenuPosition() {
+  const position = editor.getPosition()
+  const visible = position ? editor.getScrolledVisiblePosition(position) : null
+  const rect = editor.getDomNode()?.getBoundingClientRect()
+  if (!visible || !rect) return { top: 0, left: 0 }
+  // list + preview, or the list alone where the preview is hidden
+  const menuWidth = window.innerWidth > 640 ? 600 : 340
+  const menuHeight = document.querySelector<HTMLElement>('.nc-formula-dot-menu')?.offsetHeight || 380
+  const below = rect.top + visible.top + visible.height + 6
+  return {
+    top: below + menuHeight > window.innerHeight ? Math.max(8, rect.top + visible.top - menuHeight - 6) : below,
+    left: Math.max(8, Math.min(rect.left + visible.left - 16, window.innerWidth - menuWidth - 8)),
+  }
+}
+
+function showDotPathSuggestions(match: FormulaDotPathMatch) {
+  const request = ++dotPathRequest
+  dotPathContext.value = { hasBrace: match.hasBrace, partial: match.partial, isMethod: match.segments.length > 0 }
+
+  resolveDotPathMenu(match).then((menu) => {
+    if (request !== dotPathRequest) return
+
+    const items = menu?.sections.flatMap((section) => section.items) ?? []
+    dotMenu.value =
+      menu && items.length && !isDotMenuDismissed.value
+        ? {
+            ...menu,
+            activeKey: (
+              items.find((item) => !item.unsupported && item.label === preferredMenuLabel) ??
+              items.find((item) => !item.unsupported)
+            )?.key,
+            position: dotMenuPosition(),
+          }
+        : null
+    preferredMenuLabel = undefined
+    // the first position guesses the height; place it again once rendered
+    if (dotMenu.value) nextTick(repositionDotMenu)
+  })
+}
+
+function closeDotMenu() {
+  dotPathRequest++
+  dotMenu.value = null
+}
+
+function selectDotMenuItem(item: DotPathMenuItem, openLink = false) {
+  if (item.unsupported) return
+  $e('c:field:formula:reference:insert', { kind: item.kind, openLink })
+  appendDotPathText(item.kind === 'field' ? { type: 'column', text: item.label } : { type: 'function', text: `${item.label}()` })
+  if (openLink) insertStringAtPosition(editor, '.', true)
+  closeDotMenu()
+  // follow the link straight into the next hop
+  if (openLink) handleInput()
+}
+
+function moveDotMenuSelection(step: number) {
+  const menu = dotMenu.value
+  if (!menu) return
+  const items = menu.sections.flatMap((section) => section.items).filter((item) => !item.unsupported)
+  if (!items.length) return
+  const index = items.findIndex((item) => item.key === menu.activeKey)
+  menu.activeKey = items[(index + step + items.length) % items.length]!.key
+}
+
+function activeDotMenuItem() {
+  const menu = dotMenu.value
+  return menu?.sections.flatMap((section) => section.items).find((item) => item.key === menu.activeKey)
+}
+
+// Arrow keys, Enter, → and Esc drive the dot menu while it is open
+function handleDotMenuKey(e: {
+  keyCode: KeyCode
+  metaKey?: boolean
+  ctrlKey?: boolean
+  shiftKey?: boolean
+  altKey?: boolean
+  preventDefault: () => void
+  stopPropagation: () => void
+}) {
+  if (!dotMenu.value) return
+  // ⌘↵ saves as typed, without picking the highlighted item
+  if (e.keyCode === KeyCode.Enter && (e.metaKey || e.ctrlKey)) return
+
+  const consume = () => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  const active = activeDotMenuItem()
+  const hasSelectable = dotMenu.value.sections.some((section) => section.items.some((item) => !item.unsupported))
+
+  switch (e.keyCode) {
+    case KeyCode.DownArrow:
+      if (!hasSelectable) return
+      consume()
+      moveDotMenuSelection(1)
+      break
+    case KeyCode.UpArrow:
+      if (!hasSelectable) return
+      consume()
+      moveDotMenuSelection(-1)
+      break
+    case KeyCode.Enter:
+    case KeyCode.Tab:
+      // Shift+Enter still adds a line
+      if (e.shiftKey || e.altKey) return
+      if (!active || active.unsupported) return
+      consume()
+      selectDotMenuItem(active)
+      break
+    case KeyCode.RightArrow:
+      if (!active?.isLink) return
+      consume()
+      selectDotMenuItem(active, true)
+      break
+    case KeyCode.Escape:
+      consume()
+      isDotMenuDismissed.value = true
+      closeDotMenu()
+      break
+  }
+}
+
+// Replaces the partially typed reference after `.` with the chosen field or function
+function appendDotPathText(item: Record<string, any>) {
+  const context = dotPathContext.value
   const model = editor.getModel()
   const position = editor.getPosition()
   if (!model || !position) return false
 
-  const columnRef = getColumnRefAtCursor(model.getValue(), model.getOffsetAt(position))
-  if (!columnRef) return false
-
-  const start = model.getPositionAt(columnRef.start)
-  const end = model.getPositionAt(columnRef.end)
-  const text = `{${item.text}}`
+  const offset = model.getOffsetAt(position)
+  const value = model.getValue()
+  const start = offset - context.partial.length - (context.hasBrace ? 1 : 0)
+  // the rest of the reference or word after the caret is replaced too, so picking
+  // inside `{Bud|get}` or `SU|M` swaps it instead of leaving a fragment behind
+  let end = offset
+  if (context.hasBrace) {
+    const close = value.indexOf('}', offset)
+    const rest = close === -1 ? '' : value.slice(offset, close)
+    // `{` is auto-closed, so a `}` may already follow the cursor
+    if (close !== -1 && !/[{\n]/.test(rest)) end = close + 1
+  } else {
+    end += /^\w*/.exec(value.slice(offset))![0].length
+  }
+  // picking `IF` right before an existing `(` keeps that call's own parentheses
+  const keepsParens = item.type === 'function' && value[end] === '('
+  const text = item.type === 'column' ? (isRollupMode.value ? item.text : `{${item.text}}`) : keepsParens ? String(item.text).replace(/\(\)$/, '') : item.text
 
   editor.executeEdits('', [
     {
@@ -458,7 +939,14 @@ function replaceColumnRef(item: Record<string, any>) {
       forceMoveMarkers: true,
     },
   ])
-  editor.setPosition(model.getPositionAt(columnRef.start + text.length))
+
+  // functions get the cursor between their parentheses, unless called on a value
+  // and needing nothing more: `{Tasks}.{Hours}.SUM()|`
+  const fnName = item.type === 'function' ? String(item.text).replace(/\(\)$/, '') : ''
+  const needsArgs = !!fnName && (!context.isMethod || (getFunctionMeta(fnName)?.validation?.args?.min ?? 0) > 1)
+  const caret = keepsParens ? start + text.length + 1 : start + text.length - (needsArgs ? 1 : 0)
+  editor.setPosition(model.getPositionAt(caret))
+  editor.pushUndoStop()
   editor.focus()
 
   return true
@@ -551,9 +1039,9 @@ function handleInput() {
 
   if (text.length === 0) {
     // clear error if formula is empty
-    if (validateInfos.formula_raw?.validateStatus === 'error') {
-      validateInfos.formula_raw.validateStatus = 'success'
-      validateInfos.formula_raw.help = []
+    if (fieldValidateInfo.value?.validateStatus === 'error') {
+      fieldValidateInfo.value.validateStatus = 'success'
+      fieldValidateInfo.value.help = []
     }
   }
 
@@ -614,46 +1102,25 @@ function suggestionListUp() {
   }
 }
 
-function suggestionListDown() {
-  if (suggestion.value?.length) {
-    selected.value = ++selected.value % suggestion.value.length
-    suggestionPreviewed.value = orderedSuggestions.value[selected.value]
-
-    scrollToSelectedOption()
-  }
-}
-
-function scrollToSelectedOption() {
-  nextTick(() => {
-    if (sugOptionsRef.value[selected.value]) {
-      try {
-        sugOptionsRef.value[selected.value].$el.scrollIntoView({
-          block: 'center',
-        })
-      } catch (e) {}
-    }
-  })
-}
-
-const suggestionPreviewPostion = ref({
-  top: '0px',
-  left: '344px',
-})
-
-onMounted(() => {
-  until(() => monacoRoot.value as HTMLDivElement)
-    .toBeTruthy()
-    .then(() => {
-      setTimeout(() => {
-        const monacoDivPosition = monacoRoot.value?.getBoundingClientRect()
-        if (!monacoDivPosition) return
-
-        suggestionPreviewPostion.value.top = `${monacoDivPosition.top - 75}px`
-
-        if (fromTableExplorer?.value || monacoDivPosition.left > 352) {
-          suggestionPreviewPostion.value.left = `${monacoDivPosition.left - 344}px`
-        } else {
-          suggestionPreviewPostion.value.left = `${monacoDivPosition.right + 8}px`
+  let depth = 0
+  let commas = 0
+  for (let i = offset - 1; i >= 0; i--) {
+    if (inString[i]) continue
+    const ch = text[i]
+    if (ch === ')') depth++
+    else if (ch === '(') {
+      if (depth === 0) {
+        const name = text.slice(0, i).match(/(\.?)(\w+)\s*$/)
+        const fn = name?.[2]?.toUpperCase()
+        const meta = fn ? getFunctionMeta(fn) : undefined
+        if (!fn || !meta) break
+        signatureHint.value = {
+          name: fn,
+          params: syntaxParams(meta.syntax ?? ''),
+          // in `x.FN(a)` the first parameter is the value before the dot
+          activeParam: commas + (name?.[1] ? 1 : 0),
+          description: meta.description,
+          docsUrl: meta.docsUrl,
         }
       }, 250)
     })
@@ -726,7 +1193,7 @@ const repairFormulaAI = async () => {
 
   $e(`a:column:ai:formula:repair`)
 
-  const formula = await repairFormula(value.value, meta.value?.id, validateInfos?.formula_raw?.help.join(' | '))
+  const formula = await repairFormula(value.value, meta.value?.id, fieldValidateInfo.value?.help.join(' | '))
 
   if (formula) {
     editor.setValue(formula)
@@ -736,35 +1203,39 @@ const repairFormulaAI = async () => {
 const enableAI = async () => {
   $e(`c:column:ai:formula:enable`)
 
-  if (validateInfos?.formula_raw?.validateStatus === 'error') {
+  if (fieldValidateInfo.value?.validateStatus === 'error') {
     await repairFormulaAI()
   } else {
     aiMode.value = AI_MODE.PROMPT
   }
 }
 
+function applyEditorError(value = props.editorError) {
+  if (!editor) return
+  if (value?.isError) {
+    monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [
+      {
+        startLineNumber: value.position.row + 1,
+        startColumn: value.position.column + 1,
+        endLineNumber: value.position.row + 1,
+        // an empty range gets no hover
+        endColumn: value.position.column + 1 + Math.max(1, value.position.length),
+        message: value.message,
+        severity: MarkerSeverity.Error,
+      },
+    ])
+  } else {
+    monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [])
+  }
+}
+
 // set monaco module markers every editor error change
-watch(
-  () => props.editorError,
-  (value) => {
-    if (value?.isError) {
-      monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [
-        {
-          startLineNumber: value.position.row + 1,
-          startColumn: value.position.column + 1,
-          endLineNumber: value.position.row + 1,
-          endColumn: value.position.column + 1 + value.position.length,
-          message: value.message,
-          severity: MarkerSeverity.Error,
-        },
-      ])
-    } else {
-      monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [])
-    }
-  },
-)
+watch(() => props.editorError, applyEditorError)
 const validationErrorDisplay = computed(() => {
-  return props.editorError?.isError ? { validateStatus: 'success' } : validateInfos.formula_raw
+  if (props.editorError?.isError) return { validateStatus: 'success' }
+  // the status bar shows the message, so the form item keeps only the state
+  if (statusBar.value) return { ...fieldValidateInfo.value, help: undefined }
+  return fieldValidateInfo.value
 })
 </script>
 
@@ -836,7 +1307,39 @@ const validationErrorDisplay = computed(() => {
       @keydown.stop="handleKeydown"
     ></div>
   </a-form-item>
-  <template v-if="isAiFeaturesEnabled">
+
+  <SmartsheetColumnFormulaDotPathMenu
+    v-if="dotMenu"
+    v-bind="dotMenu"
+    @activate="(key) => dotMenu && (dotMenu.activeKey = key)"
+    @select="(item, openLink) => selectDotMenuItem(item, openLink)"
+  />
+
+  <div ref="chipIconHost" class="hidden" aria-hidden="true">
+    <span v-for="c of chipIconColumns" :key="c.id" :data-icon-key="c.id">
+      <SmartsheetHeaderIcon :column="c" />
+    </span>
+  </div>
+
+  <div v-if="listResultAggregates.length" class="nc-formula-list-bar" data-testid="nc-formula-list-bar">
+    <div class="text-bodySm leading-5 text-nc-content-gray-subtle2">
+      <GeneralIcon icon="ncLayers" class="inline-block w-3.5 h-3.5 -mt-0.5 mr-1 text-nc-content-orange-dark" />
+      {{ listResultMessage }}
+    </div>
+    <div class="flex flex-wrap gap-1.5 mt-2">
+      <NcTooltip v-for="fn of listResultAggregates" :key="fn" :title="formulaDescription(fn)" :arrow="false">
+        <button
+          type="button"
+          class="nc-formula-list-bar-option"
+          :data-testid="`nc-formula-list-bar-${fn}`"
+          @click="appendListAggregate(fn)"
+        >
+          <span class="text-nc-content-gray-muted">.</span>{{ fn }}<span class="text-nc-content-gray-muted">()</span>
+        </button>
+      </NcTooltip>
+    </div>
+  </div>
+  <template v-if="isAiFeaturesEnabled && !isRollupMode">
     <div v-if="aiMode === AI_MODE.NONE" class="w-full flex justify-end mt-2">
       <NcButton size="small" type="text" :loading="aiLoading" @click="enableAI">
         <template #icon>
@@ -846,7 +1349,7 @@ const validationErrorDisplay = computed(() => {
           <GeneralLoader class="!text-nc-content-purple-medium" size="regular" />
         </template>
         <div class="flex gap-2 items-center">
-          <span v-if="validateInfos?.formula_raw?.validateStatus === 'error'" class="text-[13px] font-semibold">{{
+          <span v-if="fieldValidateInfo?.validateStatus === 'error'" class="text-[13px] font-semibold">{{
             $t('labels.fixFormula')
           }}</span>
           <span v-else class="text-[13px] font-semibold">{{ $t('labels.formulaHelper') }}</span>
@@ -866,7 +1369,7 @@ const validationErrorDisplay = computed(() => {
             <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">{{ $t('labels.prompt') }}</div>
             <div class="flex items-center gap-2">
               <NcButton
-                v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
+                v-if="fieldValidateInfo?.validateStatus === 'error'"
                 type="secondary"
                 size="xs"
                 theme="ai"

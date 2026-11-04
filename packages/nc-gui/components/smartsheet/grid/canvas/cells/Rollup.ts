@@ -8,9 +8,11 @@ import {
   getMetaWithCompositeKey,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
+  getRollupFormulaDisplayColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
   isIntegerUiType,
+  isRollupFormula,
 } from 'nocodb-sdk'
 
 import { getRelatedBaseId } from '../utils/cell'
@@ -34,20 +36,36 @@ export const RollupCellRenderer: CellRenderer = {
       (c: any) => c.id === colOptions?.fk_relation_column_id,
     ) as ColumnType
 
-    if (!relatedColObj) return
-
-    const relatedColOptions = relatedColObj.colOptions as LinkToAnotherRecordType
-    if (!relatedColOptions) return
+    const relatedColOptions = relatedColObj?.colOptions as LinkToAnotherRecordType | undefined
 
     // Get the correct base ID for the related table (handles cross-base links)
-    const relatedBaseId = getRelatedBaseId(relatedColObj, meta?.base_id || '')
-    const relatedTableMeta = getMetaWithCompositeKey(metas, relatedBaseId, relatedColOptions.fk_related_model_id)
+    const relatedTableMeta = relatedColOptions
+      ? getMetaWithCompositeKey(
+          metas,
+          getRelatedBaseId(relatedColObj, meta?.base_id || ''),
+          relatedColOptions.fk_related_model_id,
+        )
+      : undefined
 
     // Partial meta (no access to the related base) lacks the target column — derive its type from the rollup
     const childColumn = deepClone(
       (relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id) ??
         getFallbackRollupColumn(column),
     )
+
+    // a formula rollup renders as its result type (or the rolled-up field for a bare SUM/MIN/MAX…);
+    // inside a lookup the related metas may be missing, so it doesn't need them
+    if (isRollupFormula(colOptions)) {
+      const displayColumn = getRollupFormulaDisplayColumn(column, childColumn)
+      renderCell(ctx, displayColumn, {
+        ...props,
+        column: displayColumn,
+        relatedColObj: undefined,
+        relatedTableMeta: undefined,
+        readonly: true,
+      })
+      return
+    }
 
     if (!childColumn) return
 

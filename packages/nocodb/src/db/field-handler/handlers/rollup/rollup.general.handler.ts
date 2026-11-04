@@ -1,4 +1,9 @@
-import { isBtLikeV2Junction, UITypes } from 'nocodb-sdk';
+import {
+  getRollupResultUidt,
+  isBtLikeV2Junction,
+  NC_ERROR_SENTINEL,
+  UITypes,
+} from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type { ColumnType } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
@@ -66,26 +71,149 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
       alias,
     } = options;
 
-    const columnOptions = (await column.getColOptions()) as RollupColumn;
-    const subQb = (
-      await genRollupSelectv2({
-        baseModelSqlv2,
-        knex,
-        alias,
-        columnOptions,
-      })
-    ).builder;
-    // knex doesn't parenthesise a bare subquery in column position
-    // (whereNull, where(x, '')); wrap it so every operator gets (select ...)
-    const builder = knex.raw('?', [subQb]);
+    const rollupOptions = await column.getColOptions<RollupColumn>();
+    const { builder, isError } = await genRollupSelectv2({
+      baseModelSqlv2,
+      knex,
+      alias,
+      columnOptions: rollupOptions,
+    });
+
+    // an errored rollup reads as the error sentinel text: no typed comparison
+    // fits it, and an error is never blank or equal to a value — except the
+    // sentinel itself (a group-by expand), where the polarity flips
+    if (isError) {
+      const negated = [
+        'neq',
+        'not',
+        'notblank',
+        'notempty',
+        'nlike',
+        'notchecked',
+      ].includes(filter.comparison_op);
+      const matchesAll =
+        filter.value === NC_ERROR_SENTINEL ? !negated : negated;
+      return {
+        clause: (qb: Knex.QueryBuilder) => {
+          qb.whereRaw(matchesAll ? '1 = 1' : '1 = 0');
+        },
+      };
+    }
+
+    // a rollup with a resolved result type filters as that type
+    const resultUidt = getRollupResultUidt({
+      uidt: column.uidt,
+      colOptions: rollupOptions,
+    });
+    if (resultUidt) {
+      // parenthesised: `IS NULL` and friends splice a bare query builder unwrapped
+      const expression = knex.raw('(?)', [builder]);
+      if (
+        [
+          UITypes.Date,
+          UITypes.DateTime,
+          UITypes.Checkbox,
+          UITypes.Number,
+          UITypes.Decimal,
+          UITypes.Time,
+        ].includes(resultUidt)
+      ) {
+        // a computed expression has no column affinity: SQLite compares a
+        // number with the text '10' as text, so numeric values go in as numbers
+        const isNumeric = [UITypes.Number, UITypes.Decimal].includes(
+          resultUidt,
+        );
+        const value =
+          isNumeric &&
+          typeof filter.value === 'string' &&
+          filter.value.trim() !== '' &&
+          !isNaN(+filter.value)
+            ? +filter.value
+            : filter.value;
+        return options.fieldHandler.applyFilter(
+          value === filter.value
+            ? filter
+            : new Filter({ ...filter, value } as Partial<Filter>),
+          setModelContext(
+            new Column({ ...column, uidt: resultUidt } as ColumnType),
+            column.context,
+          ),
+          { ...options, customWhereClause: expression as any },
+        );
+      }
+      if (resultUidt === UITypes.SingleLineText) {
+        // '' is blank, as for text fields (a Rollup column is not text-typed,
+        // so the generic path skips that arm)
+        if (
+          ['blank', 'empty', 'notblank', 'notempty'].includes(
+            filter.comparison_op,
+          )
+        ) {
+          const blank = ['blank', 'empty'].includes(filter.comparison_op);
+          return {
+            clause: (qb: Knex.QueryBuilder) => {
+              // Oracle stores '' as NULL: `<> ''` is never true there
+              if (baseModelSqlv2.isOracle) {
+                qb.whereRaw(blank ? `? IS NULL` : `? IS NOT NULL`, [
+                  expression,
+                ]);
+                return;
+              }
+              qb.whereRaw(
+                blank ? `(? IS NULL OR ? = '')` : `(? IS NOT NULL AND ? <> '')`,
+                [expression, expression],
+              );
+            },
+          };
+        }
+        return parseConditionV2(
+          baseModelSqlv2,
+          new Filter({
+            ...filter,
+            // an empty like/nlike matches on '' (a NULL pattern matches nothing)
+            value: knex.raw('?', [
+              filter.value ??
+                (['like', 'nlike'].includes(filter.comparison_op) ? '' : null),
+            ]),
+          } as any),
+          aliasCount,
+          alias,
+          expression as any,
+        );
+      }
+    }
+
+    // a plain numeric rollup: these ops build SQL the generic path can't take
+    // a subquery for (pg: syntax error on neq, type mismatch on blank)
+    if (
+      column.uidt === UITypes.Rollup &&
+      !resultUidt &&
+      !['min', 'max'].includes(rollupOptions.rollup_function) &&
+      ['neq', 'not', 'blank', 'notblank', 'empty', 'notempty'].includes(
+        filter.comparison_op,
+      )
+    ) {
+      const value =
+        typeof filter.value === 'string' &&
+        filter.value.trim() !== '' &&
+        !isNaN(+filter.value)
+          ? +filter.value
+          : filter.value;
+      return options.fieldHandler.applyFilter(
+        new Filter({ ...filter, value } as Partial<Filter>),
+        setModelContext(
+          new Column({ ...column, uidt: UITypes.Decimal } as ColumnType),
+          column.context,
+        ),
+        { ...options, customWhereClause: knex.raw('(?)', [builder]) as any },
+      );
+    }
+
     return parseConditionV2(
       baseModelSqlv2,
       new Filter({
         ...filter,
-        // a date result keeps its value for the date handler to parse
-        value: columnOptions?.result_uidt
-          ? filter.value
-          : ['in', 'btw', 'nbtw'].includes(filter.comparison_op)
+        value: ['in', 'btw', 'nbtw'].includes(filter.comparison_op)
           ? // numbers, not strings: SQLite never matches a count/sum to '2'
             (Array.isArray(filter.value)
               ? filter.value
@@ -98,7 +226,8 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
       } as any),
       aliasCount,
       alias,
-      builder,
+      // knex doesn't parenthesise a bare subquery in column position
+      knex.raw('?', [builder]),
     );
   }
 
@@ -107,8 +236,10 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     column: Column,
     options: FilterOptions = {},
   ): Promise<FilterVerificationResult> {
-    const resultUidt = (await column.getColOptions<RollupColumn>())
-      ?.result_uidt;
+    const resultUidt = getRollupResultUidt({
+      uidt: column.uidt,
+      colOptions: await column.getColOptions<RollupColumn>(),
+    });
     if (!resultUidt || !options.fieldHandler) {
       return super.verifyFilter(filter, column);
     }

@@ -1,6 +1,7 @@
 import {
   FormulaDataTypes,
   getEquivalentUIType,
+  getRollupResultUidt,
   isNumericCol,
   isVirtualCol,
   UITypes,
@@ -474,11 +475,16 @@ const parseConditionV2 = async (
       );
     }
 
-    // a rollup returning a date (min/max over a date field) compares as one
+    // a rollup returning a date compares as one
     if (column.uidt === UITypes.Rollup && customWhereClause) {
-      const rollupResultUidt = (await column.getColOptions<RollupColumn>())
-        ?.result_uidt;
-      if (rollupResultUidt) {
+      const rollupResultUidt = getRollupResultUidt({
+        uidt: column.uidt,
+        colOptions: await column.getColOptions<RollupColumn>(),
+      });
+      if (
+        rollupResultUidt === UITypes.Date ||
+        rollupResultUidt === UITypes.DateTime
+      ) {
         return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
           filter,
           setModelContext(

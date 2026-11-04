@@ -41,6 +41,7 @@ import {
   parseMetaProp,
   prepareForDb,
   prepareForResponse,
+  stringifyMetaProp,
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
@@ -373,6 +374,8 @@ export default class Column<T = any> implements ColumnType {
             fk_relation_column_id: column.fk_relation_column_id,
             fk_rollup_column_id: column.fk_rollup_column_id,
             rollup_function: column.rollup_function,
+            rollup_formula: column.rollup_formula,
+            parsed_tree: column.parsed_tree,
             error: column.error,
           },
           ncMeta,
@@ -2336,6 +2339,8 @@ export default class Column<T = any> implements ColumnType {
 
             fk_rollup_column_id: column.fk_rollup_column_id,
             rollup_function: column.rollup_function,
+            rollup_formula: column.rollup_formula,
+            parsed_tree: stringifyMetaProp(column, 'parsed_tree', null),
           });
           break;
         }

@@ -11,6 +11,14 @@ export * from './formula/types';
 export * from './formula/validate-extract-tree';
 export * from './formula/jsepInstances';
 export * from './formula/non-finite';
+export * from './formula/member-path';
+export * from './formula/method-scope';
+export * from './formula/rollupFormula';
+
+// Columns of the table a link field points to, for resolving `{Link}.{Field}`
+export type RelatedColumnsResolver<R = ColumnType[] | undefined> = (
+  linkColumn: ColumnType
+) => R;
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,

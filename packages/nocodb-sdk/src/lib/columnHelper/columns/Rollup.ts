@@ -12,14 +12,77 @@ import {
   parseProp,
 } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
+import {
+  isRollupFormula,
+  rollupFormulaKeepsTargetFormat,
+  rollupFormulaResultUidt,
+} from '~/lib/formula/rollupFormula';
 import { isIntegerUiType } from '../utils/cell';
 import { getEffectiveDisplayColumn } from '../utils/get-effective-display-column';
 import { ComputedTypePasteError } from '~/lib/error';
 import { precisionFormats, SeparatorType } from '../utils';
 import { isValidValue } from '~/lib/is';
+import { NC_ERROR_SENTINEL } from '~/lib/globals';
 import rfdc from 'rfdc';
 
 const clone = rfdc();
+
+// field types whose formatting a bare SUM/AVERAGE/MIN/MAX(values) keeps
+const ROLLUP_FORMULA_FORMAT_KEEPING_TYPES = [
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.Time,
+];
+
+/**
+ * The column a rollup formula's value renders as: the rolled-up field for a
+ * bare `SUM(values)` / `MIN(values)` … of a currency, date … field, otherwise
+ * a column of the formula's result type carrying the rollup's own meta.
+ */
+export const getRollupFormulaDisplayColumn = (
+  col: ColumnType,
+  childColumn?: ColumnType
+): ColumnType => {
+  const parsedTree = (col.colOptions as RollupType)?.parsed_tree;
+  const rollupMeta = parseProp(col.meta);
+
+  // a format picked on the field (currency, percent, date …) wins, as for formulas
+  if (rollupMeta.display_type) {
+    return getEffectiveDisplayColumn(rollupMeta, col);
+  }
+
+  if (
+    childColumn &&
+    rollupFormulaKeepsTargetFormat(parsedTree) &&
+    ROLLUP_FORMULA_FORMAT_KEEPING_TYPES.includes(childColumn.uidt as UITypes)
+  ) {
+    return {
+      ...childColumn,
+      uidt: [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+        childColumn.uidt as UITypes
+      )
+        ? UITypes.DateTime
+        : childColumn.uidt,
+      meta: { ...parseProp(childColumn.meta), ...rollupMeta },
+    };
+  }
+
+  const uidt = rollupFormulaResultUidt(parsedTree);
+  return {
+    ...col,
+    uidt,
+    // a decimal result shows 2 places until the field says otherwise
+    meta:
+      uidt === UITypes.Decimal && rollupMeta.precision == null
+        ? { ...rollupMeta, precision: 2 }
+        : rollupMeta,
+  };
+};
 
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -40,7 +103,8 @@ export class RollupHelper extends AbstractColumnHelper {
 
   parseValue(
     value: any,
-    params: SerializerOrParserFnProps['params']
+    params: SerializerOrParserFnProps['params'],
+    plain = false
   ): string | null {
     if (!isValidValue(value)) return null;
 
@@ -66,6 +130,16 @@ export class RollupHelper extends AbstractColumnHelper {
     let childColumn = relatedTableMeta?.columns.find(
       (c: ColumnType) => c.id === colOptions.fk_rollup_column_id
     ) as ColumnType | undefined;
+
+    if (isRollupFormula(colOptions)) {
+      const displayParams = {
+        ...params,
+        col: getRollupFormulaDisplayColumn(col, childColumn),
+      };
+      return plain
+        ? ColumnHelper.parsePlainCellValue(value, displayParams)
+        : ColumnHelper.parseValue(value, displayParams);
+    }
 
     if (!childColumn) return value;
 
@@ -135,7 +209,9 @@ export class RollupHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
-    return this.parseValue(value, params) ?? '';
+    // the grid shows an errored cell as ERR!
+    if (value === NC_ERROR_SENTINEL) return 'ERR!';
+    return this.parseValue(value, params, true) ?? '';
   }
 }
 

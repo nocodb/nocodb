@@ -1,5 +1,5 @@
 import { resolveRollupResultUidt } from 'nocodb-sdk';
-import type { RollupType, UITypes } from 'nocodb-sdk';
+import type { ParsedFormulaNode, RollupType, UITypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import Column from '~/models/Column';
@@ -7,6 +7,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
 import {
   getModelContext,
@@ -24,6 +25,7 @@ export const ROLLUP_FUNCTIONS = <const>[
   'sumDistinct',
   'avgDistinct',
   'sum',
+  'formula',
 ];
 
 /**
@@ -56,6 +58,8 @@ export default class RollupColumn implements RollupType {
   fk_relation_column_id;
   fk_rollup_column_id;
   rollup_function: (typeof ROLLUP_FUNCTIONS)[number];
+  rollup_formula?: string;
+  parsed_tree?: ParsedFormulaNode;
   error: string;
   // Resolved on read, never stored
   result_uidt?: UITypes.Date | UITypes.DateTime;
@@ -86,6 +90,8 @@ export default class RollupColumn implements RollupType {
       'fk_relation_column_id',
       'fk_rollup_column_id',
       'rollup_function',
+      'rollup_formula',
+      'parsed_tree',
       'error',
     ]);
 
@@ -105,7 +111,10 @@ export default class RollupColumn implements RollupType {
       context.workspace_id,
       context.base_id,
       MetaTable.COL_ROLLUP,
-      insertObj,
+      {
+        ...insertObj,
+        parsed_tree: stringifyMetaProp(insertObj, 'parsed_tree', null),
+      },
     );
 
     return this.read(context, data.fk_column_id, ncMeta).then(
@@ -148,6 +157,9 @@ export default class RollupColumn implements RollupType {
         MetaTable.COL_ROLLUP,
         { fk_column_id: columnId },
       );
+      if (column) {
+        column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
+      }
       await NocoCache.set(
         context,
         `${CacheScope.COL_ROLLUP}:${columnId}`,
@@ -155,6 +167,8 @@ export default class RollupColumn implements RollupType {
       );
     }
     if (!column) return null;
+    // a cached copy may hold it serialized
+    column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
     const instance = new RollupColumn(column);
     setModelContext(instance, context);
     const resultUidt = await resolveResultUidt(instance, ncMeta);
@@ -194,6 +208,8 @@ export default class RollupColumn implements RollupType {
       'fk_relation_column_id',
       'fk_rollup_column_id',
       'rollup_function',
+      'rollup_formula',
+      'parsed_tree',
       'error',
     ]);
 
@@ -201,7 +217,12 @@ export default class RollupColumn implements RollupType {
       context.workspace_id,
       context.base_id,
       MetaTable.COL_ROLLUP,
-      updateObj,
+      'parsed_tree' in updateObj
+        ? {
+            ...updateObj,
+            parsed_tree: stringifyMetaProp(updateObj, 'parsed_tree', null),
+          }
+        : updateObj,
       {
         fk_column_id: columnId,
       },

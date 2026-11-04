@@ -83,6 +83,8 @@ export interface IRollupColumn {
   fk_relation_column_id?: string;
   fk_rollup_column_id?: string;
   rollup_function: string;
+  rollup_formula?: string;
+  parsed_tree?: ParsedFormulaNode;
 
   getRelationColumn(ncMeta?: any): Promise<IColumn>;
   getRollupColumn(ncMeta?: any): Promise<IColumn>;

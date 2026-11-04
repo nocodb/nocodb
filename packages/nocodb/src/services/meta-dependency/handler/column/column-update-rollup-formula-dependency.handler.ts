@@ -63,45 +63,54 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     const newCol = param.newEntity;
     if (!newCol?.id) return undefined;
 
-    // Probe — does anything read this field? Formulas over it live in its own
-    // table; lookups and rollups of it may be cross-base.
-    const columns = await Column.list(
-      context,
-      { fk_model_id: newCol.fk_model_id },
-      ncMeta,
-    );
-    if (
-      (
-        await getFormulasReferredTheColumn(
-          context,
-          { column: newCol, columns },
-          ncMeta,
-        )
-      ).length
-    ) {
-      return {};
-    }
-    for (const ctx of await this.linkedContexts(context, columns, ncMeta)) {
-      for (const [table, condition] of [
-        [MetaTable.COL_LOOKUP, { fk_lookup_column_id: newCol.id }],
-        [MetaTable.COL_ROLLUP, { fk_rollup_column_id: newCol.id }],
-        ...(newCol.pv
-          ? [
-              [
-                MetaTable.COL_RELATIONS,
-                { fk_related_model_id: newCol.fk_model_id },
-              ],
-            ]
-          : []),
-      ] as [MetaTable, Record<string, string>][]) {
-        const rows = await ncMeta.metaList2(
-          ctx.workspace_id,
-          ctx.base_id,
-          table,
-          { condition, limit: 1 },
-        );
-        if (rows.length) return {};
+    // runs on every column update: a failing probe must not roll back the
+    // other handlers' work in the shared transaction
+    try {
+      // Probe — does anything read this field? Formulas over it live in its
+      // own table; lookups and rollups of it may be cross-base.
+      const columns = await Column.list(
+        context,
+        { fk_model_id: newCol.fk_model_id },
+        ncMeta,
+      );
+      if (
+        (
+          await getFormulasReferredTheColumn(
+            context,
+            { column: newCol, columns },
+            ncMeta,
+          )
+        ).length
+      ) {
+        return {};
       }
+      for (const ctx of await this.linkedContexts(context, columns, ncMeta)) {
+        for (const [table, condition] of [
+          [MetaTable.COL_LOOKUP, { fk_lookup_column_id: newCol.id }],
+          [MetaTable.COL_ROLLUP, { fk_rollup_column_id: newCol.id }],
+          ...(newCol.pv
+            ? [
+                [
+                  MetaTable.COL_RELATIONS,
+                  { fk_related_model_id: newCol.fk_model_id },
+                ],
+              ]
+            : []),
+        ] as [MetaTable, Record<string, string>][]) {
+          const rows = await ncMeta.metaList2(
+            ctx.workspace_id,
+            ctx.base_id,
+            table,
+            { condition, limit: 1 },
+          );
+          if (rows.length) return {};
+        }
+      }
+    } catch (e) {
+      this.logger.error(
+        `Failed to probe rollup formulas over column ${newCol.id}: ${e?.message}`,
+        e?.stack,
+      );
     }
     return undefined;
   }

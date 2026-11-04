@@ -146,6 +146,9 @@ const formulaChips = useFormulaChips({
   getMeta: (baseId, tableId) => getMeta(baseId, tableId),
   getMetaByKey,
   iconClassFor: chipIconClass,
+  bareReference: computed(() =>
+    props.rollupValuesColumn ? { keyword: ROLLUP_VALUES_KEYWORD, column: supportedColumns.value[0]! } : undefined,
+  ),
 })
 
 // Aggregates offered when the whole formula is a list, e.g. `{Tasks}.{Hours}`

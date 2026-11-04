@@ -20,6 +20,7 @@ import type {
   MetaEventHandler,
 } from '~/services/meta-dependency/types';
 import type { MetaService } from '~/meta/meta.service';
+import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import { FormulaColumn, Model, RollupColumn, Source, View } from '~/models';
 import Column from '~/models/Column';
 import { MetaTable } from '~/utils/globals';
@@ -224,10 +225,19 @@ export class ColumnUpdateRollupFormulaDependencyHandler
               ncMeta,
             );
             if (!rollupCol) continue;
-            if (
-              isRollupFormula(rollup) &&
-              (await this.retypeRollup(linkedCtx, rollup, ncMeta))
-            ) {
+            // one broken rollup must not stop the others being re-typed
+            let retyped = false;
+            try {
+              retyped =
+                isRollupFormula(rollup) &&
+                (await this.retypeRollup(linkedCtx, rollup, ncMeta));
+            } catch (e) {
+              this.logger.error(
+                `Failed to re-type rollup ${rollupCol.id}: ${e?.message}`,
+                e?.stack,
+              );
+            }
+            if (retyped) {
               // lookups of this rollup embed its SQL in their own queries
               await clearSingleQueryCacheForColumnReferences(
                 linkedCtx,
@@ -268,7 +278,7 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     const contexts = [context];
     for (const col of tableColumns) {
       if (!isLinksOrLTAR(col.uidt)) continue;
-      const opts = await col.getColOptions<any>(ncMeta);
+      const opts = await col.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
       if (
         !opts?.fk_related_base_id ||
         contexts.some((c) => c.base_id === opts.fk_related_base_id)
@@ -333,7 +343,8 @@ export class ColumnUpdateRollupFormulaDependencyHandler
       ncMeta,
     );
     if (!relation || relation.deleted) return true;
-    const relationOptions = await relation.getColOptions<any>(ncMeta);
+    const relationOptions =
+      await relation.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
     const refContext = relationOptions?.getRelContext?.().refContext ?? context;
     const target = await Column.get(
       refContext,

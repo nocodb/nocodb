@@ -11,6 +11,7 @@ import {
   isRollupAggregatableColumn,
   isRollupFormula,
   isRollupFormulaTargetColumn,
+  NcBaseError,
   OperationSource,
   parseProp,
   RelationTypes,
@@ -444,13 +445,6 @@ export async function validateRollupPayload(
     );
   }
 
-  // e.g. the hidden links of a many-to-many junction
-  if (column.system) {
-    NcError.get(context).badRequest(
-      `"${column.title}" is a system link field and can't be rolled up.`,
-    );
-  }
-
   const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
     ncMeta,
   );
@@ -504,6 +498,12 @@ export async function validateRollupPayload(
   }
 
   const relatedTable = await relatedColumn.getModel(ncMeta);
+  // the hidden links into a many-to-many junction table
+  if (relatedTable?.mm) {
+    NcError.get(context).badRequest(
+      `"${column.title}" links to a junction table and can't be rolled up.`,
+    );
+  }
   const relatedTableColumns = await relatedTable.getColumns(ncMeta);
 
   const rollupColumn = relatedTableColumns.find(
@@ -574,6 +574,9 @@ export async function validateRollupPayload(
         },
       });
     } catch (e) {
+      // as formula fields: an NcError passes through, the rest (incl. the
+      // parser's syntax errors) is the formula's fault
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       NcError.get(context).formulaError(e.message);
     }
     return;

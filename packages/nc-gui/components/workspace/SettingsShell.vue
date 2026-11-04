@@ -55,6 +55,7 @@ const isPaneAllowed = computed(() => isRolesLoaded.value && availableTabs.value.
 const generalSectionBySlug: Partial<Record<WsSettingsSlug, WsSettingsSection>> = {
   'general': 'appearance',
   'skills': 'skills',
+  'connectors': 'connectors',
   'security': 'security',
   'danger-zone': 'dangerZone',
 }

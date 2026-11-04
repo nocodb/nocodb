@@ -76,6 +76,9 @@ export enum MetaTable {
   ENVIRONMENTS = 'nc_environments',
   INTEGRATION_ENV_CONFIGS = 'nc_integration_env_configs',
   INTEGRATION_USER_CONFIGS = 'nc_integration_user_configs',
+  MCP_CONNECTORS = 'nc_mcp_connectors',
+  MCP_CONNECTIONS = 'nc_mcp_connections',
+  MCP_CONNECTOR_POLICIES = 'nc_mcp_connector_policies',
   VAULTS = 'nc_vaults',
   VAULT_PERMISSIONS = 'nc_vault_permissions',
   VAULT_PERMISSION_SUBJECTS = 'nc_vault_permission_subjects',
@@ -386,6 +389,9 @@ export const orderedMetaTables = [
   MetaTable.NOTIFICATION,
   MetaTable.COMMENTS_REACTIONS,
   MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE,
+  MetaTable.MCP_CONNECTIONS,
+  MetaTable.MCP_CONNECTORS,
+  MetaTable.MCP_CONNECTOR_POLICIES,
   MetaTable.COMMENTS,
 
   // View types (children before parents)
@@ -851,6 +857,9 @@ export const RootScopeTables = {
     MetaTable.HQ_ROADMAP_LINKS,
     MetaTable.SKILLS,
     MetaTable.SKILL_POLICIES,
+    MetaTable.MCP_CONNECTORS,
+    MetaTable.MCP_CONNECTIONS,
+    MetaTable.MCP_CONNECTOR_POLICIES,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

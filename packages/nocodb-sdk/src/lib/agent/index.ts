@@ -3,6 +3,7 @@ import type { AgentChannelType } from './channel';
 import type { SkillType } from '../skill';
 import type { AgentDelivery, AgentSetupState } from './setup';
 import type { AgentFileType } from './files';
+import type { McpConnectorSource } from '../mcp';
 
 /**
  * What an agent runs on, fixed at creation. A coding agent gets repositories
@@ -48,6 +49,13 @@ export interface AgentConfigType {
   delivery?: AgentDelivery;
   /** Placed in the agent's workspace on every run; instruction chips name them. */
   files?: AgentFileType[];
+  /** Tools from app integrations with actions, beyond NocoDB's own. */
+  tool_sources?: AgentToolSourceConfig[];
+  /**
+   * MCP connectors the agent may use. Each person chatting uses their own
+   * connection and their own approvals; a triggered run has neither.
+   */
+  connectors?: AgentConnectorRef[];
 }
 
 /** Whether a coding agent's pull request opens as a draft or ready for review. */
@@ -116,6 +124,54 @@ export function agentBranchName(
       run.includes('/') ? '/' : run.includes('-') ? '-' : '.'
     )
     .replace(/^[-/.]+|[-/.]+$/g, '');
+}
+
+export interface AgentConnectorRef {
+  source: McpConnectorSource;
+  connector_id: string;
+}
+
+/** Where an agent's integration tools come from: a provider's actions package run with its auth integration. */
+export enum AgentToolSourceKind {
+  ACTIONS = 'actions',
+}
+
+export interface AgentToolSourceTool {
+  /** The tool's own name on its source: an MCP tool name or a capability id. */
+  name: string;
+  /** Hash of description + input schema when it was picked; a tool that changed since is left out until re-picked. */
+  fingerprint?: string;
+  /** Runs without asking. Off by default, and ignored when nobody can approve: a triggered run skips tools that would ask. */
+  auto_approve?: boolean;
+}
+
+export interface AgentToolSourceConfig {
+  kind: AgentToolSourceKind;
+  fk_integration_id: string;
+  tools: AgentToolSourceTool[];
+}
+
+/** Whether a model-facing tool name came from a connected service (`<kind>_<id>__<tool>`); MCP connections use `mcp`. */
+export function isToolSourceToolName(name: string): boolean {
+  return /^(mcp|actions)_.{6}__./.test(name);
+}
+
+/** An integration that can be added as a tool source in this base. */
+export interface AgentToolSourceCandidate {
+  kind: AgentToolSourceKind;
+  fk_integration_id: string;
+  title: string;
+  sub_type: string;
+}
+
+/** A tool as its source offers it, for picking. */
+export interface AgentToolSourceToolInfo {
+  name: string;
+  title?: string;
+  description: string;
+  /** The source's own hint; approval never relies on it. */
+  readOnly?: boolean;
+  fingerprint: string;
 }
 
 /** Granted and revoked as a group by the Web access switch. */

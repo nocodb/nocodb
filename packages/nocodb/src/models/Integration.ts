@@ -51,7 +51,7 @@ export default class Integration implements IntegrationType {
   fk_workspace_id?: string;
   title?: string;
   type?: IntegrationsType;
-  sub_type?: IntegrationsType;
+  sub_type?: string;
   config?: string;
   order?: number;
   enabled?: BoolType;

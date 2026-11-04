@@ -130,6 +130,8 @@ import * as nc_202610271400_factory_repos_coding_agents from './v0/nc_2026102714
 import * as nc_202610301155_compute_instances_widen_compute_id from './v0/nc_202610301155_compute_instances_widen_compute_id';
 import * as nc_202610301200_api_token_ip_allowlist from './v0/nc_202610301200_api_token_ip_allowlist';
 import * as nc_202610301400_automation_executions_latest_idx from './v0/nc_202610301400_automation_executions_latest_idx';
+import * as nc_202611021126_automation_executions_chain from './v0/nc_202611021126_automation_executions_chain';
+import * as nc_202611041200_mcp_connectors from './v0/nc_202611041200_mcp_connectors';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -271,6 +273,8 @@ export default class XcMigrationSourcev0 {
       'nc_202610301155_compute_instances_widen_compute_id',
       'nc_202610301200_api_token_ip_allowlist',
       'nc_202610301400_automation_executions_latest_idx',
+      'nc_202611021126_automation_executions_chain',
+      'nc_202611041200_mcp_connectors',
     ]);
   }
 
@@ -544,6 +548,10 @@ export default class XcMigrationSourcev0 {
         return nc_202610301200_api_token_ip_allowlist;
       case 'nc_202610301400_automation_executions_latest_idx':
         return nc_202610301400_automation_executions_latest_idx;
+      case 'nc_202611021126_automation_executions_chain':
+        return nc_202611021126_automation_executions_chain;
+      case 'nc_202611041200_mcp_connectors':
+        return nc_202611041200_mcp_connectors;
     }
   }
 }

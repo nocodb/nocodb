@@ -132,12 +132,22 @@ export function classicAppIdOfSlug(slug: string) {
 }
 
 /** Workspace settings panes, by their `/{ws}/settings/{slug}` slug. The slug is the pane key. */
-export const wsSettingsSlugs = ['general', 'skills', 'security', 'danger-zone', 'billing', 'usage', 'audits', 'sso'] as const
+export const wsSettingsSlugs = [
+  'general',
+  'skills',
+  'connectors',
+  'security',
+  'danger-zone',
+  'billing',
+  'usage',
+  'audits',
+  'sso',
+] as const
 
 export type WsSettingsSlug = (typeof wsSettingsSlugs)[number]
 
 /** The old General page's sections — one rail row each now, `?tab=` on the old page. */
-export type WsSettingsSection = 'appearance' | 'skills' | 'security' | 'dangerZone'
+export type WsSettingsSection = 'appearance' | 'skills' | 'connectors' | 'security' | 'dangerZone'
 
 /**
  * Old names that still reach a pane: the flat `/{ws}/{page}` routes, the

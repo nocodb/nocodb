@@ -74,10 +74,13 @@ export class MetaDependencyEventHandler implements OnModuleInit {
     let trxNcMeta: MetaService;
     try {
       for (const handler of this.metaEventHandlerMap[param.eventType] ?? []) {
+        // Always probe with the non-transactional ncMeta: getAffectedDependency
+        // is a read-only check and must not run inside the write transaction,
+        // or it will deadlock on SQLite (pool size = 1) once trxNcMeta is set.
         const affectedDependencies = await handler.getAffectedDependency(
           nextContext,
           param,
-          trxNcMeta ?? ncMeta,
+          ncMeta,
         );
         if (affectedDependencies) {
           trxNcMeta = trxNcMeta ?? (await ncMeta.startTransaction());

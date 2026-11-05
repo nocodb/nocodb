@@ -21,6 +21,33 @@ import { NcError } from '~/helpers/ncError';
 
 const logger = new Logger('GenericS3');
 
+/**
+ * `@aws-sdk/lib-storage` returns the upload `Location` with every key segment
+ * percent-encoded (`my file.pdf` -> `my%20file.pdf`). Attachment urls are
+ * turned back into object keys with `getPathFromUrl()`, which encodes the url
+ * again, so an encoded `Location` resolves to a key that does not exist
+ * (NoSuchKey). Decode the path segments and leave the origin untouched.
+ */
+function decodeLocationPath(location: string): string {
+  const match = /^(https?:\/\/[^/]+)(\/.*)$/i.exec(location ?? '');
+  if (!match) return location;
+
+  const [, origin, pathname] = match;
+  return (
+    origin +
+    pathname
+      .split('/')
+      .map((segment) => {
+        try {
+          return decodeURIComponent(segment);
+        } catch {
+          return segment;
+        }
+      })
+      .join('/')
+  );
+}
+
 interface GenericObjectStorageInput {
   bucket: string;
   region?: string;
@@ -53,7 +80,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
   }
 
   protected patchUploadReturnKey(key: string): string {
-    return key;
+    return decodeLocationPath(key);
   }
 
   public async test(): Promise<boolean> {

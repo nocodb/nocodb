@@ -147,11 +147,11 @@ const syncReorderRows = () => {
   reorderRows.value = [...(childrenList.value?.list ?? [])]
 }
 
-// When reorder becomes active, make sure the FULL set (up to REORDER_MAX) is
-// loaded into a single page, then mirror it into the draggable list.
+// Refill the full draggable set after every list reload: the default page only
+// contains one chunk, and reorder mode does not render the virtualized rows.
 watch(
-  reorderEnabled,
-  async (enabled) => {
+  [reorderEnabled, childrenList],
+  async ([enabled]) => {
     if (!enabled) return
     if ((childrenList.value?.list?.length ?? 0) < childrenListCount.value) {
       await loadChildrenList(true, undefined, REORDER_MAX)
@@ -160,12 +160,6 @@ watch(
   },
   { immediate: true },
 )
-
-// Keep the draggable list in sync when the underlying list changes (e.g. after a
-// reorder reload or an unlink) — but only while not mid-list-load.
-watch(childrenList, () => {
-  if (reorderEnabled.value) syncReorderRows()
-})
 
 const onReorderEnd = async (evt: { oldIndex?: number; newIndex?: number }) => {
   const { oldIndex, newIndex } = evt

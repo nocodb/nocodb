@@ -53,6 +53,12 @@ const updateExtensionTitle = async () => {
   titleEditMode.value = false
 }
 
+/** Ignore the Enter that confirms an IME candidate; only commit once composition is done */
+const onTitleKeyEnter = (event: KeyboardEvent) => {
+  if (isComposingKeyEvent(event)) return
+  updateExtensionTitle()
+}
+
 const expandExtension = () => {
   if (!collapsed.value) return
 
@@ -128,7 +134,7 @@ const handleDuplicateExtension = async (id: string, open = false) => {
           '!text-lg !font-semibold max-w-[420px]': isFullscreen,
         }"
         @click.stop
-        @keyup.enter="updateExtensionTitle"
+        @keydown.enter.stop.prevent="onTitleKeyEnter"
         @keyup.esc="updateExtensionTitle"
         @blur="updateExtensionTitle"
       >

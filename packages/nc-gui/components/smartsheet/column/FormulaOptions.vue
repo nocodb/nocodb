@@ -14,8 +14,10 @@ import type { ColumnType, FormulaType, SelectOptionType, UnifiedMetaType } from 
 
 const props = defineProps<{
   value: any
+  // ⌘↵ saves; off where fields are saved in a batch
+  canSubmit?: boolean
 }>()
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'onSubmit'])
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -64,7 +66,7 @@ const supportedColumns = computed(
       return true
     }) || [],
 )
-const { getMeta } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const validators = {
   formula_raw: [
@@ -109,6 +111,7 @@ if ((column.value?.colOptions as any)?.formula_raw) {
       (column.value?.colOptions as FormulaType)?.formula,
       meta?.value?.columns as ColumnType[],
       (column.value?.colOptions as any)?.formula_raw,
+      (linkColumn) => getLinkedMetaColumns(getMetaByKey, linkColumn),
     ) || ''
 }
 
@@ -281,6 +284,9 @@ watch(
             v-model:value="vModel.formula_raw"
             :error="validateInfos.formula_raw?.validateStatus === 'error'"
             :editor-error="editorError"
+            :result-info="parsedTree"
+            :can-submit="canSubmit"
+            @submit="emit('onSubmit')"
           />
         </div>
       </a-tab-pane>

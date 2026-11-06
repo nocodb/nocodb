@@ -6,6 +6,7 @@ import {
   LinksVersion,
   NcApiVersion,
   parseProp,
+  ROLLUP_FORMULA_FUNCTION,
   SqlUiFactory,
   UITypes,
   WebhookActions,
@@ -743,6 +744,17 @@ export class ColumnsV3Service {
       // belong to the old type.
       const incomingOptions = (param.column as FieldOptionsRecord).options;
 
+      // a formula alone makes a formula rollup, rather than one the stored
+      // plain function rejects (as the v1 update does)
+      if (
+        optionsType === UITypes.Rollup &&
+        incomingOptions?.rollup_function === undefined &&
+        typeof incomingOptions?.formula === 'string' &&
+        incomingOptions.formula.trim()
+      ) {
+        incomingOptions.rollup_function = ROLLUP_FORMULA_FUNCTION;
+      }
+
       if (incomingOptions && !isTypeChange) {
         const merged = this.mergeStoredOptions(
           optionsSchema.schema,
@@ -759,6 +771,20 @@ export class ColumnsV3Service {
             merged.choices as SelectChoiceV3[],
             this.storedChoices(column),
           );
+        }
+        // back to a plain function: the stored formula options go with it,
+        // while ones the caller sends are still rejected by the schema
+        if (
+          optionsType === UITypes.Rollup &&
+          merged.rollup_function !== ROLLUP_FORMULA_FUNCTION
+        ) {
+          for (const key of [
+            'formula',
+            'display_type',
+            'display_column_meta',
+          ]) {
+            if (!(key in incomingOptions)) delete merged[key];
+          }
         }
         (param.column as FieldOptionsRecord).options = merged;
       }

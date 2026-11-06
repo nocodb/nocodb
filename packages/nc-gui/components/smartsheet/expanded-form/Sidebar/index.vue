@@ -50,6 +50,8 @@ const tab = ref<SidebarFeed>(
 
 const isSelectorOpen = ref(false)
 
+const showCommentSearch = ref(false)
+
 /** Own keys, not the interface drawer's — the two surfaces must not overwrite each other. */
 const commentFilter = useStorage<CommentFilter>('nc-expanded-form-comment-filter', 'all')
 
@@ -209,13 +211,17 @@ watch(
 
       <!-- Record bell — per-user comment-notification preference (EE; CE stub
            renders nothing). -->
-      <SmartsheetExpandedFormSidebarCommentNotificationBell v-if="showNotificationBell" class="flex-none ml-auto" />
+      <div class="flex-none flex items-center gap-1 ml-auto">
+        <SmartsheetExpandedFormCommentSearchToggle v-if="tab === 'comments'" v-model="showCommentSearch" />
+        <SmartsheetExpandedFormSidebarCommentNotificationBell v-if="showNotificationBell" />
+      </div>
     </div>
 
     <div class="flex-1 min-h-0 overflow-hidden">
       <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper v-if="tab === 'fields'" :compact-mode="compactMode" />
       <SmartsheetExpandedFormSidebarComments
         v-else-if="tab === 'comments'"
+        v-model:show-search="showCommentSearch"
         :comment-filter="commentFilter"
         :show-resolved="showResolvedComments"
         class="h-full"

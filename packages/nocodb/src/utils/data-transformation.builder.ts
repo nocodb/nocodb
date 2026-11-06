@@ -262,9 +262,11 @@ export const colOptionBuilder = builderGenerator({
     'fk_rollup_column_id',
     'fk_lookup_column_id',
     'rollup_function',
+    'rollup_formula',
   ],
   mappings: {
     formula_raw: 'formula',
+    rollup_formula: 'formula',
     fk_qr_value_column_id: 'qr_value_field_id',
     fk_barcode_value_column_id: 'barcode_value_field_id',
 

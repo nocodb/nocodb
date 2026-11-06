@@ -15,6 +15,7 @@ import {
   isFieldTrackingLmtCol,
   isLinksOrLTAR,
   isMMOrMMLike,
+  isRollupFormula,
   isServiceUser,
   isSupportedDisplayValueColumn,
   isSystemColumn,
@@ -36,9 +37,9 @@ import {
   ProjectRoles,
   readonlyMetaAllowedTypes,
   RelationTypes,
+  ROLLUP_FORMULA_FUNCTION,
   SqlUiFactory,
   substituteColumnAliasWithIdInFormula,
-  substituteColumnIdWithAliasInFormula,
   UITypes,
   validateFormulaAndExtractTreeWithType,
   WebhookActions,
@@ -77,6 +78,11 @@ import {
   ColumnWebhookManagerBuilder,
 } from '~/utils/column-webhook-manager';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import {
+  execRollupDryRun,
+  isDryRunTimeout,
+  rollupDryRunMessage,
+} from '~/db/rollupReadFallback';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -153,14 +159,21 @@ import {
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
+import { tableForBroadcast } from '~/helpers/publicViewSecrets';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
-import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
+import { renameColumnInFormulaRaw } from '~/helpers/formulaHelpers';
+import {
+  getLinkedColumnsResolver,
+  getRelatedModelMap,
+  getRelatedModelResolver,
+} from '~/utils/getRelatedModelMap';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { credentialCoversBase } from '~/helpers/credentialBaseScope';
 import { getCrossBaseInboundLinkColumns } from '~/helpers/crossBaseInboundLinks';
+import { pluralizeTitle } from '~/helpers/pluralizeTitle';
 
 export type {
   LtarSideEffectIds,
@@ -673,16 +686,25 @@ export class ColumnsService implements IColumnsService {
         oldColumn.title = colBody.title;
         for (const f of formulas) {
           // replace column IDs with alias to get the new formula_raw
-          const new_formula_raw = substituteColumnIdWithAliasInFormula(
-            f.formula,
-            [oldColumn],
-          );
+          const renamedRaw = f.formula_raw
+            ? renameColumnInFormulaRaw({
+                formula: f.formula,
+                formulaRaw: f.formula_raw,
+                columnId: oldColumn.id,
+                title: oldColumn.title,
+              })
+            : null;
 
-          // update the formula_raw and set parsed_tree to null to reparse the formula
-          await FormulaColumn.update(context, oldColumn.id, {
-            formula_raw: new_formula_raw,
-            parsed_tree: null,
-          });
+          // update the formula_raw and set parsed_tree to null to reparse the formula;
+          // keep formula_raw as is when it can't be renamed reliably
+          await FormulaColumn.update(
+            { ...context, base_id: f.base_id ?? context.base_id },
+            f.fk_column_id,
+            {
+              ...(renamedRaw ? { formula_raw: renamedRaw } : {}),
+              parsed_tree: null,
+            },
+          );
         }
       }
     }
@@ -1692,15 +1714,14 @@ export class ColumnsService implements IColumnsService {
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
+              getLinkedColumnsResolver(context),
             );
             colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
               formula: colBody.formula || colBody.formula_raw,
               columns: formulaColumns,
               column,
               clientOrSqlUi: source.type as any,
-              getMeta: async (_, { id }) => {
-                return relatedModels.get(id);
-              },
+              getMeta: getRelatedModelResolver(context, relatedModels),
             });
 
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -1793,15 +1814,14 @@ export class ColumnsService implements IColumnsService {
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
+              getLinkedColumnsResolver(context),
             );
             colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
               formula: colBody.formula || colBody.formula_raw,
               columns: buttonFormulaColumns,
               column,
               clientOrSqlUi: source.type as any,
-              getMeta: async (_, { id }) => {
-                return relatedModels.get(id);
-              },
+              getMeta: getRelatedModelResolver(context, relatedModels),
             });
 
             try {
@@ -1886,6 +1906,14 @@ export class ColumnsService implements IColumnsService {
           if (colBody.title && colBody.title !== column.title) {
             await Column.updateAlias(context, param.columnId, {
               title: colBody.title,
+            });
+            // e.g. a renamed link used as a hop in `{Link}.{Field}`
+            await this.updateFormulas(context, {
+              oldColumn: { ...column },
+              colBody: {
+                title: colBody.title,
+                column_name: column.column_name,
+              },
             });
           }
           if (
@@ -2107,7 +2135,10 @@ export class ColumnsService implements IColumnsService {
               event: EventType.META_EVENT,
               payload: {
                 action: 'column_update',
-                payload: { table: safeTable, column: textColumn },
+                payload: {
+                  table: tableForBroadcast(safeTable),
+                  column: textColumn,
+                },
               },
             },
             context.socket_id,
@@ -2185,7 +2216,7 @@ export class ColumnsService implements IColumnsService {
             payload: {
               action: 'column_update',
               payload: {
-                table: safeTable,
+                table: tableForBroadcast(safeTable),
                 column: jsonSafe(ltarColumn),
               },
             },
@@ -3767,18 +3798,13 @@ export class ColumnsService implements IColumnsService {
         });
 
         // create nested replace statement for each user
-        const setStatement = baseUsers.reduce(
-          (acc, user) => {
-            const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
-              user.id,
-              user.email,
-            ]);
-            return escapeBindingPlaceholders(qb.toQuery());
-          },
-          escapeBindingPlaceholders(
-            sqlClient.knex.raw(`??`, [column.column_name]).toQuery(),
-          ),
-        );
+        const setStatement = baseUsers.reduce((acc, user) => {
+          const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
+            user.id,
+            user.email,
+          ]);
+          return escapeBindingPlaceholders(qb.toQuery());
+        }, escapeBindingPlaceholders(sqlClient.knex.raw(`??`, [column.column_name]).toQuery()));
 
         const updateSql = sqlClient.knex
           .raw(`UPDATE ?? SET ?? = ${setStatement};`, [
@@ -4032,7 +4058,7 @@ export class ColumnsService implements IColumnsService {
         payload: {
           action: 'column_update',
           payload: {
-            table,
+            table: tableForBroadcast(table),
             column: updatedColumn,
             skipDataReload: isRowDataUnchanged(oldColumn, updatedColumn),
           },
@@ -4150,6 +4176,12 @@ export class ColumnsService implements IColumnsService {
 
     const column = await Column.get(context, { colId: param.columnId });
 
+    await this.metaDependencyEventHandler.handleEvent(context, {
+      eventType: MetaEventType.COLUMN_PRIMARY_UPDATED,
+      oldEntity: oldPrimaryColumn,
+      newEntity: column,
+    });
+
     // to reflect column properly on realtime and getWithInfo we will get default view column order and visibility in col meta
     const table = await Model.getWithInfo(context, { id: column.fk_model_id });
 
@@ -4171,7 +4203,7 @@ export class ColumnsService implements IColumnsService {
           payload: {
             action: 'column_update',
             payload: {
-              table,
+              table: tableForBroadcast(table),
               column: { ...oldPrimaryColumn, pv: false },
             },
           },
@@ -4197,7 +4229,7 @@ export class ColumnsService implements IColumnsService {
         payload: {
           action: 'column_update',
           payload: {
-            table,
+            table: tableForBroadcast(table),
             column,
           },
         },
@@ -4464,6 +4496,9 @@ export class ColumnsService implements IColumnsService {
             (param.column as RollupColumnReqType).fk_relation_column_id,
             param.req,
           );
+          if (isRollupFormula(colBody)) {
+            await this.dryRunRollup(context, table.id, colBody);
+          }
 
           savedColumn = await Column.insert(context, {
             ...colBody,
@@ -4636,6 +4671,7 @@ export class ColumnsService implements IColumnsService {
           colBody.formula = await substituteColumnAliasWithIdInFormula(
             colBody.formula_raw || colBody.formula,
             table.columns,
+            getLinkedColumnsResolver(context),
           );
           colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
             // formula may include double curly brackets in previous version
@@ -4647,9 +4683,7 @@ export class ColumnsService implements IColumnsService {
             },
             columns: formulaColumns,
             clientOrSqlUi: source.type as any,
-            getMeta: async (_, { id }) => {
-              return relatedModels.get(id);
-            },
+            getMeta: getRelatedModelResolver(context, relatedModels),
           });
 
           const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -4709,6 +4743,7 @@ export class ColumnsService implements IColumnsService {
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
+              getLinkedColumnsResolver(context),
             );
             colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
               formula: colBody.formula,
@@ -4718,9 +4753,7 @@ export class ColumnsService implements IColumnsService {
                 colOptions: colBody,
               },
               clientOrSqlUi: source.type as any,
-              getMeta: async (_, { id }) => {
-                return relatedModels.get(id);
-              },
+              getMeta: getRelatedModelResolver(context, relatedModels),
             });
 
             const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -5383,7 +5416,7 @@ export class ColumnsService implements IColumnsService {
         payload: {
           action: 'column_add',
           payload: {
-            table,
+            table: tableForBroadcast(table),
             column: newColumn,
           },
         },
@@ -5414,7 +5447,7 @@ export class ColumnsService implements IColumnsService {
                 payload: {
                   action: 'column_add',
                   payload: {
-                    table: refTable,
+                    table: tableForBroadcast(refTable),
                   },
                 },
               },
@@ -6296,7 +6329,7 @@ export class ColumnsService implements IColumnsService {
         payload: {
           action: 'column_delete',
           payload: {
-            table,
+            table: tableForBroadcast(table),
             column,
           },
         },
@@ -6323,7 +6356,7 @@ export class ColumnsService implements IColumnsService {
           payload: {
             action: 'column_delete',
             payload: {
-              table: refTable,
+              table: tableForBroadcast(refTable),
             },
           },
         });
@@ -7819,7 +7852,7 @@ export class ColumnsService implements IColumnsService {
         readonly: ltarReq.readonly || false,
         meta: {
           ...(ltarReq.meta || {}),
-          plural: ltarReq.meta?.plural || pluralize(refTable.title),
+          plural: ltarReq.meta?.plural || pluralizeTitle(refTable.title),
           singular: ltarReq.meta?.singular || singularize(refTable.title),
         },
         version: isMMLike ? 2 : 1,
@@ -7879,7 +7912,7 @@ export class ColumnsService implements IColumnsService {
         virtual: ltarReq.virtual,
         readonly: ltarReq.readonly || false,
         meta: {
-          plural: pluralize(table.title),
+          plural: pluralizeTitle(table.title),
           singular: singularize(table.title),
         },
         // if self referencing treat it as system field to hide from ui
@@ -8030,12 +8063,15 @@ export class ColumnsService implements IColumnsService {
       return !(await Column.get(refContext, { colId: colBody[targetKey] }));
     };
 
-    // re-check related-base access only when the relation or target changes
+    // re-check related-base access when the relation or target changes, and
+    // for every formula rollup: unlike a count it can return the linked values.
+    // Writes only: like a cross-base Lookup, reads follow this table's access.
     const assertTargetReadable = async (targetKey: string) => {
       if (
         colBody.fk_relation_column_id !==
           column.colOptions?.fk_relation_column_id ||
-        colBody[targetKey] !== column.colOptions?.[targetKey]
+        colBody[targetKey] !== column.colOptions?.[targetKey] ||
+        isRollupFormula(colBody)
       ) {
         await this.assertCanReadRelatedBase(
           context,
@@ -8044,6 +8080,48 @@ export class ColumnsService implements IColumnsService {
         );
       }
     };
+
+    // a PATCH of only the formula / function keeps the saved relation and target
+    if (
+      UITypes.Rollup === column.uidt &&
+      (colBody.rollup_formula !== undefined ||
+        colBody.rollup_function !== undefined)
+    ) {
+      const saved = await column.getColOptions<RollupColumn>();
+      // a formula alone turns the rollup into a formula rollup, not dropped
+      if (
+        colBody.rollup_function === undefined &&
+        typeof colBody.rollup_formula === 'string' &&
+        colBody.rollup_formula.trim()
+      ) {
+        colBody.rollup_function = ROLLUP_FORMULA_FUNCTION;
+      }
+      for (const key of [
+        'fk_relation_column_id',
+        'fk_rollup_column_id',
+        'rollup_function',
+      ] as const) {
+        if (colBody[key] === undefined) colBody[key] = saved?.[key];
+      }
+    }
+
+    // a plain rollup has no result format: drop a formula rollup's, saved or
+    // sent, as the v3 update does (else it can't be sent back through v3)
+    if (
+      UITypes.Rollup === column.uidt &&
+      colBody.rollup_function &&
+      !isRollupFormula(colBody)
+    ) {
+      const meta = parseProp(colBody.meta ?? column.meta) ?? {};
+      if ('display_type' in meta || 'display_column_meta' in meta) {
+        const {
+          display_type: _displayType,
+          display_column_meta: _displayMeta,
+          ...rest
+        } = meta;
+        colBody.meta = rest;
+      }
+    }
 
     // Validate rollup or lookup payload before proceeding with the update
     if (
@@ -8068,29 +8146,65 @@ export class ColumnsService implements IColumnsService {
         'fk_rollup_column_id',
         'rollup_function',
       ]) &&
-      !(await isDanglingNoOp(
-        ['fk_relation_column_id', 'fk_rollup_column_id', 'rollup_function'],
-        'fk_rollup_column_id',
-      ))
+      !(
+        // a new formula is an edit, which must not report success unsaved
+        (
+          (colBody.rollup_formula === undefined ||
+            colBody.rollup_formula === column.colOptions?.rollup_formula) &&
+          (await isDanglingNoOp(
+            ['fk_relation_column_id', 'fk_rollup_column_id', 'rollup_function'],
+            'fk_rollup_column_id',
+          ))
+        )
+      )
     ) {
+      // a payload that omits the formula (e.g. a rename) keeps the saved one
+      if (
+        isRollupFormula(colBody) &&
+        colBody.rollup_formula === undefined &&
+        isRollupFormula(column.colOptions)
+      ) {
+        colBody.rollup_formula = column.colOptions.rollup_formula;
+      }
       // Perform additional validation for rollup payload
       await validateRollupPayload(context, colBody);
       await assertTargetReadable('fk_rollup_column_id');
-      const baseModel = await getBaseModelSqlFromModelId({
-        modelId: column.fk_model_id,
-        context,
-      });
-      await genRollupSelectv2({
-        baseModelSqlv2: baseModel,
-        knex: baseModel.dbDriver,
-        columnOptions: {
-          // colBody do not have fk_column_id
-          // fk_column_id is required to detect circular ref
-          fk_column_id: column.colOptions.fk_column_id,
-          ...colBody,
-        },
+      await this.dryRunRollup(context, column.fk_model_id, {
+        // colBody do not have fk_column_id
+        // fk_column_id is required to detect circular ref
+        fk_column_id: column.colOptions.fk_column_id,
+        ...colBody,
       });
       await Column.update(context, column.id, { ...colBody, error: null });
+    }
+  }
+
+  /**
+   * Build the rollup's SQL (catches circular references) and, for a formula
+   * rollup, run it on every row, as Formula fields do, so a formula the
+   * database rejects fails the save. A row added later that fails is flagged
+   * by the read fallback.
+   */
+  async dryRunRollup(
+    context: NcContext,
+    modelId: string,
+    columnOptions: Partial<RollupColumn>,
+  ) {
+    const baseModel = await getBaseModelSqlFromModelId({ modelId, context });
+    const { builder } = await genRollupSelectv2({
+      baseModelSqlv2: baseModel,
+      knex: baseModel.dbDriver,
+      throwOnFormulaError: true,
+      columnOptions: setModelContext(new RollupColumn(columnOptions), context),
+    });
+    if (!isRollupFormula(columnOptions)) return;
+
+    try {
+      await execRollupDryRun(baseModel, builder);
+    } catch (e) {
+      // too slow to verify: saved, and the read fallback catches a bad row
+      if (isDryRunTimeout(e)) return;
+      NcError.get(context).formulaError(rollupDryRunMessage(baseModel, e));
     }
   }
 

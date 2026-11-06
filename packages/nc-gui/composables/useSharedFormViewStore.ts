@@ -664,7 +664,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             !queryParam ||
             isSystemColumn(c) ||
             (isVirtualCol(c) && !isLinksOrLTAR(c)) ||
-            (!sharedViewMeta.value.preFillEnabled && !isVirtualCol(c) && !isLinksOrLTAR(c)) ||
+            !sharedViewMeta.value.preFillEnabled ||
             isAttachment(c) ||
             c.uidt === UITypes.SpecificDBType
           ) {

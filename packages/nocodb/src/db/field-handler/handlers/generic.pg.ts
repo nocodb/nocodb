@@ -10,6 +10,7 @@ import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import {
   ncIsKnexRawOrRef,
   ncIsStringHasValue,
+  ncLikeContainsPattern,
   ncLikePatternForRef,
   ncSplitFilterValue,
 } from '~/db/field-handler/utils/handlerUtils';
@@ -52,7 +53,12 @@ export class GenericPgFieldHandler
             subQb.orWhereNull(sourceField as any);
           });
         } else {
-          qb.where(knex.raw('??::text ilike ?', [sourceField, `%${val}%`]));
+          qb.where(
+            knex.raw('??::text ilike ?', [
+              sourceField,
+              ncLikeContainsPattern(knex, val),
+            ]),
+          );
         }
       },
     };
@@ -94,7 +100,7 @@ export class GenericPgFieldHandler
           qb.whereNot(knex.raw(`??::text = ''`, [sourceField]));
           qb.orWhereNull(sourceField as any);
         } else {
-          val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+          val = ncLikeContainsPattern(knex, val);
 
           qb.whereNot(knex.raw(`??::text ilike ?`, [sourceField, val]));
           if (val !== '%%') {

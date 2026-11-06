@@ -10,6 +10,7 @@ import { CalendarRange, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 /**
  * Drop every CalendarRange row that referenced the deleted column as either
@@ -93,7 +94,7 @@ export class ColumnDeleteCalendarRangeDependencyHandler
       await view.getView(Noco.ncMeta);
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
-        payload: { action: 'view_update', payload: view },
+        payload: { action: 'view_update', payload: viewForBroadcast(view) },
       });
     }
   }

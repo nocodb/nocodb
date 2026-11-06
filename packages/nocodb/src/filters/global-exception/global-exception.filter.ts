@@ -178,12 +178,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       this.captureException(exception, request);
     }
 
-    // Include actual error message only in development
+    // Include actual error message only in development. The stack (absolute
+    // server paths) stays in the server log.
     if (mapped.unhandled && process.env.NODE_ENV !== 'production') {
       const msgProp = apiVersion === NcApiVersion.V3 ? 'message' : 'msg';
       mapped.body.innerError = {
         [msgProp]: exception?.message || 'An unexpected error occurred',
-        stack: exception?.stack,
       };
     }
 
@@ -199,7 +199,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // MCP routes keep status and headers but answer in JSON-RPC
     if (isMcpEndpoint(request.path)) {
-      return response.status(mapped.status).json(toJsonRpcError(mapped.body));
+      return response
+        .status(mapped.status)
+        .json(toJsonRpcError(mapped.body, request.body));
     }
 
     return response.status(mapped.status).json(mapped.body);

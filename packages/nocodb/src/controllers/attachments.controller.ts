@@ -28,6 +28,7 @@ import {
   ATTACHMENT_ROOTS,
   isPreviewAllowed,
   localFileExists,
+  sendLocalFile,
 } from '~/helpers/attachmentHelpers';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -132,9 +133,12 @@ export class AttachmentsController {
           );
         }
         res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.sendFile(file.path);
+        await sendLocalFile(res, file.path);
       } else {
-        res.download(file.path, queryFilename);
+        await sendLocalFile(res, file.path, {
+          download: true,
+          filename: queryFilename,
+        });
       }
     } catch (e) {
       res.status(404).send('Not found');
@@ -172,9 +176,12 @@ export class AttachmentsController {
           );
         }
         res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.sendFile(file.path);
+        await sendLocalFile(res, file.path);
       } else {
-        res.download(file.path, queryFilename);
+        await sendLocalFile(res, file.path, {
+          download: true,
+          filename: queryFilename,
+        });
       }
     } catch (e) {
       res.status(404).send('Not found');
@@ -238,7 +245,7 @@ export class AttachmentsController {
       // active document type regardless of the served Content-Type.
       res.setHeader('X-Content-Type-Options', 'nosniff');
 
-      res.sendFile(file.path);
+      await sendLocalFile(res, file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }

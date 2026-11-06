@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, UITypes, ViewTypes } from 'nocodb-sdk';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
@@ -9,7 +9,8 @@ import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { NcError } from '~/helpers/catchError';
 import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { claimObjectTitle } from '~/helpers/customObjects';
-import { MapView, Model, User, View } from '~/models';
+import { normalizeViewTitle } from '~/helpers/viewTitleHelpers';
+import { Column, MapView, Model, User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { CacheScope } from '~/utils/globals';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
@@ -22,6 +23,25 @@ export class MapsService {
 
   async mapViewGet(context: NcContext, param: { mapViewId: string }) {
     return await MapView.get(context, param.mapViewId);
+  }
+
+  // Same rule as the create dialog: a map plots GeoData fields only.
+  protected async assertGeoDataColumn(
+    context: NcContext,
+    tableId: string,
+    columnId: string | null | undefined,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!columnId) return;
+    const column = await Column.get(context, { colId: columnId }, ncMeta);
+    if (!column || column.fk_model_id !== tableId) {
+      NcError.get(context).fieldNotFound(columnId);
+    }
+    if (column.uidt !== UITypes.GeoData) {
+      NcError.get(context).invalidRequestBody(
+        `Map view requires a GeoData field; '${column.title}' is ${column.uidt}`,
+      );
+    }
   }
 
   @TraceCommand(OperationName.mapViewCreate)
@@ -47,6 +67,15 @@ export class MapsService {
     await assertPersonalViewAllowed(context, param.map.lock_type);
 
     const model = await Model.get(context, param.tableId, false, ncMeta);
+
+    param.map.title = normalizeViewTitle(context, param.map.title);
+
+    await this.assertGeoDataColumn(
+      context,
+      param.tableId,
+      param.map.fk_geo_data_col_id,
+      ncMeta,
+    );
 
     param.map.title = await claimObjectTitle(context, 'view', param.map.title, {
       baseId: model.base_id,
@@ -112,6 +141,13 @@ export class MapsService {
       NcError.get(context).viewNotFound(param.mapViewId);
     }
     assertViewConfigEditable(context, view, param.req);
+
+    await this.assertGeoDataColumn(
+      context,
+      view.fk_model_id,
+      param.map.fk_geo_data_col_id,
+      ncMeta,
+    );
 
     const oldMapView = await MapView.get(context, param.mapViewId, ncMeta);
 

@@ -19,6 +19,7 @@ import { assertParsedTreeFunctions } from './assertParsedTreeFunctions';
 import { getLmtSyntheticFormula } from './lmtSyntheticFormula';
 import { lmbFieldQueryBuilder } from './lmbFieldQueryBuilder';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
+import { dotPathBuilder } from './dot-path-builder';
 import {
   binaryExpressionBuilder,
   callExpressionBuilder,
@@ -26,9 +27,15 @@ import {
 import {
   formulaOutputsRawJson,
   getFormulaOutputMaxLength,
+  isListAggregateCall,
   wrapFormulaWithMaxLength,
 } from './formula-query-builder.helpers';
-import type { ButtonActionsType, ClientType, LiteralNode } from 'nocodb-sdk';
+import type {
+  ButtonActionsType,
+  ClientType,
+  IdentifierNode,
+  LiteralNode,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
@@ -52,13 +59,17 @@ import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import {
   escapeBindingPlaceholders,
+  questionFreeLiteral,
   rawFromBuilder,
 } from '~/helpers/sqlSanitize';
 import { BaseUser, ButtonColumn, View } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
 import LmtTrackedField from '~/models/LmtTrackedField';
 import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
-import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
+import {
+  getRelatedModelMap,
+  getRelatedModelResolver,
+} from '~/utils/getRelatedModelMap';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -131,9 +142,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         | 'mariadb'
         | 'sqlite'
         | 'snowflake',
-      getMeta: async (_, { id }) => {
-        return relatedModels.get(id);
-      },
+      getMeta: getRelatedModelResolver(context, relatedModels),
     });
 
     // populate and save parsedTree to column if not exist
@@ -246,14 +255,21 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         aliasToColumn[col.id] = async ({
           tableAlias,
           parentColumns: parentColumns,
-        }: TAliasToColumnParam): Promise<any> => {
+        }: TAliasToColumnParam) => {
+          const columnOptions = (await col.getColOptions()) as RollupColumn;
           const qb = await genRollupSelectv2({
             baseModelSqlv2,
             knex,
-            columnOptions: (await col.getColOptions()) as RollupColumn,
+            columnOptions,
             alias: tableAlias,
             parentColumns,
           });
+          // A rollup flagged from its data reads as blank here, not as the
+          // error text: `'ERR!' * 2` would fail this formula's check and
+          // store an error on it that the rollup's heal never clears.
+          if (columnOptions?.data_error) {
+            return { builder: knex.raw('NULL') };
+          }
           return { builder: rawFromBuilder(knex, qb.builder).wrap('(', ')') };
         };
         break;
@@ -292,12 +308,17 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             break;
           }
           if (knex.clientType().startsWith('mysql')) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async ({
+              tableAlias,
+            }: TAliasToColumnParam) => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex.raw(
-                  `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-                  [refCol.column_name],
+                  `CONVERT_TZ(??.??, @@GLOBAL.time_zone, '+00:00')`,
+                  [
+                    tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                    refCol.column_name,
+                  ],
                 ),
               };
             };
@@ -306,13 +327,18 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             refCol.dt !== 'timestamp with time zone' &&
             refCol.dt !== 'timestamptz'
           ) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async ({
+              tableAlias,
+            }: TAliasToColumnParam) => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex
                   .raw(
-                    `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
-                    [refCol.column_name],
+                    `??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                    [
+                      tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                      refCol.column_name,
+                    ],
                   )
                   .wrap('(', ')'),
               };
@@ -321,7 +347,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             knex.clientType() === 'oracledb' &&
             (refCol.dt ?? '').toLowerCase().includes('time zone')
           ) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
+            aliasToColumn[col.id] = async ({
+              tableAlias,
+            }: TAliasToColumnParam) => {
               return {
                 // Oracle TIMESTAMP WITH [LOCAL] TIME ZONE: normalize to a plain
                 // UTC timestamp so date formulas (DATEADD, …) operate on the UTC
@@ -330,13 +358,21 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 // wall-clock+offset, so the result renders an offset off in the
                 // browser timezone.
                 builder: knex
-                  .raw(`SYS_EXTRACT_UTC(??)`, [refCol.column_name])
+                  .raw(`SYS_EXTRACT_UTC(??.??)`, [
+                    tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                    refCol.column_name,
+                  ])
                   .wrap('(', ')'),
               };
             };
           } else {
-            aliasToColumn[col.id] = () =>
-              Promise.resolve({ builder: refCol.column_name });
+            aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+              Promise.resolve({
+                builder: knex.raw(`??.??`, [
+                  tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                  refCol.column_name,
+                ]),
+              });
           }
           aliasToColumn[refCol.id] = aliasToColumn[col.id];
         }
@@ -345,7 +381,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy:
         {
-          aliasToColumn[col.id] = async (): Promise<any> => {
+          aliasToColumn[col.id] = async ({
+            tableAlias,
+          }: TAliasToColumnParam) => {
             baseUsers =
               baseUsers ??
               (await BaseUser.getUsersList(context, {
@@ -368,7 +406,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                     tableAlias,
                   })
                 ).builder
-              : await getColumnName(context, col, columns);
+              : `${
+                  tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)
+                }.${await getColumnName(context, col, columns)}`;
 
             // Public responses redact user emails; a formula must not re-derive them.
             const userValue = (user: Partial<User>) =>
@@ -410,43 +450,27 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         }
         break;
       case UITypes.LongText: {
-        if (col.meta?.[LongTextAiMetaProp] === true) {
-          if (knex.clientType() === 'pg') {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
-                  col.column_name,
-                ]),
-              };
-            };
-          } else if (knex.clientType().startsWith('mysql')) {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
-                  col.column_name,
-                ]),
-              };
-            };
-          } else if (knex.clientType() === 'sqlite3') {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`json_extract(??, '$.value')`, [
-                  col.column_name,
-                ]),
-              };
-            };
-          } else if (knex.clientType() === 'mssql') {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`JSON_VALUE(??, '$.value')`, [
-                  col.column_name,
-                ]),
-              };
-            };
-          }
-        } else {
-          aliasToColumn[col.id] = () =>
-            Promise.resolve({ builder: col.column_name });
+        // value extraction around the qualified column, per dialect
+        const valueSql =
+          col.meta?.[LongTextAiMetaProp] === true
+            ? knex.clientType() === 'pg'
+              ? `TRIM('"' FROM (??.??::jsonb->>'value'))`
+              : knex.clientType().startsWith('mysql')
+              ? `JSON_UNQUOTE(JSON_EXTRACT(??.??, '$.value'))`
+              : knex.clientType() === 'sqlite3'
+              ? `json_extract(??.??, '$.value')`
+              : knex.clientType() === 'mssql'
+              ? `JSON_VALUE(??.??, '$.value')`
+              : null
+            : `??.??`;
+        if (valueSql) {
+          aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+            Promise.resolve({
+              builder: knex.raw(valueSql, [
+                tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+                col.column_name,
+              ]),
+            });
         }
         break;
       }
@@ -476,6 +500,25 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     }
   }
 
+  // `{Field}` and `{Link}.{Field}` compile to a value, or for a list to a
+  // function taking the aggregate the enclosing call asks for
+  const resolveReference = async (
+    pt: FnParsedTreeNode,
+  ): Promise<{ builder?: any }> => {
+    if (pt.type === JSEPNode.MEMBER_EXP) {
+      return dotPathBuilder({ ...params, pt, knex, _formulaQueryBuilder })({
+        tableAlias,
+        parentColumns: params.parentColumns,
+      });
+    }
+    return (
+      (await aliasToColumn?.[(pt as IdentifierNode).name]?.({
+        tableAlias,
+        parentColumns: params.parentColumns,
+      })) || {}
+    );
+  };
+
   const fn = async (pt: FnParsedTreeNode, prevBinaryOp?) => {
     if (pt.type === JSEPNode.CALL_EXP) {
       pt.arguments?.forEach?.((arg: FnParsedTreeNode) => {
@@ -501,6 +544,33 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     }
 
     if (pt.type === JSEPNode.CALL_EXP) {
+      // SUM({Tasks}.{Hours}) — aggregate the list itself, on every database
+      if (isListAggregateCall(pt)) {
+        const fnName = pt.callee.name.toUpperCase();
+        const { dataType } = pt.arguments[0];
+        // same as the scalar COUNT: only numbers count
+        if (
+          fnName === 'COUNT' &&
+          dataType &&
+          dataType !== FormulaDataTypes.NUMERIC
+        ) {
+          return { builder: knex.raw('0') };
+        }
+        const { builder } = await resolveReference(pt.arguments[0]);
+        if (typeof builder === 'function') {
+          // same as the scalar COUNTA: empty text doesn't count
+          const aggregated = builder(
+            fnName === 'COUNTA' && dataType === FormulaDataTypes.STRING
+              ? 'COUNTA_TEXT'
+              : fnName,
+          );
+          return {
+            builder: ['SUM', 'COUNT', 'COUNTA', 'COUNTALL'].includes(fnName)
+              ? knex.raw('COALESCE(??, 0)', [aggregated])
+              : aggregated,
+          };
+        }
+      }
       return await callExpressionBuilder({
         context,
         pt,
@@ -512,36 +582,20 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         prevBinaryOp,
       });
     } else if (pt.type === 'Literal') {
-      // MSSQL: inline string literals as `N'...'` rather than binding `?`.
-      //   1. Unicode — a bound string inlines as varchar via `.toQuery()`;
-      //      `N'...'` keeps it nvarchar.
-      //   2. The single-query (dbQueryClient) path composes this builder into a
-      //      larger query and resolves it with one final `.toQuery()`; a bound
-      //      `?` placeholder gets consumed/shifted by that outer compilation.
-      // Escape any `?` IN THE VALUE itself (e.g. `CONCAT(x, '?')`) to `\?` so
-      // the outer `.toQuery()` treats it as a literal, not a binding
-      // placeholder. Without this the stray `?` shifts every later binding —
-      // e.g. a pk value lands in the `TOP (…)` clause as `TOP ('1')`, which
-      // SQL Server rejects with error 1060. The final `.toQuery()` unescapes
-      // `\?` back to a literal `?`. (Lookup-of-formula re-escapes after its own
-      // `toQuery()`, so the net escaping stays single — see mssql.ts.)
-      if (knex.clientType() === 'mssql' && typeof pt.value === 'string') {
-        return {
-          builder: knex.raw(
-            `N'${pt.value.replace(/'/g, "''").replace(/\?/g, '\\?')}'`,
-          ),
-        };
+      // Inline text: a `?` in it would be read as a binding by every later
+      // pass, so it is spelled as a character. MSSQL also keeps `N'…'`.
+      if (
+        typeof pt.value === 'string' &&
+        (knex.clientType() === 'mssql' || pt.value.includes('?'))
+      ) {
+        return { builder: knex.raw(questionFreeLiteral(knex, pt.value)) };
       }
       if (knex.clientType() === 'mssql' && typeof pt.value === 'boolean') {
         return { builder: knex.raw(pt.value ? '1' : '0') };
       }
       return { builder: knex.raw(`?`, [pt.value]) };
-    } else if (pt.type === 'Identifier') {
-      const { builder } =
-        (await aliasToColumn?.[pt.name]?.({
-          tableAlias,
-          parentColumns: params.parentColumns,
-        })) || {};
+    } else if (pt.type === 'Identifier' || pt.type === JSEPNode.MEMBER_EXP) {
+      const { builder } = await resolveReference(pt);
       if (typeof builder === 'function') {
         return { builder: knex.raw(`??`, builder(pt.fnName)) };
       }
@@ -559,7 +613,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         };
       }
 
-      return { builder: knex.raw(`??`, [builder || pt.name]) };
+      return {
+        builder: knex.raw(`??`, [builder || (pt as IdentifierNode).name]),
+      };
     } else if (pt.type === 'BinaryExpression') {
       return await binaryExpressionBuilder({
         context,

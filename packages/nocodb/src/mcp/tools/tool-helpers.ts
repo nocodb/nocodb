@@ -118,6 +118,8 @@ interface McpToolIds {
   viewId?: string;
   hookId?: string;
   commentId?: string;
+  pageId?: string;
+  interfaceId?: string;
 }
 
 // The one wrapper every base-addressed tool goes through: resolve the target
@@ -144,6 +146,8 @@ export async function runBaseTool<Op extends string>(
   return runTool(async () => {
     const target = await ctx.scope.resolve(acl, {
       baseId: args.baseId,
+      pageId: args.pageId,
+      interfaceId: args.interfaceId,
       units: (args as { units?: number }).units,
     });
 

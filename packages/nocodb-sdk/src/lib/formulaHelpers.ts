@@ -1,5 +1,11 @@
 import { ColumnType } from './Api';
 import { formulaJsep } from './formula/jsepInstances';
+import { isCurlyIdentifier } from './formula/hooks';
+import {
+  canBeDotPathHop,
+  findColumnByRef,
+  getMemberPath,
+} from './formula/member-path';
 
 export * from './formula/enums';
 export * from './formula/error';
@@ -11,10 +17,21 @@ export * from './formula/types';
 export * from './formula/validate-extract-tree';
 export * from './formula/jsepInstances';
 export * from './formula/non-finite';
+export * from './formula/member-path';
+export * from './formula/method-scope';
+export * from './formula/rollupFormula';
+
+// Columns of the table a link field points to, for resolving `{Link}.{Field}`
+export type RelatedColumnsResolver<R = ColumnType[] | undefined> = (
+  linkColumn: ColumnType
+) => R;
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,
-  columns: ColumnType[]
+  columns: ColumnType[],
+  getRelatedColumns?: RelatedColumnsResolver<
+    ColumnType[] | undefined | Promise<ColumnType[] | undefined>
+  >
 ) {
   const substituteId = async (pt: any) => {
     if (pt.type === 'CallExpression') {
@@ -25,19 +42,31 @@ export async function substituteColumnAliasWithIdInFormula(
       return;
     } else if (pt.type === 'Identifier') {
       const colNameOrId = pt.name;
-      // Title before column_name: a renamed field keeps its old column_name,
-      // which must not shadow a newer field that took over the title.
-      const column =
-        columns.find((c) => c.id === colNameOrId) ||
-        columns.find((c) => c.title === colNameOrId) ||
-        columns.find((c) => c.column_name === colNameOrId);
+      const column = findColumnByRef(columns, colNameOrId);
       // Leave an unresolvable reference as-is instead of crashing on
       // `column.id` — the downstream formula validation then surfaces a clean
       // "column not found" error rather than a raw TypeError 500.
       pt.name = column ? '{' + column.id + '}' : pt.name;
+    } else if (pt.type === 'MemberExpression') {
+      const path = getMemberPath(pt);
+      // e.g. `{Hours}.SUM`, left for validation to reject
+      if (!path) return substituteId(pt.object);
+      let hopColumns = columns;
+      for (let i = 0; i < path.length; i++) {
+        const column = findColumnByRef(hopColumns, path[i].name);
+        if (!column) break;
+        path[i].name = '{' + column.id + '}';
+        if (i === path.length - 1) break;
+        hopColumns =
+          canBeDotPathHop(column) && getRelatedColumns
+            ? await getRelatedColumns(column)
+            : undefined;
+      }
     } else if (pt.type === 'BinaryExpression') {
       await substituteId(pt.left);
       await substituteId(pt.right);
+    } else if (pt.type === 'UnaryExpression') {
+      await substituteId(pt.argument);
     }
   };
   const parsedFormula = formulaJsep(formula);
@@ -48,7 +77,8 @@ export async function substituteColumnAliasWithIdInFormula(
 export function substituteColumnIdWithAliasInFormula(
   formula,
   columns: ColumnType[],
-  rawFormula?
+  rawFormula?,
+  getRelatedColumns?: RelatedColumnsResolver
 ) {
   const substituteId = (pt: any, ptRaw?: any) => {
     if (pt.type === 'CallExpression') {
@@ -60,15 +90,26 @@ export function substituteColumnIdWithAliasInFormula(
       return;
     } else if (pt.type === 'Identifier') {
       const colNameOrId = pt?.name;
-      // Same id → title → column_name order as the alias→id direction
-      const column =
-        columns.find((c) => c.id === colNameOrId) ||
-        columns.find((c) => c.title === colNameOrId) ||
-        columns.find((c) => c.column_name === colNameOrId);
+      const column = findColumnByRef(columns, colNameOrId);
       pt.name = column?.title || ptRaw?.name || pt?.name;
+    } else if (pt.type === 'MemberExpression') {
+      const path = getMemberPath(pt);
+      if (!path) return substituteId(pt.object, ptRaw?.object);
+      const rawPath = ptRaw && getMemberPath(ptRaw);
+      let hopColumns = columns;
+      for (let i = 0; i < path.length; i++) {
+        const column = findColumnByRef(hopColumns, path[i].name);
+        path[i].name = column?.title || rawPath?.[i]?.name || path[i].name;
+        hopColumns =
+          column && canBeDotPathHop(column)
+            ? getRelatedColumns?.(column)
+            : undefined;
+      }
     } else if (pt.type === 'BinaryExpression') {
       substituteId(pt.left, ptRaw?.left);
       substituteId(pt.right, ptRaw?.right);
+    } else if (pt.type === 'UnaryExpression') {
+      substituteId(pt.argument, ptRaw?.argument);
     }
   };
 
@@ -78,26 +119,54 @@ export function substituteColumnIdWithAliasInFormula(
   return jsepTreeToFormula(parsedFormula);
 }
 
+const isBinaryNode = (node) =>
+  node?.type === 'BinaryExpression' || node?.type === 'LogicalExpression';
+
+const binaryPrecedence = (node) => formulaJsep.binary_ops[node.operator] ?? 0;
+
+// Parentheses only where precedence needs them, so `{A} * {B} / 100` prints back as typed
+function binaryOperandToFormula(child, parent, isRight: boolean) {
+  const text = jsepTreeToFormula(child);
+  if (!isBinaryNode(child)) return text;
+  const childPrecedence = binaryPrecedence(child);
+  const parentPrecedence = binaryPrecedence(parent);
+  const needsParens =
+    childPrecedence < parentPrecedence ||
+    // `{A} - ({B} - {C})` keeps its grouping; operators are left-associative
+    (isRight &&
+      childPrecedence === parentPrecedence &&
+      !formulaJsep.right_associative.has(parent.operator));
+  return needsParens ? `(${text})` : text;
+}
+
 // isCallExpId - is the identifier part of a call expression
 // in case of call expression, we don't want to wrap the identifier in curly brackets
 export function jsepTreeToFormula(node, isCallExpId = false) {
-  if (node.type === 'BinaryExpression' || node.type === 'LogicalExpression') {
+  if (isBinaryNode(node)) {
     return (
-      '(' +
-      jsepTreeToFormula(node.left) +
+      binaryOperandToFormula(node.left, node, false) +
       ' ' +
       node.operator +
       ' ' +
-      jsepTreeToFormula(node.right) +
-      ')'
+      binaryOperandToFormula(node.right, node, true)
     );
   }
 
   if (node.type === 'UnaryExpression') {
-    return node.operator + jsepTreeToFormula(node.argument);
+    const argument = jsepTreeToFormula(node.argument);
+    return (
+      node.operator + (isBinaryNode(node.argument) ? `(${argument})` : argument)
+    );
   }
 
   if (node.type === 'MemberExpression') {
+    if (!node.computed) {
+      // `{Hours}.SUM` stays as written so validation can reject it
+      const property = isCurlyIdentifier(node.property)
+        ? jsepTreeToFormula(node.property)
+        : jsepTreeToFormula(node.property, true);
+      return jsepTreeToFormula(node.object) + '.' + property;
+    }
     return (
       jsepTreeToFormula(node.object) +
       '[' +
@@ -116,6 +185,27 @@ export function jsepTreeToFormula(node, isCallExpId = false) {
       return String.raw`"${escapeLiteral(node.raw.slice(1, -1))}"`;
     }
     return '' + node.value;
+  }
+
+  if (node.type === 'CallExpression' && node.chained && node.arguments.length) {
+    const [target, ...rest] = node.arguments;
+    let targetFormula = jsepTreeToFormula(target);
+    // `1.ROUND()` would read as a number, `{A} + {B}.ROUND()` would round only {B}
+    if (
+      target.type === 'Literal' ||
+      target.type === 'UnaryExpression' ||
+      isBinaryNode(target)
+    ) {
+      targetFormula = '(' + targetFormula + ')';
+    }
+    return (
+      targetFormula +
+      '.' +
+      jsepTreeToFormula(node.callee, true) +
+      '(' +
+      rest.map((argPt) => jsepTreeToFormula(argPt)).join(', ') +
+      ')'
+    );
   }
 
   if (node.type === 'CallExpression') {

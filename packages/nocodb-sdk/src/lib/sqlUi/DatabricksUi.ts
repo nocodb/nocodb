@@ -888,6 +888,9 @@ export class DatabricksUi implements SqlUi {
       'DAY',
       'MONTH',
       'HOUR',
+      // WORKDAY / WORKDAY_DIFF have no Databricks SQL mapping yet.
+      'WORKDAY',
+      'WORKDAY_DIFF',
       'ARRAYSORT',
       'ARRAYUNIQUE',
       'ARRAYSLICE',

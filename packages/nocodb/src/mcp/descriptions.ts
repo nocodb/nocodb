@@ -11,9 +11,10 @@ OPERATORS:
   Text/General:
     eq        Equal to                    (name,eq,John)
     neq       Not equal to                (status,neq,archived)
-    like      Contains (use % wildcard)   (name,like,%john%)
-    nlike     Does not contain            (name,nlike,%test%)
+    like      Contains                    (name,like,john) or (name,like,%john%)
+    nlike     Does not contain            (name,nlike,test)
     in        In list of values           (status,in,active,pending,review)
+    (like/nlike: one outer %…% is optional; any other % or _ matches literally)
 
   Numeric:
     gt        Greater than (>)            (price,gt,100)

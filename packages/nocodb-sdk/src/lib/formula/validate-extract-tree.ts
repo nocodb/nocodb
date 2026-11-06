@@ -4,6 +4,7 @@ import {
   LinkToAnotherRecordType,
   LookupType,
 } from '~/lib/Api';
+import rfdc from 'rfdc';
 import UITypes, { isSupportedDisplayValueColumn } from '~/lib/UITypes';
 import {
   FormulaDataTypes,
@@ -19,8 +20,12 @@ import {
   ParsedFormulaNode,
 } from '~/lib/formula/types';
 import { handleFormulaError } from '~/lib/formula/handle-formula-error';
+import { isCurlyIdentifier } from '~/lib/formula/hooks';
 import { formulas } from '~/lib/formula/formulas';
-import { formulaJsep, formulaJsepWithIndex } from '~/lib/formula/jsepInstances';
+import {
+  parseFormula,
+  parseFormulaWithIndex,
+} from '~/lib/formula/jsepInstances';
 import { ClientTypeOrSqlUI } from '~/lib/formula/types';
 import { SqlUiFactory } from '~/lib/sqlUi';
 import {
@@ -31,8 +36,170 @@ import { UnifiedMetaType } from '~/lib/types';
 import { unifiedMeta } from '~/lib/unifiedMeta';
 import { getColOptions } from '~/lib/unifiedMeta/getColOptions';
 import { isBtLikeV2Junction, isMMOrMMLike } from '~/lib/UITypes';
+import {
+  buildMemberPath,
+  canBeDotPathHop,
+  findColumnByRef,
+  getMemberPath,
+  isLinkToMany,
+  LIST_AGGREGATE_FUNCTIONS,
+  MAX_DOT_PATH_HOPS,
+} from '~/lib/formula/member-path';
+import {
+  extractRollupAggregates,
+  getRollupAggregate,
+  getRollupModifier,
+  getRollupResultUidt,
+  hasFreeRollupValues,
+  isRollupFormula,
+  MAX_ROLLUP_AGGREGATES,
+  ROLLUP_SCALAR_ALIASES,
+  ROLLUP_VALUES_KEYWORD,
+  RollupAggregate,
+  RollupModifier,
+} from '~/lib/formula/rollupFormula';
 
-async function extractColumnIdentifierType({
+const clone = rfdc();
+
+// Where a node sits in a rollup formula: outside aggregates, as the value set
+// an aggregate consumes, or inside a per-value expression.
+type RollupScope = 'outer' | 'set' | 'row';
+
+const rollupCall = (
+  name: string,
+  args: ParsedFormulaNode[]
+): CallExpressionNode => ({
+  type: JSEPNode.CALL_EXP,
+  callee: { type: JSEPNode.IDENTIFIER, name },
+  arguments: args,
+});
+
+const hasDataType = (
+  node: Pick<ParsedFormulaNode, 'dataType'>,
+  types: FormulaDataTypes[]
+) => node.dataType !== undefined && types.includes(node.dataType);
+
+// values stored as text or json; the identifier type would leave them UNKNOWN
+const TEXT_STORED_UIDTS: string[] = [
+  UITypes.JSON,
+  UITypes.GeoData,
+  UITypes.Geometry,
+];
+
+// a value list used as text: CONCATENATE(values), no separator
+const concatenateValues = (node: ParsedFormulaNode) =>
+  rollupCall(RollupAggregate.CONCATENATE, [node]);
+
+/**
+ * Arguments of an aggregate / modifier call that carry the value set. Outside
+ * aggregates they are read as outer expressions first (COUNTA(MAX(values))
+ * counts one aggregate); a callee with no scalar version, or `perValue`, then
+ * reads them per value (SUM(MAX(values, 0))).
+ */
+// SUM aggregates `values` in a rollup; its plain formula form is not read there
+const hasScalarVersion = (name: string) =>
+  name !== RollupAggregate.SUM &&
+  !!(formulas[name] || ROLLUP_SCALAR_ALIASES[name]);
+
+function valueSetArgIndexes(
+  node: CallExpressionNode,
+  scope: RollupScope,
+  perValue = false
+): number[] {
+  const indexes = (inValueExpression: boolean) =>
+    (node.arguments ?? [])
+      .map((arg, i) => (hasFreeRollupValues(arg, inValueExpression) ? i : -1))
+      .filter((i) => i >= 0);
+  if (scope !== 'outer') return indexes(true);
+  const outer = indexes(false);
+  const name = node.callee.name.toUpperCase();
+  if (outer.length || (!perValue && hasScalarVersion(name))) return outer;
+  return indexes(true);
+}
+
+/**
+ * Rewrite a variadic aggregate into the aggregate of the value set combined
+ * with the other arguments: SUM(values, 10) → ADD(SUM(values), 10),
+ * COUNTA(values, x) → ADD(COUNTA(values), COUNTA(x)),
+ * CONCATENATE("#", values) → CONCAT("#", CONCATENATE(values)).
+ */
+function splitVariadicAggregate(
+  node: CallExpressionNode,
+  aggregate: RollupAggregate,
+  position?: { index: number; length: number },
+  perValue = false
+): ParsedFormulaNode {
+  const args = node.arguments ?? [];
+  // only reached outside aggregates: nested ones throw first
+  const setIndexes = valueSetArgIndexes(node, 'outer', perValue);
+  if (setIndexes.length !== 1 || aggregate === RollupAggregate.AVERAGE) {
+    throw new FormulaError(
+      FormulaErrorType.INVALID_ARG,
+      aggregate === RollupAggregate.AVERAGE
+        ? { key: 'msg.formula.rollupAverageValuesOnly', position }
+        : {
+            key: 'msg.formula.rollupAggregateValuesOnce',
+            calleeName: node.callee.name,
+            position,
+          },
+      aggregate === RollupAggregate.AVERAGE
+        ? 'AVERAGE takes only the values in a rollup, e.g. AVERAGE(values)'
+        : `${node.callee.name} can aggregate values only once`
+    );
+  }
+  const [setIndex] = setIndexes;
+  const aggregated = { ...node, arguments: [args[setIndex]] };
+  const others = args.filter((_, i) => i !== setIndex);
+
+  switch (aggregate) {
+    case RollupAggregate.COUNT:
+    case RollupAggregate.COUNTA:
+    case RollupAggregate.COUNTALL: {
+      // the extra items are literals, so they are counted here
+      if (others.some((arg) => arg.type !== JSEPNode.LITERAL)) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_ARG,
+          {
+            key: 'msg.formula.rollupCountLiteralItems',
+            calleeName: node.callee.name,
+            position,
+          },
+          `${node.callee.name} takes values plus literal items, e.g. COUNTA(values, "x")`
+        );
+      }
+      const counted = others.filter((arg) => {
+        const value = arg.type === JSEPNode.LITERAL ? arg.value : undefined;
+        if (aggregate === RollupAggregate.COUNT)
+          return typeof value === 'number';
+        if (aggregate === RollupAggregate.COUNTA)
+          return value !== null && value !== '';
+        return true;
+      }).length;
+      return rollupCall('ADD', [
+        aggregated,
+        {
+          type: JSEPNode.LITERAL,
+          value: counted,
+          raw: String(counted),
+        },
+      ]);
+    }
+    case RollupAggregate.SUM:
+      return rollupCall('ADD', [aggregated, ...others]);
+    default: {
+      // MIN, MAX, AND, OR, XOR, CONCATENATE keep the argument positions
+      const positional = [...args];
+      positional[setIndex] = aggregated;
+      return rollupCall(
+        aggregate === RollupAggregate.CONCATENATE ? 'CONCAT' : aggregate,
+        positional
+      );
+    }
+  }
+}
+
+/** The formula type a field is read as (a rollup formula re-checks its `values` with it) */
+export async function extractColumnIdentifierType({
   col,
   columns,
   getMeta,
@@ -91,15 +258,27 @@ async function extractColumnIdentifierType({
 
     case UITypes.Rollup:
       {
-        const rollupFunction = (
+        const rollupOptions =
           await unifiedMeta.getColOptions<UnifiedMetaType.IRollupColumn>(
             unifiedMeta.getContextFromObject(col),
             {
               column: col,
             }
-          )
-        ).rollup_function;
-        if (
+          );
+        const rollupFunction = rollupOptions.rollup_function;
+        if (isRollupFormula(rollupOptions)) {
+          res.dataType =
+            rollupOptions.parsed_tree?.dataType ?? FormulaDataTypes.UNKNOWN;
+          // a date-only result stays date-only for MIN/MAX one level up
+          if (
+            getRollupResultUidt({
+              uidt: col.uidt,
+              colOptions: rollupOptions,
+            }) === UITypes.Date
+          ) {
+            res.referencedColumn = { id: col.id, uidt: UITypes.Date };
+          }
+        } else if (
           [
             'count',
             'countAll',
@@ -246,12 +425,18 @@ async function extractColumnIdentifierType({
           : relationColOptions.type;
         res.isDataArray = ['hm', 'mm', 'om'].includes(relationType);
       }
+      const lookupRef = lookupColumnIdentifierType?.referencedColumn;
       res.referencedColumn = {
-        id: lookupColumnIdentifierType?.referencedColumn?.id,
+        id: lookupRef?.id,
         // if array, we present it as lookup column
-        uidt: lookupColumnIdentifierType?.referencedColumn?.uidt,
+        uidt: lookupRef?.uidt,
         intermediaryUidt: UITypes.Lookup,
         intermediaryId: col.id,
+        directLookup:
+          lookupRef?.id === lookupColumn?.id ||
+          (lookupRef?.intermediaryUidt === UITypes.Lookup &&
+            lookupRef?.intermediaryId === lookupColumn?.id &&
+            !!lookupRef?.directLookup),
       };
 
       break;
@@ -757,6 +942,7 @@ export async function validateFormulaAndExtractTreeWithType({
   clientOrSqlUi,
   getMeta,
   trackPosition,
+  rollup,
 }: {
   formula: string;
   columns: UnifiedMetaType.IColumn[];
@@ -764,13 +950,26 @@ export async function validateFormulaAndExtractTreeWithType({
   column?: UnifiedMetaType.IColumn;
   getMeta: UnifiedMetaType.IGetModel;
   trackPosition?: boolean;
+  // rollup formula mode: `values` is the rolled-up field of the linked table
+  rollup?: {
+    valuesColumn: UnifiedMetaType.IColumn;
+    valuesColumns: UnifiedMetaType.IColumn[];
+  };
 }): Promise<ParsedFormulaNode> {
   // extract column list from meta since columns array might not have all columns(system columns)
   const meta = await getMeta(
     unifiedMeta.getContextFromObject(
-      (column?.base_id && column) ?? columns?.[0] ?? ({} as any)
+      (column?.base_id && column) ??
+        columns?.[0] ??
+        rollup?.valuesColumn ?? { base_id: undefined }
     ),
-    { id: column?.fk_model_id || columns?.[0]?.fk_model_id || '' }
+    {
+      id:
+        column?.fk_model_id ||
+        columns?.[0]?.fk_model_id ||
+        rollup?.valuesColumn?.fk_model_id ||
+        '',
+    }
   );
   const allColumns = meta?.columns || columns;
   const sqlUI =
@@ -786,15 +985,419 @@ export async function validateFormulaAndExtractTreeWithType({
     colIdToColMap[col.id] = col;
   }
 
-  const validateAndExtract = async (
+  // a single field or path argument may be a list, which is only known once typed
+  const mayBeListAggregate = (pt: CallExpressionNode) =>
+    LIST_AGGREGATE_FUNCTIONS.includes(pt.callee.name.toUpperCase()) &&
+    pt.arguments?.length === 1 &&
+    [JSEPNode.IDENTIFIER, JSEPNode.MEMBER_EXP].includes(pt.arguments[0].type);
+
+  const unsupportedFnError = (calleeName: string, parsedTree: any) =>
+    new FormulaError(
+      FormulaErrorType.INVALID_FUNCTION_NAME,
+      {
+        calleeName,
+        position:
+          parsedTree.indexStart >= 0
+            ? { index: parsedTree.indexStart, length: parsedTree.nodeLength }
+            : undefined,
+      },
+      `Function ${calleeName} is unavailable for your database`
+    );
+
+  // `{Link}.{Link}.{Field}` — follow links hop by hop, then type the last field
+  const validateMemberPath = async (
     parsedTree: ParsedFormulaNode
   ): Promise<ParsedFormulaNode> => {
+    const path = getMemberPath(parsedTree);
+    // `{Hours}.SUM` or `{Hours}.SUMX` — a method name after a field
+    const { object, property } = parsedTree as any;
+    // Storing braces every name, so `a.b` arrives as `{a}.b` — only a known
+    // field counts
+    const isFieldRef = (node: any) =>
+      isCurlyIdentifier(node) &&
+      !!(colIdToColMap[node.name] || colAliasToColMap[node.name]);
+    if (
+      !path &&
+      property?.type === JSEPNode.IDENTIFIER &&
+      !isCurlyIdentifier(property) &&
+      (isFieldRef(object) || getMemberPath(object))
+    ) {
+      const calleeName = String(property.name).toUpperCase();
+      if (formulas[calleeName]) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_SYNTAX,
+          { key: 'msg.formula.formulaMissingParentheses', calleeName },
+          `Missing parentheses after function name "${calleeName}"`
+        );
+      }
+      throw new FormulaError(
+        FormulaErrorType.INVALID_FUNCTION_NAME,
+        { calleeName },
+        `Function ${calleeName} is not available`
+      );
+    }
+    if (!path) {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        {},
+        'Only field references like {Link}.{Field} can be joined with "."'
+      );
+    }
+    if (path.length - 1 > MAX_DOT_PATH_HOPS) {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        { key: 'msg.formula.dotPathTooDeep', maxHops: MAX_DOT_PATH_HOPS },
+        `A field path can follow at most ${MAX_DOT_PATH_HOPS} links`
+      );
+    }
+
+    const resolvedPath = [];
+    let tableColumns: UnifiedMetaType.IColumn[] = allColumns;
+    let isDataArray = false;
+
+    for (let i = 0; i < path.length; i++) {
+      const ref = path[i].name;
+      const col =
+        i === 0
+          ? colIdToColMap[ref] || colAliasToColMap[ref]
+          : findColumnByRef(tableColumns, ref);
+
+      if (!col) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_COLUMN,
+          { key: 'msg.formula.columnNotAvailable', columnName: ref },
+          `Invalid column name/id ${JSON.stringify(ref)} in formula`
+        );
+      }
+
+      resolvedPath.push({
+        type: JSEPNode.IDENTIFIER,
+        name: col.id,
+        raw: `{${col.id}}`,
+      });
+
+      if (i === path.length - 1) {
+        const identifierType = await extractColumnIdentifierType({
+          col,
+          columns: tableColumns,
+          getMeta,
+          clientOrSqlUi,
+        });
+        return {
+          ...buildMemberPath(resolvedPath),
+          dataType: identifierType.dataType,
+          isDataArray: isDataArray || !!identifierType.isDataArray,
+          referencedColumn: {
+            id: identifierType.referencedColumn?.id,
+            uidt: identifierType.referencedColumn?.uidt,
+          },
+        };
+      }
+
+      if (!canBeDotPathHop(col)) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_SYNTAX,
+          { key: 'msg.formula.dotPathNotALink', columnName: col.title },
+          `Field ${col.title} is not a link, so "." cannot follow it`
+        );
+      }
+
+      const colContext = unifiedMeta.getContextFromObject(col);
+      const colOptions =
+        (await unifiedMeta.getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+          colContext,
+          { column: col }
+        )) ??
+        (await col.getColOptions?.<UnifiedMetaType.ILinkToAnotherRecordColumn>());
+      const relatedTable = await unifiedMeta.getLTARRelatedTable(colContext, {
+        colOptions,
+        getMeta,
+      });
+      tableColumns = await unifiedMeta.getColumns(
+        unifiedMeta.getContextFromObject(relatedTable),
+        { model: relatedTable }
+      );
+      if (!tableColumns) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_COLUMN,
+          { key: 'msg.formula.columnNotAvailable', columnName: col.title },
+          `Linked table of ${col.title} is not available`
+        );
+      }
+      isDataArray = isDataArray || isLinkToMany(col, colOptions);
+    }
+    // unreachable, the last path segment returns above
+    return undefined;
+  };
+
+  const nodePosition = (node: ParsedFormulaNode) =>
+    node.indexStart >= 0
+      ? { index: node.indexStart, length: node.nodeLength }
+      : undefined;
+
+  const isNumericLiteral = (node: ParsedFormulaNode) =>
+    (node.type === JSEPNode.LITERAL && typeof node.value === 'number') ||
+    (node.type === JSEPNode.UNARY_EXP &&
+      node.operator === '-' &&
+      node.argument.type === JSEPNode.LITERAL &&
+      typeof node.argument.value === 'number');
+
+  // An aggregate over `values` (SUM(values)) or a modifier of the value set
+  // (ARRAYUNIQUE(values)) in a rollup formula.
+  const validateRollupCall = async (
+    parsedTree: CallExpressionNode,
+    res: CallExpressionNode,
+    scope: RollupScope,
+    aggregate?: RollupAggregate,
+    modifier?: RollupModifier,
+    perValue = false
+  ): Promise<ParsedFormulaNode> => {
+    const calleeName = parsedTree.callee.name.toUpperCase();
+    const position = nodePosition(parsedTree);
+
+    if (aggregate && scope !== 'outer') {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        { key: 'msg.formula.rollupNestedAggregate', calleeName, position },
+        `${calleeName}(values) cannot be used inside another aggregate`
+      );
+    }
+    if (modifier && scope === 'outer') {
+      // as in Airtable, a value list used as text joins with no separator
+      return validateAndExtract(concatenateValues(parsedTree), 'outer');
+    }
+    if (modifier && scope !== 'set') {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        {
+          key: 'msg.formula.rollupModifierFirstArgument',
+          calleeName,
+          position,
+        },
+        `${calleeName} must be the first argument of an aggregate, e.g. ARRAYJOIN(${calleeName}(values))`
+      );
+    }
+
+    // Airtable aggregates are variadic: MAX(values, 0) → MAX(MAX(values), 0)
+    if (
+      aggregate &&
+      aggregate !== RollupAggregate.ARRAYJOIN &&
+      (parsedTree.arguments?.length ?? 0) > 1
+    ) {
+      return validateAndExtract(
+        splitVariadicAggregate(parsedTree, aggregate, position, perValue),
+        scope
+      );
+    }
+
+    const [minArgs, maxArgs] =
+      aggregate === RollupAggregate.ARRAYJOIN
+        ? [1, 2]
+        : modifier === RollupModifier.ARRAYSLICE
+        ? [2, 3]
+        : [1, 1];
+    const args = parsedTree.arguments ?? [];
+    if (args.length < minArgs || args.length > maxArgs) {
+      throw new FormulaError(
+        FormulaErrorType.INVALID_ARG,
+        {
+          key:
+            minArgs === maxArgs
+              ? 'msg.formula.rollupExactArguments'
+              : 'msg.formula.rollupArgumentsRange',
+          calleeName,
+          minArgs,
+          maxArgs,
+          position,
+        },
+        minArgs === maxArgs
+          ? `${calleeName} takes exactly ${minArgs} argument when aggregating values`
+          : `${calleeName} takes ${minArgs} to ${maxArgs} arguments`
+      );
+    }
+
+    const valuesArg = await validateAndExtract(args[0], 'set');
+    const restArgs: ParsedFormulaNode[] = [];
+    for (const arg of args.slice(1)) {
+      if (
+        aggregate === RollupAggregate.ARRAYJOIN &&
+        !(arg.type === JSEPNode.LITERAL && typeof arg.value === 'string')
+      ) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_ARG,
+          { key: 'msg.formula.rollupArrayJoinSeparator', position },
+          'ARRAYJOIN separator must be a text literal, e.g. ", "'
+        );
+      }
+      if (modifier === RollupModifier.ARRAYSLICE && !isNumericLiteral(arg)) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_ARG,
+          { key: 'msg.formula.rollupArraySliceBounds', position },
+          'ARRAYSLICE start and end must be whole numbers'
+        );
+      }
+      restArgs.push(await validateAndExtract(arg, 'outer'));
+    }
+    res.arguments = [valuesArg, ...restArgs];
+
+    if (modifier) {
+      res.rollupModifier = modifier;
+      res.dataType = valuesArg.dataType;
+      res.referencedColumn = valuesArg.referencedColumn;
+      return res;
+    }
+
+    res.rollupAggregate = aggregate;
+    const valueType = valuesArg.dataType;
+    switch (aggregate) {
+      case RollupAggregate.SUM:
+      case RollupAggregate.AVERAGE:
+        if (
+          ![
+            FormulaDataTypes.NUMERIC,
+            FormulaDataTypes.BOOLEAN,
+            FormulaDataTypes.COND_EXP,
+            FormulaDataTypes.NULL,
+            FormulaDataTypes.UNKNOWN,
+          ].includes(valueType)
+        ) {
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              key: 'msg.formula.rollupNumericValuesRequired',
+              calleeName,
+              valueType,
+              position,
+            },
+            `${calleeName} requires numeric values but found ${valueType}`
+          );
+        }
+        res.dataType = FormulaDataTypes.NUMERIC;
+        res.referencedColumn = valuesArg.referencedColumn;
+        break;
+      case RollupAggregate.MIN:
+      case RollupAggregate.MAX:
+        // Airtable: numbers only — over text the result is 0
+        if (valueType === FormulaDataTypes.STRING) {
+          res.dataType = FormulaDataTypes.NUMERIC;
+          break;
+        }
+        res.dataType = [
+          FormulaDataTypes.BOOLEAN,
+          FormulaDataTypes.COND_EXP,
+        ].includes(valueType)
+          ? FormulaDataTypes.NUMERIC
+          : valueType;
+        res.referencedColumn = valuesArg.referencedColumn;
+        break;
+      case RollupAggregate.COUNT:
+      case RollupAggregate.COUNTA:
+      case RollupAggregate.COUNTALL:
+        res.dataType = FormulaDataTypes.NUMERIC;
+        break;
+      case RollupAggregate.AND:
+      case RollupAggregate.OR:
+      case RollupAggregate.XOR:
+        res.dataType = FormulaDataTypes.BOOLEAN;
+        break;
+      case RollupAggregate.CONCATENATE:
+      case RollupAggregate.ARRAYJOIN:
+        res.dataType = FormulaDataTypes.STRING;
+        break;
+    }
+    return res;
+  };
+
+  const extract = async (
+    parsedTree: ParsedFormulaNode,
+    scope: RollupScope,
+    // an aggregate name with a scalar version, read one way (see below)
+    reading?: 'scalar' | 'aggregate'
+  ): Promise<ParsedFormulaNode> => {
     const res: ParsedFormulaNode = { ...parsedTree };
+    // children of a per-value expression stay per-value
+    const childScope: RollupScope = scope === 'outer' ? 'outer' : 'row';
 
     if (parsedTree.type === JSEPNode.CALL_EXP) {
+      if (
+        parsedTree.callee?.type !== JSEPNode.IDENTIFIER ||
+        typeof parsedTree.callee.name !== 'string' ||
+        isCurlyIdentifier(parsedTree.callee)
+      ) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_SYNTAX,
+          {},
+          'Only functions can be called'
+        );
+      }
       const calleeName = (
         parsedTree.callee as IdentifierNode
       ).name.toUpperCase();
+
+      if (rollup) {
+        // in a per-value expression MIN / AND … are the scalar functions
+        const aggregate = getRollupAggregate(calleeName, scope !== 'outer');
+        const modifier = getRollupModifier(calleeName);
+        const perValue = reading === 'aggregate';
+        if (
+          (aggregate || modifier) &&
+          reading !== 'scalar' &&
+          valueSetArgIndexes(parsedTree, scope, perValue).length
+        ) {
+          // nothing has written to `res` yet: hand over an equal call-typed copy
+          return validateRollupCall(
+            parsedTree,
+            { ...parsedTree },
+            scope,
+            aggregate,
+            modifier,
+            perValue
+          );
+        }
+        // COUNTALL(IF(OR(values = 1, values = 2), 1, 0)): the scalar call as
+        // before, aggregating per value only when that is invalid
+        if (
+          (aggregate || modifier) &&
+          !reading &&
+          valueSetArgIndexes(parsedTree, scope, true).length
+        ) {
+          try {
+            return await validateAndExtract(parsedTree, scope, 'scalar');
+          } catch (scalarError) {
+            try {
+              return await validateAndExtract(parsedTree, scope, 'aggregate');
+            } catch {
+              throw scalarError;
+            }
+          }
+        }
+        const scalarName = ROLLUP_SCALAR_ALIASES[calleeName];
+        if (scalarName) {
+          return validateAndExtract(
+            {
+              ...parsedTree,
+              callee: { ...parsedTree.callee, name: scalarName },
+            },
+            scope
+          );
+        }
+        // SUM(foo): report the bad argument, not a missing SUM
+        if ((aggregate || modifier) && !hasScalarVersion(calleeName)) {
+          // 'set' reports a nested aggregate (SUM(SUM(values))) as such
+          for (const arg of parsedTree.arguments ?? []) {
+            await validateAndExtract(arg, 'set');
+          }
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              key: 'msg.formula.rollupAggregateRequiresValues',
+              calleeName,
+              position: nodePosition(parsedTree),
+            },
+            `${calleeName} must take \`values\`, e.g. ${calleeName}(values)`
+          );
+        }
+      }
       // validate function name
       if (!formulas[calleeName]) {
         throw new FormulaError(
@@ -811,21 +1414,11 @@ export async function validateFormulaAndExtractTreeWithType({
           },
           `Function ${calleeName} is not available`
         );
-      } else if (sqlUI?.getUnsupportedFnList().includes(calleeName)) {
-        throw new FormulaError(
-          FormulaErrorType.INVALID_FUNCTION_NAME,
-          {
-            calleeName,
-            position:
-              (parsedTree as any).indexStart >= 0
-                ? {
-                    index: (parsedTree as any).indexStart,
-                    length: (parsedTree as any).nodeLength,
-                  }
-                : undefined,
-          },
-          `Function ${calleeName} is unavailable for your database`
-        );
+      } else if (
+        sqlUI?.getUnsupportedFnList().includes(calleeName) &&
+        !mayBeListAggregate(parsedTree as CallExpressionNode)
+      ) {
+        throw unsupportedFnError(calleeName, parsedTree);
       }
 
       // validate arguments
@@ -898,10 +1491,45 @@ export async function validateFormulaAndExtractTreeWithType({
       const validateResult = ((res as CallExpressionNode).arguments =
         await Promise.all(
           parsedTree.arguments.map((arg) => {
-            return validateAndExtract(arg);
+            return validateAndExtract(arg, childScope);
           })
         ));
       const argTypes = validateResult.map((v: any) => v.dataType);
+
+      // COUNT etc. on a list compile to a plain SQL aggregate on any database
+      if (
+        sqlUI?.getUnsupportedFnList().includes(calleeName) &&
+        !(
+          LIST_AGGREGATE_FUNCTIONS.includes(calleeName) &&
+          validateResult.length === 1 &&
+          validateResult[0].isDataArray
+        )
+      ) {
+        throw unsupportedFnError(calleeName, parsedTree);
+      }
+
+      // a custom check skips args.type below; the database can't cast a
+      // number or checkbox to a date (DATEADD(values, 1, "day") over Number)
+      if (
+        rollup &&
+        formulas[calleeName].validation?.custom &&
+        formulas[calleeName].validation?.args?.type === FormulaDataTypes.DATE &&
+        validateResult[0] &&
+        hasDataType(validateResult[0], [
+          FormulaDataTypes.NUMERIC,
+          FormulaDataTypes.BOOLEAN,
+        ])
+      ) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_ARG,
+          {
+            key: 'msg.formula.firstArgumentMustBeDate',
+            calleeName,
+            position: nodePosition(parsedTree),
+          },
+          `The first argument of ${calleeName} must be a date`
+        );
+      }
 
       // if validation function is present, call it
       if (formulas[calleeName].validation?.custom) {
@@ -1005,6 +1633,45 @@ export async function validateFormulaAndExtractTreeWithType({
         extractCallExpressionReferencedInfo({
           parsedTree: res as CallExpressionNode,
         })
+      );
+    } else if (
+      rollup &&
+      parsedTree.type === JSEPNode.IDENTIFIER &&
+      parsedTree.name === ROLLUP_VALUES_KEYWORD
+    ) {
+      if (scope === 'outer') {
+        // as in Airtable, the value list used as text joins with no separator
+        return validateAndExtract(concatenateValues(parsedTree), 'outer');
+      }
+      Object.assign(
+        res,
+        await extractColumnIdentifierType({
+          col: rollup.valuesColumn,
+          columns: rollup.valuesColumns,
+          getMeta,
+          clientOrSqlUi,
+        })
+      );
+      // UNKNOWN would pass SUM and arithmetic
+      if (
+        res.dataType === FormulaDataTypes.UNKNOWN &&
+        rollup.valuesColumn.uidt !== undefined &&
+        TEXT_STORED_UIDTS.includes(rollup.valuesColumn.uidt)
+      ) {
+        res.dataType = FormulaDataTypes.STRING;
+      }
+    } else if (rollup && parsedTree.type === JSEPNode.IDENTIFIER) {
+      // as in Airtable, `values` is the only field a rollup formula reads
+      throw new FormulaError(
+        FormulaErrorType.INVALID_COLUMN,
+        {
+          key: 'msg.formula.rollupOnlyValuesReference',
+          fieldName: parsedTree.name,
+          position: nodePosition(parsedTree),
+        },
+        `A rollup formula can only reference \`values\`, not ${JSON.stringify(
+          parsedTree.name
+        )}`
       );
     } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
       const identifierName = (parsedTree as IdentifierNode).name;
@@ -1123,13 +1790,16 @@ export async function validateFormulaAndExtractTreeWithType({
       } else if (parsedTree.operator === '-') {
         // `-x` is validated and built as `0 - x`, sharing the binary path
         const { argument, ...unaryFields } = parsedTree;
-        return validateAndExtract({
-          ...unaryFields,
-          type: JSEPNode.BINARY_EXP,
-          operator: '-',
-          left: { type: JSEPNode.LITERAL, value: 0, raw: '0' },
-          right: argument,
-        });
+        return validateAndExtract(
+          {
+            ...unaryFields,
+            type: JSEPNode.BINARY_EXP,
+            operator: '-',
+            left: { type: JSEPNode.LITERAL, value: 0, raw: '0' },
+            right: argument,
+          },
+          scope
+        );
       } else {
         throw new FormulaError(
           FormulaErrorType.NOT_SUPPORTED,
@@ -1138,8 +1808,8 @@ export async function validateFormulaAndExtractTreeWithType({
         );
       }
     } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
-      const argsLeft = await validateAndExtract(parsedTree.left);
-      const argsRight = await validateAndExtract(parsedTree.right);
+      const argsLeft = await validateAndExtract(parsedTree.left, childScope);
+      const argsRight = await validateAndExtract(parsedTree.right, childScope);
       (res as BinaryExpressionNode).left = argsLeft;
       (res as BinaryExpressionNode).right = argsRight;
 
@@ -1159,6 +1829,31 @@ export async function validateFormulaAndExtractTreeWithType({
       } else if (
         ['==', '<', '>', '<=', '>=', '!='].includes(parsedTree.operator)
       ) {
+        // the database has no date/time = number comparison
+        const operands = [argsLeft, argsRight];
+        if (
+          rollup &&
+          operands.some((arg) =>
+            hasDataType(arg, [FormulaDataTypes.NUMERIC])
+          ) &&
+          operands.some((arg) =>
+            hasDataType(arg, [FormulaDataTypes.DATE, FormulaDataTypes.INTERVAL])
+          )
+        ) {
+          throw new FormulaError(
+            FormulaErrorType.TYPE_MISMATCH,
+            {
+              position:
+                nodePosition(parsedTree) ??
+                nodePosition(parsedTree.left) ??
+                nodePosition(parsedTree.right),
+              columnName: ROLLUP_VALUES_KEYWORD,
+              key: 'msg.formula.rollupDateNumberComparison',
+              operator: parsedTree.operator,
+            },
+            `A date or time can't be compared with a number using ${parsedTree.operator}`
+          );
+        }
         res.dataType = FormulaDataTypes.COND_EXP;
       } else if (parsedTree.operator === '+') {
         res.dataType = FormulaDataTypes.NUMERIC;
@@ -1183,6 +1878,56 @@ export async function validateFormulaAndExtractTreeWithType({
       } else if (['&'].includes(parsedTree.operator)) {
         res.dataType = FormulaDataTypes.STRING;
       } else {
+        // the database rejects text * number, which fails every read of the table
+        if (
+          rollup &&
+          [argsLeft, argsRight].some((arg) =>
+            hasDataType(arg, [
+              FormulaDataTypes.STRING,
+              FormulaDataTypes.DATE,
+              FormulaDataTypes.INTERVAL,
+            ])
+          )
+        ) {
+          const isValuesNode = (node: ParsedFormulaNode) =>
+            node.type === JSEPNode.IDENTIFIER &&
+            node.name === ROLLUP_VALUES_KEYWORD;
+          // outside an aggregate, `values` is the joined list, whatever its type
+          const valuesOutsideAggregate =
+            scope === 'outer' &&
+            (isValuesNode(parsedTree.left) || isValuesNode(parsedTree.right));
+          const hasValueFn = !sqlUI?.getUnsupportedFnList().includes('VALUE');
+          const [key, hint] = valuesOutsideAggregate
+            ? [
+                'msg.formula.rollupOperatorValuesOutsideAggregate',
+                '; use values inside an aggregate, e.g. SUM(values)',
+              ]
+            : parsedTree.operator === '-'
+            ? [
+                'msg.formula.rollupOperatorNumericDate',
+                '; use DATEADD for dates',
+              ]
+            : hasValueFn
+            ? [
+                'msg.formula.rollupOperatorNumericText',
+                '; use VALUE(values) for numbers stored as text',
+              ]
+            : ['msg.formula.rollupOperatorNumeric', ''];
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {
+              position:
+                nodePosition(parsedTree) ??
+                nodePosition(parsedTree.left) ??
+                nodePosition(parsedTree.right),
+              // operands carry no index; underline `values` instead
+              columnName: ROLLUP_VALUES_KEYWORD,
+              key,
+              operator: parsedTree.operator,
+            },
+            `The ${parsedTree.operator} operator requires numeric values${hint}`
+          );
+        }
         res.dataType = FormulaDataTypes.NUMERIC;
       }
 
@@ -1195,11 +1940,7 @@ export async function validateFormulaAndExtractTreeWithType({
         })
       );
     } else if (parsedTree.type === JSEPNode.MEMBER_EXP) {
-      throw new FormulaError(
-        FormulaErrorType.NOT_SUPPORTED,
-        {},
-        'Bracket notation is not supported'
-      );
+      return await validateMemberPath(parsedTree);
     } else if (parsedTree.type === JSEPNode.ARRAY_EXP) {
       throw new FormulaError(
         FormulaErrorType.NOT_SUPPORTED,
@@ -1216,18 +1957,83 @@ export async function validateFormulaAndExtractTreeWithType({
     return res;
   };
 
+  // The scalar-then-per-value retry re-validates subtrees: once per reading
+  // each. Copies are handed out, as a parent annotates its arguments (`cast`).
+  const validated = new WeakMap<
+    ParsedFormulaNode,
+    Map<string, Promise<ParsedFormulaNode>>
+  >();
+  const validateAndExtract = (
+    parsedTree: ParsedFormulaNode,
+    scope: RollupScope = 'outer',
+    reading?: 'scalar' | 'aggregate'
+  ): Promise<ParsedFormulaNode> => {
+    if (!rollup) return extract(parsedTree, scope, reading);
+    const key = `${scope}:${reading ?? ''}`;
+    let byKey = validated.get(parsedTree);
+    if (!byKey) validated.set(parsedTree, (byKey = new Map()));
+    const cached = byKey.get(key);
+    if (cached) return cached.then(clone);
+    const result = extract(parsedTree, scope, reading);
+    const stored = result.then(clone);
+    // a failure reaches the caller through `result`
+    stored.catch(() => undefined);
+    byKey.set(key, stored);
+    return result;
+  };
+
   try {
-    const jsepInstance = trackPosition ? formulaJsepWithIndex : formulaJsep;
-    const parsedFormula = jsepInstance(formula);
-    // TODO: better jsep expression handling
-    const result = await validateAndExtract(
-      parsedFormula as unknown as ParsedFormulaNode
+    let parsedFormula = (trackPosition ? parseFormulaWithIndex : parseFormula)(
+      formula
     );
+    // a bare value set (`values`, `ARRAYUNIQUE(values)`) shows as a joined list
+    if (
+      rollup &&
+      ((parsedFormula.type === JSEPNode.IDENTIFIER &&
+        parsedFormula.name === ROLLUP_VALUES_KEYWORD) ||
+        (parsedFormula.type === JSEPNode.CALL_EXP &&
+          getRollupModifier(parsedFormula.callee.name) &&
+          hasFreeRollupValues(parsedFormula)))
+    ) {
+      parsedFormula = rollupCall(RollupAggregate.ARRAYJOIN, [parsedFormula]);
+    }
+    // TODO: better jsep expression handling
+    const result = await validateAndExtract(parsedFormula);
+    if (rollup) {
+      const aggregateCount = extractRollupAggregates(result).length;
+      if (!aggregateCount) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_ARG,
+          { key: 'msg.formula.rollupMustAggregate' },
+          'A rollup formula must aggregate `values`, e.g. SUM(values)'
+        );
+      }
+      // each aggregate is a subquery run for every row read
+      if (aggregateCount > MAX_ROLLUP_AGGREGATES) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_ARG,
+          {
+            key: 'msg.formula.rollupMaxAggregates',
+            maxAggregates: MAX_ROLLUP_AGGREGATES,
+            aggregateCount,
+          },
+          `A rollup formula can use at most ${MAX_ROLLUP_AGGREGATES} aggregates, found ${aggregateCount}`
+        );
+      }
+    }
     return result;
   } catch (ex) {
+    const error =
+      ex instanceof RangeError
+        ? new FormulaError(
+            FormulaErrorType.INVALID_SYNTAX,
+            { key: 'msg.formula.formulaTooComplex' },
+            'The formula is too long or too deeply nested'
+          )
+        : ex;
     if (trackPosition) {
-      handleFormulaError({ formula, error: ex });
+      handleFormulaError({ formula, error });
     }
-    throw ex;
+    throw error;
   }
 }

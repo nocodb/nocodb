@@ -11,6 +11,7 @@ import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 /**
  * Sweep row-coloring rules that referenced the deleted column:
@@ -134,7 +135,7 @@ export class ColumnDeleteRowColorDependencyHandler implements MetaEventHandler {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: { ...view, from_row_color: true },
+          payload: { ...viewForBroadcast(view), from_row_color: true },
         },
       });
     }

@@ -3,9 +3,11 @@ import {
   ButtonActionsType,
   EventType,
   formulaJsep,
+  getAvailableRollupForColumn,
   getAvailableRollupForUiType,
   isLinksOrLTAR,
   isRollupAggregatableColumn,
+  isRollupFormula,
   UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
@@ -26,9 +28,11 @@ import {
   Source,
 } from '~/models';
 import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';
+import { getFormulaColumnRefs } from '~/helpers/formulaHelpers';
 import { invalidateSingleQueryCacheForModels } from '~/helpers/metaCacheInvalidator';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import NocoSocket from '~/socket/NocoSocket';
+import { tableForBroadcast } from '~/helpers/publicViewSecrets';
 
 const logger = new Logger('DependentErrorHelpers');
 
@@ -289,8 +293,12 @@ async function refIsBroken(
   if (!ref) return false;
   if (ref.deleted) return true;
   if (!CASCADE_ERROR_UIDTS.has(ref.uidt)) return false;
-  const opt = await ref.getColOptions<{ error?: string }>(ncMeta);
-  return !!opt?.error;
+  const opt = await ref.getColOptions<{
+    error?: string;
+    data_error?: boolean;
+  }>(ncMeta);
+  // a rollup's data error heals by itself; it doesn't break what reads it
+  return !!opt?.error && !opt.data_error;
 }
 
 async function dependentStillBroken(
@@ -369,6 +377,21 @@ async function dependentStillBroken(
         });
         if (modified) return true;
       }
+
+      // hops and targets of `{Link}.{Field}` paths live in other tables,
+      // possibly other bases
+      const refIds = getFormulaColumnRefs(
+        (opts as FormulaColumn | ButtonColumn).formula,
+      );
+      if (refIds.length) {
+        const trashedRef = await ncMeta
+          .knex(MetaTable.COLUMNS)
+          .where('fk_workspace_id', ctx.workspace_id)
+          .whereIn('id', refIds)
+          .where('deleted', true)
+          .first('id');
+        if (trashedRef) return true;
+      }
       return false;
     }
   }
@@ -390,7 +413,11 @@ async function broadcastColumnUpdates(
       event: EventType.META_EVENT,
       payload: {
         action: 'column_update',
-        payload: { table: model, column: {}, skipDataReload: true },
+        payload: {
+          table: tableForBroadcast(model),
+          column: {},
+          skipDataReload: true,
+        },
       },
     } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
   }
@@ -433,12 +460,18 @@ async function rollupSourceIncompatible(
   opt: RollupColumn | undefined,
   ncMeta: MetaService,
 ): Promise<boolean> {
-  if (!opt?.fk_rollup_column_id) return false;
+  // a formula rollup is type-checked by its re-typing handler
+  if (!opt?.fk_rollup_column_id || isRollupFormula(opt)) return false;
   const source = await Column.get(
     ctx,
     { colId: opt.fk_rollup_column_id },
     ncMeta,
   );
+  // a rollup's result type, see applyRollupResultTypeChange
+  if (source?.uidt === UITypes.Rollup) {
+    await source.getColOptions(ncMeta);
+    return !getAvailableRollupForColumn(source).includes(opt.rollup_function);
+  }
   return (
     !!source &&
     !isRollupSourceCompatible(source, opt.rollup_function) &&
@@ -675,7 +708,8 @@ export async function applySourceTypeChange(
     const entry = await loadEntry(ctx, dep, ncMeta);
     if (!entry) continue;
     const opt = await entry.col.getColOptions<RollupColumn>(ncMeta);
-    if (!opt) continue;
+    // a formula rollup is re-typed by its own handler
+    if (!opt || isRollupFormula(opt)) continue;
     if (strict && !isRollupSourceCompatible(source, opt.rollup_function)) {
       if (!opt.error) {
         await markErrored(
@@ -694,6 +728,48 @@ export async function applySourceTypeChange(
       );
     }
   }
+}
+
+/**
+ * A plain rollup over a rollup whose result type may have changed (a formula
+ * rollup edited to return text): error-mark it when it can no longer aggregate
+ * that result, as the create path refuses it, or clear the error once it can.
+ * Unlike a uidt change this is wrong on every dialect, so it isn't lenient.
+ */
+export async function applyRollupResultTypeChange(
+  ctx: NcContext,
+  rollupCol: Column,
+  target: Column,
+  ncMeta: MetaService = Noco.ncMeta,
+): Promise<boolean> {
+  const opt = await rollupCol.getColOptions<RollupColumn>(ncMeta);
+  if (!opt || isRollupFormula(opt) || target.uidt !== UITypes.Rollup) {
+    return false;
+  }
+  await target.getColOptions(ncMeta);
+  const dep: Dependent = {
+    id: rollupCol.id,
+    type: 'rollup',
+    base_id: ctx.base_id,
+  };
+  if (!getAvailableRollupForColumn(target).includes(opt.rollup_function)) {
+    if (opt.error) return false;
+    await markErrored(
+      ctx,
+      dep,
+      `Field '${target.title}' no longer returns a type rollup '${opt.rollup_function}' can aggregate`,
+      ncMeta,
+    );
+    return true;
+  }
+  if (!opt.error || opt.data_error) return false;
+  await clearErroredEntries(
+    ctx,
+    [{ dep, col: rollupCol }, ...(await downstreamOf(ctx, dep, ncMeta, true))],
+    ncMeta,
+    REPAIR_CLEAR,
+  );
+  return true;
 }
 
 /** A column was repaired: clear the errors on its readers that are valid again. */

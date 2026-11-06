@@ -6,6 +6,7 @@ import {
   ComparisonOperator,
   StringOperator,
 } from './operators';
+import type { RollupAggregate, RollupModifier } from './rollupFormula';
 import { UnifiedMetaType } from '~/lib/types';
 
 export interface ReferencedInfo {
@@ -14,6 +15,8 @@ export interface ReferencedInfo {
     uidt: string;
     intermediaryUidt?: string;
     intermediaryId?: string;
+    // Lookup only: values are the referenced field's own, with no formula hop
+    directLookup?: boolean;
   };
   invalidForReferenceColumn?: boolean;
   uidtCandidates?: UITypes[];
@@ -26,6 +29,9 @@ export type BaseFormulaNode = {
   inArrayFormat?: boolean;
   cast?: FormulaDataTypes;
   errors?: Set<string>;
+  // set by jsepIndexHook when parsing with position tracking
+  indexStart?: number;
+  nodeLength?: number;
 } & ReferencedInfo;
 
 export interface BinaryExpressionNode extends BaseFormulaNode {
@@ -42,6 +48,9 @@ export interface CallExpressionNode extends BaseFormulaNode {
     type?: string;
     name: string;
   };
+  // rollup formulas only: canonical name of a call that aggregates over / modifies `values`
+  rollupAggregate?: RollupAggregate;
+  rollupModifier?: RollupModifier;
 }
 
 export interface IdentifierNode extends BaseFormulaNode {

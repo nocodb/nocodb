@@ -20,6 +20,7 @@ import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
+import { pluralizeTitle } from '~/helpers/pluralizeTitle';
 
 export const IGNORE_TABLES = [
   'nc_models',
@@ -150,7 +151,7 @@ export async function extractAndGenerateManyToManyRelations(
           // heuristic resolves LinkToAnotherRecord to LTAR v2.
           uidt: UITypes.LinkToAnotherRecord,
           meta: {
-            plural: pluralize(modelB.title),
+            plural: pluralizeTitle(modelB.title),
             singular: singularize(modelB.title),
           },
           description:
@@ -190,7 +191,7 @@ export async function extractAndGenerateManyToManyRelations(
           // heuristic resolves LinkToAnotherRecord to LTAR v2.
           uidt: UITypes.LinkToAnotherRecord,
           meta: {
-            plural: pluralize(modelA.title),
+            plural: pluralizeTitle(modelA.title),
             singular: singularize(modelA.title),
           },
           description:
@@ -400,7 +401,7 @@ export async function populateMeta(
             hm,
             title: pluralize(hm.title),
             meta: {
-              plural: pluralize(hm.title),
+              plural: pluralizeTitle(hm.title),
               singular: singularize(hm.title),
             },
           };

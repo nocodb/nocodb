@@ -1,7 +1,7 @@
-import { ProjectRoles } from '~/lib/enums';
+import { OrderedProjectRoles, ProjectRoles } from '~/lib/enums';
 import type { AgentChannelType } from './channel';
 import type { SkillType } from '../skill';
-import type { AgentDelivery, AgentSetupState } from './setup';
+import type { AgentDelivery, AgentSetupSource, AgentSetupState } from './setup';
 import type { AgentFileType } from './files';
 
 /**
@@ -14,12 +14,26 @@ export enum AgentMode {
 }
 
 /**
+ * Whose identity an agent runs as. A personal agent works as its owner at a
+ * capped role; a shared agent has its own identity. Absent means shared.
+ */
+export enum AgentScope {
+  PERSONAL = 'personal',
+  SHARED = 'shared',
+}
+
+/** The most a personal agent's role may be lowered to below its owner's. */
+export type AgentRoleCap = ProjectRoles.COMMENTER | ProjectRoles.VIEWER;
+
+/**
  * An agent's whole behaviour, in one place. There is no second copy and no
  * publish step: what you edit is what runs on the next turn or trigger.
  */
 export interface AgentConfigType {
   /** Absent means standard. Set at creation; an update cannot change it. */
   mode?: AgentMode;
+  /** Personal agents: null is the owner's own role (up to editor). */
+  role_cap?: AgentRoleCap | null;
   instructions?: string;
   /** ProseMirror JSON behind `instructions`. The prompt always reads `instructions`. */
   instructions_doc?: Record<string, any>;
@@ -193,6 +207,10 @@ export interface AgentType {
   created_at?: string;
   updated_at?: string;
   role?: AgentAssignableRole;
+  /** Null or absent is shared. */
+  scope?: AgentScope | null;
+  /** The owning user of a personal agent. */
+  owned_by?: string | null;
   /** Bound reachability surfaces (Slack, Telegram, …) — embedded so the frontend needs no separate fetch. */
   channels?: AgentChannelType[];
   /** `config.skills` resolved against the workspace catalog — embedded so the frontend needs no separate fetch. */
@@ -205,6 +223,7 @@ export interface AgentCreateReqType {
   /** Seeded with {@link AGENT_DEFAULT_INSTRUCTIONS} when omitted. */
   config?: AgentConfigType;
   role?: AgentAssignableRole;
+  scope?: AgentScope;
   /** False creates it switched off; a draft being set up starts this way. */
   enabled?: boolean;
   meta?: Record<string, any>;
@@ -246,3 +265,44 @@ export function isCodingAgent(
 export * from './channel';
 export * from './setup';
 export * from './files';
+
+export interface AgentSetupStartReqType {
+  source: AgentSetupSource;
+  template?: string;
+  timezone?: string;
+  scope?: AgentScope;
+  title?: string;
+  description?: string;
+}
+
+export function isPersonalAgent(agent?: Pick<AgentType, 'scope'> | null) {
+  return agent?.scope === AgentScope.PERSONAL;
+}
+
+const personalAgentRoleLadder = [
+  ProjectRoles.VIEWER,
+  ProjectRoles.COMMENTER,
+  ProjectRoles.EDITOR,
+  ProjectRoles.CREATOR,
+  ProjectRoles.OWNER,
+];
+
+const rolePower = (role: ProjectRoles) =>
+  OrderedProjectRoles.length - OrderedProjectRoles.indexOf(role);
+
+/** The role a personal agent runs at, whoever started the run: the lowest of the owner's, its cap and editor. Null when the owner is below viewer. */
+export function personalAgentRole(
+  ownerRole: ProjectRoles | null | undefined,
+  cap?: AgentRoleCap | null
+): AgentAssignableRole | null {
+  if (!ownerRole || !personalAgentRoleLadder.includes(ownerRole)) return null;
+  const candidates = [
+    ownerRole,
+    cap ?? ProjectRoles.EDITOR,
+    ProjectRoles.EDITOR,
+  ];
+  const lowest = candidates.reduce((a, b) =>
+    rolePower(b) < rolePower(a) ? b : a
+  );
+  return lowest as AgentAssignableRole;
+}

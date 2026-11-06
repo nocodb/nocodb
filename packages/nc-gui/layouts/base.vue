@@ -23,6 +23,16 @@ const isDashboard = computed(() => !!route.params.typeOrId)
 
 const { productName, logoUrl, faviconUrl, isWhiteLabelled } = useBranding()
 
+const { isDragging: isLangBtnDragging, style: langBtnStyle, onPointerDown: onLangBtnPointerDown } = useDraggableFab()
+
+// A drop must not also open the language menu.
+function onLangBtnClickCapture(e: MouseEvent) {
+  if (!isLangBtnDragging.value) return
+
+  e.stopPropagation()
+  e.preventDefault()
+}
+
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */
 hooks.hook('page:finish', () => {
   if (sidebar.value) {
@@ -146,15 +156,20 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <NcTooltip
+      <div
         v-if="!signedIn && !route.params.baseId && !route.params.erdUuid && !ncIsIframe()"
-        placement="left"
         class="nc-lang-btn-wrapper"
+        :class="{ 'cursor-grabbing': isLangBtnDragging }"
+        :style="langBtnStyle"
+        @pointerdown="onLangBtnPointerDown"
+        @click.capture="onLangBtnClickCapture"
       >
-        <template #title>{{ $t('labels.community.communityTranslated') }}</template>
+        <NcTooltip placement="left" class="w-full h-full" :disabled="isLangBtnDragging">
+          <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
-        <GeneralLanguage class="nc-lang-btn text-white" />
-      </NcTooltip>
+          <GeneralLanguage class="nc-lang-btn text-white" />
+        </NcTooltip>
+      </div>
 
       <div class="w-full h-full overflow-hidden nc-layout-base-inner">
         <slot />
@@ -165,7 +180,7 @@ hooks.hook('page:finish', () => {
 
 <style lang="scss">
 .nc-lang-btn-wrapper {
-  @apply fixed bottom-10 right-10 z-99 w-12 h-12;
+  @apply fixed bottom-10 right-10 z-99 w-12 h-12 touch-none select-none;
 }
 
 .nc-lang-btn {

@@ -1,5 +1,5 @@
 import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk';
-import { FormulaDataTypes } from 'nocodb-sdk';
+import { FormulaDataTypes, getRollupResultUidt } from 'nocodb-sdk';
 import type { SourcesMap } from '~/services/api-docs/types';
 import type {
   Column,
@@ -270,11 +270,38 @@ async function processColumnToSwaggerField(
       break;
     case UITypes.Rollup: {
       const colOptions = await column.getColOptions<RollupColumn>(ncMeta);
-      if (!['max', 'min'].includes(colOptions.rollup_function.toLowerCase())) {
-        field.type = 'number';
-      } else {
-        // if min or max, let it be any
-        setAsAnyType(field);
+      // typed by its result
+      switch (getRollupResultUidt({ uidt: column.uidt, colOptions })) {
+        case UITypes.Number:
+        case UITypes.Decimal:
+          field.type = ['number', 'null'];
+          break;
+        case UITypes.SingleLineText:
+          field.type = ['string', 'null'];
+          break;
+        case UITypes.Date:
+          field.type = ['string', 'null'];
+          field.format = 'date';
+          break;
+        case UITypes.DateTime:
+          field.type = ['string', 'null'];
+          field.format = 'date-time';
+          break;
+        case UITypes.Checkbox:
+          field.type = ['boolean', 'null'];
+          break;
+        case undefined:
+          // numeric, except min/max over a non-date field, which keeps its type
+          if (
+            ['max', 'min'].includes(colOptions.rollup_function.toLowerCase())
+          ) {
+            setAsAnyType(field);
+          } else {
+            field.type = 'number';
+          }
+          break;
+        default:
+          setAsAnyType(field);
       }
       break;
     }

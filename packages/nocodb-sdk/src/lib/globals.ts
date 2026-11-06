@@ -616,3 +616,12 @@ export enum BaseVariableValueType {
  * recursive CTE bound and the frontend's drop-target guard can never drift.
  */
 export const LIST_VIEW_NESTED_MAX_DEPTH = 7;
+
+/**
+ * List leaf summaries: `total` over every leaf record, `groups` per parent
+ * record id (leaf records linked to it). Values are keyed by field title.
+ */
+export type ListSummaryResponse = {
+  total: Record<string, unknown>;
+  groups: Record<string, Record<string, unknown>>;
+};

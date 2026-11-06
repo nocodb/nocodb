@@ -79,6 +79,10 @@
       "description": "Dashboards and their widgets."
     },
     {
+      "name": "Permissions",
+      "description": "Table and field permission grants."
+    },
+    {
       "name": "Scripts",
       "description": "Automation scripts."
     },
@@ -126,7 +130,8 @@
       "name": "Collaboration APIs",
       "tags": [
         "Workspace Members",
-        "Base Members"
+        "Base Members",
+        "Permissions"
       ]
     }
   ],
@@ -4321,6 +4326,211 @@
           },
           "500": {
             "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/permissions": {
+      "get": {
+        "summary": "List permissions",
+        "description": "List the table and field permission grants in a base. Only tables and fields with an explicit grant appear; anything absent follows the base roles.\n\n**Note**: Table and field permissions are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments. Listing grants works on every plan, so a downgraded workspace can still see the grants in place.",
+        "operationId": "permissions-list",
+        "tags": [
+          "Permissions"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Only grants on this table and on its fields."
+          },
+          {
+            "name": "entity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "table",
+                "field"
+              ]
+            },
+            "description": "Only grants attached to this kind of entity."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission grants.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionList"
+                },
+                "examples": {
+                  "permissionList": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "pmnsk2v1k5x6ttt1",
+                          "entity": "field",
+                          "entity_id": "cl6ra6o0aq3bbf2",
+                          "permission": "RECORD_FIELD_EDIT",
+                          "granted_type": "user",
+                          "granted_role": null,
+                          "subjects": [
+                            {
+                              "type": "user",
+                              "id": "usr3vsj3cf2c5xjm"
+                            }
+                          ],
+                          "enforce_for_automation": true,
+                          "enforce_for_form": true,
+                          "created_by": "usr0dhq5mqx5cbkn"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "description": "Base not found."
+          }
+        }
+      },
+      "put": {
+        "summary": "Set permission",
+        "description": "Create or replace the grant for one permission on a table or field. A grant is exactly one rule: a minimum role (`granted_type` `role` with `granted_role`), named users and teams (`granted_type` `user` with `subjects`), or `nobody`. `TABLE_VISIBILITY` can be set by base owners only.\n\n**Note**: Table and field permissions are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments. Listing grants works on every plan, so a downgraded workspace can still see the grants in place.",
+        "operationId": "permission-set",
+        "tags": [
+          "Permissions"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PermissionSet"
+              },
+              "examples": {
+                "editorsCanAdd": {
+                  "summary": "Editors and up may add records",
+                  "value": {
+                    "entity": "table",
+                    "entity_id": "mxkh0dbn0ajlrvy",
+                    "permission": "TABLE_RECORD_ADD",
+                    "granted_type": "role",
+                    "granted_role": "editor"
+                  }
+                },
+                "namedUsersEditField": {
+                  "summary": "Only these users may edit a field",
+                  "value": {
+                    "entity": "field",
+                    "entity_id": "cl6ra6o0aq3bbf2",
+                    "permission": "RECORD_FIELD_EDIT",
+                    "granted_type": "user",
+                    "subjects": [
+                      {
+                        "type": "user",
+                        "id": "usr3vsj3cf2c5xjm"
+                      },
+                      {
+                        "type": "user",
+                        "email": "ana@example.com"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The grant as stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Permission"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/permissions/{permissionId}": {
+      "delete": {
+        "summary": "Delete permission",
+        "description": "Remove a grant, so the table or field falls back to plain base-role access.\n\n**Note**: Table and field permissions are available on cloud-hosted **Business** plans and above, and on licensed self-hosted deployments. Listing grants works on every plan, so a downgraded workspace can still see the grants in place.",
+        "operationId": "permission-delete",
+        "tags": [
+          "Permissions"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "permissionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the permission grant."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permission deleted."
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "description": "Permission not found."
           }
         }
       }
@@ -12122,7 +12332,7 @@
             "show"
           ]
         },
-        "description": "List of fields to be displayed in the view. \n\n- If not specified, all fields are displayed by default.\n- If an empty array is provided, only the display value field will be shown.\n- In case of partial list, fields not included in the list will be excluded from the view.\n- A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`)."
+        "description": "List of fields to be displayed in the view. \n\n- If not specified, all fields are displayed by default.\n- If an empty array is provided, only the display value field will be shown (form views hide it as well).\n- On every view type except form the display value field is pinned visible, so its position in the list is not applied.\n- In case of partial list, fields not included in the list will be excluded from the view.\n- A `field_id` that does not exist on the table is rejected with `422` (`ERR_FIELD_NOT_FOUND`)."
       },
       "ViewRowColour": {
         "type": "object",
@@ -14294,7 +14504,7 @@
       "FieldOptions_Rollup": {
         "type": "object",
         "title": "Rollup",
-        "description": "Rollups take no `display_type`. Numeric formatting is `precision` and `separator`; currency and percent come from the rolled-up field (a Currency or Percent field, or the `display_type` of a Formula or Lookup it reads).",
+        "description": "Plain rollups take no `display_type`. Numeric formatting is `precision` and `separator`; currency and percent come from the rolled-up field (a Currency or Percent field, or the `display_type` of a Formula or Lookup it reads). A formula rollup (`rollup_function` `formula`) can instead set `display_type` and `display_column_meta` to render its result as another field type.",
         "properties": {
           "related_field_id": {
             "type": "string",
@@ -14306,7 +14516,7 @@
           },
           "rollup_function": {
             "type": "string",
-            "description": "Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `countAll`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`. `count` counts linked records whose target value is not empty; `countAll` counts every linked record. With no linked records (or only empty values), `sum` and the count functions return `0`, while `avg`, `min` and `max` return `null`.",
+            "description": "Rollup function. The accepted set depends on the target field's type — date-like targets take only `count`, `countAll`, `min`, `max` and `countDistinct`, numeric targets additionally take `sum`, `avg`, `sumDistinct` and `avgDistinct`. A function outside the target's set is rejected with `400`. `count` counts linked records whose target value is not empty; `countAll` counts every linked record. With no linked records (or only empty values), `sum` and the count functions return `0`, while `avg`, `min` and `max` return `null`. `formula` aggregates with `formula` instead, for any target type.",
             "enum": [
               "count",
               "countAll",
@@ -14316,8 +14526,13 @@
               "sum",
               "countDistinct",
               "sumDistinct",
-              "avgDistinct"
+              "avgDistinct",
+              "formula"
             ]
+          },
+          "formula": {
+            "type": "string",
+            "description": "Required when `rollup_function` is `formula`: an expression over `values`, the linked records' values of the rollup field — e.g. `ROUND(SUM(values) * 1.1, 2)` or `ARRAYJOIN(ARRAYUNIQUE(values), \"; \")`. Aggregates: SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, COUNTALL, AND, OR, XOR, CONCATENATE, ARRAYJOIN; set modifiers: ARRAYUNIQUE, ARRAYCOMPACT, ARRAYSLICE, ARRAYFLATTEN."
           },
           "error": {
             "type": "string",
@@ -14326,9 +14541,20 @@
           },
           "precision": {
             "type": "number",
-            "description": "Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.",
+            "description": "Number of decimal places for numeric rollups. Defaults to 0; a formula rollup defaults to the digits of an outer ROUND, else 0 for a whole-number result and 2 otherwise. Display-only: the API returns the unrounded value.",
             "minimum": 0,
             "maximum": 8
+          },
+          "display_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Formula rollups only: field type the result is rendered as (e.g. `Currency`, `Percent`, `Date`). Null renders the raw result."
+          },
+          "display_column_meta": {
+            "type": "object",
+            "description": "Formula rollups only: field options applied to the rendered result, shaped like the `display_type` field's own options."
           },
           "enable_conditions": {
             "type": "boolean",
@@ -17360,6 +17586,201 @@
           "teams"
         ]
       },
+      "Permission": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the grant."
+          },
+          "entity": {
+            "type": "string",
+            "enum": [
+              "table",
+              "field"
+            ],
+            "description": "What the grant is attached to."
+          },
+          "entity_id": {
+            "type": "string",
+            "description": "Table ID or field ID."
+          },
+          "permission": {
+            "type": "string",
+            "enum": [
+              "TABLE_VISIBILITY",
+              "TABLE_RECORD_ADD",
+              "TABLE_RECORD_DELETE",
+              "RECORD_FIELD_EDIT"
+            ],
+            "description": "`TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field."
+          },
+          "granted_type": {
+            "type": "string",
+            "enum": [
+              "role",
+              "user",
+              "nobody"
+            ],
+            "description": "`role`: a minimum base role. `user`: only the listed subjects. `nobody`: no one."
+          },
+          "granted_role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Minimum role for a role grant, else null."
+          },
+          "subjects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "user",
+                    "team",
+                    "appTeam",
+                    "agent"
+                  ]
+                },
+                "id": {
+                  "type": "string"
+                },
+                "hierarchy_scope": {
+                  "type": "string",
+                  "enum": [
+                    "self_only",
+                    "self_and_descendants"
+                  ],
+                  "description": "Team subjects only: whether the grant covers just that team or its sub-teams too."
+                }
+              }
+            }
+          },
+          "enforce_for_automation": {
+            "type": "boolean"
+          },
+          "enforce_for_form": {
+            "type": "boolean"
+          },
+          "created_by": {
+            "type": "string"
+          }
+        }
+      },
+      "PermissionList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Permission"
+            }
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
+      "PermissionSet": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string",
+            "enum": [
+              "table",
+              "field"
+            ],
+            "description": "What the grant is attached to."
+          },
+          "entity_id": {
+            "type": "string",
+            "description": "Table ID for entity `table`, field ID for entity `field`."
+          },
+          "permission": {
+            "type": "string",
+            "enum": [
+              "TABLE_VISIBILITY",
+              "TABLE_RECORD_ADD",
+              "TABLE_RECORD_DELETE",
+              "RECORD_FIELD_EDIT"
+            ],
+            "description": "`TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field."
+          },
+          "granted_type": {
+            "type": "string",
+            "enum": [
+              "role",
+              "user",
+              "nobody"
+            ],
+            "description": "`role`: a minimum base role. `user`: only the listed subjects. `nobody`: no one."
+          },
+          "granted_role": {
+            "type": "string",
+            "enum": [
+              "creator",
+              "editor"
+            ],
+            "description": "Minimum role. Required with `granted_type` `role` and rejected otherwise. To restrict to owners, use `granted_type` `user`."
+          },
+          "subjects": {
+            "type": "array",
+            "description": "Users and teams allowed. Required (non-empty) with `granted_type` `user`, rejected otherwise. Give each by `id`, or a user by `email`.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "user",
+                    "team"
+                  ]
+                },
+                "id": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "hierarchy_scope": {
+                  "type": "string",
+                  "enum": [
+                    "self_only",
+                    "self_and_descendants"
+                  ],
+                  "default": "self_and_descendants",
+                  "description": "Team subjects only: whether the grant covers just that team or its sub-teams too."
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "enforce_for_automation": {
+            "type": "boolean",
+            "default": true,
+            "description": "Also enforce for automations."
+          },
+          "enforce_for_form": {
+            "type": "boolean",
+            "default": true,
+            "description": "Also enforce for form submissions."
+          }
+        },
+        "required": [
+          "entity",
+          "entity_id",
+          "permission",
+          "granted_type"
+        ],
+        "additionalProperties": false
+      },
       "ScriptList": {
         "type": "object",
         "properties": {
@@ -19152,6 +19573,7 @@
               "nocodb.trigger.form_submitted",
               "nocodb.trigger.record_enters_view",
               "nocodb.trigger.record_matches_condition",
+              "nocodb.trigger.field_changed",
               "core.trigger.webhook",
               "core.trigger.manual",
               "core.trigger.cron",

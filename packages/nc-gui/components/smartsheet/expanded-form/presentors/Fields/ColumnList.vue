@@ -480,6 +480,11 @@ function onCellValueChange(colTitle: string | undefined) {
   @apply px-0;
 }
 
+// a formula rendered as its referenced field already pads its wrapper
+:deep(.nc-data-cell .nc-cell-field.nc-cell-formula-wrapper .nc-cell-field) {
+  @apply px-0;
+}
+
 /* Compact view — strip vertical padding from the inner widget so rows pack
    tighter. Horizontal padding (px-2) is preserved so values still have left
    breathing room. Targets the textarea/input/select widgets that have their

@@ -32,6 +32,7 @@ import {
   ATTACHMENT_ROOTS,
   isPreviewAllowed,
   localFileExists,
+  sendLocalFile,
 } from '~/helpers/attachmentHelpers';
 import {
   NC_DATA_IMPORT_FILE_SIZE,
@@ -148,7 +149,7 @@ export class AttachmentsSecureController {
           contentDisposition(path.basename(file.path), { type: 'attachment' }),
         );
         res.setHeader('Content-Type', 'application/octet-stream');
-        return res.sendFile(file.path);
+        return sendLocalFile(res, file.path);
       }
 
       if (queryResponseContentType) {
@@ -174,7 +175,7 @@ export class AttachmentsSecureController {
       // active document type regardless of the served Content-Type.
       res.setHeader('X-Content-Type-Options', 'nosniff');
 
-      res.sendFile(file.path);
+      await sendLocalFile(res, file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }

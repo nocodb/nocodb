@@ -3,9 +3,9 @@ import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import { NcMarkdownParser } from '~/helpers/tiptap'
+import { NcMarkdownParser, suggestionHandledKeyEvents } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
-import { HardBreak, Italic, Link, Strike } from '~/helpers/tiptap-markdown/extensions'
+import { EmojiSuggestion, HardBreak, Italic, Link, Strike } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -28,6 +28,8 @@ const props = withDefaults(
 )
 
 const emits = defineEmits(['update:value', 'focus', 'blur', 'save'])
+
+const { $e } = useNuxtApp()
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -63,6 +65,7 @@ const tiptapExtensions = [
   Italic,
 
   HardBreak,
+  EmojiSuggestion.configure({ onInsert: (source) => $e('c:comment:emoji:insert', { source }) }),
   Placeholder.configure({
     emptyEditorClass: 'is-editor-empty',
     placeholder: props.placeholder,
@@ -265,6 +268,9 @@ const handleKeyPress = (event: KeyboardEvent) => {
   } else if (event.key === 'Enter') {
     handleEnterDown(event)
   } else if (event.key === 'Escape') {
+    // The emoji list closed on this Escape — stay in the comment box.
+    if (suggestionHandledKeyEvents.has(event)) return
+
     isFocused.value = false
     emits('blur')
 

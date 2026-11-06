@@ -1,9 +1,12 @@
 import {
   convertMS2Duration,
   getEffectiveLookupColumn,
+  getRollupFormulaDisplayColumn,
   isLinksOrLTAR,
+  isRollupFormula,
   isSupportedDisplayValueColumn,
   LongTextAiMetaProp,
+  NC_ERROR_SENTINEL,
   parseDecimalValue,
   parseHelper,
   parseIntValue,
@@ -14,10 +17,10 @@ import {
 import type { ColumnType } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
+import type RollupColumn from '~/models/RollupColumn';
 import type { NcContext } from '~/interface/config';
-import type Column from '~/models/Column';
 import { NcError } from '~/helpers/catchError';
-import { Model, View } from '~/models';
+import { Column, Model, View } from '~/models';
 import Base from '~/models/Base';
 import {
   LIST_ARG_ALIASES,
@@ -91,6 +94,22 @@ export async function getViewAndModelByAliasOrId(
   return { model, view };
 }
 
+// Same pattern as nc-gui `replaceUrlsWithLink`: the URL() formula emits
+// `URI::( url ) LABEL::( label )`, with `(`/`)` escaped inside the content.
+const FORMULA_URL_RE =
+  /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|)\))?/g;
+
+// Exports keep the URL rather than the label, so the link is not lost.
+export function stripFormulaUrlMarkup(value: string) {
+  return value.replace(FORMULA_URL_RE, (_, url: string, label?: string) => {
+    const unescape = (s: string) => s.trim().replace(/\\([()])/g, '$1');
+    return unescape(url) || (label ? unescape(label) : '');
+  });
+}
+
+// a formula rollup's export column (null for plain rollups), per column object
+const rollupDisplayColumns = new WeakMap<Column, Column | null>();
+
 export async function serializeCellValue(
   context: NcContext,
   {
@@ -116,6 +135,36 @@ export async function serializeCellValue(
   if (!value) return value;
 
   switch (column?.uidt) {
+    case UITypes.Rollup: {
+      // the grid shows an errored cell as ERR!
+      if (value === NC_ERROR_SENTINEL) return 'ERR!';
+      // an export serializes every row of the same column object: resolve once
+      if (!rollupDisplayColumns.has(column)) {
+        const rollupOptions: RollupColumn =
+          column.colOptions ?? (await column.getColOptions<RollupColumn>());
+        rollupDisplayColumns.set(
+          column,
+          isRollupFormula(rollupOptions)
+            ? new Column(
+                getRollupFormulaDisplayColumn(
+                  column,
+                  await rollupOptions.getRollupColumn(),
+                ),
+              )
+            : null,
+        );
+      }
+      const displayColumn = rollupDisplayColumns.get(column);
+      // a formula rollup exports as its result type / picked format
+      if (!displayColumn) return value;
+      return serializeCellValue(context, {
+        value,
+        column: displayColumn,
+        siteUrl,
+        locale,
+        rawNumeric,
+      });
+    }
     case UITypes.Attachment: {
       let data = value;
       try {
@@ -273,6 +322,23 @@ export async function serializeCellValue(
         return value;
       }
       return convertMS2Duration(value, column.meta.duration);
+    }
+    case UITypes.Formula:
+      if (typeof value === 'string') return stripFormulaUrlMarkup(value);
+      // Array formulas (pg) return arrays; keep `default`'s JSON output
+      if (typeof value === 'object') return JSON.stringify(value);
+      return value;
+    case UITypes.Button: {
+      const data = typeof value === 'string' ? parseHelper(value) : value;
+      if (data && typeof data === 'object') {
+        // Same as grid copy: URL for Open URL buttons, label otherwise
+        return (
+          (data.type === 'url'
+            ? data.url
+            : data.label ?? column.colOptions?.label) ?? ''
+        );
+      }
+      return value;
     }
     case UITypes.LongText: {
       // If it is AI text field then just return value instead of whole json

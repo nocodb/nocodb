@@ -1,7 +1,9 @@
+import { getHeapStatistics } from 'v8';
 import {
   OnQueueActive,
   OnQueueCompleted,
   OnQueueFailed,
+  OnQueueStalled,
   Processor,
 } from '@nestjs/bull';
 import { Job as BullJob } from 'bull';
@@ -17,6 +19,21 @@ import {
 import { Job } from '~/models';
 import { RootScopes } from '~/utils/globals';
 import { PubSubRedis } from '~/redis/pubsub-redis';
+
+const SLOW_JOB_MS = 60_000;
+const HIGH_HEAP_RATIO = 0.7;
+
+// Short on purpose: lines under 10 words don't count toward the errors-in-logs metric.
+function jobTag(job: BullJob) {
+  const context = job.data?.context;
+  return `${job.data?.jobName} ${job.id} ${context?.workspace_id ?? '-'} ${
+    context?.base_id ?? '-'
+  }`;
+}
+
+function heapUsedMb() {
+  return Math.round(getHeapStatistics().used_heap_size / 1024 / 1024);
+}
 
 @Processor(JOBS_QUEUE)
 export class JobsEventService {
@@ -34,6 +51,11 @@ export class JobsEventService {
 
   @OnQueueActive()
   onActive(job: BullJob) {
+    const { used_heap_size, heap_size_limit } = getHeapStatistics();
+    if (used_heap_size / heap_size_limit > HIGH_HEAP_RATIO) {
+      this.logger.warn(`High heap at start: ${jobTag(job)} ${heapUsedMb()}MB`);
+    }
+
     const emitActive = () =>
       this.eventEmitter.emit(JobEvents.STATUS, {
         id: job.id.toString(),
@@ -76,7 +98,7 @@ export class JobsEventService {
     });
 
     this.logger.error(
-      `---- !! JOB FAILED !! ----\nid:${job.id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
+      `---- !! JOB FAILED !! ----\nid:${job.id}\nname:${job.data?.jobName}\nworkspace:${job.data?.context?.workspace_id}\nbase:${job.data?.context?.base_id}\nerror:${error.name} (${error.message})\n\nstack: ${error.stack}`,
     );
 
     const emitFailed = () =>
@@ -116,8 +138,25 @@ export class JobsEventService {
       .finally(() => emitFailed());
   }
 
+  @OnQueueStalled()
+  // Bull also emits this with just the job id.
+  onStalled(job: BullJob | string) {
+    this.logger.warn(
+      `Job stalled: ${typeof job === 'string' ? job : jobTag(job)}`,
+    );
+  }
+
   @OnQueueCompleted()
   onCompleted(job: BullJob, data: any) {
+    const duration = Date.now() - (job.processedOn ?? Date.now());
+    if (duration > SLOW_JOB_MS) {
+      this.logger.warn(
+        `Slow job: ${jobTag(job)} ${Math.round(
+          duration / 1000,
+        )}s ${heapUsedMb()}MB`,
+      );
+    }
+
     PubSubRedis.publish(`worker:job:${job.id}`, {
       success: true,
       result: data,

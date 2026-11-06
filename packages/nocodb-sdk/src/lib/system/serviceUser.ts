@@ -102,7 +102,15 @@ const isAgentUser = (user: any): boolean => {
   );
 };
 
+const actingAgentId = (user: any): string | undefined =>
+  isAgentUser(user) ? user.id : user?.acting_agent?.id;
+
+const agentChainDepth = (user: any): number =>
+  isAgentUser(user) || user?.acting_agent ? user.agent_chain_depth ?? 1 : 0;
+
 export {
+  actingAgentId,
+  agentChainDepth,
   ServiceUserType,
   NOCO_SERVICE_USERS,
   isServiceUser,

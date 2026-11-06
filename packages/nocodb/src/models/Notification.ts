@@ -98,6 +98,7 @@ export default class Notification {
       fk_user_id: string;
       is_read?: boolean;
       is_deleted?: boolean;
+      type?: NotificationKind;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -105,6 +106,7 @@ export default class Notification {
       'is_read',
       'is_deleted',
       'fk_user_id',
+      'type',
     ]);
     const count = await ncMeta.metaCount(
       RootScopes.ROOT,

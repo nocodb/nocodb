@@ -52,3 +52,21 @@ export function viewWithoutShareSecrets<
     uuid: canManageShare ? view.uuid : undefined,
   });
 }
+
+// Realtime broadcasts reach the whole base room whatever each member's role,
+// so a view row leaves without its share uuid and stored password at all.
+export function viewForBroadcast<T extends object>(view: T): T {
+  if (!view) return view;
+  const copy = Object.assign(Object.create(Object.getPrototypeOf(view)), view);
+  delete copy.uuid;
+  delete copy.password;
+  return copy;
+}
+
+// A table (or column event's table) hydrated with its `views`.
+export function tableForBroadcast<T extends { views?: any[] }>(table: T): T {
+  if (!table?.views?.length) return table;
+  return Object.assign(Object.create(Object.getPrototypeOf(table)), table, {
+    views: table.views.map((view) => viewForBroadcast(view)),
+  });
+}

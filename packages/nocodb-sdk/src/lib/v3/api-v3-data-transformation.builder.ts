@@ -6,6 +6,11 @@ import UITypes, {
 } from '~/lib/UITypes';
 import { LongTextAiMetaProp, VIEW_GRID_DEFAULT_WIDTH } from '~/lib/globals';
 import {
+  isRollupColOptions,
+  isRollupFormula,
+  ROLLUP_FORMULA_FUNCTION,
+} from '~/lib/formula/rollupFormula';
+import {
   resolveColumnSeparator,
   SeparatorType,
 } from '~/lib/columnHelper/utils';
@@ -359,6 +364,7 @@ export const colOptionBuilder = builderGenerator({
     'fk_rollup_column_id',
     'fk_lookup_column_id',
     'rollup_function',
+    'rollup_formula',
     'fk_webhook_id',
     // Button. Without these the v3 read cannot report which script an action
     // button runs, which integration an AI button uses, or how any button is
@@ -374,6 +380,7 @@ export const colOptionBuilder = builderGenerator({
   ],
   mappings: {
     formula_raw: 'formula',
+    rollup_formula: 'formula',
     fk_qr_value_column_id: 'qrcode_value_field_id',
     fk_barcode_value_column_id: 'barcode_value_field_id',
 
@@ -612,6 +619,22 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
       delete options.locale_string;
     }
 
+    // A rollup's formula lives in its colOptions only — the v3 write copies the
+    // whole options object into meta, so a stale meta.formula would otherwise
+    // read back on a rollup that no longer is a formula
+    if (data.type === UITypes.Rollup) {
+      const rollupOptions = data.colOptions;
+      if (isRollupColOptions(rollupOptions) && isRollupFormula(rollupOptions)) {
+        options.formula = rollupOptions.rollup_formula;
+      } else {
+        // left in meta when it stopped being a formula rollup; sending them
+        // back would be rejected for a plain rollup
+        delete options.formula;
+        delete options.display_type;
+        delete options.display_column_meta;
+      }
+    }
+
     // exclude rollup function if Links
     if (data.type === UITypes.Links && options && options.rollup_function) {
       options.rollup_function = undefined;
@@ -693,6 +716,14 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
         };
       }
     }
+    // a rollup's `formula` is its rollup_formula, not a formula field's formula_raw
+    if (
+      data.rollup_function === ROLLUP_FORMULA_FUNCTION &&
+      'formula_raw' in data
+    ) {
+      const { formula_raw, ...rest } = data;
+      return { ...rest, rollup_formula: formula_raw };
+    }
     return data;
   },
 });
@@ -762,7 +793,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
     // with v2 keys of the display type; a flat object would be ignored by the UI.
     const displayColumnMeta = meta.display_column_meta;
     if (
-      [UITypes.Formula, UITypes.Lookup].includes(data.uidt) &&
+      [UITypes.Formula, UITypes.Lookup, UITypes.Rollup].includes(data.uidt) &&
       displayColumnMeta &&
       typeof displayColumnMeta === 'object' &&
       !('meta' in displayColumnMeta)

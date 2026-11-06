@@ -194,7 +194,7 @@ const viewSelectFieldOptions = ref<SelectProps['options']>([])
 
 const viewNameRules = [
   // name is required
-  { required: true, message: `${t('labels.viewName')} ${t('general.required').toLowerCase()}` },
+  { required: true, whitespace: true, message: `${t('labels.viewName')} ${t('general.required').toLowerCase()}` },
   // name is unique
   {
     validator: (_: unknown, v: string) =>
@@ -1061,6 +1061,7 @@ watch(activeBaseId, () => {
               ref="inputEl"
               v-model:value="form.title"
               :placeholder="$t('labels.viewName')"
+              :maxlength="255"
               autofocus
               class="nc-view-input nc-input-sm nc-input-shadow"
               @keydown.enter="onSubmit"

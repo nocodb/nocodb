@@ -87,7 +87,7 @@ type RelatedColumn = Model['columns'][number];
  * references (e.g. a lookup's `fk_lookup_column_id`, which lives on the FAR
  * table) are naturally excluded because they aren't in `sameModelIds`.
  */
-function sameModelColumnDeps(
+export function sameModelColumnDeps(
   column: RelatedColumn,
   sameModelIds: Set<string>,
 ): string[] {

@@ -1490,8 +1490,7 @@ const openNewRecordFormHookHandler = async () => {
   newRow.row = {
     [groupingField.value]: selectedStackTitle.value === '' ? null : selectedStackTitle.value,
   }
-  // increase total count by 1
-  countByStack.value.set(null, countByStack.value.get(null)! + 1)
+  // counted once saved (addOrEditStackRow), not while it is a draft
   // open the expanded form
   expandForm(newRow)
 }

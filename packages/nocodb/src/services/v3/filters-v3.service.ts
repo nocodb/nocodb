@@ -252,7 +252,10 @@ export class FiltersV3Service {
         { colId: (groupOrFilter as any).field_id },
         ncMeta,
       );
-      if (filterColumn?.colOptions?.error) {
+      if (
+        filterColumn?.colOptions?.error &&
+        !(filterColumn?.colOptions as { data_error?: boolean }).data_error
+      ) {
         NcError.get(context).badRequest(
           `Cannot use column '${filterColumn.title}' in filter: ${filterColumn.colOptions.error}`,
         );

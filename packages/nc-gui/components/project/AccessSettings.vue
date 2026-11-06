@@ -166,7 +166,7 @@ const baseTeamsToCollaborators = computed(() => {
 const baseAgentsToCollaborators = computed(() => {
   if (!currentBase.value?.id) return []
 
-  return (agents.value.get(currentBase.value.id) || []).map((agent: Record<string, any>) => ({
+  return selectableAgents(agents.value.get(currentBase.value.id) || []).map((agent: Record<string, any>) => ({
     ...agent,
     isAgent: true,
     display_name: agent.title,

@@ -19,7 +19,6 @@ import type {
 import type { NcContext } from '~/interface/config';
 import {
   Base,
-  BaseUser,
   Column,
   GridViewColumn,
   Model,
@@ -30,7 +29,7 @@ import {
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
-import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
+import { getUsersWithBaseAccess } from '~/helpers/baseAccessHelpers';
 import { setModelContext } from '~/helpers/modelContext';
 import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
@@ -257,20 +256,26 @@ export class PublicMetasService {
 
     view.relatedMetas = relatedMetas;
 
+    // A form only renders its User inputs; other views also show who
+    // created / modified a record.
     if (
       view.model.columns.some(
-        (c) => c.uidt === UITypes.User || isCreatedOrLastModifiedByCol(c),
+        (c) =>
+          c.uidt === UITypes.User ||
+          (view.type !== ViewTypes.FORM && isCreatedOrLastModifiedByCol(c)),
       )
     ) {
-      const baseUsers = await BaseUser.getUsersList(context, {
-        base_id: view.model.base_id,
+      const baseUsers = await getUsersWithBaseAccess(context, {
+        baseId: view.model.base_id,
       });
 
       await PresignedUrl.signMetaIconImage(baseUsers);
 
       view.users = baseUsers.map((u) => ({
         id: u.id,
-        display_name: extractDisplayNameFromEmail(u.email, u.display_name),
+        // No email fallback: it would expose the address's local part. The
+        // id-based label keeps an unnamed member selectable and searchable.
+        display_name: u.display_name || `Member ${u.id.slice(-4)}`,
         email: '',
         meta: ncIsObject(u.meta)
           ? extractProps(u.meta, ['icon', 'iconType'])

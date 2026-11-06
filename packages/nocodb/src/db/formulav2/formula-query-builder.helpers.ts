@@ -1,4 +1,8 @@
-import { FormulaDataTypes } from 'nocodb-sdk';
+import {
+  FormulaDataTypes,
+  JSEPNode,
+  LIST_AGGREGATE_FUNCTIONS,
+} from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import { NC_MAX_TEXT_LENGTH } from '~/constants';
 
@@ -152,7 +156,23 @@ export const getAggregateFn: IGetAggregateFn = (parentFn) => {
       return ({ qb, cn }) => qb.clear('select').sum(mssqlNumericCn(qb, cn));
 
     case 'AVG':
-      return ({ qb, cn }) => qb.clear('select').sum(mssqlNumericCn(qb, cn));
+      return ({ qb, cn }) => qb.clear('select').avg(mssqlNumericCn(qb, cn));
+
+    case 'COUNT':
+    case 'COUNTA':
+      return ({ qb, cn }) => qb.clear('select').count(cn);
+
+    // COUNTA over text, where an empty string is not a value
+    case 'COUNTA_TEXT':
+      // Oracle stores '' as NULL, so COUNT already skips it and `<> ''` would
+      // match nothing.
+      return ({ qb, cn }) =>
+        qb?.client?.driverName === 'oracledb'
+          ? qb.clear('select').count(cn)
+          : qb.clear('select').count(cn).where(cn, '<>', '');
+
+    case 'COUNTALL':
+      return ({ qb, knex }) => qb.clear('select').select(knex.raw('COUNT(*)'));
 
     case 'ARRAY_AGG':
       return ({ qb, knex, cn }) =>
@@ -192,3 +212,11 @@ export const isBooleanFormulaType = (dataType?: FormulaDataTypes | string) =>
 
 export const pgBooleanAsNumberSql = (sql: string) =>
   `COALESCE((${sql})::int, 0)`;
+
+// A single list argument, e.g. `{Tasks}.{Hours}.SUM()` or `AVG({Lookup})`
+export const isListAggregateCall = (pt: any): boolean =>
+  pt?.type === JSEPNode.CALL_EXP &&
+  LIST_AGGREGATE_FUNCTIONS.includes(pt.callee?.name?.toUpperCase?.()) &&
+  pt.arguments?.length === 1 &&
+  !!pt.arguments[0].isDataArray &&
+  [JSEPNode.IDENTIFIER, JSEPNode.MEMBER_EXP].includes(pt.arguments[0].type);

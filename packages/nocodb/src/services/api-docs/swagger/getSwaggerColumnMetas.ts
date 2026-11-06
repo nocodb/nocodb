@@ -1,5 +1,5 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import { FormulaDataTypes } from 'nocodb-sdk';
+import { FormulaDataTypes, getRollupResultUidt } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn, Model } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
@@ -197,7 +197,27 @@ async function processColumnToSwaggerField(
       }
       break;
     case UITypes.Rollup:
-      field.type = 'number';
+      // typed by its result
+      // a looked-up column comes without its colOptions
+      if (!column.colOptions) await column.getColOptions(ncMeta);
+      switch (getRollupResultUidt(column)) {
+        case UITypes.SingleLineText:
+          field.type = 'string';
+          break;
+        case UITypes.Date:
+          field.type = 'string';
+          field.format = 'date';
+          break;
+        case UITypes.DateTime:
+          field.type = 'string';
+          field.format = 'date-time';
+          break;
+        case UITypes.Checkbox:
+          field.type = 'boolean';
+          break;
+        default:
+          field.type = 'number';
+      }
       break;
     case UITypes.Links:
       field.type = 'integer';

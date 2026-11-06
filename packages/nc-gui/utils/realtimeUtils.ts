@@ -1,4 +1,4 @@
-import { CURRENT_USER_TOKEN, EventType, UITypes, isLinksOrLTAR, parseProp } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, EventType, UITypes, isBcryptHash, isLinksOrLTAR, parseProp } from 'nocodb-sdk'
 import type {
   DataPayload,
   FilterType,
@@ -559,4 +559,17 @@ export function matchViewerScope({
 /** A row that may belong to the viewer's list: anything `matchViewerScope` can't rule out. */
 export function rowMayMatchViewerScope(params: ViewerScopeParams): boolean {
   return matchViewerScope(params) !== 'no-match'
+}
+
+/**
+ * Merge a peer's view_update into the cached view. Broadcasts never carry the
+ * share uuid or password, so keys the payload lacks keep their local value;
+ * a raw bcrypt hash (older servers) never overwrites the masked sentinel.
+ * Returns whether the share changed and the view should be refetched.
+ */
+export function mergeRealtimeViewUpdate(view: Record<string, any>, payload: Record<string, any>): boolean {
+  const { share_changed: shareChanged, ...clean } = payload
+  if (isBcryptHash(clean.password)) delete clean.password
+  Object.assign(view, clean)
+  return !!shareChanged
 }

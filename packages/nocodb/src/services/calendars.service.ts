@@ -19,12 +19,14 @@ import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
 import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { claimObjectTitle } from '~/helpers/customObjects';
+import { normalizeViewTitle } from '~/helpers/viewTitleHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { CalendarView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 @Injectable()
 export class CalendarsService {
@@ -67,7 +69,7 @@ export class CalendarsService {
 
     const model = await Model.get(context, param.tableId, false, ncMeta);
 
-    param.calendar.title = param.calendar.title?.trim();
+    param.calendar.title = normalizeViewTitle(context, param.calendar.title);
 
     param.calendar.title = await claimObjectTitle(
       context,
@@ -158,7 +160,7 @@ export class CalendarsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_create',
-          payload: view,
+          payload: viewForBroadcast(view),
         },
       },
       context.socket_id,
@@ -246,7 +248,7 @@ export class CalendarsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: safeView,
+          payload: viewForBroadcast(safeView),
         },
       },
       context.socket_id,

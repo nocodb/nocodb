@@ -1026,8 +1026,6 @@ export class SqliteUi implements SqlUi {
       'REGEX_EXTRACT',
       'REGEX_REPLACE',
       'VALUE',
-      'COUNTA',
-      'COUNT',
       'DATESTR',
       'ARRAYSORT',
       'ARRAYUNIQUE',

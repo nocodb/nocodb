@@ -10,7 +10,11 @@ import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { sanitize } from '~/helpers/sqlSanitize';
-import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import {
+  ncIsStringHasValue,
+  ncLikeContainsPattern,
+  ncLikeEscapeClause,
+} from '~/db/field-handler/utils/handlerUtils';
 
 export class JsonGeneralHandler extends GenericFieldHandler {
   /**
@@ -96,11 +100,16 @@ export class JsonGeneralHandler extends GenericFieldHandler {
             break;
 
           case 'like':
-            val = val ? `%${val}%` : val;
+            val = val ? ncLikeContainsPattern(knex, val) : val;
             if (!val) {
               qb.whereNotNull(field);
             } else {
-              qb.where(knex.raw(`${fieldExpr} like ?`, [field, val]));
+              qb.where(
+                knex.raw(`${fieldExpr} like ?${ncLikeEscapeClause(knex)}`, [
+                  field,
+                  val,
+                ]),
+              );
             }
             break;
 
@@ -108,10 +117,13 @@ export class JsonGeneralHandler extends GenericFieldHandler {
             if (!ncIsStringHasValue(val)) {
               qb.whereNotNull(field);
             } else {
-              val = `%${val}%`;
+              val = ncLikeContainsPattern(knex, val);
               qb.where((nestedQb) => {
                 nestedQb.where(
-                  knex.raw(`${fieldExpr} not like ?`, [field, val]),
+                  knex.raw(
+                    `${fieldExpr} not like ?${ncLikeEscapeClause(knex)}`,
+                    [field, val],
+                  ),
                 );
                 if (val !== '%%') {
                   nestedQb

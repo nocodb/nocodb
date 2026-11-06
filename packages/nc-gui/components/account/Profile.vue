@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { IconType, PublicAttachmentScope } from 'nocodb-sdk'
 
-const { user } = useGlobal()
+const { user, isMobileMode } = useGlobal()
 
 const { t } = useI18n()
 
@@ -86,6 +86,8 @@ const saveChanges = async (isIconUpdate = false) => {
 
 const email = computed(() => user.value?.email)
 
+const namePlaceholder = computed(() => extractUserDisplayNameOrEmail(user.value ?? undefined) || t('general.name'))
+
 const imageCropperData = ref<Omit<ImageCropperProps, 'showCropper'>>({
   cropperConfig: {
     stencilProps: {
@@ -135,7 +137,7 @@ const onCancel = () => {
 
 <template>
   <div class="flex flex-col">
-    <NcPageHeader>
+    <NcPageHeader v-if="!isMobileMode">
       <template #icon>
         <GeneralIcon class="flex-none !h-5 !w-5" icon="user" />
       </template>
@@ -155,7 +157,7 @@ const onCancel = () => {
 
             <div class="nc-settings-item-card p-6">
               <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
-                <div class="flex gap-4">
+                <div class="flex gap-4" :class="{ 'flex-col': isMobileMode }">
                   <div>
                     <GeneralIconSelector
                       v-model:icon="form.icon"
@@ -186,7 +188,10 @@ const onCancel = () => {
 
                   <div class="flex-1 flex flex-col gap-4">
                     <div>
-                      <div class="flex items-center gap-1.5 justify-between mb-2">
+                      <div
+                        class="flex gap-1.5 justify-between mb-2"
+                        :class="isMobileMode ? 'flex-col items-start' : 'items-center'"
+                      >
                         <div class="text-nc-content-gray" data-rec="true">{{ $t('general.name') }}</div>
                         <NcTooltip v-if="user" :title="$t('labels.clickToCopyUserID')" placement="top" hide-on-click class="flex">
                           <div
@@ -210,7 +215,7 @@ const onCancel = () => {
                         <a-input
                           v-model:value="form.title"
                           class="w-full !rounded-lg !px-4 h-10"
-                          :placeholder="$t('general.name')"
+                          :placeholder="namePlaceholder"
                           data-testid="nc-account-settings-rename-input"
                         />
                       </a-form-item>

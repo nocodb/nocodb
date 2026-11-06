@@ -1,6 +1,7 @@
 import { formulaJsep } from 'nocodb-sdk';
 import type FormulaColumn from '~/models/FormulaColumn';
 import type { ButtonColumn } from '~/models';
+import { formulaTreeReferencesColumn } from '~/helpers/formulaHelpers';
 
 export default function addFormulaErrorIfMissingColumn({
   formula,
@@ -14,18 +15,10 @@ export default function addFormulaErrorIfMissingColumn({
   let modified = false;
 
   const fn = (pt, virtualColumn) => {
-    if (pt.type === 'CallExpression') {
-      pt.arguments.map((arg) => fn(arg, virtualColumn));
-    } else if (pt.type === 'Literal') {
-    } else if (pt.type === 'Identifier') {
-      if (pt.name === columnId) {
-        virtualColumn.error = virtualColumn.formula.error || '';
-        virtualColumn.error += `Column '${title || columnId}' was deleted`;
-        modified = true;
-      }
-    } else if (pt.type === 'BinaryExpression') {
-      fn(pt.left, virtualColumn);
-      fn(pt.right, virtualColumn);
+    if (formulaTreeReferencesColumn(pt, [columnId])) {
+      virtualColumn.error = virtualColumn.formula.error || '';
+      virtualColumn.error += `Column '${title || columnId}' was deleted`;
+      modified = true;
     }
   };
   try {

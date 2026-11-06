@@ -133,7 +133,7 @@ export class BasesService {
       'version',
     ]);
     if (data.title) {
-      const nameValidation = validateEntityName(data.title, 'Base name');
+      const nameValidation = validateEntityName(data.title, 'Project name');
       if (!nameValidation.valid) {
         NcError.badRequest(nameValidation.error);
       }
@@ -396,7 +396,7 @@ export class BasesService {
       baseBody.is_meta = false;
     }
 
-    const nameValidation = validateEntityName(baseBody?.title, 'Base name');
+    const nameValidation = validateEntityName(baseBody?.title, 'Project name');
     if (!nameValidation.valid) {
       NcError.badRequest(nameValidation.error);
     }

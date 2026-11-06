@@ -444,7 +444,7 @@ onMounted(() => {
             v-if="nonDeletedOptions.length && searchVal && !filteredOptions.length"
             class="h-full text-center flex items-center justify-center gap-3 mt-4"
           >
-            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noUsersFound')" class="!my-0" />
           </div>
         </div>
       </div>
@@ -483,6 +483,9 @@ onMounted(() => {
     >
       <template #suffixIcon>
         <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle nc-select-expand-btn" />
+      </template>
+      <template #notFoundContent>
+        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noUsersFound')" class="!my-0" />
       </template>
       <template v-for="op of options" :key="op.id || op.email">
         <a-select-option

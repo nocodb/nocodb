@@ -1,4 +1,5 @@
 import {
+  NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
   dateFormats,
@@ -6,6 +7,7 @@ import {
   getEffectiveLookupColumn,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
+  getRollupFormulaDisplayColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
   isAIPromptCol,
@@ -15,6 +17,7 @@ import {
   isIntegerUiType,
   isLinkV2,
   isLinksOrLTAR,
+  isRollupFormula,
   isSystemColumn,
   isValidValue,
   isVirtualCol,
@@ -586,6 +589,8 @@ export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => 
 }
 
 export const getRollupValue = (modelValue: string | null | number, params: ParsePlainCellValueProps['params']) => {
+  if (modelValue === NC_ERROR_SENTINEL) return 'ERR!'
+
   const { col, meta, metas } = params
 
   const colOptions = col.colOptions as RollupType
@@ -603,6 +608,11 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
   let childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
     | ColumnType
     | undefined
+
+  if (isRollupFormula(colOptions)) {
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    return parsePlainCellValue(modelValue, { ...params, col: getRollupFormulaDisplayColumn(col, childColumn) })
+  }
 
   if (!childColumn) return modelValue?.toString() ?? ''
   // may use deepClone

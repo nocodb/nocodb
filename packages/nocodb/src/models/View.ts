@@ -92,6 +92,7 @@ import {
   throwMissingContext,
 } from '~/helpers/modelContext';
 import NocoSocket from '~/socket/NocoSocket';
+import { tableForBroadcast } from '~/helpers/publicViewSecrets';
 import {
   SINGLE_QUERY_DEFAULT_VIEW,
   singleQueryCacheKey,
@@ -1908,10 +1909,11 @@ export default class View implements ViewType {
         uuid: view.uuid,
       });
     }
+    // Download stays off until the owner turns it on.
     if (!view.meta || !('allowCSVDownload' in view.meta)) {
       const defaultMeta = {
         ...(view.meta ?? {}),
-        allowCSVDownload: true,
+        allowCSVDownload: false,
       };
       view.meta = defaultMeta;
 
@@ -2358,10 +2360,12 @@ export default class View implements ViewType {
                 ncMeta,
               ).then(async (col) => ({
                 column: col,
-                table: await Model.getWithInfo(
-                  context,
-                  { id: col.fk_model_id },
-                  ncMeta,
+                table: tableForBroadcast(
+                  await Model.getWithInfo(
+                    context,
+                    { id: col.fk_model_id },
+                    ncMeta,
+                  ),
                 ),
                 skipDataReload: true,
               })),

@@ -23,6 +23,7 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import {
   canManageViewShare,
+  viewForBroadcast,
   viewWithoutShareSecrets,
 } from '~/helpers/publicViewSecrets';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
@@ -48,6 +49,7 @@ import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
+import { normalizeViewTitle } from '~/helpers/viewTitleHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 
@@ -109,6 +111,17 @@ async function xcVisibilityMetaGet(
   return Object.values(result);
 }
 
+// A view is visible when any base role the user holds is not disabled for it
+function isViewVisibleToRoles(
+  disabled: Record<string, boolean>,
+  baseRoles: Record<string, boolean> | string | undefined,
+) {
+  const roles = extractRolesObj(baseRoles) ?? {};
+  return Object.values(ProjectRoles).some(
+    (role) => roles[role] && !disabled[role],
+  );
+}
+
 @Injectable()
 export class ViewsService {
   constructor(
@@ -150,15 +163,30 @@ export class ViewsService {
       //   return false;
       // }
 
-      return Object.values(ProjectRoles).some(
-        (role) => param?.user?.['base_roles']?.[role] && !view.disabled[role],
-      );
+      return isViewVisibleToRoles(view.disabled, param?.user?.base_roles);
     });
 
     const canManageShare = canManageViewShare(param.user);
     return filteredViewList.map((view) =>
       viewWithoutShareSecrets(view, canManageShare),
     );
+  }
+
+  // Single-view counterpart of the role filter in viewList
+  async assertViewVisibleToUser(
+    context: NcContext,
+    param: {
+      viewId: string;
+      user: { base_roles?: Record<string, boolean> | string };
+    },
+  ) {
+    const disabled: Record<string, boolean> = {};
+    for (const d of await ModelRoleVisibility.list(context, context.base_id)) {
+      if (d.fk_view_id === param.viewId) disabled[d.role] = !!d.disabled;
+    }
+    if (!isViewVisibleToRoles(disabled, param.user?.base_roles)) {
+      NcError.get(context).viewNotFound(param.viewId);
+    }
   }
 
   async shareView(
@@ -193,6 +221,10 @@ export class ViewsService {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    // Before the schema check, so an over-long title gets a readable error
+    if (param.view?.title !== undefined) {
+      param.view.title = normalizeViewTitle(context, param.view.title);
+    }
     validatePayload(
       'swagger.json#/components/schemas/ViewUpdateReq',
       param.view,
@@ -214,8 +246,7 @@ export class ViewsService {
       NcError.get(context).viewNotFound(param.viewId);
     }
 
-    if (param.view.title && param.view.title.trim() !== oldView.title) {
-      param.view.title = param.view.title?.trim();
+    if (param.view.title && param.view.title !== oldView.title) {
       const existingView = await View.getByTitleOrId(
         context,
         {
@@ -508,7 +539,10 @@ export class ViewsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: safeResult,
+          // share_changed: the share uuid isn't sent, refetch through the API.
+          payload: autoShareView
+            ? { ...viewForBroadcast(safeResult), share_changed: true }
+            : viewForBroadcast(safeResult),
         },
       },
       context.socket_id,
@@ -721,7 +755,7 @@ export class ViewsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_delete',
-          payload: view,
+          payload: viewForBroadcast(view),
         },
       },
       context.socket_id,

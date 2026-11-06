@@ -512,7 +512,12 @@ export async function restrictQueryToExposedColumns(
     const filters = parsed as FilterType[];
     if (!filtersReferenceHiddenColumn(filters, exposedColumnIds)) continue;
 
-    const survivors = stripHiddenColumnFilters(filters, exposedColumnIds);
+    // unknown ids stay, so verification still rejects them with a 422
+    const survivors = stripHiddenColumnFilters(
+      filters,
+      exposedColumnIds,
+      new Set(columns.map((c) => c.id)),
+    );
     query[key] = survivors.length
       ? wasString
         ? JSON.stringify(survivors)

@@ -1,5 +1,5 @@
 import { resolveRollupResultUidt } from 'nocodb-sdk';
-import type { RollupType, UITypes } from 'nocodb-sdk';
+import type { ParsedFormulaNode, RollupType, UITypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import Column from '~/models/Column';
@@ -7,6 +7,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
 import {
   getModelContext,
@@ -24,6 +25,7 @@ export const ROLLUP_FUNCTIONS = <const>[
   'sumDistinct',
   'avgDistinct',
   'sum',
+  'formula',
 ];
 
 /**
@@ -48,6 +50,10 @@ async function resolveResultUidt(
   }
 }
 
+// Prefixes an `error` the read fallback stored from the data, which a later
+// read may clear; read() strips it into `data_error`.
+export const ROLLUP_DATA_ERROR_MARK = '[data] ';
+
 export default class RollupColumn implements RollupType {
   id: string;
   base_id?: string;
@@ -56,9 +62,13 @@ export default class RollupColumn implements RollupType {
   fk_relation_column_id;
   fk_rollup_column_id;
   rollup_function: (typeof ROLLUP_FUNCTIONS)[number];
+  rollup_formula?: string;
+  parsed_tree?: ParsedFormulaNode;
   error: string;
   // Resolved on read, never stored
   result_uidt?: UITypes.Date | UITypes.DateTime;
+  // Resolved on read, never stored: `error` came from the data, not validation
+  data_error?: boolean;
 
   constructor(data: Partial<RollupColumn>) {
     Object.assign(this, data);
@@ -86,6 +96,8 @@ export default class RollupColumn implements RollupType {
       'fk_relation_column_id',
       'fk_rollup_column_id',
       'rollup_function',
+      'rollup_formula',
+      'parsed_tree',
       'error',
     ]);
 
@@ -105,7 +117,10 @@ export default class RollupColumn implements RollupType {
       context.workspace_id,
       context.base_id,
       MetaTable.COL_ROLLUP,
-      insertObj,
+      {
+        ...insertObj,
+        parsed_tree: stringifyMetaProp(insertObj, 'parsed_tree', null),
+      },
     );
 
     return this.read(context, data.fk_column_id, ncMeta).then(
@@ -148,6 +163,9 @@ export default class RollupColumn implements RollupType {
         MetaTable.COL_ROLLUP,
         { fk_column_id: columnId },
       );
+      if (column) {
+        column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
+      }
       await NocoCache.set(
         context,
         `${CacheScope.COL_ROLLUP}:${columnId}`,
@@ -155,7 +173,13 @@ export default class RollupColumn implements RollupType {
       );
     }
     if (!column) return null;
+    // a cached copy may hold it serialized
+    column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
     const instance = new RollupColumn(column);
+    if (instance.error?.startsWith(ROLLUP_DATA_ERROR_MARK)) {
+      instance.error = instance.error.slice(ROLLUP_DATA_ERROR_MARK.length);
+      instance.data_error = true;
+    }
     setModelContext(instance, context);
     const resultUidt = await resolveResultUidt(instance, ncMeta);
     if (resultUidt) instance.result_uidt = resultUidt;
@@ -194,23 +218,41 @@ export default class RollupColumn implements RollupType {
       'fk_relation_column_id',
       'fk_rollup_column_id',
       'rollup_function',
+      'rollup_formula',
+      'parsed_tree',
       'error',
     ]);
 
+    const storedTree =
+      'parsed_tree' in updateObj
+        ? stringifyMetaProp(updateObj, 'parsed_tree', null)
+        : undefined;
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.COL_ROLLUP,
-      updateObj,
+      'parsed_tree' in updateObj
+        ? { ...updateObj, parsed_tree: storedTree }
+        : updateObj,
       {
         fk_column_id: columnId,
       },
     );
 
+    // cache the tree as stored: the validator's tree holds live column objects
     await NocoCache.update(
       context,
       `${CacheScope.COL_ROLLUP}:${columnId}`,
-      updateObj,
+      'parsed_tree' in updateObj
+        ? {
+            ...updateObj,
+            parsed_tree: parseMetaProp(
+              { parsed_tree: storedTree },
+              'parsed_tree',
+              null,
+            ),
+          }
+        : updateObj,
     );
   }
 }

@@ -891,6 +891,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       const stackTitle = row.row[groupingField.value]
       const oldStackTitle = row.oldRow[groupingField.value]
 
+      // A new record saved without a stack stays in Uncategorized; count it now that it exists.
+      if (isNewRow && !stackTitle && !oldStackTitle) {
+        countByStack.value.set(null, (countByStack.value.get(null) || 0) + 1)
+        return
+      }
+
       // if the update happen on linked table, do not attempt to update stack
       if (!stackTitle || oldStackTitle) {
         return
@@ -972,10 +978,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     function removeRowFromUncategorizedStack() {
       // interface adapter mode supports CRUD — only bail in plain public shared views
       if (isPublic.value && !interfaceDataApi) return
-      // remove the last record
+      // remove the unsaved draft; it was never counted
       formattedData.value.get(null)!.pop()
-      // decrease total count by 1
-      countByStack.value.set(null, countByStack.value.get(null)! - 1)
     }
 
     async function deleteRow(row: Row) {

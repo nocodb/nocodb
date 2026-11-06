@@ -30,7 +30,7 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
-const { getMeta } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const { getColor } = useTheme()
 
@@ -351,6 +351,7 @@ if (vModel.value?.type === ButtonActionsType.Url || (column.value?.colOptions as
         (column.value?.colOptions as ButtonType)?.formula,
         meta?.value?.columns as ColumnType[],
         (column.value?.colOptions as any)?.formula_raw,
+        (linkColumn) => getLinkedMetaColumns(getMetaByKey, linkColumn),
       ) || ''
   } else {
     vModel.value.formula_raw = ''
@@ -589,10 +590,8 @@ if (isEdit.value) {
     <div v-if="vModel?.type === buttonActionsType.Url">
       <SmartsheetColumnFormulaInputHelper
         v-model:value="vModel.formula_raw"
-        suggestion-height="medium"
         editor-height="50px"
         :disabled-formulas="['URL()', 'URLENCODE()']"
-        disable-suggestion-headers
         :editor-error="editorError"
         :label="$t('labels.urlFormula')"
         :error="validateInfos.formula_raw?.validateStatus === 'error'"

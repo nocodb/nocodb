@@ -9,6 +9,7 @@ import type {
 import { CalendarRange, Column, View } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 const DATE_TIME_TYPES: UITypes[] = [
   UITypes.Date,
@@ -163,7 +164,7 @@ export class ColumnUpdateCalendarRangeDependencyHandler
       await view.getView(Noco.ncMeta);
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
-        payload: { action: 'view_update', payload: view },
+        payload: { action: 'view_update', payload: viewForBroadcast(view) },
       });
     }
   }

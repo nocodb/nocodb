@@ -63,8 +63,9 @@ export interface InterfaceVizFieldConfig {
     mode: 'all' | 'specific';
     filters?: InterfaceFilterGroup | null;
   };
-  /** Grid footer / group-header summary aggregation for this column ('sum',
-   *  'avg', … — the Aggregations families). Absent/'none' = no summary. */
+  /** Summary aggregation for this column ('sum', 'avg', … — the Aggregations
+   *  families): grid footer / group headers; list leaf-field summaries.
+   *  Absent/'none' = no summary. */
   aggregation?: string;
   /** Rendered column width as a CSS px string ('240px') — the shape
    *  `GridColumnType.width` carries, so it can be stamped straight onto the
@@ -264,6 +265,8 @@ export interface InterfaceListVizConfig
    * view meta flag of the same name — absent = show (`!== false` semantics).
    */
   show_empty_parents?: boolean;
+  /** Fields pinned on the left of every level while scrolling sideways (0/absent = none). */
+  frozen_column_count?: number;
 }
 
 export interface InterfaceDateRangeConfig {

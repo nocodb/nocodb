@@ -388,6 +388,15 @@ const options = computed(() => {
   }
 })
 
+// Follows "Records", so mid-sentence lowercase; the menu keeps the capitalised label.
+const headingFilterLabel = computed(() => {
+  const label = options.value?.find((o) => o.value === sideBarFilterOption.value)?.label || ''
+
+  if (sideBarFilterOption.value === 'allRecords') return label
+
+  return label.charAt(0).toLowerCase() + label.slice(1)
+})
+
 const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
   const target = e.target as HTMLElement
   if (target.clientHeight + target.scrollTop + INFINITY_SCROLL_THRESHOLD >= target.scrollHeight) {
@@ -581,7 +590,7 @@ useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
               <span class="capitalize">
                 {{ sideBarFilterOption !== 'allRecords' ? $t('objects.records') : '' }}
               </span>
-              {{ options?.find((o) => o.value === sideBarFilterOption)?.label || '' }}
+              {{ headingFilterLabel }}
             </div>
 
             <GeneralIcon :icon="isDropdownOpen ? 'ncChevronUp' : 'ncChevronDown'" />

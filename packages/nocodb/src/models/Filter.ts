@@ -98,10 +98,24 @@ export function markStoredFilter(instance: Filter, row: Filter) {
   if (row?.base_id) instance[FILTER_STORED_BASE] = row.base_id;
 }
 
+// Set only on conditions the server enforces (RLS policies, link conditions).
+// Request JSON can't carry a Symbol key, so a caller can't claim it.
+export const FILTER_ENFORCED: unique symbol = Symbol.for('nc_filter_enforced');
+
+export function markEnforcedFilters<T extends Filter>(filters: T[]): T[] {
+  for (const filter of filters ?? []) {
+    if (!filter) continue;
+    filter[FILTER_ENFORCED] = true;
+    if (Array.isArray(filter.children)) markEnforcedFilters(filter.children);
+  }
+  return filters;
+}
+
 export default class Filter implements FilterType {
   id: string;
 
   [FILTER_STORED_BASE]?: string;
+  [FILTER_ENFORCED]?: boolean;
 
   fk_workspace_id?: string;
   fk_model_id?: string;
@@ -124,6 +138,10 @@ export default class Filter implements FilterType {
   _crossTableRowId?: string;
   // Unsaved source row (no PK yet): its link values, sent by the picker.
   _crossTableRowData?: Record<string, any>;
+  // Runtime-only: text eq/neq compares ignoring case. Set by the app-action
+  // query path for caller-supplied filters, honoured only inside
+  // `runWithCaseInsensitiveFilters`; never persisted.
+  case_insensitive?: boolean;
 
   comparison_op?: (typeof COMPARISON_OPS)[number];
   comparison_sub_op?: (typeof COMPARISON_SUB_OPS)[number];

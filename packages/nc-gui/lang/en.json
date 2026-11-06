@@ -1633,6 +1633,7 @@
         "deleted": "Record is deleted",
         "entersView": "Enters a view",
         "matches": "Matches conditions",
+        "fieldChanged": "Field changes",
         "formSubmitted": "Submits a form",
         "buttonClicked": "Clicks a button",
         "comment": "Comments on a record"
@@ -5705,6 +5706,18 @@
         "pending": "Pending",
         "checkedNotRun": "Checked, not run"
       },
+      "fieldChanged": {
+        "hint": "This trigger will fire when the value changes from any of the From values to any of the To values. It watches one field.",
+        "fromAnyOf": "From any of",
+        "toAnyOf": "To any of",
+        "selectValues": "-- Select values --",
+        "noSupportedFields": "This table has no single select, checkbox or rating fields.",
+        "empty": "Empty",
+        "checked": "Checked",
+        "unchecked": "Unchecked",
+        "noRating": "No rating",
+        "stars": "{count} star | {count} stars"
+      },
       "nodePicker": {
         "upgradeToUseStep": "Upgrade to the {plan} plan to use {step}",
         "search": "Search steps and apps",
@@ -5736,6 +5749,10 @@
           "nocodb_trigger_record_matches_condition": {
             "text": "Record {bold}",
             "bold": "matches conditions"
+          },
+          "nocodb_trigger_field_changed": {
+            "text": "Field {bold}",
+            "bold": "changes"
           },
           "nocodb_trigger_form_submitted": {
             "text": "{bold}",

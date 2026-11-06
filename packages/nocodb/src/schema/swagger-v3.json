@@ -19152,6 +19152,7 @@
               "nocodb.trigger.form_submitted",
               "nocodb.trigger.record_enters_view",
               "nocodb.trigger.record_matches_condition",
+              "nocodb.trigger.field_changed",
               "core.trigger.webhook",
               "core.trigger.manual",
               "core.trigger.cron",

@@ -21,6 +21,10 @@ import {
   stripNaNSql,
 } from '~/db/formulav2/pg-ieee';
 import { Column, Filter } from '~/models';
+import {
+  isLikeFilterOnString,
+  ncLikeEscapedOperand,
+} from '~/db/field-handler/utils/handlerUtils';
 import { setModelContext } from '~/helpers/modelContext';
 
 // NaN satisfies no ordering comparison, but pg ranks it above every number, so
@@ -154,13 +158,13 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
               ? +v
               : v,
           )
-        : knex.raw('?', [
-            // convert value to number if formulaDataType if numeric
-            parsedTree?.dataType === FormulaDataTypes.NUMERIC &&
-            !isNaN(+filter.value)
-              ? +filter.value
-              : filter.value ?? null, // in gp_null value is undefined
-          ]);
+        : // convert value to number if formulaDataType if numeric
+        parsedTree?.dataType === FormulaDataTypes.NUMERIC &&
+          !isNaN(+filter.value)
+        ? knex.raw('?', [+filter.value])
+        : isLikeFilterOnString(filter)
+        ? ncLikeEscapedOperand(knex, filter.value)
+        : knex.raw('?', [filter.value ?? null]); // in gp_null value is undefined
     return parseConditionV2(
       baseModelSqlv2,
       new Filter({

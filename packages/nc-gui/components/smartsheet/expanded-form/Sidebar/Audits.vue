@@ -3,6 +3,8 @@ import { type AuditType, PlanLimitTypes, type TableType } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
+const { agents } = storeToRefs(useAgentStore())
+
 const { t } = useI18n()
 
 const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, hasMoreAudits } =
@@ -10,7 +12,7 @@ const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAud
 
 const { getPlanLimit } = useWorkspace()
 
-const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
+const { handleUpgradePlan, isPaymentEnabled, isHigherActivePlan } = useEeConfig()
 
 function showAuditUpgradeModal() {
   handleUpgradePlan({
@@ -178,7 +180,7 @@ function isV0Audit(audit: AuditType) {
       </template>
       <template v-else>
         <div class="mt-auto" />
-        <div v-if="auditRetentionLimit" class="flex flex-col items-center gap-2 my-2 mx-3">
+        <div v-if="auditRetentionLimit && !isHigherActivePlan" class="flex flex-col items-center gap-2 my-2 mx-3">
           <i18n-t keypath="msg.info.revisionHistoryUpgrade" tag="div" class="text-center text-nc-content-gray-subtle2 text-xs">
             <template #limit>
               <span class="font-bold">{{ auditRetentionLimit }}</span>
@@ -217,6 +219,13 @@ function isV0Audit(audit: AuditType) {
                 <div class="flex h-[28px] items-center gap-2 w-[calc(100%_-_40px)]">
                   <div class="truncate text-nc-content-gray font-medium !text-small !leading-[18px] overflow-hidden">
                     {{ createdByAudit(audit) }}
+                    <span v-if="auditAgent(audit, agents)" class="font-normal text-nc-content-gray-muted">
+                      {{
+                        auditAgent(audit, agents)?.title
+                          ? $t('labels.agentPersonal.viaAgent', { agent: auditAgent(audit, agents)?.title })
+                          : $t('labels.agentPersonal.viaAnAgent')
+                      }}
+                    </span>
                   </div>
                   <div class="text-xs text-nc-content-gray-muted">
                     <NcTooltip>

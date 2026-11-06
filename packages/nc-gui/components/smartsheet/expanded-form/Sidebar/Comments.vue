@@ -22,11 +22,19 @@ const props = defineProps<{
    * open-comments-only).
    */
   showResolved?: boolean
+  /** Search box open — toggled by the host header's search icon. */
+  showSearch?: boolean
+}>()
+
+const emits = defineEmits<{
+  (e: 'update:showSearch', value: boolean): void
 }>()
 
 const { user, appInfo } = useGlobal()
 
 const { t } = useI18n()
+
+const { $e } = useNuxtApp()
 
 const { dashboardUrl } = useDashboard()
 
@@ -194,6 +202,10 @@ const hoveredCommentId = ref<null | string>(null)
 const commentInputRef = ref<any>()
 
 const comment = ref('')
+
+const searchQuery = ref('')
+
+const searchInputRef = ref<HTMLInputElement>()
 
 // Holds the deep-linked commentId for the lifetime of the current row's
 // comment session. Side-panel mode triggers loadComments twice (via
@@ -464,6 +476,138 @@ const createdBy = (
   }
 }
 
+const SEARCH_HIGHLIGHT = 'nc-comment-search'
+
+const SEARCH_HIGHLIGHT_ACTIVE = 'nc-comment-search-active'
+
+const SEARCH_LINE_BREAK_TAGS = new Set(['BR', 'P', 'DIV', 'LI', 'BLOCKQUOTE'])
+
+const hasHighlightApi = typeof CSS !== 'undefined' && 'highlights' in CSS
+
+// Ranges over the rendered text in document order (oldest first), so mentions match as shown.
+const searchMatches = shallowRef<Range[]>([])
+
+const activeMatchIndex = ref(-1)
+
+function clearSearchHighlights() {
+  if (!hasHighlightApi) return
+
+  CSS.highlights.delete(SEARCH_HIGHLIGHT)
+  CSS.highlights.delete(SEARCH_HIGHLIGHT_ACTIVE)
+}
+
+function paintActiveMatch() {
+  if (!hasHighlightApi) return
+
+  const range = searchMatches.value[activeMatchIndex.value]
+
+  if (!range) {
+    CSS.highlights.delete(SEARCH_HIGHLIGHT_ACTIVE)
+    return
+  }
+
+  const highlight = new Highlight(range)
+  highlight.priority = 1
+
+  CSS.highlights.set(SEARCH_HIGHLIGHT_ACTIVE, highlight)
+}
+
+function scrollToActiveMatch() {
+  searchMatches.value[activeMatchIndex.value]?.startContainer.parentElement?.scrollIntoView({
+    block: 'center',
+    behavior: 'smooth',
+  })
+}
+
+// `keepPosition`: re-collect after the list changed without jumping away from where the reader is.
+function collectSearchMatches(keepPosition = false) {
+  clearSearchHighlights()
+
+  const query = searchQuery.value.trim()
+
+  if (!query || !commentsWrapperEl.value) {
+    searchMatches.value = []
+    activeMatchIndex.value = -1
+    return
+  }
+
+  // Matched on the original text: lower-casing first can change its length ("İ" → 2 chars) and shift offsets.
+  const pattern = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'giu')
+
+  const ranges: Range[] = []
+
+  commentsWrapperEl.value.querySelectorAll('.nc-comment-author, .nc-comment-body').forEach((el) => {
+    // One string per comment, so a match can span bold, links and mentions (each its own text node).
+    // Line breaks and blocks add a "\n" that maps to no node; the query is one line, so no match crosses it.
+    const segments: { node: Text; start: number }[] = []
+
+    let text = ''
+
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT)
+
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        segments.push({ node: node as Text, start: text.length })
+        text += node.textContent ?? ''
+      } else if (SEARCH_LINE_BREAK_TAGS.has(node.nodeName) && text && !text.endsWith('\n')) {
+        text += '\n'
+      }
+    }
+
+    // Last segment starting at or before `offset`; `isEnd` places an end offset at the end of the previous node.
+    function locate(offset: number, isEnd: boolean) {
+      let found = segments[0]!
+
+      for (const segment of segments) {
+        if (isEnd ? segment.start < offset : segment.start <= offset) found = segment
+        else break
+      }
+
+      return { node: found.node, offset: offset - found.start }
+    }
+
+    for (const match of text.matchAll(pattern)) {
+      const start = locate(match.index, false)
+      const end = locate(match.index + match[0].length, true)
+
+      const range = new Range()
+      range.setStart(start.node, start.offset)
+      range.setEnd(end.node, end.offset)
+      ranges.push(range)
+    }
+  })
+
+  searchMatches.value = ranges
+
+  // Threads read bottom-up: a new search starts at the newest match.
+  activeMatchIndex.value =
+    keepPosition && activeMatchIndex.value >= 0 ? Math.min(activeMatchIndex.value, ranges.length - 1) : ranges.length - 1
+
+  if (hasHighlightApi && ranges.length) CSS.highlights.set(SEARCH_HIGHLIGHT, new Highlight(...ranges))
+
+  paintActiveMatch()
+
+  if (!keepPosition) scrollToActiveMatch()
+}
+
+/** -1 = older (up), 1 = newer (down); wraps around. */
+function moveActiveMatch(step: -1 | 1) {
+  const total = searchMatches.value.length
+  if (!total) return
+
+  activeMatchIndex.value = (activeMatchIndex.value + step + total) % total
+
+  $e('c:comment:search:navigate', { direction: step === -1 ? 'older' : 'newer' })
+
+  paintActiveMatch()
+  scrollToActiveMatch()
+}
+
+function closeSearch() {
+  searchQuery.value = ''
+  emits('update:showSearch', false)
+}
+
 function handleResetHoverEffect() {
   if (!hoveredCommentId.value) return
 
@@ -560,8 +704,43 @@ watch(
   },
 )
 
+watch(primaryKey, () => {
+  searchQuery.value = ''
+})
+
+watch(
+  () => props.showSearch,
+  (open) => {
+    if (!open) {
+      searchQuery.value = ''
+      return
+    }
+
+    nextTick(() => searchInputRef.value?.focus())
+  },
+)
+
+const debouncedCollectSearchMatches = useDebounceFn(() => collectSearchMatches(), 150)
+
+watch(searchQuery, () => debouncedCollectSearchMatches())
+
+// New, edited or re-filtered comments re-render the text the ranges point into.
+watch(
+  [visibleComments, parsedHtmlComments],
+  () => {
+    if (searchQuery.value.trim()) nextTick(() => collectSearchMatches(true))
+  },
+  { deep: true },
+)
+
 onBeforeUnmount(() => {
   resetTooltipInstances()
+
+  // Switching feeds unmounts the list; it comes back with search closed.
+  if (props.showSearch) emits('update:showSearch', false)
+
+  // The registry is global: an instance that never searched must not erase another's highlights.
+  if (searchMatches.value.length) clearSearchHighlights()
 })
 </script>
 
@@ -576,6 +755,59 @@ onBeforeUnmount(() => {
       <GeneralLoader size="xlarge" />
     </div>
     <div v-else class="flex flex-col h-full">
+      <div v-if="showSearch" class="flex-none px-3 pt-2 pb-1">
+        <a-input
+          ref="searchInputRef"
+          v-model:value="searchQuery"
+          allow-clear
+          :placeholder="$t('activity.searchComments')"
+          class="nc-comment-search-input !h-8 !rounded-lg !text-small"
+          data-testid="nc-comment-search-input"
+          @keydown.esc.stop="closeSearch"
+          @keydown.enter.exact.prevent="moveActiveMatch(-1)"
+          @keydown.shift.enter.exact.prevent="moveActiveMatch(1)"
+        >
+          <template #prefix>
+            <GeneralIcon icon="search" class="h-3.5 w-3.5 mr-1 text-nc-content-gray-muted" />
+          </template>
+          <template v-if="searchQuery.trim()" #suffix>
+            <div class="flex items-center gap-0.5">
+              <span
+                class="nc-comment-search-count text-captionSm text-nc-content-gray-muted tabular-nums px-1 whitespace-nowrap"
+                data-testid="nc-comment-search-count"
+              >
+                {{ searchMatches.length ? activeMatchIndex + 1 : 0 }}/{{ searchMatches.length }}
+              </span>
+              <NcButton
+                type="text"
+                size="xxsmall"
+                icon-only
+                :disabled="!searchMatches.length"
+                :aria-label="$t('labels.previous')"
+                data-testid="nc-comment-search-prev"
+                @click="moveActiveMatch(-1)"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncChevronUp" class="h-3.5 w-3.5" />
+                </template>
+              </NcButton>
+              <NcButton
+                type="text"
+                size="xxsmall"
+                icon-only
+                :disabled="!searchMatches.length"
+                :aria-label="$t('labels.next')"
+                data-testid="nc-comment-search-next"
+                @click="moveActiveMatch(1)"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncChevronDown" class="h-3.5 w-3.5" />
+                </template>
+              </NcButton>
+            </div>
+          </template>
+        </a-input>
+      </div>
       <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin">
         <div class="text-center text-3xl text-nc-content-gray-subtle opacity-40">
           <GeneralIcon icon="commentHere" />
@@ -651,7 +883,9 @@ onBeforeUnmount(() => {
                 />
                 <div class="flex h-[28px] items-center gap-3 w-[calc(100%_-_40px)]">
                   <NcDropdown placement="topLeft" :trigger="['hover']" class="flex-none max-w-[calc(100%_-_72px)]">
-                    <div class="truncate text-nc-content-gray font-medium !text-small !leading-[18px] overflow-hidden">
+                    <div
+                      class="nc-comment-author truncate text-nc-content-gray font-medium !text-small !leading-[18px] overflow-hidden"
+                    >
                       {{ createdBy(commentItem) }}
                     </div>
 
@@ -860,7 +1094,7 @@ onBeforeUnmount(() => {
                 <div
                   v-if="parsedHtmlComments[commentItem.id]"
                   v-dompurify-html="parsedHtmlComments[commentItem.id]"
-                  class="nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
+                  class="nc-comment-body nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
                   @click="handleDompurifyLinkClick"
                 ></div>
                 <SmartsheetExpandedFormCommentAttachments
@@ -984,6 +1218,18 @@ onBeforeUnmount(() => {
 </style>
 
 <style lang="scss">
+// Same fixed colours as the doc find bar (_doc-content.scss): theme tokens turn yellow orange in dark mode,
+// which made the active match indistinguishable. Higher `priority` (set in script) paints the active one on top.
+::highlight(nc-comment-search) {
+  background-color: rgba(255, 212, 0, 0.4);
+  color: inherit;
+}
+
+::highlight(nc-comment-search-active) {
+  background-color: rgba(255, 150, 0, 0.6);
+  color: inherit;
+}
+
 .nc-rich-link-tooltip-popup {
   @apply text-xs bg-nc-content-gray text-nc-content-inverted-primary px-2 py-1 rounded-lg;
 }

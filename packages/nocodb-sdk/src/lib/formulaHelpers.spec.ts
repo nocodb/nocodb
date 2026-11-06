@@ -599,7 +599,7 @@ describe('substituteColumnAliasWithIdInFormula', () => {
         'IF({N} = 1, "a", "b")',
         columns
       )
-    ).toBe('IF(({{id1}} == 1), "a", "b")');
+    ).toBe('IF({{id1}} == 1, "a", "b")');
   });
 
   it('resolves a title before the column_name of a renamed field', async () => {
@@ -639,8 +639,6 @@ describe('substituteColumnAliasWithIdInFormula', () => {
         'IF(AND({N} >= 1, {N} <= 2, {N} != 3), "a=b", "")',
         columns
       )
-    ).toBe(
-      'IF(AND(({{id1}} >= 1), ({{id1}} <= 2), ({{id1}} != 3)), "a=b", "")'
-    );
+    ).toBe('IF(AND({{id1}} >= 1, {{id1}} <= 2, {{id1}} != 3), "a=b", "")');
   });
 });

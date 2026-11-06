@@ -1,4 +1,13 @@
-import { ColumnHelper, RelationTypes, UITypes, handleTZ, isLinksOrLTAR, parseProp, renderValue } from 'nocodb-sdk'
+import {
+  ColumnHelper,
+  RelationTypes,
+  UITypes,
+  getRollupFormulaTextColumn,
+  handleTZ,
+  isLinksOrLTAR,
+  parseProp,
+  renderValue,
+} from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 
 /**
@@ -148,7 +157,8 @@ export const valueToCopy = (
   // clean anchor under text/html. `textToCopy` for non-enriched cells stays the raw parsed value, so
   // `json`/`dbCellValueArr` (used by fill-drag + internal paste) are unaffected.
   if (option?.enrichClipboard) {
-    const formatted = formatFormulaUrlForClipboard(columnObj, textToCopy, { isPg })
+    // a text rollup formula renders its links as a Formula cell does
+    const formatted = formatFormulaUrlForClipboard(getRollupFormulaTextColumn(columnObj) ?? columnObj, textToCopy, { isPg })
     if (formatted) {
       result.textToCopy = formatted.plain
       if (option.includeHtml !== false && formatted.html) {

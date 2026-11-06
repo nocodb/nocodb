@@ -9,6 +9,7 @@ import type {
 import { ButtonColumn, Hook, Model, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { tableForBroadcast } from '~/helpers/publicViewSecrets';
 import Noco from '~/Noco';
 
 /**
@@ -115,7 +116,11 @@ export class HookDeleteButtonRefDependencyHandler implements MetaEventHandler {
         event: EventType.META_EVENT,
         payload: {
           action: 'column_update',
-          payload: { table: model, column, skipDataReload: true },
+          payload: {
+            table: tableForBroadcast(model),
+            column,
+            skipDataReload: true,
+          },
         },
       } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
     }

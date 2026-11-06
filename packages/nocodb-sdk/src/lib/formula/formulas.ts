@@ -29,6 +29,69 @@ const customValidationArray: FormulaMetaCustomValidation = (
   }
 };
 
+// WORKDAY / WORKDAY_DIFF: positions (0-based) of the date and numeric args;
+// the optional last arg is the comma-separated holidays text
+const workdayArgsValidation =
+  (dateArgs: number[], numericArg?: number): FormulaMetaCustomValidation =>
+  (argTypes: FormulaDataTypes[], parsedTree: CallExpressionNode) => {
+    const calleeName = parsedTree.callee?.name?.toUpperCase();
+    const mismatch = (position: number, type: string) => {
+      throw new FormulaError(
+        FormulaErrorType.TYPE_MISMATCH,
+        { key: 'msg.formula.typeIsExpected', type, calleeName, position },
+        `${calleeName} requires a ${type} at position ${position}`
+      );
+    };
+    const isLooseType = (type: FormulaDataTypes) =>
+      type === FormulaDataTypes.NULL || type === FormulaDataTypes.UNKNOWN;
+
+    const holidaysArg = numericArg === undefined ? 2 : numericArg + 1;
+    parsedTree.arguments.forEach((arg: any, i: number) => {
+      const type = argTypes[i];
+      if (dateArgs.includes(i)) {
+        if (arg.type === JSEPNode.LITERAL) {
+          if (!validateDateWithUnknownFormat(arg.value))
+            mismatch(i + 1, 'date');
+        } else if (
+          type !== FormulaDataTypes.DATE &&
+          type !== FormulaDataTypes.STRING &&
+          !isLooseType(type)
+        ) {
+          mismatch(i + 1, 'date');
+        }
+      } else if (i === numericArg) {
+        if (arg.type === JSEPNode.LITERAL) {
+          if (typeof arg.value !== 'number') mismatch(i + 1, 'numeric');
+        } else if (
+          type !== FormulaDataTypes.NUMERIC &&
+          type !== FormulaDataTypes.STRING &&
+          !isLooseType(type)
+        ) {
+          mismatch(i + 1, 'numeric');
+        }
+      } else if (i === holidaysArg) {
+        if (arg.type === JSEPNode.LITERAL) {
+          if (typeof arg.value !== 'string') mismatch(i + 1, 'text');
+        } else if (type === FormulaDataTypes.DATE) {
+          // only a bare YYYY-MM-DD is parsed, so accept just a Date field or a
+          // Date lookup: a formula (e.g. DATEADD), directly or behind a lookup,
+          // inherits the Date reference but renders a timestamp on PG
+          const ref = arg.referencedColumn;
+          const isDateFieldOrLookup =
+            arg.type === JSEPNode.IDENTIFIER &&
+            ref?.uidt === UITypes.Date &&
+            (ref.id === arg.name ||
+              (ref.intermediaryUidt === UITypes.Lookup &&
+                ref.intermediaryId === arg.name &&
+                ref.directLookup));
+          if (!isDateFieldOrLookup) mismatch(i + 1, 'text or Date field');
+        } else if (type !== FormulaDataTypes.STRING && !isLooseType(type)) {
+          mismatch(i + 1, 'text');
+        }
+      }
+    });
+  };
+
 export const formulas: Record<string, FormulaMeta> = {
   AVG: {
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#avg`,
@@ -61,6 +124,23 @@ export const formulas: Record<string, FormulaMeta> = {
       'ADD(5, 5) => 10',
       'ADD({column1}, {column2})',
       'ADD({column1}, {column2}, {column3})',
+    ],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+  SUM: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#sum`,
+    validation: {
+      args: {
+        min: 1,
+        type: FormulaDataTypes.NUMERIC,
+      },
+    },
+    description: 'Sum of input parameters, or of all values in a list',
+    syntax: 'SUM(value1, [value2, ...])',
+    examples: [
+      'SUM(5, 5) => 10',
+      'SUM({column1}, {column2})',
+      '{Tasks}.{Hours}.SUM()',
     ],
     returnType: FormulaDataTypes.NUMERIC,
   },
@@ -297,6 +377,44 @@ export const formulas: Record<string, FormulaMeta> = {
       'DATEDIFF({column1}, {column2}, "m")',
       'DATEDIFF({column1}, {column2}, "days")',
       'DATEDIFF({column1}, {column2}, "d")',
+    ],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+  WORKDAY: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#workday`,
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+      },
+      custom: workdayArgsValidation([0], 1),
+    },
+    description:
+      'Returns the date that is the given number of working days (Monday to Friday) after the start date, skipping the optional comma-separated list of ISO holiday dates. A negative count goes backwards; 0 returns the start date.',
+    syntax: 'WORKDAY(startDate, numDays, ["holidays"])',
+    examples: [
+      'WORKDAY("2026-12-18", 10) => 2027-01-01',
+      'WORKDAY("2026-12-18", 10, "2026-12-25, 2027-01-01") => 2027-01-05',
+      'WORKDAY({Received}, {Processing Days}, {Holidays})',
+    ],
+    returnType: FormulaDataTypes.DATE,
+  },
+  WORKDAY_DIFF: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#workday_diff`,
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+      },
+      custom: workdayArgsValidation([0, 1]),
+    },
+    description:
+      'Counts the working days (Monday to Friday) between two dates, including both ends, minus the optional comma-separated list of ISO holiday dates. Negative when the end date is before the start date.',
+    syntax: 'WORKDAY_DIFF(startDate, endDate, ["holidays"])',
+    examples: [
+      'WORKDAY_DIFF("2026-12-18", "2027-01-05") => 13',
+      'WORKDAY_DIFF("2026-12-18", "2027-01-05", "2026-12-25, 2027-01-01") => 11',
+      'WORKDAY_DIFF({Received}, {Completed On}, {Holidays})',
     ],
     returnType: FormulaDataTypes.NUMERIC,
   },

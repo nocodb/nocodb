@@ -664,6 +664,36 @@ export const localFileExists = (path: string) => {
     .catch(() => false);
 };
 
+/**
+ * res.sendFile / res.download without a callback hand errors to next(), which
+ * renders a 500; a Range request on an empty file is one such error.
+ */
+export async function sendLocalFile(
+  res: Response,
+  filePath: string,
+  opts: { download?: boolean; filename?: string } = {},
+): Promise<void> {
+  const size = await fs.promises
+    .stat(filePath)
+    .then((s) => s.size)
+    .catch(() => null);
+  if (size === null) {
+    res.status(404).send('File not found');
+    return;
+  }
+  // No byte range of an empty file is satisfiable; serve it whole.
+  const options = { acceptRanges: size > 0 };
+  const done = (err?: Error & { status?: number }) => {
+    if (!err || res.headersSent) return;
+    res.status(err.status >= 400 && err.status < 500 ? err.status : 404).end();
+  };
+  if (opts.download) {
+    res.download(filePath, opts.filename, options, done);
+  } else {
+    res.sendFile(filePath, options, done);
+  }
+}
+
 export const ATTACHMENT_ROOTS = [
   'thumbnails',
   PublicAttachmentScope.WORKSPACEPICS,
@@ -841,11 +871,9 @@ export async function serveStoredAttachment(
     res.setHeader('Cache-Control', opts.cacheControl);
     res.setHeader('X-Content-Type-Options', 'nosniff');
 
-    if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
-      res.sendFile(file.path);
-    } else {
-      res.download(file.path);
-    }
+    await sendLocalFile(res, file.path, {
+      download: !isPreviewAllowed({ mimetype: file.type, path: file.path }),
+    });
   } catch {
     res.status(404).send('Not found');
   }

@@ -117,6 +117,12 @@ const maskedPasswordHelp = computed(() => {
   return maskedPassword.value ? 'Re-enter your password to test or update connection' : undefined
 })
 
+const maskedToken = ref<boolean>(false)
+
+const maskedTokenHelp = computed(() => {
+  return maskedToken.value ? 'Re-enter your token to test or update connection' : undefined
+})
+
 const isDisabledSubmitBtn = computed(() => {
   if (isEditMode.value) {
     return !testSuccess.value && !isEnabledSaveChangesBtn.value
@@ -586,6 +592,14 @@ const onFocusPassword = () => {
   }
 }
 
+const onFocusToken = () => {
+  if (maskedToken.value) {
+    const connection = formState.value.dataSource.connection as DatabricksConnection
+    connection.token = ''
+    maskedToken.value = false
+  }
+}
+
 // reset test status on config change
 watch(
   formState,
@@ -611,7 +625,7 @@ onMounted(async () => {
   } else {
     if (!activeIntegration.value) return
 
-    const definedParameters = ['host', 'port', 'user', 'password', 'database', 'ssl']
+    const definedParameters = ['host', 'port', 'user', 'password', 'token', 'database', 'ssl']
 
     const tempParameters = Object.entries(activeIntegration.value.config.connection)
       .filter(([key]) => !definedParameters.includes(key))
@@ -635,6 +649,13 @@ onMounted(async () => {
     if (formState.value.dataSource?.connection?.password === null) {
       maskedPassword.value = true
       formState.value.dataSource.connection.password = '*'.repeat(8)
+    }
+
+    // The server masks the token as null; the placeholder is restored on save.
+    const databricksConnection = formState.value.dataSource?.connection as DatabricksConnection | undefined
+    if (databricksConnection?.token === null) {
+      maskedToken.value = true
+      databricksConnection.token = '*'.repeat(8)
     }
 
     activeIntegrationformState.value = JSON.parse(JSON.stringify(formState.value))
@@ -697,7 +718,7 @@ watch(
             class="nc-extdb-btn-test-connection"
             :class="{ 'pointer-events-none': testSuccess }"
             :loading="testingConnection"
-            :disabled="isLoading || maskedPassword"
+            :disabled="isLoading || maskedPassword || maskedToken"
             icon-position="right"
             @click="testConnection()"
           >
@@ -920,9 +941,13 @@ watch(
                     <a-row :gutter="24">
                       <a-col :span="12">
                         <a-form-item :label="$t('labels.token')" v-bind="validateInfos['dataSource.connection.token']">
+                          <template #help>
+                            <div class="text-xs text-warning mt-1">{{ maskedTokenHelp }}</div>
+                          </template>
                           <a-input
                             v-model:value="(formState.dataSource.connection as DatabricksConnection).token"
                             class="nc-extdb-host-token"
+                            @focus="onFocusToken"
                           />
                         </a-form-item>
                       </a-col>

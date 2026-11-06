@@ -10,7 +10,12 @@ import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
 import { RedisVersionTracker } from '~/utils/RedisVersionTracker';
 import { LRUMap } from '~/utils/LRUMap';
+import {
+  flushConnectionDestroys,
+  scheduleConnectionDestroy,
+} from '~/utils/common/connectionDestroyer';
 import { applyDbSsrfProtection } from '~/helpers/dbSsrfLookup';
+import { applyMysqlConnectionDefaults } from '~/helpers/mysqlConnectionDefaults';
 import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 
 const CONNECTION_CACHE_MAX_SIZE = +(
@@ -26,16 +31,10 @@ export default class NcConnectionMgrv2 {
     'SOURCE_CONN_VER',
   );
 
+  // A dropped handle may still serve an in-flight request: destroy it later.
   protected static connectionRefs = new LRUMap<XKnex>(
     CONNECTION_CACHE_MAX_SIZE,
-    (conn) => {
-      return conn.destroy().catch((e) => {
-        NcConnectionMgrv2.logger.error({
-          error: e,
-          details: 'Error destroying evicted connection',
-        });
-      });
-    },
+    (conn) => scheduleConnectionDestroy(conn),
   );
 
   /**
@@ -49,6 +48,7 @@ export default class NcConnectionMgrv2 {
 
   public static async destroyAll() {
     await this.connectionRefs.asyncClear();
+    await flushConnectionDestroys();
   }
 
   public static async deleteAwait(source: SourceIdentity) {
@@ -184,6 +184,7 @@ export default class NcConnectionMgrv2 {
       knexConfig,
       isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
     );
+    applyMysqlConnectionDefaults(knexConfig);
 
     const knex = XKnex(knexConfig);
 

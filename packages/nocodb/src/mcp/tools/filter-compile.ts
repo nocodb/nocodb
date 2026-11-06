@@ -162,7 +162,7 @@ export interface FilterColumn {
   uidt?: string;
   /** Set on a computed field whose definition is broken. */
   error?: string | null;
-  /** A rollup's resolved date type (min/max over a Date field). */
+  /** A rollup's result type (`getRollupResultUidt`). */
   result_uidt?: string | null;
 }
 

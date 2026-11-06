@@ -1477,8 +1477,6 @@ export class MysqlUi implements SqlUi {
 
   static getUnsupportedFnList() {
     return [
-      'COUNTA',
-      'COUNT',
       'DATESTR',
       'ARRAYSORT',
       'ARRAYUNIQUE',

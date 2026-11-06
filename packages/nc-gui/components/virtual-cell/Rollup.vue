@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import {
+  FormulaDataTypes,
+  NC_ERROR_SENTINEL,
   UITypes,
   getEffectiveDisplayColumn,
   getRenderAsTextFunForUiType,
   getRollupColumnMeta,
+  getRollupFormulaDisplayColumn,
+  getRollupFormulaDisplayValue,
+  getRollupFormulaTextColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
+  isFormulaNonFiniteValue,
+  isRollupFormula,
 } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
 
@@ -64,12 +71,17 @@ watch(
 const colOptions = computed(() => column.value?.colOptions)
 
 const childColumn = computed(() => {
-  if (!column.value || !isRollup(column.value)) return ''
+  if (!column.value || !isRollupColOptions(column.value.uidt, column.value.colOptions)) return ''
+
+  const rollupOptions = column.value.colOptions
+
+  const targetCol = relatedTableMeta.value?.columns?.find((c: ColumnType) => c.id === rollupOptions?.fk_rollup_column_id)
+
+  // a formula rollup renders as its result type
+  if (isRollupFormula(rollupOptions)) return getRollupFormulaDisplayColumn(column.value, targetCol)
 
   // Partial/missing related meta (no access to the related base) — derive the type from the rollup
-  const col =
-    relatedTableMeta.value?.columns?.find((c: ColumnType) => c.id === (colOptions.value as RollupType).fk_rollup_column_id) ??
-    (relatedMetaResolved.value ? getFallbackRollupColumn(column.value) : undefined)
+  const col = targetCol ?? (relatedMetaResolved.value ? getFallbackRollupColumn(column.value) : undefined)
 
   if (!col) return ''
 
@@ -101,6 +113,33 @@ const renderAsTextFun = computed(() => {
   return getRenderAsTextFunForUiType(childColumn.value?.uidt || UITypes.SingleLineText)
 })
 
+// pg IEEE value of a numeric formula rollup, shown as the Formula cell shows it
+const isNonFiniteResult = computed(() => {
+  const options = column.value?.colOptions
+  return (
+    !!column.value &&
+    isRollupColOptions(column.value.uidt, options) &&
+    isRollupFormula(options) &&
+    options.parsed_tree?.dataType === FormulaDataTypes.NUMERIC &&
+    isFormulaNonFiniteValue(value?.value)
+  )
+})
+
+// a text formula result renders as a text Formula cell (links, pg timestamps)
+const formulaTextColumn = computed(() => (column.value ? getRollupFormulaTextColumn(column.value) : undefined))
+
+provide(
+  ColumnInj,
+  computed(() => formulaTextColumn.value ?? column.value),
+)
+
+const displayValue = computed(() => {
+  const options = column.value?.colOptions
+  return column.value && childColumn.value && isRollupColOptions(column.value.uidt, options) && isRollupFormula(options)
+    ? getRollupFormulaDisplayValue(value?.value, childColumn.value)
+    : value?.value
+})
+
 const isIntegerResult = computed(() => {
   const fn = (colOptions.value as RollupType)?.rollup_function ?? ''
 
@@ -112,21 +151,25 @@ const isIntegerResult = computed(() => {
 </script>
 
 <template>
-  <div v-if="column && column.colOptions && column.colOptions.error" class="nc-cell-field">
-    <NcTooltip placement="bottom" class="text-nc-content-orange-dark">
+  <div v-if="column?.colOptions?.error || value === NC_ERROR_SENTINEL" class="nc-cell-field">
+    <NcTooltip placement="bottom" class="text-nc-content-orange-dark" :disabled="!column?.colOptions?.error">
       <template #title>
-        <span class="font-bold">{{ column.colOptions.error }}</span>
+        <span class="font-bold">{{ column?.colOptions?.error }}</span>
       </template>
       <span>{{ $t('labels.errorShort') }}</span>
     </NcTooltip>
   </div>
+  <div v-else-if="isNonFiniteResult" class="nc-cell-field">
+    <span class="nc-formula-non-finite text-nc-content-orange-dark">{{ value }}</span>
+  </div>
+  <VirtualCellFormula v-else-if="formulaTextColumn" />
   <div v-else @dblclick="activateShowEditNonEditableFieldWarning">
     <CellInteger
       v-if="isIntegerResult && renderAsTextFun.includes((colOptions as RollupType).rollup_function!)"
       :model-value="value"
     />
     <CellDecimal v-else-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
-    <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
+    <LazySmartsheetCell v-else :model-value="displayValue" :column="childColumn" :edit-enabled="false" :read-only="true" />
     <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
       {{ $t('msg.info.computedFieldEditWarning') }}
     </div>

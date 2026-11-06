@@ -90,6 +90,84 @@ export function ncLikePatternForRef(knex: CustomKnex, ref: Knex.Raw): Knex.Raw {
 }
 
 /**
+ * The literal search term of a like/nlike value: one outer `%…%` pair is the
+ * documented contains syntax (`(Name,like,%john%)`); any other `%` or `_` is
+ * part of the term.
+ */
+export function ncLikeTerm(val: unknown): string {
+  const term = `${val ?? ''}`;
+  return term.length >= 2 && term.startsWith('%') && term.endsWith('%')
+    ? term.slice(1, -1)
+    : term;
+}
+
+// knex stubs in unit tests lack CustomKnex's clientType()
+function ncLikeClient(knex: CustomKnex): string | undefined {
+  return typeof knex.clientType === 'function'
+    ? knex.clientType()
+    : (knex as any)?.client?.config?.client;
+}
+
+// MySQL: `\` in a bound value or ESCAPE literal reads differently under
+// NO_BACKSLASH_ESCAPES, so it escapes with `!` instead.
+function ncLikeEscapeChar(knex: CustomKnex): '\\' | '!' {
+  return ['mysql', 'mysql2', 'vitess'].includes(ncLikeClient(knex))
+    ? '!'
+    : '\\';
+}
+
+/** ncLikeTerm with `%`, `_` and the escape char (and `[` on MSSQL) escaped. */
+export function ncLikeEscapeValue(knex: CustomKnex, val: unknown): string {
+  const esc = ncLikeEscapeChar(knex);
+  const special =
+    esc === '!'
+      ? /[!%_]/g
+      : ncLikeClient(knex) === 'mssql'
+      ? /[\\%_[]/g
+      : /[\\%_]/g;
+  return ncLikeTerm(val).replace(special, `${esc}$&`);
+}
+
+const likeEscapedOperands = new WeakSet<object>();
+
+/**
+ * Bound, LIKE-escaped term for a computed-column (Formula/Rollup) filter;
+ * ncIsLikeEscapedOperand tells it apart from a column reference.
+ */
+export function ncLikeEscapedOperand(knex: CustomKnex, val: unknown): Knex.Raw {
+  const operand = knex.raw('?', [ncLikeEscapeValue(knex, val)]);
+  likeEscapedOperands.add(operand);
+  return operand;
+}
+
+export function ncIsLikeEscapedOperand(val: unknown): boolean {
+  return !!val && typeof val === 'object' && likeEscapedOperands.has(val);
+}
+
+export function isLikeFilterOnString(filter: Filter): boolean {
+  return (
+    ['like', 'nlike'].includes(filter.comparison_op) &&
+    typeof filter.value === 'string'
+  );
+}
+
+/** `%term%` pattern for a literal like/nlike value; pair with ncLikeEscapeClause. */
+export function ncLikeContainsPattern(knex: CustomKnex, val: unknown): string {
+  return `%${ncLikeEscapeValue(knex, val)}%`;
+}
+
+/**
+ * ESCAPE clause to append after a LIKE pattern. pg and Databricks already
+ * default to `\`; SQLite, MSSQL and Oracle have no default; MySQL uses `!`.
+ */
+export function ncLikeEscapeClause(knex: CustomKnex): string {
+  if (ncLikeEscapeChar(knex) === '!') return " ESCAPE '!'";
+  return ['sqlite3', 'mssql', 'oracledb'].includes(ncLikeClient(knex))
+    ? " ESCAPE '\\'"
+    : '';
+}
+
+/**
  * Lookup / LTAR only: ops that must become `NOT EXISTS (positive op)` instead
  * of `EXISTS (negative op)` — otherwise a row linked to both a valued and an
  * unvalued record matches the op and its opposite, and a row with no links

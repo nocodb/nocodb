@@ -1,6 +1,7 @@
 import {
   FormulaDataTypes,
   getLegacyDateRollupAggregation,
+  getRollupResultUidt,
   NumericalAggregations,
   UITypes,
   validateAggregationColType,
@@ -113,15 +114,36 @@ async function resolveAggregationParams({
    * These column types require special handling because they are virtual columns and do not have a direct column name.
    * We generate the select query for these columns and use the generated query.
    * */
-  let column_name_query = (
-    await getColumnNameQuery({
-      baseModelSqlv2,
-      column,
-      context,
-    })
-  ).builder;
+  const columnNameQuery = await getColumnNameQuery({
+    baseModelSqlv2,
+    column,
+    context,
+  });
+  // a rollup that reads as the error sentinel has nothing to aggregate, as
+  // with a stored error above
+  if (columnNameQuery.isError) {
+    return;
+  }
+  let column_name_query = columnNameQuery.builder;
+
+  // a rollup is a subquery; handlers that bind it bare (`MIN(??)`, `?? = 1`)
+  // need it parenthesised
+  if (column.uidt === UITypes.Rollup && typeof column_name_query !== 'string') {
+    column_name_query = baseModelSqlv2.dbDriver.raw('(??)', [
+      column_name_query,
+    ]);
+  }
 
   const parsedFormulaType = column.colOptions?.parsed_tree?.dataType;
+
+  // a text-result rollup counts '' as empty, as a string formula does: the
+  // handlers treat a Rollup as NULL-only, and mssql/oracle still materialise it
+  if (getRollupResultUidt(column) === UITypes.SingleLineText) {
+    column = setModelContext(
+      new Column({ ...column, uidt: UITypes.Formula }),
+      context,
+    );
+  }
 
   // A pg numeric formula resolves to the IEEE value the cell shows, and a
   // single NaN would take SUM/AVG/MAX for the whole column with it. Drop the

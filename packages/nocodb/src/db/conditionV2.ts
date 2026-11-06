@@ -1,6 +1,8 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import {
   FormulaDataTypes,
   getEquivalentUIType,
+  getRollupResultUidt,
   isNumericCol,
   isVirtualCol,
   UITypes,
@@ -25,13 +27,22 @@ import {
   isLinkedRecordColumn,
   resolveLinkedRecordDynamicFilter,
 } from '~/db/linkedRecordDynamicFilter';
-import Filter, { FILTER_STORED_BASE } from '~/models/Filter';
+import Filter, {
+  FILTER_ENFORCED,
+  FILTER_STORED_BASE,
+  markEnforcedFilters,
+} from '~/models/Filter';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 import { compilesStoredConditionWithEmails } from '~/helpers/accessSource';
+import { readsHiddenTable } from '~/helpers/tableHelpers';
+import { allowsCaseInsensitiveFilters } from '~/helpers/caseInsensitiveFilterScope';
 import {
   ncIsKnexRawOrRef,
+  ncIsLikeEscapedOperand,
+  ncLikeContainsPattern,
+  ncLikeEscapeClause,
   ncLikePatternForRef,
   ncSplitFilterValue,
 } from '~/db/field-handler/utils/handlerUtils';
@@ -132,21 +143,27 @@ function oracleNarrowFormulaClobForCompare(
 // `val.startsWith` and threw a 500). The expression is parenthesised because a
 // Rollup's is a bare subquery builder that `??` splices in unwrapped, producing
 // invalid SQL.
+//
+// Only a static operand escaped by the Formula/Rollup handler gets an ESCAPE
+// clause; a column reference (same- or cross-table) is matched as stored.
 function computedLikeClause(
   knex: any,
   expr: any,
   operand: Knex.Raw,
-  negate = false,
+  { negate = false } = {},
 ): Knex.Raw {
   const pattern = ncLikePatternForRef(knex, operand);
   const not = negate ? 'not ' : '';
+  const escape = ncIsLikeEscapedOperand(operand)
+    ? ncLikeEscapeClause(knex)
+    : '';
   if (knex.clientType() === 'pg') {
     return knex.raw(`(?)::text ${not}ilike ?`, [expr, pattern]);
   }
   if (knex.clientType() === 'oracledb') {
-    return knex.raw(`UPPER((?)) ${not}like UPPER(?)`, [expr, pattern]);
+    return knex.raw(`UPPER((?)) ${not}like UPPER(?)${escape}`, [expr, pattern]);
   }
-  return knex.raw(`(?) ${not}like ?`, [expr, pattern]);
+  return knex.raw(`(?) ${not}like ?${escape}`, [expr, pattern]);
 }
 
 function getLogicalOpMethod(filter: Filter) {
@@ -182,6 +199,31 @@ function extractArray(val: unknown): [Knex.Value, Knex.Value] {
   const arr = Array.isArray(val) ? val : `${val ?? ''}`.split(',');
   return [arr[0], arr[1]];
 }
+
+// Ops a blank value satisfies.
+const BLANK_MATCHING_OPS = new Set<string>([
+  'blank',
+  'null',
+  'empty',
+  'notchecked',
+  'neq',
+  'not',
+  'nlike',
+  'nallof',
+  'nanyof',
+  'isnot',
+  'nbtw',
+]);
+
+// Text types an app action's caller-supplied eq/neq may compare ignoring case.
+const CASE_INSENSITIVE_UIDTS = new Set<UITypes>([
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
+  UITypes.SingleSelect,
+]);
 
 const parseConditionV2 = async (
   baseModelSqlv2: IBaseModelSqlV2,
@@ -263,6 +305,7 @@ const parseConditionV2 = async (
     }
 
     const children = await filter.getChildren();
+    if (filter[FILTER_ENFORCED]) markEnforcedFilters(children);
 
     const qbs = await Promise.all(
       (children || []).map((child) =>
@@ -270,7 +313,7 @@ const parseConditionV2 = async (
           baseModelSqlv2,
           child,
           aliasCount,
-          undefined,
+          alias,
           undefined,
           throwErrorIfInvalid,
         ),
@@ -381,6 +424,16 @@ const parseConditionV2 = async (
       return { clause: () => {}, rootApply: () => {} };
     }
 
+    // A field that reads a table hidden from the requester compares as blank,
+    // except in conditions the server enforces (RLS policy, link condition).
+    if (!filter[FILTER_ENFORCED] && (await readsHiddenTable(context, column))) {
+      const matches = BLANK_MATCHING_OPS.has(filter.comparison_op);
+      return {
+        clause: (qb) => qb.whereRaw(matches ? '1 = 1' : '1 = 0'),
+        rootApply: () => {},
+      };
+    }
+
     // Handle dynamic filters (field-to-field comparison):
     // resolve fk_value_col_id to a knex.ref() so the normal conditionV2
     // comparison logic compares column-to-column instead of column-to-literal.
@@ -402,6 +455,41 @@ const parseConditionV2 = async (
       if (typeof resolved === 'object') {
         return resolved;
       }
+    }
+
+    if (
+      filter.case_insensitive === true &&
+      allowsCaseInsensitiveFilters() &&
+      !customWhereClause &&
+      !filter.fk_value_col_id &&
+      CASE_INSENSITIVE_UIDTS.has(column.uidt) &&
+      (filter.comparison_op === 'eq' || filter.comparison_op === 'neq') &&
+      typeof filter.value === 'string' &&
+      filter.value.trim() !== '' &&
+      ['pg', 'mysql', 'mysql2', 'sqlite3'].includes(knex.clientType())
+    ) {
+      const field = alias
+        ? `${alias}.${column.column_name}`
+        : column.column_name;
+      // `::text` lets a native pg enum (SingleSelect) take LOWER.
+      const lowered =
+        knex.clientType() === 'pg' ? 'LOWER(??::text)' : 'LOWER(??)';
+      const value = filter.value;
+      const isEq = filter.comparison_op === 'eq';
+      return {
+        rootApply: undefined,
+        clause: (qb: Knex.QueryBuilder) => {
+          qb.where((nestedQb) => {
+            if (isEq) {
+              nestedQb.whereRaw(`${lowered} = LOWER(?)`, [field, value]);
+            } else {
+              nestedQb
+                .whereRaw(`${lowered} <> LOWER(?)`, [field, value])
+                .orWhereNull(field);
+            }
+          });
+        },
+      };
     }
 
     if (
@@ -474,11 +562,16 @@ const parseConditionV2 = async (
       );
     }
 
-    // a rollup returning a date (min/max over a date field) compares as one
+    // a rollup returning a date compares as one
     if (column.uidt === UITypes.Rollup && customWhereClause) {
-      const rollupResultUidt = (await column.getColOptions<RollupColumn>())
-        ?.result_uidt;
-      if (rollupResultUidt) {
+      const rollupResultUidt = getRollupResultUidt({
+        uidt: column.uidt,
+        colOptions: await column.getColOptions<RollupColumn>(),
+      });
+      if (
+        rollupResultUidt === UITypes.Date ||
+        rollupResultUidt === UITypes.DateTime
+      ) {
         return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
           filter,
           setModelContext(
@@ -531,6 +624,14 @@ const parseConditionV2 = async (
       // get column name for CreateTime, LastModifiedTime
       column.column_name = await getColumnName(context, column);
 
+      // compares case-sensitively on MySQL, as a string formula does
+      const isTextRollup =
+        column.uidt === UITypes.Rollup &&
+        getRollupResultUidt({
+          uidt: column.uidt,
+          colOptions: await column.getColOptions<RollupColumn>(),
+        }) === UITypes.SingleLineText;
+
       return {
         rootApply: undefined,
         clause: (qb: Knex.QueryBuilder) => {
@@ -570,7 +671,10 @@ const parseConditionV2 = async (
                 knex.clientType() === 'mysql2' ||
                 knex.clientType() === 'mysql'
               ) {
-                if ([UITypes.Rollup, UITypes.Links].includes(column.uidt)) {
+                if (
+                  [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
+                  !isTextRollup
+                ) {
                   qb = qb.where(field, val);
                 } else {
                   // mysql is case-insensitive for strings, turn to case-sensitive
@@ -593,7 +697,10 @@ const parseConditionV2 = async (
               // Currency / Duration / Year / Time route to FieldHandler —
               // only Rollup-CWC / Links-CWC reach here.
               if (knex.clientType() === 'mysql2') {
-                if ([UITypes.Rollup, UITypes.Links].includes(column.uidt)) {
+                if (
+                  [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
+                  !isTextRollup
+                ) {
                   qb = qb.where((nestedQb) => {
                     nestedQb.whereNot(field, val);
                     if (column.uidt !== UITypes.Links)
@@ -649,18 +756,16 @@ const parseConditionV2 = async (
                 qb.where(field, '');
                 qb.orWhereNotNull(field);
               } else {
-                val =
-                  (val + '').startsWith('%') || (val + '').endsWith('%')
-                    ? val
-                    : `%${val}%`;
+                val = ncLikeContainsPattern(knex, val);
+                const escape = ncLikeEscapeClause(knex);
                 if (knex.clientType() === 'pg') {
                   qb = qb.where(knex.raw('??::text ilike ?', [field, val]));
                 } else if (knex.clientType() === 'oracledb') {
                   qb = qb.where(
-                    knex.raw('UPPER(??) like UPPER(?)', [field, val]),
+                    knex.raw(`UPPER(??) like UPPER(?)${escape}`, [field, val]),
                   );
                 } else {
-                  qb = qb.where(field, 'like', val);
+                  qb = qb.where(knex.raw(`?? like ?${escape}`, [field, val]));
                 }
               }
               break;
@@ -671,7 +776,9 @@ const parseConditionV2 = async (
                 // Computed column — mirror of `like` above.
                 qb.where((nestedQb) => {
                   nestedQb.where(
-                    computedLikeClause(knex, val, filter.value as any, true),
+                    computedLikeClause(knex, val, filter.value as any, {
+                      negate: true,
+                    }),
                   );
                   // a non-matching filter should still surface empty/null
                   // expressions; both terms cast so a numeric Rollup doesn't
@@ -709,10 +816,8 @@ const parseConditionV2 = async (
                 qb.whereNot(field, '');
                 qb.orWhereNull(field);
               } else {
-                val =
-                  (val + '').startsWith('%') || (val + '').endsWith('%')
-                    ? val
-                    : `%${val}%`;
+                val = ncLikeContainsPattern(knex, val);
+                const escape = ncLikeEscapeClause(knex);
                 qb.where((nestedQb) => {
                   if (knex.clientType() === 'pg') {
                     nestedQb.where(
@@ -721,10 +826,15 @@ const parseConditionV2 = async (
                   } else if (knex.clientType() === 'oracledb') {
                     // Case-insensitive to match pg/MySQL — see `like` above.
                     nestedQb.whereNot(
-                      knex.raw('UPPER(??) like UPPER(?)', [field, val]),
+                      knex.raw(`UPPER(??) like UPPER(?)${escape}`, [
+                        field,
+                        val,
+                      ]),
                     );
                   } else {
-                    nestedQb.whereNot(field, 'like', val);
+                    nestedQb.whereNot(
+                      knex.raw(`?? like ?${escape}`, [field, val]),
+                    );
                   }
                   if (val !== '%%') {
                     // if value is not empty, empty or null should be included
@@ -1233,6 +1343,37 @@ async function resolveCrossTableDynamicFilter(
       compResult.rootApply?.(qb);
     },
   };
+}
+
+// Tables whose RLS is being compiled up the current async chain. Scoped to the
+// chain, not the request, so sibling compiles of the same table never collide.
+const rlsCompileScope = new AsyncLocalStorage<ReadonlySet<string>>();
+
+// Restrict a related-table read to the rows its RLS lets the requester see.
+// A policy that reaches back into a table already being compiled (a Rollup
+// over a self-link, or two policies that roll up each other) hides those rows
+// instead of recursing.
+export async function applyRelatedRls(
+  baseModel: IBaseModelSqlV2,
+  qb: Knex.QueryBuilder,
+  alias?: string,
+) {
+  const tableId = baseModel.model.id;
+  const active = rlsCompileScope.getStore();
+  if (active?.has(tableId)) {
+    qb.whereRaw('1 = 0');
+    return;
+  }
+  const rlsConditions = await baseModel.getRlsConditions();
+  if (!rlsConditions.length) return;
+  await rlsCompileScope.run(new Set(active).add(tableId), () =>
+    conditionV2(
+      baseModel,
+      [new Filter({ children: rlsConditions, is_group: true })],
+      qb,
+      alias,
+    ),
+  );
 }
 
 export async function extractLinkRelFiltersAndApply(_: {

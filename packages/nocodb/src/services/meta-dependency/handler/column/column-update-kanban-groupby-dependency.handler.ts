@@ -11,6 +11,7 @@ import { MetaTable } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 const UNCATEGORIZED_STACK = {
   id: 'uncategorized',
@@ -202,7 +203,7 @@ export class ColumnUpdateKanbanGroupByDependencyHandler
       await view.getView(Noco.ncMeta);
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
-        payload: { action: 'view_update', payload: view },
+        payload: { action: 'view_update', payload: viewForBroadcast(view) },
       });
     }
   }

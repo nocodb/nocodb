@@ -19,12 +19,14 @@ import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
 import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { claimObjectTitle } from '~/helpers/customObjects';
+import { normalizeViewTitle } from '~/helpers/viewTitleHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { GalleryView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 @Injectable()
 export class GalleriesService {
@@ -67,7 +69,7 @@ export class GalleriesService {
 
     const model = await Model.get(context, param.tableId, false, ncMeta);
 
-    param.gallery.title = param.gallery.title?.trim();
+    param.gallery.title = normalizeViewTitle(context, param.gallery.title);
 
     param.gallery.title = await claimObjectTitle(
       context,
@@ -157,7 +159,7 @@ export class GalleriesService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_create',
-          payload: view,
+          payload: viewForBroadcast(view),
         },
       },
       context.socket_id,
@@ -243,7 +245,7 @@ export class GalleriesService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: safeView,
+          payload: viewForBroadcast(safeView),
         },
       },
       context.socket_id,

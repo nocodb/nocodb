@@ -510,6 +510,11 @@ watch(
 
 // File drop to create records
 const showFileDropZone = ref(false)
+
+// The cursor is over the bottom "drop to create" banner; only a drop there creates records.
+const isOverFileDropZone = ref(false)
+
+const fileDropZoneRef = ref<{ $el?: HTMLElement }>()
 const dragFileCount = ref(0)
 
 const {
@@ -3688,27 +3693,33 @@ const resetAttachmentCellDropOver = () => {
   triggerRefreshCanvas()
 }
 
-const onDrop = (files: File[] | null) => {
-  // Capture whether the bottom drop zone was showing before clearing it
-  const wasDropZoneVisible = showFileDropZone.value
+function isPointInFileDropZone(clientX: number, clientY: number) {
+  const zone = fileDropZoneRef.value?.$el
+  if (!zone?.getBoundingClientRect) return false
+  const r = zone.getBoundingClientRect()
+  return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom
+}
+
+const onDrop = (files: File[] | null, e?: DragEvent) => {
+  const droppedOnZone = showFileDropZone.value && !!e && isPointInFileDropZone(e.clientX, e.clientY)
 
   showFileDropZone.value = false
+  isOverFileDropZone.value = false
   dragFileCount.value = 0
 
   if (!files?.length || !isDataEditAllowed.value) {
     return
   }
 
-  // If the bottom drop zone was visible, always create new records
-  if (wasDropZoneVisible && canDropFilesToCreateRecords.value) {
+  // New records only from a drop on the bottom banner.
+  if (droppedOnZone && canDropFilesToCreateRecords.value) {
     resetAttachmentCellDropOver()
     handleFileDrop(Array.from(files))
     return
   }
 
-  // If no specific attachment cell is targeted, trigger new record creation
+  // Anywhere else that isn't an attachment cell: do nothing.
   if (!attachmentCellDropOver.value) {
-    handleFileDrop(Array.from(files))
     return
   }
 
@@ -3752,6 +3763,9 @@ const onOver = (_files: File[] | null, e: DragEvent) => {
 
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
+
+  isOverFileDropZone.value = showFileDropZone.value && isPointInFileDropZone(e.clientX, e.clientY)
+  if (isOverFileDropZone.value) return resetAttachmentCellDropOver()
 
   if (
     clientMousePosition.clientX === e.clientX &&
@@ -3818,6 +3832,7 @@ useDropZone(canvasRef, {
   onLeave: () => {
     resetAttachmentCellDropOver()
     showFileDropZone.value = false
+    isOverFileDropZone.value = false
     dragFileCount.value = 0
   },
 })
@@ -4273,7 +4288,9 @@ watch(
     </div>
     <SmartsheetGridCanvasComponentsFileDropZone
       v-if="appInfo.ee"
+      ref="fileDropZoneRef"
       :visible="showFileDropZone && canDropFilesToCreateRecords && !isFileDropProcessing"
+      :active="isOverFileDropZone"
       :file-count="dragFileCount"
     />
   </div>

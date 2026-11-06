@@ -27,6 +27,14 @@ export function handleFormulaError({
     if (typeof identifierMatch?.index === 'number') {
       position = identifierMatch.index;
       identifierLength = needle.length;
+      // cover the braces of a {Field} reference
+      if (
+        formula[position - 1] === '{' &&
+        formula[position + identifierLength] === '}'
+      ) {
+        position -= 1;
+        identifierLength += 2;
+      }
     }
   } else {
     const message: string = error.message;

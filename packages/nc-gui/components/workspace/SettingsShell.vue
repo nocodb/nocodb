@@ -157,7 +157,7 @@ watch(
               class="flex-none !w-6 !h-6 object-contain"
             />
             <GeneralNocodbLogo v-else-if="isFreePlan" class="flex-none !w-6 !h-6" />
-            <GeneralWorkspaceIcon v-else :workspace="activeWorkspace" size="medium" class="flex-none" />
+            <GeneralWorkspaceIcon v-else :workspace="activeWorkspace" size="medium" :initials-length="1" class="flex-none" />
             <!-- `capitalize`, like the main sidebar: display only, the stored title is untouched. -->
             <NcTooltip show-on-truncate-only class="truncate capitalize text-bodyDefaultSmBold text-nc-content-gray-emphasis">
               {{ activeWorkspace.title }}

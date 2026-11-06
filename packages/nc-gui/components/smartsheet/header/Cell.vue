@@ -283,11 +283,11 @@ const onClick = (e: Event) => {
           invisible: !(editColumnDropdown || isDropDownOpen),
         }"
       />
+      <div class="flex-1" />
       <SmartsheetHeaderDescriptionTooltip
         v-if="column.description?.length && isExpandedForm && !hideMenu"
         :description="column.description"
       />
-      <div class="flex-1" />
       <NcTooltip v-if="isDateDependencyField && isExpandedForm && !isPublic" class="flex items-center" placement="bottom">
         <template #title> {{ $t('labels.dateDependency.enabled') }} </template>
         <GeneralIcon icon="gantt" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-muted" />

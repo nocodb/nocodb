@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { ClientType, JSEPNode } from 'nocodb-sdk';
+import { ClientType, FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
 import commonFns, {
   ALLOWED_DATEADD_UNITS,
   escapePlaceholders,
@@ -8,18 +8,86 @@ import commonFns, {
   validateDateAddUnit,
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
+import type { WorkdaySqlDialect } from '~/db/functionMappings/workday';
 import { convertUnits } from '~/helpers/convertUnits';
 import {
   getWeekdayByText,
   getWeekStartOffsetSunday,
 } from '~/helpers/formulaFnHelper';
 import { getDatetimeFormatHandler } from '~/db/datetime-format';
+import { workdayDiffFn, workdayFn } from '~/db/functionMappings/workday';
+
+const mysqlWorkdayDialect: WorkdaySqlDialect = {
+  dayNumber: (sql) => `DATEDIFF(${sql}, '1900-01-01')`,
+  fromDayNumber: (sql) => `DATE_ADD(DATE '1900-01-01', INTERVAL (${sql}) DAY)`,
+  dateLiteral: (isoDate) => `DATE '${isoDate}'`,
+  intDiv: (a, b) => `(${a} DIV ${b})`,
+  mod: (a, b) => `MOD(${a}, ${b})`,
+  // TRUNCATE reads a text value's leading number
+  toInteger: (sql) => `CAST(TRUNCATE(${sql}, 0) AS SIGNED)`,
+  // Splits via JSON_TABLE. Any character a valid entry can't hold becomes `x`,
+  // so the built JSON array is always valid and such an entry is ignored.
+  holidayDays: (sql) =>
+    `(SELECT CASE WHEN wdt.t REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' AND DATE_FORMAT(STR_TO_DATE(wdt.t, '%Y-%m-%d'), '%Y-%m-%d') = wdt.t THEN DATEDIFF(STR_TO_DATE(wdt.t, '%Y-%m-%d'), '1900-01-01') END AS hn FROM (SELECT TRIM(wdj.t) AS t FROM JSON_TABLE(CONCAT('["', REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(CAST(${sql} AS CHAR), '[[:space:]]', ' '), '[^0-9, -]', 'x'), ',', '","'), '"]'), '$[*]' COLUMNS (t VARCHAR(255) PATH '$')) wdj) wdt)`,
+};
+
+// LEAST / GREATEST take two or more arguments; MIN(x) is x
+const leastGreatestFn =
+  (name: 'LEAST' | 'GREATEST') =>
+  async ({ fn, knex, pt }: MapFnArgs) => {
+    if (pt.arguments?.length === 1) {
+      return {
+        builder: knex.raw(`(${(await fn(pt.arguments[0])).builder})`),
+      };
+    }
+    pt.callee.name = name;
+  };
 
 const mysql2 = {
   ...commonFns,
+  // as pg: COUNT counts number-typed arguments, COUNTA non-blank ones; mysql
+  // has no runtime type check, so COUNT goes by the argument's formula type
+  COUNT: async ({ fn, knex, pt }: MapFnArgs) => {
+    // built outside the async callback: a returned raw is thenable, so
+    // awaiting it would run it as a query
+    const builders = await Promise.all(pt.arguments.map((arg) => fn(arg)));
+    const parts = pt.arguments.map((arg, i) => {
+      const { builder } = builders[i];
+      // a checkbox is a tinyint here but a boolean on pg, which isn't counted
+      if (arg.referencedColumn?.uidt === UITypes.Checkbox) {
+        return knex.raw('0');
+      }
+      if (arg.dataType === FormulaDataTypes.NUMERIC) {
+        return knex.raw(`CASE WHEN ? IS NOT NULL THEN 1 ELSE 0 END`, [builder]);
+      }
+      if (arg.dataType && arg.dataType !== FormulaDataTypes.UNKNOWN) {
+        return knex.raw('0');
+      }
+      // the pattern is bound: knex would read its `?` as placeholders
+      return knex.raw(`CASE WHEN CAST(? AS CHAR) REGEXP ? THEN 1 ELSE 0 END`, [
+        builder,
+        '^[-+]?[0-9]+(\\.[0-9]+)?([eE][-+]?[0-9]+)?$',
+      ]);
+    });
+    return { builder: knex.raw(parts.map(() => '?').join(' + '), parts) };
+  },
+  COUNTA: async ({ fn, knex, pt }: MapFnArgs) => {
+    const parts = (await Promise.all(pt.arguments.map((arg) => fn(arg)))).map(
+      ({ builder }) =>
+        knex.raw(
+          // not `<> ''`: PAD SPACE collations read '   ' as equal to ''
+          `CASE WHEN ? IS NOT NULL AND LENGTH(CAST(? AS CHAR)) > 0 THEN 1 ELSE 0 END`,
+          [builder, builder],
+        ),
+    );
+    return { builder: knex.raw(parts.map(() => '?').join(' + '), parts) };
+  },
   LEN: 'CHAR_LENGTH',
-  MIN: 'LEAST',
-  MAX: 'GREATEST',
+  MIN: leastGreatestFn('LEAST'),
+  MAX: leastGreatestFn('GREATEST'),
+  // the names older columns stored: the former string mappings were persisted
+  LEAST: leastGreatestFn('LEAST'),
+  GREATEST: leastGreatestFn('GREATEST'),
   SEARCH: async (args: MapFnArgs) => {
     args.pt.callee.name = 'LOCATE';
     const temp = args.pt.arguments[0];
@@ -143,6 +211,8 @@ const mysql2 = {
       ),
     };
   },
+  WORKDAY: workdayFn(mysqlWorkdayDialect),
+  WORKDAY_DIFF: workdayDiffFn(mysqlWorkdayDialect),
   WEEKDAY: async ({ fn, knex, pt }: MapFnArgs) => {
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
     return {
@@ -262,16 +332,16 @@ const mysql2 = {
 
   VALUE: async ({ fn, knex, pt, model }: MapFnArgs) => {
     const value = (await fn(pt.arguments[0])).builder;
-    // Rounds a double, like the text path below
+    // a double, as on pg: VALUE(12.6) is 12.6, not 13
     if (await isNumericValueArg(pt.arguments[0], model)) {
-      return { builder: knex.raw(`ROUND((:value) * 1e0)`, { value }) };
+      return { builder: knex.raw(`((:value) * 1e0)`, { value }) };
     }
 
     // NULL for no digits or more than one dot; a % divides by 100.
     // No NULLIF: MySQL evaluates its first argument twice.
     return {
       builder: knex.raw(
-        `ROUND(CASE
+        `(CASE
   WHEN :value REGEXP '[.][^.]*[.]' OR :value NOT REGEXP '[0-9]' THEN NULL
   ELSE POW(-1, LENGTH(REGEXP_REPLACE(:value, '[^-]', ''))) * REGEXP_REPLACE(:value, '[^0-9.]+', '') / IF(LOCATE('%', :value) > 0, 100, 1)
 END)`,
@@ -299,6 +369,10 @@ END)`,
       pathArg?.type === JSEPNode.LITERAL &&
       typeof pathArg.value === 'string'
     ) {
+      // mysql rejects a negative array index as an invalid path; pg reads NULL
+      if (/\[\s*-\d+\s*\]/.test(pathArg.value)) {
+        return { builder: knex.raw('NULL') };
+      }
       return {
         builder: knex.raw(
           `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, ?) ELSE NULL END`,

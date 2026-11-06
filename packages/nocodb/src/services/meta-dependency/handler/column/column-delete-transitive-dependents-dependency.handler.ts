@@ -18,6 +18,7 @@ import Column from '~/models/Column';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
+import { tableForBroadcast } from '~/helpers/publicViewSecrets';
 import Noco from '~/Noco';
 import { ColumnDeleteFilterDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-filter-dependency.handler';
 import { ColumnDeleteCoverImageDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-cover-image-dependency.handler';
@@ -402,7 +403,11 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
         event: EventType.META_EVENT,
         payload: {
           action: 'column_update',
-          payload: { table: model, column: {}, skipDataReload: true },
+          payload: {
+            table: tableForBroadcast(model),
+            column: {},
+            skipDataReload: true,
+          },
         },
       } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
     }

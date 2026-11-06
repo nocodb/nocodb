@@ -16,6 +16,7 @@ import {
   CURRENT_USER_TOKEN,
   EventType,
   extractFilterFromXwhere,
+  getRollupResultUidt,
   isAIPromptCol,
   isAttachment,
   isBtLikeV2Junction,
@@ -84,7 +85,11 @@ import {
   LTARColsUpdater,
 } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
-import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import {
+  ncIsStringHasValue,
+  ncLikeContainsPattern,
+  ncLikeEscapeClause,
+} from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import { FieldHandler } from '~/db/field-handler';
 import { selectObject } from '~/db/BaseModelSqlv2/select-object';
@@ -108,7 +113,7 @@ import {
   extractCorrespondingLinkColumn,
 } from '~/db/BaseModelSqlv2/add-remove-links';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
-import conditionV2 from '~/db/conditionV2';
+import conditionV2, { applyRelatedRls } from '~/db/conditionV2';
 import { DBQueryClient } from '~/dbQueryClient';
 import formulaQueryBuilderv2, {
   checkStoredFormulaError,
@@ -118,6 +123,7 @@ import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
+import { readsHiddenTable } from '~/helpers/tableHelpers';
 import {
   formatPgDateTime,
   padShortFraction,
@@ -137,7 +143,6 @@ import {
   getBaseModelSqlFromModelId,
   getCompositePkValue,
   getListArgs,
-  haveFormulaColumn,
   isDataAuditEnabled as isDataAuditEnabledFn,
   isPrimitiveType,
   linkedRecordColumnIds,
@@ -190,6 +195,7 @@ import {
   removeBlankPropsAndMask,
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
+import { getDataQueryTimeout } from '~/utils/nc-config';
 import { chunkArray } from '~/utils/tsUtils';
 import {
   NC_BULK_UPDATE_UNDO_LIMIT,
@@ -198,10 +204,17 @@ import {
   UPDATE_BY_PK_CHUNK_SIZE,
 } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
+import { tableForBroadcast } from '~/helpers/publicViewSecrets';
 import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { StageTimer } from '~/helpers/stageTimer';
+import {
+  flagFailingRollups,
+  isRollupDataError,
+  retryLinkedReadOnRollupError,
+  shouldRetryFailedRead,
+} from '~/db/rollupReadFallback';
 import {
   isExternalSourceError,
   isTransientError,
@@ -267,6 +280,8 @@ export interface ExecAndParseOptions {
   // write paths that need full emails to flow into webhook hooks; they apply
   // the redaction themselves on the response copy after firing hooks.
   skipPublicRedaction?: boolean;
+  // ms; pg only (statement_timeout), ignored on other dialects
+  queryTimeout?: number;
 }
 
 /** Args stashed on DataLoader instances for relation queries (hm/mm/bt/oo). */
@@ -544,7 +559,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         skipFormulaRetry ||
         validateFormula ||
-        !haveFormulaColumn(await this.model.getColumns())
+        !(await shouldRetryFailedRead(this, await this.model.getColumns(), e))
       )
         throw e;
       logger.log(e);
@@ -871,7 +886,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } catch (e) {
       const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
+      if (
+        skipFormulaRetry ||
+        validateFormula ||
+        !(await shouldRetryFailedRead(this, columns, e))
+      )
         throw e;
       logger.log(e);
       return this.findOne(args, true);
@@ -1128,14 +1147,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } catch (e) {
       const skipFormulaRetry = isTransientError(e) || isExternalSourceError(e);
 
-      if (skipFormulaRetry || validateFormula || !haveFormulaColumn(columns))
+      if (
+        skipFormulaRetry ||
+        validateFormula ||
+        !(await shouldRetryFailedRead(this, columns, e))
+      )
         throw e;
       logger.log(e);
-      return this.list(args, {
-        ignoreViewFilterAndSort,
-        ignorePagination,
-        validateFormula: true,
-      });
+      return this.list(args, { ...options, validateFormula: true });
     }
 
     return data?.map((d) => {
@@ -1154,6 +1173,39 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     ignoreViewFilterAndSort = false,
     throwErrorIfInvalidParams = false,
   ): Promise<any> {
+    try {
+      return await this.countRecords(
+        args,
+        ignoreViewFilterAndSort,
+        throwErrorIfInvalidParams,
+      );
+    } catch (e) {
+      // a filter on a formula rollup that fails on the data matches no rows
+      // once flagged; anything else rethrows before an await, or a parallel
+      // list() rejection would be reported instead
+      if (
+        !isRollupDataError(e) ||
+        !(await flagFailingRollups(this, await this.model.getColumns(), e))
+      )
+        throw e;
+      return await this.countRecords(
+        args,
+        ignoreViewFilterAndSort,
+        throwErrorIfInvalidParams,
+      );
+    }
+  }
+
+  private async countRecords(
+    args: {
+      where?: string;
+      limit?;
+      filterArr?: Filter[];
+      customConditions?: Filter[];
+    },
+    ignoreViewFilterAndSort: boolean,
+    throwErrorIfInvalidParams: boolean,
+  ): Promise<number | string | undefined> {
     const columns = await this.model.getColumns();
     const { where } = this._getListArgs(args);
 
@@ -1249,8 +1301,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       as: 'count',
     }).first();
     debugCount(qb.toQuery());
-    return (await this.execAndParse(qb, null, { raw: true, first: true }))
-      ?.count;
+    return (
+      await this.execAndParse(qb, null, {
+        raw: true,
+        first: true,
+        queryTimeout: getDataQueryTimeout(),
+      })
+    )?.count;
   }
 
   async groupByAndAggregate(
@@ -1355,7 +1412,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ],
       };
     }
-    return await baseModelGroupBy(this, logger).list(args);
+    try {
+      return await baseModelGroupBy(this, logger).list(args);
+    } catch (e) {
+      // a formula rollup that fails on the data groups as an error once flagged
+      if (
+        !isRollupDataError(e) ||
+        !(await flagFailingRollups(this, await this.model.getColumns(), e))
+      )
+        throw e;
+      return await baseModelGroupBy(this, logger).list(args);
+    }
   }
 
   async groupByCount(args: {
@@ -1381,7 +1448,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ],
       };
     }
-    return await baseModelGroupBy(this, logger).count(args);
+    try {
+      return await baseModelGroupBy(this, logger).count(args);
+    } catch (e) {
+      if (
+        !isRollupDataError(e) ||
+        !(await flagFailingRollups(this, await this.model.getColumns(), e))
+      )
+        throw e;
+      return await baseModelGroupBy(this, logger).count(args);
+    }
   }
 
   // #region relation list count part 1
@@ -1395,10 +1471,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).multipleHmList(
-      param,
-      args,
-    );
+    try {
+      return await retryLinkedReadOnRollupError(
+        this,
+        await this.linkColumn(param.colId),
+        () =>
+          relationDataFetcher({ baseModel: this, logger }).multipleHmList(
+            param,
+            args,
+          ),
+      );
+    } catch (e) {
+      // the fetcher logs and skips other failures; a rollup data error that
+      // couldn't be flagged is skipped the same way
+      logger.error(e);
+    }
   }
 
   public async mmList(
@@ -1417,10 +1504,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } = {},
     selectAllRecords = false,
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).mmList(
-      param,
-      args,
-      selectAllRecords,
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () =>
+        relationDataFetcher({ baseModel: this, logger }).mmList(
+          param,
+          args,
+          selectAllRecords,
+        ),
     );
   }
 
@@ -1431,7 +1523,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
     args: { fieldsSet?: Set<string> } = {},
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).mmRead(param, args);
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () =>
+        relationDataFetcher({ baseModel: this, logger }).mmRead(param, args),
+    );
+  }
+
+  private async linkColumn(colId: string) {
+    await this.model.getColumns();
+    return this.model.columnsById[colId];
   }
 
   async multipleHmListCount({ colId, ids }) {
@@ -1460,10 +1562,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } = {},
     selectAllRecords = false,
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).hmList(
-      param,
-      args,
-      selectAllRecords,
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () =>
+        relationDataFetcher({ baseModel: this, logger }).hmList(
+          param,
+          args,
+          selectAllRecords,
+        ),
     );
   }
 
@@ -1484,9 +1591,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).multipleMmList(
-      param,
-      args,
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () =>
+        relationDataFetcher({ baseModel: this, logger }).multipleMmList(
+          param,
+          args,
+        ),
     );
   }
 
@@ -1681,8 +1793,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (op === 'like') {
             qb.orderByRaw(
               this.dbDriver.raw(
-                `CASE WHEN LOWER(??) LIKE ? THEN 0 ELSE 1 END`,
-                [pvColumn.column_name, String(pvFilter.value).toLowerCase()],
+                `CASE WHEN LOWER(??) LIKE ?${ncLikeEscapeClause(
+                  this.dbDriver,
+                )} THEN 0 ELSE 1 END`,
+                [
+                  pvColumn.column_name,
+                  ncLikeContainsPattern(
+                    this.dbDriver,
+                    String(pvFilter.value).toLowerCase(),
+                  ),
+                ],
               ),
             );
           } else if (op === 'eq') {
@@ -1810,6 +1930,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               };
               if (colOptions?.error) {
                 brokenLookup();
+                break;
+              }
+              if (await readsHiddenTable(this.context, column)) {
+                proto[column.title] = () => null;
                 break;
               }
               const relCol = await Column.get(this.context, {
@@ -3111,6 +3235,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         data,
         insertObj,
         req: request,
+        rejectLinkTakeover: param?.rejectLinkTakeover,
       });
       const attachmentOperations =
         await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
@@ -3586,6 +3711,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: Record<string, any>;
     insertObj: Record<string, any>;
     req: NcRequest;
+    rejectLinkTakeover?: boolean;
   }) {
     return new NestedLinkPreparator().prepareNestedLinkQb(this, param);
   }
@@ -6649,7 +6775,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             payload: {
               action: 'column_update',
               payload: {
-                table,
+                table: tableForBroadcast(table),
                 column: UpdatedColumn,
                 // Appending options leaves every existing row as it was.
                 skipDataReload: true,
@@ -7828,10 +7954,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async execAndGetRows(
     query: string,
     trx?: Knex | CustomKnex,
+    timeout?: number,
   ): Promise<Record<string, any>[]> {
     trx = trx || this.dbDriver;
 
     query = this.sanitizeQuery(query);
+
+    // pg cancels the statement server-side and frees the connection. SET LOCAL
+    // reverts at commit so the pooled connection stays clean; skipped inside a
+    // caller's transaction, where it would outlive this read.
+    if (timeout > 0 && this.isPg && !(trx as Knex.Transaction).isTransaction) {
+      return await trx.transaction(async (tx) => {
+        await tx.raw(`SET LOCAL statement_timeout = ${Math.floor(timeout)}`);
+        return (await tx.raw(query))?.rows;
+      });
+    }
 
     if (this.isPg || this.isSnowflake) {
       return (await trx.raw(query))?.rows;
@@ -7910,7 +8047,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const query = typeof qb === 'string' ? qb : qb.toQuery();
     _perf?.mark('build');
 
-    let data = await this.execAndGetRows(query);
+    let data = await this.execAndGetRows(
+      query,
+      undefined,
+      options.queryTimeout,
+    );
     _perf?.mark('dbQuery');
     _perf?.set('rows', data?.length ?? 0);
     _perf?.set('client', this.clientType);
@@ -9022,8 +9163,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         : 'YYYY-MM-DD HH:mm:ssZ';
 
     for (const col of dateTimeColumns) {
-      if (!d[col.id]) continue;
-      if (col.uidt === UITypes.Formula) {
+      // an errored cell keeps its sentinel (not "Invalid Date")
+      if (!d[col.id] || d[col.id] === NC_ERROR_SENTINEL) continue;
+      // a date-time rollup result can still be a date-only value (MIN of a
+      // date rollup): only rewrite the date-time parts, as for formulas
+      if (
+        col.uidt === UITypes.Formula ||
+        getRollupResultUidt(col) === UITypes.DateTime
+      ) {
         if (!d[col.id] || typeof d[col.id] !== 'string') {
           continue;
         }
@@ -9086,7 +9233,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         continue;
       }
 
-      if (col.uidt === UITypes.Date) {
+      if ((getRollupResultUidt(col) ?? col.uidt) === UITypes.Date) {
         d[col.id] = dayjs(d[col.id]).format('YYYY-MM-DD');
         continue;
       }
@@ -9174,7 +9321,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           c.uidt === UITypes.DateTime ||
           c.uidt === UITypes.Date ||
           isCreatedOrLastModifiedTimeCol(c) ||
-          c.uidt === UITypes.Formula,
+          c.uidt === UITypes.Formula ||
+          // a rollup with a date result comes back in the dialect's raw shape
+          [UITypes.Date, UITypes.DateTime].includes(getRollupResultUidt(c)),
       );
       if (dateTimeColumns.length) {
         if (Array.isArray(data)) {
@@ -9207,7 +9356,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return data;
 
     const columns = this.model?.columns.concat(dependencyColumns ?? []);
-    const formulaColumns = columns?.filter((c) => c.uidt === UITypes.Formula);
+    const formulaColumns = columns?.filter(
+      (c) =>
+        c.uidt === UITypes.Formula ||
+        // a numeric rollup formula carries the same float8 values
+        [UITypes.Number, UITypes.Decimal].includes(getRollupResultUidt(c)),
+    );
     if (!formulaColumns?.length) return data;
 
     const apply = (d: Record<string, any>) => {
@@ -9340,6 +9494,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async btRead(
+    param: { colId; id; apiVersion?: NcApiVersion },
+    args: {
+      limit?;
+      offset?;
+      fieldSet?: Set<string>;
+      pkAndPvOnly?: boolean;
+    } = {},
+  ) {
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () => this.btReadOnce(param, args),
+    );
+  }
+
+  private async btReadOnce(
     { colId, id }: { colId; id; apiVersion?: NcApiVersion },
     args: {
       limit?;
@@ -9413,6 +9583,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (parentSoftDeleteFilter) {
         qb.where(parentSoftDeleteFilter);
       }
+      // Only a parent the related table's RLS lets the requester see.
+      await applyRelatedRls(parentModel, qb);
 
       await parentModel.selectObject({
         qb,
@@ -9873,10 +10045,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name]) &&
-        // Trusted copies keep stored URLs and Duration seconds (h:mm reads "90" as minutes).
+        // Trusted copies keep stored URLs, Duration seconds (h:mm reads "90"
+        // as minutes) and ratings stored before the range check.
         !(
-          [UITypes.URL, UITypes.Duration].includes(column.uidt as UITypes) &&
-          extra?.skipPermissionCheck
+          [UITypes.URL, UITypes.Duration, UITypes.Rating].includes(
+            column.uidt as UITypes,
+          ) && extra?.skipPermissionCheck
         ) &&
         (this.context.api_version === NcApiVersion.V3 ||
           // partially open the parseUserInput to several UITypes
@@ -9894,6 +10068,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // years and malformed durations with a named column.
             UITypes.Number,
             UITypes.Percent,
+            // Rejects a rating outside 0..max.
+            UITypes.Rating,
             UITypes.Year,
             UITypes.Duration,
             UITypes.Date,

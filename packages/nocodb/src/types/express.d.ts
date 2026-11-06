@@ -1,4 +1,4 @@
-import type { UserType } from 'nocodb-sdk';
+import type { AgentRoleCap, UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 declare module 'express-serve-static-core' {
   interface Request {
@@ -15,6 +15,12 @@ declare module 'express-serve-static-core' {
       provider?: string;
       direct_teams?: { team_id: string; path: string }[];
       is_agent?: boolean;
+      acting_agent?: {
+        id: string;
+        title: string;
+        role_cap?: AgentRoleCap | null;
+      };
+      agent_chain_depth?: number;
     };
     ncSiteUrl: string;
     clientIp: string;

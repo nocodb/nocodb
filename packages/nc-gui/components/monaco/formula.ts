@@ -65,6 +65,10 @@ const generateLanguageDefinition = (identifiers: string[]) => {
       root: [
         [/"/, { token: 'string.quote', bracket: '@open', next: '@dblString' }],
         [/'/, { token: 'string.quote', bracket: '@open', next: '@sglString' }],
+        // `{Link}.{Field}` — the field lives in the linked table, so it is not in `identifiers`
+        [/(\.)(\s*)(\{[^{}]+\})/, ['operator', 'white', 'identifier']],
+        // `.SUM(` style method calls
+        [/\./, 'operator'],
         [
           new RegExp(
             `\\{(${identifiers

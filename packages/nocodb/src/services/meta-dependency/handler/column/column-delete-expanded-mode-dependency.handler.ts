@@ -10,6 +10,7 @@ import { View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 /**
  * Reset `attachment_mode_column_id` on any view that pinned the deleted
@@ -89,7 +90,7 @@ export class ColumnDeleteExpandedModeDependencyHandler
       await view.getView(Noco.ncMeta);
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
-        payload: { action: 'view_update', payload: view },
+        payload: { action: 'view_update', payload: viewForBroadcast(view) },
       });
     }
   }

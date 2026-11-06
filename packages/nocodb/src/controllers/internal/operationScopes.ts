@@ -1,3 +1,6 @@
+// An op that takes its table id from the body only must also be listed in
+// `BODY_TABLE_ID_KEYS` (internal.controller.ts, CE or EE), or the table
+// visibility gate never sees its table.
 export const OPERATION_SCOPES = {
   mcpList: 'base',
   mcpCreate: 'base',
@@ -214,6 +217,7 @@ export const OPERATION_SCOPES = {
   // List View
   listViewDataList: 'base',
   listViewDataCount: 'base',
+  listViewDataAggregate: 'base',
   listViewCreate: 'base',
   listViewUpdate: 'base',
 

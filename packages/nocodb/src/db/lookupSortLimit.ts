@@ -8,6 +8,7 @@ import sortV2 from '~/db/sortV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { setModelContext } from '~/helpers/modelContext';
 import { isLookupSortLimitLicensed } from '~/helpers/lookupSortLimitGate';
+import { isDotPathColumn } from '~/db/formulav2/dot-path-column';
 
 /**
  * Per-lookup Sort + Limit — the CE core shared by every consumer of a lookup's
@@ -36,6 +37,11 @@ export async function loadLookupSortAndLimit(
   context: NcContext,
   column: Column,
 ): Promise<LookupSortLimitConfig> {
+  // a formula field path has no sort/limit of its own
+  if (isDotPathColumn(column)) {
+    return { sorts: [], limitVal: 0, takeLast: false, hasConfig: false };
+  }
+
   const meta = (parseProp(column.meta) || {}) as {
     lookup_limit?: { type?: 'first' | 'last'; value?: number };
   };

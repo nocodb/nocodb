@@ -35,6 +35,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import { Base, Column, Model, Source } from '~/models';
+import { pluralizeTitle } from '~/helpers/pluralizeTitle';
 
 // todo:move enum and types
 export enum MetaDiffType {
@@ -1234,7 +1235,7 @@ export class MetaDiffsService {
                     fk_index_name: change.cstn,
                     dr,
                     meta: {
-                      plural: pluralize(childModel.title),
+                      plural: pluralizeTitle(childModel.title),
                       singular: singularize(childModel.title),
                     },
                     description: formatLinkDbMapping({
@@ -1447,7 +1448,7 @@ export class MetaDiffsService {
             // heuristic resolves LinkToAnotherRecord to LTAR v2.
             uidt: UITypes.LinkToAnotherRecord,
             meta: {
-              plural: pluralize(modelB.title),
+              plural: pluralizeTitle(modelB.title),
               singular: singularize(modelB.title),
             },
             description:
@@ -1489,7 +1490,7 @@ export class MetaDiffsService {
             // heuristic resolves LinkToAnotherRecord to LTAR v2.
             uidt: UITypes.LinkToAnotherRecord,
             meta: {
-              plural: pluralize(modelA.title),
+              plural: pluralizeTitle(modelA.title),
               singular: singularize(modelA.title),
             },
             description:

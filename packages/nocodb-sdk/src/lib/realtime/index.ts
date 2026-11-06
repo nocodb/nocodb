@@ -803,6 +803,8 @@ export interface AgentLifecycleEventPayload extends AgentEventBase {
     | AgentEventAction.AGENT_PUBLISH;
   /** Absent on delete — `agentId` identifies the row. */
   agent?: AgentType;
+  /** On the delete a switch to personal sends the base: its owner keeps the agent. */
+  owned_by?: string | null;
 }
 
 export interface AgentSessionEventPayload extends AgentEventBase {

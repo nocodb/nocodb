@@ -12,7 +12,7 @@ import {
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from './filterHelpers';
 import { arrFlatMap } from './arrayHelpers';
-import { getRollupWhereDateUidt } from './filterHelpers_old';
+import { getRollupWhereUidt } from './filterHelpers_old';
 import {
   parseLexingError,
   parseParsingError,
@@ -314,14 +314,16 @@ function handleDataTypes(
   if (filterType.value === null) {
     return { filter: filterType };
   }
+  const dateUidts: string[] = [
+    UITypes.Date,
+    UITypes.DateTime,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
+  ];
   if (
-    ([
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-    ].includes(column.uidt as UITypes) ||
-      getRollupWhereDateUidt(column, filterType.value)) &&
+    dateUidts.includes(
+      getRollupWhereUidt(column, filterType.value) ?? column.uidt
+    ) &&
     filterType.value
   ) {
     const [subOp, ...value] = Array.isArray(filterType.value)

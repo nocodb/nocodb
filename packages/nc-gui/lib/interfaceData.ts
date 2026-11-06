@@ -8,6 +8,7 @@ import type {
   InterfaceFilterGroup,
   InterfacePageType,
   InterfaceVizFieldConfig,
+  ListSummaryResponse,
   PaginatedType,
   SortType,
   TableType,
@@ -531,6 +532,12 @@ export interface InterfacePageDataApi {
     where?: string
     filtersArr?: FilterType[]
   }) => Promise<Record<string, any>>
+  /** LIST viz leaf summaries (builder-fixed aggregations): grand total + one bucket per parent id. */
+  fetchListAggregate?: (params: {
+    parentIds?: string[]
+    where?: string
+    filtersArr?: FilterType[]
+  }) => Promise<ListSummaryResponse>
   /** Per-group aggregations (group-by headers) — one filter bucket per group, keyed by alias. */
   fetchBulkAggregate?: (params: {
     aggregation: Array<{ field: string; type: string }>

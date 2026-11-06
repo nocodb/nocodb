@@ -529,6 +529,18 @@ async function onSubmit() {
   } else await saveSubmitted()
 }
 
+// ⌘↵ from the formula editor: same checks as the Save button, one save at a time
+let isShortcutSubmitting = false
+async function onShortcutSubmit() {
+  if (isShortcutSubmitting || saving.value || disableSubmitBtn.value || !formState.value.uidt) return
+  isShortcutSubmitting = true
+  try {
+    await onSubmit()
+  } finally {
+    isShortcutSubmitting = false
+  }
+}
+
 // focus and select the column name field
 const antInput = ref()
 
@@ -1330,7 +1342,12 @@ const unique = computed({
       </a-form-item>
 
       <template v-if="!readOnly && formState.uidt">
-        <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
+        <SmartsheetColumnFormulaOptions
+          v-if="formState.uidt === UITypes.Formula"
+          v-model:value="formState"
+          :can-submit="!props.fromTableExplorer"
+          @on-submit="onShortcutSubmit"
+        />
         <SmartsheetColumnQrCodeOptions v-if="formState.uidt === UITypes.QrCode" v-model="formState" />
         <SmartsheetColumnBarcodeOptions v-if="formState.uidt === UITypes.Barcode" v-model="formState" />
         <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
@@ -1357,7 +1374,12 @@ const unique = computed({
           v-if="[UITypes.DateTime, UITypes.CreatedTime].includes(formState.uidt)"
           v-model:value="formState"
         />
-        <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
+        <SmartsheetColumnRollupOptions
+          v-if="formState.uidt === UITypes.Rollup"
+          v-model:value="formState"
+          :can-submit="!props.fromTableExplorer"
+          @on-submit="onShortcutSubmit"
+        />
         <SmartsheetColumnLinkedToAnotherRecordOptions
           v-if="isLinksOrLTAR(formState.uidt)"
           :key="`${formState.uidt}-${formState.id || 'new'}`"

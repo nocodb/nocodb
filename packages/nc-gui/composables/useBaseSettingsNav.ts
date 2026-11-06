@@ -161,6 +161,10 @@ export function useBaseSettingsNav() {
 
   const canSeeSkills = computed(() => isEeUI && showEEFeatures.value && isUIAllowed('baseSkillList') && !isMobileMode.value)
 
+  const canSeePersonalAgents = computed(
+    () => isEeUI && showEEFeatures.value && isUIAllowed('agentPersonalList') && !isMobileMode.value,
+  )
+
   const canSeeVariables = computed(() => isEeUI && showEEFeatures.value && isUIAllowed('baseVariableList') && !isMobileMode.value)
 
   // The rows that replaced the General pane. Each was a tab of its inner nav and
@@ -323,6 +327,14 @@ export function useBaseSettingsNav() {
             testId: 'base-skills',
             title: t('labels.baseNav.aiSkills'),
             keywords: 'ai skill prompt assistant',
+          },
+          canSeePersonalAgents.value && {
+            slug: 'personal-agents',
+            ev: 'personal-agents',
+            icon: 'ncAgent',
+            testId: 'base-personal-agents',
+            title: t('labels.agentPersonal.oversightTitle'),
+            keywords: 'personal agent members private oversight turn off delete',
           },
           canSeeVariables.value && {
             slug: 'variables',
@@ -526,6 +538,10 @@ export function useBaseSettingsNav() {
       'skills': {
         title: t('labels.baseNav.aiSkills'),
         description: t('labels.baseNav.desc.aiSkills'),
+      },
+      'personal-agents': {
+        title: t('labels.agentPersonal.oversightTitle'),
+        description: t('labels.agentPersonal.oversightHint'),
       },
       'variables': {
         title: t('labels.baseNav.variables'),

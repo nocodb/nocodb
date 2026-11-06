@@ -401,6 +401,7 @@ watch(isDropdownOpen, async () => {
           v-if="isEditing"
           ref="input"
           v-model:value="_title"
+          :maxlength="255"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
             '!font-medium !text-nc-content-brand-disabled': activeView?.id === vModel.id,

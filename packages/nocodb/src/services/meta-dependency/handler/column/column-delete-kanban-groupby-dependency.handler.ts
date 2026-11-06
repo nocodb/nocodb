@@ -12,6 +12,7 @@ import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 /**
  * Null `fk_grp_col_id` on every Kanban view that pinned the deleted column as
@@ -117,7 +118,7 @@ export class ColumnDeleteKanbanGroupByDependencyHandler
       await view.getView(Noco.ncMeta);
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
-        payload: { action: 'view_update', payload: view },
+        payload: { action: 'view_update', payload: viewForBroadcast(view) },
       });
     }
   }

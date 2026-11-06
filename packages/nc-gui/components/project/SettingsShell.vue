@@ -454,6 +454,8 @@ watch(
 
             <DashboardSettingsBaseSkills v-else-if="tab === 'skills'" />
 
+            <AgentPersonalOversight v-else-if="tab === 'personal-agents' && baseId" :base-id="baseId" />
+
             <template v-else-if="tab === 'record-trash'">
               <div v-if="blockTrashSettings" class="h-full overflow-auto nc-scrollbar-thin">
                 <PaymentUpgradeFeatureCard

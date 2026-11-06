@@ -1022,4 +1022,129 @@ describe('validateFormulaAndExtractTreeWithType', () => {
     });
     expect(result.referencedColumn.uidt).toBe('SingleLineText');
   });
+
+  describe('WORKDAY / WORKDAY_DIFF', () => {
+    const validate = (formula: string) =>
+      validateFormulaAndExtractTreeWithType({
+        formula,
+        columns: [
+          ...mockColumns,
+          dateFormulaColumn,
+          dateLookupColumn,
+          nestedDateLookupColumn,
+          dateFormulaLookupColumn,
+        ],
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      });
+    // DATEADD is pure, so this formula keeps Column3's Date reference
+    const dateAddTree = {
+      type: JSEPNode.CALL_EXP,
+      callee: { type: JSEPNode.IDENTIFIER, name: 'DATEADD' },
+      arguments: [],
+      dataType: FormulaDataTypes.DATE,
+      referencedColumn: { id: 'col3', uidt: UITypes.Date },
+    };
+    const dateFormulaColumn = {
+      ...mockColumns.find((c) => c.id === 'col4'),
+      id: 'colNextDate',
+      title: 'NextDate',
+      colOptions: {
+        formula: "DATEADD({Column3}, 1, 'day')",
+        formula_raw: "DATEADD({Column3}, 1, 'day')",
+        fk_column_id: 'colNextDate',
+        error: null,
+        parsed_tree: dateAddTree,
+        getParsedTree: () => dateAddTree as any,
+      } as UnifiedMetaType.IFormulaColumn,
+    } as UnifiedMetaType.IColumn;
+    const lookupOf = (
+      id: string,
+      title: string,
+      target: UnifiedMetaType.IColumn
+    ) =>
+      ({
+        ...mockColumns.find((c) => c.id === 'col5'),
+        id,
+        title,
+        colOptions: {
+          fk_relation_column_id: 'col6',
+          fk_lookup_column_id: target.id,
+          fk_column_id: id,
+          getLookupColumn: async () => target,
+          // the nested lookup resolves outside model1's columns
+          getRelationColumn: async () =>
+            mockColumns.find((c) => c.id === 'col6'),
+        } as UnifiedMetaType.ILookupColumn,
+      } as UnifiedMetaType.IColumn);
+    const dateLookupColumn = lookupOf(
+      'colDateLookup',
+      'DateLookup',
+      mockColumns.find((c) => c.id === 'col3')
+    );
+    const nestedDateLookupColumn = lookupOf(
+      'colNestedDateLookup',
+      'NestedDateLookup',
+      dateLookupColumn
+    );
+    const dateFormulaLookupColumn = lookupOf(
+      'colNextDateLookup',
+      'NextDateLookup',
+      dateFormulaColumn
+    );
+
+    it.each([
+      ['WORKDAY("2026-12-18", 10)', FormulaDataTypes.DATE],
+      [
+        'WORKDAY({Column3}, {Column2}, "2026-12-25, 2027-01-01")',
+        FormulaDataTypes.DATE,
+      ],
+      ['WORKDAY({Column3}, -3, {Column1})', FormulaDataTypes.DATE],
+      ['WORKDAY({Column3}, 1, {Column3})', FormulaDataTypes.DATE],
+      ['WORKDAY({Column3}, 1, {DateLookup})', FormulaDataTypes.DATE],
+      ['WORKDAY({Column3}, 1, {NestedDateLookup})', FormulaDataTypes.DATE],
+      ['WORKDAY_DIFF("2026-12-18", "2027-01-05")', FormulaDataTypes.NUMERIC],
+      [
+        'WORKDAY_DIFF({Column3}, "2027-01-05", {Column1} & "")',
+        FormulaDataTypes.NUMERIC,
+      ],
+    ])('accepts %s', async (formula, dataType) => {
+      await expect(validate(formula)).resolves.toHaveProperty(
+        'dataType',
+        dataType
+      );
+    });
+
+    it.each([
+      ['WORKDAY("2026-12-18")', FormulaErrorType.MIN_ARG],
+      ['WORKDAY("2026-12-18", 1, "", 2)', FormulaErrorType.INVALID_ARG],
+      ['WORKDAY_DIFF("2026-12-18")', FormulaErrorType.MIN_ARG],
+      [
+        'WORKDAY_DIFF("2026-12-18", "2027-01-05", "", 1)',
+        FormulaErrorType.INVALID_ARG,
+      ],
+      ['WORKDAY("not a date", 1)', FormulaErrorType.TYPE_MISMATCH],
+      ['WORKDAY({Column2}, 1)', FormulaErrorType.TYPE_MISMATCH],
+      ['WORKDAY("2026-12-18", "ten")', FormulaErrorType.TYPE_MISMATCH],
+      ['WORKDAY("2026-12-18", {Column3})', FormulaErrorType.TYPE_MISMATCH],
+      ['WORKDAY("2026-12-18", 1, 5)', FormulaErrorType.TYPE_MISMATCH],
+      ['WORKDAY("2026-12-18", 1, NOW())', FormulaErrorType.TYPE_MISMATCH],
+      ['WORKDAY("2026-12-18", 1, {NextDate})', FormulaErrorType.TYPE_MISMATCH],
+      [
+        'WORKDAY("2026-12-18", 1, {NextDateLookup})',
+        FormulaErrorType.TYPE_MISMATCH,
+      ],
+      [
+        `WORKDAY("2026-12-18", 1, DATEADD({Column3}, 1, 'day'))`,
+        FormulaErrorType.TYPE_MISMATCH,
+      ],
+      ['WORKDAY_DIFF("2026-12-18", 5)', FormulaErrorType.TYPE_MISMATCH],
+      [
+        'WORKDAY_DIFF("2026-12-18", "2027-01-05", {Column2})',
+        FormulaErrorType.TYPE_MISMATCH,
+      ],
+    ])('rejects %s', async (formula, type) => {
+      await expect(validate(formula)).rejects.toHaveProperty('type', type);
+    });
+  });
 });

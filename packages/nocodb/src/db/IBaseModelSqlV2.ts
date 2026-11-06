@@ -299,6 +299,7 @@ export interface IBaseModelSqlV2 {
     data: Record<string, any>;
     insertObj: Record<string, any>;
     req: NcRequest;
+    rejectLinkTakeover?: boolean;
   }): Promise<{
     postInsertOps: ((
       rowId: any,

@@ -11,6 +11,7 @@ import type { Knex } from 'knex';
 import type { DisplacedRecord } from '~/command-registry/types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { extractCorrespondingLinkColumn } from '~/db/BaseModelSqlv2/add-remove-links';
+import { NcError } from '~/helpers/catchError';
 import {
   dataWrapper,
   extractIdPropIfObjectOrReturn,
@@ -152,11 +153,14 @@ export class NestedLinkPreparator {
       data,
       insertObj,
       req,
+      rejectLinkTakeover,
     }: {
       nestedCols: Column[];
       data: Record<string, any>;
       insertObj: Record<string, any>;
       req: NcRequest;
+      // Refuse a link that would take a record away from its current owner.
+      rejectLinkTakeover?: boolean;
     },
   ) {
     const postInsertOps: ((
@@ -236,6 +240,13 @@ export class NestedLinkPreparator {
           model: refModel,
           dbDriver: baseModel.dbDriver,
         });
+
+        const assertNotTakenOver = (refRowId: unknown) => {
+          if (!rejectLinkTakeover) return;
+          NcError.get(baseModel.context).badRequest(
+            `'${col.title}': record '${refRowId}' is already linked to another record`,
+          );
+        };
 
         // Audit a link the insert takes from an existing row of this table
         const pushDisplacedUnlinkAudit = (
@@ -372,6 +383,7 @@ export class NestedLinkPreparator {
                     { first: true },
                   );
                   if (partner) {
+                    assertNotTakenOver(refRowId);
                     displacedRecords.push({
                       kind: 'column',
                       modelId: childModel.id,
@@ -446,6 +458,12 @@ export class NestedLinkPreparator {
                         ),
                     { first: true },
                   );
+                  if (
+                    child &&
+                    !ncIsNullOrUndefined(child[childCol.column_name])
+                  ) {
+                    assertNotTakenOver(linkRecIdForCapture);
+                  }
                   if (child) {
                     pendingEntry = {
                       kind: 'column',
@@ -575,6 +593,11 @@ export class NestedLinkPreparator {
                         ),
                   );
                   for (const row of rows) {
+                    if (!ncIsNullOrUndefined(row[childCol.column_name])) {
+                      assertNotTakenOver(
+                        dataWrapper(row).extractPksValue(childModel, true),
+                      );
+                    }
                     const entry: Extract<DisplacedRecord, { kind: 'column' }> =
                       {
                         kind: 'column',
@@ -705,6 +728,7 @@ export class NestedLinkPreparator {
                   .whereIn(omParentMMCol.column_name, targetIds),
               );
               for (const row of rows) {
+                assertNotTakenOver(row[omParentMMCol.column_name]);
                 displacedRecords.push({
                   kind: 'junction',
                   mmModelId: omMmModel.id,
@@ -827,6 +851,7 @@ export class NestedLinkPreparator {
                     .where(moParentMMCol.column_name, targetId),
                 );
                 for (const row of rows) {
+                  assertNotTakenOver(targetId);
                   displacedRecords.push({
                     kind: 'junction',
                     mmModelId: moMmModel.id,

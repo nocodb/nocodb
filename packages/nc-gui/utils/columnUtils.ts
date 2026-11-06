@@ -1,5 +1,14 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type {
+  ButtonType,
+  ColumnType,
+  FormulaType,
+  IntegrationType,
+  LinkToAnotherRecordType,
+  ParsedFormulaNode,
+  RollupType,
+  TableType,
+} from 'nocodb-sdk'
 import {
   ButtonActionsType,
   FormulaDataTypes,
@@ -539,6 +548,15 @@ const getColumnValidationError = (column: ColumnType, value?: any) => {
   }
 }
 
+// narrows a rollup's options, as `isLTAR` does for links
+const isRollupColOptions = (uidt: string | undefined, _colOptions: unknown): _colOptions is RollupType => uidt === UITypes.Rollup
+
+// typed tree of a formula or formula rollup column
+const getColumnParsedTree = (col?: ColumnType): ParsedFormulaNode | undefined => {
+  const colOptions = col?.colOptions
+  return colOptions && 'parsed_tree' in colOptions ? colOptions.parsed_tree : undefined
+}
+
 const getFormulaColDataType = (col: ColumnType) => {
   return (col?.colOptions as any)?.parsed_tree?.dataType ?? FormulaDataTypes.STRING
 }
@@ -667,6 +685,8 @@ export {
   isFormViewHiddenCol,
   columnToValidate,
   getColumnValidationError,
+  getColumnParsedTree,
+  isRollupColOptions,
   getFormulaColDataType,
   isSearchableColumn,
   showReadonlyColumnTooltip,

@@ -41,8 +41,12 @@ import {
   parseMetaProp,
   prepareForDb,
   prepareForResponse,
+  stringifyMetaProp,
 } from '~/utils/modelUtils';
-import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
+import {
+  getFormulasReferredTheColumn,
+  getFormulasReferringColumnViaPath,
+} from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import {
   clearSingleQueryCacheForColumnReferences,
@@ -373,6 +377,8 @@ export default class Column<T = any> implements ColumnType {
             fk_relation_column_id: column.fk_relation_column_id,
             fk_rollup_column_id: column.fk_rollup_column_id,
             rollup_function: column.rollup_function,
+            rollup_formula: column.rollup_formula,
+            parsed_tree: column.parsed_tree,
             error: column.error,
           },
           ncMeta,
@@ -1122,6 +1128,52 @@ export default class Column<T = any> implements ColumnType {
           await afterRelatedColumnUpdate?.(context, formulaCol.id);
         }
       }
+
+      // formulas in other tables reaching this column through `{Link}.{Field}`
+      for (const {
+        column: formulaColumn,
+        context: formulaContext,
+      } of await getFormulasReferringColumnViaPath(context, col, ncMeta)) {
+        const formula = await formulaColumn.getColOptions<
+          FormulaColumn | ButtonColumn
+        >(ncMeta);
+        if (
+          !formula ||
+          !addFormulaErrorIfMissingColumn({
+            formula,
+            columnId: id,
+            title: col?.title,
+          })
+        ) {
+          continue;
+        }
+        await beforeRelatedColumnUpdate?.(formulaContext, formulaColumn.id);
+        if (formulaColumn.uidt === UITypes.Button) {
+          await ButtonColumn.update(
+            formulaContext,
+            formulaColumn.id,
+            {
+              type: (formula as ButtonColumn).type,
+              error: formula.error,
+            },
+            ncMeta,
+          );
+        } else {
+          await FormulaColumn.update(
+            formulaContext,
+            formulaColumn.id,
+            formula as FormulaColumn & { parsed_tree?: any },
+            ncMeta,
+          );
+        }
+        await afterRelatedColumnUpdate?.(formulaContext, formulaColumn.id);
+        await View.clearSingleQueryCache(
+          formulaContext,
+          formulaColumn.fk_model_id,
+          null,
+          ncMeta,
+        );
+      }
     }
 
     // Clear fk_display_value_column_id on LTAR columns referencing the deleted column.
@@ -1752,7 +1804,8 @@ export default class Column<T = any> implements ColumnType {
     if (!skipFormulaInvalidate) {
       // invalidate formula/button parsed-tree in which current column is used
       // whenever a new request comes for that formula, it will be populated again
-      getFormulasReferredTheColumn(
+      // (awaited: the dependency handlers that run next re-derive these trees)
+      await getFormulasReferredTheColumn(
         context,
         {
           column: updatedColumn,
@@ -1788,6 +1841,34 @@ export default class Column<T = any> implements ColumnType {
           }
         })
         // ignore the error and continue, if formula/button is no longer valid it will be captured in the next run
+        .catch((err) => {
+          logger.error(err);
+        });
+
+      // and in other tables that reach this column through `{Link}.{Field}`
+      getFormulasReferringColumnViaPath(context, updatedColumn, ncMeta)
+        .then(async (formulas) => {
+          for (const {
+            column: formulaColumn,
+            context: formulaContext,
+          } of formulas) {
+            await (formulaColumn.uidt === UITypes.Button
+              ? ButtonColumn
+              : FormulaColumn
+            ).update(
+              formulaContext,
+              formulaColumn.id,
+              { parsed_tree: null },
+              ncMeta,
+            );
+            await View.clearSingleQueryCache(
+              formulaContext,
+              formulaColumn.fk_model_id,
+              null,
+              ncMeta,
+            );
+          }
+        })
         .catch((err) => {
           logger.error(err);
         });
@@ -2336,6 +2417,8 @@ export default class Column<T = any> implements ColumnType {
 
             fk_rollup_column_id: column.fk_rollup_column_id,
             rollup_function: column.rollup_function,
+            rollup_formula: column.rollup_formula,
+            parsed_tree: stringifyMetaProp(column, 'parsed_tree', null),
           });
           break;
         }

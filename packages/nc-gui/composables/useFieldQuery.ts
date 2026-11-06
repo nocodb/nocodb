@@ -6,6 +6,7 @@ import {
   SqlUiFactory,
   type TableType,
   UITypes,
+  getRollupResultUidt,
   isNumericCol,
   isVirtualCol,
   ncIsNaN,
@@ -151,12 +152,17 @@ export function useFieldQuery() {
       Object.values(sqlUis.value)[0] ||
       SqlUiFactory.create({ client: ClientType.MYSQL })
 
+    // a formula rollup searches by its result type: text with like, the rest with eq
+    const rollupResultUidt = getRollupResultUidt(col)
+
     if (
-      (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
-      !isNumericCol(col) &&
-      sqlUi &&
-      ['text', 'string', 'json'].includes(sqlUi.getAbstractType(col)) &&
-      col.dt !== 'bigint'
+      rollupResultUidt
+        ? rollupResultUidt === UITypes.SingleLineText
+        : (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
+          !isNumericCol(col) &&
+          sqlUi &&
+          ['text', 'string', 'json'].includes(sqlUi.getAbstractType(col)) &&
+          col.dt !== 'bigint'
     ) {
       if (params.getWhereQueryAs === 'object') {
         return {

@@ -1,3 +1,5 @@
+import { Logger } from '@nestjs/common';
+
 export const driverClientMapping = {
   mysql: 'mysql2',
   mariadb: 'mysql2',
@@ -107,6 +109,33 @@ export const NC_DISABLE_GROUP_BY_AGG =
 // every bucket runs as its own derived subquery (legacy behavior).
 export const NC_DISABLE_BULK_AGG_CONSOLIDATION =
   process.env.NC_DISABLE_BULK_AGG_CONSOLIDATION === 'true' || false;
+
+// Cap (ms) on aggregation reads over customer data (count / groupBy /
+// aggregate). A runaway GROUP BY otherwise holds a pooled connection for its
+// whole runtime, and a fan-out of them drains the pool for every tenant.
+// Enforced on pg only (statement_timeout); 0 disables.
+const DEFAULT_DATA_QUERY_TIMEOUT_MS = 30000;
+// statement_timeout is a signed 32-bit int; above it the SET itself fails
+const MAX_DATA_QUERY_TIMEOUT_MS = 2147483647;
+let warnedInvalidDataQueryTimeout = false;
+
+export const getDataQueryTimeout = (): number => {
+  const raw = process.env.NC_DATA_QUERY_TIMEOUT_MS?.trim();
+  if (!raw) return DEFAULT_DATA_QUERY_TIMEOUT_MS;
+
+  // digits only: parseInt would read '30s' as a 30 ms cap
+  if (/^\d+$/.test(raw)) {
+    return Math.min(parseInt(raw, 10), MAX_DATA_QUERY_TIMEOUT_MS);
+  }
+
+  if (!warnedInvalidDataQueryTimeout) {
+    warnedInvalidDataQueryTimeout = true;
+    new Logger('nc-config').warn(
+      `Ignoring invalid NC_DATA_QUERY_TIMEOUT_MS="${raw}", expected whole milliseconds. Using ${DEFAULT_DATA_QUERY_TIMEOUT_MS}ms.`,
+    );
+  }
+  return DEFAULT_DATA_QUERY_TIMEOUT_MS;
+};
 
 export const NC_DISABLE_UNDO_REDO =
   process.env.NC_DISABLE_UNDO_REDO === 'true' || false;

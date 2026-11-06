@@ -24,7 +24,9 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen, isFullScreen } = storeToRefs(useSidebarStore())
+
+const { allowCSVDownload } = useSharedView()
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
@@ -40,6 +42,12 @@ const router = useRouter()
 
 const disableToolbar = computed(
   () => router.currentRoute.value.query?.disableToolbar === 'true' || isTimeline.value || isForm.value,
+)
+
+// Public views download from the shared top bar; fall back to the toolbar when that bar is hidden.
+const showPublicDownload = computed(
+  () =>
+    isPublic.value && allowCSVDownload.value && (router.currentRoute.value.query?.disableTopbar === 'true' || isFullScreen.value),
 )
 
 /** EE only: Check if any filters are pinned to the toolbar.
@@ -145,16 +153,19 @@ function triggerToolbarControl(selector: string) {
         </template>
 
         <template v-if="isCalendar && !isMobileMode">
-          <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
-          <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
+          <SmartsheetToolbarExport v-if="!isViewOperationsAllowed || showPublicDownload" is-in-toolbar />
+          <SmartsheetToolbarOpenedViewAction v-if="!isPublic" :show-only-copy-id="!isViewOperationsAllowed" />
         </template>
       </div>
 
       <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed && !isMobileMode" />
 
       <template v-if="!isCalendar">
-        <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
-        <SmartsheetToolbarOpenedViewAction v-if="!isMobileSearchActive" :show-only-copy-id="!isViewOperationsAllowed" />
+        <SmartsheetToolbarExport v-if="!isViewOperationsAllowed || showPublicDownload" is-in-toolbar />
+        <SmartsheetToolbarOpenedViewAction
+          v-if="!isMobileSearchActive && !isPublic"
+          :show-only-copy-id="!isViewOperationsAllowed"
+        />
       </template>
 
       <SmartsheetToolbarPinnedFilters

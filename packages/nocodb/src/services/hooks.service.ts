@@ -28,10 +28,17 @@ import {
   populateSamplePayloadV2,
   populateSamplePayloadView,
 } from '~/helpers/populateSamplePayload';
-import { invokeWebhook } from '~/helpers/webhookHelpers';
+import { invokeWebhook, parseBody } from '~/helpers/webhookHelpers';
 import { isInternalUrl } from '~/utils/ssrf';
 import { isEE } from '~/utils';
-import { ButtonColumn, Filter, Hook, HookLog, Model } from '~/models';
+import {
+  BaseVariable,
+  ButtonColumn,
+  Filter,
+  Hook,
+  HookLog,
+  Model,
+} from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -39,6 +46,22 @@ import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-han
 import { isReplay } from '~/helpers/replayScope';
 
 const SUPPORTED_HOOK_VERSION = ['v3'];
+
+function parseHttpUrl(target: string): URL | null {
+  try {
+    const url = new URL(target.trim());
+    return ['http:', 'https:'].includes(url.protocol) && url.hostname
+      ? url
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+// Scheme + host part of a url template, e.g. `{{ vars.API_BASE }}` in `{{ vars.API_BASE }}/orders`.
+function urlTemplateOrigin(target: string): string {
+  return target.trim().match(/^(?:[^/?#]*\/\/)?[^/?#]*/)?.[0] ?? '';
+}
 
 @Injectable()
 export class HooksService {
@@ -80,6 +103,7 @@ export class HooksService {
    * blocked by the filtering agent.
    */
   async validateHookPayload(
+    context: NcContext,
     notificationJsonOrObject: string | Record<string, any>,
     { skipTargetCheck = false }: { skipTargetCheck?: boolean } = {},
   ) {
@@ -90,17 +114,39 @@ export class HooksService {
       notification.type !== 'Script' &&
       process.env.NC_CLOUD === 'true'
     ) {
-      NcError.badRequest('Only URL and Script notifications are supported');
+      NcError.get(context).badRequest(
+        'Only URL and Script notifications are supported',
+      );
     }
 
-    const target = notification.payload?.path;
-    if (
-      !skipTargetCheck &&
-      notification.type === 'URL' &&
-      typeof target === 'string' &&
-      (await isInternalUrl(target, OperationSource.HOOKS))
-    ) {
-      NcError.badRequest('URL not allowed: private/link-local address');
+    if (skipTargetCheck || notification.type !== 'URL') return;
+
+    const path = notification.payload?.path;
+    const target = typeof path === 'string' ? path.trim() : '';
+    if (!target) {
+      NcError.get(context).badRequest('Invalid URL');
+    }
+
+    // Base variables render now; row data (`{{ data.x }}`) only exists at send time.
+    const vars = context.base_id
+      ? await BaseVariable.listAsMap(context, context.base_id)
+      : {};
+    const rendered = parseBody(target, {}, vars).replace(
+      /\{\{[\s\S]*?\}\}/g,
+      'x',
+    );
+    const url = parseHttpUrl(rendered);
+
+    // A scheme/host from a variable that is not set here (e.g. another
+    // environment) is checked when the hook sends.
+    if (!url && !urlTemplateOrigin(target).includes('{{')) {
+      NcError.get(context).badRequest(`Invalid URL: ${target}`);
+    }
+
+    if (url && (await isInternalUrl(url.href, OperationSource.HOOKS))) {
+      NcError.get(context).badRequest(
+        'URL not allowed: private/link-local address',
+      );
     }
   }
 
@@ -159,7 +205,7 @@ export class HooksService {
       validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
     }
     this.validateCommentEvent(context, param.hook);
-    await this.validateHookPayload(param.hook.notification, {
+    await this.validateHookPayload(context, param.hook.notification, {
       skipTargetCheck: !!option?.isTableDuplicate || isReplay(),
     });
 
@@ -311,7 +357,7 @@ export class HooksService {
     }
 
     this.validateCommentEvent(context, param.hook);
-    await this.validateHookPayload(param.hook.notification, {
+    await this.validateHookPayload(context, param.hook.notification, {
       skipTargetCheck:
         isReplay() ||
         this.parseNotification(param.hook.notification).payload?.path ===
@@ -466,7 +512,7 @@ export class HooksService {
       param.hookTest,
     );
 
-    await this.validateHookPayload(param.hookTest.hook?.notification);
+    await this.validateHookPayload(context, param.hookTest.hook?.notification);
 
     const model = await Model.getByIdOrName(context, { id: param.tableId });
 

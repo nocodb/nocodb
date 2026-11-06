@@ -413,10 +413,13 @@ useSearchCommands({
         </div>
         <div v-if="isSearchResultVisible" class="border-t-1 border-nc-border-gray-medium py-1 px-3 flex gap-3">
           <div class="text-nc-content-gray text-bodySmBold">
-            {{ $t('title.countOfTotal', { count: totalRowsWithSearchQuery, total: totalRowsWithoutSearchQuery }) }}
-          </div>
-          <div class="text-nc-content-gray-muted text-bodySm">
-            {{ $t('title.matchingResultsInRecords', { count: totalRowsWithSearchQuery }) }}
+            {{
+              $t(
+                'title.countOfTotalMatchingRecords',
+                { matched: totalRowsWithSearchQuery, total: totalRowsWithoutSearchQuery },
+                totalRowsWithoutSearchQuery,
+              )
+            }}
           </div>
         </div>
       </div>

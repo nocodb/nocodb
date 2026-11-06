@@ -274,6 +274,7 @@ export const extractCallExpressionReferencedInfo = ({
     case 'HOUR':
     case 'WEEKDAY':
     case 'WEEKNUM':
+    case 'WORKDAY_DIFF':
     case 'LEN':
     case 'DATESTR':
     case 'AND':
@@ -294,6 +295,22 @@ export const extractCallExpressionReferencedInfo = ({
       nodeArgs = nodeArgs.slice(0, 1);
       isPureOperation = true;
       break;
+    }
+
+    // always a plain date: borrow the start date's display only from a Date field
+    case 'WORKDAY': {
+      const info = getReferencedInfoFromArgs(
+        nodeArgs.slice(0, 1),
+        parsedTree.dataType,
+        { isPureOperation: true }
+      );
+      const isDateRef = info.referencedColumn?.uidt === UITypes.Date;
+      return {
+        ...info,
+        referencedColumn: isDateRef ? info.referencedColumn : undefined,
+        invalidForReferenceColumn: info.invalidForReferenceColumn || !isDateRef,
+        uidtCandidates: [UITypes.Date],
+      } as ReferencedInfo;
     }
 
     case 'IF': {

@@ -3,7 +3,11 @@ import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
-import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import {
+  ncIsStringHasValue,
+  ncLikeContainsPattern,
+  ncLikeEscapeClause,
+} from '~/db/field-handler/utils/handlerUtils';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NcError } from '~/helpers/ncError';
 
@@ -76,22 +80,30 @@ export class JsonMySqlHandler extends JsonGeneralHandler {
             break;
 
           case 'like':
-            val = val ? `%${val}%` : val;
+            val = val ? ncLikeContainsPattern(knex, val) : val;
             if (!val) {
               qb.whereNotNull(field);
             } else {
-              qb.where(knex.raw('JSON_UNQUOTE(??) like ?', [field, val]));
+              qb.where(
+                knex.raw(`JSON_UNQUOTE(??) like ?${ncLikeEscapeClause(knex)}`, [
+                  field,
+                  val,
+                ]),
+              );
             }
             break;
 
           case 'nlike':
-            val = val ? `%${val}%` : val;
+            val = val ? ncLikeContainsPattern(knex, val) : val;
             if (!val) {
               qb.whereNull(field);
             } else {
               qb.where((nestedQb) => {
                 nestedQb.where(
-                  knex.raw('JSON_UNQUOTE(??) not like ?', [field, val]),
+                  knex.raw(
+                    `JSON_UNQUOTE(??) not like ?${ncLikeEscapeClause(knex)}`,
+                    [field, val],
+                  ),
                 );
                 if (val !== '%%') {
                   nestedQb.orWhere(field, '').orWhereNull(field);

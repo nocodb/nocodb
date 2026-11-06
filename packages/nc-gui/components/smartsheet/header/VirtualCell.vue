@@ -114,10 +114,12 @@ const tooltipMsg = computed(() => {
       const fkColumn = getMetaByKey(relatedBaseId, column.value?.colOptions?.fk_related_model_id as string)?.columns?.find(
         (c) => c.id === column.value?.colOptions?.fk_child_column_id,
       )
-      suffix = !fkColumn?.title || fkColumn.title.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
+      suffix =
+        !fkColumn?.title || fkColumn.title.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
     } else if (isBt(column.value)) {
       const fkColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
-      suffix = !fkColumn?.title || fkColumn.title.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
+      suffix =
+        !fkColumn?.title || fkColumn.title.startsWith('nc_') ? '' : `\n${t('labels.foreignKeyColumn', { title: fkColumn.title })}`
     }
   }
 
@@ -134,6 +136,7 @@ const tooltipMsg = computed(() => {
       (column.value?.colOptions as FormulaType)?.formula,
       meta?.value?.columns as ColumnType[],
       (column.value?.colOptions as any)?.formula_raw,
+      (linkColumn) => getLinkedMetaColumns(getMetaByKey, linkColumn),
     )
     return t('labels.formulaTooltip', { formula })
   }
@@ -311,12 +314,11 @@ const onClick = (e: Event) => {
         }"
       />
 
+      <div class="flex-1" />
       <SmartsheetHeaderDescriptionTooltip
         v-if="column.description?.length && isExpandedForm && !hideMenu"
         :description="column.description"
       />
-
-      <div class="flex-1" />
       <NcTooltip
         v-if="meta?.synced && column?.readonly && isExpandedForm && !isPublic"
         class="flex items-center"

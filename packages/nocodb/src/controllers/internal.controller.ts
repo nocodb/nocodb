@@ -71,6 +71,18 @@ const BATCH_BLOCKED_OPERATIONS: ReadonlySet<string> = new Set<string>([
   ...Object.keys(sourceRestrictions[SourceRestriction.SCHEMA_READONLY]),
 ]);
 
+/**
+ * Ops that address their table only through the body: body key → the
+ * `resolveRequestTable` key it is resolved as. The extract-ids middleware reads
+ * params and query only, so without this the table visibility gate never sees
+ * these tables.
+ */
+export const BODY_TABLE_ID_KEYS: Readonly<
+  Record<string, Readonly<Record<string, string>>>
+> = {
+  buttonRun: { columnId: 'columnId' },
+};
+
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class InternalController {
@@ -280,6 +292,8 @@ export class InternalController {
       }
     }
 
+    await this.scopeReqToBodyTable(operation, req);
+
     await this.aclMiddleware.aclFn(
       operation,
       {
@@ -289,6 +303,30 @@ export class InternalController {
       },
       null,
       req,
+    );
+  }
+
+  protected bodyTableIdKeys(
+    operation: string,
+  ): Readonly<Record<string, string>> | undefined {
+    return BODY_TABLE_ID_KEYS[operation];
+  }
+
+  /** Points the table visibility gate at the table a body-addressed op targets. */
+  protected async scopeReqToBodyTable(operation: string, req: NcRequest) {
+    const keys = this.bodyTableIdKeys(operation);
+    if (!keys || !req.ncBaseId || !req.context) return;
+
+    const body = req.body ?? {};
+    const ids: Record<string, unknown> = {};
+    for (const [bodyKey, key] of Object.entries(keys)) {
+      ids[key] = body[bodyKey];
+    }
+
+    req.context.ncTableId = await resolveRequestTable(
+      req.context,
+      req.context.ncTableId,
+      ids,
     );
   }
 

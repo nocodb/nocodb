@@ -318,6 +318,15 @@ const FEATURES = [
     version: 1,
     isEE: true,
   },
+  {
+    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
+    // would silently reset the toggle for anyone who had it on.
+    id: 'rollup_formula',
+    title: 'Rollup formulas',
+    description: 'Aggregate linked records with a formula over their values, like ROUND(SUM(values) * 1.1, 2).',
+    enabled: false,
+    version: 1,
+  },
 ] as const
 
 // Retired flags: FEATURES entries commented out above, but kept in FEATURE_FLAG

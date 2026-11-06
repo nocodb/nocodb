@@ -429,6 +429,21 @@ const validators = computed(() => {
       'notification.payload.path': [
         fieldRequiredValidator(),
         {
+          // Mirrors the backend: an absolute http(s) url once Handlebars expressions render.
+          // A scheme/host from a template (e.g. `{{ vars.API_BASE }}/orders`) is checked at send time.
+          validator: (_: any, path: string) => {
+            if (!path || /^(?:[^/?#]*\/\/)?[^/?#]*/.exec(path.trim())?.[0].includes('{{')) return Promise.resolve()
+            let valid = false
+            try {
+              const url = new URL(path.trim().replace(/\{\{[\s\S]*?\}\}/g, 'x'))
+              valid = ['http:', 'https:'].includes(url.protocol) && !!url.hostname
+            } catch {
+              valid = false
+            }
+            return valid ? Promise.resolve() : Promise.reject(new Error(t('msg.error.invalidURL')))
+          },
+        },
+        {
           validator: (_: any, path: string) => {
             return new Promise<void>((resolve, reject) => {
               showCyclicCallsWarning.value = false

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { stripTypeScriptTypes } from 'node:module'
-import { ref, computed, watch, effectScope, nextTick } from 'vue'
+import { computed, effectScope, nextTick, ref, watch } from 'vue'
 
 const file = process.argv[2] ?? new URL('../components/virtual-cell/components/LinkedItems.vue', import.meta.url)
 const source = readFileSync(file, 'utf8')
@@ -16,7 +16,7 @@ const openCode = source.slice(source.indexOf('watch(\n  [vModel, isForm]'), sour
 const tick = async () => {
   for (let i = 0; i < 5; i++) await nextTick()
 }
-function fixture({ cached = true, canReorder = true, total = 31 } = {}) {
+function fixture({ cached = true, canReorder = true, total = 31, queuedLinks = 0 } = {}) {
   const scope = effectScope()
   const records = Array.from({ length: total }, (_, i) => ({ Id: i + 1 }))
   const store = {
@@ -26,7 +26,7 @@ function fixture({ cached = true, canReorder = true, total = 31 } = {}) {
     isForm: ref(false),
     isNew: ref(false),
     childrenListPagination: { query: '' },
-    childrenListCount: ref(cached ? total : 0),
+    childrenListCount: ref(cached ? total + queuedLinks : 0),
     childrenList: ref(cached ? { list: records, pageInfo: { totalRows: total } } : undefined),
     vModel: ref(true),
     refreshCurrentRow() {},
@@ -39,18 +39,20 @@ function fixture({ cached = true, canReorder = true, total = 31 } = {}) {
         limit,
         finish() {
           store.childrenList.value = { list: records.slice(0, limit), pageInfo: { totalRows: total } }
-          store.childrenListCount.value = total
+          // Expanded form: the count also includes queued (unsaved) links (resolveDeferredLtarCount).
+          store.childrenListCount.value = total + queuedLinks
           resolve(store.childrenList.value)
         },
       })
     })
   const names = Object.keys(store)
+  // eslint-disable-next-line no-new-func -- runs the component's real watcher source
   const setup = new Function(
     'ref',
     'computed',
     'watch',
     ...names,
-    stripTypeScriptTypes(`${reorderCode}\n${openCode}`) + '\nreturn {reorderEnabled, reorderRows}',
+    `${stripTypeScriptTypes(`${reorderCode}\n${openCode}`)}\nreturn {reorderEnabled, reorderRows}`,
   )
   const output = scope.run(() => setup(ref, computed, watch, ...names.map((n) => store[n])))
   return { ...output, store, requests, stop: () => scope.stop() }
@@ -83,6 +85,21 @@ test('a later default-size reload must not truncate a full reorderable list', as
     f.store.loadChildrenList(true)
     await drain(f)
     assert.equal(f.reorderRows.value.length, 31, 'reload must refill the draggable list')
+  } finally {
+    f.stop()
+  }
+})
+test('a queued (unsaved) link keeps the count above the loadable rows without looping', async () => {
+  // Expanded form of an existing row: childrenListCount = persisted + queued
+  // links, so no reload can ever satisfy `list.length >= childrenListCount`.
+  const f = fixture({ cached: false, queuedLinks: 1 })
+  try {
+    await drain(f)
+    assert.equal(f.store.childrenListCount.value, 32)
+    assert.equal(f.reorderRows.value.length, 31)
+    f.store.loadChildrenList(true)
+    await drain(f)
+    assert.equal(f.reorderRows.value.length, 31, 'reload must refill once and stop')
   } finally {
     f.stop()
   }

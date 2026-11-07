@@ -149,12 +149,26 @@ const syncReorderRows = () => {
 
 // Refill the full draggable set after every list reload: the default page only
 // contains one chunk, and reorder mode does not render the virtualized rows.
+//
+// Compare against the persisted total (`pageInfo.totalRows`), not
+// `childrenListCount`: in the expanded form the count also includes queued
+// (unsaved) links, which no reload can return — comparing against it would
+// refetch forever. `refilling` skips the re-entrant run caused by our own reload.
+let refilling = false
+
 watch(
   [reorderEnabled, childrenList],
   async ([enabled]) => {
-    if (!enabled) return
-    if ((childrenList.value?.list?.length ?? 0) < childrenListCount.value) {
-      await loadChildrenList(true, undefined, REORDER_MAX)
+    if (!enabled || refilling) return
+    const loaded = childrenList.value?.list?.length ?? 0
+    const total = childrenList.value?.pageInfo?.totalRows ?? childrenListCount.value
+    if (loaded < total) {
+      refilling = true
+      try {
+        await loadChildrenList(true, undefined, REORDER_MAX)
+      } finally {
+        refilling = false
+      }
     }
     syncReorderRows()
   },

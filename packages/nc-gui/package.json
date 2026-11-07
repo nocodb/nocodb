@@ -16,12 +16,13 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24"
   },
   "web-types": "web-types.json",
   "scripts": {
     "dev": "nuxt dev",
     "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
+    "test:unit": "node --test tests/*.test.mjs",
     "preinstall": "npx only-allow pnpm",
     "postinstall": "nuxt prepare"
   },

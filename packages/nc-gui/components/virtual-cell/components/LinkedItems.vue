@@ -147,25 +147,38 @@ const syncReorderRows = () => {
   reorderRows.value = [...(childrenList.value?.list ?? [])]
 }
 
-// When reorder becomes active, make sure the FULL set (up to REORDER_MAX) is
-// loaded into a single page, then mirror it into the draggable list.
+// Refill the full draggable set after every list reload: the default page only
+// contains one chunk, and reorder mode does not render the virtualized rows.
+//
+// Compare against the persisted total (`pageInfo.totalRows`), not
+// `childrenListCount`: in the expanded form the count also includes queued
+// (unsaved) links, which no reload can return — comparing against it would
+// refetch forever. `refilling` skips the re-entrant run caused by our own reload.
+let refilling = false
+
 watch(
-  reorderEnabled,
-  async (enabled) => {
-    if (!enabled) return
-    if ((childrenList.value?.list?.length ?? 0) < childrenListCount.value) {
-      await loadChildrenList(true, undefined, REORDER_MAX)
+  [reorderEnabled, childrenList],
+  async ([enabled]) => {
+    if (!enabled || refilling) return
+    const loaded = childrenList.value?.list?.length ?? 0
+    const total = childrenList.value?.pageInfo?.totalRows ?? childrenListCount.value
+    if (loaded < total) {
+      refilling = true
+      try {
+        await loadChildrenList(true, undefined, REORDER_MAX)
+      } finally {
+        refilling = false
+      }
     }
     syncReorderRows()
   },
   { immediate: true },
 )
 
-// Keep the draggable list in sync when the underlying list changes (e.g. after a
-// reorder reload or an unlink) — but only while not mid-list-load.
-watch(childrenList, () => {
-  if (reorderEnabled.value) syncReorderRows()
-})
+// Page size for the reload call sites below: while reorder mode is active,
+// fetch the whole set in one request instead of the default page followed by
+// the watcher's refill.
+const listLimit = () => (reorderEnabled.value ? REORDER_MAX : undefined)
 
 const onReorderEnd = async (evt: { oldIndex?: number; newIndex?: number }) => {
   const { oldIndex, newIndex } = evt
@@ -178,7 +191,7 @@ const onReorderEnd = async (evt: { oldIndex?: number; newIndex?: number }) => {
   if (!movedRow) return
 
   try {
-    await reorderLink(movedRow, beforeRow)
+    await reorderLink(movedRow, beforeRow, { limit: REORDER_MAX })
   } catch (e) {
     // On failure, resync from the (unchanged) source of truth.
     message.error(await extractSdkResponseErrorMsg(e))
@@ -191,7 +204,7 @@ watch(
   (nextVal) => {
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
       refreshCurrentRow()
-      loadChildrenList(true)
+      loadChildrenList(true, undefined, listLimit())
     }
 
     // reset offset count when closing modal
@@ -265,7 +278,7 @@ const addNewRecord = () => {
 const reloadViewDataListener = withLoading((params) => {
   if (params?.isFromLinkRecord) {
     refreshCurrentRow()
-    loadChildrenList()
+    loadChildrenList(false, undefined, listLimit())
   }
 })
 
@@ -339,7 +352,7 @@ const onCreatedRecord = async (record: any) => {
 }
 
 const onDeletedRecord = () => {
-  loadChildrenList(true)
+  loadChildrenList(true, undefined, listLimit())
 }
 
 const relation = computed(() => {

@@ -8,10 +8,16 @@ const file = process.argv[2] ?? new URL('../components/virtual-cell/components/L
 const source = readFileSync(file, 'utf8')
 // Run the component's watcher setup with a controlled list loader so response
 // ordering is deterministic, without bootstrapping Nuxt or copying the watchers.
-assert.ok(source.includes('const REORDER_MAX =') && source.includes('const onReorderEnd ='))
-assert.ok(source.includes('watch(\n  [vModel, isForm]') && source.includes('const unlinkRow ='))
-const reorderCode = source.slice(source.indexOf('const REORDER_MAX ='), source.indexOf('const onReorderEnd ='))
-const openCode = source.slice(source.indexOf('watch(\n  [vModel, isForm]'), source.indexOf('const unlinkRow ='))
+// Locate the two blocks by their declarations (whitespace-insensitive) so a
+// reformat of the component does not silently break the harness.
+const between = (startRe, endRe) => {
+  const start = source.search(startRe)
+  const end = source.search(endRe)
+  assert.ok(start !== -1 && end > start, `could not locate ${startRe} … ${endRe} in ${file}`)
+  return source.slice(start, end)
+}
+const reorderCode = between(/const REORDER_MAX =/, /const onReorderEnd =/)
+const openCode = between(/watch\(\s*\[vModel, isForm\]/, /const unlinkRow =/)
 
 const tick = async () => {
   for (let i = 0; i < 5; i++) await nextTick()
@@ -71,6 +77,11 @@ test('reopening a cached reorderable list retains every linked record', async ()
   const f = fixture()
   try {
     assert.equal(f.reorderRows.value.length, 31)
+    // Reorder mode is already active, so the reopen fetches the full set once.
+    assert.deepEqual(
+      f.requests.map((r) => r.limit),
+      [50],
+    )
     await drain(f)
     assert.equal(f.reorderRows.value.length, 31, 'reopen must not truncate linked records to the first 10')
   } finally {
@@ -136,9 +147,14 @@ for (const first of ['full', 'partial']) {
   test(`overlapping reloads converge when ${first} response finishes first`, async () => {
     const f = fixture()
     try {
+      await drain(f)
+      // A default-size reload from elsewhere (e.g. a realtime refresh) races the
+      // full-set reload issued while reorder mode is active.
+      f.store.loadChildrenList(true)
       f.store.loadChildrenList(true, undefined, 50)
       const partial = f.requests.find((r) => r.limit === 10)
       const full = f.requests.find((r) => r.limit === 50)
+      assert.ok(partial && full, 'both reloads must be in flight')
       f.requests.splice(0)
       ;(first === 'full' ? full : partial).finish()
       await tick()

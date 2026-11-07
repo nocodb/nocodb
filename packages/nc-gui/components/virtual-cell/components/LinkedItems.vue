@@ -175,6 +175,11 @@ watch(
   { immediate: true },
 )
 
+// Page size for the reload call sites below: while reorder mode is active,
+// fetch the whole set in one request instead of the default page followed by
+// the watcher's refill.
+const listLimit = () => (reorderEnabled.value ? REORDER_MAX : undefined)
+
 const onReorderEnd = async (evt: { oldIndex?: number; newIndex?: number }) => {
   const { oldIndex, newIndex } = evt
   if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return
@@ -186,7 +191,7 @@ const onReorderEnd = async (evt: { oldIndex?: number; newIndex?: number }) => {
   if (!movedRow) return
 
   try {
-    await reorderLink(movedRow, beforeRow)
+    await reorderLink(movedRow, beforeRow, { limit: REORDER_MAX })
   } catch (e) {
     // On failure, resync from the (unchanged) source of truth.
     message.error(await extractSdkResponseErrorMsg(e))
@@ -199,7 +204,7 @@ watch(
   (nextVal) => {
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
       refreshCurrentRow()
-      loadChildrenList(true)
+      loadChildrenList(true, undefined, listLimit())
     }
 
     // reset offset count when closing modal
@@ -273,7 +278,7 @@ const addNewRecord = () => {
 const reloadViewDataListener = withLoading((params) => {
   if (params?.isFromLinkRecord) {
     refreshCurrentRow()
-    loadChildrenList()
+    loadChildrenList(false, undefined, listLimit())
   }
 })
 
@@ -347,7 +352,7 @@ const onCreatedRecord = async (record: any) => {
 }
 
 const onDeletedRecord = () => {
-  loadChildrenList(true)
+  loadChildrenList(true, undefined, listLimit())
 }
 
 const relation = computed(() => {

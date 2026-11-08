@@ -22,6 +22,8 @@ minimumReleaseAgeExclude:
   - multer
   - serialize-javascript
   - happy-dom
+  # Renovate security update: glob@14.0.4
+  - glob@14.0.4
 
 # Detect when a package loses its provenance guarantees (e.g. previously
 # published via CI, now published from a local machine — signals account compromise).

@@ -27,11 +27,11 @@
     "format": "biome format --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.6.6",
     "swagger-typescript-api": "13.12.2",
-    "@rslib/core": "^0.7.1",
-    "@types/node": "^22.8.1",
-    "typescript": "^5.8.3"
+    "@rslib/core": "^1.0.6",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "axios": "1.20.0"

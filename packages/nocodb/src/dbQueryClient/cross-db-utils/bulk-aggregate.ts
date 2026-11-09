@@ -14,7 +14,10 @@ import { Filter, Model } from '~/models';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { resolveAggregateColumns } from '~/dbQueryClient/cross-db-utils/aggregate';
-import { NC_DISABLE_BULK_AGG_CONSOLIDATION } from '~/utils/nc-config';
+import {
+  getDataQueryTimeout,
+  NC_DISABLE_BULK_AGG_CONSOLIDATION,
+} from '~/utils/nc-config';
 import { NcError } from '~/helpers/ncError';
 import { defaultGroupByLimitConfig } from '~/helpers/extractLimitAndOffset';
 
@@ -503,9 +506,11 @@ export const bulkAggregate =
             )
             .from(innerQb.as('__nc_bulk_agg__'));
 
+          // a cancelled scan falls back to the per-bucket path, capped too
           const result = await baseModel.execAndParse(outerQb, null, {
             first: true,
             bulkAggregate: true,
+            queryTimeout: getDataQueryTimeout(),
           });
 
           // Falsy would fall through to the legacy path below, so it isn't an
@@ -648,6 +653,7 @@ export const bulkAggregate =
       const row = await baseModel.execAndParse(qb, null, {
         first: true,
         bulkAggregate: true,
+        queryTimeout: getDataQueryTimeout(),
       });
 
       if (!row || typeof row !== 'object') return {};

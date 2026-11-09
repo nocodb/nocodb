@@ -7,7 +7,10 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { MetaService } from '~/meta/meta.service';
 import type { FilterOptions, SortOptions } from '../../field-handler.interface';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
-import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import {
+  ncIsStringHasValue,
+  ncLikeTerm,
+} from '~/db/field-handler/utils/handlerUtils';
 import { getColumnName } from '~/helpers/dbHelpers';
 import { lmbFieldQueryBuilder } from '~/db/formulav2/lmtFieldQueryBuilder';
 import { escapeBindingPlaceholders, sanitize } from '~/helpers/sqlSanitize';
@@ -396,7 +399,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
       // A full id (what `@me` resolves to) matches its user; a partial one
       // matches nothing.
       if (user.id === val) return true;
-      const filterVal = val.toLowerCase();
+      const filterVal = ncLikeTerm(val).toLowerCase();
       // Public responses show the derived name, never the email.
       const displayValue = (
         context.is_public
@@ -404,19 +407,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
           : user.display_name || user.email || ''
       ).toLowerCase();
 
-      if (filterVal.startsWith('%') && filterVal.endsWith('%')) {
-        return displayValue.includes(
-          filterVal.substring(1, filterVal.length - 1),
-        );
-      } else if (filterVal.startsWith('%')) {
-        return displayValue.endsWith(filterVal.substring(1));
-      } else if (filterVal.endsWith('%')) {
-        return displayValue.startsWith(
-          filterVal.substring(0, filterVal.length - 1),
-        );
-      }
-
-      return displayValue.includes(filterVal.toLowerCase());
+      return displayValue.includes(filterVal);
     });
     const matchedIds = users.map((user) => user.id);
 

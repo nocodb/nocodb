@@ -194,6 +194,8 @@ export const DB_CREDENTIAL_FIELDS: readonly DbCredentialField[] = [
   { path: ['connection', 'connectionUri'], vault: false, mask: true },
   { path: ['connection', 'uri'], vault: false, mask: true },
   { path: ['connection', 'url'], vault: false, mask: true },
+  // Databricks personal access token.
+  { path: ['connection', 'token'], vault: false, mask: true },
   { path: ['connection', 'ssl', 'key'], vault: true, mask: true },
   { path: ['connection', 'ssl', 'cert'], vault: true, mask: true },
   { path: ['connection', 'ssl', 'ca'], vault: true, mask: true },

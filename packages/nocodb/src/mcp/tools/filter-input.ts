@@ -1,4 +1,4 @@
-import { extractFilterFromXwhere } from 'nocodb-sdk';
+import { extractFilterFromXwhere, getRollupResultUidt } from 'nocodb-sdk';
 import type { FilterType, NcContext, UITypes } from 'nocodb-sdk';
 import { compileFilterTree, COMPUTED_TYPES } from '~/mcp/tools/filter-compile';
 import { Model } from '~/models';
@@ -24,7 +24,7 @@ export async function compileFilterInput(
       const colOptions = COMPUTED_TYPES.includes(c.uidt as UITypes)
         ? await c.getColOptions<{
             error?: string | null;
-            result_uidt?: string;
+            data_error?: boolean;
           }>()
         : null;
       return {
@@ -32,8 +32,9 @@ export async function compileFilterInput(
         title: c.title,
         column_name: c.column_name,
         uidt: c.uidt,
-        error: colOptions?.error,
-        result_uidt: colOptions?.result_uidt,
+        // a rollup flagged from its data still filters (as the error value)
+        error: colOptions?.data_error ? null : colOptions?.error ?? null,
+        result_uidt: getRollupResultUidt({ uidt: c.uidt, colOptions }),
       };
     }),
   );

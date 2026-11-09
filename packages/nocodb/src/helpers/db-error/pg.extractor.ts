@@ -391,6 +391,12 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         httpStatus = 503;
         break;
 
+      case '57014': // query_canceled, mostly the data-query cap (NC_DATA_QUERY_TIMEOUT_MS)
+        message =
+          'The query took too long and was cancelled. Try narrowing the filter or grouping.';
+        httpStatus = 422;
+        break;
+
       case '53300': // too_many_connections
         message = 'Too many database connections.';
         httpStatus = 503;

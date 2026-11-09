@@ -10,7 +10,7 @@ import type { NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import conditionV2 from '~/db/conditionV2';
+import conditionV2, { applyRelatedRls } from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
@@ -20,6 +20,7 @@ import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
 import { chunkArray } from '~/utils/tsUtils';
 import { COMPOUND_SELECT_CHUNK_SIZE } from '~/constants';
+import { isRollupDataError } from '~/db/rollupReadFallback';
 import {
   getRelationReadDepth,
   runAtNextRelationReadDepth,
@@ -280,6 +281,7 @@ export const relationDataFetcher = (param: {
         // Exclude soft-deleted records from HM results so they don't leak through links
         const hmSoftDeleteFilter = await childBaseModel.getSoftDeleteFilter();
         if (hmSoftDeleteFilter) qb.where(hmSoftDeleteFilter);
+        await applyRelatedRls(childBaseModel, qb);
 
         const childColumns = await childTable.getColumns();
         const children = await execPerIdChunk(ids, (idChunk) =>
@@ -327,6 +329,8 @@ export const relationDataFetcher = (param: {
           GROUP_COL,
         );
       } catch (e) {
+        // the caller flags a failing formula rollup and reads again
+        if (isRollupDataError(e)) throw e;
         param.logger.error(e);
       }
     },
@@ -418,6 +422,8 @@ export const relationDataFetcher = (param: {
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
+        // postProcessData resolves the rows' relations, which load by pk
+        extractPkAndPv: true,
         pkAndPvOnly:
           relColOptions.isCrossBaseLink() ||
           hasLimitedAccess ||
@@ -492,6 +498,7 @@ export const relationDataFetcher = (param: {
       // Exclude soft-deleted records from MM results so they don't leak through links
       const mmSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
       if (mmSoftDeleteFilter) qb.where(mmSoftDeleteFilter);
+      await applyRelatedRls(refBaseModel, qb, rtn);
 
       const children = await refBaseModel.execAndParse(
         qb,
@@ -575,6 +582,7 @@ export const relationDataFetcher = (param: {
       if (refSoftDeleteFilter) {
         qb.where(refSoftDeleteFilter);
       }
+      await applyRelatedRls(refBaseModel, qb, rtn);
 
       const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
@@ -584,6 +592,8 @@ export const relationDataFetcher = (param: {
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
+        // postProcessData resolves the row's relations, which load by pk
+        extractPkAndPv: true,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
         fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
@@ -787,6 +797,7 @@ export const relationDataFetcher = (param: {
         const hmListSoftDeleteFilter =
           await childBaseModel.getSoftDeleteFilter();
         if (hmListSoftDeleteFilter) qb.where(hmListSoftDeleteFilter);
+        await applyRelatedRls(childBaseModel, qb);
 
         const children = await childBaseModel.execAndParse(
           qb,
@@ -853,6 +864,7 @@ export const relationDataFetcher = (param: {
         const hmCountSoftDeleteFilter =
           await childBaseModel.getSoftDeleteFilter();
         if (hmCountSoftDeleteFilter) query.where(hmCountSoftDeleteFilter);
+        await applyRelatedRls(childBaseModel, query);
 
         const aliasColObjMap = await childTable.getAliasColObjMap();
         const { filters: filterObj } = extractFilterFromXwhere(
@@ -974,6 +986,7 @@ export const relationDataFetcher = (param: {
       });
 
       const mmListSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
+      await applyRelatedRls(refBaseModel, qb, rtn);
 
       const refColumns = await refTable.getColumns();
       const children = await execPerIdChunk(parentIds, (idChunk) =>
@@ -1078,6 +1091,7 @@ export const relationDataFetcher = (param: {
       // Exclude soft-deleted records from MM count results
       const mmCountSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
       if (mmCountSoftDeleteFilter) qb.where(mmCountSoftDeleteFilter);
+      await applyRelatedRls(refBaseModel, qb, rtn);
 
       // await childBaseModel.selectObject({ qb });
       const children = await execPerIdChunk(parentIds, (idChunk) =>
@@ -1173,6 +1187,7 @@ export const relationDataFetcher = (param: {
       const mmCountSoftDeleteFilter =
         await childBaseModel.getSoftDeleteFilter();
       if (mmCountSoftDeleteFilter) qb.where(mmCountSoftDeleteFilter);
+      await applyRelatedRls(childBaseModel, qb, rtn);
 
       const aliasColObjMap = await refTable.getAliasColObjMap();
       const { filters: filterObj } = extractFilterFromXwhere(
@@ -1275,6 +1290,7 @@ export const relationDataFetcher = (param: {
       const mmExclCountSoftDeleteFilter =
         await childBaseModel.getSoftDeleteFilter();
       if (mmExclCountSoftDeleteFilter) qb.where(mmExclCountSoftDeleteFilter);
+      await applyRelatedRls(childBaseModel, qb);
 
       const aliasColObjMap = await childTable.getAliasColObjMap();
       const { filters: filterObj } = extractFilterFromXwhere(
@@ -1396,6 +1412,7 @@ export const relationDataFetcher = (param: {
       const mmExclListSoftDeleteFilter =
         await refBaseModel.getSoftDeleteFilter();
       if (mmExclListSoftDeleteFilter) qb.where(mmExclListSoftDeleteFilter);
+      await applyRelatedRls(refBaseModel, qb);
 
       await refBaseModel.selectObject({
         qb,
@@ -1497,6 +1514,7 @@ export const relationDataFetcher = (param: {
       const hmExclListSoftDeleteFilter =
         await refBaseModel.getSoftDeleteFilter();
       if (hmExclListSoftDeleteFilter) qb.where(hmExclListSoftDeleteFilter);
+      await applyRelatedRls(refBaseModel, qb);
 
       const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
@@ -1604,6 +1622,7 @@ export const relationDataFetcher = (param: {
       const hmExclCountSoftDeleteFilter =
         await refBaseModel.getSoftDeleteFilter();
       if (hmExclCountSoftDeleteFilter) qb.where(hmExclCountSoftDeleteFilter);
+      await applyRelatedRls(refBaseModel, qb);
 
       const aliasColObjMap = await refTable.getAliasColObjMap();
       const { filters: filterObj } = extractFilterFromXwhere(
@@ -1757,6 +1776,7 @@ export const relationDataFetcher = (param: {
         await refModel.getSoftDeleteFilter();
       if (ooExcludedListSoftDeleteFilter)
         qb.where(ooExcludedListSoftDeleteFilter);
+      await applyRelatedRls(refModel, qb);
 
       applyPaginate(qb, rest);
 
@@ -1853,6 +1873,7 @@ export const relationDataFetcher = (param: {
         await parentBaseModel.getSoftDeleteFilter();
       if (btExcludedCountSoftDeleteFilter)
         qb.where(btExcludedCountSoftDeleteFilter);
+      await applyRelatedRls(parentBaseModel, qb);
 
       return (
         await parentBaseModel.execAndParse(qb, null, { raw: true, first: true })
@@ -1959,6 +1980,7 @@ export const relationDataFetcher = (param: {
         await refBaseModel.getSoftDeleteFilter();
       if (ooExcludedCountSoftDeleteFilter)
         qb.where(ooExcludedCountSoftDeleteFilter);
+      await applyRelatedRls(refBaseModel, qb);
 
       return (
         await refBaseModel.execAndParse(qb, null, { raw: true, first: true })
@@ -2054,6 +2076,7 @@ export const relationDataFetcher = (param: {
         await parentBaseModel.getSoftDeleteFilter();
       if (btExcludedListSoftDeleteFilter)
         qb.where(btExcludedListSoftDeleteFilter);
+      await applyRelatedRls(parentBaseModel, qb);
 
       applyPaginate(qb, rest);
 

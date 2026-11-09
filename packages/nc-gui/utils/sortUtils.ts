@@ -1,4 +1,12 @@
-import { type ColumnType, type SelectOptionsType, SortOrderBy, type SortType, UITypes, getEquivalentUIType } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type SelectOptionsType,
+  SortOrderBy,
+  type SortType,
+  UITypes,
+  getEquivalentUIType,
+  getRollupResultUidt,
+} from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export const getSortDirectionOptions = (uidt: UITypes | string, isGroupBy?: boolean) => {
@@ -78,6 +86,11 @@ export const sortByUIType = ({
     column?: ColumnType
   }
 }) => {
+  // a rollup sorts as its result type (text, date, …), as the backend does
+  if (uidt === UITypes.Rollup && column) {
+    uidt = (getRollupResultUidt(column) as UITypes | undefined) ?? uidt
+  }
+
   let nullsLast = direction !== 'asc'
 
   if (column && isOptionOrderSort({ order_by: orderBy }, column)) {
@@ -115,8 +128,12 @@ export const sortByUIType = ({
     case UITypes.Rating:
     case UITypes.Duration:
     case UITypes.ID:
-    case UITypes.Rollup:
       result = Number(a) - Number(b)
+      break
+
+    // a formula rollup can also yield text or dates
+    case UITypes.Rollup:
+      result = isNaN(Number(a)) || isNaN(Number(b)) ? String(a).localeCompare(String(b)) : Number(a) - Number(b)
       break
 
     case UITypes.Links: {
@@ -290,6 +307,11 @@ export const getColumnUidtByID = (key?: string, columns?: ColumnType[] | Record<
       getEquivalentUIType({
         formulaColumn: column,
       }) || uidt
+  }
+
+  // a rollup sorts as its result type
+  if (column.uidt === UITypes.Rollup) {
+    uidt = getRollupResultUidt(column) ?? uidt
   }
 
   return uidt || ''

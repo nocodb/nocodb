@@ -24,12 +24,14 @@ import {
 } from '~/helpers/attachmentHelpers';
 import { extractProps } from '~/helpers/extractProps';
 import { claimObjectTitle } from '~/helpers/customObjects';
+import { normalizeViewTitle } from '~/helpers/viewTitleHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { FormView, Model, Source, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 const FORM_IMAGE_KEYS = ['banner_image_url', 'logo_url'] as const;
 
@@ -105,7 +107,7 @@ export class FormsService {
       NcError.get(context).sourceDataReadOnly(source.alias);
     }
 
-    param.body.title = param.body.title?.trim();
+    param.body.title = normalizeViewTitle(context, param.body.title);
 
     param.body.title = await claimObjectTitle(
       context,
@@ -207,7 +209,7 @@ export class FormsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_create',
-          payload: view,
+          payload: viewForBroadcast(view),
         },
       },
       context.socket_id,
@@ -293,7 +295,7 @@ export class FormsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: safeView,
+          payload: viewForBroadcast(safeView),
         },
       },
       context.socket_id,

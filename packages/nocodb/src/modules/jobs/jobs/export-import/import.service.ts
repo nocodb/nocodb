@@ -4,6 +4,7 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isLinkV2,
+  isRollupFormula,
   isVirtualCol,
   NcApiVersion,
   parseProp,
@@ -22,12 +23,14 @@ import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { CalendarView, LinksColumn, User } from '~/models';
+import type { AttachmentHolder } from '~/helpers/exportImportHelpers';
 import { getCustomLinkParam } from '~/helpers/linkHelpers';
 import { validateImportSchema } from '~/utils/modelUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
 import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcBaseErrorv2, NcError } from '~/helpers/catchError';
+import { repairCopiedViewTitles } from '~/helpers/viewTitleHelpers';
 import {
   copyFormImages,
   dropUnheldAttachments,
@@ -40,7 +43,6 @@ import {
   withoutId,
   withoutNull,
 } from '~/helpers/exportImportHelpers';
-import type { AttachmentHolder } from '~/helpers/exportImportHelpers';
 import {
   Base,
   Column,
@@ -1424,10 +1426,10 @@ export class ImportService {
 
     elapsedTime(hrTime, 'create LTAR columns', 'importModels');
 
-    const sortedReferencedColumnSet = [];
-
-    // sort referenced columns to avoid referencing before creation
-    for (const col of referencedColumnSet) {
+    const referencedColumnsById = new Map(
+      referencedColumnSet.map((col) => [col.id, col]),
+    );
+    const relatedColumnIdsOf = (col) => {
       const relatedColIds = [];
       if (col.colOptions?.fk_lookup_column_id) {
         relatedColIds.push(col.colOptions.fk_lookup_column_id);
@@ -1449,26 +1451,23 @@ export class ImportService {
       if (col.colOptions?.fk_barcode_value_column_id) {
         relatedColIds.push(col.colOptions.fk_barcode_value_column_id);
       }
+      return relatedColIds;
+    };
 
-      // find the last related column in the sorted array
-      let fnd = undefined;
-      for (let i = sortedReferencedColumnSet.length - 1; i >= 0; i--) {
-        if (relatedColIds.includes(sortedReferencedColumnSet[i].id)) {
-          fnd = sortedReferencedColumnSet[i];
-          break;
-        }
+    // dependencies first, so no column is created before one it reads
+    const sortedReferencedColumnSet = [];
+    const visitedColumnIds = new Set<string>();
+    const visitReferencedColumn = (col) => {
+      // a cycle keeps the order it was found in
+      if (visitedColumnIds.has(col.id)) return;
+      visitedColumnIds.add(col.id);
+      for (const id of relatedColumnIdsOf(col)) {
+        const dependency = referencedColumnsById.get(id);
+        if (dependency) visitReferencedColumn(dependency);
       }
-
-      if (!fnd) {
-        sortedReferencedColumnSet.unshift(col);
-      } else {
-        sortedReferencedColumnSet.splice(
-          sortedReferencedColumnSet.indexOf(fnd) + 1,
-          0,
-          col,
-        );
-      }
-    }
+      sortedReferencedColumnSet.push(col);
+    };
+    for (const col of referencedColumnSet) visitReferencedColumn(col);
     // create referenced columns
     // sort the column sets to create the system columns first
     for (const col of sortedReferencedColumnSet) {
@@ -1504,6 +1503,10 @@ export class ImportService {
             if (insertedColumn) {
               idMap.set(col.id, insertedColumn.id);
             }
+          } else {
+            this.logger.warn(
+              `Skipping lookup ${col.id} during import: its link or target field was not imported`,
+            );
           }
           continue;
         }
@@ -1535,39 +1538,50 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Rollup) {
+        // See Lookup branch above — same rationale applies here.
+        const insertErrored = async (error: string) => {
+          const insertedColumn = await Column.insert(targetContext, {
+            ...withoutId(flatCol),
+            fk_model_id: getIdOrExternalId(getParentIdentifier(col.id)),
+            fk_relation_column_id: getIdOrExternalId(
+              colOptions.fk_relation_column_id,
+            ),
+            fk_rollup_column_id: getIdOrExternalId(
+              colOptions.fk_rollup_column_id,
+            ),
+            rollup_function: colOptions.rollup_function,
+            rollup_formula: colOptions.rollup_formula,
+            parsed_tree: colOptions.parsed_tree,
+            error,
+          });
+          if (insertedColumn) {
+            idMap.set(col.id, insertedColumn.id);
+          }
+        };
+
         // Skip if relation column or rollup column can't be mapped (e.g., cross-base rollups)
         // but preserve error columns even if references can't be mapped
         if (
           !getIdOrExternalId(colOptions.fk_relation_column_id) ||
           !getIdOrExternalId(colOptions.fk_rollup_column_id)
         ) {
-          if (colOptions.error) {
-            // See Lookup branch above — same rationale applies here.
-            const tableId = getIdOrExternalId(getParentIdentifier(col.id));
-            const insertedColumn = await Column.insert(targetContext, {
-              ...withoutId(flatCol),
-              fk_model_id: tableId,
-              fk_relation_column_id: getIdOrExternalId(
-                colOptions.fk_relation_column_id,
-              ),
-              fk_rollup_column_id: getIdOrExternalId(
-                colOptions.fk_rollup_column_id,
-              ),
-              rollup_function: colOptions.rollup_function,
-              error: colOptions.error,
-            });
-
-            if (insertedColumn) {
-              idMap.set(col.id, insertedColumn.id);
-            }
+          // a data error isn't a broken definition: stored as one it would
+          // never clear, so such a rollup is skipped like a healthy one
+          if (colOptions.error && !colOptions.data_error) {
+            await insertErrored(colOptions.error);
+          } else {
+            this.logger.warn(
+              `Skipping rollup ${col.id} during import: its link or target field was not imported`,
+            );
           }
           continue;
         }
-        const freshModelData = (await this.columnsService.columnAdd(context, {
-          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
-          column: withoutId({
-            ...flatCol,
-            ...{
+        let freshModelData: Model | Column;
+        try {
+          freshModelData = await this.columnsService.columnAdd(context, {
+            tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+            column: {
+              ...withoutId(flatCol),
               fk_rollup_column_id: getIdOrExternalId(
                 colOptions.fk_rollup_column_id,
               ),
@@ -1575,13 +1589,28 @@ export class ImportService {
                 colOptions.fk_relation_column_id,
               ),
               rollup_function: colOptions.rollup_function,
+              rollup_formula: colOptions.rollup_formula,
             },
-          }) as any,
-          req: param.req,
-          user: param.user,
-          columnWebhookManager: param.columnWebhookManager,
-        })) as Model;
+            req: param.req,
+            user: param.user,
+            columnWebhookManager: param.columnWebhookManager,
+          });
+        } catch (e) {
+          // an errored formula rollup that still fails keeps its error;
+          // one that now validates (e.g. a data error) comes back clean
+          if (
+            !colOptions.error ||
+            !isRollupFormula(colOptions) ||
+            !(e instanceof NcBaseErrorv2 || e instanceof NcBaseError)
+          ) {
+            throw e;
+          }
+          await insertErrored(e.message);
+          continue;
+        }
 
+        // the table, unless columnAdd handed back the column itself
+        if (!('columns' in freshModelData)) continue;
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
             idMap.set(col.id, nColumn.id);
@@ -1848,6 +1877,7 @@ export class ImportService {
 
       // get default view
       await table.getViews();
+      repairCopiedViewTitles(viewsData);
       for (const view of viewsData) {
         const viewTask = vieProcessQueue.add(async () => {
           const viewData = withoutId({

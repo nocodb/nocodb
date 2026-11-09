@@ -194,7 +194,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     const tablePath = tableId
       ? `/${tableId}${
           viewId
-            ? `/${viewId}${toReadableUrlSlug([tableTitle, viewTitle]) ? `/${toReadableUrlSlug([tableTitle, viewTitle])}` : ''}`
+            ? `/${viewId}${toPlainUrlSlug([tableTitle, viewTitle]) ? `/${toPlainUrlSlug([tableTitle, viewTitle])}` : ''}`
             : ''
         }`
       : ''

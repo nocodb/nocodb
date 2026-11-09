@@ -72,6 +72,7 @@ import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
 import {
   canManageViewShare,
+  tableForBroadcast,
   viewWithoutShareSecrets,
 } from '~/helpers/publicViewSecrets';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
@@ -136,7 +137,7 @@ export class TablesService {
           event: EventType.META_EVENT,
           payload: {
             action: 'table_update',
-            payload: table,
+            payload: tableForBroadcast(table),
           },
         },
         context.socket_id,
@@ -293,7 +294,7 @@ export class TablesService {
         event: EventType.META_EVENT,
         payload: {
           action: 'table_update',
-          payload: result,
+          payload: tableForBroadcast(result),
         },
       },
       context.socket_id,
@@ -415,7 +416,7 @@ export class TablesService {
         event: EventType.META_EVENT,
         payload: {
           action: 'table_update',
-          payload: table,
+          payload: tableForBroadcast(table),
         },
       },
       context.socket_id,
@@ -675,7 +676,7 @@ export class TablesService {
           event: EventType.META_EVENT,
           payload: {
             action: 'table_delete',
-            payload: table,
+            payload: tableForBroadcast(table),
           },
         },
         context.socket_id,
@@ -695,7 +696,7 @@ export class TablesService {
             payload: {
               action: 'column_delete',
               payload: {
-                table: refTable,
+                table: tableForBroadcast(refTable),
               },
             },
           });
@@ -1410,7 +1411,7 @@ export class TablesService {
           event: EventType.META_EVENT,
           payload: {
             action: 'table_create',
-            payload: result,
+            payload: tableForBroadcast(result),
           },
         },
         context.socket_id,

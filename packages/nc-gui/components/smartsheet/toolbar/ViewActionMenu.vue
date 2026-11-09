@@ -308,7 +308,7 @@ defineOptions({
     variant="small"
   >
     <NcMenuItemCopyId
-      v-if="view"
+      v-if="view && !isPublicView"
       :id="view.id"
       :tooltip="$t('labels.clickToCopyViewID')"
       :label="

@@ -22,6 +22,7 @@ import {
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
+import { dropNoopRecordAuditFields, mergeRecordUpdateAuditDetails } from '~/utils/recordAuditUtils'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -697,6 +698,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             }
           }
 
+          dropNoopRecordAuditFields(details)
+
           if (Object.values(details.column_meta || {}).length > 0) {
             audit.details = JSON.stringify(details)
             result.push(audit)
@@ -797,44 +800,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
               result.push(current)
               continue
             }
-            const details = JSON.parse(current.details)
             const lastDetails = JSON.parse(last.details)
-            for (const field of Object.values(details.column_meta ?? {}) as any[]) {
-              if (['MultiSelect', 'SingleSelect'].includes(field.type) && lastDetails?.column_meta?.[field?.title]) {
-                lastDetails.data[field.title] = details.data[field.title]
-                for (const option of details.column_meta[field.title]?.options?.choices ?? []) {
-                  if (!lastDetails.column_meta[field.title]?.options.choices.find((it: any) => it.id === option.id)) {
-                    lastDetails.column_meta[field.title].options.choices.push(option)
-                  }
-                }
-                last.details = JSON.stringify(lastDetails)
-                delete details.old_data[field.title]
-                delete details.data[field.title]
-                delete details.column_meta[field.title]
-                current.details = JSON.stringify(details)
-              } else if (lastDetails?.column_meta?.[field?.title] && lastDetails.old_data[field.title]) {
-                lastDetails.data[field.title] = details.data[field.title]
-                last.details = JSON.stringify(lastDetails)
-                delete details.old_data[field.title]
-                delete details.data[field.title]
-                delete details.column_meta[field.title]
-                current.details = JSON.stringify(details)
-              } else if (details?.column_meta?.[field?.title] && !lastDetails?.column_meta?.[field?.title]) {
-                if (!lastDetails.column_meta) lastDetails.column_meta = {}
-                if (!lastDetails.old_data) lastDetails.old_data = {}
-                if (!lastDetails.data) lastDetails.data = {}
-                lastDetails.column_meta[field.title] = details.column_meta[field.title]
-                lastDetails.old_data[field.title] = details.old_data[field.title]
-                lastDetails.data[field.title] = details.data[field.title]
-                last.details = JSON.stringify(lastDetails)
-                delete details.old_data[field.title]
-                delete details.data[field.title]
-                delete details.column_meta[field.title]
-                current.details = JSON.stringify(details)
-              }
-            }
-            if (Object.values(details.column_meta).length > 0) {
-              result.push(current)
+            mergeRecordUpdateAuditDetails(lastDetails, JSON.parse(current.details))
+            if (Object.keys(lastDetails.column_meta).length > 0) {
+              last.details = JSON.stringify(lastDetails)
+            } else {
+              result.splice(result.lastIndexOf(last), 1)
             }
           } else {
             result.push(current)

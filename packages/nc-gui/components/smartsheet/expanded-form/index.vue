@@ -1032,6 +1032,12 @@ export default {
                 <SmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
               </span>
             </div>
+            <div
+              v-else-if="!row?.rowMeta?.new"
+              class="flex items-center font-bold italic text-nc-content-gray-muted text-2xl xs:text-xl truncate"
+            >
+              {{ $t('labels.unnamedRecord') }}
+            </div>
           </div>
         </div>
         <div v-if="!templateMode && !blueprintMode" class="ml-auto flex items-center gap-3">

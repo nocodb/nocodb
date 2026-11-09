@@ -75,6 +75,19 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+const { dashboardUrl } = useDashboard()
+
+const sharedFormUrl = computed(() => {
+  if (!view.value?.uuid) return undefined
+
+  const viewMeta = parseProp(view.value.meta)
+  const survey = viewMeta?.surveyMode ? '/survey' : ''
+  // Same shape as the share dialog's link (SharePage.vue sharedViewUrl).
+  const theme = viewMeta?.defaultTheme ? `?nc-theme=${viewMeta.defaultTheme}` : ''
+
+  return `${encodeURI(`${dashboardUrl.value}/nc/form/${view.value.uuid}${survey}`)}${theme}`
+})
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view)
@@ -1395,14 +1408,7 @@ useFormCommands({
 <template>
   <div class="h-full relative">
     <template v-if="isMobileMode">
-      <div class="pl-6 pr-[120px] py-6 bg-nc-bg-default flex-col justify-start items-start gap-2.5 inline-flex">
-        <div class="text-nc-content-gray-muted text-5xl font-semibold leading-16">
-          {{ $t('general.available') }}<br />{{ $t('title.inDesktop') }}
-        </div>
-        <div class="text-nc-content-gray-muted text-base font-medium leading-normal">
-          {{ $t('msg.formViewNotSupportedOnMobile') }}
-        </div>
-      </div>
+      <SmartsheetMobileUnsupported :message="$t('msg.formViewNotSupportedOnMobile')" :form-url="sharedFormUrl" />
     </template>
     <template v-else>
       <div

@@ -1,15 +1,19 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   isLinksOrLTAR,
+  isMMOrMMLike,
+  isVirtualCol,
   NcBaseError,
   ncIsArray,
   NOCO_SERVICE_USERS,
   parseProp,
+  RelationTypes,
   ServiceUserType,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
 import type { ClientType, NcRequest, Validation } from 'nocodb-sdk';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { DBQueryClient } from '~/dbQueryClient';
@@ -39,7 +43,10 @@ import { isSharedViewAccess } from '~/helpers/accessSource';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import { defaultGroupByLimitConfig } from '~/helpers/extractLimitAndOffset';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { replaceDynamicFieldWithValue } from '~/helpers/dbHelpers';
+import {
+  getRelatedLinksColumn,
+  replaceDynamicFieldWithValue,
+} from '~/helpers/dbHelpers';
 import { Filter } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';
@@ -841,7 +848,24 @@ export class PublicDatasService {
 
     await this.validateFormSubmission(context, { view, fields, insertObject });
 
-    return await baseModel.nestedInsert(insertObject, param.req, null);
+    const row = await baseModel.nestedInsert(insertObject, param.req, null, {
+      // An anonymous submitter must not move existing records between owners.
+      rejectLinkTakeover: true,
+    });
+
+    // Only the record id and the fields the form shows go back.
+    const returned = new Set([
+      ...baseModel.model.primaryKeys.map((c) => c.title),
+      ...Object.values<Column>(fields)
+        .filter((c) => !isVirtualCol(c))
+        .map((c) => c.title),
+    ]);
+    return (
+      row &&
+      Object.fromEntries(
+        Object.entries(row).filter(([key]) => returned.has(key)),
+      )
+    );
   }
 
   /**
@@ -1064,7 +1088,7 @@ export class PublicDatasService {
     let count = 0;
 
     try {
-      const customConditions = await replaceDynamicFieldWithValue(
+      let customConditions = await replaceDynamicFieldWithValue(
         param.rowData || {},
         null,
         currentModel.columns,
@@ -1076,6 +1100,31 @@ export class PublicDatasService {
             })
           : []) || [],
       );
+
+      // A form submit refuses a record another one already owns
+      // (rejectLinkTakeover), so the picker offers only free records.
+      if (view.type === ViewTypes.FORM) {
+        const ownerFilter = await this.getUnownedLinkTargetFilter(
+          column,
+          colOptions,
+          model,
+        );
+        // Group the link's own conditions so an OR among them can't bypass
+        // the owner filter.
+        if (ownerFilter)
+          customConditions = [
+            ...(customConditions.length
+              ? [
+                  new Filter({
+                    is_group: true,
+                    logical_op: 'and',
+                    children: customConditions,
+                  }),
+                ]
+              : []),
+            new Filter({ ...ownerFilter, logical_op: 'and' }),
+          ];
+      }
 
       data = data = await nocoExecute(
         ast,
@@ -1097,6 +1146,68 @@ export class PublicDatasService {
     }
 
     return new PagedResponseImpl(data, { ...param.query, count });
+  }
+
+  /**
+   * For a link whose targets have at most one owner, a filter that keeps only
+   * targets with no owner yet: the inverse link on the related table is blank.
+   */
+  protected async getUnownedLinkTargetFilter(
+    column: Column,
+    colOptions: LinkToAnotherRecordColumn,
+    relatedModel: Model,
+  ): Promise<Filter | null> {
+    if (
+      ![
+        RelationTypes.HAS_MANY,
+        RelationTypes.ONE_TO_ONE,
+        RelationTypes.ONE_TO_MANY,
+      ].includes(colOptions.type as RelationTypes)
+    ) {
+      return null;
+    }
+    await relatedModel.getColumns();
+    // A self link pairs its column with itself too; skip that match.
+    const inverse = getRelatedLinksColumn(
+      column,
+      relatedModel.id === column.fk_model_id
+        ? new Model({
+            ...relatedModel,
+            columns: relatedModel.columns.filter((c) => c.id !== column.id),
+          })
+        : relatedModel,
+    );
+    if (!inverse) return null;
+    return new Filter({ fk_column_id: inverse.id, comparison_op: 'blank' });
+  }
+
+  /**
+   * `/mm/` (also `/om/`, `/ln/`) reads a junction link, `/hm/` a foreign-key
+   * has-many; the other pairing reads the wrong table.
+   */
+  protected async assertNestedListRoute(
+    context: NcContext,
+    column: Column,
+    route: 'mm' | 'hm',
+  ) {
+    const colOptions = isLinksOrLTAR(column)
+      ? await column.getColOptions<LinkToAnotherRecordColumn>()
+      : null;
+    const isJunction = !!colOptions && isMMOrMMLike({ ...column, colOptions });
+    const matches =
+      route === 'mm'
+        ? isJunction
+        : !!colOptions &&
+          !isJunction &&
+          colOptions.type === RelationTypes.HAS_MANY;
+
+    if (!matches) {
+      NcError.get(context).badRequest(
+        `Field '${column.title}' is not a ${
+          route === 'mm' ? 'many-to-many' : 'has-many'
+        } link`,
+      );
+    }
   }
 
   async publicMmList(
@@ -1136,6 +1247,8 @@ export class PublicDatasService {
 
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
+
+    await this.assertNestedListRoute(context, column, 'mm');
 
     // Block access to relation columns hidden from the shared view so the
     // /mm/ endpoint can't be used to read links the view owner stripped.
@@ -1251,6 +1364,8 @@ export class PublicDatasService {
 
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
+
+    await this.assertNestedListRoute(context, column, 'hm');
 
     // Block access to relation columns hidden from the shared view so the
     // /hm/ endpoint can't be used to read links the view owner stripped.

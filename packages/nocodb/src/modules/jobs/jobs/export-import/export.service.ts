@@ -77,6 +77,9 @@ import {
   excelNumberValue,
 } from '~/modules/jobs/jobs/export-import/excel-number-format';
 
+// `{{id}}` or a `{{link}}.{{link}}.{{field}}` path
+const FORMULA_REF_CHAIN = /\{\{[^{}]*?\}\}(?:\s*\.\s*\{\{[^{}]*?\}\})*/g;
+
 @Injectable()
 export class ExportService {
   protected readonly debugLog = debug('nc:jobs:import');
@@ -237,6 +240,8 @@ export class ExportService {
     const bases: Base[] = [];
     const sources: Source[] = [];
     const modelsMap = new Map<string, Model[]>();
+    // link column id → columns of its linked table, for `{Link}.{Field}` paths
+    const linkedColumnsMap = new Map<string, Column[]>();
 
     // Permission subjects address users by id, which means nothing on another
     // instance. Email is the only handle that survives the hop, so carry it
@@ -272,10 +277,9 @@ export class ExportService {
       if (!fndBase) sources.push(source);
 
       if (!modelsMap.has(source.id)) {
-        modelsMap.set(
-          source.id,
-          await generateBaseIdMap(context, source, idMap),
-        );
+        const sourceModels = await generateBaseIdMap(context, source, idMap);
+        modelsMap.set(source.id, sourceModels);
+        await this.mapLinkedColumns(sourceModels, linkedColumnsMap);
       }
 
       await model.getColumns();
@@ -362,14 +366,16 @@ export class ExportService {
               case 'formula':
                 if (column.uidt === UITypes.Button) break;
 
-                // rewrite formula_raw with aliases
+                // rewrite formula_raw with aliases, following `{Link}.{Field}` hops
                 column.colOptions['formula_raw'] = column.colOptions[
                   k
-                ]?.replace(/\{\{.*?\}\}/gm, (match) => {
-                  const col = model.columns.find(
-                    (c) => c.id === match.slice(2, -2),
-                  );
-                  return `{${col?.title}}`;
+                ]?.replace(FORMULA_REF_CHAIN, (chain) => {
+                  let hopColumns: Column[] | undefined = model.columns;
+                  return chain.replace(/\{\{(.*?)\}\}/g, (_, id) => {
+                    const col = hopColumns?.find((c) => c.id === id);
+                    hopColumns = col && linkedColumnsMap.get(col.id);
+                    return `{${col?.title}}`;
+                  });
                 });
 
                 column.colOptions[k] = column.colOptions[k]?.replace(
@@ -2068,6 +2074,22 @@ export class ExportService {
         false,
         param,
       );
+    }
+  }
+
+  private async mapLinkedColumns(
+    models: Model[],
+    linkedColumnsMap: Map<string, Column[]>,
+  ) {
+    const columnsByModel = new Map(models.map((m) => [m.id, m.columns]));
+    for (const md of models) {
+      for (const column of md.columns) {
+        if (!isLinksOrLTAR(column)) continue;
+        const relation =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+        const linkedColumns = columnsByModel.get(relation?.fk_related_model_id);
+        if (linkedColumns) linkedColumnsMap.set(column.id, linkedColumns);
+      }
     }
   }
 

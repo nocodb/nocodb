@@ -28,6 +28,12 @@ export interface McpScopeTarget {
   baseId?: string;
   workspaceId?: string;
   /**
+   * The interface page or interface an interface-scoped op targets. Its grant
+   * can admit a caller who holds no base role.
+   */
+  pageId?: string;
+  interfaceId?: string;
+  /**
    * API calls this one tool call is worth — what the same work would cost over
    * the public v3 REST API. Omitted means 1: one tool call, one REST call.
    * Fan-out tools compute it from the live REST cap; see `tool-units.ts`.

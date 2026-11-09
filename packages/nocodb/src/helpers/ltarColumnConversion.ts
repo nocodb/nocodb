@@ -14,6 +14,7 @@ import { NcError } from '~/helpers/catchError';
 import { _wherePk } from '~/helpers/dbHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NocoSocket from '~/socket/NocoSocket';
+import { tableForBroadcast } from '~/helpers/publicViewSecrets';
 import { processConcurrently } from '~/utils/dataUtils';
 import {
   getLtarDisplayValueContext,
@@ -109,7 +110,10 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
           event: EventType.META_EVENT,
           payload: {
             action: 'column_update',
-            payload: { table: safeTable, column: safeColumn },
+            payload: {
+              table: tableForBroadcast(safeTable),
+              column: safeColumn,
+            },
           },
         },
         context.socket_id,
@@ -161,7 +165,10 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
 
       NocoSocket.broadcastEvent(refContext, {
         event: EventType.META_EVENT,
-        payload: { action: param.action, payload: { table: safeTable } },
+        payload: {
+          action: param.action,
+          payload: { table: tableForBroadcast(safeTable) },
+        },
       });
     } catch (e) {
       svc.logger.warn(

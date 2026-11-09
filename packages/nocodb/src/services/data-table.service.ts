@@ -1852,7 +1852,11 @@ export class DataTableService {
 
     const relationColumn = await Column.get(context, { colId: linkColumnId });
 
-    if (!relationColumn || !isLinksOrLTAR(relationColumn)) {
+    if (
+      !relationColumn ||
+      !isLinksOrLTAR(relationColumn) ||
+      (context.ncTableId && relationColumn.fk_model_id !== context.ncTableId)
+    ) {
       NcError.get(context).fieldNotFound(linkColumnId);
     }
 

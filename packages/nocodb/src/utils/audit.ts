@@ -212,6 +212,15 @@ export async function generateAuditV1Payload<T = any>(
     ? { ...detailsWithTrigger, mcp: req.ncMcpProvenance }
     : detailsWithTrigger;
 
+  const actingAgent = req?.user?.acting_agent ?? context?.user?.acting_agent;
+  const detailsWithAgent = actingAgent
+    ? {
+        ...detailsWithOrigin,
+        // Id only: the title of a personal agent is private to its owner.
+        agent: { id: actingAgent.id },
+      }
+    : detailsWithOrigin;
+
   return {
     user: req?.user?.email,
     ip: req?.ip,
@@ -225,7 +234,7 @@ export async function generateAuditV1Payload<T = any>(
     fk_model_id: params.fk_model_id ?? context?.fk_model_id,
     row_id: context?.row_id ?? params.row_id,
     op_type: opType,
-    details: detailsWithOrigin,
+    details: detailsWithAgent,
     version: 1,
     fk_parent_id: id === req?.ncParentAuditId ? null : req?.ncParentAuditId,
     // For anonymous public submissions, preserve which shared view/form the

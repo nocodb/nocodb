@@ -315,7 +315,7 @@ export default class DependencyTracker implements DependencyTrackerType {
       nodeType?: string;
     },
     ncMeta?: any,
-  ): Promise<HydratedDependencyTrackerType<T>[]>;
+  ): Promise<HydratedDependencyTrackerType<DependencyTableType.Workflow>[]>;
 
   public static async getDependentsBySource<T extends DependencyTableType>(
     context: NcContext,
@@ -327,7 +327,7 @@ export default class DependencyTracker implements DependencyTrackerType {
       nodeType?: string;
     },
     ncMeta?: any,
-  ): Promise<HydratedDependencyTrackerType<T>[]>;
+  ): Promise<HydratedDependencyTrackerType<DependencyTableType.Agent>[]>;
 
   public static async getDependentsBySource<T extends DependencyTableType>(
     context: NcContext,

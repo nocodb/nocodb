@@ -40,6 +40,7 @@ import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { rawFromBuilder } from '~/helpers/sqlSanitize';
 import { Model } from '~/models';
 import { DBQueryClient } from '~/dbQueryClient';
+import { readsHiddenTable } from '~/helpers/tableHelpers';
 
 export const lookupOrLtarBuilder =
   (
@@ -75,7 +76,7 @@ export const lookupOrLtarBuilder =
         ? await column.getColOptions<LookupColumn>()
         : null;
 
-    if (lookup?.error) {
+    if (lookup?.error || (await readsHiddenTable(context, column))) {
       return { builder: knex.raw('?', [null]) };
     }
     {

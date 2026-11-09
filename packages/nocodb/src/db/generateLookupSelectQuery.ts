@@ -35,6 +35,7 @@ import { Model, View } from '~/models';
 import { getAliasGenerator } from '~/utils';
 import { DBQueryClient } from '~/dbQueryClient';
 import { rawFromBuilder } from '~/helpers/sqlSanitize';
+import { readsHiddenTable } from '~/helpers/tableHelpers';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
@@ -165,6 +166,13 @@ export default async function generateLookupSelectQuery({
       if (lookupColOpt?.error) {
         return {
           builder: NC_ERROR_SENTINEL,
+          applyCte: () => {},
+        };
+      }
+      if (await readsHiddenTable(context, column)) {
+        const qb = knex.select(knex.raw('NULL'));
+        return {
+          builder: baseModelSqlv2.isOracle ? qb.from(knex.raw('dual')) : qb,
           applyCte: () => {},
         };
       }

@@ -2,7 +2,11 @@ import {
   formatAggregation,
   NumericalAggregations,
 } from '~/lib/aggregationHelper';
-import { ColumnHelper } from '~/lib/columnHelper';
+import {
+  ColumnHelper,
+  getRollupFormulaDisplayColumn,
+  getRollupFormulaTextColumn,
+} from '~/lib/columnHelper';
 import UITypes from '~/lib/UITypes';
 import {
   ColumnType,
@@ -135,5 +139,140 @@ describe('RollupHelper currency formatting', () => {
       expect(result).toContain('$');
       expect(result).toBe('$1,300.49');
     });
+  });
+});
+
+describe('getRollupFormulaDisplayColumn', () => {
+  const formulaRollup = (meta: Record<string, unknown>): ColumnType => ({
+    id: 'r1',
+    uidt: UITypes.Rollup,
+    meta,
+    colOptions: {
+      rollup_function: 'formula',
+      parsed_tree: {
+        type: 'BinaryExpression',
+        dataType: 'numeric',
+      },
+    },
+  });
+
+  it('renders a decimal result with two places by default', () => {
+    const col = getRollupFormulaDisplayColumn(formulaRollup({}));
+    expect(col.uidt).toBe(UITypes.Decimal);
+    expect(col.meta).toHaveProperty('precision', 2);
+  });
+
+  it('uses the format picked on the field', () => {
+    const col = getRollupFormulaDisplayColumn(
+      formulaRollup({
+        display_type: UITypes.Currency,
+        display_column_meta: { meta: { currency_code: 'EUR' } },
+      })
+    );
+    expect(col.uidt).toBe(UITypes.Currency);
+    expect(col.meta).toHaveProperty('currency_code', 'EUR');
+  });
+});
+
+describe('getRollupFormulaTextColumn', () => {
+  const formulaRollup = (
+    dataType: string,
+    meta: Record<string, unknown> = {}
+  ): ColumnType => ({
+    id: 'r1',
+    uidt: UITypes.Rollup,
+    source_id: 'src1',
+    meta,
+    colOptions: {
+      rollup_function: 'formula',
+      parsed_tree: {
+        type: 'CallExpression',
+        dataType,
+        referencedColumn: { id: 'c1', uidt: UITypes.SingleLineText },
+      },
+    },
+  });
+
+  it('turns a text result into a text Formula column', () => {
+    const col = getRollupFormulaTextColumn(formulaRollup('string'));
+    expect(col).toMatchObject({
+      id: 'r1',
+      uidt: UITypes.Formula,
+      source_id: 'src1',
+      colOptions: { parsed_tree: { dataType: 'string' } },
+    });
+    // the Formula cell would otherwise render it as the rolled-up field
+    expect(col?.colOptions).toHaveProperty(
+      'parsed_tree.referencedColumn',
+      undefined
+    );
+  });
+
+  it('leaves other results, picked formats and plain rollups alone', () => {
+    expect(
+      getRollupFormulaTextColumn(formulaRollup('numeric'))
+    ).toBeUndefined();
+    expect(getRollupFormulaTextColumn(formulaRollup('date'))).toBeUndefined();
+    expect(
+      getRollupFormulaTextColumn(
+        formulaRollup('string', { display_type: UITypes.Email })
+      )
+    ).toBeUndefined();
+    expect(
+      getRollupFormulaTextColumn({
+        id: 'r2',
+        uidt: UITypes.Rollup,
+        colOptions: { rollup_function: 'sum' },
+      })
+    ).toBeUndefined();
+  });
+});
+
+describe('RollupHelper plain text of a rollup formula', () => {
+  const plain = (
+    value: unknown,
+    dataType: string,
+    meta: Record<string, unknown> = {}
+  ) =>
+    ColumnHelper.parsePlainCellValue(value, {
+      col: {
+        id: 'r1',
+        uidt: UITypes.Rollup,
+        meta,
+        colOptions: {
+          rollup_function: 'formula',
+          parsed_tree: { type: 'CallExpression', dataType },
+        },
+      },
+      meta: { title: 'T', columns: [] },
+      metas: {},
+    });
+
+  it('renders a checkbox result as Checked / Unchecked', () => {
+    expect(plain(true, 'boolean')).toBe('Checked');
+    expect(plain(1, 'boolean')).toBe('Checked');
+    expect(plain(false, 'boolean')).toBe('Unchecked');
+    expect(plain(0, 'boolean')).toBe('Unchecked');
+  });
+
+  it('renders numeric and text results as the grid does', () => {
+    expect(plain('12.5', 'numeric')).toBe('12.50');
+    expect(plain('a, b', 'string')).toBe('a, b');
+    expect(plain(null, 'string')).toBe('');
+  });
+
+  it('applies the format picked on the field', () => {
+    const text = plain(30.5, 'numeric', {
+      display_type: UITypes.Currency,
+      display_column_meta: {
+        meta: { currency_code: 'USD', currency_locale: 'en-US' },
+      },
+    });
+    expect(text).toContain('$');
+    expect(text).toContain('30.5');
+  });
+
+  it('renders an errored cell as ERR!', () => {
+    expect(plain('_____NC_ERROR_____', 'numeric')).toBe('ERR!');
   });
 });

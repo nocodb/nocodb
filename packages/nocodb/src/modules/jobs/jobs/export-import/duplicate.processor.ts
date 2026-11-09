@@ -46,6 +46,7 @@ import { TelemetryService } from '~/services/telemetry.service';
 import { DuplicateModelUtils } from '~/utils/duplicate-model.utils';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import { Untraced } from '~/decorators/trace-command.decorator';
+import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class DuplicateProcessor {
@@ -84,6 +85,19 @@ export class DuplicateProcessor {
     throw new NotImplementedException();
   }
 
+  // Runs before anything dereferences the bases: a base fetched with the wrong
+  // context or deleted mid-job arrives here as undefined.
+  protected assertDuplicateBases({
+    sourceBase,
+    targetBase,
+  }: {
+    sourceBase?: Base;
+    targetBase?: Base;
+  }) {
+    if (!sourceBase) NcError.notFound('Source base not found');
+    if (!targetBase) NcError.notFound('Target base not found');
+  }
+
   @Untraced()
   async duplicateBaseJob({
     sourceBase,
@@ -119,6 +133,8 @@ export class DuplicateProcessor {
     // Files an external source's rows name that its base doesn't hold are left out and counted here.
     droppedAttachments?: DroppedAttachments;
   }) {
+    this.assertDuplicateBases({ sourceBase, targetBase });
+
     const hrTime = initTime();
 
     const targetContext = _targetContext ?? {
@@ -144,9 +160,7 @@ export class DuplicateProcessor {
         });
       }
 
-      if (!sourceBase || !targetBase || !dataSource) {
-        throw new Error(`Base or source not found!`);
-      }
+      if (!dataSource) NcError.notFound('Source not found');
 
       const user = (req as any).user;
 
@@ -419,7 +433,7 @@ export class DuplicateProcessor {
     const dupProject = await Base.get(
       {
         workspace_id: dupWorkspaceId,
-        base_id: null,
+        base_id: dupProjectId,
       },
       dupProjectId,
     );

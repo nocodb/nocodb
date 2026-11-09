@@ -13,7 +13,8 @@ import commonFns, {
 } from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
-import { rawFromBuilder } from '~/helpers/sqlSanitize';
+import type { WorkdaySqlDialect } from '~/db/functionMappings/workday';
+import { questionFreeLiteral, rawFromBuilder } from '~/helpers/sqlSanitize';
 import {
   ieeeLogBaseSql,
   ieeeLogSql,
@@ -35,6 +36,12 @@ import {
 } from '~/helpers/formulaFnHelper';
 import { NcError } from '~/helpers/ncError';
 import { getDatetimeFormatHandler } from '~/db/datetime-format';
+import { workdayDiffFn, workdayFn } from '~/db/functionMappings/workday';
+
+// `{Field}` or `{Link}.{Field}`
+const isFieldReference = (argument: any) =>
+  argument.type === JSEPNode.IDENTIFIER ||
+  argument.type === JSEPNode.MEMBER_EXP;
 
 const getArraySourceAttachmentUnnested = async (
   argument: any,
@@ -42,7 +49,7 @@ const getArraySourceAttachmentUnnested = async (
 ) => {
   const { builder } = await args.fn({
     ...argument,
-    fnName: argument.type === JSEPNode.IDENTIFIER ? 'CONCAT' : argument.fnName,
+    fnName: isFieldReference(argument) ? 'CONCAT' : argument.fnName,
   });
   if (!(<CallExpressionNode>argument).inArrayFormat) {
     const sourceQuery = '??::jsonb';
@@ -66,7 +73,7 @@ const getArraySourceAttachmentUnnested = async (
 const getArraySourceUserUnnested = async (argument: any, args: MapFnArgs) => {
   const { builder } = await args.fn({
     ...argument,
-    fnName: argument.type === JSEPNode.IDENTIFIER ? 'NO_AGG' : argument.fnName,
+    fnName: isFieldReference(argument) ? 'NO_AGG' : argument.fnName,
   });
   let sourceQuery = '??';
   if (!(<CallExpressionNode>argument).inArrayFormat) {
@@ -87,9 +94,30 @@ const getArraySourceUserUnnested = async (argument: any, args: MapFnArgs) => {
 const getArraySource = async (argument: any, args: MapFnArgs) => {
   return await args.fn({
     ...argument,
-    fnName:
-      argument.type === JSEPNode.IDENTIFIER ? 'ARRAY_AGG' : argument.fnName,
+    fnName: isFieldReference(argument) ? 'ARRAY_AGG' : argument.fnName,
   });
+};
+
+// an entry is a holiday only if it round-trips as a real `YYYY-MM-DD` date;
+// the nested CASEs keep make_date from seeing malformed parts
+const PG_HOLIDAY_YEAR = `substr(wdt.t, 1, 4)::int`;
+const PG_HOLIDAY_MONTH = `substr(wdt.t, 6, 2)::int`;
+const PG_HOLIDAY_DATE = `(make_date(${PG_HOLIDAY_YEAR}, ${PG_HOLIDAY_MONTH}, 1) + (substr(wdt.t, 9, 2)::int - 1))`;
+
+const pgWorkdayDialect: WorkdaySqlDialect = {
+  dayNumber: (sql) => `((${sql})::date - DATE '1900-01-01')`,
+  fromDayNumber: (sql) => `(DATE '1900-01-01' + (${sql})::int)`,
+  dateLiteral: (isoDate) => `DATE '${isoDate}'`,
+  intDiv: (a, b) => `(${a} / ${b})`,
+  mod: (a, b) => `(${a} % ${b})`,
+  toInteger: (sql, isNumeric) =>
+    isNumeric
+      ? `TRUNC((${sql})::numeric)::int`
+      : `(substring(btrim((${sql})::text) from '^-{0,1}[0-9]{1,9}'))::int`,
+  holidayDays: (sql) =>
+    `(SELECT CASE WHEN wdt.t ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN CASE WHEN ${PG_HOLIDAY_YEAR} > 0 AND ${PG_HOLIDAY_MONTH} BETWEEN 1 AND 12 AND substr(wdt.t, 9, 2)::int BETWEEN 1 AND 31 THEN CASE WHEN to_char(${PG_HOLIDAY_DATE}, 'YYYY-MM-DD') = wdt.t THEN ${PG_HOLIDAY_DATE} - DATE '1900-01-01' END END END AS hn FROM (SELECT btrim(wdx, ' ' || chr(9) || chr(10) || chr(13)) AS t FROM unnest(string_to_array((${sql})::text, ',')) AS wdx) wdt)`,
+  castResult: (sql) => `(${sql})::int`,
+  noInline: ' OFFSET 0',
 };
 
 const pg = {
@@ -311,6 +339,8 @@ const pg = {
     }
     return { builder: knex.raw(`${sql}`) };
   },
+  WORKDAY: workdayFn(pgWorkdayDialect),
+  WORKDAY_DIFF: workdayDiffFn(pgWorkdayDialect),
   WEEKDAY: async ({ fn, knex, pt }: MapFnArgs) => {
     // isodow: the day of the week as Monday (1) to Sunday (7)
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
@@ -690,10 +720,13 @@ END`,
             `CASE WHEN ( ${removeNullUnicode('?')} )::jsonb IS NOT NULL`,
             `THEN jsonb_path_query_first(( ${removeNullUnicode(
               '?',
-            )} )::jsonb, ?::jsonpath)`,
+            )} )::jsonb, (${questionFreeLiteral(
+              knex,
+              `$${pathArg.value}`,
+            )})::jsonpath)`,
             `ELSE NULL END`,
           ].join(' '),
-          [source, source, `$${pathArg.value}`],
+          [source, source],
         ),
       };
     }

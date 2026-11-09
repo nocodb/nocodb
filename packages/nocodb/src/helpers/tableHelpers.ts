@@ -10,10 +10,17 @@ import {
   PermissionGrantedType,
   PermissionKey,
   PermissionRole,
+  personalAgentRole,
   ProjectRoles,
 } from 'nocodb-sdk';
-import type { NcRequest, UITypes, UserType } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
+import type { AgentRoleCap, NcRequest, UserType } from 'nocodb-sdk';
+import type {
+  Column,
+  LinkToAnotherRecordColumn,
+  LookupColumn,
+  RollupColumn,
+} from '~/models';
 import { Model, ModelRoleVisibility, Permission, User, View } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
@@ -326,17 +333,255 @@ export async function hasLimitedLinkTargetAccess(
     return true;
   }
   const { refContext } = colOptions.getRelContext();
-  if (!colOptions.isCrossBaseLink() || isSharedViewAccess(refContext)) {
-    return hasLimitedRelatedTableAccess(refContext, relatedModelId);
+  if (isSharedViewAccess(refContext)) return true;
+  return isTargetHiddenIn(refContext, colOptions, relatedModelId, {
+    noRoleHides: true,
+  });
+}
+
+/**
+ * `rolesFromOtherBase`: the context's user carries roles of another base.
+ * `noRoleHides`: no role (or no-access) in the related base hides the table
+ * even when no visibility rule applies to it.
+ */
+async function isTargetHiddenIn(
+  refContext: NcContext,
+  colOptions: LinkToAnotherRecordColumn,
+  relatedModelId: string,
+  { rolesFromOtherBase = false, noRoleHides = false } = {},
+): Promise<boolean> {
+  if (!colOptions.isCrossBaseLink() && !rolesFromOtherBase) {
+    return !(await isTableVisible(refContext, relatedModelId, refContext.user));
   }
   const relatedUser = await userInRelatedBase(refContext);
-  // A user re-resolved in the related base needs a role there; no-access (or
-  // none) must not fall through to the "no visibility rule = open" default.
+  // A user re-resolved in the related base with no role (or no-access) there
+  // must not fall through to the "no visibility rule = open" default.
   if (relatedUser !== refContext.user) {
     const role = getStandingRole(relatedUser);
-    if (!role || role === ProjectRoles.NO_ACCESS) return true;
+    if (!role || role === ProjectRoles.NO_ACCESS) {
+      // Without a role there, any visibility rule on the table hides it.
+      return (
+        noRoleHides ||
+        (await hasTableVisibilityRule(refContext, relatedModelId))
+      );
+    }
   }
   return !(await isTableVisible(refContext, relatedModelId, relatedUser));
+}
+
+/**
+ * Whether a visibility rule (TABLE_VISIBILITY permission, or a view disabled
+ * for some role by UI ACL) applies to the table in `context`'s base.
+ */
+export async function hasTableVisibilityRule(
+  context: NcContext,
+  tableId: string,
+): Promise<boolean> {
+  const permissions = await Permission.list(context, context.base_id);
+  if (
+    permissions.some(
+      (p) =>
+        p.entity === PermissionEntity.TABLE &&
+        p.entity_id === tableId &&
+        p.permission === PermissionKey.TABLE_VISIBILITY,
+    )
+  ) {
+    return true;
+  }
+  const disabledViewIds = new Set(
+    (await ModelRoleVisibility.list(context, context.base_id))
+      .filter((entry) => entry.disabled)
+      .map((entry) => entry.fk_view_id),
+  );
+  if (!disabledViewIds.size) return false;
+  const views = await View.list(context, tableId);
+  return views.some((view) => disabledViewIds.has(view.id));
+}
+
+// Per request context: link column id -> verdict.
+const linkTargetVerdicts = new WeakMap<object, Map<string, Promise<boolean>>>();
+
+/**
+ * Whether a link's related table is hidden from the requester. Unlike
+ * `hasLimitedLinkTargetAccess`, a shared view is not limited by itself, and a
+ * read with no user that is not a public share (jobs, webhooks) is not limited.
+ */
+export async function isLinkTargetHidden(
+  context: NcContext,
+  colOptions: LinkToAnotherRecordColumn,
+): Promise<boolean> {
+  const publicShare =
+    isSharedViewAccess(context) ||
+    context.access_source === NcAccessSource.SHARED_BASE;
+  if (!context.user ? !publicShare : isServiceUser(context.user)) return false;
+  if (
+    context.access_source === NcAccessSource.SHARED_BASE &&
+    colOptions.isCrossBaseLink()
+  ) {
+    return true;
+  }
+
+  let verdicts = linkTargetVerdicts.get(context);
+  if (!verdicts) linkTargetVerdicts.set(context, (verdicts = new Map()));
+  const key = colOptions.fk_column_id;
+  let verdict = key ? verdicts.get(key) : undefined;
+  if (!verdict) {
+    const refContext = relatedBaseContext(context, colOptions);
+    // Hidden only when a visibility rule applies to the related table: no
+    // role in its base alone does not hide it.
+    verdict = isTargetHiddenIn(
+      refContext,
+      colOptions,
+      colOptions.fk_related_model_id,
+      { rolesFromOtherBase: refContext.base_id !== rolesBaseOf(context) },
+    );
+    if (key) verdicts.set(key, verdict);
+  }
+  return verdict;
+}
+
+// Moved context -> the base its user's roles belong to.
+const movedContextRolesBase = new WeakMap<object, string>();
+
+function rolesBaseOf(context: NcContext): string {
+  return movedContextRolesBase.get(context) ?? context.base_id;
+}
+
+// The request context moved to the link's related base.
+export function relatedBaseContext(
+  context: NcContext,
+  colOptions: LinkToAnotherRecordColumn,
+): NcContext {
+  const { refContext } = colOptions.getRelContext();
+  if (refContext.base_id === context.base_id) return context;
+  const moved = {
+    ...context,
+    workspace_id: refContext.workspace_id,
+    base_id: refContext.base_id,
+    permissions: undefined,
+  };
+  movedContextRolesBase.set(moved, rolesBaseOf(context));
+  return moved;
+}
+
+const MAX_HIDDEN_CHAIN_DEPTH = 8;
+// Per request context: column id -> verdict.
+const hiddenColumnVerdicts = new WeakMap<
+  object,
+  Map<string, Promise<boolean>>
+>();
+
+/**
+ * Whether a Lookup or Rollup reads, at any hop of its chain, a table hidden
+ * from the requester. Such a field must read as null and not filter.
+ */
+export async function readsHiddenTable(
+  context: NcContext,
+  column: Column,
+): Promise<boolean> {
+  if (column?.uidt !== UITypes.Lookup && column?.uidt !== UITypes.Rollup) {
+    return false;
+  }
+  let verdicts = hiddenColumnVerdicts.get(context);
+  if (!verdicts) hiddenColumnVerdicts.set(context, (verdicts = new Map()));
+  let verdict = verdicts.get(column.id);
+  if (!verdict) {
+    verdict = readsHiddenTableUncached(context, column);
+    verdicts.set(column.id, verdict);
+  }
+  return verdict;
+}
+
+/**
+ * Cache-key segment for a compiled read of a model: its fields, and those of
+ * the tables it links to (display values), that read a hidden table compile to
+ * NULL, so plans must not be shared across verdicts.
+ */
+export async function hiddenTableReadsSegment(
+  context: NcContext,
+  columns: Column[],
+): Promise<string> {
+  const hidden: string[] = [];
+  for (const column of columns ?? []) {
+    if (await readsHiddenTable(context, column)) hidden.push(column.id);
+    if (!isLinksOrLTAR(column)) continue;
+    const link = await column.getColOptions<LinkToAnotherRecordColumn>();
+    if (!link) continue;
+    const linkedContext = relatedBaseContext(context, link);
+    const linkedModel = await Model.get(
+      link.getRelContext().refContext,
+      link.fk_related_model_id,
+    );
+    for (const linkedColumn of (await linkedModel?.getColumns()) ?? []) {
+      if (await readsHiddenTable(linkedContext, linkedColumn)) {
+        hidden.push(`${column.id}.${linkedColumn.id}`);
+      }
+    }
+  }
+  return hidden.length ? `:hid:${hidden.sort().join(',')}` : '';
+}
+
+async function readsHiddenTableUncached(
+  context: NcContext,
+  column: Column,
+): Promise<boolean> {
+  for (const hop of await lookupChainHops(context, column)) {
+    if (await isLinkTargetHidden(hop.context, hop.link)) return true;
+  }
+  return false;
+}
+
+/**
+ * The link of each hop a Lookup or Rollup reads through, with the field that
+ * reads it and the request context moved to the base that hop starts in.
+ */
+export async function lookupChainHops(
+  context: NcContext,
+  column: Column,
+): Promise<
+  { context: NcContext; link: LinkToAnotherRecordColumn; column: Column }[]
+> {
+  const hops: {
+    context: NcContext;
+    link: LinkToAnotherRecordColumn;
+    column: Column;
+  }[] = [];
+  let hopContext = context;
+  let current = column;
+  while (
+    hops.length <= MAX_HIDDEN_CHAIN_DEPTH &&
+    (current?.uidt === UITypes.Lookup || current?.uidt === UITypes.Rollup)
+  ) {
+    const colOptions = await current.getColOptions<
+      LookupColumn | RollupColumn
+    >();
+    if (!colOptions || colOptions.error) break;
+    const relationColumn = await colOptions.getRelationColumn();
+    const link =
+      await relationColumn?.getColOptions<LinkToAnotherRecordColumn>();
+    if (!link) break;
+    hops.push({ context: hopContext, link, column: current });
+
+    current =
+      current.uidt === UITypes.Lookup
+        ? await (colOptions as LookupColumn).getLookupColumn()
+        : await (colOptions as RollupColumn).getRollupColumn();
+    hopContext = relatedBaseContext(hopContext, link);
+  }
+  // A lookup of a link field also reads the table that link points to.
+  if (hops.length && current && isLinksOrLTAR(current)) {
+    const link = await current.getColOptions<LinkToAnotherRecordColumn>();
+    if (link) hops.push({ context: hopContext, link, column: current });
+  }
+  return hops;
+}
+
+function runRolesInBase(
+  owner: Awaited<ReturnType<typeof User.getWithRoles>> | null | undefined,
+  cap: AgentRoleCap | null | undefined,
+): Record<string, boolean> | null {
+  const role = owner ? personalAgentRole(getStandingRole(owner), cap) : null;
+  return role ? { [role]: true } : null;
 }
 
 // Per request user object: base id -> that user with its roles in that base.
@@ -345,7 +590,8 @@ const relatedBaseUsers = new WeakMap<object, Map<string, Promise<any>>>();
 /**
  * The request user carries its roles in the REQUEST base; a cross-base link's
  * TABLE_VISIBILITY rule must be read against its role in the related base.
- * Service users and agents keep the request roles.
+ * Service users and agents keep the request roles; a personal agent's run is
+ * its owner there, capped as in the request base.
  */
 async function userInRelatedBase(
   refContext: NcContext,
@@ -365,7 +611,9 @@ async function userInRelatedBase(
       .then((withRoles) => ({
         ...user,
         roles: withRoles?.roles ?? null,
-        base_roles: withRoles?.base_roles ?? null,
+        base_roles: user.acting_agent
+          ? runRolesInBase(withRoles, user.acting_agent.role_cap)
+          : withRoles?.base_roles ?? null,
         workspace_roles: withRoles?.workspace_roles ?? null,
         is_app_effective_role: undefined,
         real_base_role: undefined,

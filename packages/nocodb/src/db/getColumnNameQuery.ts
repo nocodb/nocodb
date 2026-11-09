@@ -49,6 +49,8 @@ export async function getColumnNameQuery({
   ncMeta?: MetaService;
 }): Promise<{
   builder: Knex.QueryBuilder | Knex.Raw | string;
+  // a rollup that reads as the error sentinel
+  isError?: boolean;
 }> {
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
@@ -113,7 +115,8 @@ export async function getColumnNameQuery({
     case UITypes.Links:
     case UITypes.Rollup: {
       const rollupOpt = (await column.getColOptions(ncMeta)) as RollupColumn;
-      if (!rollupOpt || rollupOpt.error) break;
+      // a rollup flagged from its data compiles to the error value, and heals
+      if (!rollupOpt || (rollupOpt.error && !rollupOpt.data_error)) break;
       const knex = baseModelSqlv2.dbDriver;
       column_name_query = await genRollupSelectv2({
         baseModelSqlv2,

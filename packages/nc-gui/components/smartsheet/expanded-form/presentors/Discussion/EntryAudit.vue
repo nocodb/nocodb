@@ -16,6 +16,8 @@ const props = defineProps<{
 
 const { user } = useGlobal()
 
+const { agents } = storeToRefs(useAgentStore())
+
 const { t } = useI18n()
 
 /* fields */
@@ -79,6 +81,13 @@ const createdBy = computed(() => {
              spans, fusing "User" into the action text ("Usercreated a record") -->
         <span class="font-weight-700 mr-1 rtl:(mr-0 ml-1)">
           {{ createdBy }}
+        </span>
+        <span v-if="auditAgent(props.auditGroup.audit, agents)" class="mr-1 rtl:(mr-0 ml-1) text-nc-content-gray-muted">
+          {{
+            auditAgent(props.auditGroup.audit, agents)?.title
+              ? $t('labels.agentPersonal.viaAgent', { agent: auditAgent(props.auditGroup.audit, agents)?.title })
+              : $t('labels.agentPersonal.viaAnAgent')
+          }}
         </span>
         <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'" class="font-weight-500 text-nc-content-gray-subtle2">
           {{ $t('activity.createdARecord') }}

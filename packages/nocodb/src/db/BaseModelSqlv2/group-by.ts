@@ -1,6 +1,7 @@
 import {
   extractFilterFromXwhere,
   FormulaDataTypes,
+  getRollupResultUidt,
   isBtLikeV2Junction,
   isFieldTrackingLmbCol,
   isFieldTrackingLmtCol,
@@ -48,7 +49,10 @@ import { isSharedViewAccess } from '~/helpers/accessSource';
 import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
 import { setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
-import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
+import {
+  getDataQueryTimeout,
+  NC_DISABLE_GROUP_BY_LIMIT,
+} from '~/utils/nc-config';
 
 // PR review fix #2: Shared helper for UUID group-by to avoid 4x code duplication.
 // Casts UUID to text on PostgreSQL (avoids type mismatch), passes through on other DBs.
@@ -117,6 +121,34 @@ const sqlNullIfBlank = ({
   }
 
   return baseModel.dbDriver.raw(`NULLIF(??, '')`, [columnName]);
+};
+
+// A text-result rollup folds '' into the empty group, as a string formula does;
+// undefined for any other rollup.
+const textRollupGroupKey = ({
+  baseModel,
+  column,
+  colOptions,
+  builder,
+}: {
+  baseModel: IBaseModelSqlV2;
+  column: Column;
+  colOptions: RollupColumn;
+  builder: Knex.QueryBuilder;
+}) => {
+  if (
+    getRollupResultUidt({ uidt: column.uidt, colOptions }) !==
+    UITypes.SingleLineText
+  ) {
+    return undefined;
+  }
+  return sqlNullIfBlank({
+    baseModel,
+    columnName: baseModel.dbDriver.raw(baseModel.isPg ? '(?)::text' : '(?)', [
+      builder,
+    ]),
+    isStringType: true,
+  });
 };
 
 // NULL and false both render and filter (`notchecked`) as unchecked, so they must share a
@@ -372,6 +404,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       skipDateConversion: true,
       skipAttachmentConversion: true,
       skipUserConversion: true,
+      queryTimeout: getDataQueryTimeout(),
     };
     const [rows, emptyRows] = (await Promise.all([
       baseModel.execAndParse(qb, null, parseOpts),
@@ -487,7 +520,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         NcError.get(baseModel.context).fieldNotFound(col);
       }
 
-      if (column.colOptions?.error) {
+      // an errored rollup groups every row under the error sentinel, which the
+      // client renders as ERR! and expands with `gb_eq`
+      if (column.colOptions?.error && column.uidt !== UITypes.Rollup) {
         NcError.get(baseModel.context).badRequest(
           `Cannot group by column '${column.title}': ${column.colOptions.error}`,
         );
@@ -532,41 +567,58 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           );
           break;
         case UITypes.Links:
-        case UITypes.Rollup:
+        case UITypes.Rollup: {
+          const rollupColOptions = await column.getColOptions<RollupColumn>();
           columnQuery = (
             await genRollupSelectv2({
               baseModelSqlv2: baseModel,
               knex: baseModel.dbDriver,
-              columnOptions: (await column.getColOptions()) as RollupColumn,
+              columnOptions: rollupColOptions,
             })
           ).builder;
-          if (!isSubGroup) {
+          const textKey = textRollupGroupKey({
+            baseModel,
+            column,
+            colOptions: rollupColOptions,
+            builder: columnQuery,
+          });
+          if (textKey) {
+            columnQuery = textKey;
+            if (!isSubGroup) {
+              selectors.push(
+                baseModel.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
+              );
+            }
+          } else if (!isSubGroup) {
             selectors.push(columnQuery.as(alias));
           }
           break;
+        }
         case UITypes.Formula:
           try {
             const _selectQb = await baseModel.getSelectQueryBuilderForFormula(
               column,
             );
             columnQuery = _selectQb.builder;
-
-            // if postgres and formula output defined as string then cast to text for consistent output
-            if (
-              baseModel.isPg &&
+            const isStringFormula =
               (column.colOptions as FormulaColumn).getParsedTree().dataType ===
-                FormulaDataTypes.STRING
-            ) {
+              FormulaDataTypes.STRING;
+
+            // a string formula's '' shares the empty group, as the group count and gb_null do
+            if (isStringFormula && baseModel.isPg) {
+              // cast to text for consistent output
               columnQuery = sqlNullIfBlank({
                 columnName: baseModel.dbDriver.raw(`??::text`, [columnQuery]),
                 baseModel,
                 isStringType: true,
               });
-            } else if (
-              baseModel.isOracle &&
-              (column.colOptions as FormulaColumn).getParsedTree().dataType ===
-                FormulaDataTypes.STRING
-            ) {
+            } else if (isStringFormula && !baseModel.isOracle) {
+              columnQuery = sqlNullIfBlank({
+                columnName: columnQuery,
+                baseModel,
+                isStringType: true,
+              });
+            } else if (isStringFormula && baseModel.isOracle) {
               // Oracle string formulas compile to CLOB, which can't be a
               // GROUP BY / ORDER BY key (ORA-22848). Shorten to VARCHAR2
               // (4000 = max comparison-key length) for use as a group key.
@@ -1067,7 +1119,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
       // T-SQL forbids wrapping a CTE in a derived table — skip the outer
       // `__nc_group_alias` wrap.
-      return await baseModel.execAndParse(outerQb);
+      return await baseModel.execAndParse(outerQb, null, {
+        queryTimeout: getDataQueryTimeout(),
+      });
     }
 
     if (baseModel.isOracle) {
@@ -1077,7 +1131,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       // and the group keys are materialised in the `__nc_grp_src__` derived
       // table above (so no GROUP BY on a select alias), so execute outerQb
       // directly like the mssql path.
-      return await baseModel.execAndParse(outerQb);
+      return await baseModel.execAndParse(outerQb, null, {
+        queryTimeout: getDataQueryTimeout(),
+      });
     }
 
     return await baseModel.execAndParse(
@@ -1087,6 +1143,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           ') __nc_group_alias',
         ),
       ),
+      null,
+      { queryTimeout: getDataQueryTimeout() },
     );
   };
 
@@ -1198,19 +1256,29 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           case UITypes.Links: {
             const rollupColOptions =
               (await column.getColOptions()) as RollupColumn;
-            if (rollupColOptions?.error) {
+            // a data-flagged rollup compiles to the error value, and heals
+            if (rollupColOptions?.error && !rollupColOptions.data_error) {
               selectors.push(
                 baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]),
               );
             } else {
+              const builder = (
+                await genRollupSelectv2({
+                  baseModelSqlv2: baseModel,
+                  knex: baseModel.dbDriver,
+                  columnOptions: rollupColOptions,
+                })
+              ).builder;
+              const textKey = textRollupGroupKey({
+                baseModel,
+                column,
+                colOptions: rollupColOptions,
+                builder,
+              });
               selectors.push(
-                (
-                  await genRollupSelectv2({
-                    baseModelSqlv2: baseModel,
-                    knex: baseModel.dbDriver,
-                    columnOptions: rollupColOptions,
-                  })
-                ).builder.as(getAs(column)),
+                textKey
+                  ? baseModel.dbDriver.raw(`?? as ??`, [textKey, getAs(column)])
+                  : builder.as(getAs(column)),
               );
             }
             groupBySelectors.push(getAs(column));
@@ -1539,8 +1607,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         .from(groupedCte.as('sub'));
     }
 
-    return (await baseModel.execAndParse(qbP, null, { raw: true, first: true }))
-      ?.count;
+    return (
+      await baseModel.execAndParse(qbP, null, {
+        raw: true,
+        first: true,
+        queryTimeout: getDataQueryTimeout(),
+      })
+    )?.count;
   };
 
   return {

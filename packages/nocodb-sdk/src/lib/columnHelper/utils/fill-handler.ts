@@ -179,12 +179,13 @@ export function populateFillHandleStringNumber({
       } else {
         groupOfIndex.group.lastIndex += groupOfIndex.group.modifier;
       }
+      // Pure numbers keep their sign; prefixed values ("Item 2") count back up past 0, like Google Sheets.
       result.push(
-        `${
-          groupOfIndex.group.prefix === nullPrefix
-            ? ''
-            : (groupOfIndex.group.prefix as string)
-        }${Math.abs(groupOfIndex.group.lastIndex)}`
+        groupOfIndex.group.prefix === nullPrefix
+          ? `${groupOfIndex.group.lastIndex}`
+          : `${groupOfIndex.group.prefix as string}${Math.abs(
+              groupOfIndex.group.lastIndex
+            )}`
       );
     }
   }

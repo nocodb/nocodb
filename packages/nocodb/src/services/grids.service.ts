@@ -15,12 +15,14 @@ import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
 import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { claimObjectTitle } from '~/helpers/customObjects';
+import { normalizeViewTitle } from '~/helpers/viewTitleHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 import { GridView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
 @Injectable()
 export class GridsService {
@@ -59,7 +61,7 @@ export class GridsService {
     const model = await Model.get(context, param.tableId, false, ncMeta);
 
     // check for duplicated view title
-    param.grid.title = param.grid.title?.trim();
+    param.grid.title = normalizeViewTitle(context, param.grid.title);
 
     param.grid.title = await claimObjectTitle(
       context,
@@ -150,7 +152,7 @@ export class GridsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_create',
-          payload: safeView,
+          payload: viewForBroadcast(safeView),
         },
       },
       context.socket_id,
@@ -225,7 +227,7 @@ export class GridsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: safeView,
+          payload: viewForBroadcast(safeView),
         },
       },
       context.socket_id,

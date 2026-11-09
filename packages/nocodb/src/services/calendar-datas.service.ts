@@ -5,6 +5,7 @@ import type { CalendarRangeType, FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { CalendarRange, Column, Model, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { missingCalendarDateParamsMessage } from '~/helpers/calendarHelpers';
 import { DatasService } from '~/services/datas.service';
 import { sanitizePublicQuery } from '~/helpers/publicQuerySanitizer';
 import { restrictSharedViewQueryForView } from '~/helpers/sharedViewQueryHelpers';
@@ -29,7 +30,7 @@ export class CalendarDatasService {
     const { viewId, query, from_date, to_date, next_date, prev_date } = param;
 
     if (!from_date || !to_date || !next_date || !prev_date)
-      NcError.get(context).badRequest('from_date and to_date are required');
+      NcError.get(context).badRequest(missingCalendarDateParamsMessage(param));
 
     if (dayjs(to_date).diff(dayjs(from_date), 'days') > 42) {
       NcError.get(context).badRequest('Date range should not exceed 42 days');
@@ -184,7 +185,7 @@ export class CalendarDatasService {
     const { viewId, query, from_date, to_date, next_date, prev_date } = param;
 
     if (!from_date || !to_date || !next_date || !prev_date)
-      NcError.get(context).badRequest('from_date and to_date are required');
+      NcError.get(context).badRequest(missingCalendarDateParamsMessage(param));
 
     if (dayjs(to_date).diff(dayjs(from_date), 'days') > 395) {
       NcError.get(context).badRequest('Date range should not exceed 395 days');

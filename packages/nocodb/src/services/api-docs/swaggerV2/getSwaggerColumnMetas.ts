@@ -1,5 +1,5 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import { FormulaDataTypes } from 'nocodb-sdk';
+import { FormulaDataTypes, getRollupResultUidt } from 'nocodb-sdk';
 import type { SourcesMap } from '~/services/api-docs/types';
 import type { Column, LinkToAnotherRecordColumn, Model } from '~/models';
 import type { NcContext } from '~/interface/config';
@@ -102,8 +102,9 @@ async function processColumnToSwaggerField(
       if (isLookupHelper) {
         // For recursive lookup resolution, get the underlying column type
         const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
-        if (colOpt) {
-          const lookupCol = await colOpt.getLookupColumn();
+        // The target field may have been deleted.
+        const lookupCol = colOpt ? await colOpt.getLookupColumn() : null;
+        if (lookupCol) {
           return await processColumnToSwaggerField(
             context,
             {
@@ -121,13 +122,16 @@ async function processColumnToSwaggerField(
       } else {
         // For main lookup processing, determine relation type and structure
         const colOpt = await column.getColOptions<LookupColumn>(ncMeta);
-        if (colOpt) {
-          const relationCol = await colOpt.getRelationColumn();
-          const relationColOpt =
-            await relationCol.getColOptions<LinkToAnotherRecordColumn>(ncMeta);
+        const relationCol = colOpt ? await colOpt.getRelationColumn() : null;
+        const relationColOpt = relationCol
+          ? await relationCol.getColOptions<LinkToAnotherRecordColumn>(ncMeta)
+          : null;
+        // The link or the target field may have been deleted.
+        const lookupCol = relationColOpt
+          ? await colOpt.getLookupColumn()
+          : null;
+        if (lookupCol) {
           const { refContext } = await relationColOpt.getRelContext();
-
-          const lookupCol = await colOpt.getLookupColumn();
 
           const refBase =
             !relationColOpt.fk_related_base_id ||
@@ -179,7 +183,27 @@ async function processColumnToSwaggerField(
       }
       break;
     case UITypes.Rollup:
-      field.type = 'number';
+      // typed by its result
+      // a looked-up column comes without its colOptions
+      if (!column.colOptions) await column.getColOptions(ncMeta);
+      switch (getRollupResultUidt(column)) {
+        case UITypes.SingleLineText:
+          field.type = 'string';
+          break;
+        case UITypes.Date:
+          field.type = 'string';
+          field.format = 'date';
+          break;
+        case UITypes.DateTime:
+          field.type = 'string';
+          field.format = 'date-time';
+          break;
+        case UITypes.Checkbox:
+          field.type = 'boolean';
+          break;
+        default:
+          field.type = 'number';
+      }
       break;
     case UITypes.Links:
       field.type = 'integer';

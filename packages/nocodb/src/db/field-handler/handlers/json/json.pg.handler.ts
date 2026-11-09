@@ -4,7 +4,10 @@ import type CustomKnex from '~/db/CustomKnex';
 import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { sanitize } from '~/helpers/sqlSanitize';
-import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import {
+  ncIsStringHasValue,
+  ncLikeContainsPattern,
+} from '~/db/field-handler/utils/handlerUtils';
 import { NcError } from '~/helpers/ncError';
 
 const appendIsNull = ({
@@ -95,7 +98,7 @@ export class JsonPgHandler extends JsonGeneralHandler {
             if (!ncIsStringHasValue(val)) {
               appendIsNull({ qb, knex, field });
             } else {
-              val = `%${val}%`;
+              val = ncLikeContainsPattern(knex, val);
               qb.where(knex.raw('??::text ilike ?', [field, val]));
             }
             break;
@@ -104,7 +107,7 @@ export class JsonPgHandler extends JsonGeneralHandler {
             if (!ncIsStringHasValue(val)) {
               appendIsNotNull({ qb, knex, field });
             } else {
-              val = `%${val}%`;
+              val = ncLikeContainsPattern(knex, val);
 
               qb.where((nestedQb) => {
                 nestedQb.where(knex.raw('??::text not ilike ?', [field, val]));

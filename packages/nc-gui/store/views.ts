@@ -483,7 +483,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
             },
             {
               ...commonFields,
-              ...getDefaultViewMetas(ViewTypes.FORM),
+              // A duplicate keeps the source form's settings
+              ...(form.copy_from_id ? {} : getDefaultViewMetas(ViewTypes.FORM)),
             },
           )
           break
@@ -1426,7 +1427,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   function getViewReadableUrlSlug({ tableTitle, viewOrViewTitle }: { tableTitle?: string; viewOrViewTitle: ViewType | string }) {
     const viewTitle = ncIsObject(viewOrViewTitle) ? viewOrViewTitle.title : viewOrViewTitle
 
-    return toReadableUrlSlug([tableTitle, viewTitle])
+    return toPlainUrlSlug([tableTitle, viewTitle])
   }
 
   /**
@@ -1571,7 +1572,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!newactiveViewReadableUrlSlug) return
 
       // Decode both sides before comparing to avoid encoded vs decoded mismatch
-      // (Nuxt auto-decodes route params, but toReadableUrlSlug encodes them)
+      // (Nuxt auto-decodes route params; older URLs may carry encoded slugs)
       try {
         if (decodeURIComponent(newActiveViewUrlSlug) === decodeURIComponent(newactiveViewReadableUrlSlug)) return
       } catch {

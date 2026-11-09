@@ -1,6 +1,7 @@
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
+  getAvailableRollupForColumn,
   getAvailableRollupForUiType,
   isAllowedLmtTrackedField,
   isFieldTrackingLmbCol,
@@ -8,10 +9,15 @@ import {
   isLinksOrLTAR,
   isMMOrMMLike,
   isRollupAggregatableColumn,
+  isRollupFormulaTargetColumn,
+  NcBaseError,
   OperationSource,
   parseProp,
   RelationTypes,
+  ROLLUP_FORMULA_FUNCTION,
+  SqlUiFactory,
   UITypes,
+  validateFormulaAndExtractTreeWithType,
   WebhookActions,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
@@ -22,6 +28,7 @@ import type {
   ColumnReqType,
   LookupColumnReqType,
   NcRequest,
+  ParsedFormulaNode,
   RollupColumnReqType,
   TableType,
 } from 'nocodb-sdk';
@@ -30,15 +37,17 @@ import type LookupColumn from '~/models/LookupColumn';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
-import type Model from '~/models/Model';
 import type { LtarHmBtIds } from '~/services/columns.service.type';
-import { GridViewColumn } from '~/models';
+import Model from '~/models/Model';
+import { GridViewColumn, Source } from '~/models';
+import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import Column from '~/models/Column';
 import { DriverClient } from '~/utils/nc-config';
 import Noco from '~/Noco';
 import { META_COL_NAME } from '~/constants';
+import { pluralizeTitle } from '~/helpers/pluralizeTitle';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
@@ -155,7 +164,7 @@ export async function createHmAndBtColumn(
     );
     const meta = {
       ...(columnMeta || {}),
-      plural: columnMeta?.plural || pluralize(child.title),
+      plural: columnMeta?.plural || pluralizeTitle(child.title),
       singular: columnMeta?.singular || singularize(child.title),
       custom: isCustom,
     };
@@ -352,7 +361,7 @@ export async function createOOColumn(
 
     const meta = {
       ...(columnMeta || {}),
-      plural: columnMeta?.plural || pluralize(child.title),
+      plural: columnMeta?.plural || pluralizeTitle(child.title),
       singular: columnMeta?.singular || singularize(child.title),
       custom: isCustom,
     };
@@ -404,7 +413,16 @@ export async function createOOColumn(
 
 export async function validateRollupPayload(
   context: NcContext,
-  payload: ColumnReqType | Column,
+  // `title` keeps any column request assignable; the rest is what a rollup reads
+  payload: Pick<
+    RollupColumnReqType,
+    | 'title'
+    | 'fk_relation_column_id'
+    | 'fk_rollup_column_id'
+    | 'rollup_function'
+    | 'rollup_formula'
+  > & { parsed_tree?: ParsedFormulaNode | null; meta?: unknown },
+  ncMeta = Noco.ncMeta,
 ) {
   validateParams(
     [
@@ -417,14 +435,14 @@ export async function validateRollupPayload(
     context,
   );
 
-  const column = await Column.get(context, {
-    colId: (payload as RollupColumnReqType).fk_relation_column_id,
-  });
+  const column = await Column.get(
+    context,
+    { colId: payload.fk_relation_column_id },
+    ncMeta,
+  );
 
   if (!column) {
-    NcError.get(context).relationFieldNotFound(
-      (payload as RollupColumnReqType).fk_relation_column_id,
-    );
+    NcError.get(context).relationFieldNotFound(payload.fk_relation_column_id);
   }
 
   if (!isLinksOrLTAR(column)) {
@@ -433,12 +451,12 @@ export async function validateRollupPayload(
     );
   }
 
-  const relation = await column.getColOptions<LinkToAnotherRecordColumn>();
+  const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
+    ncMeta,
+  );
 
   if (!relation) {
-    NcError.get(context).relationFieldNotFound(
-      (payload as RollupColumnReqType).fk_relation_column_id,
-    );
+    NcError.get(context).relationFieldNotFound(payload.fk_relation_column_id);
   }
 
   const { refContext } = relation.getRelContext();
@@ -447,23 +465,53 @@ export async function validateRollupPayload(
   const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
   switch (relationType) {
     case 'hm':
-      relatedColumn = await Column.get(refContext, {
-        colId: relation.fk_child_column_id,
-      });
+      relatedColumn = await Column.get(
+        refContext,
+        { colId: relation.fk_child_column_id },
+        ncMeta,
+      );
       break;
     case 'mm':
     case 'bt':
-      relatedColumn = await Column.get(refContext, {
-        colId: relation.fk_parent_column_id,
-      });
+      relatedColumn = await Column.get(
+        refContext,
+        { colId: relation.fk_parent_column_id },
+        ncMeta,
+      );
       break;
+    case 'oo':
+      relatedColumn = await Column.get(
+        refContext,
+        {
+          colId: column.meta?.bt
+            ? relation.fk_parent_column_id
+            : relation.fk_child_column_id,
+        },
+        ncMeta,
+      );
+      break;
+    default:
+      NcError.get(context).unSupportedRelation(relationType);
   }
 
-  const relatedTable = await relatedColumn.getModel();
-  const relatedTableColumns = await relatedTable.getColumns();
+  // e.g. a hidden junction link, whose far side isn't a table of its own
+  if (!relatedColumn) {
+    NcError.get(context).badRequest(
+      `"${column.title}" can't be rolled up: its linked table could not be resolved.`,
+    );
+  }
+
+  const relatedTable = await relatedColumn.getModel(ncMeta);
+  // the hidden links into a many-to-many junction table
+  if (relatedTable?.mm) {
+    NcError.get(context).badRequest(
+      `"${column.title}" links to a junction table and can't be rolled up.`,
+    );
+  }
+  const relatedTableColumns = await relatedTable.getColumns(ncMeta);
 
   const rollupColumn = relatedTableColumns.find(
-    (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
+    (c) => c.id === payload.fk_rollup_column_id,
   );
 
   if (!rollupColumn)
@@ -471,7 +519,13 @@ export async function validateRollupPayload(
 
   // Rolling up a link/lookup/barcode-style column would build SQL against a
   // column that doesn't physically exist, breaking every read of the table.
-  if (!isRollupAggregatableColumn(rollupColumn)) {
+  // A formula rollup also reads links (counts) and flattens lookups.
+  const isFormula = payload.rollup_function === ROLLUP_FORMULA_FUNCTION;
+  if (
+    isFormula
+      ? !isRollupFormulaTargetColumn(rollupColumn)
+      : !isRollupAggregatableColumn(rollupColumn)
+  ) {
     const aggregatable = relatedTableColumns
       .filter(
         (c) =>
@@ -489,15 +543,74 @@ export async function validateRollupPayload(
     );
   }
 
-  if (
-    !getAvailableRollupForUiType(rollupColumn.uidt).includes(
-      (payload as RollupColumnReqType).rollup_function,
-    )
-  ) {
+  if (isFormula) {
+    if (!payload.rollup_formula?.trim()) {
+      NcError.get(context).badRequest(
+        'A formula rollup needs a formula over `values`, e.g. SUM(values)',
+      );
+    }
+    const relatedModels = await getRelatedModelMap(
+      refContext,
+      relatedTable,
+      ncMeta,
+    );
+    const source = await Source.get(
+      refContext,
+      relatedTable.source_id,
+      false,
+      ncMeta,
+    );
+    try {
+      payload.parsed_tree = await validateFormulaAndExtractTreeWithType({
+        formula: payload.rollup_formula,
+        columns: [],
+        clientOrSqlUi: SqlUiFactory.create({ client: source?.type }),
+        // the map follows links and lookups only, not a rollup's own link
+        getMeta: async (metaContext, { id }) => {
+          const mapped = relatedModels.get(id);
+          if (mapped) return mapped;
+          const related = await Model.get(metaContext, id, false, ncMeta);
+          await related?.getColumns(ncMeta);
+          return related;
+        },
+        rollup: {
+          valuesColumn: rollupColumn,
+          valuesColumns: relatedTableColumns,
+        },
+      });
+    } catch (e) {
+      // as formula fields: an NcError passes through, the rest (incl. the
+      // parser's syntax errors) is the formula's fault
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.get(context).formulaError(e.message);
+    }
+    return;
+  }
+
+  // switching back from a formula rollup drops its formula and result format
+  payload.rollup_formula = null;
+  payload.parsed_tree = null;
+  if (payload.meta && typeof payload.meta === 'object') {
+    const {
+      display_type: _type,
+      display_column_meta: _meta,
+      ...meta
+    } = payload.meta as Record<string, unknown>;
+    payload.meta = meta;
+  }
+
+  // a rollup target aggregates as its result type (sum of a text or date
+  // result would fail every read)
+  if (rollupColumn.uidt === UITypes.Rollup) {
+    await rollupColumn.getColOptions(ncMeta);
+  }
+  const availableFunctions =
+    rollupColumn.uidt === UITypes.Rollup
+      ? getAvailableRollupForColumn(rollupColumn)
+      : getAvailableRollupForUiType(rollupColumn.uidt);
+  if (!availableFunctions.includes(payload.rollup_function)) {
     NcError.get(context).badRequest(
-      `Rollup function (${
-        (payload as RollupColumnReqType).rollup_function
-      }) not available for type (${rollupColumn.uidt})`,
+      `Rollup function (${payload.rollup_function}) not available for type (${rollupColumn.uidt})`,
     );
   }
 }
@@ -653,7 +766,7 @@ export async function populateRollupForLTAR({
     relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
 
   const meta = {
-    plural: columnMeta?.plural || pluralize(relatedModel.title),
+    plural: columnMeta?.plural || pluralizeTitle(relatedModel.title),
     singular: columnMeta?.singular || singularize(relatedModel.title),
   };
 

@@ -1,5 +1,6 @@
 import type { Request } from 'express';
 import type { TableType, UserType } from '~/lib/Api';
+import type { AgentRoleCap } from './agent';
 import { NcAccessSource, NcApiVersion, ProjectRoles } from './enums';
 
 export type NcContextTriggeredVia = 'undo' | 'redo' | 'environment-promote';
@@ -22,6 +23,8 @@ export interface NcContext {
     is_app_effective_role?: boolean;
     real_base_role?: ProjectRoles;
     is_agent?: boolean;
+    acting_agent?: { id: string; title: string; role_cap?: AgentRoleCap | null };
+    agent_chain_depth?: number;
   };
   fk_model_id?: string;
   socket_id?: string;
@@ -134,6 +137,8 @@ export interface NcRequest extends Partial<Request> {
     is_api_token?: boolean;
     direct_teams?: { team_id: string; path: string }[];
     is_agent?: boolean;
+    acting_agent?: { id: string; title: string; role_cap?: AgentRoleCap | null };
+    agent_chain_depth?: number;
   };
   ncSiteUrl: string;
   dashboardUrl: string;

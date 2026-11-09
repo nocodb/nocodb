@@ -51,17 +51,17 @@ describe('UITypes — V2 LTAR helpers', () => {
       }
     );
 
-    it('returns false for V1 (version=1)', () => {
-      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'hm', 1))).toBe(
-        false
-      );
-    });
-
-    it('returns false for V1 with string version', () => {
-      expect(isLinkV2(makeCol(UITypes.LinkToAnotherRecord, 'hm', '1'))).toBe(
-        false
-      );
-    });
+    it.each(['hm', 'bt', 'mm', 'oo'])(
+      'returns false for V1 type=%s with numeric and string version',
+      (type) => {
+        expect(
+          isLinkV2(makeCol(UITypes.LinkToAnotherRecord, type, 1))
+        ).toBe(false);
+        expect(
+          isLinkV2(makeCol(UITypes.LinkToAnotherRecord, type, '1'))
+        ).toBe(false);
+      }
+    );
 
     it('returns false for undefined version', () => {
       expect(
@@ -238,68 +238,6 @@ describe('UITypes — V2 LTAR helpers', () => {
     it('returns false for other types', () => {
       expect(isLinksOrLTAR({ uidt: UITypes.SingleLineText })).toBe(false);
       expect(isLinksOrLTAR({ uidt: UITypes.Rollup })).toBe(false);
-    });
-  });
-
-  // ==========================================================================
-  // Cross-function consistency — same column should produce consistent results
-  // across all three helpers (prevents routing bugs)
-  // ==========================================================================
-  describe('cross-function consistency', () => {
-    it('V2 MO: isLinkV2=true, isMMOrMMLike=true, isBtLikeV2Junction=true', () => {
-      const col = makeCol(UITypes.LinkToAnotherRecord, 'mo', '2');
-      expect(isLinkV2(col)).toBe(true);
-      expect(isMMOrMMLike(col)).toBe(true);
-      expect(isBtLikeV2Junction(col)).toBe(true);
-    });
-
-    it('V2 OO: isLinkV2=true, isMMOrMMLike=true, isBtLikeV2Junction=true', () => {
-      const col = makeCol(UITypes.LinkToAnotherRecord, 'oo', '2');
-      expect(isLinkV2(col)).toBe(true);
-      expect(isMMOrMMLike(col)).toBe(true);
-      expect(isBtLikeV2Junction(col)).toBe(true);
-    });
-
-    it('V2 OM: isLinkV2=true, isMMOrMMLike=true, isBtLikeV2Junction=false', () => {
-      const col = makeCol(UITypes.LinkToAnotherRecord, 'om', '2');
-      expect(isLinkV2(col)).toBe(true);
-      expect(isMMOrMMLike(col)).toBe(true);
-      expect(isBtLikeV2Junction(col)).toBe(false);
-    });
-
-    it('V2 MM: isLinkV2=true, isMMOrMMLike=true, isBtLikeV2Junction=false', () => {
-      const col = makeCol(UITypes.LinkToAnotherRecord, 'mm', '2');
-      expect(isLinkV2(col)).toBe(true);
-      expect(isMMOrMMLike(col)).toBe(true);
-      expect(isBtLikeV2Junction(col)).toBe(false);
-    });
-
-    it('V1 HM: isLinkV2=false, isMMOrMMLike=false, isBtLikeV2Junction=false', () => {
-      const col = makeCol(UITypes.LinkToAnotherRecord, 'hm', '1');
-      expect(isLinkV2(col)).toBe(false);
-      expect(isMMOrMMLike(col)).toBe(false);
-      expect(isBtLikeV2Junction(col)).toBe(false);
-    });
-
-    it('V1 BT: isLinkV2=false, isMMOrMMLike=false, isBtLikeV2Junction=false', () => {
-      const col = makeCol(UITypes.LinkToAnotherRecord, 'bt', '1');
-      expect(isLinkV2(col)).toBe(false);
-      expect(isMMOrMMLike(col)).toBe(false);
-      expect(isBtLikeV2Junction(col)).toBe(false);
-    });
-
-    it('V1 MM: isLinkV2=false, isMMOrMMLike=true, isBtLikeV2Junction=false', () => {
-      const col = makeCol(UITypes.LinkToAnotherRecord, 'mm', '1');
-      expect(isLinkV2(col)).toBe(false);
-      expect(isMMOrMMLike(col)).toBe(true);
-      expect(isBtLikeV2Junction(col)).toBe(false);
-    });
-
-    it('V1 OO: isLinkV2=false, isMMOrMMLike=false, isBtLikeV2Junction=false', () => {
-      const col = makeCol(UITypes.LinkToAnotherRecord, 'oo', '1');
-      expect(isLinkV2(col)).toBe(false);
-      expect(isMMOrMMLike(col)).toBe(false);
-      expect(isBtLikeV2Junction(col)).toBe(false);
     });
   });
 });

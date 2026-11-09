@@ -34,6 +34,7 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
+import NocoSocket from '~/socket/NocoSocket';
 import {
   ApiToken,
   OAuthToken,
@@ -519,6 +520,7 @@ export class UsersService {
 
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);
+    await NocoSocket.disconnectUsers([user.id]);
     await this.revokeAllOAuthTokensByUser(user.id);
     // API tokens aren't tied to token_version, so they'd survive the reset.
     await ApiToken.deleteByUser(user.id);
@@ -833,6 +835,7 @@ export class UsersService {
         });
         // todo: clear only token present in cookie to avoid invalidating all refresh token
         await UserRefreshToken.deleteAllUserToken(user.id);
+        await NocoSocket.disconnectUsers([user.id]);
         // OAuth tokens are not revoked on sign-out: sign-out ends the user's
         // own session, not third-party OAuth client grants. OAuth tokens are
         // revoked on password change/reset/forgot where credential compromise
@@ -943,6 +946,8 @@ export class UsersService {
       token_version: randomTokenString(),
     });
     await UserRefreshToken.deleteAllUserToken(user.id);
+    // The socket handshake checks token_version only once, at connect.
+    await NocoSocket.disconnectUsers([user.id]);
     if (revokeOAuthTokens) {
       await this.revokeAllOAuthTokensByUser(user.id);
     }

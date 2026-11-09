@@ -281,8 +281,13 @@
               "sum",
               "countDistinct",
               "sumDistinct",
-              "avgDistinct"
+              "avgDistinct",
+              "formula"
             ]
+          },
+          "formula": {
+            "type": "string",
+            "description": "Expression over `values` when `rollup_function` is `formula`."
           },
           "error": {
             "type": "string",
@@ -293,6 +298,17 @@
             "description": "Number of decimal places for numeric rollups. Defaults to 0. Display-only: the API returns the unrounded value.",
             "minimum": 0,
             "maximum": 8
+          },
+          "display_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Formula rollups only: field type the result is rendered as. Null renders the raw result."
+          },
+          "display_column_meta": {
+            "type": "object",
+            "description": "Formula rollups only: field options applied to the rendered result."
           },
           "enable_conditions": {
             "type": "boolean",
@@ -321,6 +337,17 @@
           "related_table_rollup_field_id",
           "rollup_function"
         ],
+        "if": {
+          "properties": { "rollup_function": { "not": { "const": "formula" } } },
+          "required": ["rollup_function"]
+        },
+        "then": {
+          "properties": {
+            "formula": { "not": {}, "description": "Only for `rollup_function` `formula`." },
+            "display_type": { "type": "null", "description": "Only for `rollup_function` `formula`." },
+            "display_column_meta": { "not": {}, "description": "Only for `rollup_function` `formula`." }
+          }
+        },
         "additionalProperties": false
       },
       "WidgetUpdateReq": {

@@ -379,3 +379,31 @@ export async function resolveRequestTable(
   }
   return tableId;
 }
+
+// Operations that list the rows a link can be pointed at.
+const LINK_PICKER_PERMISSIONS = new Set([
+  'mmExcludedList',
+  'hmExcludedList',
+  'btExcludedList',
+  'ooExcludedList',
+  'linkDataList',
+]);
+
+// A link picker lists through a link of the request table, nothing else.
+export async function assertLinkPickerColumnOfTable(
+  req: any,
+  permissionName: string,
+): Promise<void> {
+  if (!LINK_PICKER_PERMISSIONS.has(permissionName)) return;
+  const context: NcContext = req.context;
+  const tableId = context?.ncTableId;
+  const ref =
+    req.params?.colId ?? req.params?.columnName ?? req.query?.columnId;
+  if (!tableId || !ref) return;
+
+  const model = await Model.get(context, tableId);
+  const column = (await model?.getColumns())?.find(
+    (c) => c.id === ref || c.title === ref || c.column_name === ref,
+  );
+  if (!column) NcError.get(context).fieldNotFound(ref);
+}

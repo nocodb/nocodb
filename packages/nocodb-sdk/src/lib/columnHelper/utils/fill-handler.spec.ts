@@ -95,14 +95,25 @@ describe('fill-handler.utils', () => {
       expect(result).toEqual([
         '1A1',
         '0',
-        '1',
+        '-1',
         '1A0',
-        '2',
-        '3',
+        '-2',
+        '-3',
         '1A1',
         '1A2',
-        '4',
+        '-4',
       ]);
+    });
+    it('will keep the sign on descending number series', () => {
+      const fill = (highlightedData: any[], numberOfRows: number) =>
+        populateFillHandleStringNumber({
+          highlightedData,
+          column: {} as any,
+          numberOfRows,
+        });
+      expect(fill([33, 12], 5)).toEqual(['-9', '-30', '-51']);
+      expect(fill(['5', '3'], 4)).toEqual(['1', '-1']);
+      expect(fill(['-1.5', '-3'], 4)).toEqual(['-4.5', '-6']);
     });
     it('will populate decimal value', () => {
       const data = ['33.11', '33.12', '33.13'];

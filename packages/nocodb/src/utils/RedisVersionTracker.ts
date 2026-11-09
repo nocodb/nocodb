@@ -14,6 +14,8 @@ import { LRUMap } from '~/utils/LRUMap';
  */
 export class RedisVersionTracker {
   private localVersions: LRUMap<string>;
+  // one check per key at a time, so onStale runs once per observed version
+  private inFlight = new Map<string, Promise<boolean>>();
 
   constructor(private prefix: string, maxSize = 2000) {
     this.localVersions = new LRUMap<string>(maxSize);
@@ -40,6 +42,20 @@ export class RedisVersionTracker {
    * onStale and updates the local version. Returns true if stale.
    */
   async checkStaleness(
+    id: string,
+    onStale: () => Promise<void>,
+  ): Promise<boolean> {
+    const existing = this.inFlight.get(id);
+    if (existing) return existing;
+
+    const run = this.runStalenessCheck(id, onStale).finally(() => {
+      if (this.inFlight.get(id) === run) this.inFlight.delete(id);
+    });
+    this.inFlight.set(id, run);
+    return run;
+  }
+
+  private async runStalenessCheck(
     id: string,
     onStale: () => Promise<void>,
   ): Promise<boolean> {

@@ -4,6 +4,8 @@ import { getLTARRelatedTable } from './getLTARRelatedTable';
 import { getContextFromObject } from './getContextFromObject';
 import { getColOptions } from './getColOptions';
 import { getColumns } from './getColumns';
+import { FormulaError } from '../formula/error';
+import { FormulaErrorType } from '../formula/enums';
 
 export const getLookupRelatedInfo = async (
   _context: NcContext,
@@ -23,6 +25,18 @@ export const getLookupRelatedInfo = async (
   );
   if (!relationColumn && 'getRelationColumn' in colOptions) {
     relationColumn = await colOptions.getRelationColumn();
+  }
+  // a dangling link reference: a formula error, which reads as the error
+  // value, not a TypeError that fails the whole read
+  if (!relationColumn) {
+    throw new FormulaError(
+      FormulaErrorType.INVALID_COLUMN,
+      {
+        key: 'msg.formula.columnNotAvailable',
+        columnName: colOptions.fk_relation_column_id,
+      },
+      `Field ${colOptions.fk_relation_column_id} is not available`
+    );
   }
 
   const relatedTable = await getLTARRelatedTable(

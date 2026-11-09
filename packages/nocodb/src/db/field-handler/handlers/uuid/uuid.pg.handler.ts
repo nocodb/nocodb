@@ -7,7 +7,10 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { GenericPgFieldHandler } from '~/db/field-handler/handlers/generic.pg';
-import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import {
+  ncIsStringHasValue,
+  ncLikeContainsPattern,
+} from '~/db/field-handler/utils/handlerUtils';
 
 /**
  * PostgreSQL UUID field handler that casts UUID to text for all comparisons.
@@ -258,7 +261,7 @@ export class UuidPgHandler
               .orWhereNull(sourceField as any);
           });
         } else {
-          val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+          val = ncLikeContainsPattern(knex, val);
           // "not like" should return rows that don't match, plus NULL rows
           qb.where((nestedQb) => {
             nestedQb

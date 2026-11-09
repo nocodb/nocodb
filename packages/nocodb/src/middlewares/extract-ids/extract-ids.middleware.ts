@@ -16,6 +16,7 @@ import {
 import { map } from 'rxjs';
 import RowColorCondition from 'src/models/RowColorCondition';
 import {
+  assertLinkPickerColumnOfTable,
   checkIsPersonalViewOwner,
   editorPersonalViewOnlyPermissions,
   markPersonalViewIfNeeded,
@@ -38,8 +39,8 @@ import type {
 import { resolveShareAccessSource } from '~/helpers/accessSource';
 import { hasModelRoleVisibilityAccess } from '~/helpers/tableHelpers';
 import {
-  Base,
   AutomationSection,
+  Base,
   BaseSection,
   Column,
   Comment,
@@ -1362,6 +1363,10 @@ export class AclMiddleware implements NestInterceptor {
       // 404, not 403 — matches `getTableWithAccessibleViews` and keeps the id
       // from confirming that a hidden table exists.
       NcError.get(req.context).tableNotFound(req.context.ncTableId);
+    }
+
+    if (req.context?.ncTableId && req.user && !isServiceUser(req.user)) {
+      await assertLinkPickerColumnOfTable(req, permissionName);
     }
 
     // check if permission have source level permission restriction

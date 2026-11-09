@@ -129,16 +129,21 @@ export const useCommandPalette = createSharedComposable(() => {
       byParent.get(item.parent)!.push(item)
     }
 
+    const currentBaseId = route.value.params.baseId as string | undefined
+
     const toCommand = (item: NavItem): CmdCommand => {
       const children = byParent.get(item.id)
       const payload = item.handler?.type === 'navigate' ? item.handler.payload : undefined
+      // Paths are /{workspaceId}/{baseId}/…; the current project's results win ties with same-named ones elsewhere.
+      const isCurrentBase = !!currentBaseId && payload?.split('/').filter(Boolean)[1] === currentBaseId
 
       return {
         id: item.id,
         title: item.title,
         section: item.section ? sectionLabels.value[item.section] ?? item.section : undefined,
-        hint: item.projectName,
+        hint: isCurrentBase ? undefined : item.projectName,
         icon: navIcon(item),
+        priority: isCurrentBase ? CMD_PRIORITY.primary : undefined,
         searchOnly: true,
         run: payload ? () => navigateTo(payload) : undefined,
         children: !payload && children?.length ? () => children.map(toCommand) : undefined,

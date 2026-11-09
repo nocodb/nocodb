@@ -349,6 +349,17 @@ export function useCanvasRender({
     ctx.restore()
   }
 
+  // A "New record - Form" draft holds a grid slot before it is saved; keep it out of the record count.
+  function countUnsavedNewRows() {
+    let count = 0
+
+    for (const row of getDataCache().cachedRows.value.values()) {
+      if (row.rowMeta?.new && !row.rowMeta?.saving) count++
+    }
+
+    return count
+  }
+
   function extractGroupPaths(
     groups: Map<number, CanvasGroup>,
     parentPath: any[] = [],
@@ -3088,7 +3099,7 @@ export function useCanvasRender({
             ? selection.value.cellCount
             : isGroupBy.value
             ? totalGroups.value
-            : Math.max(totalRows.value, actualTotalRows.value ?? 0)
+            : Math.max(totalRows.value, actualTotalRows.value ?? 0) - countUnsavedNewRows()
         const label =
           selectedGroupRecords > 0
             ? selectedGroupRecords === 1

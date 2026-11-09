@@ -194,6 +194,32 @@ describe('licenseTelemetry', () => {
         base_title: 'Sales CRM',
       })
     ).toEqual({ workspace_count: 3, base_count: 0, webhook_count: 4 });
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.INSTANCE_STATS, {
+        sso_client_count: 2,
+        sso_saml_count: 1,
+        sso_oidc_count: 1,
+        scim_enabled_count: 1,
+        sso_google_count: 'x',
+      })
+    ).toEqual({
+      sso_client_count: 2,
+      sso_saml_count: 1,
+      sso_oidc_count: 1,
+      scim_enabled_count: 1,
+    });
+    expect(
+      sanitizeLicenseTelemetryProps(LicenseTelemetryEvent.INSTANCE_STATS, {
+        ai_input_tokens: 1200,
+        ai_output_tokens: 300,
+        ai_provider_count: 2,
+        ai_model: 'gpt',
+      })
+    ).toEqual({
+      ai_input_tokens: 1200,
+      ai_output_tokens: 300,
+      ai_provider_count: 2,
+    });
     expect(LICENSE_INSTANCE_STAT_KEYS).toContain('table_count');
     expect(LICENSE_TELEMETRY_CLIENT_EVENTS).not.toContain(
       LicenseTelemetryEvent.INSTANCE_STATS

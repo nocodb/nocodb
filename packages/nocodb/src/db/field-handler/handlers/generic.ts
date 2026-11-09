@@ -17,6 +17,8 @@ import type { Column, Filter } from '~/models';
 import {
   ncIsKnexRawOrRef,
   ncIsStringHasValue,
+  ncLikeContainsPattern,
+  ncLikeEscapeClause,
   ncLikePatternForRef,
   ncSplitFilterValue,
   unsupportedFilter,
@@ -370,10 +372,18 @@ export class GenericFieldHandler
           // MySQL (default CI collation) match case-insensitively. UPPER both
           // sides so Oracle text LIKE filters behave the same cross-dialect.
           qb.where(
-            knex.raw('UPPER(??) like UPPER(?)', [sourceField, `%${val}%`]),
+            knex.raw(`UPPER(??) like UPPER(?)${ncLikeEscapeClause(knex)}`, [
+              sourceField,
+              ncLikeContainsPattern(knex, val),
+            ]),
           );
         } else {
-          qb.where(knex.raw('?? like ?', [sourceField, `%${val}%`]));
+          qb.where(
+            knex.raw(`?? like ?${ncLikeEscapeClause(knex)}`, [
+              sourceField,
+              ncLikeContainsPattern(knex, val),
+            ]),
+          );
         }
       },
     };
@@ -427,16 +437,17 @@ export class GenericFieldHandler
             qb.orWhereNull(sourceField as any);
           }
         } else {
-          val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+          val = ncLikeContainsPattern(knex, val);
+          const escape = ncLikeEscapeClause(knex);
 
           // Oracle LIKE is case-sensitive — UPPER both sides to match the
           // case-insensitive behavior of pg (`ilike`) / MySQL. See filterLike.
           if (knex.clientType() === 'oracledb') {
             qb.whereNot(
-              knex.raw(`UPPER(??) like UPPER(?)`, [sourceField, val]),
+              knex.raw(`UPPER(??) like UPPER(?)${escape}`, [sourceField, val]),
             );
           } else {
-            qb.whereNot(knex.raw(`?? like ?`, [sourceField, val]));
+            qb.whereNot(knex.raw(`?? like ?${escape}`, [sourceField, val]));
           }
           if (val !== '%%') {
             // if value is not empty, empty or null should be included

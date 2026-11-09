@@ -976,7 +976,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return childrenList.value
     }
 
-    const deleteRelatedRow = async (row: Record<string, any>, onSuccess?: (row: Record<string, any>) => void) => {
+    const deleteRelatedRow = async (
+      row: Record<string, any>,
+      onSuccess?: (row: Record<string, any>) => void,
+      { limit }: { limit?: number } = {},
+    ) => {
       Modal.confirm({
         title: 'Do you want to delete the record?',
         type: 'warning',
@@ -1001,9 +1005,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
             _reloadData?.({ shouldShowLoading: false, path: path.value })
 
-            /** reload child list if not a new row */
+            /** reload child list if not a new row — `limit` lets the reorderable list refill in one go */
             if (!isNewRow?.value) {
-              await loadChildrenList()
+              await loadChildrenList(false, undefined, limit)
             }
             onSuccess?.(row)
 

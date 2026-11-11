@@ -28,10 +28,6 @@ const emit = defineEmits<{
   (e: 'change', value: boolean): void
 }>()
 
-const sidebarStore = useSidebarStore()
-
-const { isLeftSidebarOpen } = storeToRefs(sidebarStore)
-
 /**
  * State
  */
@@ -136,8 +132,6 @@ const handleFullScreenChange = async () => {
     isFullscreen.value = isBrowserFullScreen
 
     onChangeFullScreen()
-
-    isLeftSidebarOpen.value = !isBrowserFullScreen
   }
 
   if (!supportsKeyboardLock) return

@@ -17,6 +17,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const isFullScreen = ref(false)
 
+  let isLeftSidebarOpenBeforeFullScreen: boolean | undefined
+
   const tablesStore = useTablesStore()
 
   const viewsStore = useViewsStore()
@@ -174,17 +176,28 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     },
   )
 
+  watch(
+    isFullScreen,
+    (isFullScreen, wasFullScreen) => {
+      if (isFullScreen) {
+        if (!wasFullScreen) isLeftSidebarOpenBeforeFullScreen = isLeftSidebarOpen.value
+        isLeftSidebarOpen.value = false
+      } else if (wasFullScreen && isLeftSidebarOpenBeforeFullScreen !== undefined) {
+        isLeftSidebarOpen.value = isLeftSidebarOpenBeforeFullScreen
+        isLeftSidebarOpenBeforeFullScreen = undefined
+      }
+    },
+    { flush: 'sync' },
+  )
+
   const toggleFullScreenState = () => {
     if (isFullScreen.value) {
-      isLeftSidebarOpen.value = true
       if (!ncIsIframe() && document?.exitFullscreen && document?.fullscreenElement) {
         Promise.resolve(document.exitFullscreen()).catch((err) => {
           console.warn('Exit fullscreen failed:', err)
         })
       }
     } else {
-      isLeftSidebarOpen.value = false
-
       if (!ncIsIframe() && document?.documentElement?.requestFullscreen) {
         Promise.resolve(document.documentElement.requestFullscreen()).catch((err) => {
           console.warn('Request fullscreen failed:', err)

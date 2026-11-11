@@ -92,21 +92,11 @@ Auto-upstall does the following: 🕊
 
 ## Other Methods
 
-> Binaries are only for quick testing locally.
+> Prebuilt binaries are no longer published. The `get.nocodb.com` download links have been discontinued; please use one of the Docker based methods above instead.
 
-| Install Method                | Command to install                                                                                                                                                                                                                                                                                                                                                         |
-|-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 🍏 MacOS arm64 <br>(Binary)   | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
-| 🍏 MacOS x64 <br>(Binary)     | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                         |
-| 🐧 Linux arm64 <br>(Binary)   | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
-| 🐧 Linux x64 <br>(Binary)     | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                         |
-| 🪟 Windows arm64 <br>(Binary) | `iwr http://get.nocodb.com/win-arm64.exe -OutFile Noco-win-arm64.exe && .\Noco-win-arm64.exe`                                                                                                                                                                                                                                                                              |
-| 🪟 Windows x64 <br>(Binary)   | `iwr http://get.nocodb.com/win-x64.exe -OutFile Noco-win-x64.exe && .\Noco-win-x64.exe`                                                                                                                                                                                                                                                                                    |
-
+For more installation methods such as Docker Compose, Kubernetes and Helm, please refer to [our docs](https://nocodb.com/docs/self-hosting)
 
 > When running locally access nocodb by visiting: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
-
-For more installation methods, please refer to [our docs](https://nocodb.com/docs/self-hosting)
 
 # Screenshots
 ![2](https://github.com/nocodb/nocodb/assets/86527202/a127c05e-2121-4af2-a342-128e0e2d0291)

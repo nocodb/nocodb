@@ -72,6 +72,16 @@ watch(
 
 const router = useRouter()
 
+const route = useRoute()
+
+const currentGroupPath = computed(() => {
+  const path = Array.isArray(route.query.path) ? route.query.path[0] : route.query.path
+  if (!path) return
+
+  const parsedPath = path.split('-').map(Number)
+  return parsedPath.length && parsedPath.every(Number.isInteger) ? parsedPath : undefined
+})
+
 // to check if a expanded form which is not yet saved exist or not
 const isUnsavedFormExist = ref(false)
 
@@ -399,7 +409,11 @@ const save = async () => {
 
     if (!props.skipReload) {
       // The form already holds the saved row, so its own view-data listener skips it
-      const reloadParams = { inPlace: true, skipLoadingRowId: primaryKey.value || undefined }
+      const reloadParams = {
+        inPlace: true,
+        skipLoadingRowId: primaryKey.value || undefined,
+        ...(isUnsavedDuplicatedRecordExist.value && currentGroupPath.value ? { path: currentGroupPath.value } : {}),
+      }
       // The grid provides one hook for both
       if (reloadTrigger !== reloadViewDataTrigger) await reloadTrigger?.trigger(reloadParams)
       await reloadViewDataTrigger?.trigger(reloadParams)

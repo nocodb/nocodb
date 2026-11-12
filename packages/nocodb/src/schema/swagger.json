@@ -24225,6 +24225,10 @@
             "items": {
               "$ref": "#/components/schemas/Filter"
             }
+          },
+          "fk_form_view_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Form View used for OpenForm action"
           }
         },
         "x-stoplight": {
@@ -31286,7 +31290,8 @@
           "url",
           "ai",
           "script",
-          "workflow"
+          "workflow",
+          "open_form"
         ]
       },
       "CustomUrl": {

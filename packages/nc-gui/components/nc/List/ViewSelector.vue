@@ -52,21 +52,19 @@ const handleValueUpdate = (value: any) => {
   modelValue.value = String(value)
 }
 
-const viewList = computedAsync(async () => {
-  let viewsList: ViewType[]
-
-  if (props.views) {
-    viewsList = props.views
-  } else {
-    if (!props.tableId) return []
-
+// Fetch views when the target table (or force flag) changes. Keeping the side
+// effect in a watch — instead of inside the `viewList` derivation — means map
+// mutations (e.g. share-form toggle) don't re-trigger the API call.
+watch(
+  [() => props.tableId, () => props.baseId, activeProjectId, () => props.forceFetchViews, () => props.views],
+  async () => {
+    if (props.views || !props.tableId) return
+    const effectiveBaseId = props.baseId || activeProjectId.value
+    if (!effectiveBaseId) {
+      console.error('[ViewSelector] baseId is required but was not provided')
+      return
+    }
     try {
-      const effectiveBaseId = props.baseId || activeProjectId.value
-      if (!effectiveBaseId) {
-        console.error('[ViewSelector] baseId is required but was not provided')
-        return []
-      }
-
       await viewsStore.loadViews({
         tableId: props.tableId,
         baseId: effectiveBaseId,
@@ -75,19 +73,31 @@ const viewList = computedAsync(async () => {
       })
     } catch (e) {
       console.error(e)
-      return []
     }
+  },
+  { immediate: true },
+)
+
+// Pure derivation from the store map — reacts to mutations via `viewsByTable.get(key)`.
+const viewList = computed(() => {
+  let viewsList: ViewType[]
+
+  if (props.views) {
+    viewsList = props.views
+  } else {
+    if (!props.tableId) return []
+    const effectiveBaseId = props.baseId || activeProjectId.value
+    if (!effectiveBaseId) return []
 
     // Use composite key (baseId:tableId) to get views
-    const effectiveBaseId = props.baseId || activeProjectId.value
     const key = `${effectiveBaseId}:${props.tableId}`
-
     viewsList = viewsByTable.value.get(key) || []
   }
 
   if (props.filterView) {
     viewsList = viewsList.filter(props.filterView)
   }
+
   return viewsList.map((view) => {
     const flags = props.itemFlags?.(view) ?? {}
     return {
@@ -98,7 +108,7 @@ const viewList = computedAsync(async () => {
       ...view,
     }
   })
-}, [])
+})
 
 const viewListMap = computed(() => {
   if (!viewList.value || viewList.value.length === 0) return new Map()
@@ -220,6 +230,12 @@ defineExpose({
             <div class="min-w-5 flex items-center justify-center">
               <NcIconView :view="option" class="text-nc-content-gray-muted" />
             </div>
+          </template>
+          <template v-if="$slots.listItemContent" #listItemContent="slotProps">
+            <slot name="listItemContent" v-bind="slotProps" />
+          </template>
+          <template #listItemExtraRight="slotProps">
+            <slot name="listItemExtraRight" v-bind="slotProps" />
           </template>
         </NcList>
       </template>

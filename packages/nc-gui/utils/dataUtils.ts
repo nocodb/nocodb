@@ -1,4 +1,5 @@
 import {
+  ButtonActionsType,
   NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
@@ -395,6 +396,12 @@ export const isAllowToRenderRowEmptyField = (col: ColumnType) => {
   }
 
   if (isAiButton(col)) {
+    return true
+  }
+
+  // OpenForm buttons have no data value but the action is always available —
+  // render the button in card views (Gallery, Kanban) instead of a "-".
+  if (col.uidt === UITypes.Button && (col.colOptions as ButtonType | undefined)?.type === ButtonActionsType.OpenForm) {
     return true
   }
 

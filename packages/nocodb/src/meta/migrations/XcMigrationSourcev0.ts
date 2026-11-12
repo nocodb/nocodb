@@ -135,6 +135,8 @@ import * as nc_202611041200_col_rollup_rollup_formula from './v0/nc_202611041200
 import * as nc_202611051315_list_view_columns_aggregation from './v0/nc_202611051315_list_view_columns_aggregation';
 import * as nc_202611060705_teams_scim_team_path from './v0/nc_202611060705_teams_scim_team_path';
 import * as nc_202611061200_agents_scope from './v0/nc_202611061200_agents_scope';
+import * as nc_202611062030_kanban_view_stack_summary from './v0/nc_202611062030_kanban_view_stack_summary';
+import * as nc_202611041200_button_open_form from './v0/nc_202611041200_button_open_form';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -281,6 +283,8 @@ export default class XcMigrationSourcev0 {
       'nc_202611051315_list_view_columns_aggregation',
       'nc_202611060705_teams_scim_team_path',
       'nc_202611061200_agents_scope',
+      'nc_202611062030_kanban_view_stack_summary',
+      'nc_202611041200_button_open_form',
     ]);
   }
 
@@ -564,6 +568,10 @@ export default class XcMigrationSourcev0 {
         return nc_202611060705_teams_scim_team_path;
       case 'nc_202611061200_agents_scope':
         return nc_202611061200_agents_scope;
+      case 'nc_202611062030_kanban_view_stack_summary':
+        return nc_202611062030_kanban_view_stack_summary;
+      case 'nc_202611041200_button_open_form':
+        return nc_202611041200_button_open_form;
     }
   }
 }

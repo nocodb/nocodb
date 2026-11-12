@@ -304,6 +304,7 @@ export const permissionScopes = {
 
     'hookTrigger',
     'buttonRun',
+    'formEditTokenGenerate',
 
     'userInvite',
 
@@ -627,6 +628,7 @@ const rolePermissions:
       // uploadViaURL: true,
       hookTrigger: true,
       buttonRun: true,
+      formEditTokenGenerate: true,
 
       // AI
       aiUtils: true,
@@ -1137,6 +1139,7 @@ const permissionDescriptions: Record<string, string> = {
 
   hookTrigger: 'trigger a webhook',
   buttonRun: 'run a button field action',
+  formEditTokenGenerate: 'generate edit token for form view button',
 
   migrateBase: 'migrate a base to another instance',
 

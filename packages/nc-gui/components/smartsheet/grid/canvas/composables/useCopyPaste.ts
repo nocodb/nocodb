@@ -1,6 +1,8 @@
 import { parse } from 'papaparse'
 import {
   type AttachmentType,
+  ButtonActionsType,
+  type ButtonType,
   type ColumnType,
   type LinkToAnotherRecordType,
   PermissionEntity,
@@ -157,7 +159,7 @@ export function useCopyPaste({
   /** This grid's element — see isInterfaceRecordSheetOpen. */
   hostEl?: Ref<HTMLElement | null>
 }) {
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
   const { internalGet } = useInternalBatch()
   const { isDataReadOnly } = useRoles()
   const { getMeta, metas } = useMetas()
@@ -1459,6 +1461,27 @@ export function useCopyPaste({
           const rowObj = unref(dataCache.cachedRows).get(cpRow)
           const columnObj = unref(fields)[cpCol]
           if (!rowObj || !columnObj) return
+
+          // OpenForm button cells copy the record-edit form URL instead of the (empty) cell value.
+          // Disabled inside public shared views — OpenForm is a product-gated feature there
+          // (see `isColumnInvalid` in `utils/columnUtils.ts`); falling through to the default
+          // copy path keeps Cmd+C predictable. Retained for future re-enable.
+          if (columnObj.uidt === UITypes.Button && !isPublic.value) {
+            const btnOpts = columnObj.colOptions as ButtonType | undefined
+            if (btnOpts?.type === ButtonActionsType.OpenForm) {
+              const rowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+              if (rowPk) {
+                const url = await actionManager.resolveFormEditUrl(columnObj.id!, rowPk)
+                if (url) {
+                  await copy(url)
+                  actionManager.markRecentlyCopied(rowPk, columnObj.id!)
+                  $e('c:button:open-form:copy-url', { via: 'keyboard' })
+                  message.toast(t('msg.info.copiedToClipboard'))
+                  return
+                }
+              }
+            }
+          }
 
           const { textToCopy, cellValue, clipboardColumn, rowId, clipboardContent } = valueToCopy(
             rowObj,

@@ -157,6 +157,13 @@ export type InternalPOSTResponseType = Promise<
   | { pm: ProseMirrorDoc | null; markdown: string | null }
   | { logged: number }
   | WebBookmarkMetadata
+  | {
+      isShared: boolean;
+      token?: string;
+      viewUuid?: string;
+      viewId?: string;
+      rowId?: string;
+    }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

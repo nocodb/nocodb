@@ -493,7 +493,7 @@ const handleUpdateActionType = (type: ButtonActionsType) => {
   }
 
   vModel.value.type = type
-  $e('c:button:action-type-change', { type })
+  $e('c:field:button:type:change', { type })
   updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }

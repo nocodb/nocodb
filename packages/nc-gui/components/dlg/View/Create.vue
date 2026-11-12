@@ -22,6 +22,8 @@ import {
 } from 'nocodb-sdk'
 import { PlanTitles, UITypes, ViewLockType, ViewTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { AiWizardTabsType } from '#imports'
+import { isValidViewRecordIndicatorSettings, readViewRecordIndicators } from '~/lib/viewRecordIndicators'
+import { persistViewRecordIndicators } from '~/lib/viewRecordIndicatorPersistence'
 
 const props = withDefaults(defineProps<Props>(), {
   selectedViewId: undefined,
@@ -32,6 +34,16 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emits = defineEmits<Emits>()
+
+const recordIndicatorSettings = ref(readViewRecordIndicators(undefined))
+
+watch(
+  () => props.modelValue,
+  (visible) => {
+    if (visible) recordIndicatorSettings.value = readViewRecordIndicators(undefined)
+  },
+  { immediate: true },
+)
 
 const maxSelectionCount = 100
 
@@ -332,6 +344,12 @@ async function onSubmit() {
     return onAiEnter()
   }
 
+  const selectedRecordIndicators = { ...recordIndicatorSettings.value }
+  if (!isValidViewRecordIndicatorSettings(selectedRecordIndicators)) {
+    message.error(t('labels.viewRecordIndicators.invalidInterval'))
+    return
+  }
+
   let isValid = null
 
   try {
@@ -368,6 +386,21 @@ async function onSubmit() {
           } catch (e: any) {
             console.error('Failed to apply view mode after create', e)
             message.toast(await extractSdkResponseErrorMsg(e))
+          }
+        }
+
+        const latestCreatedView =
+          viewsByTable.value
+            .get(`${data.base_id || props.baseId}:${data.fk_model_id || tableId.value}`)
+            ?.find((item) => item.id === data.id) || data
+
+        if (data.id) {
+          try {
+            const updated = await persistViewRecordIndicators(latestCreatedView, selectedRecordIndicators, updateViewInStore)
+            data.meta = updated.meta
+          } catch (error) {
+            console.error('Failed to apply record indicators after create', error)
+            message.error(t('labels.viewRecordIndicators.createUpdateFailed'))
           }
         }
 
@@ -1145,6 +1178,13 @@ watch(activeBaseId, () => {
             </div>
           </div>
 
+          <div class="flex flex-col gap-2">
+            <div class="text-[13px] font-medium text-nc-content-gray">
+              {{ $t('labels.viewRecordIndicators.title') }}
+            </div>
+            <SmartsheetToolbarViewRecordIndicatorsSettings v-model="recordIndicatorSettings" :disabled="isViewCreating" />
+          </div>
+
           <a-form-item
             v-if="form.type === ViewTypes.GALLERY && !form.copy_from_id"
             :label="`${$t('labels.coverImageField')}`"
@@ -1778,7 +1818,9 @@ watch(activeBaseId, () => {
           <NcButton
             v-if="!aiMode"
             v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
-            :disabled="!isNecessaryColumnsPresent || isViewCreating"
+            :disabled="
+              !isNecessaryColumnsPresent || isViewCreating || !isValidViewRecordIndicatorSettings(recordIndicatorSettings)
+            "
             :loading="isViewCreating"
             type="primary"
             size="small"

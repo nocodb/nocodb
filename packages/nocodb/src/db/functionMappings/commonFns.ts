@@ -1,5 +1,6 @@
 import {
   FormulaDataTypes,
+  getCanonicalTimezone,
   getNodejsTimezone,
   isBtLikeV2Junction,
   JSEPNode,
@@ -229,8 +230,8 @@ const UTC_TIMEZONE_REGEX = /^(Etc\/)?(UTC|UCT|GMT|GMT[+-]?0|Universal|Zulu)$/i;
 // Server timezone (TZ env) DATETIME_FORMAT renders a datetime in. Returns
 // undefined for UTC, where the UTC-normalised value is already correct.
 export function getDatetimeFormatTimezone(): string | undefined {
-  const timezone = getNodejsTimezone(
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  const timezone = getCanonicalTimezone(
+    getNodejsTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone),
   );
   if (!timezone || UTC_TIMEZONE_REGEX.test(timezone)) return undefined;
   return timezone;

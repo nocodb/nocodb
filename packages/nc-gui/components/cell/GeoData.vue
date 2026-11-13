@@ -45,7 +45,7 @@ const DEFAULT_ZOOM = 2
 const LOCATION_ZOOM = 15
 const AUTO_POSITION_ZOOM = 10
 
-const [latitude, longitude] = (vModel.value || '').split(';')
+const [latitude, longitude] = splitGeoDataValue(vModel.value)
 
 const formState = reactive({
   latitude,
@@ -298,19 +298,31 @@ const latLongStr = computed(() => {
 
 const isLatitudeInvalid = computed(() => {
   if (!formState.latitude) return false
-  const lat = parseFloat(formState.latitude)
-  return isNaN(lat) || lat < -90 || lat > 90
+  return !isValidGeoLatitude(`${formState.latitude}`)
 })
 
 const isLongitudeInvalid = computed(() => {
   if (!formState.longitude) return false
-  const lng = parseFloat(formState.longitude)
-  return isNaN(lng) || lng < -180 || lng > 180
+  return !isValidGeoLongitude(`${formState.longitude}`)
 })
 
+// Set on a rejected save; the per-field range errors cover the rest
+const isFormatInvalid = ref(false)
+
+watch(
+  () => [formState.latitude, formState.longitude],
+  () => {
+    isFormatInvalid.value = false
+  },
+)
+
 const handleFinish = () => {
-  if (isLatitudeInvalid.value || isLongitudeInvalid.value) return
-  vModel.value = latLongToJoinedString(parseFloat(formState.latitude), parseFloat(formState.longitude))
+  const parsed = parseGeoDataValue(`${formState.latitude ?? ''};${formState.longitude ?? ''}`)
+  if (parsed.error) {
+    isFormatInvalid.value = parsed.error === 'format'
+    return
+  }
+  vModel.value = parsed.value
   isExpanded.value = false
 }
 
@@ -386,7 +398,7 @@ function parseGeoString(raw: string): string | null {
   if (column?.value?.uidt) {
     try {
       const converted = convertCellData({ value: trimmed, to: column.value.uidt, column: column.value }, false)
-      if (converted) return converted
+      if (converted) return parseGeoDataValue(converted).value ?? null
     } catch {
       // fall through to manual parsing
     }
@@ -461,8 +473,9 @@ watch(
   () => vModel,
   (newValue) => {
     if (newValue.value) {
-      formState.latitude = newValue.value?.split(';')[0]
-      formState.longitude = newValue.value?.split(';')[1]
+      const [lat, lng] = splitGeoDataValue(newValue.value)
+      formState.latitude = lat
+      formState.longitude = lng
     } else {
       formState.latitude = ''
       formState.longitude = ''
@@ -672,6 +685,12 @@ onBeforeUnmount(() => {
                   <span v-if="isLongitudeInvalid" class="nc-geodata-error-text">{{ t('msg.error.longitudeRange') }}</span>
                 </div>
               </div>
+              <span
+                v-if="isFormatInvalid && !isLatitudeInvalid && !isLongitudeInvalid"
+                class="nc-geodata-error-text"
+                data-testid="nc-geo-data-format-error"
+                >{{ t('msg.error.geoDataFormat') }}</span
+              >
 
               <!-- Map with integrated search & controls -->
               <div class="nc-geodata-map-wrapper">

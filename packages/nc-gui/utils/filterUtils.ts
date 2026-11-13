@@ -224,6 +224,18 @@ export const getResultUidt = (col: ColumnType): UITypes => {
   return col.uidt as UITypes
 }
 
+/** Filter type per column id; a lookup filters as the field at the end of its chain (`lookupTargets`). */
+export const getFilterTypesMap = (
+  columns: ColumnType[],
+  lookupTargets: Record<string, ColumnType | undefined>,
+): Record<string, UITypes> => {
+  const types: Record<string, UITypes> = {}
+  for (const col of columns) {
+    types[col.id!] = getResultUidt(lookupTargets[col.id!] ?? col)
+  }
+  return types
+}
+
 export const getFilterUidt = (col: ColumnTypeForFilter): UITypes => {
   // V2 MO/OO Links → filter by display value like LTAR
   if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {

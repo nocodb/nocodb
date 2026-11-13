@@ -201,11 +201,7 @@ export function useViewFilters(
       return {}
     }
 
-    return allMetaColumns.value.reduce((obj: any, col: any) => {
-      // a lookup filters as the field at the end of its chain
-      obj[col.id] = getResultUidt(btLookupTypesMap.value[col.id] ?? col)
-      return obj
-    }, {})
+    return getFilterTypesMap(allMetaColumns.value, btLookupTypesMap.value)
   })
 
   const lastFilters = ref<ColumnFilterType[]>([])

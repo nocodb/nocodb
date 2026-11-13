@@ -344,6 +344,9 @@ const onDuplicateStart = () => {
 }
 
 const save = async () => {
+  // Ask before the spinner starts: Save stays idle while the overwrite prompt waits
+  if (!props.templateMode && !props.blueprintMode && !isNew.value && !(await confirmOverwriteConflicts())) return false
+
   isSaving.value = true
 
   try {
@@ -386,11 +389,6 @@ const save = async () => {
       emits('createdRecord', blueprintData)
       isSaving.value = false
       return
-    }
-
-    if (!isNew.value && !(await confirmOverwriteConflicts())) {
-      isSaving.value = false
-      return false
     }
 
     let kanbanClbk

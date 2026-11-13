@@ -7307,6 +7307,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       dbDriver: this.dbDriver,
       queryQueue: this._queryQueue,
     });
+    // a link is audited on both sides through one clone, so `model` need not be this.model
+    const sourceBaseModel =
+      model.id === this.model.id && model.base_id === this.model.base_id
+        ? this
+        : await Model.getBaseModelSQL(context, {
+            model,
+            dbDriver: this.dbDriver,
+            queryQueue: this._queryQueue,
+          });
 
     await model.getColumns();
     await refModel.getColumns();
@@ -7339,7 +7348,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       for (let i = 0; i < missingDisplayValues.length; i += 100) {
         const chunk = missingDisplayValues.slice(i, i + 100);
 
-        const displayValues = await this.list(
+        const displayValues = await sourceBaseModel.list(
           {
             pks: chunk.map((auditObj) => auditObj.rowId).join(','),
             fieldsSet: new Set(
@@ -7355,7 +7364,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
 
         for (const displayValue of displayValues) {
-          const pk = this.extractPksValues(displayValue, true);
+          const pk = sourceBaseModel.extractPksValues(displayValue, true);
 
           displayValueMap.set(pk, displayValue[displayValueColumn.title]);
         }

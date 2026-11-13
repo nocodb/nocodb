@@ -682,12 +682,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
       auditConfig.parentModel = column.meta?.bt ? childTable : parentTable;
       auditConfig.childModel = column.meta?.bt ? parentTable : childTable;
-      if (column.meta?.bt) {
-        auditConfig.parentColTitle = relatedChildCol?.title || '';
-        auditConfig.parentColId = relatedChildCol?.id || '';
-        auditConfig.childColTitle = column.title;
-        auditConfig.childColId = column.id;
-      }
     }
 
     switch (relationType) {
@@ -1116,12 +1110,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             baseModel.model.id === parentTable.id ? parentTable : childTable;
           auditConfig.childModel =
             baseModel.model.id === parentTable.id ? childTable : parentTable;
-          if (baseModel.model.id !== parentTable.id) {
-            auditConfig.parentColTitle = relatedChildCol?.title || '';
-            auditConfig.parentColId = relatedChildCol?.id || '';
-            auditConfig.childColTitle = column.title;
-            auditConfig.childColId = column.id;
-          }
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -1227,10 +1215,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
-          auditConfig.parentColTitle = relatedChildCol?.title || '';
-          auditConfig.parentColId = relatedChildCol?.id || '';
-          auditConfig.childColTitle = column.title;
-          auditConfig.childColId = column.id;
           const refBaseModel = parentBaseModel;
           // validate Ids
           {
@@ -1319,7 +1303,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       parentAuditObj.push({
         rowId,
         refRowId: _childId,
-        displayValue: row[column.title] ?? row[column.column_name],
         type: colOptions.type as RelationTypes,
       });
 
@@ -1327,8 +1310,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         childAuditObj.push({
           rowId: _childId,
           refRowId: rowId,
-          refDisplayValue:
-            dataWrapper(row).getByColumnNameTitleOrId(childColumn),
           type: getOppositeRelationType(colOptions.type),
         });
       }
@@ -1639,12 +1620,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             baseModel.model.id === parentTable.id ? parentTable : childTable;
           auditConfig.childModel =
             baseModel.model.id === parentTable.id ? childTable : parentTable;
-          if (baseModel.model.id !== parentTable.id) {
-            auditConfig.parentColTitle = relatedChildCol?.title || '';
-            auditConfig.parentColId = relatedChildCol?.id || '';
-            auditConfig.childColTitle = column.title;
-            auditConfig.childColId = column.id;
-          }
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -1755,10 +1730,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
-          auditConfig.parentColTitle = relatedChildCol?.title || '';
-          auditConfig.parentColId = relatedChildCol?.id || '';
-          auditConfig.childColTitle = column.title;
-          auditConfig.childColId = column.id;
 
           const refBaseModel = parentBaseModel;
           if (childIds.length > 1)
@@ -1842,7 +1813,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       parentAuditObj.push({
         rowId,
         refRowId: _childId,
-        displayValue: dataWrapper(row).getByColumnNameTitleOrId(column),
         type: colOptions.type as RelationTypes,
       });
 
@@ -1850,8 +1820,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         childAuditObj.push({
           rowId: _childId,
           refRowId: rowId,
-          refDisplayValue:
-            dataWrapper(row).getByColumnNameTitleOrId(childColumn),
           type: getOppositeRelationType(colOptions.type),
         });
       }

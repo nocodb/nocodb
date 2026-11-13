@@ -608,6 +608,20 @@ function closeSearch() {
   emits('update:showSearch', false)
 }
 
+// One listener: several `@keydown` modifiers compile to an array, which AInput's Function prop rejects
+function onSearchKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    e.stopPropagation()
+    closeSearch()
+    return
+  }
+
+  if (e.key !== 'Enter' || e.ctrlKey || e.metaKey || e.altKey) return
+
+  e.preventDefault()
+  moveActiveMatch(e.shiftKey ? 1 : -1)
+}
+
 function handleResetHoverEffect() {
   if (!hoveredCommentId.value) return
 
@@ -763,9 +777,7 @@ onBeforeUnmount(() => {
           :placeholder="$t('activity.searchComments')"
           class="nc-comment-search-input !h-8 !rounded-lg !text-small"
           data-testid="nc-comment-search-input"
-          @keydown.esc.stop="closeSearch"
-          @keydown.enter.exact.prevent="moveActiveMatch(-1)"
-          @keydown.shift.enter.exact.prevent="moveActiveMatch(1)"
+          @keydown="onSearchKeydown"
         >
           <template #prefix>
             <GeneralIcon icon="search" class="h-3.5 w-3.5 mr-1 text-nc-content-gray-muted" />

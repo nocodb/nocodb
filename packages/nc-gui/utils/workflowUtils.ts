@@ -15,7 +15,6 @@ import {
   TRIGGER_MAX_CHAIN_DEPTH,
   WorkflowNodeCategory,
   WorkflowSkipReason,
-  withListVariables,
 } from 'nocodb-sdk'
 import { generateRandomUUID } from '~/utils/generateName'
 import type { IconMapKey } from '~/utils/iconUtils'
@@ -694,7 +693,7 @@ const getRunStepVariableGroups = (
           category: meta?.category ?? WorkflowNodeCategory.ACTION,
           isEnclosingLoop: false,
           variables: variables.map((v) => ({
-            ...prefixVariableKeysRecursive(withListVariables(v), prefix),
+            ...prefixVariableKeysRecursive(v, prefix),
             extra: { ...v.extra, sourceNodeId: node.id, sourceNodeTitle: title, nodeIcon: meta?.icon },
           })),
         },

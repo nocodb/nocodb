@@ -44,7 +44,7 @@ const isKnownTimezone = (timezone: unknown) =>
   typeof timezone === 'string' &&
   (nodejsTimezones.has(timezone) || !!timezoneAliases[timezone]);
 
-const assertTimezone = (context: NcContext, timezone: unknown) => {
+export const assertTimezone = (context: NcContext, timezone: unknown) => {
   if (timezone !== undefined && timezone !== null && !isKnownTimezone(timezone))
     NcError.get(context).invalidRequestBody(
       `Invalid timezone '${timezone}': expected an IANA time zone such as Asia/Kolkata`,

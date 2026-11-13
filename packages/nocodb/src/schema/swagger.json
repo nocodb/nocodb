@@ -10622,6 +10622,14 @@
           },
           {
             "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "whereTz",
+            "description": "IANA time zone for date conditions in `where` and in view filters without a time zone of their own"
+          },
+          {
+            "schema": {
               "type": "integer",
               "minimum": 1
             },

@@ -50,15 +50,21 @@ export default defineNuxtPlugin(function (nuxtApp) {
 
   // put inside app:created hook to ensure global state is available
   nuxtApp.hooks.hook('app:created', () => {
-    const { token } = useGlobal()
+    const { realToken, signedInReal } = useGlobal()
+    // Unmasked token: the masked one flips '' <-> stored token between shared views and /signin, which looped the redirect.
     watch(
-      () => token.value ?? (nuxtApp.$state as ReturnType<typeof useGlobal>)?.token?.value,
+      () => realToken.value,
       async (newToken, oldToken) => {
         try {
-          // if token updated redirect if one of the following condition matches,
+          // if a valid token was set, redirect if one of the following condition matches,
           // 1. `continueAfterSignIn` query param is present in the url
           // 2. If signin happened in current tab which can be detected by `isTokenUpdatedTab` flag
-          if (newToken && newToken !== oldToken && (isTokenUpdatedTab.value || route.value.query?.continueAfterSignIn)) {
+          if (
+            newToken &&
+            newToken !== oldToken &&
+            signedInReal.value &&
+            (isTokenUpdatedTab.value || route.value.query?.continueAfterSignIn)
+          ) {
             try {
               // prevent redirect to full url (outside domain)
               const getNavigateTo = (continueAfterSignIn: string) => {

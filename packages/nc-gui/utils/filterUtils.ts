@@ -2,6 +2,7 @@ import {
   ClientType,
   SqlUiFactory,
   UITypes,
+  ViewTypes,
   comparisonOpList,
   comparisonSubOpList,
   deleteFilterWithSub,
@@ -360,6 +361,29 @@ export const adjustFilterWhenColumnChange = ({
     // reset
     filter.comparison_sub_op = null
   }
+}
+
+/**
+ * Zone the backend evaluates a date filter in: the filter's, then the field's
+ * (a lookup's comes from the looked-up field), then the request's `whereTz`
+ * (only calendar views send one), else UTC.
+ */
+export function getEffectiveFilterTimezone(
+  filter: { meta?: any } | undefined,
+  column: ColumnTypeForFilter | undefined,
+  requestTimezone?: string,
+) {
+  return (
+    parseProp(filter?.meta).timezone ||
+    parseProp((column?.btLookupColumn ?? column)?.meta).timezone ||
+    requestTimezone ||
+    'Etc/UTC'
+  )
+}
+
+/** The `whereTz` a view's data requests carry: calendar sends the browser zone, others none. */
+export function getFilterRequestTimezone(view?: { type?: ViewTypes }) {
+  return view?.type === ViewTypes.CALENDAR ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined
 }
 
 export function getTimezoneFromColumn(col: ColumnTypeForFilter, defaultValue = Intl.DateTimeFormat().resolvedOptions().timeZone) {

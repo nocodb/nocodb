@@ -1315,7 +1315,8 @@ const mobileActionMenuItems = (filter: FilterType) => {
 const isTimezoneAbbreviationAvailable = (filter, column) => {
   if (!column || !isDateType(types.value[filter.fk_column_id] as UITypes)) return false
 
-  return !!getTimeZoneFromName(filter?.meta?.timezone)?.abbreviation
+  return !!getTimeZoneFromName(getEffectiveFilterTimezone(filter, column, getFilterRequestTimezone(activeView.value)))
+    ?.abbreviation
 }
 
 // Expose internal state and methods for parent components.

@@ -871,6 +871,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           : !isPublic.value
           ? await api.dbCalendarViewRowCount.dbCalendarViewRowCount('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
               ...queryParams.value,
+              // same zone as the record list, so counts match it
+              whereTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
               from_date: fromDate,
               to_date: toDate,
               next_date: nextDate,

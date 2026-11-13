@@ -5,6 +5,7 @@ import UITypes, {
   ratingIconList,
 } from '~/lib/UITypes';
 import { LongTextAiMetaProp, VIEW_GRID_DEFAULT_WIDTH } from '~/lib/globals';
+import { parseProp } from '~/lib/helperFunctions';
 import {
   isRollupColOptions,
   isRollupFormula,
@@ -950,6 +951,7 @@ export const filterBuilder = builderGenerator<FilterType>({
     'fk_related_col_id',
     'fk_value_col_id',
     'enabled',
+    'meta',
   ],
   mappings: {
     fk_column_id: 'field_id',
@@ -960,6 +962,13 @@ export const filterBuilder = builderGenerator<FilterType>({
   },
   excludeNullProps: true,
   booleanProps: ['is_group', 'enabled'],
+  // v3 exposes only `meta.timezone`, as `timezone`
+  transformFn: (data) => {
+    const timezone = parseProp(data.meta).timezone;
+    delete data.meta;
+    if (timezone) data.timezone = timezone;
+    return data;
+  },
 });
 
 export const filterRevBuilder = builderGenerator<
@@ -976,12 +985,20 @@ export const filterRevBuilder = builderGenerator<
     'sub_operator',
     'value',
     'is_group',
+    'timezone',
   ],
   mappings: {
     field_id: 'fk_column_id',
     parent_id: 'fk_parent_id',
     operator: 'comparison_op',
     sub_operator: 'comparison_sub_op',
+  },
+  transformFn: (data) => {
+    if ('timezone' in data) {
+      if (data.timezone) data.meta = { timezone: data.timezone };
+      delete data.timezone;
+    }
+    return data;
   },
 });
 

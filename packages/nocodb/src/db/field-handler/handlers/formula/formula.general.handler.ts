@@ -3,6 +3,7 @@ import {
   getFormulaArrayDateRefColumnId,
   isFormulaNonFiniteValue,
   parseProp,
+  resolveFormulaArrayDateRef,
   UITypes,
 } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
@@ -122,14 +123,16 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
 
     // `{MultiDateLookup}` compiles to comma-joined text; filter the lookup
     // itself so a date condition matches any of its dates.
-    const arrayDateRefId = getFormulaArrayDateRefColumnId(parsedTree);
-    const arrayDateRef =
-      arrayDateRefId &&
-      (await model.getColumns()).find(
-        (c) =>
-          c.id === arrayDateRefId &&
-          [UITypes.Lookup, UITypes.Formula].includes(c.uidt as UITypes),
+    let arrayDateRef: Column | undefined;
+    if (getFormulaArrayDateRefColumnId(parsedTree)) {
+      const columns = await model.getColumns();
+      await Promise.all(
+        columns
+          .filter((c) => c.uidt === UITypes.Formula)
+          .map((c) => c.getColOptions()),
       );
+      arrayDateRef = resolveFormulaArrayDateRef(column, columns);
+    }
     if (arrayDateRef) {
       return options.fieldHandler.applyFilter(filter, arrayDateRef, {
         ...options,

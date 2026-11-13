@@ -1492,6 +1492,48 @@ describe('validateRowFilters — column type resolution', () => {
         },
       } as any,
     },
+    // {FLkDate}: a chain that ends at a Lookup
+    {
+      id: 'fChainLk',
+      title: 'FChainLk',
+      uidt: UITypes.Formula,
+      colOptions: {
+        parsed_tree: {
+          type: 'Identifier',
+          name: 'fLkDate',
+          dataType: 'date',
+          isDataArray: true,
+        },
+      } as any,
+    },
+    // {Rel}: a link, not a Lookup
+    {
+      id: 'fRel',
+      title: 'FRel',
+      uidt: UITypes.Formula,
+      colOptions: {
+        parsed_tree: {
+          type: 'Identifier',
+          name: 'rel',
+          dataType: 'date',
+          isDataArray: true,
+        },
+      } as any,
+    },
+    // {FRel}: a chain that ends at a link
+    {
+      id: 'fChainRel',
+      title: 'FChainRel',
+      uidt: UITypes.Formula,
+      colOptions: {
+        parsed_tree: {
+          type: 'Identifier',
+          name: 'fRel',
+          dataType: 'date',
+          isDataArray: true,
+        },
+      } as any,
+    },
     {
       id: 'lnk',
       title: 'LinkCount',
@@ -1703,6 +1745,25 @@ describe('validateRowFilters — column type resolution', () => {
         );
       expect(exact('2026-11-16')).toBe(true);
       expect(exact('2026-11-09')).toBe(false);
+    });
+
+    // matches the server, which filters through the Lookup a chain ends at
+    it('formula chain splits only when it ends at a Lookup', () => {
+      const exact = (field: string, title: string) =>
+        run(
+          [
+            {
+              fk_column_id: field,
+              comparison_op: 'eq',
+              comparison_sub_op: 'exactDate',
+              value: '2026-11-16',
+            },
+          ],
+          { [title]: '2026-11-08,2026-11-16' }
+        );
+      expect(exact('fChainLk', 'FChainLk')).toBe(true);
+      expect(exact('fRel', 'FRel')).toBe(false);
+      expect(exact('fChainRel', 'FChainRel')).toBe(false);
     });
 
     it('string formula uses string comparison', () => {

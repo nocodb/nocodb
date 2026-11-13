@@ -12,7 +12,7 @@ import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes, { isBtLikeV2Junction } from '~/lib/UITypes';
 import { FormulaDataTypes } from '~/lib/formula/enums';
-import { getFormulaArrayDateRefColumnId } from '~/lib/formula/array-date-ref';
+import { resolveFormulaArrayDateRef } from '~/lib/formula/array-date-ref';
 import { getRollupResultUidt } from '~/lib/formula/rollupFormula';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 import { getNodejsTimezone } from '~/lib/timezoneUtils';
@@ -247,20 +247,11 @@ export class RowFilterValidator {
         }
         const field = column.title!;
         const rawVal = data[field];
-        // `{MultiDateLookup}` filters like the field it references (any-match)
-        const arrayDateRefId =
+        // `{MultiDateLookup}` filters like the lookup it resolves to (any-match)
+        const arrayDateRef =
           column.uidt === UITypes.Formula
-            ? getFormulaArrayDateRefColumnId(
-                parseProp(column.colOptions)?.parsed_tree
-              )
+            ? resolveFormulaArrayDateRef(column, columns)
             : undefined;
-        const arrayDateRef = arrayDateRefId
-          ? columns.find(
-              (c) =>
-                c.id === arrayDateRefId &&
-                [UITypes.Lookup, UITypes.Formula].includes(c.uidt as UITypes)
-            )
-          : undefined;
         const effectiveUidt = this.resolveComparisonType({
           column: arrayDateRef ?? column,
           columns,

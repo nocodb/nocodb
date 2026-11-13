@@ -38,11 +38,12 @@ export const useTooltipStore = defineStore('tooltip', () => {
   function showTooltip({
     text,
     rect,
+    mousePosition,
     placement: _placement = 'top',
   }: {
     text: TooltipTextType
     /**
-     * Todo: Show tooltip at mouse position if showAtMousePosition is true & targetWidth is provided
+     * `showAtMousePosition` anchors the tooltip to the pointer instead of `rect`
      */
     rect: RenderRectangleProps & { showAtMousePosition?: boolean }
     mousePosition: {
@@ -61,6 +62,10 @@ export const useTooltipStore = defineStore('tooltip', () => {
       canvasX = canvasRect.x
       canvasY = canvasRect.y
     }
+    if (rect.showAtMousePosition) {
+      rect = { x: mousePosition.x, y: mousePosition.y, width: 0, height: 0 }
+    }
+
     rect.x += canvasX
     rect.y += canvasY
     tooltipText.value = text

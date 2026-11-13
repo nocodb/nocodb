@@ -70,7 +70,14 @@ export const SingleSelectCellRenderer: CellRenderer = {
     if (!text) return
     const truncatedText = truncateText(ctx, text, maxWidth, true)
     if (text === truncatedText.text) return
-    const box = { x: x + padding, y: y + topPadding, width: truncatedText.width + tagPadding * 2, height: tagHeight }
+    // Anchored to the tag, the tooltip would cover the tag in the row above
+    const box = {
+      x: x + padding,
+      y: y + topPadding,
+      width: truncatedText.width + tagPadding * 2,
+      height: tagHeight,
+      showAtMousePosition: true,
+    }
 
     tryShowTooltip({
       rect: box,

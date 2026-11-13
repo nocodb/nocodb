@@ -75,6 +75,34 @@ describe('timezoneUtils', () => {
       expect(getCanonicalTimezone('Asia/Kolkata')).toBe('Asia/Kolkata');
       expect(getCanonicalTimezone('Europe/Berlin')).toBe('Europe/Berlin');
     });
+
+    // A rename must not shift any time the SQL renders.
+    it('never maps a zone to one with a different offset', () => {
+      const instants = [
+        '2009-01-15T00:00Z',
+        '2009-07-15T00:00Z',
+        '2026-01-15T00:00Z',
+        '2026-07-01T00:00Z',
+      ];
+      const offset = (timeZone: string, iso: string) =>
+        new Intl.DateTimeFormat('en-US', {
+          timeZone,
+          timeZoneName: 'longOffset',
+        }).format(new Date(iso));
+      const mapped = Object.keys(timezoneAliases).filter(
+        (zone) => getCanonicalTimezone(zone) !== zone
+      );
+      expect(mapped.length).toBeGreaterThan(100);
+      const shifted = mapped.flatMap((zone) =>
+        instants
+          .filter(
+            (iso) =>
+              offset(zone, iso) !== offset(getCanonicalTimezone(zone), iso)
+          )
+          .map((iso) => `${zone} -> ${getCanonicalTimezone(zone)} @ ${iso}`)
+      );
+      expect(shifted).toEqual([]);
+    });
   });
 
   describe('isDateTimeStringHasTimezone', () => {

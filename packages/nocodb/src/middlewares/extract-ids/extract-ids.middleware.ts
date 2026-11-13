@@ -157,6 +157,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         socket_id: req.ncSocketId,
         tab_id: req.ncTabId,
         nc_site_url: req.ncSiteUrl,
+        // same as legacyExtractIds, so v1/v3 honour it like v2
+        timezone: query.whereTz,
         permissions: [],
       };
 

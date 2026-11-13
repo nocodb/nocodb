@@ -6,9 +6,12 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const activeView = inject(ActiveViewInj, ref())
+
 const timezoneAbbreviation = computed(() => {
   if (!props.column || !isDateType(props.column.filterUidt ?? props.column.uidt)) return null
-  return getTimeZoneFromName(props.filter?.meta?.timezone)?.abbreviation
+  return getTimeZoneFromName(getEffectiveFilterTimezone(props.filter, props.column, getFilterRequestTimezone(activeView.value)))
+    ?.abbreviation
 })
 </script>
 

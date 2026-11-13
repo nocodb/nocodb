@@ -5676,6 +5676,14 @@
           },
           {
             "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "whereTz",
+            "description": "IANA time zone (e.g. `Asia/Kolkata`) for date conditions in `where` and in the view's filters that have no time zone of their own. A filter's stored time zone, then the field's display time zone, take precedence. Defaults to UTC.\n\nExample: `where=(DueAt,eq,exactDate,2026-11-09)&whereTz=Asia/Kolkata`."
+          },
+          {
+            "schema": {
               "type": "integer",
               "minimum": 1
             },
@@ -6634,6 +6642,14 @@
             "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nMore examples: `where=(Title,like,report)` matches records whose Title contains 'report'; `where=(Tags,anyof,urgent,bug)` matches records whose multi-select Tags has 'urgent' or 'bug'.\n\nOperators: eq, neq, gt, ge, lt, le, like, nlike, in, btw, nbtw, is, isnot, blank, notblank, checked, notchecked, anyof, allof, nanyof, nallof, isWithin (gte and lte are accepted as aliases of ge and le). Which ones apply depends on the field type, see [filtering](https://nocodb.com/docs/apis/filtering).\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format; for quoting values that contain commas, parentheses or spaces, see [the `where` syntax](https://nocodb.com/docs/apis/filtering#v3-where-query-parameter)."
           },
           {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "whereTz",
+            "description": "IANA time zone (e.g. `Asia/Kolkata`) for date conditions in `where` and in the view's filters that have no time zone of their own. A filter's stored time zone, then the field's display time zone, take precedence. Defaults to UTC.\n\nExample: `where=(DueAt,eq,exactDate,2026-11-09)&whereTz=Asia/Kolkata`."
+          },
+          {
             "required": true,
             "$ref": "#/components/parameters/xc-token"
           }
@@ -6787,6 +6803,14 @@
             "in": "query",
             "name": "where",
             "description": "Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nMore examples: `where=(Title,like,report)` matches records whose Title contains 'report'; `where=(Tags,anyof,urgent,bug)` matches records whose multi-select Tags has 'urgent' or 'bug'.\n\nOperators: eq, neq, gt, ge, lt, le, like, nlike, in, btw, nbtw, is, isnot, blank, notblank, checked, notchecked, anyof, allof, nanyof, nallof, isWithin (gte and lte are accepted as aliases of ge and le). Which ones apply depends on the field type, see [filtering](https://nocodb.com/docs/apis/filtering).\n\nPlease remember to maintain the specified format; for quoting values that contain commas, parentheses or spaces, see [the `where` syntax](https://nocodb.com/docs/apis/filtering#v3-where-query-parameter)."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "whereTz",
+            "description": "IANA time zone (e.g. `Asia/Kolkata`) for date conditions in `where` and in the view's filters that have no time zone of their own. A filter's stored time zone, then the field's display time zone, take precedence. Defaults to UTC.\n\nExample: `where=(DueAt,eq,exactDate,2026-11-09)&whereTz=Asia/Kolkata`."
           },
           {
             "schema": {
@@ -15729,6 +15753,14 @@
             "type": "boolean",
             "description": "Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on.",
             "readOnly": true
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. On create, a date filter without one stores the request's `whereTz` when the field has no time zone of its own. Send `null` on update to clear it.",
+            "example": "Asia/Kolkata"
           }
         },
         "required": [
@@ -15929,6 +15961,14 @@
             "type": "boolean",
             "description": "Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on.",
             "readOnly": true
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. On create, a date filter without one stores the request's `whereTz` when the field has no time zone of its own. Send `null` on update to clear it.",
+            "example": "Asia/Kolkata"
           }
         },
         "required": [

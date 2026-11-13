@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  nodejsTimezones,
+  parseProp,
+  timezoneAliases,
+} from 'nocodb-sdk';
 import type {
   FilterCreateUpdateV3Type,
   FilterCreateV3Type,
@@ -33,6 +39,17 @@ import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 function extractLogicalOp(group_operator: 'AND' | 'OR') {
   return group_operator?.toLowerCase() as 'and' | 'or';
 }
+
+const isKnownTimezone = (timezone: unknown) =>
+  typeof timezone === 'string' &&
+  (nodejsTimezones.has(timezone) || !!timezoneAliases[timezone]);
+
+const assertTimezone = (context: NcContext, timezone: unknown) => {
+  if (timezone !== undefined && timezone !== null && !isKnownTimezone(timezone))
+    NcError.get(context).invalidRequestBody(
+      `Invalid timezone '${timezone}': expected an IANA time zone such as Asia/Kolkata`,
+    );
+};
 
 // Non-root `parent_id`s referenced anywhere in a v3 filter tree.
 const collectParentIds = (node: any, ids: string[] = []): string[] => {
@@ -135,6 +152,7 @@ export class FiltersV3Service {
       if (!node) return;
       if (Array.isArray(node.filters)) node.filters.forEach(collect);
       else if (node.field_id) {
+        assertTimezone(context, node.timezone);
         leaves.push(filterRevBuilder().build(node) as FilterType);
       }
     };
@@ -264,7 +282,11 @@ export class FiltersV3Service {
       const filter = await Filter.insert(
         context,
         {
-          ...filterRevBuilder().build(groupOrFilter),
+          ...(await this.withCallerTimezone(
+            context,
+            filterRevBuilder().build(groupOrFilter) as FilterType,
+            ncMeta,
+          )),
           fk_parent_id: parentId === 'root' ? null : parentId,
           ...additionalProps,
           logical_op: extractLogicalOp(logicalOp),
@@ -352,7 +374,11 @@ export class FiltersV3Service {
           const filter = await Filter.insert(
             context,
             {
-              ...filterRevBuilder().build(child),
+              ...(await this.withCallerTimezone(
+                context,
+                filterRevBuilder().build(child) as FilterType,
+                ncMeta,
+              )),
               fk_parent_id: currentParentId, // Link to the parent group
               logical_op:
                 extractLogicalOp(groupOrFilter.group_operator) || 'and', // Pass the logical operator
@@ -406,6 +432,35 @@ export class FiltersV3Service {
         )
       ).emit();
     }
+  }
+
+  /**
+   * A date filter created without a zone keeps the caller's (`whereTz`), as
+   * the UI stores the browser zone. Skipped when the field has its own zone,
+   * which already takes precedence over the request's.
+   */
+  private async withCallerTimezone(
+    context: NcContext,
+    filter: FilterType & { meta?: Record<string, any> },
+    ncMeta?: MetaService,
+  ) {
+    if (
+      parseProp(filter.meta).timezone ||
+      !filter.comparison_sub_op ||
+      !isKnownTimezone(context.timezone)
+    ) {
+      return filter;
+    }
+    const column = await Column.get(
+      context,
+      { colId: filter.fk_column_id },
+      ncMeta,
+    );
+    if (!column || parseProp(column.meta).timezone) return filter;
+    return {
+      ...filter,
+      meta: { ...parseProp(filter.meta), timezone: context.timezone },
+    };
   }
 
   private async extractAdditionalProps(
@@ -542,10 +597,17 @@ export class FiltersV3Service {
         });
       }
     } else {
+      assertTimezone(context, (param.filter as FilterV3Type).timezone);
       const remappedFilter = filterRevBuilder().build(
         param.filter as FilterGroupV3Type | FilterV3Type,
-      ) as FilterType;
+      ) as FilterType & { meta?: Record<string, any> };
       delete remappedFilter.logical_op;
+      // Filter.update replaces meta, so carry the stored keys over
+      const meta = { ...parseProp(filter.meta), ...remappedFilter.meta };
+      if ((param.filter as FilterV3Type).timezone === null) {
+        delete meta.timezone;
+      }
+      remappedFilter.meta = meta;
 
       await assertFiltersReadable(context, view.fk_model_id, [
         {

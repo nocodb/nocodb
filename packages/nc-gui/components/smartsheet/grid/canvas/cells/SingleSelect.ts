@@ -70,7 +70,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
     if (!text) return
     const truncatedText = truncateText(ctx, text, maxWidth, true)
     if (text === truncatedText.text) return
-    // Anchored to the pointer: a tag-anchored tooltip sits exactly on the tag in the row above
+    // Anchored to the tag, the tooltip would cover the tag in the row above
     const box = {
       x: x + padding,
       y: y + topPadding,

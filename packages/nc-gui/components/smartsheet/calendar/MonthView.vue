@@ -785,7 +785,8 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
 
   const updateProperty = [fromCol!.title!]
 
-  if (toCol) {
+  // A record without an End keeps it empty on a move
+  if (toCol && dragRecord.value?.row[toCol.title!]) {
     const fromDate = dragRecord.value?.row[fromCol!.title!]
       ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol!.title!])
       : null

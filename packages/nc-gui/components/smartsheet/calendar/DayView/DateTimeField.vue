@@ -550,7 +550,8 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
 
   const updateProperty = [fromCol.title!]
 
-  if (toCol) {
+  // A record without an End keeps it empty on a move
+  if (toCol && dragRecord.value.row[toCol.title!]) {
     const fromDate = dragRecord.value.row[fromCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol.title!]) : null
     const toDate = dragRecord.value.row[toCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[toCol.title!]) : null
 
@@ -829,7 +830,8 @@ const dropEvent = (event: DragEvent) => {
 
     const updateProperty = [fromCol.title!]
 
-    if (toCol) {
+    // A record without an End keeps it empty on a move
+    if (toCol && record.row[toCol.title!]) {
       const fromDate = record.row[fromCol.title!] ? timezoneDayjs.timezonize(record.row[fromCol.title!]) : null
       const toDate = record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : null
 

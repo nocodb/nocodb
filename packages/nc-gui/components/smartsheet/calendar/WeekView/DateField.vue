@@ -527,7 +527,8 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
 
   const updateProperty = [fromCol.title!]
 
-  if (toCol) {
+  // A record without an End keeps it empty on a move
+  if (toCol && dragRecord.value.row[toCol.title!]) {
     const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
     const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
 

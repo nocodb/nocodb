@@ -172,7 +172,8 @@ const dropEvent = (event: DragEvent) => {
 
     const updateProperty = [fromCol.title!]
 
-    if (toCol) {
+    // A record without an End keeps it empty on a move
+    if (toCol && record.row[toCol.title!]) {
       const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
       const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
 

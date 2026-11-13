@@ -284,7 +284,7 @@ export class FiltersV3Service {
         {
           ...(await this.withCallerTimezone(
             context,
-            filterRevBuilder().build(groupOrFilter) as FilterType,
+            groupOrFilter as FilterV3Type,
             ncMeta,
           )),
           fk_parent_id: parentId === 'root' ? null : parentId,
@@ -376,7 +376,7 @@ export class FiltersV3Service {
             {
               ...(await this.withCallerTimezone(
                 context,
-                filterRevBuilder().build(child) as FilterType,
+                child as FilterV3Type,
                 ncMeta,
               )),
               fk_parent_id: currentParentId, // Link to the parent group
@@ -435,32 +435,32 @@ export class FiltersV3Service {
   }
 
   /**
-   * A date filter created without a zone keeps the caller's (`whereTz`), as
-   * the UI stores the browser zone. Skipped when the field has its own zone,
-   * which already takes precedence over the request's.
+   * Internal filter for a v3 leaf. A date filter sent without a zone keeps the
+   * caller's (`whereTz`), as the UI stores the browser zone, unless the field
+   * has its own zone, which already takes precedence over the request's.
    */
   private async withCallerTimezone(
     context: NcContext,
-    filter: FilterType & { meta?: Record<string, any> },
+    leaf: FilterV3Type,
     ncMeta?: MetaService,
   ) {
     if (
-      parseProp(filter.meta).timezone ||
-      !filter.comparison_sub_op ||
-      !isKnownTimezone(context.timezone)
+      !leaf.timezone &&
+      leaf.sub_operator &&
+      isKnownTimezone(context.timezone)
     ) {
-      return filter;
+      const column = await Column.get(
+        context,
+        { colId: leaf.field_id },
+        ncMeta,
+      );
+      if (column && !parseProp(column.meta).timezone) {
+        // Written onto the request body so the sandbox changelog and undo
+        // log record it; replay has no `whereTz`.
+        leaf.timezone = context.timezone;
+      }
     }
-    const column = await Column.get(
-      context,
-      { colId: filter.fk_column_id },
-      ncMeta,
-    );
-    if (!column || parseProp(column.meta).timezone) return filter;
-    return {
-      ...filter,
-      meta: { ...parseProp(filter.meta), timezone: context.timezone },
-    };
+    return filterRevBuilder().build(leaf) as FilterType;
   }
 
   private async extractAdditionalProps(

@@ -4,8 +4,6 @@ import {
   type LinkToAnotherRecordType,
   type LookupType,
   type ViewType,
-  getEquivalentUIType,
-  getRollupResultUidt,
   isDateType,
   parseProp,
 } from 'nocodb-sdk'
@@ -204,23 +202,8 @@ export function useViewFilters(
     }
 
     return allMetaColumns.value.reduce((obj: any, col: any) => {
-      if (col.uidt === UITypes.Formula) {
-        const formulaUIType = getEquivalentUIType({
-          formulaColumn: col,
-        })
-
-        obj[col.id] = formulaUIType || col.uidt
-      }
-      // a rollup filters as its result type
-      else if (col.uidt === UITypes.Rollup) {
-        obj[col.id] = getRollupResultUidt(col) ?? col.uidt
-      }
-      // if column is a lookup column, then use the lookup type extracted from the column
-      else if (btLookupTypesMap.value[col.id]) {
-        obj[col.id] = btLookupTypesMap.value[col.id].uidt
-      } else {
-        obj[col.id] = col.uidt
-      }
+      // a lookup filters as the field at the end of its chain
+      obj[col.id] = getResultUidt(btLookupTypesMap.value[col.id] ?? col)
       return obj
     }, {})
   })

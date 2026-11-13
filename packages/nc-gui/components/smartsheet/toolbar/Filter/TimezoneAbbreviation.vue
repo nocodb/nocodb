@@ -7,7 +7,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const timezoneAbbreviation = computed(() => {
-  if (!props.column || !isDateType(props.column.uidt)) return null
+  if (!props.column || !isDateType(props.column.filterUidt ?? props.column.uidt)) return null
   return getTimeZoneFromName(props.filter?.meta?.timezone)?.abbreviation
 })
 </script>

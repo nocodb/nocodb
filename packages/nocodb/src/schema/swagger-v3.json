@@ -15759,7 +15759,7 @@
               "string",
               "null"
             ],
-            "description": "IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. On create, a date filter without one stores the request's `whereTz` when the field has no time zone of its own. Send `null` on update to clear it.",
+            "description": "IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. An unknown zone is rejected. On create, a date filter that omits it stores the request's `whereTz` when the field has no time zone of its own; `null` stores no zone. Send `null` on update to clear it.",
             "example": "Asia/Kolkata"
           }
         },
@@ -15967,7 +15967,7 @@
               "string",
               "null"
             ],
-            "description": "IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. On create, a date filter without one stores the request's `whereTz` when the field has no time zone of its own. Send `null` on update to clear it.",
+            "description": "IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. An unknown zone is rejected. On create, a date filter that omits it stores the request's `whereTz` when the field has no time zone of its own; `null` stores no zone. Send `null` on update to clear it.",
             "example": "Asia/Kolkata"
           }
         },

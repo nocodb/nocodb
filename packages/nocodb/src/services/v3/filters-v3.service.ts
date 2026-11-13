@@ -444,8 +444,11 @@ export class FiltersV3Service {
     leaf: FilterV3Type,
     ncMeta?: MetaService,
   ) {
+    // Every create path inserts leaves through here
+    assertTimezone(context, leaf.timezone);
+    // An explicit null means no zone, as on update
     if (
-      !leaf.timezone &&
+      leaf.timezone === undefined &&
       leaf.sub_operator &&
       isKnownTimezone(context.timezone)
     ) {

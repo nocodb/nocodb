@@ -299,7 +299,9 @@ export async function validateCondition(
           const values = dataVal
             .flat(Infinity)
             .filter((v) => v !== null && v !== undefined && v !== '');
-          if (!values.length) res = matchDate(undefined);
+          // empty lookup is like a null date: only `neq` matches
+          if (!values.length)
+            res = filter.comparison_op === 'neq' ? true : matchDate(null);
           else if (filter.comparison_op === 'neq')
             res = values.every((v) => matchDate(v));
           else res = values.some((v) => matchDate(v));

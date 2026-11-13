@@ -2,17 +2,19 @@ import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTa
 import type { getSingleMultiselectColOptions } from '../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
 
+// Shared by render and handleHover so hover hit-boxes match the drawn tags
+const tagPadding = 8
+const tagSpacingY = 4
+const tagSpacingX = 8
+const tagHeight = 22
+const topPadding = 4
+
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, x: _x, y: _y, width: _width, height, pv, padding, isDark, getColor } = props
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
-    const tagPadding = 8
-    const tagSpacingY = 4
-    const tagSpacingX = 8
-    const tagHeight = 22
-    const topPadding = 4
     const defaultColor = '#666'
     const ellipsisWidth = 15
 
@@ -135,11 +137,6 @@ export const MultiSelectCellRenderer: CellRenderer = {
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
-    const tagPadding = 8
-    const tagSpacingY = 4
-    const tagSpacingX = 8
-    const tagHeight = 20
-    const topPadding = 6
 
     width = width - padding * 2
 

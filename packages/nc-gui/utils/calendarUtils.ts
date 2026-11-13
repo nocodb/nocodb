@@ -253,4 +253,39 @@ const is12hrTimeColumn = (col?: ColumnType | null): boolean => {
   return !!parseProp(col?.meta)?.is12hrFormat
 }
 
-export { isRowInDateRange, isRowInCurrentDateRange, isRowMatchingSidebarFilter, is12hrTimeColumn }
+interface CalendarMoveEndOptions {
+  /** Unit the start→end duration is kept in. */
+  unit: 'day' | 'hour' | 'minute'
+  /** Round the kept duration to this many minutes (time grids). */
+  roundToMinutes?: number
+  /** Where End lands when the record has an End but no Start. */
+  endOfWithoutStart: 'day' | 'hour'
+  /** Smallest gap kept between the new Start and End, in minutes. */
+  minMinutes?: number
+}
+
+/**
+ * The End a calendar MOVE writes, or null when the record has no End: a move
+ * then changes only Start. With both dates, End shifts to keep the duration.
+ */
+const getCalendarMoveEnd = (
+  { start, end, newStart }: { start: dayjs.Dayjs | null; end: dayjs.Dayjs | null; newStart: dayjs.Dayjs },
+  { unit, roundToMinutes, endOfWithoutStart, minMinutes }: CalendarMoveEndOptions,
+): dayjs.Dayjs | null => {
+  if (!end) return null
+
+  let newEnd: dayjs.Dayjs
+  if (!start) {
+    newEnd = newStart.endOf(endOfWithoutStart)
+  } else if (roundToMinutes) {
+    newEnd = newStart.add(Math.round(end.diff(start, 'minute') / roundToMinutes) * roundToMinutes, 'minute')
+  } else {
+    newEnd = newStart.add(end.diff(start, unit), unit)
+  }
+
+  if (minMinutes && newEnd.isBefore(newStart)) newEnd = newStart.add(minMinutes, 'minute')
+
+  return newEnd
+}
+
+export { isRowInDateRange, isRowInCurrentDateRange, isRowMatchingSidebarFilter, is12hrTimeColumn, getCalendarMoveEnd }

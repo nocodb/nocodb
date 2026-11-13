@@ -515,8 +515,6 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
   if (!newStartDate) return { updatedProperty: [], newRow: null }
 
-  let endDate
-
   const newRow = {
     ...dragRecord.value,
     row: {
@@ -528,25 +526,18 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   const updateProperty = [fromCol.title!]
 
   if (toCol) {
-    const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
-    const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
-
-    // Calculate the new end date based on the day index by adding the day index to the start date of the selected date range
-    // If the record has an end date, we need to calculate the new end date based on the difference between the start and end date
-    // If the record doesn't have an end date, we need to calculate the new end date based on the start date
-    // If the record has an end date and no start Date, we set the end date to the start date
-    if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-    } else if (fromDate && !toDate) {
-      endDate = dayjs(newStartDate).endOf('day')
-    } else if (!fromDate && toDate) {
-      endDate = dayjs(newStartDate).endOf('day')
-    } else {
-      endDate = newStartDate.clone()
+    const endDate = getCalendarMoveEnd(
+      {
+        start: dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null,
+        end: dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null,
+        newStart: dayjs(newStartDate),
+      },
+      { unit: 'day', endOfWithoutStart: 'day' },
+    )
+    if (endDate) {
+      newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
+      updateProperty.push(toCol.title!)
     }
-
-    newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
-    updateProperty.push(toCol.title!)
   }
 
   const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)

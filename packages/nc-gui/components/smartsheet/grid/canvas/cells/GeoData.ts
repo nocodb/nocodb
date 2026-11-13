@@ -1,5 +1,6 @@
 import { isBoxHovered, renderMultiLineText, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
+import { splitGeoDataValue } from '../../../../../utils/geoDataUtils'
 
 export const GeoDataCellRenderer: CellRenderer = {
   render: (
@@ -10,7 +11,7 @@ export const GeoDataCellRenderer: CellRenderer = {
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
 
-    const [latitude, longitude] = (value || '').split(';')
+    const [latitude, longitude] = splitGeoDataValue(value)
     const isLocationSet = !!(latitude && longitude)
     const displayText = isLocationSet ? `${latitude}; ${longitude}` : 'Set location'
     const rowHeight = pxToRowHeight[height] ?? 1
@@ -67,7 +68,7 @@ export const GeoDataCellRenderer: CellRenderer = {
     const enableEdit = () => makeCellEditable(row, column)
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
-    const [latitude, longitude] = (value || '').split(';')
+    const [latitude, longitude] = splitGeoDataValue(value)
     const isLocationSet = !!(latitude && longitude)
 
     if (selected && !isLocationSet) {

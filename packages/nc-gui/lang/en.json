@@ -8621,7 +8621,8 @@
       "map": {
         "overLimit": "You're over the limit.",
         "closeLimit": "You're getting close to the limit.",
-        "limitNumber": "The limit of markers shown in a Map View is 1000 records."
+        "limitNumber": "The limit of markers shown in a Map View is 1000 records.",
+        "invalidLocations": "{count} record not shown — invalid location | {count} records not shown — invalid location"
       },
       "excelURL": "Enter excel file URL",
       "csvURL": "Enter CSV file URL",
@@ -9203,6 +9204,7 @@
       "variableKeyFormat": "Key must be uppercase letters, numbers and underscores (e.g. WEBHOOK_URL)",
       "latitudeRange": "Latitude must be between -90 and 90",
       "longitudeRange": "Longitude must be between -180 and 180",
+      "geoDataFormat": "Enter both a latitude and a longitude",
       "passwordChangeFailed": "Failed to change password",
       "invalidPasswordFormat": "Invalid password format",
       "tooManyAttempts": "Too many attempts. Please try again later",

@@ -213,28 +213,39 @@ export const getDynamicColumns = (metaColumns: ColumnType[], column?: ColumnType
   })
 }
 
+/** The type a field filters as: a formula or rollup by its result, else its own uidt. */
+export const getResultUidt = (col: ColumnType): UITypes => {
+  if (col.uidt === UITypes.Formula) {
+    return (getEquivalentUIType({ formulaColumn: col }) || col.uidt) as UITypes
+  }
+  if (col.uidt === UITypes.Rollup) {
+    return getRollupResultUidt(col) ?? (col.uidt as UITypes)
+  }
+  return col.uidt as UITypes
+}
+
+/** Filter type per column id; a lookup filters as the field at the end of its chain (`lookupTargets`). */
+export const getFilterTypesMap = (
+  columns: ColumnType[],
+  lookupTargets: Record<string, ColumnType | undefined>,
+): Record<string, UITypes> => {
+  const types: Record<string, UITypes> = {}
+  for (const col of columns) {
+    types[col.id!] = getResultUidt(lookupTargets[col.id!] ?? col)
+  }
+  return types
+}
+
 export const getFilterUidt = (col: ColumnTypeForFilter): UITypes => {
   // V2 MO/OO Links → filter by display value like LTAR
   if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {
     return UITypes.LinkToAnotherRecord
   }
-  if (col.uidt === UITypes.Formula) {
-    const formulaUIType = getEquivalentUIType({
-      formulaColumn: col,
-    })
-
-    return (formulaUIType || col.uidt) as UITypes
+  // a lookup filters as the field at the end of its chain
+  if (col.btLookupColumn) {
+    return getResultUidt(col.btLookupColumn)
   }
-  // a rollup filters as its result type
-  else if (col.uidt === UITypes.Rollup) {
-    return getRollupResultUidt(col) ?? (col.uidt as UITypes)
-  }
-  // if column is a lookup column, then use the lookup type extracted from the column
-  else if (col.btLookupColumn) {
-    return col.btLookupColumn.uidt as UITypes
-  } else {
-    return col.uidt as UITypes
-  }
+  return getResultUidt(col)
 }
 
 /**
@@ -351,8 +362,9 @@ export const adjustFilterWhenColumnChange = ({
   }
 }
 
-export function getTimezoneFromColumn(col: ColumnType, defaultValue = Intl.DateTimeFormat().resolvedOptions().timeZone) {
-  const columnMeta = parseProp(col.meta)
+export function getTimezoneFromColumn(col: ColumnTypeForFilter, defaultValue = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  // a lookup takes the looked-up field's timezone
+  const columnMeta = parseProp((col.btLookupColumn ?? col).meta)
   return columnMeta.timezone || defaultValue
 }
 

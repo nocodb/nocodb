@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ClientType, SqlUiFactory, UITypes, getRollupResultUidt } from 'nocodb-sdk'
-import type { ColumnType } from 'nocodb-sdk'
+import { ClientType, SqlUiFactory, UITypes, getRollupResultUidt, isDateType } from 'nocodb-sdk'
+import type { ColumnType, ColumnTypeForFilter } from 'nocodb-sdk'
 import SingleSelect from '~/components/cell/SingleSelect/index.vue'
 import MultiSelect from '~/components/cell/MultiSelect/index.vue'
 import DatePicker from '~/components/cell/Date/index.vue'
@@ -18,7 +18,7 @@ import User from '~/components/cell/User/index.vue'
 
 interface Props {
   // column could be possibly undefined when the filter is created
-  column?: ColumnType
+  column?: ColumnTypeForFilter
   filter: Filter
   disabled?: boolean
   dbClientType?: ClientType
@@ -32,8 +32,10 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<Emits>()
 
-// a rollup takes the value input of its result type
+// a rollup takes the value input of its result type; a lookup filtering as a date, the looked-up field's date input
 const column = computed(() => {
+  const { btLookupColumn, filterUidt } = props.column ?? {}
+  if (btLookupColumn && filterUidt && isDateType(filterUidt)) return { ...btLookupColumn, uidt: filterUidt }
   const resultUidt = getRollupResultUidt(props.column)
   return resultUidt ? { ...props.column, uidt: resultUidt } : props.column
 })

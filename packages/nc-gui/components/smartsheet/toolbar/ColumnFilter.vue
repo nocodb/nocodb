@@ -381,7 +381,7 @@ const isFilterDraft = (filter: Filter, col: ColumnType) => {
   }
 
   if (
-    comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format).find(
+    comparisonOpList(types.value[filter.fk_column_id!] as UITypes, col?.meta?.date_format).find(
       (compOp) => compOp.value === filter.comparison_op,
     )?.ignoreVal
   ) {
@@ -411,7 +411,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     // hence remove the previous value
     filter.value = null
     filter.comparison_sub_op = null
-  } else if (isDateType(types.value[col.id] as UITypes)) {
+  } else if (isDateType(types.value[filter.fk_column_id!] as UITypes)) {
     // for date / datetime,
     // the input type could be decimal or datepicker / datetime picker
     // hence remove the previous value
@@ -598,12 +598,12 @@ const selectFilterField = (filter: Filter, index: number) => {
   // e.g. `eq` operator is not supported in checkbox field
   // hence, get the first option of the supported operators of the new field
   filter.comparison_op = getDefaultComparisonOp(
-    comparisonOpList(types.value[col.id] as UITypes, col?.meta?.date_format),
+    comparisonOpList(types.value[filter.fk_column_id!] as UITypes, col?.meta?.date_format),
     (compOp) => isComparisonOpAllowed(filter, compOp) && !isOpHiddenForDateDisplayLink(filter, compOp.value),
-    types.value[col.id] as UITypes,
+    types.value[filter.fk_column_id!] as UITypes,
   ) as FilterType['comparison_op']
 
-  if (isDateType(types.value[col.id] as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
+  if (isDateType(types.value[filter.fk_column_id!] as UITypes) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
     if (filter.comparison_op === 'isWithin') {
       filter.comparison_sub_op = 'pastNumberOfDays'
     } else {
@@ -728,7 +728,7 @@ const showFilterInput = (filter: Filter) => {
       (op) => op.value === filter.comparison_sub_op,
     )?.ignoreVal
   } else {
-    return !comparisonOpList(types.value[col?.id] as UITypes, col?.meta?.date_format).find(
+    return !comparisonOpList(types.value[filter.fk_column_id!] as UITypes, col?.meta?.date_format).find(
       (op) => op.value === filter.comparison_op,
     )?.ignoreVal
   }
@@ -1313,7 +1313,7 @@ const mobileActionMenuItems = (filter: FilterType) => {
 }
 
 const isTimezoneAbbreviationAvailable = (filter, column) => {
-  if (!column || !isDateType(column.uidt)) return false
+  if (!column || !isDateType(types.value[filter.fk_column_id] as UITypes)) return false
 
   return !!getTimeZoneFromName(filter?.meta?.timezone)?.abbreviation
 }
@@ -1971,7 +1971,7 @@ defineExpose({
                 </div>
                 <SmartsheetToolbarFilterTimezoneAbbreviation
                   v-if="!isFormFieldInaccessible(filter)"
-                  :column="getColumn(filter)"
+                  :column="getColumn(filter) && { ...getColumn(filter), uidt: types[filter.fk_column_id] }"
                   :filter="filter"
                   class="xs:(rounded-r-lg col-span-3)"
                 />

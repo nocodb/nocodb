@@ -481,6 +481,20 @@ export function assertFormulaConvertibleTo(
   }
 }
 
+/** Refuses a type change with guidance; stays a 501 like before. */
+export function throwFieldNotConvertible(
+  context: NcContext,
+  from: UITypes | string,
+  to: UITypes | string,
+): void {
+  const fromName = UITypesName[from] ?? from;
+  const toName = UITypesName[to] ?? to;
+  const article = /^[aeiou]/i.test(fromName) ? 'An' : 'A';
+  NcError.get(context).notImplemented(`Updating ${from} => ${to}`, {
+    customMessage: `${article} ${fromName} field can't be converted to ${toName}. Delete it and create a new ${toName} field.`,
+  });
+}
+
 export async function getJunctionTableName(
   param: {
     base: Base;
@@ -2195,9 +2209,7 @@ export class ColumnsService implements IColumnsService {
 
         return safeTable;
       } else {
-        NcError.get(context).notImplemented(
-          `Updating ${column.uidt} => ${colBody.uidt}`,
-        );
+        throwFieldNotConvertible(context, column.uidt, colBody.uidt);
       }
     } else if (
       isLinksOrLTAR(colBody.uidt) &&
@@ -2275,9 +2287,7 @@ export class ColumnsService implements IColumnsService {
 
       return safeTable;
     } else if (UNCONVERTIBLE_TARGETS.has(colBody.uidt)) {
-      NcError.get(context).notImplemented(
-        `Updating ${column.uidt} => ${colBody.uidt}`,
-      );
+      throwFieldNotConvertible(context, column.uidt, colBody.uidt);
     } else if (
       [
         UITypes.CreatedTime,

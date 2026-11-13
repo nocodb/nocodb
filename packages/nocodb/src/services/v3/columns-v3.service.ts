@@ -11,7 +11,10 @@ import {
   UITypes,
   WebhookActions,
 } from 'nocodb-sdk';
-import { assertFormulaConvertibleTo } from 'src/services/columns.service';
+import {
+  assertFormulaConvertibleTo,
+  throwFieldNotConvertible,
+} from 'src/services/columns.service';
 import type {
   ColumnReqType,
   ColumnType,
@@ -469,9 +472,7 @@ export class ColumnsV3Service {
 
     if (isLinksOrLTAR(column)) {
       if (newType !== UITypes.SingleLineText) {
-        NcError.get(context).notImplemented(
-          `Updating ${column.uidt} => ${newType}`,
-        );
+        throwFieldNotConvertible(context, column.uidt, newType);
       }
       return this.linkToTextDryRun(context, column, param.column, report);
     }
@@ -487,9 +488,7 @@ export class ColumnsV3Service {
       (UNCONVERTIBLE_TARGETS.has(newType) && !isLinksOrLTAR(newType)) ||
       (NO_CELL_VALUES.has(column.uidt) && column.uidt !== UITypes.Formula)
     ) {
-      NcError.get(context).notImplemented(
-        `Updating ${column.uidt} => ${newType}`,
-      );
+      throwFieldNotConvertible(context, column.uidt, newType);
     }
 
     if (!holdsCells(column.uidt)) {

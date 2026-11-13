@@ -3,6 +3,7 @@ import { ColumnType, FilterType } from '~/lib/Api';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
+  DAY_COUNT_COMPARISON_SUB_OPS,
   GROUPBY_COMPARISON_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/lib/parser/queryFilter/query-filter-lexer';

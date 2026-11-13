@@ -58,6 +58,14 @@ export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
   'nextNumberOfDays',
 ];
 
+// Sub-ops whose value is a number of days.
+export const DAY_COUNT_COMPARISON_SUB_OPS = <const>[
+  'daysAgo',
+  'daysFromNow',
+  'pastNumberOfDays',
+  'nextNumberOfDays',
+];
+
 export const COMPARISON_SUB_OPS = <const>[
   'today',
   'tomorrow',

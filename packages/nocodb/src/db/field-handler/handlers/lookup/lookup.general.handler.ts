@@ -1,4 +1,10 @@
-import { isMMOrMMLike, parseProp, RelationTypes } from 'nocodb-sdk';
+import {
+  isDateType,
+  isMMOrMMLike,
+  parseProp,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type { Logger } from '@nestjs/common';
 import type { ClientType, NcContext } from 'nocodb-sdk';
@@ -7,6 +13,7 @@ import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type {
   FilterOperationResult,
   FilterOptions,
+  FilterVerificationResult,
   IFieldHandler,
   SortOptions,
 } from '~/db/field-handler/field-handler.interface';
@@ -30,8 +37,32 @@ import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { DBQueryClient } from '~/dbQueryClient';
+import { dateFilterSubOpProblem } from '~/db/field-handler/handlers/date-time/date-time.general.handler';
 
 export class LookupGeneralHandler extends ComputedFieldHandler {
+  /** A sub-op on a lookup of a date gets the date field's sub-op check. */
+  override async verifyFilter(
+    filter: Filter,
+    column: Column,
+    options: FilterOptions = {},
+  ): Promise<FilterVerificationResult> {
+    if (!filter.comparison_sub_op) return { isValid: true };
+
+    const lookupColumn = await (
+      await column.getColOptions<LookupColumn>()
+    )?.getLookupColumn();
+    if (lookupColumn?.uidt === UITypes.Lookup && options.fieldHandler) {
+      return options.fieldHandler.verifyFilter(filter, lookupColumn, options);
+    }
+    if (!lookupColumn || !isDateType(lookupColumn.uidt as UITypes)) {
+      return { isValid: true };
+    }
+    const problem = dateFilterSubOpProblem(filter);
+    return problem
+      ? { isValid: false, errors: [`${problem} on column ${column.title}`] }
+      : { isValid: true };
+  }
+
   /**
    * Sort by the looked-up display value. `generateLookupSelectQuery`
    * resolves the lookup chain to a single SQL expression (potentially with

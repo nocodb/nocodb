@@ -1,7 +1,8 @@
-import type { FilterType, NcContext } from 'nocodb-sdk';
+import { isDateType } from 'nocodb-sdk';
+import type { FilterType, NcContext, UITypes } from 'nocodb-sdk';
 import type Filter from '~/models/Filter';
 import { FieldHandler } from '~/db/field-handler';
-import { Model, Source } from '~/models';
+import { Column, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
@@ -30,4 +31,34 @@ export async function assertFiltersReadable(
   await FieldHandler.fromBaseModel(baseModel).verifyFilters(
     filters as Filter[],
   );
+}
+
+/**
+ * Write-time check for a date condition saved through the console's filter
+ * endpoints: its sub-op and value go through the same verification as a read.
+ * Leaves without a field or operator are still being filled in and pass.
+ */
+export async function assertDateFiltersReadable(
+  context: NcContext,
+  filters: Partial<FilterType>[],
+): Promise<void> {
+  const byTable = new Map<string, Partial<FilterType>[]>();
+  for (const filter of filters ?? []) {
+    if (!filter || filter.is_group) continue;
+    if (!filter.fk_column_id || !filter.comparison_op) continue;
+
+    const column = await Column.get(context, { colId: filter.fk_column_id });
+    if (!column) continue;
+    if (!filter.comparison_sub_op && !isDateType(column.uidt as UITypes)) {
+      continue;
+    }
+
+    const leaves = byTable.get(column.fk_model_id) ?? [];
+    leaves.push(filter);
+    byTable.set(column.fk_model_id, leaves);
+  }
+
+  for (const [tableId, leaves] of byTable) {
+    await assertFiltersReadable(context, tableId, leaves);
+  }
 }

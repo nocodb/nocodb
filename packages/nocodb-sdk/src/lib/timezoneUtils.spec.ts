@@ -1,4 +1,5 @@
 import {
+  getCanonicalTimezone,
   getNodejsTimezone,
   isDateTimeStringHasTimezone,
   nodejsTimezones,
@@ -13,13 +14,16 @@ describe('timezoneUtils', () => {
       );
     });
 
-    // These three canonical zones have several legacy aliases. Recording only
-    // the last one left them pointing at an alias Node does not accept, and
-    // they fell back to Etc/UTC: ten hours out for Chuuk.
+    // Canonical zones Node only carries under an alias. The first three have
+    // several aliases; recording only the last one fell back to Etc/UTC.
     it.each([
       ['Pacific/Chuuk', 'Pacific/Truk'],
       ['America/Indiana/Indianapolis', 'America/Indianapolis'],
       ['America/Argentina/Cordoba', 'America/Cordoba'],
+      // browsers send the current name; Node only carries the alias
+      ['Europe/Kyiv', 'Europe/Kiev'],
+      ['Asia/Yangon', 'Asia/Rangoon'],
+      ['America/Nuuk', 'America/Godthab'],
     ])('resolves %s to an alias node accepts', (canonical, expected) => {
       expect(getNodejsTimezone(canonical)).toBe(expected);
     });
@@ -53,6 +57,54 @@ describe('timezoneUtils', () => {
       expect(givenUp).toEqual([]);
     });
   });
+
+  describe('getCanonicalTimezone', () => {
+    // Aliases ICU reports on macOS; Postgres with Debian tzdata rejects them.
+    it.each([
+      ['Asia/Calcutta', 'Asia/Kolkata'],
+      ['Asia/Saigon', 'Asia/Ho_Chi_Minh'],
+      ['Asia/Katmandu', 'Asia/Kathmandu'],
+      ['Asia/Rangoon', 'Asia/Yangon'],
+      ['Europe/Kiev', 'Europe/Kyiv'],
+      ['America/Godthab', 'America/Nuuk'],
+    ])('maps %s to %s', (alias, canonical) => {
+      expect(getCanonicalTimezone(alias)).toBe(canonical);
+    });
+
+    it('keeps current names, including ones the reverse map points away', () => {
+      expect(getCanonicalTimezone('Asia/Kolkata')).toBe('Asia/Kolkata');
+      expect(getCanonicalTimezone('Europe/Berlin')).toBe('Europe/Berlin');
+    });
+
+    // A rename must not shift any time the SQL renders.
+    it('never maps a zone to one with a different offset', () => {
+      const instants = [
+        '2009-01-15T00:00Z',
+        '2009-07-15T00:00Z',
+        '2026-01-15T00:00Z',
+        '2026-07-01T00:00Z',
+      ];
+      const offset = (timeZone: string, iso: string) =>
+        new Intl.DateTimeFormat('en-US', {
+          timeZone,
+          timeZoneName: 'longOffset',
+        }).format(new Date(iso));
+      const mapped = Object.keys(timezoneAliases).filter(
+        (zone) => getCanonicalTimezone(zone) !== zone
+      );
+      expect(mapped.length).toBeGreaterThan(100);
+      const shifted = mapped.flatMap((zone) =>
+        instants
+          .filter(
+            (iso) =>
+              offset(zone, iso) !== offset(getCanonicalTimezone(zone), iso)
+          )
+          .map((iso) => `${zone} -> ${getCanonicalTimezone(zone)} @ ${iso}`)
+      );
+      expect(shifted).toEqual([]);
+    });
+  });
+
   describe('isDateTimeStringHasTimezone', () => {
     it('will evaluate some test cases', () => {
       // Test cases with expected values

@@ -1,4 +1,5 @@
 import {
+  getCanonicalTimezone,
   getCurrencyDecimalSymbol,
   getCurrencyGroupSymbol,
   getSeparatorChars,
@@ -181,7 +182,7 @@ function generateDateTimeToTimeQuery(
   sourceMeta: unknown,
 ) {
   const timezone = parseProp(sourceMeta)?.timezone;
-  const tz = isKnownTimezone(timezone) ? timezone : 'UTC';
+  const tz = isKnownTimezone(timezone) ? getCanonicalTimezone(timezone) : 'UTC';
   const instant = /with time zone|timestamptz/i.test(sourceDt ?? '')
     ? rawSource
     : `(${rawSource} AT TIME ZONE 'UTC')`;

@@ -419,7 +419,8 @@ export const nodejsTimezones = new Set([
   'Pacific/Wallis',
 ]);
 
-const _timezoneAliases = {
+// Legacy alias -> current IANA name
+const _legacyToCanonical = {
   'Africa/Timbuktu': 'Africa/Bamako',
   'America/Argentina/ComodRivadavia': 'America/Argentina/Catamarca',
   'America/Atka': 'America/Adak',
@@ -429,6 +430,7 @@ const _timezoneAliases = {
   'America/Cordoba': 'America/Argentina/Cordoba',
   'America/Ensenada': 'America/Tijuana',
   'America/Fort_Wayne': 'America/Indiana/Indianapolis',
+  'America/Godthab': 'America/Nuuk',
   'America/Indianapolis': 'America/Indiana/Indianapolis',
   'America/Jujuy': 'America/Argentina/Jujuy',
   'America/Knox_IN': 'America/Indiana/Knox',
@@ -445,6 +447,7 @@ const _timezoneAliases = {
   'Asia/Istanbul': 'Europe/Istanbul',
   'Asia/Katmandu': 'Asia/Kathmandu',
   'Asia/Muscat': 'Asia/Dubai',
+  'Asia/Rangoon': 'Asia/Yangon',
   'Asia/Saigon': 'Asia/Ho_Chi_Minh',
   'Asia/Tel_Aviv': 'Asia/Jerusalem',
   'Asia/Ujung_Pandang': 'Asia/Makassar',
@@ -480,6 +483,7 @@ const _timezoneAliases = {
   Eire: 'Europe/Dublin',
   'Etc/UCT': 'Etc/UTC',
   'Europe/Belfast': 'Europe/London',
+  'Europe/Kiev': 'Europe/Kyiv',
   'Europe/Tiraspol': 'Europe/Chisinau',
   GB: 'Europe/London',
   'GB-Eire': 'Europe/London',
@@ -487,9 +491,8 @@ const _timezoneAliases = {
   Hongkong: 'Asia/Hong_Kong',
   Iceland: 'Atlantic/Reykjavik',
   'Indian/Antananarivo': 'Indian/Mayotte',
-  'Indian/Chagos': 'Indian/Maldives',
   'Indian/Comoro': 'Indian/Mayotte',
-  'Indian/Mahe': 'Indian/Mauritius',
+  'Indian/Mahe': 'Asia/Dubai',
   Iran: 'Asia/Tehran',
   Israel: 'Asia/Jerusalem',
   Jamaica: 'America/Jamaica',
@@ -532,6 +535,8 @@ const _timezoneAliases = {
   Zulu: 'Etc/UTC',
 } as Record<string, string>;
 
+const _timezoneAliases: Record<string, string> = { ..._legacyToCanonical };
+
 // Reverse mapping. Several legacy aliases can share one canonical zone, so
 // assigning straight back let the last one win; when that alias was not one
 // Node accepts, getNodejsTimezone fell through to Etc/UTC even though a
@@ -547,6 +552,12 @@ for (const [canonical, aliases] of Object.entries(_aliasesOf)) {
 }
 
 export const timezoneAliases = _timezoneAliases;
+
+// Current IANA name for a legacy alias. Use before putting a zone into SQL:
+// ICU reports aliases (Asia/Calcutta) that databases without the tzdata
+// backward links reject.
+export const getCanonicalTimezone = (timezone: string) =>
+  _legacyToCanonical[timezone] ?? timezone;
 
 export const getNodejsTimezone = (...timezones: string[]) => {
   for (const timezone of timezones ?? []) {

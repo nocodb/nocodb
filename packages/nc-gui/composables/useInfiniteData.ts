@@ -2005,7 +2005,8 @@ export function useInfiniteData(args: {
         path,
       })
 
-      if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
+      const savedRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
+      if (savedRow) savedRow.rowMeta.isRowOrderUpdated = needsResorting
     }
     callbacks?.syncVisibleData?.()
   }

@@ -79,19 +79,40 @@ const DATE_UIDTS = [
   UITypes.LastModifiedTime,
 ];
 
+// Ops a computed date field (Lookup, Rollup, Formula) compares as a date
+const COMPUTED_DATE_OPS = [
+  'eq',
+  'neq',
+  'gt',
+  'lt',
+  'gte',
+  'ge',
+  'lte',
+  'le',
+  'isWithin',
+];
+
 // Date type a condition column compares as: Lookup follows to its target, Rollup and Formula use their result type.
 async function resolveConditionDateType(
   column: Column,
+  comparisonOp: string,
 ): Promise<{ uidt?: UITypes; column?: Column }> {
-  let target = column;
-  if (target?.uidt === UITypes.Lookup) {
-    target = await travelLookupColumn({ context: column.context, column });
+  if (DATE_UIDTS.includes(column.uidt)) return { uidt: column.uidt, column };
+  if (!COMPUTED_DATE_OPS.includes(comparisonOp)) return {};
+  try {
+    let target = column;
+    if (target.uidt === UITypes.Lookup) {
+      target = await travelLookupColumn({ context: column.context, column });
+    }
+    if (target && [UITypes.Formula, UITypes.Rollup].includes(target.uidt)) {
+      await target.getColOptions();
+    }
+    const uidt = getColumnResultType(target);
+    return DATE_UIDTS.includes(uidt) ? { uidt, column: target } : {};
+  } catch {
+    // broken lookup/relation: keep the generic comparison
+    return {};
   }
-  if (target && [UITypes.Formula, UITypes.Rollup].includes(target.uidt)) {
-    await target.getColOptions();
-  }
-  const uidt = getColumnResultType(target);
-  return DATE_UIDTS.includes(uidt) ? { uidt, column: target } : {};
 }
 
 export async function validateCondition(
@@ -130,7 +151,7 @@ export async function validateCondition(
       const field = column.title;
       let val = data[field];
       const { uidt: dateUidt, column: dateColumn } =
-        await resolveConditionDateType(column);
+        await resolveConditionDateType(column, filter.comparison_op);
       if (
         dateUidt &&
         !['empty', 'blank', 'notempty', 'notblank'].includes(

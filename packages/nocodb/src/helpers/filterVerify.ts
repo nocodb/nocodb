@@ -42,9 +42,19 @@ export async function assertDateFiltersReadable(
   context: NcContext,
   filters: Partial<FilterType>[],
 ): Promise<void> {
+  // Filter.insert saves a group's children too
+  const leaves: Partial<FilterType>[] = [];
+  const collect = (nodes: Partial<FilterType>[] = []) => {
+    for (const node of nodes) {
+      if (!node) continue;
+      if (node.is_group) collect(node.children);
+      else leaves.push(node);
+    }
+  };
+  collect(filters);
+
   const byTable = new Map<string, Partial<FilterType>[]>();
-  for (const filter of filters ?? []) {
-    if (!filter || filter.is_group) continue;
+  for (const filter of leaves) {
     if (!filter.fk_column_id || !filter.comparison_op) continue;
 
     const column = await Column.get(context, { colId: filter.fk_column_id });
@@ -53,12 +63,12 @@ export async function assertDateFiltersReadable(
       continue;
     }
 
-    const leaves = byTable.get(column.fk_model_id) ?? [];
-    leaves.push(filter);
-    byTable.set(column.fk_model_id, leaves);
+    const tableLeaves = byTable.get(column.fk_model_id) ?? [];
+    tableLeaves.push(filter);
+    byTable.set(column.fk_model_id, tableLeaves);
   }
 
-  for (const [tableId, leaves] of byTable) {
-    await assertFiltersReadable(context, tableId, leaves);
+  for (const [tableId, tableLeaves] of byTable) {
+    await assertFiltersReadable(context, tableId, tableLeaves);
   }
 }

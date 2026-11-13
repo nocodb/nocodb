@@ -999,6 +999,9 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.743.0
         version: 3.817.0
+      '@azure/storage-blob':
+        specifier: ^12.26.0
+        version: 12.26.0
       '@clickhouse/client':
         specifier: ^1.11.1
         version: 1.16.0

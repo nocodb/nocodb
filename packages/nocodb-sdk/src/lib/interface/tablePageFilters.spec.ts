@@ -21,7 +21,10 @@ const hoist = (config: TableConfig) => hoistInterfaceTableVizFilters(config);
 
 describe('hoistInterfaceTableVizFilters', () => {
   it('nests a viz OR-group as one AND child after the page leaves', () => {
-    const orGroup = group([leaf('b'), leaf('c', 'or')]);
+    const orGroup: InterfaceFilterGroup = {
+      ...group([leaf('b'), leaf('c', 'or')]),
+      logical_op: 'or',
+    };
     const result = hoist({
       filters: group([leaf('a'), leaf('d', 'and')]),
       visualizations: [{ id: 'v1', filters: orGroup }],

@@ -1623,11 +1623,12 @@ export interface PermissionSetV3Type {
   entity: 'table' | 'field';
   /** Table ID for entity `table`, field ID for entity `field`. */
   entity_id: string;
-  /** `TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field. */
+  /** `TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field. `TABLE_DATA_DOWNLOAD` controls CSV, Excel and JSON downloads; with no grant, every base member can download. */
   permission:
     | 'TABLE_VISIBILITY'
     | 'TABLE_RECORD_ADD'
     | 'TABLE_RECORD_DELETE'
+    | 'TABLE_DATA_DOWNLOAD'
     | 'RECORD_FIELD_EDIT';
   /** `role`: a minimum base role. `user`: only the listed subjects. `nobody`: no one. */
   granted_type: 'role' | 'user' | 'nobody';
@@ -1659,11 +1660,12 @@ export interface PermissionV3Type {
   entity?: 'table' | 'field';
   /** Table ID or field ID. */
   entity_id?: string;
-  /** `TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field. */
+  /** `TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field. `TABLE_DATA_DOWNLOAD` controls CSV, Excel and JSON downloads; with no grant, every base member can download. */
   permission?:
     | 'TABLE_VISIBILITY'
     | 'TABLE_RECORD_ADD'
     | 'TABLE_RECORD_DELETE'
+    | 'TABLE_DATA_DOWNLOAD'
     | 'RECORD_FIELD_EDIT';
   /** `role`: a minimum base role. `user`: only the listed subjects. `nobody`: no one. */
   granted_type?: 'role' | 'user' | 'nobody';
@@ -4668,6 +4670,7 @@ export interface ViewOptionsKanbanV3Type {
     /**
      * Order of the stacks in kanban view. If not provided, the order will be determined by options listed in associated field.
      *
+     * Stacks are named by option title for a SingleSelect field, by user id or email for a User field, and by linked record id for a link field.
      * Example: ```stack_order: ['option1', 'option2', 'option3']```
      */
     stack_order?: string[];
@@ -7306,6 +7309,14 @@ export interface KanbanType {
   columns?: KanbanColumnType[];
   /** Meta Info for Kanban */
   meta?: MetaType;
+  /** Per-stack summary function (aggregation key) */
+  summary_fn?: StringOrNullType;
+  /** Per-stack summary calculation field */
+  fk_summary_col_id?: StringOrNullType;
+  /** Per-stack summary label ({ mode, text }) */
+  summary_label?: MetaType;
+  /** Per-stack summary colour rules ({ rules, default_color }) */
+  summary_colors?: MetaType;
   /**
    * Kanban Title
    * @example My Kanban
@@ -7351,6 +7362,14 @@ export interface KanbanUpdateReqType {
   fk_cover_image_col_id?: StringOrNullType;
   /** Meta Info */
   meta?: MetaType;
+  /** Per-stack summary function (aggregation key) */
+  summary_fn?: StringOrNullType;
+  /** Per-stack summary calculation field */
+  fk_summary_col_id?: StringOrNullType;
+  /** Per-stack summary label ({ mode, text }) */
+  summary_label?: MetaType;
+  /** Per-stack summary colour rules ({ rules, default_color }) */
+  summary_colors?: MetaType;
 }
 
 /**
@@ -7709,11 +7728,8 @@ export interface MapColumnType {
    * @example p_xm3thidrblw4n7
    */
   base_id?: string;
-  /**
-   * Whether to show this column or not
-   * @example 1
-   */
-  show?: number;
+  /** Whether to show this column or not */
+  show?: BoolType;
 }
 
 /**
@@ -7893,6 +7909,8 @@ export type PasswordType = string;
  * Model for Password Change Request
  */
 export interface PasswordChangeReqType {
+  /** Also revoke OAuth grants and the user's API, MCP and app tokens. Sessions are always ended. */
+  disconnectApps?: boolean;
   currentPassword: string;
   newPassword: string;
 }
@@ -7912,6 +7930,8 @@ export interface PasswordForgotReqType {
  * Model for Password Reset Request
  */
 export interface PasswordResetReqType {
+  /** Also revoke OAuth grants and the user's API, MCP and app tokens. Sessions are always ended. */
+  disconnectApps?: boolean;
   /**
    * New password
    * @example newpassword
@@ -10105,6 +10125,8 @@ export class Api<
    * @example Password has been reset successfully
    *\
   msg?: string,
+  \** Whether apps and tokens were disconnected. False when disconnectApps was asked for but failed; the password is reset either way. *\
+  appsDisconnected?: boolean,
 
 }` OK
  * @response `400` `{
@@ -10125,6 +10147,8 @@ export class Api<
            * @example Password has been reset successfully
            */
           msg?: string;
+          /** Whether apps and tokens were disconnected. False when disconnectApps was asked for but failed; the password is reset either way. */
+          appsDisconnected?: boolean;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */

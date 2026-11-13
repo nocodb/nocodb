@@ -189,7 +189,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
     const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
     if (!hoveredBox) return
     tryShowTooltip({
-      rect: hoveredBox,
+      rect: { ...hoveredBox, showAtMousePosition: true },
       mousePosition,
       text: hoveredBox.text,
     })

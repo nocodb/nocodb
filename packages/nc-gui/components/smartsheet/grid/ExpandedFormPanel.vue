@@ -262,14 +262,22 @@ watch(
 
 // Returns true on success, false on failure (error is surfaced via message.error) or a declined overwrite.
 // saveAndContinue relies on the return value to decide whether to navigate.
-const save = async (): Promise<boolean> => {
-  if (isSaving.value) return false
-  isSaving.value = true
+const isConfirmingOverwrite = ref(false)
 
-  if (!isNew.value && !(await confirmOverwriteConflicts())) {
-    isSaving.value = false
-    return false
+const save = async (): Promise<boolean> => {
+  if (isSaving.value || isConfirmingOverwrite.value) return false
+
+  // Ask before the spinner starts: Save stays idle while the overwrite prompt waits
+  if (!isNew.value) {
+    isConfirmingOverwrite.value = true
+    try {
+      if (!(await confirmOverwriteConflicts())) return false
+    } finally {
+      isConfirmingOverwrite.value = false
+    }
   }
+
+  isSaving.value = true
 
   try {
     if (isNew.value) {

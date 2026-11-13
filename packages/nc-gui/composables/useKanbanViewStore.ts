@@ -293,7 +293,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       const label = pv?.title
         ? record[pv.title]
         : Object.entries(record).find(([k, v]) => !['Id', 'id'].includes(k) && isPrimitiveValue(v))?.[1]
-      return label === null || label === undefined || label === '' ? key : `${label}`
+      // A blank display value falls back to the id, as an empty one does
+      return label === null || label === undefined || `${label}`.trim() === '' ? key : `${label}`
     }
 
     /** A grouped-data key as a stack key: linked record ids can come back as numbers. */

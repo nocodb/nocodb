@@ -302,7 +302,7 @@ const cellReferencesOption = (value: unknown, optionTitle: string) => {
  * @returns An object containing extracted metadata and formatted column options.
  */
 export const extractColMetaForAudit = (column: ColumnType, datas?: any[]) => {
-  const colOptions = column.colOptions as SelectOptionsType;
+  let colOptions = column.colOptions as SelectOptionsType;
   switch (
     column.uidt ||
     (column as unknown as { field_type?: string }).field_type
@@ -314,20 +314,24 @@ export const extractColMetaForAudit = (column: ColumnType, datas?: any[]) => {
     case UITypes.SingleSelect:
       {
         if (colOptions?.options?.length) {
-          colOptions.options = colOptions.options
-            .filter((opt) => {
-              return (
-                !datas?.length ||
-                datas.some((d) =>
-                  cellReferencesOption(d[column.title], opt.title),
-                )
-              );
-            })
-            .map((opt) => ({
-              id: opt.id,
-              title: opt.title,
-              color: opt.color,
-            }));
+          // copy: the column is shared by every row of a bulk insert
+          colOptions = {
+            ...colOptions,
+            options: colOptions.options
+              .filter((opt) => {
+                return (
+                  !datas?.length ||
+                  datas.some((d) =>
+                    cellReferencesOption(d[column.title], opt.title),
+                  )
+                );
+              })
+              .map((opt) => ({
+                id: opt.id,
+                title: opt.title,
+                color: opt.color,
+              })),
+          };
         }
       }
       break;

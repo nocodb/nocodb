@@ -31,6 +31,7 @@ import {
   sourceOverridesOnly,
 } from '~/helpers/dbConnectionTest';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { assertCanTestSqliteConnection } from '~/helpers/sqliteConnectionTestAccess';
 import { applyDbSsrfProtection } from '~/helpers/dbSsrfLookup';
 import { isSsrfProtectionEnabled } from '~/utils/ssrf';
 import {
@@ -86,6 +87,7 @@ export class UtilsController {
   @HttpCode(200)
   async testConnection(@Body() body: any, @Req() req: NcRequest) {
     let config = { ...body };
+    let workspaceId = Noco.ncDefaultWorkspaceId;
 
     if (body.fk_integration_id) {
       const integration = await Integration.get(
@@ -130,6 +132,7 @@ export class UtilsController {
           NcError.forbidden('You do not have access to this integration');
       }
 
+      workspaceId = integration.fk_workspace_id;
       const storedConfig = await integration.getConfig();
 
       // Stored credentials only go to the stored target: the body may
@@ -143,6 +146,8 @@ export class UtilsController {
         config.connection.database = getTestDatabaseName(config);
       }
     }
+
+    await assertCanTestSqliteConnection(config, req.user, workspaceId);
 
     config.pool = {
       min: 0,

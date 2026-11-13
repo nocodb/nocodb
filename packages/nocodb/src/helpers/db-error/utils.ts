@@ -338,3 +338,59 @@ export function stripQueryFromDbMessage(
   const reason = message.slice(sep + 3).trim();
   return reason ? reason.slice(0, 300) : fallback;
 }
+
+/** A db error whose response is already worked out, e.g. to name the field. */
+export class ExtractedDbError extends Error {
+  constructor(readonly result: NonNullable<DBErrorExtractResult>) {
+    super(result.message);
+  }
+}
+
+const MYSQL_CONVERSION_ERRORS = new Set([
+  'ER_TRUNCATED_WRONG_VALUE',
+  'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD',
+  'ER_WARN_DATA_OUT_OF_RANGE',
+  'ER_DATA_TOO_LONG',
+  'ER_INVALID_JSON_TEXT',
+  'WARN_DATA_TRUNCATED',
+]);
+
+/**
+ * The driver's own reason when a stored value cannot take a column's new type
+ * (pg data exception class 22, or the MySQL equivalents); undefined otherwise.
+ */
+export function dataConversionErrorReason(error: unknown): string | undefined {
+  if (!error || typeof error !== 'object') return;
+  const { code, message, sqlMessage } = error as {
+    code?: unknown;
+    message?: unknown;
+    sqlMessage?: unknown;
+  };
+  if (
+    !/^22[0-9A-Z]{3}$/.test(String(code)) &&
+    !MYSQL_CONVERSION_ERRORS.has(String(code))
+  ) {
+    return;
+  }
+  if (typeof sqlMessage === 'string') return sqlMessage.slice(0, 300);
+  if (typeof message !== 'string') return;
+  // Knex prefixes the SQL: `<query> - <driver message>`. The first ` - `
+  // outside the query's quoted literals and $$ bodies is that separator.
+  let quote = '';
+  for (let i = 0; i < message.length; i++) {
+    const ch = message[i];
+    if (quote) {
+      if (message.startsWith(quote, i)) {
+        i += quote.length - 1;
+        quote = '';
+      }
+    } else if (message.startsWith('$$', i)) {
+      quote = '$$';
+      i++;
+    } else if (ch === "'" || ch === '"') {
+      quote = ch;
+    } else if (message.startsWith(' - ', i)) {
+      return message.slice(i + 3).trim().slice(0, 300) || undefined;
+    }
+  }
+}

@@ -584,7 +584,8 @@ export class MailService {
           break;
         }
         case MailEvent.FORM_SUBMISSION: {
-          const { formView, data, model, emails, base } = payload;
+          const { formView, data, model, emails, base, submitterCopy } =
+            payload;
 
           // SKIP_STORING_MAIL_EVENTS — recipients + payload are end-user data
           await this.dispatchAndLog(mailerAdapter, ncMeta, {
@@ -592,7 +593,9 @@ export class MailService {
             to: emails.join(','),
             subject: this.resolveSubject(
               (productName) =>
-                `${productName} Forms: Someone has responded to ${formView.title}`,
+                submitterCopy
+                  ? `${productName} Forms: Your response to ${formView.title}`
+                  : `${productName} Forms: Someone has responded to ${formView.title}`,
               branding,
             ),
             html: await this.renderMail(
@@ -602,6 +605,7 @@ export class MailService {
                 tableTitle: model.title,
                 submissionData: data,
                 baseTitle: base.title,
+                submitterCopy,
               },
               branding,
             ),

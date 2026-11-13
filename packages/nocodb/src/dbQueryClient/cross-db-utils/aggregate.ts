@@ -2,6 +2,7 @@ import {
   extractFilterFromXwhere,
   isLinksOrLTAR,
   isSystemColumn,
+  ViewTypes,
 } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
@@ -12,7 +13,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { flagFailingRollups, isRollupDataError } from '~/db/rollupReadFallback';
 import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import conditionV2 from '~/db/conditionV2';
-import { Filter, GridViewColumn, Model } from '~/models';
+import { Filter, GridViewColumn, KanbanView, Model } from '~/models';
 import { getDataQueryTimeout } from '~/utils/nc-config';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -284,6 +285,23 @@ export async function resolveAggregateColumns({
     else overrideMap.set(a.field, [a.type]);
   }
   const overrideMode = !!aggregation?.length;
+
+  // A Kanban view aggregates only its saved per-stack summary — the field may
+  // be hidden on the cards, so card visibility doesn't apply.
+  if (baseModel.viewId && view?.type === ViewTypes.KANBAN) {
+    const kanban = await KanbanView.get(baseModel.context, baseModel.viewId);
+    const col = kanban?.fk_summary_col_id
+      ? baseModel.model.columnsById[kanban.fk_summary_col_id]
+      : undefined;
+    if (col && overrideMap.get(col.id)?.includes(kanban.summary_fn)) {
+      aggregateColumns.push({
+        col,
+        aggregation: kanban.summary_fn,
+        resultKey: col.id,
+      });
+    }
+    return withResultKeys(baseModel.context, aggregateColumns);
+  }
 
   if (baseModel.viewId) {
     const gridCols = await GridViewColumn.list(

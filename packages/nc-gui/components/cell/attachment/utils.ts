@@ -109,6 +109,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }),
     }
 
+    /** The field's upload limits (EE defaults merged with the column meta) */
+    const attachmentLimits = computed(() => ({
+      ...defaultAttachmentMeta,
+      ...parseProp(column?.value?.meta),
+    }))
+
     const startCamera = async () => {
       if (!videoStream.value) {
         videoStream.value = await navigator.mediaDevices.getUserMedia({ video: true })
@@ -149,10 +155,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       if (showStoragePlanLimitExceededModal()) return
 
-      const attachmentMeta = {
-        ...defaultAttachmentMeta,
-        ...parseProp(column?.value?.meta),
-      }
+      const attachmentMeta = attachmentLimits.value
 
       const newAttachments: AttachmentType[] = []
 
@@ -305,8 +308,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     function updateAttachmentTitle(idx: number, title: string) {
-      if (attachments.value[idx]) {
-        attachments.value[idx]!.title = title
+      const attachment = attachments.value[idx]
+      if (attachment) {
+        const normalized = normalizeAttachmentTitle(title, attachment.title)
+        if (!normalized) return
+        attachment.title = normalized
       }
 
       updateModelValue(attachments.value)
@@ -649,6 +655,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       videoStream,
       permissionGranted,
       isRenameModalOpen,
+      attachmentLimits,
       updateAttachmentTitle,
       isEditAllowed,
       isSharedForm,
@@ -657,3 +664,16 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   },
   'useAttachmentCell',
 )
+
+/** Trim, replace path separators and keep the original extension when the new name drops it. */
+export function normalizeAttachmentTitle(newTitle: string, oldTitle?: string) {
+  let title = (newTitle ?? '').trim().replace(/[\\/]/g, '_')
+  if (!title) return ''
+
+  const oldExt = oldTitle?.match(/\.(?=[a-z0-9]*[a-z])[a-z0-9]{1,10}$/i)?.[0]
+  // A typed extension has a letter and is short (png, jpeg, docx); "v1.2" or "Q3.final" isn't one
+  const keepsOldExt = !!oldExt && title.toLowerCase().endsWith(oldExt.toLowerCase())
+  if (oldExt && !keepsOldExt && !/\.(?=[a-z0-9]*[a-z])[a-z0-9]{1,4}$/i.test(title)) title += oldExt
+
+  return title
+}

@@ -691,6 +691,7 @@ export enum CacheScope {
   OAUTH_CLIENT = 'oAuthClient',
   OAUTH_AUTH_CODE = 'oAuthAuthCode',
   OAUTH_TOKEN = 'oAuthToken',
+  OAUTH_TOKEN_HASH = 'oAuthTokenHash',
   TEMPLATES = 'templates',
   WORKFLOW = 'nc_workflow',
   WORKFLOW_EXECUTION = 'nc_workflow_execution',

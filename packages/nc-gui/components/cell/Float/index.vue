@@ -41,6 +41,8 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj, ref(false))
 
+const cellAriaLabel = useCellAriaLabel()
+
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 </script>
@@ -51,6 +53,7 @@ const focus: VNodeRef = (el) =>
     v-if="editEnabled"
     :ref="focus"
     v-model="vModel"
+    :aria-label="cellAriaLabel"
     class="nc-cell-field outline-none px-1 border-none w-full h-full"
     type="number"
     step="0.1"

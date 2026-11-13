@@ -98,6 +98,16 @@ const {
   uncategorizedStackId,
   updateStackProperty,
   updateAllStacksProperty,
+  activeStackSummary,
+  stackSummaryColumn,
+  getStackSummaryValue,
+  isSelectStack,
+  getStackCellValue,
+  buildStackMeta,
+  loadLinkStacks,
+  loadUsedStackKeys,
+  hasMoreLinkStacks,
+  isLinkStacksLoading,
 } = useKanbanViewStoreOrThrow()
 
 const { isViewDataLoading, isActiveViewFieldHeaderVisible: storeFieldHeaderVisible } = storeToRefs(useViewsStore())
@@ -147,6 +157,9 @@ const canAddDeleteRows = computed(
 )
 
 const fields = inject(FieldsInj, ref([]))
+
+// a drop released outside a list is reverted only when a read-only stack could have taken it
+const hasReadonlyStack = computed(() => groupingFieldColOptions.value.some((s) => s.readonly))
 
 const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimary(f)))
 
@@ -657,7 +670,7 @@ const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean }
   } else {
     // Reset so a filter/search/sort change refetches the current window fresh (and other stacks reload
     // as they scroll back into view).
-    await loadVisibleStacks(true)
+    await Promise.all([loadVisibleStacks(true), loadUsedStackKeys()])
   }
 
   refreshSearchMatches()
@@ -889,7 +902,7 @@ async function onMoveStack(event: any) {
     // Prepare the updated stack metadata object
     const updatedStackMetaObj = {
       ...stackMetaObj.value,
-      [kanbanMetaData.value.fk_grp_col_id!]: stackMeta,
+      [kanbanMetaData.value.fk_grp_col_id!]: buildStackMeta(stackMeta),
     }
 
     await updateKanbanMeta({
@@ -912,7 +925,7 @@ function getBeforeRow(stackKey: string, newIndex: number) {
 async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
-    ele.row[groupingField.value] = stackKey
+    ele.row[groupingField.value] = getStackCellValue(stackKey)
     // The target stack may not have been loaded yet (windowed loading) — its Draggable list was an
     // empty fallback, so seed formattedData with the dropped card so it shows instead of vanishing.
     // `|| 0` guards the count for the same not-yet-loaded case.
@@ -1488,7 +1501,7 @@ const openNewRecordFormHookHandler = async () => {
   const newRow = await addEmptyRow()
   // preset the grouping field value
   newRow.row = {
-    [groupingField.value]: selectedStackTitle.value === '' ? null : selectedStackTitle.value,
+    [groupingField.value]: getStackCellValue(selectedStackTitle.value === '' ? null : selectedStackTitle.value),
   }
   // counted once saved (addOrEditStackRow), not while it is a draft
   // open the expanded form
@@ -1790,8 +1803,11 @@ const reconcileCardMove = (move: { row: any; fromKey: string | null; toKey: stri
   const hasRow = (key: string | null) =>
     (formattedData.value.get(key) || []).some((r) => extractPkFromRow(r.row, meta.value!.columns as ColumnType[]) === pk)
 
+  // `null` is the Uncategorized stack, a real source / target
+  if (move.fromKey === move.toKey) return
+
   // Target: add the moved row if the reload didn't include it yet.
-  if (move.toKey !== null && move.toKey !== undefined && !hasRow(move.toKey)) {
+  if (move.toKey !== undefined && !hasRow(move.toKey)) {
     const next = new Map(formattedData.value)
     next.set(move.toKey, [move.row, ...(next.get(move.toKey) || [])])
     formattedData.value = next
@@ -1799,7 +1815,7 @@ const reconcileCardMove = (move: { row: any; fromKey: string | null; toKey: stri
   }
 
   // Source: drop the moved row if a stale reload re-added it.
-  if (move.fromKey !== null && move.fromKey !== undefined && hasRow(move.fromKey)) {
+  if (move.fromKey !== undefined && hasRow(move.fromKey)) {
     const next = new Map(formattedData.value)
     next.set(
       move.fromKey,
@@ -1938,7 +1954,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
   // classic expanded-record form is intentionally not used on interface pages.
   if (interfacePageDataApi) {
     interfaceNewRecordForm.value?.({
-      [groupingField.value]: stackTitle && stackTitle !== '' ? stackTitle : null,
+      [groupingField.value]: getStackCellValue(stackTitle && stackTitle !== '' ? stackTitle : null),
     })
     return
   }
@@ -2116,7 +2132,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                         }"
                       >
                         <div
-                          class="flex-1 flex gap-1 max-w-[calc(100%_-_32px)]"
+                          class="flex-1 flex gap-1 min-w-0 max-w-[calc(100%_-_32px)]"
                           :class="{
                             'items-start': compareStack(stack, isRenameOrNewStack),
                             'items-center': !compareStack(stack, isRenameOrNewStack),
@@ -2136,7 +2152,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                           </NcButton>
 
                           <div
-                            class="flex-1 flex max-w-[calc(100%_-_28px)]"
+                            class="flex-1 flex min-w-0 overflow-hidden max-w-[calc(100%_-_28px)]"
                             :class="{
                               '-ml-1': compareStack(stack, isRenameOrNewStack),
                             }"
@@ -2155,9 +2171,9 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                             </template>
                             <a-tag
                               v-else
-                              class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none !mt-0.5"
+                              class="max-w-full min-w-0 !rounded-full !px-2 !py-1 h-7 !m-0 !border-none !mt-0.5"
                               :color="
-                                getSelectTypeFieldOptionBgColor({
+                                getSelectTypeFieldOptionTextColor({
                                   color: stack.color || '#ccc',
                                   isDark,
                                   getColor,
@@ -2168,6 +2184,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                                 () => {
                                   if (
                                     stack.title !== null &&
+                                    isSelectStack &&
                                     isUIAllowed('fieldAdd') &&
                                     hasEditPermission &&
                                     !isPublic &&
@@ -2180,7 +2197,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                             >
                               <span
                                 :style="{
-                                  color: getSelectTypeFieldOptionTextColor({
+                                  color: getSelectTypeFieldOptionBgColor({
                                     color: stack.color || '#ccc',
                                     isDark,
                                     getColor,
@@ -2191,7 +2208,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                               >
                                 <NcTooltip class="truncate max-w-full" placement="bottom" show-on-truncate-only>
                                   <template #title>
-                                    {{ stack.title ?? $t('labels.uncategorized') }}
+                                    {{ stack.label ?? stack.title ?? $t('labels.uncategorized') }}
                                   </template>
                                   <span
                                     data-testid="nc-kanban-stack-title"
@@ -2202,7 +2219,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                                       display: 'inline',
                                     }"
                                   >
-                                    {{ stack.title ?? $t('labels.uncategorized') }}
+                                    {{ stack.label ?? stack.title ?? $t('labels.uncategorized') }}
                                   </span>
                                 </NcTooltip>
                               </span>
@@ -2262,7 +2279,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                                   <NcMenuItem
                                     v-e="['c:kanban:add-new-record']"
                                     data-testid="nc-kanban-context-menu-add-new-record"
-                                    :disabled="!isAllowed"
+                                    :disabled="!isAllowed || stack.readonly"
                                     @click="handleOpenNewRecordForm(stack.title)"
                                   >
                                     <div class="flex gap-2 items-center">
@@ -2274,7 +2291,12 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                               </PermissionsTooltip>
                               <NcMenuItem
                                 v-if="
-                                  stack.title !== null && isUIAllowed('fieldAdd') && hasEditPermission && !isPublic && !isLocked
+                                  stack.title !== null &&
+                                  isSelectStack &&
+                                  isUIAllowed('fieldAdd') &&
+                                  hasEditPermission &&
+                                  !isPublic &&
+                                  !isLocked
                                 "
                                 v-e="['c:kanban:rename-stack']"
                                 data-testid="nc-kanban-context-menu-rename-stack"
@@ -2311,7 +2333,12 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                               </NcMenuItem>
                               <template
                                 v-if="
-                                  stack.title !== null && isUIAllowed('fieldAdd') && !isPublic && hasEditPermission && !isLocked
+                                  stack.title !== null &&
+                                  isSelectStack &&
+                                  isUIAllowed('fieldAdd') &&
+                                  !isPublic &&
+                                  hasEditPermission &&
+                                  !isLocked
                                 "
                               >
                                 <NcDivider />
@@ -2370,7 +2397,8 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                           :list="formattedData.get(stack.title) || []"
                           item-key="row.id"
                           draggable=".nc-kanban-item"
-                          group="kanban-card"
+                          :group="{ name: 'kanban-card', put: !stack.readonly }"
+                          :revert-on-spill="hasReadonlyStack"
                           class="flex flex-col"
                           :style="{
                             // At least the virtual scroll height (keeps the scrollbar honest) but never
@@ -2681,7 +2709,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                                   size="small"
                                   type="text"
                                   class="nc-kanban-inline-new-record w-full mb-2 !text-nc-content-gray-subtle"
-                                  :disabled="!isAllowed"
+                                  :disabled="!isAllowed || stack.readonly"
                                   data-testid="nc-kanban-stack-inline-new-record"
                                   @click="handleOpenNewRecordForm(stack.title)"
                                 >
@@ -2724,7 +2752,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                               <NcButton
                                 size="xs"
                                 type="secondary"
-                                :disabled="!isAllowed"
+                                :disabled="!isAllowed || stack.readonly"
                                 @click="handleOpenNewRecordForm(stack.title)"
                               >
                                 <div class="flex items-center gap-2">
@@ -2738,6 +2766,20 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                         </div>
                       </div>
                     </a-layout-content>
+                    <!-- Interface: no "New record" footer (it rides inline), but a set summary gets one, like views -->
+                    <a-layout-footer
+                      v-if="formattedData.get(stack.title) && interfacePageDataApi && activeStackSummary"
+                      class="border-t-1 border-nc-border-gray-light"
+                    >
+                      <div class="flex items-center justify-end min-w-0">
+                        <SmartsheetKanbanStackSummary
+                          class="px-1"
+                          :summary="activeStackSummary"
+                          :column="stackSummaryColumn"
+                          :value="getStackSummaryValue(stack.title)"
+                        />
+                      </div>
+                    </a-layout-footer>
                     <!-- Interface pages have no pinned footer — "New record" rides inline after the last card -->
                     <a-layout-footer
                       v-if="formattedData.get(stack.title) && !interfacePageDataApi"
@@ -2754,7 +2796,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                             <NcButton
                               size="xs"
                               type="secondary"
-                              :disabled="!isAllowed"
+                              :disabled="!isAllowed || stack.readonly"
                               @click="handleOpenNewRecordForm(stack.title)"
                             >
                               <div class="flex items-center gap-2">
@@ -2768,8 +2810,15 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                         <div v-else>&nbsp;</div>
 
                         <!-- Record Count — on interface pages the total rides the stack header instead. -->
+                        <SmartsheetKanbanStackSummary
+                          v-if="!interfacePageDataApi && activeStackSummary"
+                          class="px-1"
+                          :summary="activeStackSummary"
+                          :column="stackSummaryColumn"
+                          :value="getStackSummaryValue(stack.title)"
+                        />
                         <div
-                          v-if="!interfacePageDataApi"
+                          v-else-if="!interfacePageDataApi"
                           class="nc-kanban-data-count text-nc-content-gray-muted font-weight-500 px-1"
                         >
                           {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) ?? 0 }}
@@ -2830,7 +2879,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                           <a-tag
                             class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
                             :color="
-                              getSelectTypeFieldOptionBgColor({
+                              getSelectTypeFieldOptionTextColor({
                                 color: stack.color || '#ccc',
                                 isDark,
                                 getColor,
@@ -2840,7 +2889,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                           >
                             <span
                               :style="{
-                                color: getSelectTypeFieldOptionTextColor({
+                                color: getSelectTypeFieldOptionBgColor({
                                   color: stack.color || '#ccc',
                                   isDark,
                                   getColor,
@@ -2851,7 +2900,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                             >
                               <NcTooltip class="truncate max-w-full" placement="left" show-on-truncate-only>
                                 <template #title>
-                                  {{ stack.title ?? $t('labels.uncategorized') }}
+                                  {{ stack.label ?? stack.title ?? $t('labels.uncategorized') }}
                                 </template>
                                 <span
                                   data-testid="nc-kanban-stack-title"
@@ -2862,7 +2911,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                                     display: 'inline',
                                   }"
                                 >
-                                  {{ stack.title ?? $t('labels.uncategorized') }}
+                                  {{ stack.label ?? stack.title ?? $t('labels.uncategorized') }}
                                 </span>
                               </NcTooltip>
                             </span>
@@ -2906,10 +2955,25 @@ const { onCardEnter, onCardLeave } = useCardCommands({
             aria-hidden="true"
           />
 
+          <!-- Link stacks are linked records, listed a page at a time -->
+          <div v-if="hasMoreLinkStacks" class="nc-kanban-load-more-stacks flex-none">
+            <NcButton
+              type="secondary"
+              size="small"
+              :loading="isLinkStacksLoading"
+              data-testid="nc-kanban-load-more-stacks-btn"
+              @click="loadLinkStacks()"
+            >
+              {{ $t('activity.kanban.loadMoreStacks') }}
+            </NcButton>
+          </div>
+
           <!-- Adding a stack writes a new select option onto the stacking FIELD
                (columnUpdate — creator+ server-side), not a record -->
           <div
-            v-if="isUIAllowed('fieldAdd') && hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id"
+            v-if="
+              isSelectStack && isUIAllowed('fieldAdd') && hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id
+            "
             class="nc-kanban-add-new-stack"
           >
             <!-- Add New Stack -->

@@ -5,7 +5,7 @@ import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Filter } from '~/models';
 import { isEE } from '~/utils';
-import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import { isTableVisible } from '~/helpers/tableHelpers';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.helper';
 
@@ -70,11 +70,7 @@ export async function getLinkRecordSelectionFilter(
     const { refContext } = colOptions.getRelContext();
     // The GUI hides the conditions when the linked table is private.
     if (
-      !(await hasTableVisibilityAccess(
-        refContext,
-        colOptions.fk_related_model_id,
-        user,
-      ))
+      !(await isTableVisible(refContext, colOptions.fk_related_model_id, user))
     ) {
       return unavailable(
         'The linked table is not visible to you, so its record-selection filter is hidden.',

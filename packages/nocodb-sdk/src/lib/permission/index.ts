@@ -17,6 +17,7 @@ export enum PermissionKey {
   TABLE_VISIBILITY = 'TABLE_VISIBILITY',
   TABLE_RECORD_ADD = 'TABLE_RECORD_ADD',
   TABLE_RECORD_DELETE = 'TABLE_RECORD_DELETE',
+  TABLE_DATA_DOWNLOAD = 'TABLE_DATA_DOWNLOAD',
   RECORD_FIELD_EDIT = 'RECORD_FIELD_EDIT',
   DOCUMENT_VISIBILITY = 'DOCUMENT_VISIBILITY',
   DOCUMENT_EDIT = 'DOCUMENT_EDIT',
@@ -163,6 +164,13 @@ export const PermissionMeta = {
     userSelectorDescription:
       'Only members selected here will be able to delete records.',
   },
+  [PermissionKey.TABLE_DATA_DOWNLOAD]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can download data',
+    description: 'can download data',
+    userSelectorDescription:
+      'Only members selected here will be able to download data from this table as CSV, Excel or JSON.',
+  },
   [PermissionKey.RECORD_FIELD_EDIT]: {
     minimumRole: PermissionRole.EDITOR,
     label: 'Who can edit data in this field',
@@ -222,7 +230,8 @@ export const PermissionMeta = {
       'Only members selected here will be able to view this artifact.',
   },
   [PermissionKey.VAULT_REFERENCE]: {
-    // Owner by default: referencing is as good as reading.
+    // Owner by default: referencing is as good as reading. An org vault
+    // defaults to org owners and admins instead (`defaultVaultPermission`).
     minimumRole: PermissionRole.OWNER,
     label: 'Who can use this vault',
     description: 'can reference secrets from this vault',
@@ -260,6 +269,7 @@ export const INTERFACE_PAGE_PERMISSION_KEYS = [
  */
 export const EVERYONE_DEFAULT_PERMISSION_KEYS = [
   PermissionKey.TABLE_VISIBILITY,
+  PermissionKey.TABLE_DATA_DOWNLOAD,
   PermissionKey.INTERFACE_PAGE_CSV_EXPORT,
 ];
 

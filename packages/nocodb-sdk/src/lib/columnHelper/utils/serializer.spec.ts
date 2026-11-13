@@ -3,6 +3,7 @@ import {
   serializeDecimalValue,
   serializeExcelDateValue,
   serializeIntValue,
+  serializeTimeValue,
 } from './serializer';
 import { parseCurrencyValue } from './parser';
 import { SeparatorType } from './common';
@@ -410,5 +411,28 @@ describe('serializeExcelDateValue', () => {
         '2025-01-01 18:00:00+00:00'
       );
     });
+  });
+});
+
+describe('serializeTimeValue', () => {
+  const params = { col: { uidt: UITypes.Time, meta: {} } } as any;
+
+  it.each(['25:61', '24:00', '12:60', '10:61 PM', '13:00 PM'])(
+    'returns null for the impossible time %s',
+    (value) => {
+      expect(serializeTimeValue(value, params)).toBeNull();
+    }
+  );
+
+  it.each([
+    ['23:59', '23:59'],
+    ['0:05', '00:05'],
+    ['09:30:15', '09:30'],
+    ['10:30', '10:30'],
+    ['10:30 PM', '22:30'],
+    ['12:15 AM', '00:15'],
+    ['9:05 am', '09:05'],
+  ])('keeps the real time %s', (value, expected) => {
+    expect(serializeTimeValue(value, params)).toContain(` ${expected}:`);
   });
 });

@@ -308,8 +308,8 @@ export class DuplicateDetectionService {
       .count('* as count')
       .whereNotNull(columnName)
       .groupBy(columnName)
-      .having('count', '>', 1)
-      .orderBy('count', 'desc')
+      .havingRaw('COUNT(*) > 1')
+      .orderByRaw('COUNT(*) DESC')
       .limit(limit);
 
     // Exclude soft-deleted records

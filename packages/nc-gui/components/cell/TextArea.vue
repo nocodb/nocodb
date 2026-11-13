@@ -21,6 +21,8 @@ const meta = inject(MetaInj, ref())
 
 const column = inject(ColumnInj)
 
+const cellAriaLabel = useCellAriaLabel()
+
 const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -851,6 +853,7 @@ useResizeObserver(inputWrapperRef, () => {
         <textarea
           ref="textAreaRef"
           v-model="vModel"
+          :aria-label="cellAriaLabel"
           :rows="isForm ? 5 : 4"
           class="nc-inline-textarea h-full w-full !outline-none nc-scrollbar-thin"
           :class="{
@@ -1156,6 +1159,7 @@ useResizeObserver(inputWrapperRef, () => {
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
+            :aria-label="cellAriaLabel"
             class="nc-text-area-expanded !py-1 !px-3 !text-nc-content-gray-extreme !transition-none !cursor-text !min-h-[210px] !rounded-lg disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
             :class="{
               '!focus:border-nc-border-brand': !props.isAi,

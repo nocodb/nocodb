@@ -29,16 +29,6 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 const { isEEFeatureBlocked, blockWorkflows } = useEeConfig()
 
 const isSharedBase = computed(() => route.params.typeOrId === 'base')
-
-const topbarBreadcrumbItemWidth = computed(() => {
-  if (!isSharedBase.value && !isMobileMode.value) {
-    return 'calc(\(100% - 167px - 24px\) / 2)'
-  } else if (isMobileMode.value) {
-    return 'calc(75% - 12px)'
-  } else {
-    return 'calc(\(100% - 12px\) / 2)'
-  }
-})
 </script>
 
 <template>
@@ -53,12 +43,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
-      <div
-        class="flex items-center gap-3 md:min-w-[300px]"
-        :style="{
-          width: topbarBreadcrumbItemWidth,
-        }"
-      >
+      <!-- Takes the space the right-hand buttons leave and shrinks first, so long names truncate instead of overlapping. -->
+      <div class="nc-topbar-breadcrumb flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
         <GeneralOpenLeftSidebarBtn />
         <SmartsheetTopbarSidebarReturn v-if="!isPublic && !isSharedBase" />
         <LazySmartsheetToolbarViewInfo
@@ -68,13 +54,13 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <LazySmartsheetTopbarDashboardInfo v-if="!isPublic && activeDashboardId" />
         <LazySmartsheetTopbarWorkflowInfo v-if="!isPublic && activeWorkflowId" />
         <LazySmartsheetTopbarAgentInfo v-if="!isPublic && activeAgentId" />
+
+        <div v-if="activeDashboardId || activeWorkflowId || activeAgentId" class="flex-none">
+          <SmartsheetTopbarEditingState />
+        </div>
       </div>
 
-      <div v-if="activeDashboardId || activeWorkflowId || activeAgentId" class="min-w-0 shrink">
-        <SmartsheetTopbarEditingState />
-      </div>
-
-      <div class="flex items-center justify-end gap-2 flex-1">
+      <div class="flex items-center justify-end gap-2 flex-none">
         <GeneralApiLoader v-if="!isMobileMode && !activeScriptId && !activeDashboardId" />
 
         <!-- Variable Setup Warning -->

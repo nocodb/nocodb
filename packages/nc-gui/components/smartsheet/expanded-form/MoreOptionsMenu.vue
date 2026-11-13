@@ -230,6 +230,7 @@ useExpandedRecordCommands({
       class="text-nc-content-inverted-secondary !h-7 !w-7"
       type="text"
       size="xsmall"
+      :aria-label="$t('labels.copyRecordURL')"
       @click="copyRecordUrl()"
     >
       <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex items-center relative h-4 w-4">
@@ -256,6 +257,7 @@ useExpandedRecordCommands({
         '!lg:hidden': visibleMoreOptions.allHiddenExceptCopyRecordUrl,
       }"
       :disabled="isLoading"
+      :aria-label="$t('labels.moreOptions')"
     >
       <GeneralIcon
         icon="threeDotVertical"

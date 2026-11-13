@@ -1,3 +1,4 @@
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
 import type { ExportTypes } from 'nocodb-sdk'
 
 /** Exports the injected view's data; call inside the smartsheet (or shared view) tree. */
@@ -36,6 +37,16 @@ export function useViewExport() {
   const effectiveNestedFilters = computed(() => (isPublicView.value ? activeNestedFilters.value : nestedFilters.value))
 
   const { isUIAllowed } = useRoles()
+
+  const { isAllowed: isPermissionAllowed } = usePermissions()
+
+  // Public shared views keep their own download setting; the server enforces this rule even after a plan downgrade.
+  const canDownload = computed(
+    () =>
+      isPublicView.value ||
+      !meta.value?.id ||
+      isPermissionAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_DATA_DOWNLOAD, { ignorePlanBlock: true }),
+  )
 
   const activeExportType = ref<ExportTypes | null>(null)
 
@@ -162,5 +173,5 @@ export function useViewExport() {
     }
   }
 
-  return { exportFile, activeExportType }
+  return { exportFile, activeExportType, canDownload }
 }

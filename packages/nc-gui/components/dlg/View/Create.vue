@@ -112,11 +112,14 @@ type AiSuggestedViewType = SerializedAiViewType & {
   tab?: AiWizardTabsType
 }
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
 const { isMobileMode } = useGlobal()
 
 const { getMeta, getMetaByKey } = useMetas()
+
+const { newStackFieldOptions, isCreatingStackField, suggestStackFieldTitle, createStackField, showStackFieldInView } =
+  useKanbanStackField()
 
 const workspaceStore = useWorkspace()
 
@@ -199,15 +202,11 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        views.value.every((v1) => v1.title?.trim() !== v?.trim())
-          ? resolve(true)
-          : reject(new Error(`View name should be unique`))
+        !isViewTitleTaken(views.value, v) ? resolve(true) : reject(new Error(`View name should be unique`))
       }),
     message: 'View name should be unique',
   },
 ]
-
-const groupingFieldColumnRules = [{ required: true, message: `${t('general.groupingField')} ${t('general.required')}` }]
 
 const geoDataFieldColumnRules = [{ required: true, message: `${t('general.geoDataField')} ${t('general.required')}` }]
 
@@ -231,6 +230,133 @@ const typeAlias = computed(
 const { isAiFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError, predictViews: _predictViews, createViews } = useNocoAi()
 
 const aiMode = ref(false)
+
+// Kanban creates in one step with a suggested stacking field; "Change" opens the picker (and naming a new
+// field). A duplicate keeps its source's field.
+const kanbanStep = ref<'details' | 'stack' | 'newField'>('details')
+
+// The suggested or picked stacking field is a new one, named on the newField step
+const kanbanUseNewField = ref(false)
+
+const isKanbanStepped = computed(() => form.type === ViewTypes.KANBAN && !form.copy_from_id && !aiMode.value)
+
+const kanbanNewField = reactive({
+  kind: null as KanbanNewStackFieldValue | null,
+  title: '',
+  notify: true,
+})
+
+const kanbanHideEmptyStack = ref(false)
+
+// Field added by a submit whose view create then failed: reused on retry rather than added twice
+const kanbanCreatedField = ref<{ id: string; kind: KanbanNewStackFieldValue; title: string }>()
+
+const reusableKanbanCreatedField = computed(() => {
+  const created = kanbanCreatedField.value
+  if (!created || created.kind !== kanbanNewField.kind) return undefined
+  if (created.title.toLowerCase() !== kanbanNewField.title.trim().toLowerCase()) return undefined
+  return meta.value?.columns?.some((c) => c.id === created.id) ? created : undefined
+})
+
+const kanbanCreateOptions = computed(() =>
+  newStackFieldOptions.value.map((o) => ({ value: o.value as KanbanNewStackFieldValue, label: o.label })),
+)
+
+const kanbanStackFieldOptions = computed(() =>
+  (viewSelectFieldOptions.value ?? []).map((o) => ({
+    value: String(o.value),
+    label: o.label as string | undefined,
+    col: o.col as ColumnType | undefined,
+    disabled: o.disabled as boolean | undefined,
+  })),
+)
+
+const kanbanNewFieldTitleError = computed(() => {
+  const title = kanbanNewField.title.trim()
+  if (!title) return t('msg.error.columnNameRequired')
+  if (
+    (meta.value?.columns ?? []).some(
+      (c) => c.id !== reusableKanbanCreatedField.value?.id && c.title?.toLowerCase() === title.toLowerCase(),
+    )
+  ) {
+    return t('msg.error.duplicateColumnName')
+  }
+  return undefined
+})
+
+watch(
+  () => kanbanNewField.kind,
+  (kind) => {
+    if (!kind) return
+    // Back to the kind of a field already added by a failed create: offer that field again
+    const created = kanbanCreatedField.value
+    kanbanNewField.title = created?.kind === kind ? created.title : suggestStackFieldTitle(meta.value, kind)
+  },
+)
+
+// Whether a submit now adds a new stacking field first
+const isKanbanNewFieldChosen = computed(
+  () =>
+    isKanbanStepped.value &&
+    !!kanbanNewField.kind &&
+    (kanbanStep.value === 'newField' || (kanbanStep.value === 'details' && kanbanUseNewField.value)),
+)
+
+const isCreateDisabled = computed(() => {
+  if (!isKanbanStepped.value) return false
+  // On step 1 a clashing suggested name doesn't block Create: submit opens the naming step with the error
+  if (isKanbanNewFieldChosen.value) return kanbanStep.value === 'newField' && !!kanbanNewFieldTitleError.value
+  return !form.fk_grp_col_id
+})
+
+watch(kanbanStep, (step) => {
+  if (step === 'newField') kanbanUseNewField.value = true
+})
+
+// Picking an existing field in the picker replaces a suggested new one
+watch(
+  () => form.fk_grp_col_id,
+  () => {
+    if (kanbanStep.value === 'stack') kanbanUseNewField.value = false
+  },
+)
+
+const onKanbanStepBack = () => {
+  kanbanStep.value = kanbanStep.value === 'newField' ? 'stack' : 'details'
+}
+
+const kanbanStackSummary = computed(() => {
+  if (kanbanUseNewField.value && kanbanNewField.kind) {
+    return {
+      label: kanbanNewField.title.trim(),
+      column: (kanbanNewField.kind === KANBAN_NEW_SINGLE_SELECT_FIELD
+        ? { uidt: UITypes.SingleSelect }
+        : { uidt: UITypes.User, meta: { is_multi: false } }) as ColumnType,
+      isNew: true,
+    }
+  }
+  const option = kanbanStackFieldOptions.value.find((o) => o.value === form.fk_grp_col_id)
+  return option ? { label: option.label, column: option.col, isNew: false } : undefined
+})
+
+async function saveKanbanHideEmptyStack(view: ViewType) {
+  const tableMeta = meta.value as TableWithWorkspace | undefined
+  if (!view.id || !tableMeta?.fk_workspace_id || !tableMeta.base_id) return
+
+  const kanbanMeta = { ...parseProp((view.view as KanbanType | undefined)?.meta), hide_empty_stack: true }
+  try {
+    // kanbanViewUpdate replaces meta as a whole
+    await $api.internal.postOperation(
+      tableMeta.fk_workspace_id,
+      tableMeta.base_id,
+      { operation: 'kanbanViewUpdate', viewId: view.id },
+      { meta: kanbanMeta },
+    )
+    if (view.view) (view.view as KanbanType).meta = kanbanMeta
+  } catch (e: any) {
+    message.toast(await extractSdkResponseErrorMsg(e))
+  }
+}
 
 enum AiStep {
   init = 'init',
@@ -347,6 +473,16 @@ async function onSubmit() {
   if (isValid && form.type) {
     if (!tableId.value) return
 
+    // A new stacking field whose name clashes: show the naming step with its error
+    if (isKanbanNewFieldChosen.value && kanbanNewFieldTitleError.value) {
+      kanbanStep.value = 'newField'
+      return
+    }
+
+    if (isCreateDisabled.value) return
+
+    let keepOpen = false
+
     try {
       isViewCreating.value = true
 
@@ -355,9 +491,37 @@ async function onSubmit() {
       // strips it silently, which is confusing for anyone debugging).
       const { lock_type: selectedLockType, ...createPayload } = form
 
-      const data = await viewStore.createView(tableId.value, createPayload)
+      // "Create a new … field" step: add the stacking field to the table first
+      let createdStackFieldId: string | undefined
+      if (isKanbanNewFieldChosen.value && kanbanNewField.kind) {
+        const reusable = reusableKanbanCreatedField.value
+        const column = reusable
+          ? { id: reusable.id }
+          : await createStackField(meta.value, kanbanNewField.kind, {
+              title: kanbanNewField.title,
+              notify: kanbanNewField.notify,
+            })
+        if (!column?.id) return
+        // createStackField refreshed the store; the dialog's copy must see the new field to reuse it
+        if (!reusable) meta.value = (await getMeta({ baseId: baseId.value, tableIdOrTitle: tableId.value })) ?? meta.value
+        createPayload.fk_grp_col_id = createdStackFieldId = column.id
+        kanbanCreatedField.value = { id: column.id, kind: kanbanNewField.kind, title: kanbanNewField.title.trim() }
+      }
+
+      let data: ViewType | null
+      try {
+        data = await viewStore.createView(tableId.value, createPayload)
+      } catch (e) {
+        keepOpen = !!createdStackFieldId
+        throw e
+      }
 
       if (data) {
+        // The new field is last in column order, past the cards' visible-field limit
+        if (createdStackFieldId) await showStackFieldInView(meta.value, data.id, createdStackFieldId)
+
+        if (isKanbanStepped.value && kanbanHideEmptyStack.value) await saveKanbanHideEmptyStack(data)
+
         // Apply selected view mode (Personal / Locked). Views are created
         // as Collaborative by default; a follow-up updateView sets the
         // lock_type. Backend enforces ACL + ownership rules.
@@ -380,6 +544,8 @@ async function onSubmit() {
         isViewCreating.value = false
       }, 500)
     }
+
+    if (keepOpen) return
 
     vModel.value = false
   }
@@ -531,33 +697,42 @@ onMounted(async () => {
 
       // preset the grouping field column
       if (props.type === ViewTypes.KANBAN) {
-        viewSelectFieldOptions.value = meta.value
-          .columns!.filter((el) => el.uidt === UITypes.SingleSelect)
-          .map((field) => {
-            return {
-              value: field.id,
-              label: field.title,
-              uidt: field.uidt,
-              col: field,
-            }
-          })
+        // Links kept in a junction table stack only on Postgres
+        const stackFieldOptions = getKanbanStackableColumns(meta.value.columns, {
+          junctionLinks: baseStore.isPg(meta.value.source_id),
+        }).map((field) => {
+          return {
+            value: field.id,
+            label: field.title,
+            uidt: field.uidt,
+            col: field,
+          }
+        })
+
+        // Listed disabled, with the reason, where these links can't stack (not on Postgres)
+        const unsupportedLinkOptions = getKanbanUnsupportedLinkColumns(meta.value.columns, {
+          junctionLinks: baseStore.isPg(meta.value.source_id),
+        }).map((field) => ({ value: field.id, label: field.title, uidt: field.uidt, col: field, disabled: true }))
+
+        viewSelectFieldOptions.value = [...stackFieldOptions, ...unsupportedLinkOptions]
 
         if (groupingFieldColumnId.value) {
           // take from the one from copy view
           form.fk_grp_col_id = groupingFieldColumnId.value
-        } else if (viewSelectFieldOptions.value?.length) {
-          // take the first option
-          form.fk_grp_col_id = viewSelectFieldOptions.value[0].value as string
-        } else {
-          // if there is no grouping field column, disable the create button
+        } else if (stackFieldOptions.length) {
+          form.fk_grp_col_id = stackFieldOptions[0].value as string
+        } else if (!newStackFieldOptions.value.length) {
+          // no stackable field and no permission to create one: disable the create button
           isNecessaryColumnsPresent.value = false
+        } else {
+          kanbanNewField.kind = KANBAN_NEW_SINGLE_SELECT_FIELD
+          kanbanUseNewField.value = true
         }
 
         if (coverImageColumnId.value) {
           form.fk_cover_image_col_id = coverImageColumnId.value
-        } else if (viewSelectFieldOptions.value.length > 1 && !form.copy_from_id) {
-          form.fk_cover_image_col_id = viewSelectFieldOptions.value[1].value as string
         } else {
+          // left unset, the backend maps the first attachment field
           form.fk_cover_image_col_id = undefined
         }
       }
@@ -903,13 +1078,12 @@ function init() {
       form.copy_from_id = selectedViewId?.value
       const selectedViewName = views.value.find((v) => v.id === selectedViewId.value)?.title || form.title
 
-      form.title = generateUniqueTitle(`${selectedViewName} copy`, views.value, 'title', '_', true)
+      let copyTitle = `${selectedViewName} copy`
+      for (let n = 1; isViewTitleTaken(views.value, copyTitle); n++) copyTitle = `${selectedViewName} copy_${n}`
+      form.title = copyTitle
     } else {
-      const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
-
-      if (repeatCount) {
-        form.title = `${form.title}-${repeatCount}`
-      }
+      const baseTitle = form.title
+      for (let n = 1; isViewTitleTaken(views.value, form.title); n++) form.title = `${baseTitle}-${n}`
     }
 
     nextTick(() => {
@@ -1038,7 +1212,7 @@ watch(activeBaseId, () => {
           </template>
         </div>
         <AiToggleButton
-          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isAiFeaturesEnabled"
+          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isAiFeaturesEnabled && kanbanStep === 'details'"
           :ai-mode="aiMode"
           :ai-loading="aiLoading"
           :off-tooltip="`Auto suggest views for ${meta?.title || 'the current table'}`"
@@ -1055,7 +1229,7 @@ watch(activeBaseId, () => {
           '!px-5': !aiMode,
         }"
       >
-        <template v-if="!aiMode">
+        <template v-if="!aiMode && kanbanStep === 'details'">
           <a-form-item :rules="viewNameRules" name="title" class="relative">
             <a-input
               ref="inputEl"
@@ -1145,6 +1319,37 @@ watch(activeBaseId, () => {
             </div>
           </div>
 
+          <div v-if="isKanbanStepped && kanbanStackSummary" class="flex flex-col gap-1.5 nc-view-create-kanban-stack">
+            <div class="text-[13px] font-medium text-nc-content-gray">{{ $t('general.groupingField') }}</div>
+            <div class="flex items-center gap-2 pl-3 pr-1 py-1 rounded-lg border-1 border-nc-border-gray-medium">
+              <SmartsheetHeaderIcon
+                v-if="kanbanStackSummary.column"
+                :column="kanbanStackSummary.column"
+                class="!ml-0 flex-none"
+                color="text-nc-content-gray-subtle"
+              />
+              <NcTooltip class="truncate text-sm text-nc-content-gray" show-on-truncate-only>
+                <template #title>{{ kanbanStackSummary.label }}</template>
+                {{ kanbanStackSummary.label }}
+              </NcTooltip>
+              <span
+                v-if="kanbanStackSummary.isNew"
+                class="flex-none text-xs px-1.5 rounded-md bg-nc-bg-brand text-nc-content-brand"
+              >
+                {{ $t('labels.multiField.newField') }}
+              </span>
+              <div class="flex-1"></div>
+              <NcButton
+                size="xsmall"
+                type="text"
+                class="nc-view-create-kanban-stack-change !text-nc-content-brand"
+                @click="kanbanStep = 'stack'"
+              >
+                {{ $t('general.change') }}
+              </NcButton>
+            </div>
+          </div>
+
           <a-form-item
             v-if="form.type === ViewTypes.GALLERY && !form.copy_from_id"
             :label="`${$t('labels.coverImageField')}`"
@@ -1174,44 +1379,6 @@ watch(activeBaseId, () => {
                   </div>
                   <GeneralIcon
                     v-if="form.fk_cover_image_col_id === option.value"
-                    id="nc-selected-item-icon"
-                    icon="check"
-                    class="flex-none text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
-          </a-form-item>
-          <a-form-item
-            v-if="form.type === ViewTypes.KANBAN && !form.copy_from_id"
-            :label="$t('general.groupingField')"
-            :rules="groupingFieldColumnRules"
-            name="fk_grp_col_id"
-          >
-            <NcSelect
-              v-model:value="form.fk_grp_col_id"
-              :disabled="isMetaLoading"
-              :loading="isMetaLoading"
-              show-search
-              dropdown-match-select-width
-              :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
-              :placeholder="$t('placeholder.selectGroupField')"
-              class="nc-select-shadow w-full nc-kanban-grouping-field-select"
-            >
-              <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
-                <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                  <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
-                    <SmartsheetHeaderIcon v-if="option.col" :column="option.col" class="!ml-0" />
-
-                    <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                      <template #title>
-                        {{ option.label }}
-                      </template>
-                      <template #default>{{ option.label }}</template>
-                    </NcTooltip>
-                  </div>
-                  <GeneralIcon
-                    v-if="form.fk_grp_col_id === option.value"
                     id="nc-selected-item-icon"
                     icon="check"
                     class="flex-none text-primary w-4 h-4"
@@ -1576,6 +1743,20 @@ watch(activeBaseId, () => {
             </div>
           </template>
         </template>
+        <DlgViewKanbanStackField
+          v-else-if="!aiMode && kanbanStep !== 'details'"
+          v-model:step="kanbanStep"
+          v-model:field-id="form.fk_grp_col_id"
+          v-model:new-field-kind="kanbanNewField.kind"
+          v-model:new-field-title="kanbanNewField.title"
+          v-model:notify="kanbanNewField.notify"
+          v-model:hide-empty-stack="kanbanHideEmptyStack"
+          :options="kanbanStackFieldOptions"
+          :create-options="kanbanCreateOptions"
+          :new-field-title-error="kanbanNewFieldTitleError"
+          @back="onKanbanStepBack"
+          @submit="onSubmit"
+        />
         <template v-else>
           <!-- Ai view wizard  -->
           <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 px-5 pt-2.5 pb-4.5">
@@ -1725,7 +1906,7 @@ watch(activeBaseId, () => {
         </div>
       </div>
 
-      <a-form-item v-if="enableDescription && !aiMode" class="!px-5">
+      <a-form-item v-if="enableDescription && !aiMode && kanbanStep === 'details'" class="!px-5">
         <div class="flex gap-3 text-nc-content-gray h-7 mt-4 mb-1 items-center justify-between">
           <span class="text-[13px]">
             {{ $t('labels.description') }}
@@ -1753,7 +1934,7 @@ watch(activeBaseId, () => {
         }"
       >
         <NcButton
-          v-if="!enableDescription && !aiMode && isNecessaryColumnsPresent"
+          v-if="!enableDescription && !aiMode && isNecessaryColumnsPresent && kanbanStep === 'details'"
           size="small"
           type="text"
           @click.stop="toggleDescription"
@@ -1778,8 +1959,8 @@ watch(activeBaseId, () => {
           <NcButton
             v-if="!aiMode"
             v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
-            :disabled="!isNecessaryColumnsPresent || isViewCreating"
-            :loading="isViewCreating"
+            :disabled="!isNecessaryColumnsPresent || isViewCreating || isCreatingStackField || isCreateDisabled"
+            :loading="isViewCreating || isCreatingStackField"
             type="primary"
             size="small"
             @click="onSubmit"

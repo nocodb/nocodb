@@ -148,12 +148,17 @@ function isTopmostModal() {
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   if (e.key !== 'Escape' || !visible.value || !keyboard.value) return
 
+  // One press closes at most one modal: Vue renders between listeners, so a modal opened by
+  // this press (e.g. a "save changes?" prompt) would otherwise see it and close straight away
+  if (isEscapeHandledByModal(e)) return
+
   // The popup closes itself on this press; the modal takes the next one.
   if (isPortalledOverlayActive()) return
 
   // Stacked modals: only the one on top answers.
   if (!isTopmostModal()) return
 
+  markEscapeHandledByModal(e)
   visible.value = false
 })
 

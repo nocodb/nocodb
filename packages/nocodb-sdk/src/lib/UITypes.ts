@@ -415,6 +415,30 @@ export function isAIPromptCol(col: ColumnReqType | ColumnType) {
   );
 }
 
+/** Field types a form never shows; AI prompt fields are hidden too (`isFormHiddenColumn`) */
+export const FORM_HIDDEN_UI_TYPES: readonly UITypes[] = [
+  UITypes.Rollup,
+  UITypes.Lookup,
+  UITypes.Formula,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.Button,
+  UITypes.SpecificDBType,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  UITypes.Meta,
+  UITypes.UUID,
+  UITypes.AutoNumber,
+];
+
+export function isFormHiddenColumn(col: ColumnReqType | ColumnType) {
+  return (
+    FORM_HIDDEN_UI_TYPES.includes(col.uidt as UITypes) || !!isAIPromptCol(col)
+  );
+}
+
 export function isCreatedOrLastModifiedTimeCol(
   col:
     | UITypes

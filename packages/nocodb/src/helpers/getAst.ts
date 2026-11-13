@@ -49,7 +49,7 @@ const getAst = async (
       nested: { ...(query?.nested || {}) },
       fieldsSet: new Set(),
     },
-    getHiddenColumn = query?.['getHiddenColumn'] === 'true',
+    getHiddenColumn = false,
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
     apiVersion = NcApiVersion.V2,
@@ -86,6 +86,7 @@ const getAst = async (
     model: Model;
     view?: View;
     dependencyFields?: DependantFields;
+    // Internal opt-in; never read from the request query.
     getHiddenColumn?: boolean;
     throwErrorIfInvalidParams?: boolean;
     // Used for calendar view

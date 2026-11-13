@@ -64,6 +64,7 @@ function openExtensions() {
         size="small"
         type="text"
         data-testid="nc-table-tools-btn"
+        :aria-label="$t('general.tools')"
         :class="{ '!bg-nc-bg-gray-medium': isShellOpen || isDropdownOpen }"
       >
         <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />

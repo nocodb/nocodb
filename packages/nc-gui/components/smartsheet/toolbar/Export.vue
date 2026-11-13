@@ -2,10 +2,12 @@
 defineProps<{
   isInToolbar?: boolean
 }>()
+
+const { canDownload } = useViewExport()
 </script>
 
 <template>
-  <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
+  <NcDropdown v-if="canDownload" :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
     <NcButton
       v-e="['c:actions']"
       class="nc-download-actions-menu-btn nc-toolbar-btn"

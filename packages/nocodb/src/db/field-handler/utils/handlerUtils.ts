@@ -23,6 +23,7 @@ import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 import { DBQueryClient } from '~/dbQueryClient';
+import { applyRelatedRls } from '~/db/conditionV2';
 import {
   buildNestedLookupLevelLimit,
   loadLookupSortAndLimit,
@@ -185,6 +186,34 @@ export const negatedMapping = {
 
 export function getAlias(aliasCount: { count: number }) {
   return `__nc${aliasCount.count++}`;
+}
+
+// Keeps only `alias` rows of `baseModel` its RLS shows the requester.
+async function relatedRlsClause(
+  baseModel: IBaseModelSqlV2,
+  alias: string,
+  rlsAlias: string,
+): Promise<((qb: Knex.QueryBuilder) => void) | undefined> {
+  if (!(await baseModel.getRlsConditions()).length) return;
+  const knex = baseModel.dbDriver;
+  const pks = baseModel.model.primaryKeys;
+  if (!pks?.length) return (qb) => qb.whereRaw('1 = 0');
+  const visible = knex(
+    DBQueryClient.get(knex.clientType() as ClientType).tableAlias(
+      knex,
+      baseModel.getTnPath(baseModel.model),
+      rlsAlias,
+    ),
+  ).select(knex.raw('1'));
+  for (const pk of pks) {
+    visible.where(
+      knex.ref(`${rlsAlias}.${pk.column_name}`),
+      '=',
+      knex.ref(`${alias}.${pk.column_name}`),
+    );
+  }
+  await applyRelatedRls(baseModel, visible, rlsAlias);
+  return (qb) => qb.whereExists(visible);
 }
 
 export async function nestedConditionJoin({
@@ -388,6 +417,26 @@ export async function nestedConditionJoin({
             });
           }
           break;
+      }
+
+      // A nested lookup hop reads only rows the related table's RLS shows, as
+      // the display builders do.
+      if (
+        lookupColumn.uidt === UITypes.Lookup &&
+        [RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO, 'mm'].includes(
+          relationType,
+        )
+      ) {
+        const related =
+          relationType === RelationTypes.HAS_MANY
+            ? childBaseModel
+            : parentBaseModel;
+        const rlsClause = await relatedRlsClause(
+          related,
+          relAlias,
+          `__nc${aliasCount.count++}`,
+        );
+        if (rlsClause) clauses.push(rlsClause);
       }
 
       // Per-lookup Limit — INNER level (PG): restrict this nested level's joined

@@ -75,6 +75,7 @@ function onTrashClick() {
         class="nc-topbar-history-btn"
         :class="{ '!bg-nc-bg-brand !text-nc-content-brand': visible }"
         data-testid="nc-topbar-history-btn"
+        :aria-label="$t('labels.history')"
       >
         <GeneralIcon icon="ncHistory" class="w-4 h-4 !stroke-transparent" />
       </NcButton>

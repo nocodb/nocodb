@@ -58,6 +58,17 @@ export const clearTextCache = () => {
   aggregationCache.clear()
 }
 
+const STRONG_RTL_CHAR = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/
+const STRONG_LTR_CHAR = /(?![\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF])\p{L}/u
+
+// RLMs keep the ellipsis inside an all-RTL line, so it sits at that line's visual end.
+function appendEllipsis(text: string, ellipsis = '...') {
+  if (!ellipsis) return text
+
+  if (STRONG_RTL_CHAR.test(text) && !STRONG_LTR_CHAR.test(text)) return `${text}\u200F${ellipsis}\u200F`
+  return `${text}${ellipsis}`
+}
+
 interface TruncateTextWithInfoType {
   text: string
   width: number
@@ -120,7 +131,7 @@ export function truncateText(
 
   while (start < end) {
     const mid = Math.floor((start + end) / 2)
-    const testText = ctx.direction === 'rtl' ? `${ellipsis}${text.slice(0, mid)}` : `${text.slice(0, mid)}${ellipsis}`
+    const testText = ctx.direction === 'rtl' ? `${ellipsis}${text.slice(0, mid)}` : appendEllipsis(text.slice(0, mid), ellipsis)
     testWidth = ctx.measureText(testText).width
 
     if (testWidth <= maxWidth) {
@@ -601,7 +612,7 @@ export const wrapTextToLines = (
           width = ctx.measureText(line).width
         }
 
-        line += ellipsis // Add ellipsis to indicate truncation
+        line = appendEllipsis(line, ellipsis) // Add ellipsis to indicate truncation
       }
 
       lines.push(line) // Store the current line
@@ -1395,6 +1406,7 @@ export const renderTagLabel = (
     tagFontFamily = '500 13px Inter',
     tagBorderColor,
     tagBorderWidth,
+    tagSegments,
   } = props.tag || {}
 
   const maxWidth = width - padding * 2 - tagPaddingX * 2
@@ -1449,6 +1461,50 @@ export const renderTagLabel = (
       cellRenderStore: props.cellRenderStore,
       getColor,
     })
+
+    return {
+      x: x + tagSpacing + textWidth + tagPaddingX * 2,
+      y: initialY + tagHeight,
+    }
+  } else if (tagSegments?.length) {
+    // Link segments are underlined; the rest is plain tag text
+    const textX = x + tagSpacing + tagPaddingX
+    const pieces: Array<{ text: string; url?: string; x: number }> = []
+    let textWidth = 0
+
+    for (const segment of tagSegments) {
+      const remaining = maxWidth - textWidth
+      if (remaining <= 0) break
+
+      const measured = renderSingleLineText(ctx, {
+        x: textX + textWidth,
+        y,
+        text: segment.text,
+        maxWidth: remaining,
+        fontFamily: tagFontFamily,
+        render: false,
+      })
+
+      pieces.push({ text: measured.text, url: segment.url, x: textX + textWidth })
+      textWidth += measured.width
+      if (measured.isTruncated) break
+    }
+
+    _renderTag(textWidth)
+
+    for (const piece of pieces) {
+      renderSingleLineText(ctx, {
+        x: piece.x,
+        y: initialY + tagPaddingY,
+        text: piece.text,
+        maxWidth: Infinity,
+        height: tagHeight - tagPaddingY * 2,
+        fontFamily: tagFontFamily,
+        fillStyle: textColor,
+        isTagLabel: true,
+        underline: !!piece.url,
+      })
+    }
 
     return {
       x: x + tagSpacing + textWidth + tagPaddingX * 2,
@@ -1720,7 +1776,7 @@ export function renderFormulaURL(
 
         // Handle the first line differently, as it might not start at the beginning of the row
         if (i === 0) {
-          renderLine(lineText, currentUrl, isLastLine && i === lines.length - 1 && lineText.endsWith('...'))
+          renderLine(lineText, currentUrl, isLastLine && i === lines.length - 1 && /\.\.\.\u200F?$/.test(lineText))
           currentX += ctx.measureText(lineText).width
 
           // If we've reached the end of the line, move to the next
@@ -1736,7 +1792,7 @@ export function renderFormulaURL(
           // Don't render if we've exceeded maxLines
           if (currentLine >= maxLines) break
 
-          renderLine(lineText, currentUrl, isLastLine && i === lines.length - 1 && lineText.endsWith('...'))
+          renderLine(lineText, currentUrl, isLastLine && i === lines.length - 1 && /\.\.\.\u200F?$/.test(lineText))
           currentX += ctx.measureText(lineText).width
         }
       }

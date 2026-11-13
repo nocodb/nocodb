@@ -152,9 +152,10 @@ export enum PlanFeatureTypes {
   FEATURE_MSSQL = 'feature_mssql',
   FEATURE_ORACLE = 'feature_oracle',
   /** Enterprise Vaults: source integration credentials from a customer-owned
-   * secrets manager (AWS Secrets Manager, HashiCorp Vault, …) */
+   * secrets manager (AWS Secrets Manager, HashiCorp Vault, …). Sold only as the
+   * Enterprise add-on on both ladders (see AddonDefinitions.ADDON_ENTERPRISE_VAULTS). */
   FEATURE_ENTERPRISE_VAULTS = 'feature_enterprise_vaults',
-  /** On-prem: run sandboxes on your own Docker host with nc-compute-lite */
+  /** On-prem: run sandboxes on your own Docker host with nc-compute-lite. Sold only as the Compute Lite add-on (Scale+) — never granted by a plan tier (see AddonDefinitions.ADDON_COMPUTE_LITE). */
   FEATURE_COMPUTE_LITE = 'feature_compute_lite',
   /** Interfaces (Interface Designer): page-based shareable apps on base data */
   FEATURE_INTERFACES = 'feature_interfaces',
@@ -221,6 +222,8 @@ export enum PlanAddonTypes {
   ADDON_SANDBOX = 'addon_sandbox',
   ADDON_ORACLE = 'addon_oracle',
   ADDON_SCHEDULED_SNAPSHOTS = 'addon_scheduled_snapshots',
+  ADDON_ENTERPRISE_VAULTS = 'addon_enterprise_vaults',
+  ADDON_COMPUTE_LITE = 'addon_compute_lite',
 }
 
 export enum PlanTitles {
@@ -263,6 +266,9 @@ export const LoyaltyPriceReverseLookupKeyMap = {
     PlanPriceLookupKeys.BUSINESS_MONTHLY,
   [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_YEARLY]]:
     PlanPriceLookupKeys.BUSINESS_YEARLY,
+  // The first Plus loyalty prices (3 seats); they pair with today's Plus prices.
+  loyalty_plus_monthly_old: PlanPriceLookupKeys.PLUS_MONTHLY,
+  loyalty_plus_yearly_old: PlanPriceLookupKeys.PLUS_YEARLY,
 };
 
 export const PlanMeta = {
@@ -671,6 +677,10 @@ export const PlanFeatureAddonMessages: Partial<
     'Oracle Database sources require the Oracle add-on.',
   [PlanFeatureTypes.FEATURE_SCIM]:
     'SCIM provisioning requires the SCIM add-on.',
+  [PlanFeatureTypes.FEATURE_ENTERPRISE_VAULTS]:
+    'Enterprise Vaults require the Enterprise Vaults add-on.',
+  [PlanFeatureTypes.FEATURE_COMPUTE_LITE]:
+    'Running sandboxes on your own servers requires the Compute Lite add-on.',
 };
 
 export const getUpgradeMessage = (

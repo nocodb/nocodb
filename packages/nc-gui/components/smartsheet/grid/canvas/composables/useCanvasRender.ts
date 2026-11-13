@@ -1231,6 +1231,18 @@ export function useCanvasRender({
     return true
   }
 
+  // Corner mark on a cell whose edit is queued until the connection is back.
+  function renderUnsavedOfflineMark(ctx: CanvasRenderingContext2D, x: number, y: number, width: number) {
+    const size = 8
+    ctx.fillStyle = getColor(themeV4Colors.orange['500'], themeV4Colors.orange['400'])
+    ctx.beginPath()
+    ctx.moveTo(x + width - size, y + 1)
+    ctx.lineTo(x + width - 1, y + 1)
+    ctx.lineTo(x + width - 1, y + size)
+    ctx.closePath()
+    ctx.fill()
+  }
+
   const renderRowMeta = (
     ctx: CanvasRenderingContext2D,
     row: Row,
@@ -1728,6 +1740,9 @@ export function useCanvasRender({
 
   const RECORD_MARK_WIDTH = 3
 
+  // A little wider than the bar so it can be hovered; stops short of the drag handle at 4px+
+  const RECORD_MARK_HIT_WIDTH = 4
+
   function collectRemoteRecord(pk: string | null | undefined, row: Row, x: number, y: number, height: number) {
     if (!pk) return
     const map = remoteRecords.value
@@ -1751,12 +1766,17 @@ export function useCanvasRender({
     remoteRecordMarks.push({ x: Math.max(0, x), y: y + splitAt, height: height - splitAt, focuses })
   }
 
+  function findRemoteRecordMarkAt(x: number, y: number) {
+    return remoteRecordMarks.find(
+      (mark) => x >= mark.x && x <= mark.x + RECORD_MARK_HIT_WIDTH && y >= mark.y && y <= mark.y + mark.height,
+    )
+  }
+
   function drawRemoteRecordMarks(ctx: CanvasRenderingContext2D) {
     if (!remoteRecordMarks.length) return
     ctx.save()
     for (const mark of remoteRecordMarks) {
-      // First collaborator only — the bar carries no identity, so a second colour would
-      // just be noise. Who is where comes from the topbar avatars.
+      // First collaborator's colour only — the hover tooltip names everyone on the record
       const primary = mark.focuses[0]
       if (!primary) continue
       ctx.fillStyle = primary.color
@@ -2120,6 +2140,11 @@ export function useCanvasRender({
           isRootCell: true,
           rowBgAlreadyApplied,
         })
+
+        if (row.rowMeta?.unsavedOffline?.[column.title]) {
+          renderUnsavedOfflineMark(ctx, xOffset - _scrollLeft, yOffset, width)
+        }
+
         xOffset += width
       })
 
@@ -2241,6 +2266,10 @@ export function useCanvasRender({
               isRootCell: true,
               rowBgAlreadyApplied,
             })
+
+            if (row.rowMeta?.unsavedOffline?.[column.title]) {
+              renderUnsavedOfflineMark(ctx, xOffset, yOffset, width)
+            }
           }
 
           const isColumnInSelection =
@@ -4232,6 +4261,28 @@ export function useCanvasRender({
       let xPosition = x
       let tagsRendered = 0
 
+      // Groups that differ only in their hidden values would read the same, so
+      // hovering the chips or "+N" lists every value.
+      const drawMoreIndicator = (indicatorX: number) => {
+        ctx.save()
+        ctx.fillStyle = getColor(themeV4Colors.gray['500'])
+        ctx.font = '400 12px Inter'
+        ctx.textBaseline = 'middle'
+        // The header's right-aligned count leaves textAlign set; draw from indicatorX.
+        ctx.textAlign = 'left'
+        const label = `+${tags.length - tagsRendered}`
+        ctx.fillText(label, indicatorX, y)
+        const rect = { x, y: y - 11, width: indicatorX + ctx.measureText(label).width - x, height: 22 }
+        ctx.restore()
+
+        tryShowTooltip({
+          mousePosition,
+          text: tags.map((tag) => (tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag)).join(', '),
+          rect,
+          placement: 'bottom',
+        })
+      }
+
       for (let i = 0; i < tags.length; i++) {
         const tag = tags[i] || ''
         const color = colors[i] || '#ccc'
@@ -4254,13 +4305,8 @@ export function useCanvasRender({
         const estimatedTagWidth = textMetrics.width + tagPaddingX * 2 + tagSpacing
 
         if (xPosition > x && (estimatedTagWidth > remainingWidth - 30 || remainingWidth < 50)) {
-          ctx.fillStyle = getColor(themeV4Colors.gray['500'])
-          ctx.font = '400 12px Inter'
-
-          const indicatorX = Math.min(xPosition, x + maxWidth - 24)
-
-          ctx.fillText(`+${tags.length - tagsRendered}`, indicatorX, y)
           ctx.restore()
+          drawMoreIndicator(Math.min(xPosition, x + maxWidth - 24))
           break
         }
 
@@ -4292,17 +4338,9 @@ export function useCanvasRender({
 
         if (xPosition + 30 >= x + maxWidth) {
           if (i < tags.length - 1) {
-            ctx.save()
-            ctx.fillStyle = getColor(themeV4Colors.gray['500'])
-            ctx.font = '400 12px Inter'
-            ctx.textBaseline = 'middle'
-
             const indicatorSpace = Math.max(24, x + maxWidth - xPosition)
 
-            const indicatorX = indicatorSpace < 24 ? x + maxWidth - 24 : xPosition
-
-            ctx.fillText(`+${tags.length - tagsRendered}`, indicatorX, y)
-            ctx.restore()
+            drawMoreIndicator(indicatorSpace < 24 ? x + maxWidth - 24 : xPosition)
           }
           break
         }
@@ -4535,5 +4573,6 @@ export function useCanvasRender({
     renderActiveState,
     renderCanvas,
     colResizeHoveredColIds,
+    findRemoteRecordMarkAt,
   }
 }

@@ -21,6 +21,7 @@ import type { Cell } from '../../../../../composables/useMultiSelect/cellRange'
 import { serializeRange, valueToCopy } from '../../../../../utils/pasteUtils'
 import { ComputedTypePasteError } from '../../../../../error/computed-type-paste.error'
 import { SelectTypeConversionError } from '../../../../../error/select-type-conversion.error'
+import { SilentTypeConversionError } from '../../../../../error/silent-type-conversion.error'
 import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
@@ -1035,7 +1036,8 @@ export function useCopyPaste({
             )
             validateColumnValue(columnObj, pasteValue)
           } catch (ex) {
-            if (ex instanceof ComputedTypePasteError) {
+            // Silent: the value can't be pasted into this cell, so keep the old value.
+            if (ex instanceof ComputedTypePasteError || ex instanceof SilentTypeConversionError) {
               throw ex
             } else if (ex instanceof SelectTypeConversionError) {
               // Backend `typecast=true` (default on data save APIs) creates

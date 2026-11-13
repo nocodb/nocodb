@@ -31,6 +31,7 @@ import {
   TraceCommand,
 } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
+import { withCurrentFormulaNames } from '~/helpers/formulaHelpers';
 
 @Injectable()
 export class TablesV3Service {
@@ -195,7 +196,9 @@ export class TablesV3Service {
     result.fields = table.columns
       .filter((c) => !c.system || c.uidt === UITypes.ID)
       .map((column) => {
-        return columnBuilder().build(column);
+        return columnBuilder().build(
+          withCurrentFormulaNames(column, table.columns),
+        );
       });
 
     return result;

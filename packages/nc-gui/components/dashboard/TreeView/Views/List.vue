@@ -126,7 +126,7 @@ function validate(view: ViewType) {
     return t('msg.error.viewNameRequired')
   }
 
-  if (views.value.some((v) => v.title?.trim() === view.title.trim() && v.id !== view.id)) {
+  if (isViewTitleTaken(views.value, view.title, view.id)) {
     return t('msg.error.viewNameDuplicate')
   }
 
@@ -297,7 +297,7 @@ watchEffect(() => {
 })
 
 /** Navigate to view by changing url param */
-async function changeView(view: ViewType) {
+async function changeView(view: ViewType, newTab?: boolean) {
   await navigateToView({
     view,
     tableId: table.value.id!,
@@ -305,6 +305,7 @@ async function changeView(view: ViewType) {
     baseId: base.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
     doNotSwitchTab: true,
+    newTab,
   })
 
   if (isMobileMode.value || isPhoneLandscapeViewport()) {

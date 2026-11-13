@@ -400,7 +400,7 @@ const initEmblaApi = (val: any) => {
 
         <div
           v-if="emblaMainApi?.canScrollPrev()"
-          :key="selectedIndex"
+          :key="`prev-${selectedIndex}`"
           class="left-2 carousel-navigation keep-open"
           @click="goPrev"
         >
@@ -408,7 +408,7 @@ const initEmblaApi = (val: any) => {
         </div>
         <div
           v-if="emblaMainApi?.canScrollNext()"
-          :key="selectedIndex"
+          :key="`next-${selectedIndex}`"
           class="right-2 carousel-navigation keep-open"
           @click="goNext"
         >
@@ -497,21 +497,6 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
         </div>
-        <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
-          <template #entity-preview>
-            <span>
-              <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
-                <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
-                <div
-                  class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-                  :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-                >
-                  {{ filetoDelete.title }}
-                </div>
-              </div>
-            </span>
-          </template>
-        </GeneralDeleteModal>
       </div>
       <div
         v-if="carouselCommentsEnabled"

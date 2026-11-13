@@ -1,8 +1,10 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
+  isKanbanSummaryFnSafeWhenHidden,
   isLinksOrLTAR,
   isMMOrMMLike,
   isVirtualCol,
+  kanbanSummaryFromView,
   NcBaseError,
   ncIsArray,
   NOCO_SERVICE_USERS,
@@ -18,7 +20,22 @@ import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { DBQueryClient } from '~/dbQueryClient';
 import { nocoExecute } from '~/utils';
-import { Base, Column, FormView, Model, Source, View } from '~/models';
+import {
+  Base,
+  Column,
+  FormView,
+  KanbanView,
+  Model,
+  Source,
+  View,
+} from '~/models';
+import {
+  buildKanbanStackBuckets,
+  getKanbanStackFkColumnId,
+  isKanbanJunctionStack,
+  KANBAN_SUMMARY_COLUMN_KEY,
+  kanbanSummaryColumnInfo,
+} from '~/helpers/kanbanSummaryBuckets';
 import { NcError } from '~/helpers/catchError';
 import { evaluateFormFieldValidators } from '~/helpers/formValidators';
 import getAst from '~/helpers/getAst';
@@ -28,6 +45,7 @@ import {
   assertLinkColOptions,
   getColumnByIdOrName,
 } from '~/helpers/dataHelpers';
+import { isSameGroupKey } from '~/helpers/groupKeyHelpers';
 import {
   restrictNestedLinkQueryForColumn,
   stripHiddenColumnFilters,
@@ -484,8 +502,9 @@ export class PublicDatasService {
       data = data.map((item) => {
         // todo: use map to avoid loop
         const count =
-          countArr.find((countItem: any) => countItem.key === item.key)
-            ?.count ?? 0;
+          countArr.find((countItem: any) =>
+            isSameGroupKey(countItem.key, item.key),
+          )?.count ?? 0;
 
         item.value = new PagedResponseImpl(item.value, {
           ...query,
@@ -771,7 +790,7 @@ export class PublicDatasService {
           ...view.model.columnsById[c.fk_column_id],
         } as any);
         return o;
-      }, {}) as any);
+      }, Object.create(null)) as any);
 
     let body = param?.body;
 
@@ -785,14 +804,12 @@ export class PublicDatasService {
     // link handling below.
     if (!body || typeof body !== 'object') body = {};
 
-    const insertObject = Object.entries(body).reduce((obj, [key, val]) => {
-      if (key in fields) {
-        obj[key] = val;
-      }
-      return obj;
-    }, {});
+    // fromEntries defines own keys, so a `__proto__` key can't swap the prototype.
+    const insertObject = Object.fromEntries(
+      Object.entries(body).filter(([key]) => Object.hasOwn(fields, key)),
+    );
 
-    const attachments = {};
+    const attachments: Record<string, unknown[]> = Object.create(null);
 
     for (const file of param.files || []) {
       // remove `_` prefix and `[]` suffix
@@ -801,7 +818,7 @@ export class PublicDatasService {
         .replace(/^_|\[\d*]$/g, '');
 
       if (
-        fieldName in fields &&
+        Object.hasOwn(fields, fieldName) &&
         fields[fieldName].uidt === UITypes.Attachment
       ) {
         attachments[fieldName] = attachments[fieldName] || [];
@@ -904,7 +921,11 @@ export class PublicDatasService {
     for (const viewColumn of view.columns ?? []) {
       const column = view.model.columnsById[viewColumn.fk_column_id];
       // only fields the form actually shows can be filled in
-      if (!column || !(column.title in fields) || !(viewColumn as any).show) {
+      if (
+        !column ||
+        !Object.hasOwn(fields, column.title) ||
+        !(viewColumn as any).show
+      ) {
         continue;
       }
 
@@ -1602,7 +1623,7 @@ export class PublicDatasService {
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
 
-    if (view.type !== ViewTypes.GRID) {
+    if (view.type !== ViewTypes.GRID && view.type !== ViewTypes.KANBAN) {
       NcError.notFound('Not found');
     }
 
@@ -1626,6 +1647,77 @@ export class PublicDatasService {
     const scope = isSharedViewAccess(context)
       ? await resolveSharedViewQueryScope(context, { model, view })
       : undefined;
+
+    // Kanban summary over a field hidden on this shared view: the owner chose
+    // to show its totals, but the viewer's search / filters could narrow one
+    // to a single record's value — so totals use the view's own filters only.
+    if (view.type === ViewTypes.KANBAN) {
+      // Resolved here too: the hidden-field guard must not hinge on the access source.
+      const kanbanScope =
+        scope ?? (await resolveSharedViewQueryScope(context, { model, view }));
+      const kanban = await KanbanView.get(context, view.id);
+      const summary = kanbanSummaryFromView(kanban);
+      let requested: unknown = param.query?.aggregation;
+      try {
+        if (typeof requested === 'string') requested = JSON.parse(requested);
+      } catch {
+        requested = [];
+      }
+      const asksForSummary =
+        !!summary?.fk_column_id &&
+        Array.isArray(requested) &&
+        requested.some(
+          (agg) =>
+            agg?.field === summary.fk_column_id && agg?.type === summary.fn,
+        );
+
+      if (
+        asksForSummary &&
+        !kanbanScope.exposedColumnIds.has(summary.fk_column_id)
+      ) {
+        // Min, Max, … would hand out the hidden field's actual values.
+        if (!isKanbanSummaryFnSafeWhenHidden(summary.fn)) return {};
+        const columns = await model.getColumns();
+        const stackColumn = columns.find((c) => c.id === kanban.fk_grp_col_id);
+        const summaryColumn = columns.find(
+          (c) => c.id === summary.fk_column_id,
+        );
+        if (!stackColumn || !summaryColumn) return {};
+
+        let entries: unknown = bulkFilterList;
+        try {
+          if (typeof entries === 'string') entries = JSON.parse(entries);
+        } catch {
+          entries = [];
+        }
+        assertBulkFilterListWithinLimit(entries);
+        const buckets = buildKanbanStackBuckets(
+          entries,
+          stackColumn,
+          await getKanbanStackFkColumnId(stackColumn),
+          await isKanbanJunctionStack(stackColumn),
+        );
+        if (!buckets.length) return {};
+
+        const source = await Source.get(context, model.source_id);
+        const totals = await DBQueryClient.get(source.type).bulkAggregate(
+          context,
+          {
+            model,
+            view,
+            source,
+            args: {
+              aggregation: [{ field: summary.fk_column_id, type: summary.fn }],
+            },
+            bulkFilterList: buckets,
+          },
+        );
+        return {
+          ...totals,
+          [KANBAN_SUMMARY_COLUMN_KEY]: kanbanSummaryColumnInfo(summaryColumn),
+        };
+      }
+    }
 
     // No-op off the shared-view access source — see the DESIGN NOTE.
     await restrictSharedViewQuery(context, {

@@ -29,6 +29,7 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
+import { getReplay, isReplay } from '~/helpers/replayScope';
 import {
   notDeletedKnexCondition,
   notDeletedXcCondition,
@@ -2092,13 +2093,20 @@ export default class View implements ViewType {
     //  - Already-hashed value (stale client echoing back the hash) → strip,
     //    so we never re-hash an existing hash and invalidate the password.
     //  - Plaintext → hash with bcrypt before storage.
-    if (
-      updateObj.password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
-      isBcryptHash(updateObj.password)
-    ) {
-      delete updateObj.password;
-    } else if (updateObj.password) {
-      updateObj.password = await bcrypt.hash(updateObj.password, 10);
+    //  - Environment promote carries the lane's hash, applied as is.
+    const isPromotedHash =
+      isReplay() &&
+      !!updateObj.password &&
+      updateObj.password === getReplay('promotedPasswordHash');
+    if (!isPromotedHash) {
+      if (
+        updateObj.password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
+        isBcryptHash(updateObj.password)
+      ) {
+        delete updateObj.password;
+      } else if (updateObj.password) {
+        updateObj.password = await bcrypt.hash(updateObj.password, 10);
+      }
     }
 
     if (isEE) {

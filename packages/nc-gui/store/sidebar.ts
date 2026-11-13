@@ -36,8 +36,28 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     )
   })
 
+  // Tablets (touch, 480-819px) start with the left sidebar collapsed so the view gets the width. Session-only:
+  // the saved preference is untouched, so desktop (incl. narrow windows) and other tabs keep theirs.
+  const isCoarsePointer = useMediaQuery('(pointer: coarse)')
+
+  const isTabletWidth = computed(
+    () => isCoarsePointer.value && width.value >= NC_BREAKPOINTS.sm && width.value < NC_BREAKPOINTS.md,
+  )
+
+  const tabletLeftSidebarOpen = ref<boolean | null>(null)
+
+  watch(
+    isTabletWidth,
+    (isTablet) => {
+      tabletLeftSidebarOpen.value = isTablet ? false : null
+    },
+    { immediate: true },
+  )
+
   const isLeftSidebarOpen = computed({
     get() {
+      if (tabletLeftSidebarOpen.value !== null) return tabletLeftSidebarOpen.value
+
       if (isMobileMode.value && allowHideLeftSidebarForCurrentRoute.value) {
         return _isLeftSidebarOpen.value
       }
@@ -45,6 +65,11 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       return (isMobileMode.value && !activeViewTitleOrId.value) || _isLeftSidebarOpen.value
     },
     set(value) {
+      if (tabletLeftSidebarOpen.value !== null) {
+        tabletLeftSidebarOpen.value = value
+        return
+      }
+
       _isLeftSidebarOpen.value = value
     },
   })
@@ -195,12 +220,14 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     isFullScreen.value = !isFullScreen.value
   }
 
-  onMounted(() => {
-    if (!isViewPortMobile() || tablesStore.activeTableId) return
+  // A store has no component of its own: only hook when created inside one.
+  if (getCurrentInstance())
+    onMounted(() => {
+      if (!isViewPortMobile() || tablesStore.activeTableId) return
 
-    _isLeftSidebarOpen.value = true
-    leftSidebarState.value = 'openEnd'
-  })
+      _isLeftSidebarOpen.value = true
+      leftSidebarState.value = 'openEnd'
+    })
 
   return {
     isLeftSidebarOpen,

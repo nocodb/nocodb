@@ -6,6 +6,7 @@ import type { Ref } from 'vue'
 import { computed } from 'vue'
 import { ComputedTypePasteError } from '../../error/computed-type-paste.error'
 import { SelectTypeConversionError } from '../../error/select-type-conversion.error'
+import { SilentTypeConversionError } from '../../error/silent-type-conversion.error'
 import type { SuppressedError } from '../../error/suppressed.error'
 import { TypeConversionError } from '../../error/type-conversion.error'
 import { generateUniqueColumnName } from '../../helpers/parsers/parserHelpers'
@@ -1596,7 +1597,8 @@ export function useMultiSelect(
             )
             validateColumnValue(columnObj, pasteValue)
           } catch (ex) {
-            if (ex instanceof ComputedTypePasteError) {
+            // Silent: the value can't be pasted into this cell, so keep the old value.
+            if (ex instanceof ComputedTypePasteError || ex instanceof SilentTypeConversionError) {
               throw ex
             } else if (ex instanceof SelectTypeConversionError) {
               // Backend `typecast=true` (default on data save APIs) creates

@@ -320,6 +320,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     tableTitle,
     hardReload,
     doNotSwitchTab,
+    newTab,
   }: {
     view: ViewType
     baseId: string
@@ -327,8 +328,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
     tableTitle?: string
     hardReload?: boolean
     doNotSwitchTab?: boolean
+    newTab?: boolean
   }) => {
-    const cmdOrCtrl = isMac() ? metaKey.value : control.value
+    const cmdOrCtrl = newTab || (isMac() ? metaKey.value : control.value)
 
     const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs'
 
@@ -648,7 +650,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     const key = getViewsKey(view.base_id, view.fk_model_id)
     const views = viewsByTable.value.get(key) || []
-    const uniqueTitle = generateUniqueTitle(`${view.title} copy`, views, 'title', '_', true)
+    let uniqueTitle = `${view.title} copy`
+    for (let n = 1; isViewTitleTaken(views, uniqueTitle); n++) uniqueTitle = `${view.title} copy_${n}`
 
     const getViewSpecificProps = (sourceView: ViewType) => {
       const baseProps = {

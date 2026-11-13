@@ -20,8 +20,8 @@ import {
   applyLtarCellOp,
   ltarCellCount,
   reconcilePendingLtarOp,
+  resolveDeferredCellValue,
   resolveDeferredLtarCount,
-  resolveDeferredSingleTargetValue,
 } from '~/utils/ltarDeferredOps'
 
 interface DataApiResponse {
@@ -976,11 +976,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return childrenList.value
     }
 
-    const deleteRelatedRow = async (
-      row: Record<string, any>,
-      onSuccess?: (row: Record<string, any>) => void,
-      { limit }: { limit?: number } = {},
-    ) => {
+    const deleteRelatedRow = async (row: Record<string, any>, onSuccess?: (row: Record<string, any>) => void) => {
       Modal.confirm({
         title: 'Do you want to delete the record?',
         type: 'warning',
@@ -1005,9 +1001,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
             _reloadData?.({ shouldShowLoading: false, path: path.value })
 
-            /** reload child list if not a new row — `limit` lets the reorderable list refill in one go */
+            /** reload child list if not a new row */
             if (!isNewRow?.value) {
-              await loadChildrenList(false, undefined, limit)
+              await loadChildrenList()
             }
             onSuccess?.(row)
 
@@ -1047,27 +1043,20 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const queue = pendingLtarOps.value
       const base = cur.oldRow?.[colTitle]
 
-      // Single-target (BT/OO/MO): the cell holds one linked record (or null).
-      if (isSingleTargetRelation.value) {
-        cur.row[colTitle] = resolveDeferredSingleTargetValue(queue, colId, base ?? null)
-        return
+      // Multi-target: keep the child-list count badge in sync. The cell value keeps its
+      // shape (see `LtarCellShape`) — a bare count in a LinkToAnotherRecord cell made it
+      // appear to clear on every deferred edit until save (#14013).
+      if (!isSingleTargetRelation.value) {
+        childrenListCount.value = resolveDeferredLtarCount(queue, colId, ltarCellCount(base))
       }
 
-      // Multi-target: keep the child-list count badge in sync, and preserve the cell value's
-      // shape (see `LtarCellShape`). Keying off `isLinkV2` (version) here wrote a bare count
-      // into a LinkToAnotherRecord cell, so `localCellValue` fell back to [] and the cell
-      // appeared to clear on every deferred edit until save (#14013).
-      const count = resolveDeferredLtarCount(queue, colId, ltarCellCount(base))
-      childrenListCount.value = count
-
-      if (ltarCellShape.value === 'count') {
-        cur.row[colTitle] = count
-      } else {
-        const unlinkIds = new Set(queue.filter((o) => o.columnId === colId && o.op === 'unlink').map((o) => o.relatedRowId))
-        const linkRecords = queue.filter((o) => o.columnId === colId && o.op === 'link').map((o) => o.record)
-        const baseArr = Array.isArray(base) ? base : []
-        cur.row[colTitle] = [...baseArr.filter((r) => !unlinkIds.has(`${getRelatedTableRowId(r)}`)), ...linkRecords]
-      }
+      cur.row[colTitle] = resolveDeferredCellValue({
+        queue,
+        columnId: colId,
+        shape: ltarCellShape.value,
+        base,
+        getRelatedRowId: getRelatedTableRowId,
+      })
     }
 
     // Match buffered related rows by their primary key — the object shape from the

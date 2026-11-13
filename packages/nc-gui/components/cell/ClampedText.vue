@@ -2,6 +2,7 @@
 const props = defineProps<{
   value?: string | number | null
   lines?: number
+  preserveLineBreaks?: boolean
 }>()
 
 const renderedValue = computed(() => {
@@ -24,6 +25,7 @@ const renderedValue = computed(() => {
       '-webkit-box-orient': 'vertical',
       'overflow': 'hidden',
       'word-break': 'break-all',
+      'white-space': props.preserveLineBreaks ? 'pre-line' : undefined,
     }"
   >
     {{ renderedValue ?? '' }}

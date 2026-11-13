@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import {
+  PermissionEntity,
+  PermissionKey,
   SupportedExportCharset,
   type ViewType,
   ViewTypes,
@@ -37,6 +39,8 @@ const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOr
 const EXTENSION_ID = extension.value.extensionId
 
 const { jobList, loadJobsForBase } = useJobs()
+
+const { isAllowed: isPermissionAllowed } = usePermissions()
 
 const views = ref<ViewType[]>([])
 
@@ -88,7 +92,11 @@ const exportPayload = ref<{
 })
 
 const tableList = computed(() => {
-  return tables.value.map((table) => {
+  // Tables the user may not download from aren't offered
+  const downloadable = tables.value.filter((table) =>
+    isPermissionAllowed(PermissionEntity.TABLE, table.id!, PermissionKey.TABLE_DATA_DOWNLOAD, { ignorePlanBlock: true }),
+  )
+  return downloadable.map((table) => {
     return {
       label: table.title,
       value: table.id,
@@ -299,6 +307,12 @@ onMounted(async () => {
   const stored = extensionUserPrefsManager.get(user.value.id, extension.value.id)
   if (stored) {
     exportPayload.value = stored
+  }
+
+  // A saved table that's since been restricted is dropped
+  if (exportPayload.value.tableId && !tableList.value.some((table) => table.value === exportPayload.value.tableId)) {
+    exportPayload.value.tableId = undefined
+    exportPayload.value.viewId = undefined
   }
 
   exportPayload.value.delimiter = exportPayload.value.delimiter || ','

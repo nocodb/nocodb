@@ -144,12 +144,13 @@ export class GenericPgFieldHandler
       for (let i = 0; i < items?.length; i++) {
         const bindings = [
           sourceField,
-          `%,${items[i]},%`,
+          `,${items[i]},`,
           sourceField,
-          `%, ${items[i]},%`,
+          `, ${items[i]},`,
         ];
+        // Literal, case-sensitive match: options differ by case and may contain % or _.
         const sql =
-          "((',' || ??::text || ',') ilike ? OR (',' || ??::text || ',') ilike ?)";
+          "(strpos(',' || ??::text || ',', ?) > 0 OR strpos(',' || ??::text || ',', ?) > 0)";
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

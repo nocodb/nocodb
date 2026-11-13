@@ -54,6 +54,7 @@ const showSidebarBtn = computed(() => {
             class="!text-nc-content-gray-muted !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
             data-testid="nc-sidebar-search-btn"
             data-tour="sidebar-search"
+            :aria-label="$t('labels.quickSearch')"
             @click="openCommandPalette"
           >
             <GeneralIcon icon="search" class="!text-current" />
@@ -77,6 +78,7 @@ const showSidebarBtn = computed(() => {
             :type="isMobileMode ? 'secondary' : 'text'"
             :size="isMobileMode ? 'medium' : 'small'"
             class="nc-sidebar-left-toggle-icon !text-nc-content-gray-subtle !hover:text-nc-content-gray !xs:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
+            :aria-label="isLeftSidebarOpen ? $t('title.hideSidebar') : $t('title.showSidebar')"
             @click="isLeftSidebarOpen = !isLeftSidebarOpen"
           >
             <div class="flex items-center text-inherit">

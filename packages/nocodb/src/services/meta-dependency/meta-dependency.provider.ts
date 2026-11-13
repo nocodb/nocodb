@@ -3,6 +3,7 @@ import { ColumnTimezoneUpdateDependencyHandler } from '~/services/meta-dependenc
 import { ColumnDeleteFilterDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-filter-dependency.handler';
 import { ColumnDeleteCoverImageDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-cover-image-dependency.handler';
 import { ColumnDeleteKanbanGroupByDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-kanban-groupby-dependency.handler';
+import { ColumnDeleteKanbanSummaryDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-kanban-summary-dependency.handler';
 import { ColumnDeleteCalendarRangeDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-calendar-range-dependency.handler';
 import { ColumnDeleteHookTriggerDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-hook-trigger-dependency.handler';
 import { ColumnDeleteLmtTrackedDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-lmt-tracked-dependency.handler';
@@ -15,6 +16,7 @@ import { ColumnUpdateRowColorDependencyHandler } from '~/services/meta-dependenc
 import { ColumnUpdateCalendarRangeDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-calendar-range-dependency.handler';
 import { ColumnUpdateFilterOperatorDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-filter-operator-dependency.handler';
 import { ColumnUpdateKanbanGroupByDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-kanban-groupby-dependency.handler';
+import { ColumnUpdateKanbanSummaryDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-kanban-summary-dependency.handler';
 import { ColumnUpdateErrorRepairDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-error-repair-dependency.handler';
 import { ColumnUpdateRollupSourceDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-rollup-source-dependency.handler';
 import { ColumnUpdateRollupFormulaDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-rollup-formula-dependency.handler';
@@ -28,6 +30,7 @@ export const MetaDependencyServices = [
   ColumnDeleteFilterDependencyHandler,
   ColumnDeleteCoverImageDependencyHandler,
   ColumnDeleteKanbanGroupByDependencyHandler,
+  ColumnDeleteKanbanSummaryDependencyHandler,
   ColumnDeleteCalendarRangeDependencyHandler,
   ColumnDeleteHookTriggerDependencyHandler,
   ColumnDeleteLmtTrackedDependencyHandler,
@@ -39,6 +42,7 @@ export const MetaDependencyServices = [
   ColumnUpdateCalendarRangeDependencyHandler,
   ColumnUpdateFilterOperatorDependencyHandler,
   ColumnUpdateKanbanGroupByDependencyHandler,
+  ColumnUpdateKanbanSummaryDependencyHandler,
   ColumnUpdateErrorRepairDependencyHandler,
   ColumnUpdateRollupSourceDependencyHandler,
   ColumnUpdateRollupFormulaDependencyHandler,

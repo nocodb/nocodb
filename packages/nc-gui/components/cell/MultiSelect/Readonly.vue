@@ -75,7 +75,8 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
       :class="{
         'flex-wrap': !isInFilter,
         'flex-col items-start gap-2': extensionConfig?.widget?.displayAs === 'List',
-        'flex-nowrap max-w-full overflow-x-auto overflow-y-hidden nc-scrollbar-x-md': isInFilter,
+        // pointer-events-auto: a disabled (locked-view) filter sets pointer-events-none on the cell, which would block scrolling.
+        'flex-nowrap max-w-full overflow-x-auto overflow-y-hidden nc-scrollbar-x-md pointer-events-auto': isInFilter,
       }"
       :style="
         extensionConfig?.widget?.displayAs !== 'List' && !isInFilter

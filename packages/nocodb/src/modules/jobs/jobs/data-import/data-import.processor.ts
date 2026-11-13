@@ -28,6 +28,7 @@ import {
   openImportAttachmentStream,
 } from '~/modules/jobs/jobs/data-import/attachment-stream';
 import { getImportHandler } from '~/modules/jobs/jobs/data-import/handlers';
+import { formatExcelDate } from '~/modules/jobs/jobs/data-import/handlers/excel-import.handler';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -48,10 +49,17 @@ import { MetaTable } from '~/utils/globals';
 import { generateAuditV1Payload } from '~/utils/audit';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { processConcurrently } from '~/utils';
+import { batchLinkBroadcasts } from '~/db/BaseModelSqlv2/link-broadcast-batch';
 import {
   getLtarDisplayValueContext,
   resolveLtarDisplayValuesToPks,
 } from '~/helpers/ltarDisplayValueResolver';
+import {
+  DEFAULT_LINK_DELIMITER,
+  linkCellDelimiter,
+  SINGLE_TARGET_RELATIONS,
+  splitDisplayValues,
+} from '~/helpers/linkCellValues';
 
 const BATCH_SIZE = 1000;
 const MAX_ERROR_SAMPLES = 1000;
@@ -73,16 +81,6 @@ const LINK_FLUSH_THRESHOLD_DEFAULT = 50_000;
 const getLinkFlushThreshold = () =>
   +process.env.NC_DATA_IMPORT_LINK_FLUSH_THRESHOLD ||
   LINK_FLUSH_THRESHOLD_DEFAULT;
-/** Default delimiter for multiple display values in one LTAR cell. */
-const DEFAULT_LINK_DELIMITER = ',';
-
-/** Link types that hold one record, so their cell is never split. */
-const SINGLE_TARGET_RELATIONS: RelationTypes[] = [
-  RelationTypes.BELONGS_TO,
-  RelationTypes.MANY_TO_ONE,
-  RelationTypes.ONE_TO_ONE,
-];
-
 /** Row-level errors are retried one-by-one; everything else fails the batch. */
 const ROW_LEVEL_ERRORS = new Set<NcErrorType>([
   NcErrorType.ERR_DUPLICATE_RECORD,
@@ -92,7 +90,7 @@ const ROW_LEVEL_ERRORS = new Set<NcErrorType>([
   NcErrorType.ERR_INVALID_ATTACHMENT_JSON,
 ]);
 
-interface ColumnMapEntry {
+export interface ColumnMapEntry {
   destCn: string;
   uidt: string;
   col: ColumnType;
@@ -111,18 +109,6 @@ interface LinkAccumEntry {
   values: string[];
 }
 
-/** Split an LTAR cell into trimmed, non-empty display values. */
-export function splitDisplayValues(
-  raw: any,
-  delimiter: string | null,
-): string[] {
-  if (raw === null || raw === undefined) return [];
-  const text = String(raw);
-  return (delimiter === null ? [text] : text.split(delimiter))
-    .map((v) => v.trim())
-    .filter((v) => v.length > 0);
-}
-
 /**
  * Coerce a raw imported value into the type expected by the destination column.
  *
@@ -137,16 +123,24 @@ export function splitDisplayValues(
  * type integer`). Convert the serial here — gated on Excel + a date column, so
  * CSV/JSON date strings are untouched and flow straight through.
  */
-function coerceValue(
+export function coerceValue(
   raw: any,
   mapping: ColumnMapEntry,
   importType: FileImportType,
 ): any {
-  if (
-    importType === 'excel' &&
-    typeof raw === 'number' &&
-    (mapping.uidt === UITypes.Date || mapping.uidt === UITypes.DateTime)
-  ) {
+  const isDateColumn =
+    mapping.uidt === UITypes.Date || mapping.uidt === UITypes.DateTime;
+  if (importType === 'excel' && raw instanceof Date) {
+    // Excel date cells carry no zone: store them as UTC, as serials are
+    if (isDateColumn) {
+      return serializeExcelDateValue(
+        raw.getTime() / 86400000 + 25569,
+        mapping.col,
+      );
+    }
+    raw = formatExcelDate(raw);
+  }
+  if (importType === 'excel' && typeof raw === 'number' && isDateColumn) {
     return serializeExcelDateValue(raw, mapping.col);
   }
   return serializeImportValue(raw, mapping.col);
@@ -817,14 +811,10 @@ export class DataImportProcessor {
           fk_related_model_id?: string;
           type?: string;
         } | null;
-        // A single-target link cell holds one display value, which may
-        // contain the default delimiter; a custom delimiter is kept.
-        if (
-          ltarColMap[srcCol].delimiter === DEFAULT_LINK_DELIMITER &&
-          SINGLE_TARGET_RELATIONS.includes(colOpt?.type as RelationTypes)
-        ) {
-          ltarColMap[srcCol].delimiter = null;
-        }
+        ltarColMap[srcCol].delimiter = linkCellDelimiter(
+          ltarColMap[srcCol].delimiter,
+          SINGLE_TARGET_RELATIONS.includes(colOpt?.type as RelationTypes),
+        );
         if (colOpt?.fk_related_model_id === model.id) {
           hasSelfRefLink = true;
         }
@@ -991,7 +981,11 @@ export class DataImportProcessor {
       if (hasLtar) {
         for (const srcCol of ltarSrcCols) {
           const { colId, delimiter } = ltarColMap[srcCol];
-          const values = splitDisplayValues(sourceRow[srcCol], delimiter);
+          const raw = sourceRow[srcCol];
+          const values = splitDisplayValues(
+            raw instanceof Date ? formatExcelDate(raw) : raw,
+            delimiter,
+          );
           if (values.length) (rowLtar ??= []).push([colId, values]);
         }
       }
@@ -1118,47 +1112,50 @@ export class DataImportProcessor {
         }
       }
 
-      await processConcurrently(
-        rows,
-        async (r) => {
-          const seen = new Set<string>();
-          const childIds: (string | number)[] = [];
-          for (const v of r.values) {
-            const pk = valueToPk.get(v);
-            if (pk === undefined || pk === null) {
-              valuesUnmatched += 1;
-              continue;
+      // One link broadcast per table instead of two per row.
+      await batchLinkBroadcasts(() =>
+        processConcurrently(
+          rows,
+          async (r) => {
+            const seen = new Set<string>();
+            const childIds: (string | number)[] = [];
+            for (const v of r.values) {
+              const pk = valueToPk.get(v);
+              if (pk === undefined || pk === null) {
+                valuesUnmatched += 1;
+                continue;
+              }
+              const key = String(pk);
+              if (seen.has(key)) continue;
+              seen.add(key);
+              childIds.push(pk);
             }
-            const key = String(pk);
-            if (seen.has(key)) continue;
-            seen.add(key);
-            childIds.push(pk);
-          }
-          if (!childIds.length) return;
+            if (!childIds.length) return;
 
-          const finalChildIds = groupCtx.isSingleLink
-            ? [childIds[0]]
-            : childIds;
-          try {
-            await baseModel.addLinks({
-              cookie: req,
-              colId,
-              rowId: String(r.pk),
-              childIds: finalChildIds,
-            });
-            linksCreated += finalChildIds.length;
-          } catch (e) {
-            // Matched a record but the link write failed (FK violation, related
-            // row deleted mid-import, etc.). Count it so the import summary
-            // doesn't silently overstate completeness — distinct from
-            // "unmatched" (no related record found at all).
-            linksFailed += finalChildIds.length;
-            this.logger.warn(
-              `Failed to link row ${r.pk} on "${column.title}": ${e.message}`,
-            );
-          }
-        },
-        LINK_CONCURRENCY,
+            const finalChildIds = groupCtx.isSingleLink
+              ? [childIds[0]]
+              : childIds;
+            try {
+              await baseModel.addLinks({
+                cookie: req,
+                colId,
+                rowId: String(r.pk),
+                childIds: finalChildIds,
+              });
+              linksCreated += finalChildIds.length;
+            } catch (e) {
+              // Matched a record but the link write failed (FK violation, related
+              // row deleted mid-import, etc.). Count it so the import summary
+              // doesn't silently overstate completeness — distinct from
+              // "unmatched" (no related record found at all).
+              linksFailed += finalChildIds.length;
+              this.logger.warn(
+                `Failed to link row ${r.pk} on "${column.title}": ${e.message}`,
+              );
+            }
+          },
+          LINK_CONCURRENCY,
+        ),
       );
 
       const colLinksCreated = linksCreated - linksCreatedBefore;

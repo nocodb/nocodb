@@ -115,7 +115,7 @@ export class HooksService {
       process.env.NC_CLOUD === 'true'
     ) {
       NcError.get(context).badRequest(
-        'Only URL and Script notifications are supported',
+        'Only URL and Script notifications are supported. To send an email on record events, use a workflow with a send-email node',
       );
     }
 

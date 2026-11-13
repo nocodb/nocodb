@@ -15,7 +15,7 @@ const { t } = useI18n()
 
 const defaultUploadText = computed(() => {
   if (tempFiles.value.length > 0) {
-    return `${t('general.upload')} ${tempFiles.value.length} ${t('objects.files')}`
+    return t('labels.uploadNFiles', { count: tempFiles.value.length }, tempFiles.value.length)
   }
   return t('general.upload')
 })

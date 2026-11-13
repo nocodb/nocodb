@@ -102,7 +102,10 @@ export class JobsController implements OnModuleDestroy {
       jobId,
     );
 
-    if (job?.fk_user_id && job.fk_user_id !== req.user?.id) {
+    if (
+      (job?.fk_user_id && job.fk_user_id !== req.user?.id) ||
+      (req.ncApiTokenBaseId && job?.base_id !== req.ncApiTokenBaseId)
+    ) {
       NcError.get().genericNotFound('Job', jobId);
     }
   }

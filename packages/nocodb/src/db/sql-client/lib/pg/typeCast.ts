@@ -2,47 +2,39 @@ import {
   getCurrencyDecimalSymbol,
   getCurrencyGroupSymbol,
   getSeparatorChars,
+  parseProp,
   resolveColumnSeparator,
   UITypes,
 } from 'nocodb-sdk';
 import { NcError } from '~/helpers/ncError';
+import { pgQuoteLiteral } from '~/helpers/sqlSanitize';
 import { DATE_FORMATS, TIME_FORMATS } from '~/db/sql-client/lib/pg/constants';
+import {
+  NEGATIVE_REGEX,
+  NUMERIC_LITERAL_DIGITS,
+  NUMERIC_LITERAL_REGEX,
+  sqlRegex,
+} from '~/db/sql-client/lib/pg/numericShape';
 
 /*
- * Generate query to extract number from a string. The number is extracted by
- * removing all non-numeric characters from the string. Decimal point is allowed.
- * If there are more than one decimal points, only the first one is considered, the rest are ignored.
- * Negatives are preserved. If statement starts with '-', number will be negated.
+ * Read a numeric literal from text; anything else (dates, words, JSON) is NULL.
  *
  * @param {String} source - source column name
  * @returns {String} - query to extract number from a string
  */
 export function extractNumberQuery(source: string) {
-  return `
-    CAST(
-      NULLIF(
-        REPLACE(
-          REPLACE(
-            REPLACE(
-              REGEXP_REPLACE(
-                REPLACE(
-                  REGEXP_REPLACE(
-                    REGEXP_REPLACE(${source}, '[^0-9.-]', '', 'g'),
-                    '^-', '~'
-                  ),
-                  '-', ''
-                ),
-                '(\\d)\\.(\\d)', '\\1-\\2'
-              ), 
-              '.', ''
-            ), 
-            '-', '.'
-          ),
-          '~', '-'
-        ), ''
-      ) AS DECIMAL
-    )
-  `;
+  // A symbol ending in `.` (`Rs.500`) is not a decimal point.
+  const digits = `REGEXP_REPLACE(SUBSTRING(REGEXP_REPLACE(${source}, '^[^0-9]*[A-Za-z]\\.', '') FROM '${sqlRegex(
+    NUMERIC_LITERAL_DIGITS,
+  )}'), '[^0-9.eE+-]', '', 'g')`;
+  return `(CASE WHEN ${source} ~ '${sqlRegex(NUMERIC_LITERAL_REGEX)}'
+    THEN CAST((CASE WHEN ${source} ~ '${NEGATIVE_REGEX}' THEN '-' ELSE '' END) || ${digits} AS DECIMAL)
+  END)`;
+}
+
+// Keep a value only when it fits the target column; otherwise NULL.
+function boundedQuery(value: string, min: string, max: string) {
+  return `(CASE WHEN ${value} BETWEEN ${min} AND ${max} THEN ${value} END)`;
 }
 
 /*
@@ -56,7 +48,7 @@ function generateBooleanCastQuery(columnName: string): string {
     CASE
       WHEN LOWER(${columnName}) IN ('checked', 'x', 'yes', 'y', '1', '[x]', '☑', '✅', '✓', '✔', 'enabled', 'on', 'done', 'true') THEN true
       WHEN LOWER(${columnName}) IN ('unchecked', '', 'no', 'n', '0', '[]', '[ ]', 'disabled', 'off', 'false') THEN false
-      ELSE null
+      ELSE ${extractNumberQuery(columnName)} <> 0
     END;
   `;
 }
@@ -144,34 +136,90 @@ function generateNumberBoundingQuery(
 }
 
 /*
+ * Generate query to cast a value to time: the time of day of a date-time, or
+ * a time on its own.
+ *
+ * @param {String} source - Source column name
+ */
+// A date before the time of day, as a date-time renders as text.
+const DATE_PREFIX = '[0-9]{1,4}[-/.][0-9]{1,2}[-/.][0-9]{1,4}';
+
+function generateTimeCastQuery(source: string) {
+  // A time needs `:` (or AM/PM): a bare `5` or `12-01-15` is not one.
+  const cases = TIME_FORMATS.filter(([format]) => format !== 'HH24').map(
+    ([format, regex]) => {
+      const time = regex.slice(1, -1).split('[:\\- /]+').join(':');
+      return `WHEN ${source} ~ '^(${DATE_PREFIX}\\s+){0,1}${time}$' THEN to_date_time_safe(substring(${source} from '(${time})$'), '${format}')`;
+    },
+  );
+
+  return `CASE
+    WHEN ${source} ~* '${ISO_DATETIME_REGEX}' THEN nc_iso_to_timestamp_safe(${source}, true)
+    ${cases.join('\n    ')}
+    ELSE NULL
+   END;`;
+}
+
+// An IANA zone name; anything else never reaches the SQL literal.
+function isKnownTimezone(tz: unknown): tz is string {
+  if (typeof tz !== 'string' || !/^[A-Za-z0-9_+\-/]+$/.test(tz)) return false;
+  try {
+    Intl.DateTimeFormat('en-US', { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/*
+ * The time of day of a DateTime in the field's zone (UTC when it has none).
+ * A pg `timestamp` DateTime holds UTC.
+ */
+function generateDateTimeToTimeQuery(
+  rawSource: string,
+  sourceDt: string | undefined,
+  sourceMeta: unknown,
+) {
+  const timezone = parseProp(sourceMeta)?.timezone;
+  const tz = isKnownTimezone(timezone) ? timezone : 'UTC';
+  const instant = /with time zone|timestamptz/i.test(sourceDt ?? '')
+    ? rawSource
+    : `(${rawSource} AT TIME ZONE 'UTC')`;
+  return `CAST((${instant} AT TIME ZONE ${pgQuoteLiteral(tz)}) AS TIME);`;
+}
+
+// Seconds per bare number: minutes for h:mm, seconds for the other formats.
+export function durationBareNumberUnit(durationType: number) {
+  return durationType === 0 ? 60 : 1;
+}
+
+/*
  * Generate query to cast a value to duration (stored as seconds).
  *
- * Interprets the source text according to the column's chosen duration format:
- *   0 (h:mm)        — 2-part `h:m`, single number = minutes
- *   1-4 (h:mm:ss+)  — 2-part `m:s`, single number = seconds
- *
- * 3-part `h:m:s` is always h*3600 + m*60 + s. Day-based formats (5-9) and
- * fractional seconds fall back to numeric extraction.
+ * `h:m:s` is always h*3600 + m*60 + s; a 2-part value is `h:m` for h:mm (0)
+ * and `m:s` for the rest. A bare number uses `durationBareNumberUnit`.
  *
  * @param {String} source - Source column name
  * @param {Number} durationType - Column meta.duration format id
  */
 function generateToDurationQuery(source: string, durationType: number) {
-  const isHMM = durationType === 0;
-  const extractNum = extractNumberQuery(source);
+  const part = (n: number) =>
+    `CAST(SPLIT_PART(${source}, ':', ${n}) AS DECIMAL)`;
 
-  const twoPart = isHMM
-    ? `3600 * CAST(SPLIT_PART(${source}, ':', 1) AS INT) + 60 * CAST(SPLIT_PART(${source}, ':', 2) AS INT)`
-    : `60 * CAST(SPLIT_PART(${source}, ':', 1) AS INT) + CAST(SPLIT_PART(${source}, ':', 2) AS INT)`;
+  const twoPart =
+    durationType === 0
+      ? `3600 * ${part(1)} + 60 * ${part(2)}`
+      : `60 * ${part(1)} + ${part(2)}`;
+
+  const unit = durationBareNumberUnit(durationType);
+  const seconds = extractNumberQuery(source);
 
   return `
     CASE
       WHEN ${source} ~ '^\\d+:\\d{1,2}:\\d{1,2}$' THEN
-        3600 * CAST(SPLIT_PART(${source}, ':', 1) AS INT)
-        + 60 * CAST(SPLIT_PART(${source}, ':', 2) AS INT)
-        + CAST(SPLIT_PART(${source}, ':', 3) AS INT)
+        3600 * ${part(1)} + 60 * ${part(2)} + ${part(3)}
       WHEN ${source} ~ '^\\d+:\\d{1,2}$' THEN ${twoPart}
-      ELSE ${isHMM ? `(${extractNum}) * 60` : extractNum}
+      ELSE ${unit === 1 ? seconds : `${unit} * ${seconds}`}
     END;
   `;
 }
@@ -238,6 +286,10 @@ export interface GenerateCastQueryArgs {
   format: string;
   durationType?: number;
   meta?: Record<string, any>;
+  // The unformatted source column, its dt and meta (DateTime → Time reads its zone).
+  rawSource?: string;
+  sourceDt?: string;
+  sourceMeta?: unknown;
 }
 
 /*
@@ -251,6 +303,9 @@ export interface GenerateCastQueryArgs {
  * @param args.durationType - Duration format id (defaults to 0)
  * @param args.meta - Column meta, for the configured decimal separator
  * @param args.sourceUidt - UI data type the column is converted from
+ * @param args.rawSource - Source column, unformatted
+ * @param args.sourceDt - DB data type the column is converted from
+ * @param args.sourceMeta - Meta of the column it is converted from
  * @returns {String} - query to cast column to a specific data type
  */
 export function generateCastQuery({
@@ -262,6 +317,9 @@ export function generateCastQuery({
   durationType = 0,
   meta,
   sourceUidt,
+  rawSource,
+  sourceDt,
+  sourceMeta,
 }: GenerateCastQueryArgs) {
   switch (uidt) {
     case UITypes.SingleLineText:
@@ -274,7 +332,11 @@ export function generateCastQuery({
     case UITypes.LongText:
       return `${source}::TEXT;`;
     case UITypes.Number:
-      return `CAST(${extractNumberQuery(source)} AS BIGINT);`;
+      return `CAST(${boundedQuery(
+        `ROUND(${extractNumberQuery(source)})`,
+        '-9223372036854775808',
+        '9223372036854775807',
+      )} AS BIGINT);`;
     case UITypes.Year:
       return generateNumberBoundingQuery(
         extractNumberQuery(source),
@@ -292,12 +354,17 @@ export function generateCastQuery({
       const { decimal, group } = resolveSeparators(uidt, meta);
       return `nc_parse_locale_number(${source}, '${decimal}', '${group}');`;
     }
-    case UITypes.Percent:
-      return `LEAST(100, GREATEST(0, ${extractNumberQuery(source)}));`;
-    case UITypes.Rating:
-      return `LEAST(${limit || 5}, GREATEST(0, ${extractNumberQuery(
-        source,
-      )}));`;
+    case UITypes.Percent: {
+      // Clamped to 0-100; tiny values would underflow a double.
+      const value = extractNumberQuery(source);
+      return `(CASE WHEN ${value} IS NULL THEN NULL WHEN ABS(${value}) < 1e-300 THEN 0 ELSE LEAST(100, GREATEST(0, ${value})) END);`;
+    }
+    case UITypes.Rating: {
+      // Clamped to 0 and the column's max (sdk RatingHelper).
+      const max = parseInt(meta?.max, 10) || limit || 5;
+      const value = extractNumberQuery(source);
+      return `(CASE WHEN ${value} IS NOT NULL THEN LEAST(${max}, GREATEST(0, ROUND(${value}))) END);`;
+    }
     case UITypes.Checkbox:
       return generateBooleanCastQuery(source);
     case UITypes.Date:
@@ -309,7 +376,12 @@ export function generateCastQuery({
     case UITypes.DateTime:
       return generateDateTimeCastQuery(source, getDateFormat(format));
     case UITypes.Time:
-      return generateDateTimeCastQuery(source, 'empty');
+      if (sourceUidt === UITypes.DateTime && rawSource) {
+        return generateDateTimeToTimeQuery(rawSource, sourceDt, sourceMeta);
+      }
+      return generateTimeCastQuery(source);
+    case UITypes.JSON:
+      return `nc_to_json_safe(${source});`;
     case UITypes.Duration:
       return generateToDurationQuery(source, durationType);
     default:

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { type ColumnType, type TableType, charsetOptions, charsetOptionsMap } from 'nocodb-sdk'
+import { type ColumnType, type ImportPreviewSheet, type TableType, charsetOptions, charsetOptionsMap } from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
 import type { InterfacePageDataApi } from '~/lib/interfaceData'
 
@@ -333,7 +333,13 @@ async function handlePreImport() {
             },
           )
       const { sheets = [] } = preview as {
-        sheets: Array<{ name?: string; columns: ColumnType[]; previewData: any[]; totalRows: number }>
+        sheets: Array<{
+          name?: string
+          columns: ColumnType[]
+          previewData: any[]
+          totalRows: number
+          extraCellRows?: ImportPreviewSheet['extraCellRows']
+        }>
       }
       if (interfaceDataApi) interfaceColumns.value = (preview as { columns?: typeof interfaceColumns.value }).columns ?? []
 
@@ -353,6 +359,16 @@ async function handlePreImport() {
         })
         allImportData[uniqueName] = sheet.previewData ?? []
         allImportColumns.push(sheet.columns ?? [])
+
+        if (sheet.extraCellRows?.count) {
+          message.warning(
+            t('msg.warning.csvExtraCellsIgnored', {
+              file: target.fileName,
+              count: sheet.extraCellRows.count,
+              row: sheet.extraCellRows.firstRow,
+            }),
+          )
+        }
       }
     }
 

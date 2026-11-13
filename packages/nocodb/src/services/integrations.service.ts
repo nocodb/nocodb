@@ -18,6 +18,7 @@ import {
   validateDbConnectionTargets,
 } from '~/helpers/validateDbConnectionHost';
 import { isPrivateIntegrationForbidden } from '~/helpers/integrationAccess';
+import { parseConfigPayload } from '~/helpers/configPayload';
 
 @Injectable()
 export class IntegrationsService {
@@ -75,6 +76,10 @@ export class IntegrationsService {
     );
 
     const integrationBody = param.integration;
+    integrationBody.config = parseConfigPayload(
+      context,
+      integrationBody.config,
+    );
     integrationBody.title = integrationBody.title?.trim();
 
     validateAndNormalizeSqliteConfig(
@@ -343,6 +348,10 @@ export class IntegrationsService {
       integrationBody.config = await integrationBody.getConnectionConfig();
     } else {
       integrationBody = param.integration;
+      integrationBody.config = parseConfigPayload(
+        context,
+        integrationBody.config,
+      );
     }
     param.logger?.('Creating the integration');
     integrationBody.title = integrationBody.title?.trim();

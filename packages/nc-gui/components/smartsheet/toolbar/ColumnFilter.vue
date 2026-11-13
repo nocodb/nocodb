@@ -342,10 +342,20 @@ const isReorderEnabled = computed(() => {
   return appInfo.value.ee && isViewFilter.value && !isMobileMode.value && !isInterfacePage
 })
 
+// Text "is equal" / "is not equal" compare exact letter case, except on MSSQL's case-insensitive default collation
+const CASE_SENSITIVE_EQ_TYPES = [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
+
+const { isMssql } = useBase()
+
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
   return btLookupTypesMap.value[filter.fk_column_id] || columns.value.find((col: ColumnType) => col.id === filter.fk_column_id)
 }
+
+const isCaseSensitiveOp = (filter: Filter, op?: string) =>
+  (op === 'eq' || op === 'neq') &&
+  CASE_SENSITIVE_EQ_TYPES.includes(types.value[filter.fk_column_id!] as UITypes) &&
+  !isMssql(getColumn(filter)?.source_id)
 
 /**
  * An interface config filter row whose stored `fk_column_id` no longer resolves
@@ -486,13 +496,20 @@ watch(
 
 const allFilters: Ref<Record<string, FilterType[]>> = inject(AllFiltersInj, ref({}))
 
+// Empty groups don't count toward the toolbar badge.
+const activeFiltersCount = computed(() =>
+  countActiveFilters(nonDeletedFilters.value, (groupId) => (allFilters.value as Record<string, FilterType[]>)[groupId]),
+)
+
 watch(
   () => nonDeletedFilters.value.length,
-  (length: number) => {
+  () => {
     allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
-    emit('update:filtersLength', length ?? 0)
+    emit('update:filtersLength', activeFiltersCount.value)
   },
 )
+
+watch(activeFiltersCount, (count) => emit('update:filtersLength', count))
 
 // EE only: Watch the smartsheet store's allFilters for external changes (e.g. from PinnedFilters)
 // and sync them back to the local filters so the filter menu stays in sync
@@ -774,6 +791,9 @@ onMounted(async () => {
     loadRootLinkTargets(),
   ])
   isMounted.value = true
+
+  // A group's conditions are known only once loaded; register them (even none) so the menu can tell empty from unloaded.
+  if (parentId?.value) allFilters.value[parentId.value] = [...nonDeletedFilters.value]
 })
 
 onBeforeUnmount(() => {
@@ -1397,6 +1417,7 @@ defineExpose({
       ref="wrapperDomRef"
       v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
       :list="visibleFilters"
+      :item-key="(f) => visibleFilters.indexOf(f)"
       :disabled="!isReorderEnabled"
       group="nc-column-filters"
       ghost-class="bg-nc-bg-gray-extralight"
@@ -1426,7 +1447,7 @@ defineExpose({
               >
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
-                  :key="i"
+                  :key="filter.tmp_id ?? filter.id ?? i"
                   :ref="(el) => (localNestedFilters[i] = el)"
                   v-model="filter.children"
                   v-model:is-open="isOpen"
@@ -1674,6 +1695,7 @@ defineExpose({
                   :disabled="filter.readOnly || isLockedView || readOnly"
                   hide-details
                   dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
+                  option-label-prop="label"
                   @change="filterUpdateCondition(filter, getFilterIndex(filter))"
                 >
                   <template
@@ -1683,9 +1705,22 @@ defineExpose({
                     <a-select-option
                       v-if="isComparisonOpAllowed(filter, compOp) && !isOpHiddenForDateDisplayLink(filter, compOp.value)"
                       :value="compOp.value"
+                      :label="getFilterOpLabel(compOp.i18nKey, compOp.text)"
                     >
                       <div class="flex items-center w-full justify-between w-full gap-2">
                         <div class="truncate flex-1">{{ getFilterOpLabel(compOp.i18nKey, compOp.text) }}</div>
+                        <NcTooltip
+                          v-if="isCaseSensitiveOp(filter, compOp.value)"
+                          :title="$t(compOp.value === 'neq' ? 'tooltip.filterNeqCaseSensitive' : 'tooltip.filterEqCaseSensitive')"
+                          placement="right"
+                          class="flex flex-none"
+                        >
+                          <GeneralIcon
+                            icon="ncHelp"
+                            class="w-3.5 h-3.5 text-nc-content-gray-muted"
+                            data-testid="nc-filter-op-case-sensitive-info"
+                          />
+                        </NcTooltip>
                         <component
                           :is="iconMap.check"
                           v-if="filter.comparison_op === compOp.value"

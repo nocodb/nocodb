@@ -13,6 +13,7 @@ import {
   parseProp,
   roundUpToPrecision,
   UITypes,
+  unwrapFormulaUrls,
 } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -92,19 +93,6 @@ export async function getViewAndModelByAliasOrId(
   if (param.viewName && !view) NcError.viewNotFound(param.viewName);
 
   return { model, view };
-}
-
-// Same pattern as nc-gui `replaceUrlsWithLink`: the URL() formula emits
-// `URI::( url ) LABEL::( label )`, with `(`/`)` escaped inside the content.
-const FORMULA_URL_RE =
-  /URI::\(((?:[^()]|\\\)|\\\()*[^\\]|)\)(?:\s*LABEL::\(((?:[^()]|\\\)|\\\()*[^\\]|)\))?/g;
-
-// Exports keep the URL rather than the label, so the link is not lost.
-export function stripFormulaUrlMarkup(value: string) {
-  return value.replace(FORMULA_URL_RE, (_, url: string, label?: string) => {
-    const unescape = (s: string) => s.trim().replace(/\\([()])/g, '$1');
-    return unescape(url) || (label ? unescape(label) : '');
-  });
 }
 
 // a formula rollup's export column (null for plain rollups), per column object
@@ -245,29 +233,12 @@ export async function serializeCellValue(
         ).join(', ');
       }
       break;
+    case UITypes.Links:
+      // hm/mm links read as a count; bt-like links read as the record
+      if (typeof value !== 'object') return value;
+      return linkDisplayValue(column, value);
     case UITypes.LinkToAnotherRecord:
-      {
-        const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>();
-        const relatedModel = await colOptions.getRelatedTable();
-        await relatedModel.getColumns();
-        // Honor the per-LTAR custom display value override — the grid shows
-        // that column, so exports must print the same value.
-        const overrideCol = colOptions.fk_display_value_column_id
-          ? relatedModel.columns?.find(
-              (c) =>
-                c.id === colOptions.fk_display_value_column_id &&
-                isSupportedDisplayValueColumn(c),
-            )
-          : undefined;
-        const displayCol = overrideCol ?? relatedModel.displayValue;
-        return [...(Array.isArray(value) ? value : [value])]
-          .map((v) => {
-            return v[displayCol?.title] ?? v[displayCol?.id];
-          })
-          .join(', ');
-      }
-      break;
+      return linkDisplayValue(column, value);
     case UITypes.Currency: {
       if (isNaN(Number(value))) return null;
 
@@ -324,10 +295,9 @@ export async function serializeCellValue(
       return convertMS2Duration(value, column.meta.duration);
     }
     case UITypes.Formula:
-      if (typeof value === 'string') return stripFormulaUrlMarkup(value);
-      // Array formulas (pg) return arrays; keep `default`'s JSON output
-      if (typeof value === 'object') return JSON.stringify(value);
-      return value;
+      if (typeof value === 'string') return unwrapFormulaUrls(value);
+      // Array formulas and pg JSON_EXTRACT return objects; export them as JSON
+      return value && typeof value === 'object' ? JSON.stringify(value) : value;
     case UITypes.Button: {
       const data = typeof value === 'string' ? parseHelper(value) : value;
       if (data && typeof data === 'object') {
@@ -357,6 +327,27 @@ export async function serializeCellValue(
       }
       return value;
   }
+}
+
+async function linkDisplayValue(column: Column, value: any) {
+  const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+  const relatedModel = await colOptions.getRelatedTable();
+  await relatedModel.getColumns();
+  // Honor the per-LTAR custom display value override — the grid shows
+  // that column, so exports must print the same value.
+  const overrideCol = colOptions.fk_display_value_column_id
+    ? relatedModel.columns?.find(
+        (c) =>
+          c.id === colOptions.fk_display_value_column_id &&
+          isSupportedDisplayValueColumn(c),
+      )
+    : undefined;
+  const displayCol = overrideCol ?? relatedModel.displayValue;
+  return [...(Array.isArray(value) ? value : [value])]
+    .map((v) => {
+      return v[displayCol?.title] ?? v[displayCol?.id];
+    })
+    .join(', ');
 }
 
 /**

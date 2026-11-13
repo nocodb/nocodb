@@ -40,7 +40,7 @@ const COMPACT_FORMAT_HINT_UIDTS = new Set<string>([UITypes.Date, UITypes.DateTim
 //   Button     → button label / icon
 const COMPACT_ALWAYS_SKIP_UIDTS = new Set<string>([UITypes.Attachment, UITypes.Rating, UITypes.Checkbox, UITypes.Button])
 
-const { changedColumns, localOnlyChanges, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -156,15 +156,6 @@ const showCol = (col: ColumnType) => {
   if (!fieldMatchesSearch(col, props.searchQuery ?? '', _row.value?.row)) return false
   if (props.hideBlankFields && col.title && isBlankFieldValue(_row.value?.row?.[col.title], col)) return false
   return true
-}
-
-const revertLocalOnlyChanges = (col: string) => {
-  if (localOnlyChanges.value[col]) {
-    _row.value.row[col] = localOnlyChanges.value[col]
-    changedColumns.value.delete(col)
-    triggerRef(changedColumns)
-    delete localOnlyChanges.value[col]
-  }
 }
 
 function onCellValueChange(colTitle: string | undefined) {
@@ -306,16 +297,6 @@ function onCellValueChange(colTitle: string | undefined) {
           </template>
         </PermissionsTooltip>
       </NcTooltip>
-      <div
-        v-if="col.title && localOnlyChanges[col.title]"
-        class="flex items-center justify-center cursor-pointer relative"
-        @click="revertLocalOnlyChanges(col.title)"
-      >
-        <GeneralIcon
-          class="absolute right-1 top-2 text-nc-content-gray-muted hover:text-nc-content-gray-subtle my-auto"
-          icon="reload"
-        />
-      </div>
     </div>
 
     <!-- Add Blueprint button below LTAR fields in template mode -->

@@ -40,6 +40,8 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const column = inject(ColumnInj)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const isDateInvalid = ref(false)
 
 const datePickerRef = ref<HTMLInputElement>()
@@ -509,6 +511,7 @@ const minimizeMaxWidth = computed(() => {
           <input
             v-if="!rawReadOnly"
             ref="datePickerRef"
+            :aria-label="`${cellAriaLabel ?? ''} ${$t('datatype.Date')}`.trim()"
             :value="localState?.format(dateFormat) ?? ''"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
             class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
@@ -540,6 +543,7 @@ const minimizeMaxWidth = computed(() => {
           <input
             v-if="!rawReadOnly"
             ref="timePickerRef"
+            :aria-label="`${cellAriaLabel ?? ''} ${$t('datatype.Time')}`.trim()"
             :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
             class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"

@@ -231,7 +231,7 @@ async function addNewProjectChildEntity(showSourceSelector = true) {
   }
 }
 
-const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
+const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean, newTab?: boolean) => {
   if (!base || isProjectHeader.value) {
     return
   }
@@ -241,7 +241,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     toggleIsExpanded = false
   }
 
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+  const cmdOrCtrl = newTab || (isMac() ? metaKey.value : control.value)
 
   if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
 
@@ -527,6 +527,7 @@ defineExpose({
               <div
                 class="flex items-center select-none w-6 h-full group-hover:opacity-0 xs:group-hover:opacity-100 transition-opacity duration-150"
                 @click="onProjectClick(base)"
+                @auxclick.middle="onProjectClick(base, false, false, true)"
                 @mouseenter="showNodeTooltip = false"
                 @mouseleave="showNodeTooltip = true"
               >
@@ -596,6 +597,7 @@ defineExpose({
               ]"
               show-on-truncate-only
               @click="onProjectClick(base)"
+              @auxclick.middle="onProjectClick(base, false, false, true)"
             >
               <template #title>{{ base.title }}</template>
               <span @dblclick.stop="enableEditMode()">

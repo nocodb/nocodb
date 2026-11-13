@@ -2,6 +2,7 @@
 import {
   RESERVED_VAULT_ALIASES,
   SECRETS_NAMESPACE,
+  VAULT_ALIAS_MAX_LENGTH,
   applySecretRefCompletion,
   buildSecretRef,
   formatSecretRef,
@@ -47,6 +48,17 @@ describe('parseSecretRef', () => {
       secret: 'dbCreds',
       path: ['db', 'password'],
     });
+  });
+
+  it('rejects a whitespace-only secret id or path segment', () => {
+    expect(
+      parseSecretRef({ $vault: { alias: 'awsProd', secret: '  ' } })
+    ).toBeNull();
+    expect(
+      parseSecretRef({
+        $vault: { alias: 'awsProd', secret: 'dbCreds', path: [' '] },
+      })
+    ).toBeNull();
   });
 
   it('defaults a missing path to the empty path (the whole secret)', () => {
@@ -292,6 +304,13 @@ describe('isValidVaultAlias', () => {
     }
   });
 
+  it('caps the length at VAULT_ALIAS_MAX_LENGTH', () => {
+    expect(isValidVaultAlias('a'.repeat(VAULT_ALIAS_MAX_LENGTH))).toBe(true);
+    expect(isValidVaultAlias('a'.repeat(VAULT_ALIAS_MAX_LENGTH + 1))).toBe(
+      false
+    );
+  });
+
   it('rejects a non-string', () => {
     expect(isValidVaultAlias(undefined as unknown as string)).toBe(false);
     expect(isValidVaultAlias(null as unknown as string)).toBe(false);
@@ -317,6 +336,7 @@ describe('parseSecretRefText — the readable form back to a reference', () => {
       { alias: 'awsProd', secret: 'prod/db/creds', path: ['password'] },
       { alias: 'awsProd', secret: 'prod/db/creds', path: [] },
       { alias: 'awsProd', secret: 'a"b', path: ['x-y', 'z'] },
+      { alias: 'awsProd', secret: 'a\nb\\u0041\u00e9', path: [] },
     ];
     for (const ref of cases) {
       expect(parseSecretRefText(formatSecretRef(ref))).toEqual(ref);
@@ -345,6 +365,8 @@ describe('parseSecretRefText — the readable form back to a reference', () => {
     ['secrets.awsProd["prod/d', 'bracket still open'],
     ['secrets.awsProd.x..y', 'empty path segment'],
     ['secrets.awsProd.x oops', 'trailing junk'],
+    ['secrets.awsProd.x.', 'trailing dot'],
+    ['secrets.awsProd[" "]', 'blank secret id'],
   ])('rejects %j (%s)', (text) => {
     expect(parseSecretRefText(text)).toBeNull();
   });

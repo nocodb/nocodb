@@ -11,6 +11,8 @@ const emits = defineEmits(['update:localEditEnabled'])
 
 const column = inject(ColumnInj)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
@@ -108,6 +110,7 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
       >
         <template v-if="showInput" #default>
           <input
+            :aria-label="cellAriaLabel"
             class="w-full !border-none !outline-none focus:ring-0 min-h-[10px]"
             :value="modelValue"
             @click="onWrapperFocus"

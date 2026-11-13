@@ -13,6 +13,8 @@ const { t } = useI18n()
 const editEnabled = inject(EditModeInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
 const column = inject(ColumnInj)!
+
+const cellAriaLabel = useCellAriaLabel()
 const isEditColumn = inject(EditColumnInj, ref(false))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const isForm = inject(IsFormInj, ref(false))
@@ -94,6 +96,7 @@ const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
     v-bind="$attrs"
     :ref="focus"
     v-model="vModel"
+    :aria-label="cellAriaLabel"
     class="nc-cell-field w-full outline-none py-1"
     :class="{
       'nc-text-transparent': showClicableLink,

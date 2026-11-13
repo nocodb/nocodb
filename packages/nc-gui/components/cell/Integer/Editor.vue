@@ -25,6 +25,8 @@ const isForm = inject(IsFormInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const column = inject(ColumnInj, null)
 
+const cellAriaLabel = useCellAriaLabel()
+
 const { getCurrentCopiedCellClipboardData } = useNcClipboardData()
 
 const inputRef = ref<HTMLInputElement>()
@@ -196,6 +198,7 @@ onMounted(() => {
   <input
     :ref="focus"
     v-model="inputText"
+    :aria-label="cellAriaLabel"
     class="nc-cell-field outline-none py-1 border-none w-full h-full"
     :type="inputType"
     :inputmode="abbreviates ? 'numeric' : undefined"

@@ -3,7 +3,7 @@ const props = withDefaults(
   defineProps<{
     checked?: boolean
     disabled?: boolean
-    size?: 'default' | 'small' | 'xsmall' | 'xxsmall'
+    size?: 'default' | 'large' | 'medium' | 'small' | 'xsmall' | 'xxsmall'
     placement?: 'left' | 'right'
     loading?: boolean
     contentWrapperClass?: string
@@ -58,6 +58,8 @@ const onChange = (e: boolean, updateValue = false) => {
       'size-xsmall': size === 'xsmall',
       'size-xxsmall': size === 'xxsmall',
       'size-small': size === 'small',
+      'size-large': size === 'large',
+      'size-medium': size === 'medium',
     }"
     :loading="loading"
     v-bind="$attrs"
@@ -82,6 +84,68 @@ const onChange = (e: boolean, updateValue = false) => {
 </template>
 
 <style lang="scss" scoped>
+// Between ant's default (44x22) and medium (32x18)
+.size-large {
+  @apply h-5 min-w-[36px] leading-[18px];
+
+  :deep(.ant-switch-handle) {
+    @apply h-[16px] w-[16px] top-[2px] left-[calc(100%_-_34px)];
+
+    .ant-switch-loading-icon {
+      @apply top-[2px];
+
+      svg.anticon-spin {
+        @apply !w-[12px] !h-[12px];
+      }
+    }
+  }
+
+  :deep(.ant-switch-inner) {
+    @apply !mr-[6px] !ml-[22px] !my-0;
+  }
+
+  &.ant-switch-checked {
+    :deep(.ant-switch-handle) {
+      @apply left-[calc(100%_-_18px)];
+    }
+
+    :deep(.ant-switch-inner) {
+      @apply !mr-[22px] !ml-[6px];
+    }
+  }
+}
+
+// Between large (36x20) and small (28x16)
+.size-medium {
+  @apply h-[18px] min-w-[32px] leading-[16px];
+
+  :deep(.ant-switch-handle) {
+    @apply h-[14px] w-[14px] top-[2px] left-[calc(100%_-_30px)];
+
+    .ant-switch-loading-icon {
+      @apply top-[1px];
+
+      svg.anticon-spin {
+        @apply !w-[11px] !h-[11px];
+      }
+    }
+  }
+
+  :deep(.ant-switch-inner) {
+    @apply !mr-[5px] !ml-[20px] !my-0;
+  }
+
+  &.ant-switch-checked {
+    :deep(.ant-switch-handle) {
+      @apply left-[calc(100%_-_16px)];
+    }
+
+    :deep(.ant-switch-inner) {
+      @apply !mr-[20px] !ml-[5px];
+    }
+  }
+}
+
 .size-small {
   @apply h-4 min-w-[28px] leading-[14px];
 

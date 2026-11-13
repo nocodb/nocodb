@@ -3,6 +3,9 @@ import { ncIsArray } from 'nocodb-sdk'
 
 // refer - https://stackoverflow.com/a/11752084
 export const isMac = () => /Mac/i.test(navigator.platform)
+
+/** Cmd/Ctrl+click or middle-click: the user wants the target in a new tab. */
+export const isNewTabClick = (e?: MouseEvent | null) => !!e && ((isMac() ? e.metaKey : e.ctrlKey) || e.button === 1)
 export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
 export const isLinkDropdownExist = () => document.querySelector('.nc-links-dropdown.active')
 
@@ -128,6 +131,15 @@ export const isSelectActive = () => isAnyOverlayVisible('.ant-select-dropdown')
  * first, and the surface takes the next press.
  */
 export const isPortalledOverlayActive = () => isAnyOverlayVisible(PORTALLED_OVERLAY_SELECTOR)
+
+// Escape presses already used to close a modal; shared so one press closes at most one modal
+const escapeHandledByModal = new WeakSet<KeyboardEvent>()
+
+export const isEscapeHandledByModal = (e: KeyboardEvent) => escapeHandledByModal.has(e)
+
+export const markEscapeHandledByModal = (e: KeyboardEvent) => {
+  escapeHandledByModal.add(e)
+}
 
 export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement
 export const isCreateViewActive = () => document.querySelector('.nc-view-create-modal')

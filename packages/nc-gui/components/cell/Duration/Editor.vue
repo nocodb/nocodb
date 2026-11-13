@@ -10,6 +10,8 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
+
+const cellAriaLabel = useCellAriaLabel()
 const isEditColumn = inject(EditColumnInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
@@ -99,6 +101,7 @@ onMounted(() => {
     <input
       :ref="focus"
       v-model="localState"
+      :aria-label="cellAriaLabel"
       class="nc-cell-field w-full !border-none !outline-none py-1"
       :placeholder="durationPlaceholder"
       :disabled="readOnly"

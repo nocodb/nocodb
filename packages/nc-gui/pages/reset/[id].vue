@@ -24,6 +24,9 @@ const formValidator = ref()
 
 const isTokenInvalid = ref(false)
 
+// A reset usually means the password may be known to someone else, so apps go too unless unticked.
+const disconnectApps = ref(true)
+
 async function resetPassword() {
   if (form.newPassword !== form.password) {
     error.value = 'password does not match'
@@ -39,16 +42,25 @@ async function resetPassword() {
   resetError()
 
   try {
-    await api.auth.passwordReset(route.params.id as string, {
+    const res = await api.auth.passwordReset(route.params.id as string, {
       password: form.password,
+      disconnectApps: disconnectApps.value,
     })
-    $e('a:auth:password-reset:save')
-    message.success(t('labels.auth.passwordResetDone'))
+    $e('a:auth:password-reset:save', { disconnectApps: disconnectApps.value })
+    if (disconnectApps.value && res?.appsDisconnected === false) {
+      message.warning(t('msg.info.passwordResetAppsNotDisconnected'))
+    } else {
+      message.success(t('labels.auth.passwordResetDone'))
+    }
     navigateTo('/signin')
   } catch (e: any) {
     $e('a:auth:password-reset:error', { step: 'save' })
     message.error(await extractSdkResponseErrorMsg(e))
   }
+}
+
+function onDisconnectAppsChange(_e: Event, checked: boolean) {
+  $e('c:auth:password-reset:disconnect-apps:toggle', { disconnectApps: checked })
 }
 
 function resetError() {
@@ -97,6 +109,15 @@ onMounted(async () => {
             @focus="resetError"
           />
         </a-form-item>
+
+        <div class="flex flex-col gap-1 mb-4">
+          <NcCheckbox v-model:checked="disconnectApps" data-testid="nc-reset-disconnect-apps" @change="onDisconnectAppsChange">
+            {{ $t('labels.alsoDisconnectApps') }}
+          </NcCheckbox>
+          <div class="text-nc-content-gray-muted text-small ml-6">
+            {{ $t('msg.info.disconnectAppsOnPasswordChange') }}
+          </div>
+        </div>
 
         <AuthSubmitButton html-type="submit" :error="error" :loading="isLoading">
           {{ $t('labels.auth.resetPassword') }}

@@ -104,6 +104,7 @@ const newMentionNode = () => {
         </div>
       </template>
       <NcButton
+        :aria-label="$t('labels.bold')"
         :class="{ 'is-active': editor?.isActive('bold') }"
         :tabindex="tabIndex"
         class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
@@ -125,6 +126,7 @@ const newMentionNode = () => {
         </div>
       </template>
       <NcButton
+        :aria-label="$t('labels.italic')"
         :class="{ 'is-active': editor?.isActive('italic') }"
         :tabindex="tabIndex"
         class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
@@ -146,6 +148,7 @@ const newMentionNode = () => {
       </template>
 
       <NcButton
+        :aria-label="$t('labels.underline')"
         :class="{ 'is-active': editor?.isActive('underline') }"
         :tabindex="tabIndex"
         class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
@@ -166,6 +169,7 @@ const newMentionNode = () => {
         </div>
       </template>
       <NcButton
+        :aria-label="$t('labels.strike')"
         :class="{ 'is-active': editor?.isActive('strike') }"
         :tabindex="tabIndex"
         class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
@@ -180,6 +184,7 @@ const newMentionNode = () => {
     <NcTooltip hide-on-click>
       <template #title> {{ $t('general.link') }}</template>
       <NcButton
+        :aria-label="$t('general.link')"
         :class="{ 'is-active': editor?.isActive('link') }"
         :tabindex="tabIndex"
         class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
@@ -200,6 +205,7 @@ const newMentionNode = () => {
         </div>
       </template>
       <NcButton
+        :aria-label="$t('labels.mention')"
         :class="{ 'is-active': editor?.isActive('suggestions') }"
         :tabindex="tabIndex"
         class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"

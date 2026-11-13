@@ -3,6 +3,7 @@ import type {
   ColumnType,
   CommentPayload,
   DataPayload,
+  LinkToAnotherRecordType,
   MetaType,
   PlanLimitExceededDetailsType,
   TableType,
@@ -15,6 +16,7 @@ import {
   ViewTypes,
   isAIPromptCol,
   isHiddenCol,
+  isLinksOrLTAR,
   isReadOnlyColumn,
   isSystemColumn,
   isVirtualCol,
@@ -23,6 +25,7 @@ import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 import { dropNoopRecordAuditFields, mergeRecordUpdateAuditDetails } from '~/utils/recordAuditUtils'
+import { ltarCellShapeOf, resolveDeferredCellValue } from '~/utils/ltarDeferredOps'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -71,6 +74,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const localOnlyChanges = ref<Record<string, any>>({})
 
+    // Set when the open record is deleted elsewhere (realtime event or a 404 on save).
+    const isRecordDeleted = ref(false)
+
     // Typing in a field editor teleported out of the form's DOM (e.g. the long-text
     // expand popup), keyed by column id.
     const fieldInputHook = createEventHook<string>()
@@ -111,6 +117,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       row.value.rowMeta.fromExpandedForm = true
     }
     const rowStore = useProvideSmartsheetRowStore(row, changedColumns)
+
+    const { getMetaByKey } = useMetas()
 
     const activeView = inject(ActiveViewInj, ref())
     const { comments, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading } =
@@ -255,6 +263,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const primaryKey = computed(() => {
       return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+    })
+
+    // Moving to another record (prev/next) starts fresh; remote values seen here must not carry over.
+    watch(primaryKey, () => {
+      isRecordDeleted.value = false
+      localOnlyChanges.value = {}
     })
 
     const currentAuditCursor = ref('')
@@ -547,22 +561,109 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         kanbanClbk(row.value, isNewRow)
       }
 
+      for (const col of changedColumns.value) delete localOnlyChanges.value[col]
       changedColumns.value = new Set()
       $e('a:row-expand:add')
       return data
     }
+
+    /** Columns edited here that someone else also changed since the record was opened. */
+    // Object.keys is tracked by Vue; hasOwnProperty on the proxy is not, which left this list stale.
+    const conflictingColumns = computed(() => {
+      const remote = Object.keys(localOnlyChanges.value)
+      return [...changedColumns.value].filter((col) => remote.includes(col))
+    })
+
+    /** Resolves false when the user declines to overwrite another person's change. */
+    const confirmOverwriteConflicts = () =>
+      new Promise<boolean>((resolve) => {
+        if (!conflictingColumns.value.length) return resolve(true)
+
+        const { showWarningModal } = useNcConfirmModal()
+        showWarningModal({
+          title: t('title.overwriteOthersChanges'),
+          content: t('msg.info.fieldsChangedByOthers', { fields: conflictingColumns.value.join(', ') }),
+          okText: t('labels.saveMine'),
+          showCancelBtn: true,
+          okCallback: async () => resolve(true),
+          cancelCallback: () => resolve(false),
+        })
+      })
 
     /**
      * Build the save-failure toast message — same copy used by both modal and panel.
      * Centralised here so all callers stay in sync if the wording or i18n keys change.
      */
     const formatSaveError = async (e: any, isNewRow = rowStore.isNew.value) => {
+      if (!isNewRow && e?.response?.data?.error === NcErrorType.ERR_RECORD_NOT_FOUND) isRecordDeleted.value = true
+
       const detail = await extractSdkResponseErrorMsg(e)
       return isNewRow ? `Add row failed: ${detail}` : `${t('msg.error.rowUpdateFailed')}: ${detail}`
     }
 
     const clearColumns = () => {
       changedColumns.value = new Set()
+      localOnlyChanges.value = {}
+    }
+
+    // A reload (e.g. after Create & Link) returns persisted links only; keep the relation
+    // edits still queued for Save visible on top of them.
+    const withPendingLtarOps = (record: Record<string, any>) => {
+      const queue = rowStore.pendingLtarOps.value
+      if (!queue.length) return record
+
+      const next = { ...record }
+      for (const columnId of new Set(queue.map((o) => o.columnId))) {
+        const column = (meta.value.columns as ColumnType[] | undefined)?.find((c) => c.id === columnId)
+        if (!column?.title || !(column.title in next)) continue
+
+        const colOptions = column.colOptions as LinkToAnotherRecordType | undefined
+        const relatedMeta = getMetaByKey(colOptions?.fk_related_base_id || meta.value.base_id, colOptions?.fk_related_model_id)
+
+        next[column.title] = resolveDeferredCellValue({
+          queue,
+          columnId,
+          shape: ltarCellShapeOf(column),
+          base: next[column.title],
+          getRelatedRowId: (r) => extractPkFromRow(r, relatedMeta?.columns as ColumnType[]),
+        })
+      }
+      return next
+    }
+
+    /** Takes the other person's value for every field that clashes, and the saved links. */
+    const takeRemoteChanges = async () => {
+      for (const col of conflictingColumns.value) {
+        row.value.row[col] = localOnlyChanges.value[col]
+        changedColumns.value.delete(col)
+        delete localOnlyChanges.value[col]
+      }
+      triggerRef(changedColumns)
+
+      // Link edits wait in a queue until Save and are drawn over the saved links: drop them and re-read the links.
+      rowStore.pendingLtarOps.value = []
+
+      const recordId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+      if (!recordId || !meta.value?.id) return
+
+      try {
+        const record = await $api.dbTableRow.read(
+          NOCO,
+          ((meta.value?.base_id ?? base?.value?.id) || (sharedView.value?.view as any)?.base_id) as string,
+          meta.value.id as string,
+          encodeURIComponent(recordId),
+          { getHiddenColumn: true },
+        )
+        // A link edit made while the read was in flight is queued again: draw it over the fresh links.
+        const shown = withPendingLtarOps(record)
+        for (const col of (meta.value.columns ?? []) as ColumnType[]) {
+          if (!col.title || !isLinksOrLTAR(col) || !(col.title in record)) continue
+          row.value.row[col.title] = shown[col.title]
+          if (row.value.oldRow) row.value.oldRow[col.title] = record[col.title]
+        }
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     }
 
     const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {
@@ -620,9 +721,17 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         // update only new/duplicated/renamed columns value if `onlyNewColumns` is true
         if (onlyNewColumns) {
+          const pendingLtarTitles = new Set(
+            rowStore.pendingLtarOps.value.map(
+              (o) => (meta.value.columns as ColumnType[] | undefined)?.find((c) => c.id === o.columnId)?.title,
+            ),
+          )
           record = Object.keys(record).reduce((acc, curr) => {
             if (!Object.prototype.hasOwnProperty.call(row.value.row, curr)) {
               acc[curr] = record[curr]
+            } else if (pendingLtarTitles.has(curr)) {
+              // row.row already has the queued link edits; withPendingLtarOps re-applies them to the saved value.
+              acc[curr] = row.value.oldRow?.[curr] ?? record[curr]
             } else {
               acc[curr] = row.value.row[curr]
             }
@@ -631,7 +740,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         }
 
         Object.assign(row.value, {
-          row: record,
+          row: withPendingLtarOps(record),
           oldRow: { ...record },
           rowMeta: {
             ...row.value.rowMeta,
@@ -888,17 +997,23 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                     if (payload) {
                       // Merge payload with local row, but preserve locally changed columns
                       const mergedRow = { ...row.value.row, ...payload }
+                      // oldRow keeps the last server values, so a full-row payload only flags fields it changed
+                      const mergedOldRow = { ...row.value.oldRow, ...payload }
                       for (const col of changedColumns.value) {
                         if (Object.prototype.hasOwnProperty.call(row.value.row, col)) {
                           mergedRow[col] = row.value.row[col]
-                          if (row.value.row[col] !== payload[col]) {
+                          if (!Object.prototype.hasOwnProperty.call(payload, col)) continue
+                          if (deepCompare(row.value.row[col], payload[col])) {
+                            delete localOnlyChanges.value[col]
+                          } else if (!deepCompare(row.value.oldRow?.[col], payload[col])) {
                             localOnlyChanges.value[col] = payload[col]
                           }
                         }
                       }
                       Object.assign(row.value, {
-                        row: mergedRow,
-                        oldRow: { ...mergedRow },
+                        // keep link edits still queued for Save visible on top of the incoming links
+                        row: withPendingLtarOps(mergedRow),
+                        oldRow: mergedOldRow,
                       })
                       // Do NOT clear changedColumns here, as we want to preserve local changes
                     } else {
@@ -908,11 +1023,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                     console.error('Failed to update cached row on socket event', e)
                   }
                 } else if (action === 'delete') {
-                  try {
-                    //
-                  } catch (e) {
-                    console.error('Failed to delete cached row on socket event', e)
-                  }
+                  isRecordDeleted.value = true
                 }
               }
             },
@@ -993,6 +1104,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       hasLtarChanges: rowStore.hasLtarChanges,
       pendingLtarOps: rowStore.pendingLtarOps,
       localOnlyChanges,
+      takeRemoteChanges,
+      isRecordDeleted,
+      conflictingColumns,
+      confirmOverwriteConflicts,
       onFieldInput: fieldInputHook.on,
       notifyFieldInput: fieldInputHook.trigger,
       loadRow,

@@ -44,6 +44,9 @@ const { getPlanLimit } = useWorkspace()
 
 const showMultiDeleteModal = ref(false)
 
+// Snapshot taken on open: deleting drops the columns from the live selection.
+const columnsToDelete = ref<ColumnType[]>([])
+
 const showMultiPermissionsModal = ref(false)
 
 const isHiding = ref(false)
@@ -194,6 +197,7 @@ const groupByAllSelected = () => {
 // --- Delete -------------------------------------------------------------
 
 const onDelete = () => {
+  columnsToDelete.value = [...nonPvColumns.value]
   isOpen.value = false
   showMultiDeleteModal.value = true
 }
@@ -330,7 +334,7 @@ const onPermissionsSaved = () => {
     <div class="non-menu-items">
       <SmartsheetHeaderMultiDeleteColumnModal
         v-model:visible="showMultiDeleteModal"
-        :columns="nonPvColumns"
+        :columns="columnsToDelete"
         :on-deleted="onDeleted"
       />
       <DlgFieldMultiPermissions

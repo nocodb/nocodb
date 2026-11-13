@@ -10,6 +10,7 @@ import {
 import commonFns, {
   escapePlaceholders,
   extractDatetimeFormat,
+  jsonPathFromLiteral,
   safeDateAddUnitSQL,
   validateDateAddUnit,
 } from './commonFns';
@@ -438,7 +439,7 @@ const sqlite3 = {
       pathArg?.type === JSEPNode.LITERAL &&
       typeof pathArg.value === 'string'
     ) {
-      const path = `$${pathArg.value}`;
+      const path = jsonPathFromLiteral(pathArg.value);
       return {
         builder: args.knex.raw(
           `CASE WHEN json_valid(?) = 1 AND ? NOT LIKE '%[-%' THEN json_extract(?, ?) ELSE NULL END`,
@@ -450,7 +451,7 @@ const sqlite3 = {
     const needle = (await args.fn(pathArg)).builder;
     return {
       builder: args.knex.raw(
-        `CASE WHEN json_valid(?) = 1 AND ('$' || ?) NOT LIKE '%[-%' THEN json_extract(?, '$' || ?) ELSE NULL END`,
+        `CASE WHEN json_valid(?) = 1 AND ('$' || ltrim(?, '$')) NOT LIKE '%[-%' THEN json_extract(?, '$' || ltrim(?, '$')) ELSE NULL END`,
         [source, needle, source, needle],
       ),
     };

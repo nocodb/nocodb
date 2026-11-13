@@ -28,6 +28,8 @@ export class CsvImportHandler implements DataImportHandler {
     const sampleRows: string[][] = [];
     let rowCount = 0;
     let detectedDelimiter: string | undefined;
+    // Without a header row the first row sets the column count; wider rows lose their extra cells.
+    let extraCellRows: { count: number; firstRow: number } | undefined;
 
     await new Promise<void>((resolve, reject) => {
       parse(readStream, {
@@ -47,6 +49,16 @@ export class CsvImportHandler implements DataImportHandler {
               for (let i = 0; i < row.data.length; i++) {
                 headers.push(`Field ${i + 1}`);
               }
+            } else if (
+              !firstRowAsHeaders &&
+              row.data.length > headers.length &&
+              // A trailing delimiter adds an empty cell; nothing is lost then
+              row.data
+                .slice(headers.length)
+                .some((v) => `${v ?? ''}`.trim() !== '')
+            ) {
+              extraCellRows ??= { count: 0, firstRow: rowCount };
+              extraCellRows.count++;
             }
             if (sampleRows.length < maxRowsToParse) {
               sampleRows.push(row.data);
@@ -96,6 +108,7 @@ export class CsvImportHandler implements DataImportHandler {
         totalSampleRows: sampleRows.length,
         totalRows,
         detectedDelimiter: detectedDelimiter || delimiter || ',',
+        ...(extraCellRows ? { extraCellRows } : {}),
       },
     ];
   }

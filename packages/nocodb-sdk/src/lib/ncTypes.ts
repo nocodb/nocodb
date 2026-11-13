@@ -133,6 +133,8 @@ export interface NcRequest extends Partial<Request> {
   user: UserType & {
     base_roles?: Record<string, boolean>;
     workspace_roles?: Record<string, boolean>;
+    /** The request's org roles; EE only. */
+    org_roles?: Record<string, boolean>;
     provider?: string;
     is_api_token?: boolean;
     direct_teams?: { team_id: string; path: string }[];

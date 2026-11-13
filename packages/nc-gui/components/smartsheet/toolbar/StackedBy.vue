@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { KanbanType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { isKanbanStackableColumn } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 provide(IsKanbanInj, ref(true))
@@ -20,7 +20,11 @@ const isToolbarIconMode = inject(
 
 const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
+const { isPg } = useBase()
+
 const { kanbanMetaData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
+
+const { newStackFieldOptions, isCreatingStackField, createStackField, showStackFieldInView } = useKanbanStackField()
 
 const open = ref(false)
 
@@ -45,7 +49,14 @@ const updateGroupingField = async (v: string) => {
 const groupingFieldColumnId = computed({
   get: () => kanbanMetaData.value.fk_grp_col_id,
   set: async (val) => {
-    if (val) {
+    if (isKanbanNewStackFieldValue(val)) {
+      const column = await createStackField(meta.value, val)
+      if (!column?.id) return
+      await updateGroupingField(column.id)
+      // New fields start hidden in existing views; show it so the cards match their stacks
+      await showStackFieldInView(meta.value, activeView.value?.id, column.id)
+      await loadViewColumns()
+    } else if (val) {
       await updateGroupingField(val)
     }
   },
@@ -101,9 +112,12 @@ const autoCollapseEmptyStack = computed({
   },
 })
 
-const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
+const stackFieldOptions = computed<SelectProps['options']>(() => {
+  // Links kept in a junction table stack only on Postgres
+  const junctionLinks = isPg(meta.value?.source_id)
+
   return fields.value
-    ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.SingleSelect)
+    ?.filter((el) => el.fk_column_id && isKanbanStackableColumn(metaColumnById.value[el.fk_column_id], { junctionLinks }))
     .map((field) => {
       return {
         value: field.fk_column_id,
@@ -111,6 +125,14 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
       }
     })
 })
+
+// Many-to-one links are listed, disabled with the reason, where they can't stack (not on Postgres)
+const unsupportedLinkFieldOptions = computed(() =>
+  getKanbanUnsupportedLinkColumns(
+    fields.value?.flatMap((field) => (field.fk_column_id && metaColumnById.value[field.fk_column_id]) || []),
+    { junctionLinks: isPg(meta.value?.source_id) },
+  ).map((column) => ({ value: column.id!, label: column.title!, column })),
+)
 
 const handleChange = () => {
   open.value = false
@@ -168,12 +190,13 @@ const handleChange = () => {
                 class="nc-select-shadow w-full nc-kanban-grouping-field-select !rounded-lg"
                 dropdown-class-name="!rounded-lg"
                 :placeholder="$t('placeholder.selectGroupField')"
-                :disabled="isLocked"
+                :disabled="isLocked || isCreatingStackField"
+                :loading="isCreatingStackField"
                 @change="handleChange"
                 @click.stop
               >
                 <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-                <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
+                <a-select-option v-for="option of stackFieldOptions" :key="option.value" :value="option.value">
                   <div class="w-full h-full flex gap-2 items-center justify-between" :title="option.label">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
                       <SmartsheetHeaderIcon
@@ -197,7 +220,35 @@ const handleChange = () => {
                       class="flex-none text-primary w-4 h-4"
                     />
                   </div> </a-select-option
-              ></a-select>
+                ><a-select-option
+                  v-for="option of unsupportedLinkFieldOptions"
+                  :key="option.value"
+                  :value="option.value"
+                  disabled
+                  class="nc-kanban-unsupported-stack-field"
+                >
+                  <NcTooltip :title="$t('activity.kanban.linkTypeNotStackable')" placement="right">
+                    <div class="w-full h-full flex gap-1 items-center text-nc-content-gray-disabled">
+                      <SmartsheetHeaderIcon
+                        :column="option.column"
+                        class="!w-3.5 !h-3.5 !ml-0 grayscale opacity-50"
+                        color="text-current"
+                      />
+                      <span class="truncate">{{ option.label }}</span>
+                    </div>
+                  </NcTooltip> </a-select-option
+                ><a-select-option
+                  v-for="option of newStackFieldOptions"
+                  :key="option.value"
+                  :value="option.value"
+                  :class="`nc-kanban-create-stack-field-${option.uidt}`"
+                >
+                  <div class="w-full h-full flex gap-2 items-center text-nc-content-brand">
+                    <GeneralIcon icon="plus" class="flex-none w-3.5 h-3.5" />
+                    <span class="truncate">{{ option.label }}</span>
+                  </div>
+                </a-select-option></a-select
+              >
             </div>
           </div>
         </div>

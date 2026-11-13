@@ -7,6 +7,7 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
+import { getI18n } from '~/plugins/a.i18n'
 
 import {
   HardBreak,
@@ -72,6 +73,8 @@ const isGallery = inject(IsGalleryInj, ref(false))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const cellAriaLabel = useCellAriaLabel()
+
 const isFocused = ref(false)
 
 // Tracks whether the user has actually typed into this editor since it was last synced from the
@@ -94,6 +97,8 @@ const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { activeProjectId } = storeToRefs(basesStore)
+
+const { $api } = useNuxtApp()
 
 // Resolved once, synchronously — the Yjs binding is a tiptap extension, so it is
 // fixed when the editor is constructed. A read-only editor never opens a session:
@@ -255,6 +260,14 @@ const editor = useEditor({
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
+  editorProps: {
+    // Name the editable region after its field, or its placeholder elsewhere. A plain object:
+    // TipTap spreads it over its default role at creation, and setProps replaces the defaults.
+    attributes: {
+      role: 'textbox',
+      ...(cellAriaLabel.value || props.placeholder ? { 'aria-label': cellAriaLabel.value || props.placeholder } : {}),
+    },
+  },
   onFocus: () => {
     isFocused.value = true
     emits('focus')
@@ -307,6 +320,11 @@ if (collab) {
   function fallBackToLocalEditing() {
     if (collabRefused.value || collabAuthoritative.value) return
     collabRefused.value = true
+    // Off the server first, so the local seed below can't reach a session.
+    collab?.detach()
+    // Before the seed: writing it into the fragment would otherwise latch
+    // collabAuthoritative, and onUpdate would stop saving.
+    stopFragmentWatch()
     if (vModel.value) setEditorContent(vModel.value)
   }
 
@@ -372,9 +390,11 @@ if (collab) {
   onBeforeUnmount(() => clearTimeout(seedWaitTimer))
 
   watch(
-    [collab.synced, collab.mayBootstrap, editor],
-    ([synced, mayBootstrap, editorInstance]) => {
-      if (!synced || !editorInstance || collabAuthoritative.value) return
+    [collab.synced, collab.serverAcked, collab.mayBootstrap, editor],
+    ([synced, acked, mayBootstrap, editorInstance]) => {
+      // `synced` also flips on a refusal and on the transport's own timeout;
+      // adopting an empty cell then would stop local saves with nobody persisting.
+      if (!synced || !acked || collabRefused.value || !editorInstance || collabAuthoritative.value) return
 
       // Someone already holds content — adopt it.
       if (fragment.length > 0) {
@@ -412,6 +432,50 @@ if (collab) {
   )
 
   onScopeDispose(stopFragmentWatch)
+
+  /** The cell's stored markdown, or undefined when it can't be read. */
+  async function readStoredCellValue(): Promise<string | null | undefined> {
+    const column = meta.value?.columns?.find((c) => c.id === props.collabColumnId)
+    if (!column?.title || !meta.value?.id || !meta.value.base_id || !props.collabRowId) return undefined
+    try {
+      const row = (await $api.dbTableRow.read(
+        NOCO,
+        meta.value.base_id,
+        meta.value.id,
+        encodeURIComponent(props.collabRowId),
+      )) as Record<string, any>
+      return row?.[column.title] ?? null
+    } catch {
+      return undefined
+    }
+  }
+
+  // The session this editor co-edited is gone and our copy may be older than
+  // storage: reload the stored value and save the normal way from here on.
+  watch(collab.stale, async (isStale) => {
+    if (!isStale) return
+    clearTimeout(confirmTimer)
+    clearTimeout(seedWaitTimer)
+    stopFragmentWatch()
+    collabAuthoritative.value = false
+    collabRefused.value = true
+    hasLocalEdits.value = false
+    editor.value?.setEditable(false)
+    const discarded = collab.discardedLocalEdits.value ? editor.value?.storage.markdown.getMarkdown() : undefined
+    const stored = await readStoredCellValue()
+    // vModel may predate the change that made this session stale, so editing on
+    // top of it could save over newer content. Stay read-only instead.
+    if (stored === undefined) {
+      message.warning(getI18n().global.t('msg.warning.collabStaleReloadFailed'))
+      return
+    }
+    setEditorContent(stored ?? '')
+    // Compared after the round-trip, so markdown formatting differences don't count.
+    if (discarded !== undefined && textMissingFrom(discarded, editor.value?.storage.markdown.getMarkdown() ?? '')) {
+      message.warning(getI18n().global.t('msg.warning.collabStaleEditsDiscarded'))
+    }
+    editor.value?.setEditable(!props.readOnly)
+  })
 }
 
 // Yjs owns the document when co-editing is active; the setContent() below is a

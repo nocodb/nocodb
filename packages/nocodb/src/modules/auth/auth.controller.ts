@@ -207,7 +207,7 @@ export class AuthController {
 
     if (!sessionsRevoked) {
       ncError.internalServerError(
-        "Your password was changed, but we couldn't sign out all other sessions and connected apps. To retry, change your password again using your new password as the current one.",
+        "Your password was changed, but we couldn't sign out all other sessions or disconnect apps. To retry, change your password again using your new password as the current one.",
       );
     }
 
@@ -315,13 +315,20 @@ export class AuthController {
     @Param('tokenId') tokenId: string,
     @Body() body: any,
   ): Promise<any> {
-    await this.usersService.passwordReset({
+    const { appsDisconnected } = await this.usersService.passwordReset({
       token: tokenId,
       body: body,
       req,
     });
 
-    return { msg: 'Password has been reset successfully' };
+    if (body?.disconnectApps && !appsDisconnected) {
+      return {
+        msg: "Your password was reset, but we couldn't disconnect apps. Sign in and change your password with 'Also disconnect apps' ticked.",
+        appsDisconnected,
+      };
+    }
+
+    return { msg: 'Password has been reset successfully', appsDisconnected };
   }
 
   @Post([

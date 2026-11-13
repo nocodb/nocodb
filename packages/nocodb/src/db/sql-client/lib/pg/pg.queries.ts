@@ -1,4 +1,10 @@
 // https://www.postgresql.org/docs/9.5/datatype.html
+import {
+  LOCALE_NUMBER_DIGITS,
+  LOCALE_NUMBER_REGEX,
+  NEGATIVE_REGEX,
+  sqlRegex,
+} from '~/db/sql-client/lib/pg/numericShape';
 
 const pgQueries = {
   columnList: {
@@ -258,6 +264,19 @@ CREATE OR REPLACE FUNCTION nc_iso_to_timestamp_safe(value text, keep_wall_time b
       paramsHints: [],
     },
   },
+  // Text that is not valid JSON becomes NULL instead of failing the conversion.
+  jsonConversionFunction: {
+    default: {
+      sql: `CREATE OR REPLACE FUNCTION nc_to_json_safe(value text) RETURNS JSON AS $$
+  BEGIN
+    RETURN value::json;
+    EXCEPTION
+      WHEN others THEN RETURN NULL;
+  END;
+  $$ LANGUAGE plpgsql IMMUTABLE;`,
+      paramsHints: [],
+    },
+  },
   // Mirrors the SDK's normalizeLocaleNumericString: a number is read by its own
   // shape, and the locale's group character only settles a lone separator that
   // could be one group (`1.234`).
@@ -271,9 +290,22 @@ CREATE OR REPLACE FUNCTION nc_iso_to_timestamp_safe(value text, keep_wall_time b
     dec_at int;
     digits text;
   BEGIN
-    compact := regexp_replace(value, '[^0-9.,-]', '', 'g');
-    negative := left(compact, 1) = '-';
-    compact := replace(compact, '-', '');
+    value := replace(value, chr(8722), '-');
+    -- Plain scientific notation (1e3).
+    IF value ~ '^\\s*[+-]{0,1}(\\d+(\\.\\d*){0,1}|\\.\\d+)[eE][+-]{0,1}\\d{1,3}\\s*$' THEN
+      RETURN value::decimal;
+    END IF;
+    -- Only a number with an optional sign, currency symbol/code or %; dates,
+    -- words and JSON are not numbers.
+    IF value !~ '${sqlRegex(LOCALE_NUMBER_REGEX)}' THEN
+      RETURN NULL;
+    END IF;
+    negative := value ~ '${NEGATIVE_REGEX}';
+    -- A symbol ending in a period (Rs., kr.) is not a decimal point.
+    compact := regexp_replace(
+      substring(regexp_replace(value, '^[^0-9]*[A-Za-z]\\.', '') FROM '${sqlRegex(
+        LOCALE_NUMBER_DIGITS,
+      )}'), '[^0-9.,]', '', 'g');
     IF compact = '' THEN RETURN NULL; END IF;
 
     IF position('.' IN compact) > 0 AND position(',' IN compact) > 0 THEN

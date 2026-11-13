@@ -50,6 +50,8 @@ import { StoreLaneBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job
 import { CreditAllowanceIncreaseMigration } from '~/modules/jobs/migration-jobs/nc_job_018_credit_allowance_increase';
 import { McpTokenPlaintextCleanupMigration } from '~/modules/jobs/migration-jobs/nc_job_019_mcp_token_plaintext_cleanup';
 import { AtImportFailedJobScrubMigration } from '~/modules/jobs/migration-jobs/nc_job_020_at_import_failed_job_scrub';
+import { EnvironmentChangelogSecretCleanupMigration } from '~/modules/jobs/migration-jobs/nc_job_021_environment_changelog_secret_cleanup';
+import { AuthTokenHashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_022_auth_token_hash_backfill';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -123,6 +125,8 @@ export const JobsModuleMetadata = {
     CreditAllowanceIncreaseMigration,
     McpTokenPlaintextCleanupMigration,
     AtImportFailedJobScrubMigration,
+    EnvironmentChangelogSecretCleanupMigration,
+    AuthTokenHashBackfillMigration,
   ],
   exports: [
     'JobsService',

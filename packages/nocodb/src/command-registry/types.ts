@@ -192,6 +192,8 @@ export interface ChangelogCommandPayload {
   version: number;
   params: unknown;
   extra?: Record<string, unknown>;
+  /** Environment changelog: fingerprints of the masked secrets, by param path. */
+  secrets?: Record<string, string>;
 }
 
 export interface TraceCommandDep {

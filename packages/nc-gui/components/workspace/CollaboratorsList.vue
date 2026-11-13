@@ -761,9 +761,20 @@ watch(inviteDlg, (newVal) => {
                 <div class="flex items-center gap-1">
                   <NcTooltip class="truncate max-w-full text-captionMedium text-nc-content-gray" show-on-truncate-only>
                     <template #title>
-                      {{ extractUserDisplayNameOrEmail(record) }}
+                      {{ record.invite_pending ? record.email : extractUserDisplayNameOrEmail(record) }}
                     </template>
-                    {{ extractUserDisplayNameOrEmail(record) }}
+                    {{ record.invite_pending ? record.email : extractUserDisplayNameOrEmail(record) }}
+                  </NcTooltip>
+                  <NcTooltip v-if="record.invite_pending" :title="$t('tooltip.invitePending')" class="flex items-center">
+                    <NcBadge
+                      :border="false"
+                      color="orange"
+                      size="xs"
+                      class="flex-none whitespace-nowrap text-bodySm"
+                      data-testid="nc-workspace-member-invited-badge"
+                    >
+                      {{ $t('labels.invitedMember') }}
+                    </NcBadge>
                   </NcTooltip>
                   <NcTooltip
                     v-if="isScimManaged(record)"
@@ -794,7 +805,11 @@ watch(inviteDlg, (newVal) => {
                     </NcBadge>
                   </NcTooltip>
                 </div>
-                <NcTooltip class="truncate max-w-full text-bodySm text-nc-content-gray-subtle2" show-on-truncate-only>
+                <NcTooltip
+                  v-if="!record.invite_pending"
+                  class="truncate max-w-full text-bodySm text-nc-content-gray-subtle2"
+                  show-on-truncate-only
+                >
                   <template #title>
                     {{ record.email }}
                   </template>
@@ -890,7 +905,11 @@ watch(inviteDlg, (newVal) => {
                   {{ parseStringDateTime(record.created_at) }}
                 </template>
                 <span>
-                  {{ timeAgo(record.created_at) }}
+                  {{
+                    record.invite_pending
+                      ? $t('labels.invitedAgo', { time: timeAgo(record.created_at) })
+                      : timeAgo(record.created_at)
+                  }}
                 </span>
               </NcTooltip>
             </div>

@@ -449,6 +449,8 @@ const testConnection = async (retry = 0, initialConfig = null, initialError = nu
         connection,
         // Vault references are resolved for this workspace.
         fk_workspace_id: activeWorkspaceId.value,
+        // Lets the server restore a vault secret id masked below owner.
+        ...(isEditMode.value && activeIntegration.value?.id ? { fk_edited_integration_id: activeIntegration.value.id } : {}),
       })
 
       const result = await api.utils.testConnection(testConnectionConfig)

@@ -1,4 +1,4 @@
-import { SortOrderBy, UITypes } from 'nocodb-sdk';
+import { isCreatedOrLastModifiedByCol, SortOrderBy, UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { NcContext } from '~/interface/config';
@@ -18,6 +18,9 @@ function toSort(context: NcContext, _sort: Sort): Sort {
   if (!getModelContext(sort)) setModelContext(sort, context);
   return sort;
 }
+
+const isUserTypeColumn = (column: Column) =>
+  column.uidt === UITypes.User || isCreatedOrLastModifiedByCol(column);
 
 // skip disabled sorts (enabled === false or enabled === 0)
 function isSortDisabled(sort: Sort) {
@@ -163,8 +166,12 @@ export default async function sortV2(
 
     // A stored (view) sort orders as for a signed-in user, user formulas by email
     // (except in shared-base sessions that can edit; see compilesStoredConditionWithEmails).
+    // A User-type column has no formula to compile; publicly it sorts by the
+    // derived name the response shows.
     const sortBaseModel =
-      sort[SORT_STORED] && compilesStoredConditionWithEmails(context)
+      sort[SORT_STORED] &&
+      compilesStoredConditionWithEmails(context) &&
+      !isUserTypeColumn(column)
         ? baseModelSqlv2.getNonPublicClone()
         : baseModelSqlv2;
     await (sortBaseModel === baseModelSqlv2

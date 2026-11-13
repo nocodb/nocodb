@@ -17,10 +17,16 @@ export interface CellCollabSession {
   serverAcked: Ref<boolean>
   /** The server refused the subscribe — no session is coming. */
   refused: Ref<boolean>
+  /** The server's session no longer holds this doc's history; the session has detached. Reload the stored value. */
+  stale: Ref<boolean>
+  /** With `stale`: the discarded copy held changes made on this client. */
+  discardedLocalEdits: Ref<boolean>
   /** Server said this socket may read but not write. Defence in depth. */
   readOnly: Ref<boolean>
   mayBootstrap: Ref<boolean>
   user: CellCollabSessionUser | null
+  /** Leave the server session but keep the Y.Doc alive as a local buffer. */
+  detach: () => void
   destroy: () => void
 }
 
@@ -46,9 +52,12 @@ export function useCellCollabSession(_params: {
     synced: ref(false),
     serverAcked: ref(false),
     refused: ref(false),
+    stale: ref(false),
+    discardedLocalEdits: ref(false),
     readOnly: ref(false),
     mayBootstrap: ref(false),
     user: null,
+    detach: () => {},
     destroy: () => {},
   }
 }

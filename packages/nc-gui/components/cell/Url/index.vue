@@ -15,6 +15,8 @@ const { showNull } = useGlobal()
 
 const column = inject(ColumnInj)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -86,6 +88,7 @@ watch(
       v-if="!readOnly && editEnabled"
       :ref="focus"
       v-model="vModel"
+      :aria-label="cellAriaLabel"
       class="nc-cell-field outline-none w-full py-1 bg-transparent h-full"
       @blur="editEnabled = false"
       @keydown.down.stop

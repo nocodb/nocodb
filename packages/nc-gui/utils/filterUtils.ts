@@ -390,3 +390,27 @@ export function snapshotFilter(f: Record<string, any>): Record<string, any> {
   for (const k of FILTER_PERSISTABLE_FIELDS) snap[k] = f[k]
   return snap
 }
+
+/**
+ * True for a filter group with no condition anywhere below it. `childrenOf` returns a group's non-deleted
+ * children, or undefined when they aren't loaded; an unloaded group is never treated as empty.
+ */
+export function isEmptyFilterGroup(filter: FilterType, childrenOf: (groupId: string) => FilterType[] | undefined): boolean {
+  if (!filter?.is_group || !filter.id) return false
+
+  const children = childrenOf(filter.id)
+
+  if (!children) return false
+
+  return !children.some((child) => !isEmptyFilterGroup(child, childrenOf))
+}
+
+/** Filters shown on the toolbar badge: empty groups don't count. */
+export function countActiveFilters(
+  filters: FilterType[],
+  childrenOf: (groupId: string) => FilterType[] | undefined,
+  { enabledOnly = false }: { enabledOnly?: boolean } = {},
+): number {
+  return filters.filter((f) => !isEmptyFilterGroup(f, childrenOf) && (!enabledOnly || (f.enabled !== false && f.enabled !== 0)))
+    .length
+}

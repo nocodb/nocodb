@@ -14,6 +14,7 @@ import {
 import { assertFormulaConvertibleTo } from 'src/services/columns.service';
 import type {
   ColumnReqType,
+  ColumnType,
   FieldOptionAddItemV3Type,
   FieldOptionDeleteItemV3Type,
   FieldUpdateV3Type,
@@ -37,12 +38,16 @@ import { DataTableService } from '~/services/data-table.service';
 import { Column, Filter, Model, Source } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
+import {
+  getFormulasReferredTheColumn,
+  withCurrentFormulaNames,
+} from '~/helpers/formulaHelpers';
 import { getLinkRecordSelectionFilter } from '~/helpers/linkRecordSelectionFilter';
 import {
   pgConversionPredicates,
   pgNonEmpty,
 } from '~/helpers/fieldConversionPreview';
+import { durationBareNumberUnit } from '~/db/sql-client/lib/pg/typeCast';
 import { MetaTable } from '~/utils/globals';
 import {
   columnBuilder,
@@ -593,6 +598,16 @@ export class ColumnsV3Service {
           return ids.length === 1 ? ids[0] : ids.join('___');
         });
 
+      const warnings: string[] = [];
+      if (newType === UITypes.Duration && Number(counts.rounded)) {
+        const unit = durationBareNumberUnit(parseProp(v2.meta)?.duration ?? 0);
+        warnings.push(
+          `A plain number is read as ${
+            { 1: 'seconds', 60: 'minutes', 3600: 'hours' }[unit]
+          } in this duration format.`,
+        );
+      }
+
       return {
         ...report,
         cleared_rows: Number(counts.cleared),
@@ -600,6 +615,7 @@ export class ColumnsV3Service {
         rounded_rows: Number(counts.rounded),
         rounded_sample_ids: Number(counts.rounded) ? await sample(rounded) : [],
         conversion,
+        ...(warnings.length ? { warnings } : {}),
       };
     } catch (e) {
       // 57014: query_canceled, i.e. the statement_timeout above.
@@ -756,10 +772,16 @@ export class ColumnsV3Service {
       }
 
       if (incomingOptions && !isTypeChange) {
+        // a stored formula_raw may still name a renamed field
         const merged = this.mergeStoredOptions(
           optionsSchema.schema,
           incomingOptions,
-          column,
+          [UITypes.Formula, UITypes.Button].includes(column.uidt as UITypes)
+            ? withCurrentFormulaNames(
+                column,
+                await Column.list(context, { fk_model_id: column.fk_model_id }),
+              )
+            : column,
         );
         if (
           [UITypes.SingleSelect, UITypes.MultiSelect].includes(
@@ -883,8 +905,15 @@ export class ColumnsV3Service {
       columnWebhookManager.followReplacedColumn(param.columnId, column.id);
     }
 
-    // do tranformation
-    const v3Response = columnBuilder().build(column);
+    // do tranformation; current field names, as a read returns them
+    const v3Response = columnBuilder().build(
+      [UITypes.Formula, UITypes.Button].includes(column.uidt as UITypes)
+        ? withCurrentFormulaNames(
+            column,
+            await Column.list(context, { fk_model_id: column.fk_model_id }),
+          )
+        : column,
+    );
     if (!param.columnWebhookManager) {
       await columnWebhookManager.populateNewColumns();
       columnWebhookManager.emit();
@@ -901,7 +930,7 @@ export class ColumnsV3Service {
   private mergeStoredOptions(
     optionsSchema: any,
     incomingOptions: Record<string, unknown>,
-    stored: Column,
+    stored: Column | ColumnType,
   ): Record<string, unknown> {
     const storedOptions =
       (columnBuilder().build(stored) as FieldOptionsRecord).options ?? {};
@@ -960,7 +989,14 @@ export class ColumnsV3Service {
     if (!column) {
       NcError.get(context).fieldNotFound(param.columnId);
     }
-    const field = columnBuilder().build(column) as {
+    const field = columnBuilder().build(
+      [UITypes.Formula, UITypes.Button].includes(column.uidt as UITypes)
+        ? withCurrentFormulaNames(
+            column,
+            await Column.list(context, { fk_model_id: column.fk_model_id }),
+          )
+        : column,
+    ) as {
       options?: Record<string, unknown>;
     };
     if (param.linkFilterFor && isLinksOrLTAR(column)) {

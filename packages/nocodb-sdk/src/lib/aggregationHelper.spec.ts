@@ -1,9 +1,13 @@
 import {
+  CommonAggregations,
   DateAggregations,
+  formatAggregation,
   getColumnAggregations,
   isDateValuedAggregation,
+  isFieldFormattedAggregation,
   NumericalAggregations,
 } from './aggregationHelper';
+import { getColumnDisplayTimezone } from './dateTimeHelper';
 import { FormulaDataTypes } from './formula/enums';
 import UITypes from './UITypes';
 
@@ -54,5 +58,115 @@ describe('isDateValuedAggregation', () => {
     expect(
       isDateValuedAggregation({ uidt: UITypes.Number, colOptions: {} }, 'max')
     ).toBe(false);
+  });
+});
+
+describe('isFieldFormattedAggregation', () => {
+  it('is true for a numeric function on a number-formatted field', () => {
+    expect(
+      isFieldFormattedAggregation(
+        { uidt: UITypes.Decimal },
+        NumericalAggregations.Sum
+      )
+    ).toBe(true);
+  });
+
+  it('is false for a count on a number-formatted field', () => {
+    expect(
+      isFieldFormattedAggregation(
+        { uidt: UITypes.Number },
+        CommonAggregations.CountFilled
+      )
+    ).toBe(false);
+  });
+
+  it('is false for a numeric function on Links or Rating', () => {
+    expect(
+      isFieldFormattedAggregation(
+        { uidt: UITypes.Links },
+        NumericalAggregations.Sum
+      )
+    ).toBe(false);
+    expect(
+      isFieldFormattedAggregation(
+        { uidt: UITypes.Rating },
+        NumericalAggregations.Max
+      )
+    ).toBe(false);
+  });
+
+  it('follows a formula display type', () => {
+    expect(
+      isFieldFormattedAggregation(
+        { uidt: UITypes.Formula },
+        NumericalAggregations.Sum
+      )
+    ).toBe(false);
+    expect(
+      isFieldFormattedAggregation(
+        { uidt: UITypes.Formula, meta: { display_type: UITypes.Currency } },
+        NumericalAggregations.Sum
+      )
+    ).toBe(true);
+  });
+
+  it('is false for min/max on a date rollup (they run as earliest/latest)', () => {
+    expect(
+      isFieldFormattedAggregation(
+        { uidt: UITypes.Rollup, colOptions: { result_uidt: UITypes.Date } },
+        NumericalAggregations.Min
+      )
+    ).toBe(false);
+  });
+});
+
+describe('formatAggregation latest date', () => {
+  const col = {
+    uidt: UITypes.DateTime,
+    meta: { date_format: 'YYYY-MM-DD', time_format: 'HH:mm' },
+  };
+  const latest = (value: string, timezone?: string) =>
+    formatAggregation(DateAggregations.LatestDate, value, col, undefined, {
+      timezone,
+    });
+
+  it('formats in the given timezone', () => {
+    expect(latest('2026-03-10T22:30:00.000Z', 'Asia/Kolkata')).toBe(
+      '2026-03-11 04:00'
+    );
+  });
+
+  it('reads an offset-less DB value as UTC', () => {
+    expect(latest('2026-03-10 22:30:00', 'Asia/Kolkata')).toBe(
+      '2026-03-11 04:00'
+    );
+    expect(latest('2026-03-10 22:30:00+00', 'America/New_York')).toBe(
+      '2026-03-10 18:30'
+    );
+  });
+});
+
+describe('getColumnDisplayTimezone', () => {
+  it("uses a DateTime column's timezone", () => {
+    expect(
+      getColumnDisplayTimezone({
+        uidt: UITypes.DateTime,
+        meta: { timezone: 'Asia/Kolkata' },
+      })
+    ).toBe('Asia/Kolkata');
+  });
+
+  it('needs display timezone on for a DateTime formula, like the grid', () => {
+    const formula = (isDisplayTimezone: boolean) => ({
+      uidt: UITypes.Formula,
+      meta: {
+        display_type: UITypes.DateTime,
+        display_column_meta: {
+          meta: { timezone: 'Asia/Kolkata', isDisplayTimezone },
+        },
+      },
+    });
+    expect(getColumnDisplayTimezone(formula(false))).toBeUndefined();
+    expect(getColumnDisplayTimezone(formula(true))).toBe('Asia/Kolkata');
   });
 });

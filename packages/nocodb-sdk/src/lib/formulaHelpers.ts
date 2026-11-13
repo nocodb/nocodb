@@ -17,6 +17,7 @@ export * from './formula/types';
 export * from './formula/validate-extract-tree';
 export * from './formula/jsepInstances';
 export * from './formula/non-finite';
+export * from './formula/url-markup';
 export * from './formula/member-path';
 export * from './formula/method-scope';
 export * from './formula/rollupFormula';
@@ -25,6 +26,30 @@ export * from './formula/rollupFormula';
 export type RelatedColumnsResolver<R = ColumnType[] | undefined> = (
   linkColumn: ColumnType
 ) => R;
+
+// Operand nodes that can hold a field reference. A CallExpression callee and a
+// MemberExpression property are names, not fields, so they are left out.
+function formulaChildNodes(pt: any): any[] {
+  switch (pt?.type) {
+    case 'CallExpression':
+      return pt.arguments || [];
+    case 'UnaryExpression':
+      return [pt.argument];
+    case 'BinaryExpression':
+    case 'LogicalExpression':
+      return [pt.left, pt.right];
+    case 'ArrayExpression':
+      return (pt.elements || []).filter(Boolean);
+    case 'Compound':
+      return pt.body || [];
+    case 'ConditionalExpression':
+      return [pt.test, pt.consequent, pt.alternate];
+    case 'MemberExpression':
+      return [pt.object];
+    default:
+      return [];
+  }
+}
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,
@@ -62,11 +87,10 @@ export async function substituteColumnAliasWithIdInFormula(
             ? await getRelatedColumns(column)
             : undefined;
       }
-    } else if (pt.type === 'BinaryExpression') {
-      await substituteId(pt.left);
-      await substituteId(pt.right);
-    } else if (pt.type === 'UnaryExpression') {
-      await substituteId(pt.argument);
+    } else {
+      for (const child of formulaChildNodes(pt)) {
+        await substituteId(child);
+      }
     }
   };
   const parsedFormula = formulaJsep(formula);
@@ -81,12 +105,7 @@ export function substituteColumnIdWithAliasInFormula(
   getRelatedColumns?: RelatedColumnsResolver
 ) {
   const substituteId = (pt: any, ptRaw?: any) => {
-    if (pt.type === 'CallExpression') {
-      let i = 0;
-      for (const arg of pt.arguments || []) {
-        substituteId(arg, ptRaw?.arguments?.[i++]);
-      }
-    } else if (pt.type === 'Literal') {
+    if (pt.type === 'Literal') {
       return;
     } else if (pt.type === 'Identifier') {
       const colNameOrId = pt?.name;
@@ -105,11 +124,11 @@ export function substituteColumnIdWithAliasInFormula(
             ? getRelatedColumns?.(column)
             : undefined;
       }
-    } else if (pt.type === 'BinaryExpression') {
-      substituteId(pt.left, ptRaw?.left);
-      substituteId(pt.right, ptRaw?.right);
-    } else if (pt.type === 'UnaryExpression') {
-      substituteId(pt.argument, ptRaw?.argument);
+    } else {
+      const rawChildren = ptRaw ? formulaChildNodes(ptRaw) : [];
+      formulaChildNodes(pt).forEach((child, i) =>
+        substituteId(child, rawChildren[i])
+      );
     }
   };
 
@@ -248,8 +267,8 @@ function escapeLiteral(v: string) {
       // 1️⃣ Temporarily protect real newline
       .replace(/\\n/g, '__NC_NEWLINE__')
 
-      // 2️⃣ Escape unescaped backslashes (replace \ to \\, escape only unescaped \)
-      .replace(/([^\\]|^)\\(?!\\)/g, `$1\\\\`)
+      // 2️⃣ Escape unescaped backslashes (replace \ to \\, escape only unescaped \); keep \" and \' as escaped quotes
+      .replace(/([^\\]|^)\\(?![\\"'])/g, `$1\\\\`)
 
       // 3️⃣ Escape quotes (replace " to \" and ' to \')
       .replace(/([^\\]|^)"/g, `$1\\"`)

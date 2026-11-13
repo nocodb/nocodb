@@ -2,6 +2,7 @@
 import { useStorage } from '@vueuse/core'
 import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
+import type { RouteLocationRaw } from 'vue-router'
 
 interface NavItem {
   key: string
@@ -11,6 +12,8 @@ interface NavItem {
   active?: boolean
   hasAlert?: boolean
   onClick?: () => void
+  /** Cmd/Ctrl+click or middle-click; tiles without it ignore middle-click. */
+  onNewTabClick?: () => void
 }
 
 const router = useRouter()
@@ -59,7 +62,7 @@ const { isAgentsOffered } = storeToRefs(useAgentStore())
 
 const { isAppsEnabled } = storeToRefs(useAppStore())
 
-const { openAppsHome } = useAppsEntry()
+const { openAppsHome, appsHomeRoute } = useAppsEntry()
 
 const {
   blockAiChat,
@@ -153,6 +156,46 @@ const getBasePath = () => {
   if (baseId) return `/${wsId}/${baseId}`
 
   return resolvedProject.value?.id ? `/${wsId}/${resolvedProject.value.id}` : ''
+}
+
+const openInNewTab = (to: RouteLocationRaw) => navigateTo(router.resolve(to).href, { open: navigateToBlankTargetOpenOption })
+
+const onBackToWorkspace = (e: MouseEvent) => {
+  const path = `/${activeWorkspaceId.value}`
+
+  if (isNewTabClick(e)) return openInNewTab(path)
+
+  navigateTo(path)
+}
+
+const onTabNewTabClick = (tabKey: 'workflows' | 'apps') => {
+  const basePath = getBasePath()
+  if (!basePath) return
+
+  if (tabKey === 'workflows') {
+    if (blockWorkflows.value) {
+      showUpgradeToUseWorkflows({ triggerSource: 'minisidebar-workflows' })
+      return
+    }
+
+    return openInNewTab(`${basePath}/workflows`)
+  }
+
+  if (hideInterfaces.value && !isAppsEnabled.value) {
+    showUpgradeForInterfaceFeature(PlanFeatureTypes.FEATURE_INTERFACES, 'minisidebar-apps')
+    return
+  }
+
+  const baseId = (route.value.params.baseId as string) || resolvedProject.value?.id
+  const appsRoute = baseId ? appsHomeRoute(baseId, (route.value.params.typeOrId as string) || activeWorkspaceId.value) : undefined
+
+  if (appsRoute) return openInNewTab(appsRoute)
+}
+
+const onRailItemClick = (item: NavItem, e: MouseEvent) => {
+  if (item.onNewTabClick && isNewTabClick(e)) return item.onNewTabClick()
+
+  item.onClick?.()
 }
 
 const onTabClick = async (tabKey: string) => {
@@ -304,6 +347,7 @@ const mainItems = computed<NavItem[]>(() =>
                 onClick: () => {
                   onTabClick('workflows')
                 },
+                onNewTabClick: () => onTabNewTabClick('workflows'),
               },
             ]
           : []),
@@ -323,6 +367,7 @@ const mainItems = computed<NavItem[]>(() =>
                       roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
                     })),
                 onClick: () => onTabClick('apps'),
+                onNewTabClick: () => onTabNewTabClick('apps'),
               },
             ]
           : []),
@@ -404,7 +449,8 @@ useSidebarCommands({
           class="nc-rail-logo nc-rail-logo-hover"
           data-testid="nc-mini-sidebar-v2-logo"
           :data-workspace-title="activeWorkspace?.title"
-          @click="navigateTo(`/${activeWorkspaceId}`)"
+          @click="onBackToWorkspace"
+          @auxclick.middle="onBackToWorkspace"
         >
           <img
             v-if="isWhiteLabelled && faviconUrl"
@@ -446,7 +492,8 @@ useSidebarCommands({
               :active="item.active ?? (activeSidebarTab === item.key && !isChatFullScreen && !isBaseSettingsOpen)"
               :disabled="item.disabled"
               :has-alert="item.hasAlert"
-              @click="item.onClick?.()"
+              @click="onRailItemClick(item, $event)"
+              @middle-click="item.onNewTabClick?.()"
             />
           </DashboardMiniSidebarV2AppsMovedTip>
         </div>

@@ -39,6 +39,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const column = inject(ColumnInj, null)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const _vModel = useVModel(props, 'modelValue', emits)
 
 const { getCurrentCopiedCellClipboardData } = useNcClipboardData()
@@ -141,6 +143,7 @@ const onPaste = (e: ClipboardEvent) => {
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
+    :aria-label="cellAriaLabel"
     class="nc-cell-field outline-none py-1 border-none w-full h-full"
     :type="inputType"
     style="letter-spacing: 0.06rem"

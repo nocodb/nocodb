@@ -424,6 +424,7 @@ export const nocoModuleMetadata = {
     FormColumnsService,
     GalleriesService,
     KanbansService,
+    MapsService,
     BasesService,
     AttachmentsService,
     BaseUsersService,

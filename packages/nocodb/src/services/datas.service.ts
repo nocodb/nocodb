@@ -20,6 +20,7 @@ import {
   restrictNestedLinkQuery,
   restrictNestedLinkQueryForColumn,
 } from '~/helpers/nestedLinkQueryHelpers';
+import { isSameGroupKey } from '~/helpers/groupKeyHelpers';
 import { hasLimitedLinkTargetAccess } from '~/helpers/tableHelpers';
 import { LIST_ARG_ALIASES } from '~/helpers/listArgAliases';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
@@ -650,8 +651,9 @@ export class DatasService {
 
       return groupedData.map((item) => {
         const count =
-          countArr.find((countItem: any) => countItem.key === item.key)
-            ?.count ?? 0;
+          countArr.find((countItem: any) =>
+            isSameGroupKey(countItem.key, item.key),
+          )?.count ?? 0;
 
         return {
           ...item,
@@ -708,8 +710,9 @@ export class DatasService {
     data = data.map((item) => {
       // todo: use map to avoid loop
       const count =
-        countArr.find((countItem: any) => countItem.key === item.key)?.count ??
-        0;
+        countArr.find((countItem: any) =>
+          isSameGroupKey(countItem.key, item.key),
+        )?.count ?? 0;
 
       item.value = new PagedResponseImpl(item.value, {
         ...query,

@@ -1061,6 +1061,7 @@ onBeforeUnmount(() => {
                         :loading="isEditAttachmentUploading"
                         :disabled="isEditAttachmentUploading"
                         data-testid="nc-comment-attach-btn"
+                        :aria-label="$t('activity.attachFile')"
                         @click="openEditFilePicker"
                       >
                         <GeneralIcon v-if="!isEditAttachmentUploading" icon="lucidePaperclip" class="h-3.5 w-3.5" />
@@ -1165,6 +1166,7 @@ onBeforeUnmount(() => {
                 :loading="isAttachmentUploading"
                 :disabled="isAttachmentUploading"
                 data-testid="nc-comment-attach-btn"
+                :aria-label="$t('activity.attachFile')"
                 @click="openFilePicker"
               >
                 <GeneralIcon v-if="!isAttachmentUploading" icon="lucidePaperclip" class="h-3.5 w-3.5" />

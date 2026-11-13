@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { FormulaDataTypes, getEffectiveDisplayColumn, handleTZ, isFormulaNonFiniteValue } from 'nocodb-sdk'
+import { FormulaDataTypes, UITypes, getEffectiveDisplayColumn, handleTZ, isFormulaNonFiniteValue } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useDetachedLongText } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
@@ -68,6 +68,14 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const hasLineBreak = computed(() => ncIsString(result.value) && result.value.includes('\n'))
+
+// The expanded form has no row height, so a multi-line result shows every line there
+const showAllLines = computed(() => hasLineBreak.value && isExpandedFormOpen.value && !isUnderLookup.value)
+
+// At one line, breaking would hide everything after the first line
+const keepLineBreaks = computed(() => showAllLines.value || (hasLineBreak.value && (rowHeight.value ?? 1) > 1))
+
 const updatedColumn = computed(() => {
   if (column.value.meta?.display_type) {
     return getEffectiveDisplayColumn(column.value.meta, column.value)
@@ -81,7 +89,12 @@ const updatedColumn = computed(() => {
 })
 
 const renderAsCell = computed(() => {
-  return !!column.value.meta?.display_type || !!column.value.colOptions?.parsed_tree?.referencedColumn
+  if (column.value.meta?.display_type) return true
+
+  const refUidt = column.value.colOptions?.parsed_tree?.referencedColumn?.uidt
+
+  // A text reference renders as plain text anyway; take the branch below so line breaks show
+  return !!refUidt && !(hasLineBreak.value && refUidt === UITypes.SingleLineText)
 })
 </script>
 
@@ -121,15 +134,18 @@ const renderAsCell = computed(() => {
         :style="{
           'display': '-webkit-box',
           'max-width': '100%',
-          '-webkit-line-clamp': rowHeight || 1,
+          '-webkit-line-clamp': showAllLines ? 'unset' : rowHeight || 1,
           '-webkit-box-orient': 'vertical',
           'overflow': 'hidden',
           'word-break': 'break-all',
+          'white-space': keepLineBreaks ? 'pre-line' : undefined,
         }"
         @click="openLongText"
       />
 
-      <LazyCellClampedText v-else :value="result" :lines="rowHeight" />
+      <div v-else-if="showAllLines" class="nc-formula-multiline whitespace-pre-line break-words">{{ result }}</div>
+
+      <LazyCellClampedText v-else :value="result" :lines="rowHeight" :preserve-line-breaks="keepLineBreaks" />
 
       <div v-if="!isUnderLookup && showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}

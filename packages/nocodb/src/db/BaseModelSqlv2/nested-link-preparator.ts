@@ -11,6 +11,7 @@ import type { Knex } from 'knex';
 import type { DisplacedRecord } from '~/command-registry/types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { extractCorrespondingLinkColumn } from '~/db/BaseModelSqlv2/add-remove-links';
+import { assertLinkIdsExist } from '~/db/BaseModelSqlv2/assert-link-ids-exist';
 import { NcError } from '~/helpers/catchError';
 import {
   dataWrapper,
@@ -179,12 +180,13 @@ export class NestedLinkPreparator {
     // The caller forwards this to `captureForTrace('displacedRecords',
     // displacedRecords)` so undo can restore the rows.
     const displacedRecords: DisplacedRecord[] = [];
+    const linkPlans: { col: Column; idsToLink: any[] }[] = [];
 
     // Link values may be keyed by id (MCP re-keys fields by id); the writes
     // below read them by title. Title and id never collide, unlike column_name.
     const linkData = { ...data };
     for (const col of nestedCols) {
-      if (!(col.title in linkData) && col.id in data) {
+      if (!Object.hasOwn(linkData, col.title) && Object.hasOwn(data, col.id)) {
         linkData[col.title] = data[col.id];
       }
     }
@@ -192,7 +194,7 @@ export class NestedLinkPreparator {
     // Nested link values are written here rather than through addLinks(), so the
     // field permission has to be applied at this chokepoint too.
     const writtenLinkColIds = nestedCols
-      .filter((col) => col.title in linkData)
+      .filter((col) => Object.hasOwn(linkData, col.title))
       .map((col) => col.id);
 
     // One call per column: checkPermission resolves a single grant with `.find()`,
@@ -208,7 +210,7 @@ export class NestedLinkPreparator {
     }
 
     for (const col of nestedCols) {
-      if (col.title in linkData) {
+      if (Object.hasOwn(linkData, col.title)) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>();
 
         const { childContext, refContext, mmContext } =
@@ -234,6 +236,24 @@ export class NestedLinkPreparator {
           }
         } catch {
           continue;
+        }
+
+        // A belongs-to may reference a non-PK column; only PK targets are checked
+        const isFkToParent =
+          !isLinkV2(col) &&
+          (colOptions.type === RelationTypes.BELONGS_TO ||
+            (colOptions.type === RelationTypes.ONE_TO_ONE && col.meta?.bt));
+        if (
+          refModelPkCol &&
+          (!isFkToParent || colOptions.fk_parent_column_id === refModelPkCol.id)
+        ) {
+          linkPlans.push({
+            col,
+            idsToLink: (Array.isArray(nestedData) ? nestedData : [nestedData])
+              .filter((r) => !ncIsNullOrUndefined(r))
+              .map((r) => extractIdPropIfObjectOrReturn(r, refModelPkCol.title))
+              .filter((id) => !ncIsNullOrUndefined(id)),
+          });
         }
 
         const refBaseModel = await Model.getBaseModelSQL(refContext, {
@@ -1009,6 +1029,11 @@ export class NestedLinkPreparator {
         });
       }
     }
+
+    // Without this, a missing id inserts the row anyway and leaves an orphan
+    // junction/FK value pointing at nothing.
+    await assertLinkIdsExist(baseModel, linkPlans);
+
     return {
       postInsertOps,
       preInsertOps,

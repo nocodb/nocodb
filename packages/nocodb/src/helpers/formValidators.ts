@@ -2,10 +2,12 @@ import dayjs from 'dayjs';
 import {
   AttachmentValidationType,
   DateValidationType,
+  isDateValidationToday,
   isLink,
   isValidPhoneNumber,
   isValidURL,
   NumberValidationType,
+  resolveDateValidationValue,
   SelectValidationType,
   StringValidationType,
   TimeValidationType,
@@ -163,6 +165,9 @@ const asDate = (input: unknown) => {
   return match ? dayjs(match[0]) : dayjs(null);
 };
 
+// `{{today}}` resolves to the server's UTC date at validation time.
+const utcToday = () => new Date().toISOString().slice(0, 10);
+
 const asTime = (input: unknown) => {
   const match =
     typeof input === 'string' ? TIME_LITERAL.exec(input) : undefined;
@@ -263,20 +268,23 @@ function evaluateRule(
     case DateValidationType.MinDate:
     case DateValidationType.MaxDate: {
       if (typeof configured !== 'string') return null;
-      const bound = asDate(configured);
+      const isToday = isDateValidationToday(configured);
+      const bound = asDate(resolveDateValidationValue(configured, utcToday()));
       const actual = asDate(value);
       if (!bound.isValid() || !actual.isValid()) return null;
       // A DateTime cell is submitted in UTC, but the renderer compares the
       // filler's local date, which can sit a day either side. The server
-      // cannot know that offset, so allow a day of slack.
-      const slackDays = column.uidt === UITypes.Date ? 0 : 1;
+      // cannot know that offset, so allow a day of slack. `{{today}}` has the
+      // same skew for Date cells (server UTC date vs the filler's local date).
+      const slackDays = column.uidt === UITypes.Date && !isToday ? 0 : 1;
+      const label = isToday ? 'today' : configured;
       if (rule.type === DateValidationType.MinDate) {
         return actual.isBefore(bound.subtract(slackDays, 'day'))
-          ? fail(`The date must be on or after ${configured}.`)
+          ? fail(`The date must be on or after ${label}.`)
           : null;
       }
       return actual.isAfter(bound.add(slackDays, 'day'))
-        ? fail(`The date must be on or before ${configured}.`)
+        ? fail(`The date must be on or before ${label}.`)
         : null;
     }
 

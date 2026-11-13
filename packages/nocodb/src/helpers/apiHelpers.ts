@@ -129,3 +129,39 @@ export function apiTokenLogHint(token?: string): string {
   const visible = token.startsWith(API_TOKEN_PREFIX) ? 12 : 4;
   return token.length > visible ? `${token.slice(0, visible)}…` : '<short>';
 }
+
+// Routes with no base in scope that a base-scoped legacy token still needs:
+// attachment upload (files are uploaded first, then written to a record), job
+// polling (bound to its owner and base in the jobs controller) and the token
+// owner's identity. Every other no-base route is refused.
+const BASE_SCOPED_TOKEN_NO_BASE_ROUTES = new Set([
+  '/api/v1/db/storage/upload',
+  '/api/v2/storage/upload',
+  '/api/v1/db/storage/upload-by-url',
+  '/api/v2/storage/upload-by-url',
+  '/jobs/listen',
+  '/auth/user/me',
+  '/api/v1/db/auth/user/me',
+  '/api/v1/auth/user/me',
+  '/api/v2/auth/user/me',
+]);
+
+// A legacy token minted on a base carries `base_id`. It fails closed: refused
+// on another base and on routes that resolve no base, except the allowlist.
+export function isOutsideApiTokenBase(
+  apiToken: { base_id?: string | null },
+  req: NcRequest,
+): boolean {
+  if (!apiToken.base_id) return false;
+  if (req.ncBaseId) return req.ncBaseId !== apiToken.base_id;
+  return !BASE_SCOPED_TOKEN_NO_BASE_ROUTES.has(req.route?.path);
+}
+
+// A base-scoped legacy token only passes base-scoped ACL checks: its own base
+// in the path must not unlock a workspace or org operation.
+export function isApiTokenBaseScopeViolation(
+  req: NcRequest,
+  scope = 'base',
+): boolean {
+  return !!req.user?.is_api_token && !!req.ncApiTokenBaseId && scope !== 'base';
+}

@@ -608,6 +608,10 @@
                       },
                       "description": "Success Message",
                       "example": "Password has been reset successfully"
+                    },
+                    "appsDisconnected": {
+                      "type": "boolean",
+                      "description": "Whether apps and tokens were disconnected. False when disconnectApps was asked for but failed; the password is reset either way."
                     }
                   }
                 },
@@ -25725,6 +25729,22 @@
             "$ref": "#/components/schemas/Meta",
             "description": "Meta Info for Kanban"
           },
+          "summary_fn": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Per-stack summary function (aggregation key)"
+          },
+          "fk_summary_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Per-stack summary calculation field"
+          },
+          "summary_label": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Per-stack summary label ({ mode, text })"
+          },
+          "summary_colors": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Per-stack summary colour rules ({ rules, default_color })"
+          },
           "title": {
             "type": "string",
             "description": "Kanban Title",
@@ -25879,6 +25899,22 @@
               "id": "stsvdmkli1b0r"
             },
             "description": "Meta Info"
+          },
+          "summary_fn": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Per-stack summary function (aggregation key)"
+          },
+          "fk_summary_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Per-stack summary calculation field"
+          },
+          "summary_label": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Per-stack summary label ({ mode, text })"
+          },
+          "summary_colors": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Per-stack summary colour rules ({ rules, default_color })"
           }
         },
         "x-stoplight": {
@@ -26751,9 +26787,8 @@
             "type": "string"
           },
           "show": {
-            "description": "Whether to show this column or not",
-            "example": 1,
-            "type": "number"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether to show this column or not"
           }
         },
         "title": "Map Column Model",
@@ -27150,6 +27185,10 @@
           }
         ],
         "properties": {
+          "disconnectApps": {
+            "description": "Also revoke OAuth grants and the user's API, MCP and app tokens. Sessions are always ended.",
+            "type": "boolean"
+          },
           "currentPassword": {
             "minLength": 8,
             "maxLength": 128,
@@ -27202,6 +27241,10 @@
           }
         ],
         "properties": {
+          "disconnectApps": {
+            "description": "Also revoke OAuth grants and the user's API, MCP and app tokens. Sessions are always ended.",
+            "type": "boolean"
+          },
           "password": {
             "description": "New password",
             "example": "newpassword",

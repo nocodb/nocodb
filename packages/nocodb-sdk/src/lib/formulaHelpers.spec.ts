@@ -642,3 +642,37 @@ describe('substituteColumnAliasWithIdInFormula', () => {
     ).toBe('IF(AND({{id1}} >= 1, {{id1}} <= 2, {{id1}} != 3), "a=b", "")');
   });
 });
+
+describe('formula id/alias substitution inside nested nodes', () => {
+  const columns = [
+    { base_id, id: 'cp', title: 'Price', uidt: UITypes.Number },
+    { base_id, id: 'cq', title: 'Qty', uidt: UITypes.Number },
+  ];
+
+  it.each([
+    ['-{cp} + 1', '-{Price} + 1'],
+    ['-{cp} * {cq}', '-{Price} * {Qty}'],
+    ['-ABS({cp})', '-ABS({Price})'],
+    ['-({cp} - 1)', '-({Price} - 1)'],
+    ['IF({cp} > 1, -{cq}, {cq})', 'IF({Price} > 1, -{Qty}, {Qty})'],
+  ])('id → title: %s', (formula, expected) => {
+    expect(substituteColumnIdWithAliasInFormula(formula, columns)).toBe(
+      expected
+    );
+  });
+
+  it('id → title falls back to the raw formula name inside a unary', () => {
+    expect(
+      substituteColumnIdWithAliasInFormula('-{gone}', columns, '-{Old}')
+    ).toBe('-{Old}');
+  });
+
+  it.each([
+    ['-{Price} + 1', '-{{cp}} + 1'],
+    ['-ABS({Price})', '-ABS({{cp}})'],
+  ])('title → id: %s', async (formula, expected) => {
+    expect(await substituteColumnAliasWithIdInFormula(formula, columns)).toBe(
+      expected
+    );
+  });
+});

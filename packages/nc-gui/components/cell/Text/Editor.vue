@@ -45,6 +45,8 @@ onMounted(() => {
 
 const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
 
+const cellAriaLabel = useCellAriaLabel()
+
 // This way special characters are updated immediately
 // which does not occur in vanilla v-model
 // See https://github.com/vuejs/vue/issues/9777
@@ -59,6 +61,7 @@ function updateInput(e: any) {
   <input
     v-if="!isExpandedFormOpen"
     :ref="focus"
+    :aria-label="cellAriaLabel"
     :value="vModel"
     :autocomplete="formFieldAutocomplete"
     class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
@@ -80,6 +83,7 @@ function updateInput(e: any) {
     :hide-scrollbar="false"
     :bordered="false"
     class="!px-2 !py-1 !min-h-7 !max-h-7.5rem resize-none nc-scrollbar-thin"
+    :aria-label="cellAriaLabel"
     style="color: inherit"
     @keydown.enter.prevent
   />

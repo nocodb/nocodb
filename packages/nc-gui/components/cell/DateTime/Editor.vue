@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { dateFormats, isJalaliFormat, isSystemColumn, parseJalaliToGregorian, timeFormats } from 'nocodb-sdk'
+import { dateFormats, isJalaliFormat, isSystemColumn, parseDateWithFormat, parseJalaliToGregorian, timeFormats } from 'nocodb-sdk'
 import { timeCellMaxWidthMap, timeFormatsObj } from './utils'
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
@@ -44,6 +44,8 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const column = inject(ColumnInj)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const isDateInvalid = ref(false)
 
 const datePickerRef = ref<HTMLInputElement>()
@@ -63,6 +65,10 @@ const timeFormat = computed(() => parseProp(column?.value?.meta)?.time_format ??
 
 const isJalali = computed(() => isJalaliFormat(dateFormat.value))
 
+// Room for the whole formatted date: a percentage of the auto-sized row left it ~66px in a
+// 200px cell, which scrolled "2026-" out of view. Sized from a sample so every format fits.
+const dateInputWidth = computed(() => `calc(${dayjs('2026-09-30').format(dateFormat.value).length + 1}ch + 8px)`)
+
 const { dayjsTz, timezonize: timezonizeDayjs } = withTimezone(column.value?.meta?.timezone)
 
 // Parse a user-typed date part into a Gregorian dayjs, honouring the Jalali
@@ -73,7 +79,7 @@ function parseTypedDate(str: string): dayjs.Dayjs | null {
     if (!g) return null
     return dayjsTz(`${g.y}-${String(g.m).padStart(2, '0')}-${String(g.d).padStart(2, '0')}`)
   }
-  const parsed = dayjs(str, dateFormat.value)
+  const parsed = parseDateWithFormat(str, dateFormat.value)
   return parsed.isValid() ? dayjsTz(str, dateFormat.value) : null
 }
 
@@ -84,6 +90,9 @@ const isClearedInputMode = ref<boolean>(false)
 const open = ref(false)
 
 const tempDate = ref<dayjs.Dayjs | undefined>()
+
+// Typed text that doesn't parse (e.g. 2023-02-30); Enter keeps the stored value.
+const isTypedInvalid = ref(false)
 
 const isDatePicker = ref<boolean>(true)
 
@@ -207,6 +216,8 @@ const isOpen = computed(() => {
 const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
   let targetValue = (e.target as HTMLInputElement).value
 
+  isTypedInvalid.value = false
+
   if (_isDatePicker) {
     if (!targetValue) {
       tempDate.value = undefined
@@ -214,6 +225,10 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
     }
 
     const date = parseTypedDate(targetValue)
+
+    isTypedInvalid.value = !date?.isValid()
+    // Drop the value an earlier keystroke parsed to, so unmount doesn't save it.
+    if (isTypedInvalid.value) tempDate.value = localState.value
 
     if (date?.isValid()) {
       if (localState.value) {
@@ -242,10 +257,13 @@ const handleUpdateValue = (e: Event, _isDatePicker: boolean, save = false) => {
           .replace(/\s+/g, ' ')
       : targetValue.trim()
 
-    const parsedDateValue = dayjs(
+    const parsedDateValue = parseDateWithFormat(
       targetValue,
       parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value,
     )
+
+    isTypedInvalid.value = !parsedDateValue.isValid()
+    if (isTypedInvalid.value) tempDate.value = localState.value
 
     if (parsedDateValue.isValid()) {
       const parsedDate = dayjsTz(
@@ -350,6 +368,8 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
     e.stopPropagation()
   }
 
+  const wasTypedInvalid = isTypedInvalid.value
+
   switch (e.key) {
     case 'Enter':
       e.preventDefault()
@@ -357,10 +377,25 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
         e.stopPropagation()
       }
 
-      localState.value = tempDate.value ?? dayjs(new Date())
+      if (wasTypedInvalid) {
+        isTypedInvalid.value = false
+        isClearedInputMode.value = false
+        ;(e.target as HTMLInputElement).value =
+          localState.value?.format(
+            _isDatePicker
+              ? dateFormat.value
+              : parseProp(column.value.meta).is12hrFormat
+              ? timeFormatsObj[timeFormat.value]
+              : timeFormat.value,
+          ) ?? ''
+      } else {
+        localState.value = tempDate.value ?? dayjs(new Date())
+      }
       if (!_isDatePicker) {
         e.stopPropagation()
         timePickerRef.value?.blur?.()
+        // Blur on the emptied time input sets tempDate to today 00:00.
+        if (wasTypedInvalid && !localState.value) tempDate.value = undefined
         isDatePicker.value = false
         datePickerRef.value?.focus?.()
         cellClickHandler()
@@ -389,7 +424,17 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
       }
 
       return
-    case 'Tab':
+    case 'Tab': {
+      // Closing re-renders the input with the stored value before blur runs, so commit typed text here
+      const shownFormat = _isDatePicker
+        ? dateFormat.value
+        : parseProp(column.value.meta).is12hrFormat
+        ? timeFormatsObj[timeFormat.value]
+        : timeFormat.value
+      const shownValue = localState.value?.format(shownFormat) ?? ''
+      if ((e.target as HTMLInputElement).value !== shownValue) {
+        handleUpdateValue(e, _isDatePicker, true)
+      }
       open.value = false
       if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
         _isDatePicker ? datePickerRef.value?.blur?.() : timePickerRef.value?.blur?.()
@@ -404,6 +449,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
       }
 
       return
+    }
     default:
       if (!_open && /^[0-9a-z]$/i.test(e.key)) {
         open.value = true
@@ -530,7 +576,8 @@ const minimizeMaxWidth = computed(() => {
         }"
       >
         <div
-          class="flex rounded-md box-border w-[60%] max-w-[110px]"
+          class="flex flex-none rounded-md box-border max-w-full"
+          :style="{ width: dateInputWidth }"
           :class="{
             'py-0': isForm,
             'py-0.5': !isForm && !isColDisabled,
@@ -540,6 +587,7 @@ const minimizeMaxWidth = computed(() => {
           <input
             v-if="!rawReadOnly"
             ref="datePickerRef"
+            :aria-label="`${cellAriaLabel ?? ''} ${$t('datatype.Date')}`.trim()"
             :value="localState?.format(dateFormat) ?? ''"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
             class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
@@ -557,7 +605,7 @@ const minimizeMaxWidth = computed(() => {
           </template>
         </div>
         <div
-          class="rounded-md box-border"
+          class="shrink min-w-0 rounded-md box-border"
           :class="[
             `${timeCellMaxWidth}`,
             {
@@ -570,6 +618,7 @@ const minimizeMaxWidth = computed(() => {
           <input
             v-if="!rawReadOnly"
             ref="timePickerRef"
+            :aria-label="`${cellAriaLabel ?? ''} ${$t('datatype.Time')}`.trim()"
             :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
             class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"

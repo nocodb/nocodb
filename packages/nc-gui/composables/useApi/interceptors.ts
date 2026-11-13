@@ -1,5 +1,6 @@
 import type { Api } from 'nocodb-sdk'
 import { type AxiosRequestConfig, type InternalAxiosRequestConfig, isAxiosError } from 'axios'
+import { markErrorPayloadShown } from '~/lib/ncMessage'
 
 declare module 'axios' {
   interface AxiosRequestConfig {
@@ -167,6 +168,7 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
         // credits, which is not a tier issue either.
         if (!error.config?.quietPaymentRequired) {
           message.warning(error.response?.data?.message || error.response?.data?.msg || 'This action is currently unavailable.')
+          markErrorPayloadShown(error.response?.data)
         }
         return Promise.reject(error)
       }

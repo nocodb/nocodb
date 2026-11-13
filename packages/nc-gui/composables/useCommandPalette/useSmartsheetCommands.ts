@@ -102,7 +102,7 @@ export function useSmartsheetCommands(ext: CmdSmartsheetExt = {}) {
 
   const { toolGroups } = useTableToolsNav()
 
-  const { exportFile } = useViewExport()
+  const { exportFile, canDownload } = useViewExport()
 
   const { canModifyView, canDeleteView, isPersonalView } = usePersonalViewPermissions(view)
 
@@ -118,7 +118,7 @@ export function useSmartsheetCommands(ext: CmdSmartsheetExt = {}) {
   /** Same rules as the sidebar's inline rename (TreeView/Views/List.vue `validate`). */
   function validateViewTitle(currentView: ViewType, title: string) {
     if (!title) return t('msg.error.viewNameRequired')
-    if (views.value.some((v) => v.title?.trim() === title && v.id !== currentView.id)) return t('msg.error.viewNameDuplicate')
+    if (isViewTitleTaken(views.value, title, currentView.id)) return t('msg.error.viewNameDuplicate')
   }
 
   /** Same rules as the sidebar's inline table rename (TreeView/Table/Node.vue validators). */
@@ -369,7 +369,7 @@ export function useSmartsheetCommands(ext: CmdSmartsheetExt = {}) {
 
     commands.push(...(ext.viewCommands?.(sections.value.view) ?? []))
 
-    if (currentView.type !== ViewTypes.FORM) {
+    if (currentView.type !== ViewTypes.FORM && canDownload.value) {
       commands.push(
         {
           id: 'view:download-csv',

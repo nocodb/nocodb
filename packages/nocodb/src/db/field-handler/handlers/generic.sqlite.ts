@@ -38,11 +38,14 @@ export class GenericSqliteFieldHandler
       for (let i = 0; i < items?.length; i++) {
         const bindings = [
           sourceField,
-          `%,${items[i]},%`,
+          `,${items[i]},`,
           sourceField,
-          `%, ${items[i]},%`,
+          `, ${items[i]},`,
         ];
-        const sql = "((',' || ?? || ',') like ? OR (',' || ?? || ',') like ?)";
+        // instr is case-sensitive; SQLite's like is not, and select options
+        // differ by case ("Lead" vs "lead").
+        const sql =
+          "(instr(',' || ?? || ',', ?) > 0 OR instr(',' || ?? || ',', ?) > 0)";
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

@@ -85,6 +85,8 @@ export class ColumnDeleteKanbanGroupByDependencyHandler
       // Strip it so the kanban UI prompts to re-select instead of grouping
       // by the deleted column.
       const view = await View.get(context, v.fk_view_id, false, ncMeta);
+      // A trashed view keeps its kanban row; nothing to strip or broadcast
+      if (!view) continue;
       const viewMeta = parseMetaProp(view) || {};
       if (viewMeta.groupingFieldColumn) {
         delete viewMeta.groupingFieldColumn;

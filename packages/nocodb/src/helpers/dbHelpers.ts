@@ -1184,15 +1184,15 @@ export const dataWrapper = (data: any) => {
       id: string;
       title: string;
     }) => {
-      if (column.column_name in data) {
+      if (Object.hasOwn(data, column.column_name)) {
         return data[column.column_name];
       }
 
-      if (column.title in data) {
+      if (Object.hasOwn(data, column.title)) {
         return data[column.title];
       }
 
-      if (column.id in data) {
+      if (Object.hasOwn(data, column.id)) {
         return data[column.id];
       }
 

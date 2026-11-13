@@ -6,7 +6,7 @@ import type { NcRequest } from '~/interface/config';
 import { ApiToken, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { getApiTokenFromHeader } from '~/helpers';
-import { apiTokenLogHint } from '~/helpers/apiHelpers';
+import { apiTokenLogHint, isOutsideApiTokenBase } from '~/helpers/apiHelpers';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
@@ -41,19 +41,11 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           return callback({ msg: 'Token has expired' });
         }
 
-        // Enforce the token's base scope. A token minted through a base-scoped
-        // endpoint carries a `base_id` and must only operate within that base;
-        // reject any request that targets a different base. Account-wide
-        // tokens leave `base_id` null and are unaffected. Requests with no
-        // resolved base (workspace/org-level routes) carry no target base to
-        // mismatch, so they are left to the normal role-based ACL.
-        if (
-          apiToken.base_id &&
-          req['ncBaseId'] &&
-          apiToken.base_id !== req['ncBaseId']
-        ) {
+        // A legacy base-scoped token (`base_id` set) stays inside its base.
+        if (isOutsideApiTokenBase(apiToken, req)) {
           return callback({ msg: 'Invalid token' });
         }
+        req.ncApiTokenBaseId = apiToken.base_id ?? null;
 
         user = {
           is_api_token: true,

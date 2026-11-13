@@ -61,6 +61,10 @@ const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const filterRef = ref()
 
+// conditions carried over from a Lookup of a new field
+// seeds the first mount only: a remount (conditions off and on) must not bring them back
+const initialFilters = ref(isEdit.value ? undefined : vModel.value.filters)
+
 const defaultEditorError = {
   isError: false,
   message: '',
@@ -76,15 +80,6 @@ const editorError = ref(defaultEditorError)
 const formulaParsedTree = ref<ParsedFormulaNode>()
 
 const isFormulaMode = computed(() => vModel.value.rollup_function === ROLLUP_FORMULA_FUNCTION)
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-// a saved formula rollup stays editable with the flag off
-const formulaAllowed = computed(
-  () =>
-    isFeatureEnabled(FEATURE_FLAG.ROLLUP_FORMULA) ||
-    (isEdit.value && vModel.value.colOptions?.rollup_function === ROLLUP_FORMULA_FUNCTION),
-)
 
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
@@ -135,8 +130,7 @@ const columns = computed<ColumnType[]>(() => {
   // a formula rollup also reads Links counts and flattens Lookup / LinkToAnotherRecord fields
   return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns?.filter(
     (c: ColumnType) =>
-      getValidRollupColumn(c) ||
-      (formulaAllowed.value && !!c.uidt && isRollupFormulaTargetColumn({ uidt: c.uidt }) && !isSystemColumn(c)),
+      getValidRollupColumn(c) || (!!c.uidt && isRollupFormulaTargetColumn({ uidt: c.uidt }) && !isSystemColumn(c)),
   )
 })
 
@@ -193,10 +187,11 @@ watch(
   { deep: true },
 )
 
-const onRelationColChange = async () => {
-  if (selectedTable.value) {
-    await getMeta({ baseId: selectedTable.value.base_id, tableIdOrTitle: selectedTable.value.id })
-  }
+watch(filterRef, (filterComponent) => {
+  if (filterComponent) initialFilters.value = undefined
+})
+
+function pickDefaultTarget() {
   const usedTargetIds = (meta.value?.columns || []).flatMap((c) =>
     isRollupColOptions(c.uidt, c.colOptions) ? [c.colOptions?.fk_rollup_column_id] : [],
   )
@@ -205,6 +200,13 @@ const onRelationColChange = async () => {
     usedTargetIds,
     (c) => !!getValidRollupColumn(c),
   )
+}
+
+const onRelationColChange = async () => {
+  if (selectedTable.value) {
+    await getMeta({ baseId: selectedTable.value.base_id, tableIdOrTitle: selectedTable.value.id })
+  }
+  pickDefaultTarget()
   onDataTypeChange()
 }
 
@@ -225,7 +227,7 @@ const availableRollupPerColumn = computed(() => {
         // links and lookups take only a formula
         .filter((func) => getValidRollupColumn(column) && getAvailableRollupForColumn(column).includes(func.value)),
       // a formula can aggregate any field
-      ...(formulaAllowed.value ? [{ text: t('datatype.Formula'), value: ROLLUP_FORMULA_FUNCTION }] : []),
+      { text: t('datatype.Formula'), value: ROLLUP_FORMULA_FUNCTION },
     ]
   })
   return fnMap
@@ -338,28 +340,43 @@ const onRollupFunctionChange = () => {
   updateFieldName()
 }
 
+function onRollupTargetChange() {
+  if (!vModel.value.fk_rollup_column_id) return
+  const childFieldColumn = columns.value?.find((column: ColumnType) => column.id === vModel.value.fk_rollup_column_id)
+
+  aggFunctionsList.value = availableRollupPerColumn.value[childFieldColumn?.id as string] || []
+
+  if (aggFunctionsList.value.length && !aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)) {
+    // when the previous roll up function was numeric type and the current child field is non-numeric
+    // reset rollup function with a non-numeric type
+    vModel.value.rollup_function = aggFunctionsList.value[0].value
+    vModel.value.rollup_function_name = aggFunctionsList.value[0].text
+  }
+
+  vModel.value.rollupColumnTitle = childFieldColumn?.title || childFieldColumn?.column_name
+
+  updateFieldName()
+}
+
+watch(() => vModel.value.fk_rollup_column_id, onRollupTargetChange, { immediate: true })
+
+// a target carried over from a Lookup is kept only if it can be aggregated;
+// checked once the linked table's fields have loaded
+let isCarriedTargetPending = !isEdit.value && !!vModel.value.fk_relation_column_id && !!vModel.value.fk_rollup_column_id
+
 watch(
-  () => vModel.value.fk_rollup_column_id,
-  () => {
-    if (!vModel.value.fk_rollup_column_id) return
-    const childFieldColumn = columns.value?.find((column: ColumnType) => column.id === vModel.value.fk_rollup_column_id)
+  columns,
+  (cols) => {
+    if (!isCarriedTargetPending || !cols?.length) return
+    isCarriedTargetPending = false
 
-    aggFunctionsList.value = availableRollupPerColumn.value[childFieldColumn?.id as string] || []
+    const target = cols.find((c) => c.id === vModel.value.fk_rollup_column_id)
+    if (target && getValidRollupColumn(target)) onRollupTargetChange()
+    else pickDefaultTarget()
 
-    if (aggFunctionsList.value.length && !aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)) {
-      // when the previous roll up function was numeric type and the current child field is non-numeric
-      // reset rollup function with a non-numeric type
-      vModel.value.rollup_function = aggFunctionsList.value[0].value
-      vModel.value.rollup_function_name = aggFunctionsList.value[0].text
-    }
-
-    vModel.value.rollupColumnTitle = childFieldColumn?.title || childFieldColumn?.column_name
-
-    updateFieldName()
+    onDataTypeChange()
   },
-  {
-    immediate: true,
-  },
+  { immediate: true },
 )
 
 watchEffect(() => {
@@ -823,6 +840,7 @@ const handleScrollIntoView = () => {
         <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
+            :model-value="initialFilters"
             class="!pl-8 !p-0"
             :auto-save="false"
             :show-loading="false"

@@ -1,6 +1,8 @@
+import { ViewTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { View } from '~/models';
-import { Column, Model } from '~/models';
+import { Column, KanbanView, Model } from '~/models';
+import { getKanbanStackFkColumnId } from '~/helpers/kanbanSummaryBuckets';
 import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
 import {
   ARRAY_QUERY_KEYS,
@@ -59,6 +61,16 @@ export async function resolveSharedViewQueryScope(
     view,
   });
   const columns = await Column.list(context, { fk_model_id: model.id });
+
+  // A link stack's per-stack totals filter on its foreign key (the link
+  // column's own filters compare the display value). It is the board's own
+  // grouping key, so filtering on it reveals nothing the stacks don't.
+  if (view.type === ViewTypes.KANBAN) {
+    const kanban = await KanbanView.get(context, view.id);
+    const stackColumn = columns.find((c) => c.id === kanban?.fk_grp_col_id);
+    const fkId = stackColumn && (await getKanbanStackFkColumnId(stackColumn));
+    if (fkId) exposedColumnIds.add(fkId);
+  }
   const aliasColObjMap = await model.getAliasColObjMap(columns);
 
   return { exposedColumnIds, columns, aliasColObjMap };
@@ -179,7 +191,9 @@ export async function restrictSharedViewQueryForView(
  *
  * `aggregation` was never a live leak: `resolveAggregateColumns` already skips
  * `show = false` columns when a viewId is present, and the public routes always
- * pass theirs. Covered here for its viewId-less branch.
+ * pass theirs. Covered here for its viewId-less branch. The exception is a
+ * Kanban view's saved stack summary, which may total a hidden field: the public
+ * bulk-aggregate serves it over the view's own filters only, never the viewer's.
  */
 export async function restrictSharedViewColumnReferences(
   context: NcContext,

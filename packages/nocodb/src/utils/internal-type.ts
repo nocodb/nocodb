@@ -47,7 +47,7 @@ export type InternalGETResponseType = Promise<
   | null
   | DataReflection
   | Integration
-  // `refTableGet` spreads the Model, so the methods and getters are gone.
+  // `refTableGet`: the link projection of a related table.
   | (TableType & { is_private: boolean })
   | Document
   | Document[]

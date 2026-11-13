@@ -11,6 +11,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj, ref())
 
+const cellAriaLabel = useCellAriaLabel()
+
 // Interface pages get the redesigned colour panel (NcColorPanel); the classic
 // data app keeps the legacy picker.
 const isInterfaceContext = useIsInterfaceUi()
@@ -124,6 +126,7 @@ watch(isOpen, (open) => {
     <!-- Editable text input for manual hex entry -->
     <input
       v-if="showHex"
+      :aria-label="cellAriaLabel"
       :value="props.modelValue || ''"
       :disabled="readOnly"
       placeholder="#FFFFFF"

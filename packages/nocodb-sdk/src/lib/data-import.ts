@@ -79,6 +79,11 @@ export interface ImportPreviewSheet {
   totalRows: number;
   /** Delimiter detected for CSV. */
   detectedDelimiter?: string;
+  /**
+   * CSV without a header row: rows with more cells than columns. The extra cells are not imported.
+   * `firstRow` is the 1-based file row of the first such row.
+   */
+  extraCellRows?: { count: number; firstRow: number };
 }
 
 export interface ImportPreviewResponse {

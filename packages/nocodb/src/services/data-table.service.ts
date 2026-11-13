@@ -1812,7 +1812,12 @@ export class DataTableService {
 
     const source = await Source.get(context, model.source_id);
 
-    if (view && view.type !== ViewTypes.GRID) {
+    // Kanban asks for one bucket per stack (per-stack summary).
+    if (
+      view &&
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN
+    ) {
       NcError.badRequest('Aggregation is only supported on grid views');
     }
 

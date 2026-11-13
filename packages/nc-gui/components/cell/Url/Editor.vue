@@ -10,6 +10,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 const column = inject(ColumnInj)!
+
+const cellAriaLabel = useCellAriaLabel()
 const editEnabled = inject(EditModeInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -94,6 +96,7 @@ const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
     <input
       :ref="focus"
       v-model="vModel"
+      :aria-label="cellAriaLabel"
       inputmode="url"
       :autocomplete="formFieldAutocomplete"
       class="nc-cell-field outline-none w-full py-1 bg-transparent h-full"

@@ -18,6 +18,7 @@ import { NcBaseError, NcError } from '~/helpers/catchError';
 import { aliasesWithoutAccount } from '~/helpers/emailAliasHelpers';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
+import { withSignupClaim } from '~/helpers/signupClaim';
 import {
   ApiToken,
   BaseUser,
@@ -268,16 +269,20 @@ export class OrgUsersService {
       if (user) {
         NcError.badRequest('User already exist');
       } else {
+        // create new user with invite token; a signup racing it fails like the check above
+        user = await withSignupClaim(
+          email,
+          () => User.getByCanonicalEmail(email),
+          () =>
+            User.insert({
+              invite_token,
+              invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              email,
+              roles: param.user.roles || OrgUserRoles.VIEWER,
+              token_version: randomTokenString(),
+            }),
+        );
         try {
-          // create new user with invite token
-          user = await User.insert({
-            invite_token,
-            invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-            email,
-            roles: param.user.roles || OrgUserRoles.VIEWER,
-            token_version: randomTokenString(),
-          });
-
           // Add user to default workspace with NO_ACCESS —
           // role management happens at workspace or base level, not org invite
           await ensureUserInDefaultWorkspace(

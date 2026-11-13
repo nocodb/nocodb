@@ -31,6 +31,7 @@ export interface ReplayBag {
   interfaceDuplicatePageIds: ReadonlyArray<string>;
   viewColumnIds: Record<string, string>;
   replaySourceBaseId: string;
+  promotedPasswordHash: string;
 }
 
 export function runInReplay<T>(fn: () => Promise<T>): Promise<T> {

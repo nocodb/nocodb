@@ -214,7 +214,7 @@ const utilization = computed(() => props.row?.[LINK_UTILIZATION_ROW_KEY] ?? null
               class="z-10 flex items-center justify-center nc-expand-item !group-hover:visible !invisible !h-7 !w-7 transition-all !hover:children:(w-4.5 h-4.5)"
               @click="onExpandClick"
             >
-              <GeneralIcon icon="maximize" class="flex-none w-4 h-4 scale-125" />
+              <GeneralIcon icon="maximize" class="flex-none w-4 h-4" />
             </button>
           </NcTooltip>
         </div>

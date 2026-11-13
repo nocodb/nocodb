@@ -175,9 +175,9 @@ export const serializeDateOrDateTimeValue = (
   }
 
   if (!parsedDateOrDateTime.isValid()) {
-    parsedDateOrDateTime = dayjs(value, getDateTimeFormat(value));
+    parsedDateOrDateTime = parseDateWithFormat(value, getDateTimeFormat(value));
     if (!parsedDateOrDateTime.isValid()) {
-      parsedDateOrDateTime = dayjs(value, getDateFormat(value));
+      parsedDateOrDateTime = parseDateWithFormat(value, getDateFormat(value));
     }
   }
 

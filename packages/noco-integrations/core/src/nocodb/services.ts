@@ -429,3 +429,31 @@ export interface IAgentsService {
     param: StartAgentRunParams,
   ): Promise<StartedAgentRun>;
 }
+
+/** A workflow of the current base, as a node's picker sees it. */
+export interface WorkflowSummary {
+  id: string;
+  title: string;
+  enabled: boolean;
+}
+
+export interface IWorkflowsService {
+  workflowList(context: NocoSDK.NcContext): Promise<WorkflowSummary[]>;
+
+  /** One workflow of this base, or null if it is not here. */
+  workflowGet(
+    context: NocoSDK.NcContext,
+    workflowId: string,
+  ): Promise<WorkflowSummary | null>;
+
+  /**
+   * `inputs` (name → expression over the workflow's steps), resolved against
+   * that workflow's step test results: sample values for an editor test.
+   * An input with nothing to read is null.
+   */
+  sampleRunInputs(
+    context: NocoSDK.NcContext,
+    workflowId: string,
+    inputs: Record<string, string>,
+  ): Promise<Record<string, unknown>>;
+}

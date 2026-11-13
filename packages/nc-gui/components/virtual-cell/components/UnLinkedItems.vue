@@ -2,6 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, isBtLikeV2Junction, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { computeLtarNewRowState } from '~/utils/dataUtils'
+import { ltarCellShapeOf } from '~/utils/ltarDeferredOps'
 import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = withDefaults(
@@ -84,7 +85,7 @@ const {
   getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
-const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
+const { addLTARRef, isNew, removeLTARRef, state: rowState, pendingLtarOps } = useSmartsheetRowStoreOrThrow()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
@@ -305,6 +306,16 @@ const addNewRecord = () => {
   isBlueprintMode.value = false
 }
 
+function expandExistingRecord(record: Record<string, any>) {
+  if (!isLinkedTableAccessible.value) return
+
+  // A New record form closed without saving leaves these set; reset them so this row opens as itself.
+  isNewRecord.value = false
+  isBlueprintMode.value = false
+  expandedFormRow.value = record
+  expandedFormDlg.value = true
+}
+
 const onCreatedRecord = (record: any) => {
   // Blueprint mode: store the record data as a blueprint in ltarState (no real record created)
   if (isBlueprintMode.value) {
@@ -317,7 +328,17 @@ const onCreatedRecord = (record: any) => {
     return
   }
 
-  addLTARRef(record, injectedColumn?.value as ColumnType)
+  // Only Create & Link links; saving an edit to a record opened from the picker must not.
+  if (isNewRecord.value) {
+    // An existing parent is linked by the child's create payload; buffering it would leave the
+    // parent's expanded form dirty with nothing to save.
+    if (isNew.value) addLTARRef(record, injectedColumn?.value as ColumnType)
+    // The single-record link is saved now; a queued edit on this field would replace it on Save.
+    else if (injectedColumn?.value && ltarCellShapeOf(injectedColumn.value) === 'single') {
+      const columnId = injectedColumn.value.id
+      pendingLtarOps.value = pendingLtarOps.value.filter((o) => o.columnId !== columnId)
+    }
+  }
 
   // The grid provides one hook for both; a grid cell's SmartsheetRow hook forwards to it
   if (reloadTrigger !== reloadViewDataTrigger) reloadTrigger?.trigger({ shouldShowLoading: false, inPlace: true })
@@ -558,13 +579,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
           :row="uItem"
           data-testid="nc-excluded-list-item-pending-unlink"
           @link-or-unlink="relinkRow(uItem)"
-          @expand="
-            () => {
-              if (!isLinkedTableAccessible) return
-              expandedFormRow = uItem
-              expandedFormDlg = true
-            }
-          "
+          @expand="expandExistingRecord(uItem)"
           @close="vModel = false"
           @keydown.space.prevent.stop="() => relinkRow(uItem)"
           @keydown.enter.prevent.stop="() => relinkRow(uItem)"
@@ -626,13 +641,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                 :row="item"
                 data-testid="nc-excluded-list-item"
                 @link-or-unlink="onClick(item, String(item._index))"
-                @expand="
-                  () => {
-                    if (!isLinkedTableAccessible) return
-                    expandedFormRow = item
-                    expandedFormDlg = true
-                  }
-                "
+                @expand="expandExistingRecord(item)"
                 @close="vModel = false"
                 @keydown.space.prevent.stop="() => onClick(item, String(item._index))"
                 @keydown.enter.prevent.stop="() => onClick(item, String(item._index))"
@@ -709,6 +718,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                 size="small"
                 class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
                 type="secondary"
+                data-testid="nc-link-record-button-new-record"
                 :disabled="!isAllowed"
                 @click="addNewRecord"
               >

@@ -256,6 +256,10 @@ watch(
         if (inheritIndex !== -1) {
           allowedRoles.value.push(...allowedRoles.value.splice(inheritIndex, 1))
         }
+
+        // Default to the highest role the inviter can grant, never a disabled one.
+        const grantable = allowedRoles.value as (ProjectRoles | WorkspaceUserRoles)[]
+        if (grantable.length && !grantable.includes(inviteData.roles)) inviteData.roles = grantable[0]!
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -300,22 +304,41 @@ const insertOrUpdateString = (str: string) => {
   emailBadges.value.push(str)
 }
 
+/** Shown in the hint line under the field once an address is committed (Enter, comma, space, blur). */
+function flagInvalidEmail(input: string) {
+  emailValidation.isError = true
+  emailValidation.message = t('msg.error.invalidEmailAddress', { email: input.trim() })
+}
+
+function clearInvalidEmail() {
+  emailValidation.isError = false
+  emailValidation.message = ''
+}
+
 const emailInputValidation = (input: string, isBulkEmailCopyPaste = false): boolean => {
   if (!input.length) {
     if (isBulkEmailCopyPaste) return false
 
-    emailValidation.isError = true
-    emailValidation.message = 'Email should not be empty'
     return false
   }
   if (!validateEmail(input.trim())) {
     if (isBulkEmailCopyPaste) return false
 
-    emailValidation.isError = true
-    emailValidation.message = 'Invalid Email'
+    flagInvalidEmail(input)
     return false
   }
   return true
+}
+
+function isExistingMember(email: string) {
+  const target = email.trim().toLowerCase()
+  const member = props.users?.find((u) => u.email?.toLowerCase() === target)
+  if (!member) return false
+
+  // The workspace invite rejects any current member except No Access, who gets upgraded instead.
+  if (props.type === 'workspace') return String(member.roles ?? '') !== WorkspaceUserRoles.NO_ACCESS
+
+  return !member.roles || member.roles.includes(inviteData.roles)
 }
 
 /** What is typed but not yet turned into a chip. */
@@ -331,7 +354,22 @@ const validRecipients = computed(() => {
 
   if (pending && validateEmail(pending) && !list.includes(pending)) list.push(pending)
 
-  return list
+  return list.filter((email) => !isExistingMember(email))
+})
+
+/** Chips the server would turn away: flagged as they are added, never sent. */
+function existingMemberMessage(email: string) {
+  let scopeLabel = 'objects.project'
+  if (props.type === 'workspace') scopeLabel = 'objects.workspace'
+  else if (props.type === 'interface' || props.type === 'app') scopeLabel = 'objects.app'
+  else if (props.type === 'organization') scopeLabel = 'general.organization'
+
+  return t('msg.userAlreadyExists', { email: email.trim(), scope: t(scopeLabel).toLowerCase() })
+}
+
+const existingMemberWarning = computed(() => {
+  const email = emailBadges.value.find(isExistingMember)
+  return email ? existingMemberMessage(email) : ''
 })
 
 /** Text still in the box that is not a sendable address yet. */
@@ -363,6 +401,7 @@ const roleCopy = (count: number) => {
  * still half-typed. Falls back to the bulk-paste hint on an empty field.
  */
 const fieldHint = computed(() => {
+  if (emailValidation.message) return emailValidation.message
   if (unsentEmail.value) return t('msg.info.keepTypingFullEmail')
 
   const count = validRecipients.value.length
@@ -393,8 +432,7 @@ const showUserWillChargedWarning = computed(() => {
     props.type !== 'app' &&
     !NON_SEAT_ROLES.includes(inviteData.roles) &&
     showUserMayChargeAlert.value &&
-    !isInviteButtonDisabled.value &&
-    !emailValidation.isError
+    !isInviteButtonDisabled.value
   )
 })
 
@@ -409,7 +447,7 @@ watch(inviteData, (newVal) => {
   const isSingleEmailValid = validateEmail(newVal.email)
   if (isSingleEmailValid && !emailBadges.value.length) {
     singleEmailValue.value = newVal.email
-    emailValidation.isError = false
+    clearInvalidEmail()
     return
   }
   singleEmailValue.value = ''
@@ -419,8 +457,7 @@ watch(inviteData, (newVal) => {
   if (isNewEmail && newVal.email.trim().length) {
     const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
     if (!validateEmail(emailToAdd)) {
-      emailValidation.isError = true
-      emailValidation.message = 'Invalid Email'
+      flagInvalidEmail(emailToAdd)
       return
     }
     /**
@@ -436,7 +473,12 @@ watch(inviteData, (newVal) => {
     inviteData.email = ''
     singleEmailValue.value = ''
   }
-  if (!newVal.email.length && emailValidation.isError) {
+  // Once flagged, re-check as they type: the message goes as soon as the text is fixed or cleared.
+  if (emailValidation.message && (!newVal.email.trim() || validateEmail(newVal.email.trim()))) {
+    clearInvalidEmail()
+  } else if (emailValidation.message) {
+    flagInvalidEmail(newVal.email)
+  } else if (!newVal.email.length && emailValidation.isError) {
     emailValidation.isError = false
   }
 })
@@ -515,33 +557,11 @@ const inviteCollaborator = async () => {
       const leftover = unsentEmail.value
 
       if (!recipients.length) {
-        emailValidation.isError = true
-        emailValidation.message = 'Invalid Email'
+        if (leftover) flagInvalidEmail(leftover)
         return
       }
 
       const payloadData = recipients.join(',')
-
-      for (const email of recipients) {
-        if (
-          props.users?.some(
-            (u) => u.email?.toLowerCase() === email.trim().toLowerCase() && (!u.roles || u.roles.includes(inviteData.roles)),
-          )
-        ) {
-          let scopeLabel = 'objects.project'
-
-          if (props.type === 'workspace') {
-            scopeLabel = 'objects.workspace'
-          } else if (props.type === 'interface' || props.type === 'app') {
-            scopeLabel = 'objects.app'
-          } else if (props.type === 'organization') {
-            scopeLabel = 'general.organization'
-          }
-
-          warningMsg.value = t('msg.userAlreadyExists', { email: email.trim(), scope: t(scopeLabel).toLowerCase() })
-          return
-        }
-      }
 
       if (props.inviteHandler) {
         await props.inviteHandler(recipients, inviteData.roles)
@@ -564,8 +584,8 @@ const inviteCollaborator = async () => {
       emailBadges.value = []
       inviteData.email = leftover
       singleEmailValue.value = ''
-      emailValidation.isError = false
-      emailValidation.message = ''
+      if (leftover) flagInvalidEmail(leftover)
+      else clearInvalidEmail()
 
       // Something is still waiting to be corrected, so the form stays open.
       if (leftover) {
@@ -676,6 +696,13 @@ const isOrgUserPickerVisible = computed(
     isDivFocused.value &&
     filteredOrgUsers.value.length > 0,
 )
+
+const onEmailInputBlur = () => {
+  isDivFocused.value = false
+  // A pick from the org-user picker doesn't blur the input (its mousedown is prevented)
+  const typed = inviteData.email.trim()
+  if (typed && !validateEmail(typed)) flagInvalidEmail(typed)
+}
 
 const selectOrgUser = (user: OrgUserListItemType) => {
   if (!user?.email) return
@@ -794,6 +821,7 @@ defineExpose({
               :class="{
                 'p-1 items-start content-start': emailBadges?.length > 0,
                 'items-center content-center': !emailBadges?.length,
+                'nc-invite-email-box-error': !!emailValidation.message,
               }"
               class="nc-invite-email-box flex flex-wrap border-1 gap-1 w-full min-h-10 max-h-[176px] overflow-y-auto nc-scrollbar-thin rounded-lg"
               tabindex="0"
@@ -804,15 +832,21 @@ defineExpose({
                 <span
                   v-for="(email, index) in emailBadges"
                   :key="email"
-                  class="nc-invite-chip border-1 border-nc-border-brand-medium text-nc-content-brand bg-nc-bg-brand rounded-md flex items-center px-1 max-w-full"
+                  class="nc-invite-chip border-1 rounded-md flex items-center px-1 max-w-full"
+                  :class="
+                    isExistingMember(email)
+                      ? 'nc-invite-chip-existing border-nc-border-red text-nc-content-red-dark bg-nc-bg-red-light'
+                      : 'border-nc-border-brand-medium text-nc-content-brand bg-nc-bg-brand'
+                  "
                 >
-                  <NcTooltip class="truncate" show-on-truncate-only>
-                    <template #title>{{ email }}</template>
+                  <NcTooltip class="truncate" :show-on-truncate-only="!isExistingMember(email)">
+                    <template #title>{{ isExistingMember(email) ? existingMemberMessage(email) : email }}</template>
                     {{ email }}
                   </NcTooltip>
                   <component
                     :is="iconMap.close"
-                    class="nc-invite-chip-close ml-0.5 hover:cursor-pointer mt-0.5 w-4 h-4 text-nc-content-brand"
+                    class="nc-invite-chip-close ml-0.5 hover:cursor-pointer mt-0.5 w-4 h-4"
+                    :class="isExistingMember(email) ? 'text-nc-content-red-dark' : 'text-nc-content-brand'"
                     @click="removeEmail(index)"
                   />
                 </span>
@@ -827,7 +861,9 @@ defineExpose({
                 class="flex-1 md:min-w-36 outline-none px-2"
                 :class="{ 'basis-full': emailBadges?.length > 0 }"
                 data-testid="email-input"
-                @blur="isDivFocused = false"
+                :aria-invalid="!!emailValidation.message"
+                aria-describedby="nc-invite-email-hint"
+                @blur="onEmailInputBlur"
                 @click="hasUserInteracted = true"
                 @keydown.down="onPickerArrowDown"
                 @keydown.up="onPickerArrowUp"
@@ -842,7 +878,14 @@ defineExpose({
               />
             </div>
 
-            <span class="nc-invite-field-hint">{{ fieldHint }}</span>
+            <span
+              id="nc-invite-email-hint"
+              class="nc-invite-field-hint"
+              :class="{ 'nc-invite-field-hint-error': !!emailValidation.message }"
+              data-testid="nc-invite-email-hint"
+            >
+              {{ fieldHint }}
+            </span>
 
             <div
               v-if="isOrgUserPickerVisible"
@@ -899,11 +942,13 @@ defineExpose({
           </div>
         </div>
         <!-- show warning if validation fails and warningMsg defined -->
-        <span v-if="warningMsg" class="ml-2 text-nc-content-red-medium -mt-2">{{ warningMsg }}</span>
-
-        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-nc-content-red-medium -mt-2">{{
-          emailValidation.message
-        }}</span>
+        <span
+          v-if="warningMsg || existingMemberWarning"
+          class="ml-2 text-nc-content-red-medium -mt-2"
+          data-testid="nc-invite-existing-warning"
+        >
+          {{ warningMsg || existingMemberWarning }}
+        </span>
 
         <template v-if="type === 'organization'">
           <NcDropdown v-model:visible="isOrgSelectMenuOpen">
@@ -989,7 +1034,7 @@ defineExpose({
       <div class="flex gap-2 items-center">
         <NcButton type="text" @click="emit('close')"> {{ $t('labels.cancel') }}</NcButton>
         <NcButton
-          :disabled="isInviteButtonDisabled || emailValidation.isError || isLoading || !!warningMsg"
+          :disabled="isInviteButtonDisabled || isLoading || !!warningMsg"
           :loading="isLoading"
           size="medium"
           type="primary"
@@ -1053,6 +1098,15 @@ defineExpose({
 
 .nc-invite-field-hint {
   @apply text-captionSm text-nc-content-gray-muted;
+}
+
+.nc-invite-field-hint-error {
+  @apply text-nc-content-red-medium;
+}
+
+.nc-invite-email-box.nc-invite-email-box-error,
+.nc-invite-email-box.nc-invite-email-box-error:focus-within {
+  @apply border-nc-border-red;
 }
 
 // :focus-within rather than a tracked flag; the flag was cleared by the blur

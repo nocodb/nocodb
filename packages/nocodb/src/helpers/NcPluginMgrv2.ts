@@ -9,6 +9,7 @@ import type {
   // XcStoragePlugin,
   // XcWebhookNotificationPlugin
 } from '~/types/nc-plugin';
+import AzureBlobPluginConfig from '~/plugins/azureBlob';
 import BackblazePluginConfig from '~/plugins/backblaze';
 import DiscordPluginConfig from '~/plugins/discord';
 import GcsPluginConfig from '~/plugins/gcs';
@@ -55,6 +56,7 @@ const defaultPlugins = [
   ScalewayPluginConfig,
   SESPluginConfig,
   R2PluginConfig,
+  AzureBlobPluginConfig,
 ];
 
 /**

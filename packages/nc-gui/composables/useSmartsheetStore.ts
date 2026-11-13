@@ -310,6 +310,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       savedFiltersForViewer.value = []
       const viewValue = view.value
       if (!viewValue?.id || isViewOperationsAllowed.value || isInterfaceSyntheticViewId(viewValue.id)) return
+      // A shared-view page has no session for the internal API; stores off the page (chat panel) follow its view too.
+      if (isPublic.value || route.value.meta?.pageType === 'shared-view') return
       if (!viewValue.fk_workspace_id || !viewValue.base_id) return
       try {
         // Every store instance on the page (tab, expanded-form panel) asks for the same list

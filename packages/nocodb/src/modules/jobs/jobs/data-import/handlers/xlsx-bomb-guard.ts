@@ -43,6 +43,7 @@ const UINT32_MAX = 0xffffffff;
 
 interface CentralEntry {
   filename: string;
+  crc32: number;
   compressedSize: number;
   uncompressedSize: number;
   localOffset: number;
@@ -163,6 +164,7 @@ function readCentralDirectory(
     const commentLen = buf.readUInt16LE(ptr + 32);
     const entry: CentralEntry = {
       filename: buf.subarray(ptr + 46, ptr + 46 + nameLen).toString('utf8'),
+      crc32: buf.readUInt32LE(ptr + 16),
       compressedSize: buf.readUInt32LE(ptr + 20),
       uncompressedSize: buf.readUInt32LE(ptr + 24),
       localOffset: buf.readUInt32LE(ptr + 42),
@@ -297,4 +299,130 @@ export async function readStreamToBuffer(
   }
 
   return Buffer.concat(chunks);
+}
+
+/** Compressed bytes and method of an entry. */
+function entryData(buf: Buffer, entry: CentralEntry) {
+  const header = entry.localOffset;
+  const dataStart =
+    header + 30 + buf.readUInt16LE(header + 26) + buf.readUInt16LE(header + 28);
+  return {
+    method: buf.readUInt16LE(header + 8),
+    data: buf.subarray(dataStart, dataStart + entry.compressedSize),
+  };
+}
+
+/** Text of one part of an archive that already passed the guard, or null. */
+export function readXlsxPart(buf: Buffer, filename: string): string | null {
+  const entry = readCentralDirectory(buf, DEFAULT_LIMITS).entries.find(
+    (e) => e.filename === filename,
+  );
+  if (!entry) return null;
+
+  const { method, data } = entryData(buf, entry);
+  if (method === 0) return data.toString('utf8');
+  return zlib
+    .inflateRawSync(data, {
+      maxOutputLength: Math.max(entry.uncompressedSize, 1),
+    })
+    .toString('utf8');
+}
+
+interface ZipPart {
+  filename: string;
+  method: number;
+  crc32: number;
+  data: Buffer;
+  uncompressedSize: number;
+}
+
+function writeZip(parts: ZipPart[]): Buffer {
+  const out: Buffer[] = [];
+  const central: Buffer[] = [];
+  let offset = 0;
+
+  for (const part of parts) {
+    const name = Buffer.from(part.filename, 'utf8');
+    const local = Buffer.alloc(30 + name.length);
+    local.writeUInt32LE(LOCAL_FILE_HEADER_SIGNATURE, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0x0800, 6); // UTF-8 names
+    local.writeUInt16LE(part.method, 8);
+    local.writeUInt32LE(part.crc32 >>> 0, 14);
+    local.writeUInt32LE(part.data.length, 18);
+    local.writeUInt32LE(part.uncompressedSize, 22);
+    local.writeUInt16LE(name.length, 26);
+    name.copy(local, 30);
+
+    const entry = Buffer.alloc(46 + name.length);
+    entry.writeUInt32LE(CENTRAL_FILE_HEADER_SIGNATURE, 0);
+    entry.writeUInt16LE(20, 4);
+    entry.writeUInt16LE(20, 6);
+    entry.writeUInt16LE(0x0800, 8);
+    entry.writeUInt16LE(part.method, 10);
+    entry.writeUInt32LE(part.crc32 >>> 0, 16);
+    entry.writeUInt32LE(part.data.length, 20);
+    entry.writeUInt32LE(part.uncompressedSize, 24);
+    entry.writeUInt16LE(name.length, 28);
+    entry.writeUInt32LE(offset, 42);
+    name.copy(entry, 46);
+
+    out.push(local, part.data);
+    central.push(entry);
+    offset += local.length + part.data.length;
+  }
+
+  const cd = Buffer.concat(central);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(EOCD_SIGNATURE, 0);
+  eocd.writeUInt16LE(parts.length, 8);
+  eocd.writeUInt16LE(parts.length, 10);
+  eocd.writeUInt32LE(cd.length, 12);
+  eocd.writeUInt32LE(offset, 16);
+  return Buffer.concat([...out, cd, eocd]);
+}
+
+const READ_FIRST_PARTS = [
+  'xl/workbook.xml',
+  'xl/_rels/workbook.xml.rels',
+  'xl/styles.xml',
+  'xl/sharedStrings.xml',
+];
+const WORKSHEET_PART = /^xl\/worksheets\/sheet\d+\.xml$/;
+const EMPTY_SHARED_STRINGS = Buffer.from(
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="0" uniqueCount="0"/>',
+);
+
+/**
+ * Only the parts exceljs reads, with the worksheets last. exceljs defers a
+ * worksheet that comes before sharedStrings to a temp file, and its unzipper
+ * then ends the archive early, dropping the sheets and parts after it.
+ */
+export function repackXlsxForStreaming(buf: Buffer): Buffer {
+  const { entries } = readCentralDirectory(buf, DEFAULT_LIMITS);
+  const toPart = (entry: CentralEntry): ZipPart => ({
+    ...entryData(buf, entry),
+    filename: entry.filename,
+    crc32: entry.crc32,
+    uncompressedSize: entry.uncompressedSize,
+  });
+
+  const parts: ZipPart[] = [];
+  for (const filename of READ_FIRST_PARTS) {
+    const entry = entries.find((e) => e.filename === filename);
+    if (entry) parts.push(toPart(entry));
+    else if (filename === 'xl/sharedStrings.xml') {
+      parts.push({
+        filename,
+        method: 0,
+        crc32: zlib.crc32(EMPTY_SHARED_STRINGS),
+        data: EMPTY_SHARED_STRINGS,
+        uncompressedSize: EMPTY_SHARED_STRINGS.length,
+      });
+    }
+  }
+  for (const entry of entries) {
+    if (WORKSHEET_PART.test(entry.filename)) parts.push(toPart(entry));
+  }
+  return writeZip(parts);
 }

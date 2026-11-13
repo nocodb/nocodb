@@ -653,34 +653,35 @@ export const relationDataFetcher = (param: {
         const hmCountSoftDeleteFilter =
           await childBaseModel.getSoftDeleteFilter();
 
-        const children = await execPerIdChunk(ids, (idChunk) =>
-          childBaseModel.execAndParse(
+        const children = await execPerIdChunk(ids, async (idChunk) => {
+          const members: ReturnType<typeof wrapUnionMember>[] = [];
+          for (const p of idChunk) {
+            const query = baseModel
+              .dbDriver(childTn)
+              .count(`${childCol?.column_name} as count`)
+              .whereIn(
+                childCol.column_name,
+                baseModel
+                  .dbDriver(parentTn)
+                  .select(parentCol.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, p)),
+              )
+              .first();
+
+            if (hmCountSoftDeleteFilter) query.where(hmCountSoftDeleteFilter);
+            await applyRelatedRls(childBaseModel, query);
+
+            members.push(wrapUnionMember(childBaseModel, query));
+          }
+          return childBaseModel.execAndParse(
             childBaseModel.dbDriver.unionAll(
-              idChunk.map((p) => {
-                const query = baseModel
-                  .dbDriver(childTn)
-                  .count(`${childCol?.column_name} as count`)
-                  .whereIn(
-                    childCol.column_name,
-                    baseModel
-                      .dbDriver(parentTn)
-                      .select(parentCol.column_name)
-                      // .where(parentTable.primaryKey.cn, p)
-                      .where(_wherePk(parentTable.primaryKeys, p)),
-                  )
-                  .first();
-
-                if (hmCountSoftDeleteFilter)
-                  query.where(hmCountSoftDeleteFilter);
-
-                return wrapUnionMember(childBaseModel, query);
-              }),
+              members,
               !needsUnionMemberWrap(childBaseModel),
             ),
             null,
             { raw: true },
-          ),
-        );
+          );
+        });
 
         return children.map(({ count }) => count);
       } catch (e) {
@@ -1367,6 +1368,7 @@ export const relationDataFetcher = (param: {
         baseModel.context,
         refTable.id,
       );
+      const pkAndPvOnly = relColOptions.isCrossBaseLink() || hasLimitedAccess;
 
       if (refView) {
         const { dependencyFields } = await getAst(refContext, {
@@ -1374,9 +1376,10 @@ export const relationDataFetcher = (param: {
           // Honor explicit `fields` so a view-hidden requested column is still
           // returned. Limited-access still collapses to pk/pv below.
           query: { fields: (args as any)?.fields },
-          view: hasLimitedAccess ? null : refView,
+          view: pkAndPvOnly ? null : refView,
           throwErrorIfInvalidParams: false,
-          extractOnlyPrimaries: hasLimitedAccess,
+          // fieldsSet entries pass selectObject's pkAndPvOnly filter
+          extractOnlyPrimaries: pkAndPvOnly,
           allowRequestedHiddenFields: true,
         });
         listArgs = dependencyFields;
@@ -1418,7 +1421,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: listArgs?.fieldsSet,
         viewId: refView?.id,
-        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        pkAndPvOnly,
         fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 

@@ -65,6 +65,7 @@ import rolePermissions, {
   sourceRestrictions,
 } from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
+import { isApiTokenBaseScopeViolation } from '~/helpers/apiHelpers';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { RootScopes } from '~/utils/globals';
@@ -179,6 +180,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const kanbanViewId = params.kanbanViewId || query.kanbanViewId;
       const galleryViewId = params.galleryViewId || query.galleryViewId;
       const calendarViewId = params.calendarViewId || query.calendarViewId;
+      const mapViewId = params.mapViewId || query.mapViewId;
       const publicDataUuid = params.publicDataUuid || query.publicDataUuid;
       const sharedViewUuid = params.sharedViewUuid || query.sharedViewUuid;
       const sharedBaseUuid = params.sharedBaseUuid || query.sharedBaseUuid;
@@ -253,7 +255,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         gridViewId ||
         kanbanViewId ||
         galleryViewId ||
-        calendarViewId
+        calendarViewId ||
+        mapViewId
       ) {
         const view = await View.get(
           context,
@@ -261,7 +264,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
             gridViewId ||
             kanbanViewId ||
             galleryViewId ||
-            calendarViewId,
+            calendarViewId ||
+            mapViewId,
         );
 
         if (!view) {
@@ -270,7 +274,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
               gridViewId ||
               kanbanViewId ||
               galleryViewId ||
-              calendarViewId,
+              calendarViewId ||
+              mapViewId,
           );
         }
 
@@ -648,7 +653,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       params.gridViewId ||
       params.kanbanViewId ||
       params.galleryViewId ||
-      params.calendarViewId
+      params.calendarViewId ||
+      params.mapViewId
     ) {
       view = await View.get(
         context,
@@ -656,7 +662,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           params.gridViewId ||
           params.kanbanViewId ||
           params.galleryViewId ||
-          params.calendarViewId,
+          params.calendarViewId ||
+          params.mapViewId,
       );
 
       if (!view) {
@@ -665,7 +672,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
             params.gridViewId ||
             params.kanbanViewId ||
             params.galleryViewId ||
-            params.calendarViewId,
+            params.calendarViewId ||
+            params.mapViewId,
         );
       }
 
@@ -1233,6 +1241,10 @@ export class AclMiddleware implements NestInterceptor {
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);
 
     if (req?.user?.is_api_token && blockApiTokenAccess) {
+      NcError.apiTokenNotAllowed();
+    }
+
+    if (isApiTokenBaseScopeViolation(req, scope)) {
       NcError.apiTokenNotAllowed();
     }
 

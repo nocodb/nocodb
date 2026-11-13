@@ -213,6 +213,35 @@ export const isBooleanFormulaType = (dataType?: FormulaDataTypes | string) =>
 export const pgBooleanAsNumberSql = (sql: string) =>
   `COALESCE((${sql})::int, 0)`;
 
+const INVALID_JSON_PATH_MESSAGE =
+  "Invalid JSON path in JSON_EXTRACT. Use a path like '.key' or '$.key'.";
+
+// Database errors that only a formula expression can raise, as a message that
+// names the formula problem instead of a column-write one.
+export const formulaDbErrorMessage = (e: {
+  code?: string;
+  message?: string;
+}): string | undefined => {
+  switch (e?.code) {
+    // pg numeric_value_out_of_range, mysql's DOUBLE/BIGINT overflow
+    case '22003':
+    case 'ER_DATA_OUT_OF_RANGE':
+      return 'Formula result is too large or too small to represent.';
+    // pg invalid_argument_for_logarithm / _for_power_function
+    case '2201E':
+    case '2201F':
+      return 'Formula uses a value outside the domain of a math function.';
+    case 'ER_INVALID_JSON_PATH':
+    case 'ER_INVALID_JSON_PATH_CHARSET':
+      return INVALID_JSON_PATH_MESSAGE;
+    case '42601':
+      return /jsonpath/i.test(e.message ?? '')
+        ? INVALID_JSON_PATH_MESSAGE
+        : undefined;
+  }
+  return undefined;
+};
+
 // A single list argument, e.g. `{Tasks}.{Hours}.SUM()` or `AVG({Lookup})`
 export const isListAggregateCall = (pt: any): boolean =>
   pt?.type === JSEPNode.CALL_EXP &&

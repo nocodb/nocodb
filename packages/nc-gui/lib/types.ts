@@ -139,6 +139,13 @@ interface Row {
     commentCount?: number
     changed?: boolean
     saving?: boolean
+    // Esc cancelled the edit; the next queued autosave must not re-send it.
+    skipPendingAutosave?: boolean
+    // Set when this edit's autosave sent a value; Esc then writes the original back on close.
+    autosavedDuringEdit?: boolean
+    writeBackOnClose?: boolean
+    // Field titles whose edit failed offline and is queued for retry
+    unsavedOffline?: Record<string, boolean>
     // Buffered links for a NEW (not-yet-created) record — persisted via the create
     // payload on save. Existing-row deferred edits use the row store's pendingLtarOps
     // queue instead (#14013, #14058).
@@ -747,6 +754,8 @@ interface CellRendererOptions {
     tagSpacing?: number
     tagBorderColor?: string
     tagBorderWidth?: number
+    /** Tag text split into pieces; pieces with a `url` render as links */
+    tagSegments?: Array<{ text: string; url?: string }>
   }
   disabled?: {
     isInvalid: boolean
@@ -996,6 +1005,8 @@ type CanvasEditEnabledType = {
   fixed: boolean
   path: Array<number>
   isCellEditable?: boolean
+  // The cell value when editing started; Esc restores it.
+  originalValue?: unknown
 } | null
 
 type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>

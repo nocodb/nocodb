@@ -59,7 +59,7 @@ const viewModeInfo = computed(() => {
 
 <template>
   <div
-    class="flex flex-row items-center border-nc-border-gray-extralight transition-all duration-100 select-none"
+    class="flex flex-row items-center min-w-0 border-nc-border-gray-extralight transition-all duration-100 select-none"
     :class="{
       'text-base w-[calc(100%_-_52px)]': isMobileMode,
       'w-[calc(100%_-_44px)]': !isMobileMode && !isLeftSidebarOpen,
@@ -82,7 +82,7 @@ const viewModeInfo = computed(() => {
       <SmartsheetTopbarTableListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-nc-content-inverted-secondary font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis) flex items-center gap-1 cursor-pointer"
+            class="rounded-lg h-8 px-2 min-w-0 text-nc-content-inverted-secondary font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
@@ -137,7 +137,7 @@ const viewModeInfo = computed(() => {
           :overlay-inner-style="{ width: '240px' }"
           trigger="hover"
           placement="bottom"
-          class="flex"
+          class="flex min-w-0"
           :disabled="isOpen"
           :mouse-enter-delay="0.5"
           :class="{
@@ -186,7 +186,7 @@ const viewModeInfo = computed(() => {
             </div>
           </template>
           <div
-            class="rounded-lg h-8 px-2 text-nc-content-gray font-semibold hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis) flex items-center gap-1 cursor-pointer"
+            class="rounded-lg h-8 px-2 min-w-0 text-nc-content-gray font-semibold hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': !isSharedBase || isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,

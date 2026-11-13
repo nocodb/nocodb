@@ -3328,6 +3328,10 @@ class PGClient extends KnexClient {
           query += pgQueries.localeNumberFunction.default.sql;
         }
 
+        if (n.uidt === UITypes.JSON) {
+          query += pgQueries.jsonConversionFunction.default.sql;
+        }
+
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? TYPE ${this.sanitiseDataType(
             n.dt,
@@ -3340,10 +3344,8 @@ class PGClient extends KnexClient {
         if (n.uidt === UITypes.AutoNumber && n.ai && !o.ai) {
           query += this.genQuery(`0::bigint;\n`, [], shouldSanitize);
         } else {
-          const castedColumn = formatColumn(
-            this.genQuery('??', [n.cn], shouldSanitize),
-            o.uidt,
-          );
+          const rawColumn = this.genQuery('??', [n.cn], shouldSanitize);
+          const castedColumn = formatColumn(rawColumn, o.uidt);
           const limit = typeof n.dtxp === 'number' ? n.dtxp : null;
           const castQuery = generateCastQuery({
             uidt: n.uidt,
@@ -3354,6 +3356,9 @@ class PGClient extends KnexClient {
             durationType: n.meta?.duration ?? 0,
             meta: n.meta,
             sourceUidt: o.uidt,
+            rawSource: rawColumn,
+            sourceDt: o.dt,
+            sourceMeta: o.meta,
           });
 
           query += this.genQuery(castQuery, [], shouldSanitize);

@@ -1,11 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { isFormHiddenColumn, ViewTypes } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
   ColumnType,
   FormColumnType,
   FormType,
   HookType,
+  UserType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import {
@@ -16,6 +17,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { MailEvent } from '~/interface/Mail';
 import { Base, FormView, Hook, Model, View } from '~/models';
 import { getUsersWithBaseAccess } from '~/helpers/baseAccessHelpers';
+import { getFormResponseCopyRecipient } from '~/helpers/formResponseCopy';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
@@ -72,7 +74,13 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           emails = emails.filter((email) => members.has(email.toLowerCase()));
         }
 
-        if (emails?.length) {
+        const submitterEmail = await this.getResponseCopyRecipient(context, {
+          hookName,
+          formView,
+          user,
+        });
+
+        if (emails?.length || submitterEmail) {
           const { columns } = await FormView.getWithInfo(
             context,
             formView.fk_view_id,
@@ -86,7 +94,9 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           );
           let order = 1;
           const filteredColumns = allColumns
-            ?.map((c: ColumnType) => {
+            // Before the merge below: the form column's meta replaces the field's
+            ?.filter((c) => !isFormHiddenColumn(c))
+            .map((c: ColumnType) => {
               return {
                 ...c,
                 fk_column_id: c.id,
@@ -97,17 +107,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
               };
             })
             .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
-            .filter(
-              (f: ColumnType & FormColumnType) =>
-                f.show &&
-                f.uidt !== UITypes.Rollup &&
-                f.uidt !== UITypes.Lookup &&
-                f.uidt !== UITypes.Formula &&
-                f.uidt !== UITypes.QrCode &&
-                f.uidt !== UITypes.Barcode &&
-                f.uidt !== UITypes.SpecificDBType &&
-                f.uidt !== UITypes.Button,
-            )
+            .filter((f: ColumnType & FormColumnType) => f.show)
             .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
             .map((c: ColumnType & FormColumnType) => {
               c.required = !!(c.required || 0);
@@ -123,16 +123,49 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
           formView.title = view.title;
           const base = await Base.get(context, model.base_id);
 
-          await this.mailService.sendMail({
-            mailEvent: MailEvent.FORM_SUBMISSION,
-            payload: {
-              formView: formView as FormType,
-              base,
-              emails,
-              model,
-              data: formattedData,
-            },
-          });
+          // Sent independently: one failing must not drop the other
+          if (emails?.length) {
+            await this.mailService
+              .sendMail({
+                mailEvent: MailEvent.FORM_SUBMISSION,
+                payload: {
+                  formView: formView as FormType,
+                  base,
+                  emails,
+                  model,
+                  data: formattedData,
+                },
+              })
+              .catch((e) =>
+                this.logger.error({
+                  error: e,
+                  details: 'Error while sending form submission email',
+                  hookName,
+                }),
+              );
+          }
+
+          if (submitterEmail) {
+            await this.mailService
+              .sendMail({
+                mailEvent: MailEvent.FORM_SUBMISSION,
+                payload: {
+                  formView: formView as FormType,
+                  base,
+                  emails: [submitterEmail],
+                  model,
+                  data: formattedData,
+                  submitterCopy: true,
+                },
+              })
+              .catch((e) =>
+                this.logger.error({
+                  error: e,
+                  details: 'Error while sending form response copy',
+                  hookName,
+                }),
+              );
+          }
         }
       } catch (e) {
         this.logger.error({
@@ -177,6 +210,36 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
         }
       }
     }
+  }
+
+  /**
+   * The signed-in submitter of a require-sign-in form that sends response
+   * copies. Only those forms carry a verified identity; on any other form the
+   * user is anonymous or cleared.
+   */
+  protected async getResponseCopyRecipient(
+    context: NcContext,
+    {
+      hookName,
+      formView,
+      user,
+    }: {
+      hookName: string;
+      formView: FormView;
+      user?: UserType;
+    },
+  ): Promise<string | null> {
+    if (hookName !== 'after.insert') return null;
+    return getFormResponseCopyRecipient(context, {
+      formView,
+      user,
+      isFeatureEnabled: () => this.canSendResponseCopy(context),
+    });
+  }
+
+  /** Response copies ride on require sign-in, which CE doesn't have */
+  protected async canSendResponseCopy(_context: NcContext): Promise<boolean> {
+    return false;
   }
 
   onModuleInit(): any {

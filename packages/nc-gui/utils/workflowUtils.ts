@@ -2,12 +2,21 @@ import type { Edge, Node } from '@vue-flow/core'
 import dayjs from 'dayjs'
 import type {
   IWorkflowExecution,
+  VariableDefinition,
   WorkflowExecutionStatus,
+  WorkflowGeneralEdge,
   WorkflowGeneralNode,
   WorkflowNodeDefinition,
   WorkflowType,
 } from 'nocodb-sdk'
-import { GeneralNodeID, INIT_WORKFLOW_NODES, TRIGGER_MAX_CHAIN_DEPTH, WorkflowNodeCategory, WorkflowSkipReason } from 'nocodb-sdk'
+import {
+  GeneralNodeID,
+  INIT_WORKFLOW_NODES,
+  TRIGGER_MAX_CHAIN_DEPTH,
+  WorkflowNodeCategory,
+  WorkflowSkipReason,
+  withListVariables,
+} from 'nocodb-sdk'
 import { generateRandomUUID } from '~/utils/generateName'
 import type { IconMapKey } from '~/utils/iconUtils'
 import { getI18n } from '~/plugins/a.i18n'
@@ -74,6 +83,10 @@ const generateTriggerId = (): string => {
 interface UIWorkflowNodeDefinition extends WorkflowNodeDefinition {
   input?: number
   output?: number
+  locked?: boolean
+  requiredPlan?: string
+  /** `config.mode` values this plan can't use, each with the plan that unlocks it. */
+  lockedModes?: Record<string, string>
 }
 
 function transformNode(backendNode: WorkflowNodeDefinition): UIWorkflowNodeDefinition {
@@ -614,7 +627,84 @@ function getWorkflowLoops(nodes: Pick<Node, 'id' | 'type'>[], edges: Pick<Edge, 
   return loops
 }
 
+/** Ids of the steps inside an Iterate body: a run keeps a result per item for them, not one. */
+const getLoopBodyNodeIds = (nodes: WorkflowGeneralNode[], edges: WorkflowGeneralEdge[]) => {
+  // AI-built graphs may carry only sourcePortId.
+  const flowEdges = edges.map((edge) => ({ ...edge, sourceHandle: edge.sourceHandle ?? edge.sourcePortId }))
+  return new Set(getWorkflowLoops(nodes, flowEdges).flatMap((loop) => [...loop.bodyNodeIds]))
+}
+
+const RUN_STEP_PLACEHOLDERS = new Set<string>([GeneralNodeID.TRIGGER, GeneralNodeID.PLUS, GeneralNodeID.NOTE])
+
+/**
+ * Why an input of a "When another workflow completes" trigger can't read the
+ * other workflow: each `$('Step')` it names that is gone, or inside a loop.
+ */
+const getRunStepReferenceIssues = (
+  value: string,
+  nodes: WorkflowGeneralNode[],
+  edges: WorkflowGeneralEdge[],
+): Array<{ step: string; reason: 'missing' | 'inLoop' }> => {
+  const loopBody = getLoopBodyNodeIds(nodes, edges)
+  // `$('…')` reads a step by its title only, as the run does. Titles aren't
+  // unique: a title is in a loop only if no step outside one has it.
+  const titled = nodes.filter((node) => !RUN_STEP_PLACEHOLDERS.has(node.type) && node.data?.title)
+  const titles = new Set(titled.map((node) => node.data!.title as string))
+  const outsideLoop = new Set(titled.filter((node) => !loopBody.has(node.id)).map((node) => node.data!.title as string))
+  // Read the title the way the expression parser does: `$('Bob\'s step')` names "Bob's step".
+  const steps = new Set(
+    [...value.matchAll(/\$\(\s*(['"])((?:\\.|(?!\1)[^\\])*)\1\s*\)/g)].map((match) => match[2]!.replace(/\\(.)/g, '$1')),
+  )
+  return [...steps].flatMap((step) => {
+    if (!titles.has(step)) return [{ step, reason: 'missing' as const }]
+    return outsideLoop.has(step) ? [] : [{ step, reason: 'inLoop' as const }]
+  })
+}
+
+/**
+ * Picker groups for another workflow's steps, as one of its runs keeps them.
+ * A step inside an Iterate body has a result per item, not one, so it is left
+ * out; an Iterate step offers only what it has once done.
+ */
+const getRunStepVariableGroups = (
+  nodes: WorkflowGeneralNode[],
+  edges: WorkflowGeneralEdge[],
+  getNodeMeta: (type: string) => UIWorkflowNodeDefinition | null,
+) => {
+  const loopBody = getLoopBodyNodeIds(nodes, edges)
+
+  return nodes
+    .filter((node) => !RUN_STEP_PLACEHOLDERS.has(node.type) && !loopBody.has(node.id))
+    .flatMap((node) => {
+      const outputVariables: VariableDefinition[] = node.data?.testResult?.outputVariables ?? []
+      const variables =
+        node.type === 'core.flow.iterate' ? outputVariables.filter((v) => v.extra?.port !== 'body') : outputVariables
+      // An untitled step can't be read: `$('…')` finds steps by title.
+      const title = node.data?.title
+      if (!variables.length || !title) return []
+
+      const meta = getNodeMeta(node.type)
+      const prefix = `$('${title.replace(/[\\']/g, '\\$&')}')`
+      return [
+        {
+          nodeId: node.id,
+          nodeTitle: title,
+          stepTitle: title,
+          nodeIcon: meta?.icon,
+          category: meta?.category ?? WorkflowNodeCategory.ACTION,
+          isEnclosingLoop: false,
+          variables: variables.map((v) => ({
+            ...prefixVariableKeysRecursive(withListVariables(v), prefix),
+            extra: { ...v.extra, sourceNodeId: node.id, sourceNodeTitle: title, nodeIcon: meta?.icon },
+          })),
+        },
+      ]
+    })
+}
+
 export {
+  getRunStepReferenceIssues,
+  getRunStepVariableGroups,
   getWorkflowLoops,
   getWorkflowNodeIconClass,
   isWorkflowFailing,

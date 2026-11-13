@@ -57,6 +57,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
     knex: CustomKnex,
     needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder,
     users: Awaited<ReturnType<typeof BaseUser.getUsersList>>,
+    isPublic = false,
   ): Promise<string> {
     return escapeBindingPlaceholders(
       this.replaceDelimitedWithKeyValue({
@@ -64,7 +65,10 @@ export class UserGeneralHandler extends GenericFieldHandler {
         needleColumn,
         stack: users.map((user) => ({
           key: user.id,
-          value: user.display_name || user.email,
+          // Public responses show the derived name, never the email.
+          value: isPublic
+            ? extractDisplayNameFromEmail(user.email ?? '', user.display_name)
+            : user.display_name || user.email,
         })),
       }),
     );
@@ -110,6 +114,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
       knex,
       columnName,
       baseUsers,
+      !!context?.is_public,
     );
     qb.orderBy(sanitize(knex.raw(expr)), direction, nulls);
   }

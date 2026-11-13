@@ -7,6 +7,7 @@ import { getEffectiveDisplayColumn } from '../utils/get-effective-display-column
 import { ComputedTypePasteError } from '~/lib/error';
 import { FormulaDataTypes } from '~/lib/formula/enums';
 import { isFormulaNonFiniteValue } from '~/lib/formula/non-finite';
+import { unwrapFormulaUrls } from '~/lib/formula/url-markup';
 import { ncIsNaN } from '~/lib/is';
 
 export class FormulaHelper extends AbstractColumnHelper {
@@ -61,6 +62,11 @@ export class FormulaHelper extends AbstractColumnHelper {
     // display column's parser would mangle them. Governs CSV export too.
     if (isFormulaNonFiniteValue(value)) return value;
 
-    return this.parseValue(value, params) ?? '';
+    return (
+      this.parseValue(
+        typeof value === 'string' ? unwrapFormulaUrls(value) : value,
+        params
+      ) ?? ''
+    );
   }
 }

@@ -16,7 +16,7 @@ interface Emits {
 
   (event: 'selectIcon', icon: string): void
 
-  (event: 'changeView', view: Record<string, any>): void
+  (event: 'changeView', view: Record<string, any>, newTab?: boolean): void
 
   (event: 'rename', view: ViewType, title: string | undefined): void
 
@@ -131,13 +131,13 @@ const onClick = useDebounceFn(() => {
   emits('changeView', vModel.value)
 }, 250)
 
-const handleOnClick = () => {
+const handleOnClick = (e?: MouseEvent) => {
   if (isEditing.value || isStopped.value) return
 
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-  if (cmdOrCtrl) {
-    emits('changeView', vModel.value)
+  if (cmdOrCtrl || isNewTabClick(e)) {
+    emits('changeView', vModel.value, true)
   } else {
     onClick()
   }
@@ -326,6 +326,7 @@ watch(isDropdownOpen, async () => {
     :style="indentStyle"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @click.prevent="handleOnClick"
+    @auxclick.middle.prevent="handleOnClick"
   >
     <NcTooltip
       :tooltip-style="{ width: '240px', zIndex: '1049' }"

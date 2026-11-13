@@ -1,9 +1,19 @@
 import dayjs from 'dayjs';
+import type { Knex } from 'knex';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import { NC_REFRESH_TOKEN_EXP_IN_DAYS } from '~/constants';
+import { secretEquals, sha256Hex } from '~/helpers/sha256';
+
+// The row a presented token names. `token` is still written by every pod, so it
+// wins over the hash: a pod on the previous image rotates `token` only, which
+// would leave the hash of the token it replaced.
+const presentedTokenCondition = (token: string) => (qb: Knex.QueryBuilder) =>
+  qb
+    .where('token', token)
+    .orWhere((q) => q.whereNull('token').where('token_hash', sha256Hex(token)));
 
 export default class UserRefreshToken {
   fk_user_id: string;
@@ -54,7 +64,7 @@ export default class UserRefreshToken {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
-      insertObj,
+      { ...insertObj, token_hash: sha256Hex(insertObj.token) },
       true,
     );
     return insertObj;
@@ -72,33 +82,36 @@ export default class UserRefreshToken {
     newToken: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    // `metaUpdate` keys the UPDATE on `{ token: oldToken }` and returns the
-    // rows-affected count, so the compare-and-swap is at the SQL level. Prefer
-    // it over raw knex for the scope checks and `updated_at` stamping.
+    if (typeof oldToken !== 'string' || !oldToken) return 0;
+
+    // `metaUpdate` returns the rows-affected count, so the compare-and-swap is
+    // at the SQL level. Prefer it over raw knex for the scope checks and
+    // `updated_at` stamping.
     const affected = await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
       {
         token: newToken,
+        token_hash: sha256Hex(newToken),
         expires_at: dayjs().add(NC_REFRESH_TOKEN_EXP_IN_DAYS, 'day').toDate(),
       },
-      {
-        token: oldToken,
-      },
+      {},
+      presentedTokenCondition(oldToken),
     );
 
     return Number(affected) || 0;
   }
 
   static async deleteToken(token: string, ncMeta = Noco.ncMeta) {
+    if (typeof token !== 'string' || !token) return 0;
+
     return await ncMeta.metaDelete(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
-      {
-        token,
-      },
+      {},
+      presentedTokenCondition(token),
     );
   }
 
@@ -117,16 +130,31 @@ export default class UserRefreshToken {
     token: string,
     ncMeta = Noco.ncMeta,
   ): Promise<UserRefreshToken> {
-    const userToken = await ncMeta.metaGet2(
+    if (typeof token !== 'string' || !token) return null;
+
+    let userToken = await ncMeta.metaGet2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USER_REFRESH_TOKENS,
-      {
-        token,
-      },
+      { token_hash: sha256Hex(token) },
+    );
+
+    // A stale hash: a pod on the previous image rotated `token` past it.
+    if (userToken?.token != null && !secretEquals(userToken.token, token)) {
+      userToken = null;
+    }
+
+    // Rows issued before the hash column, until the backfill job reaches them.
+    userToken ??= await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USER_REFRESH_TOKENS,
+      { token },
     );
 
     if (!userToken) return null;
+
+    delete userToken.token_hash;
 
     userToken.meta = parseMetaProp(userToken);
 

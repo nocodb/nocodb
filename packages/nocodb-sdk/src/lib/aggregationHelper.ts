@@ -165,6 +165,35 @@ const getAvailableAggregations = (
   return returnAggregations;
 };
 
+const FIELD_FORMATTED_AGGREGATION_UIDTS: string[] = [
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Rollup,
+  UITypes.Time,
+];
+
+/**
+ * Whether `formatAggregation` formats this result with the field's own
+ * precision and separators (a formula through its display type).
+ */
+const isFieldFormattedAggregation = (
+  column: Pick<ColumnType, 'uidt' | 'colOptions' | 'meta'>,
+  aggregation: string
+): boolean => {
+  const fn = getLegacyDateRollupAggregation(column, aggregation) ?? aggregation;
+  const uidt =
+    column.uidt === UITypes.Formula
+      ? parseProp(column.meta)?.display_type
+      : column.uidt;
+  return (
+    (Object.values(NumericalAggregations) as string[]).includes(fn) &&
+    FIELD_FORMATTED_AGGREGATION_UIDTS.includes(uidt)
+  );
+};
+
 const formatAggregation = (
   aggregation: any,
   value: any,
@@ -172,7 +201,9 @@ const formatAggregation = (
   /**
    * If columnHelperParams is provided then it will be used to format the aggregation value
    */
-  columnHelperParams?: SerializerOrParserFnProps['params']
+  columnHelperParams?: SerializerOrParserFnProps['params'],
+  /** Zone to show earliest/latest DateTime values in; defaults to the runtime's */
+  options?: { timezone?: string }
 ) => {
   aggregation =
     getLegacyDateRollupAggregation(column, aggregation) ?? aggregation;
@@ -184,10 +215,16 @@ const formatAggregation = (
         ...(column?.meta as any)?.display_column_meta,
       };
 
-      return formatAggregation(aggregation, value, childColumn, {
-        ...columnHelperParams,
-        col: childColumn,
-      });
+      return formatAggregation(
+        aggregation,
+        value,
+        childColumn,
+        {
+          ...columnHelperParams,
+          col: childColumn,
+        },
+        options
+      );
     }
   }
 
@@ -197,12 +234,10 @@ const formatAggregation = (
     )
   ) {
     const dateUidt = getRollupResultUidt(column) ?? column.uidt;
-    if (dateUidt === UITypes.DateTime) {
-      return getDateTimeValue(value, column);
-    } else if (dateUidt === UITypes.Date) {
+    if (dateUidt === UITypes.Date) {
       return getDateValue(value, column);
     }
-    return getDateTimeValue(value, column);
+    return getDateTimeValue(value, column, false, options?.timezone);
   }
 
   if (
@@ -251,18 +286,8 @@ const formatAggregation = (
   }
 
   if (
-    columnHelperParams &&
     columnHelperParams?.col &&
-    Object.values(NumericalAggregations).includes(aggregation) &&
-    [
-      UITypes.Number,
-      UITypes.Decimal,
-      UITypes.Currency,
-      UITypes.Percent,
-      UITypes.Duration,
-      UITypes.Rollup,
-      UITypes.Time,
-    ].includes(column.uidt as UITypes)
+    isFieldFormattedAggregation(column, aggregation)
   ) {
     return ColumnHelper.parsePlainCellValue(value, {
       ...columnHelperParams,
@@ -324,6 +349,7 @@ export {
   getAvailableAggregations,
   getColumnAggregations,
   isDateValuedAggregation,
+  isFieldFormattedAggregation,
   getLegacyDateRollupAggregation,
   NumericalAggregations,
   CommonAggregations,

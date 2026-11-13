@@ -621,6 +621,8 @@ export class TablesService {
             columnId: c.id,
             forceDeleteSystem: true,
             skipLinkPlaceholder: true,
+            // EE trashes links unless skipTrash is forwarded, leaving the child FK behind
+            skipTrash: param.skipTrash,
             columnWebhookManager,
           },
           ncMeta,

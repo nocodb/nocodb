@@ -751,7 +751,6 @@ const calculateNewRow = (
     .add(minutes, 'minute')
   if (!newStartDate) return { newRow: null, updatedProperty: [] }
 
-  let endDate
   const updatedProperty = [fromCol.title!]
 
   const newRow = {
@@ -762,30 +761,19 @@ const calculateNewRow = (
     },
   }
 
-  // A record without an End keeps it empty on a move
-  if (toCol && dragRecord.value.row[toCol.title!]) {
-    const fromDate = dragRecord.value.row[fromCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol.title!]) : null
-    const toDate = dragRecord.value.row[toCol.title!]
-      ? timezoneDayjs.timezonize(dragRecord.value.row[toCol.title!])
-      : fromDate?.clone()
-
-    if (fromDate && toDate) {
-      const newMinutes = Math.round(toDate.diff(fromDate, 'minute') / 15) * 15
-      endDate = newStartDate.add(newMinutes, 'minute')
-    } else if (fromDate && !toDate) {
-      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-    } else if (!fromDate && toDate) {
-      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-    } else {
-      endDate = newStartDate.clone()
+  if (toCol) {
+    const endDate = getCalendarMoveEnd(
+      {
+        start: dragRecord.value.row[fromCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol.title!]) : null,
+        end: dragRecord.value.row[toCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[toCol.title!]) : null,
+        newStart: timezoneDayjs.dayjsTz(newStartDate),
+      },
+      { unit: 'minute', roundToMinutes: 15, minMinutes: 15, endOfWithoutStart: 'day' },
+    )
+    if (endDate) {
+      newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
+      updatedProperty.push(toCol.title!)
     }
-
-    if (endDate.isBefore(newStartDate)) {
-      endDate = newStartDate.clone().add(15, 'minutes')
-    }
-
-    newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
-    updatedProperty.push(toCol.title!)
   }
 
   if (!newRow) return { newRow: null, updatedProperty: [] }

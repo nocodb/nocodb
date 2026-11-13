@@ -538,8 +538,6 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
   const newStartDate = timezoneDayjs.timezonize(selectedDate.value.startOf('day')).add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate || !fromCol) return { newRow: null, updateProperty: [] }
 
-  let endDate
-
   const newRow = {
     ...dragRecord.value,
     row: {
@@ -550,27 +548,19 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
 
   const updateProperty = [fromCol.title!]
 
-  // A record without an End keeps it empty on a move
-  if (toCol && dragRecord.value.row[toCol.title!]) {
-    const fromDate = dragRecord.value.row[fromCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol.title!]) : null
-    const toDate = dragRecord.value.row[toCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[toCol.title!]) : null
-
-    // If there is an end date, we calculate the new end date based on the new start date and add the difference between the start and end date to the new start date
-    if (fromDate && toDate) {
-      endDate = timezoneDayjs.dayjsTz(newStartDate).add(toDate.diff(fromDate, 'hour'), 'hour')
-    } else if (fromDate && !toDate) {
-      // If there is no end date, we set the end date to the end of the day
-      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('hour')
-    } else if (!fromDate && toDate) {
-      // If there is no start date, we set the end date to the end of the day
-      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('hour')
-    } else {
-      endDate = newStartDate.clone()
+  if (toCol) {
+    const endDate = getCalendarMoveEnd(
+      {
+        start: dragRecord.value.row[fromCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol.title!]) : null,
+        end: dragRecord.value.row[toCol.title!] ? timezoneDayjs.timezonize(dragRecord.value.row[toCol.title!]) : null,
+        newStart: timezoneDayjs.dayjsTz(newStartDate),
+      },
+      { unit: 'hour', endOfWithoutStart: 'hour' },
+    )
+    if (endDate) {
+      newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
+      updateProperty.push(toCol.title!)
     }
-
-    newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
-
-    updateProperty.push(toCol.title!)
   }
 
   // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation
@@ -818,8 +808,6 @@ const dropEvent = (event: DragEvent) => {
 
     const newStartDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
 
-    let endDate
-
     const newRow = {
       ...record,
       row: {
@@ -830,22 +818,19 @@ const dropEvent = (event: DragEvent) => {
 
     const updateProperty = [fromCol.title!]
 
-    // A record without an End keeps it empty on a move
-    if (toCol && record.row[toCol.title!]) {
-      const fromDate = record.row[fromCol.title!] ? timezoneDayjs.timezonize(record.row[fromCol.title!]) : null
-      const toDate = record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : null
-
-      if (fromDate && toDate) {
-        endDate = timezoneDayjs.dayjsTz(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-      } else if (fromDate && !toDate) {
-        endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-      } else if (!fromDate && toDate) {
-        endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-      } else {
-        endDate = newStartDate.clone()
+    if (toCol) {
+      const endDate = getCalendarMoveEnd(
+        {
+          start: record.row[fromCol.title!] ? timezoneDayjs.timezonize(record.row[fromCol.title!]) : null,
+          end: record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : null,
+          newStart: timezoneDayjs.dayjsTz(newStartDate),
+        },
+        { unit: 'day', endOfWithoutStart: 'day' },
+      )
+      if (endDate) {
+        newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
+        updateProperty.push(toCol.title!)
       }
-      newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
-      updateProperty.push(toCol.title!)
     }
 
     if (!newRow) return

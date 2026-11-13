@@ -160,8 +160,6 @@ const dropEvent = (event: DragEvent) => {
 
     const newStartDate = dayjs(selectedDate.value).startOf('day')
 
-    let endDate
-
     const newRow = {
       ...record,
       row: {
@@ -172,22 +170,19 @@ const dropEvent = (event: DragEvent) => {
 
     const updateProperty = [fromCol.title!]
 
-    // A record without an End keeps it empty on a move
-    if (toCol && record.row[toCol.title!]) {
-      const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
-      const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
-
-      if (fromDate && toDate) {
-        endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-      } else if (fromDate && !toDate) {
-        endDate = dayjs(newStartDate).endOf('day')
-      } else if (!fromDate && toDate) {
-        endDate = dayjs(newStartDate).endOf('day')
-      } else {
-        endDate = newStartDate.clone()
+    if (toCol) {
+      const endDate = getCalendarMoveEnd(
+        {
+          start: record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null,
+          end: record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null,
+          newStart: dayjs(newStartDate),
+        },
+        { unit: 'day', endOfWithoutStart: 'day' },
+      )
+      if (endDate) {
+        newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
+        updateProperty.push(toCol.title!)
       }
-      newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
-      updateProperty.push(toCol.title!)
     }
 
     if (!newRow) return

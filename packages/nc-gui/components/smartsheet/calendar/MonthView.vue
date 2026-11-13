@@ -773,8 +773,6 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
 
   newStartDate = newStartDate.add(fromDate.hour(), 'hour').add(fromDate.minute(), 'minute').add(fromDate.second(), 'second')
 
-  let endDate
-
   const newRow = {
     ...dragRecord.value,
     row: {
@@ -785,25 +783,19 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
 
   const updateProperty = [fromCol!.title!]
 
-  // A record without an End keeps it empty on a move
-  if (toCol && dragRecord.value?.row[toCol.title!]) {
-    const fromDate = dragRecord.value?.row[fromCol!.title!]
-      ? timezoneDayjs.timezonize(dragRecord.value.row[fromCol!.title!])
-      : null
-    const toDate = dragRecord.value?.row[toCol!.title!] ? timezoneDayjs.timezonize(dragRecord.value?.row[toCol!.title!]) : null
-
-    if (fromDate && toDate) {
-      endDate = timezoneDayjs.dayjsTz(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
-    } else if (fromDate && !toDate) {
-      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-    } else if (!fromDate && toDate) {
-      endDate = timezoneDayjs.dayjsTz(newStartDate).endOf('day')
-    } else {
-      endDate = newStartDate.clone()
+  if (toCol) {
+    const endDate = getCalendarMoveEnd(
+      {
+        start: dragRecord.value?.row[fromCol!.title!] ? timezoneDayjs.timezonize(dragRecord.value?.row[fromCol!.title!]) : null,
+        end: dragRecord.value?.row[toCol.title!] ? timezoneDayjs.timezonize(dragRecord.value?.row[toCol.title!]) : null,
+        newStart: timezoneDayjs.dayjsTz(newStartDate),
+      },
+      { unit: 'day', endOfWithoutStart: 'day' },
+    )
+    if (endDate) {
+      newRow.row[toCol.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
+      updateProperty.push(toCol.title!)
     }
-
-    newRow.row[toCol!.title!] = timezoneDayjs.dayjsTz(endDate).format(updateFormat.value)
-    updateProperty.push(toCol!.title!)
   }
 
   // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation

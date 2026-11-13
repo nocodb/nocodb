@@ -486,11 +486,11 @@ export function throwFieldNotConvertible(
   context: NcContext,
   from: UITypes | string,
   to: UITypes | string,
-): void {
+): never {
   const fromName = UITypesName[from] ?? from;
   const toName = UITypesName[to] ?? to;
-  const article = /^[aeiou]/i.test(fromName) ? 'An' : 'A';
-  NcError.get(context).notImplemented(`Updating ${from} => ${to}`, {
+  const article = /^[aeio]/i.test(fromName) ? 'An' : 'A';
+  return NcError.get(context).notImplemented(`Updating ${from} => ${to}`, {
     customMessage: `${article} ${fromName} field can't be converted to ${toName}. Delete it and create a new ${toName} field.`,
   });
 }

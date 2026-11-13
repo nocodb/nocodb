@@ -470,9 +470,21 @@ export class ColumnsV3Service {
       };
     }
 
+    // Mirrors columnUpdate: a read-only schema or synced field is locked, not unconvertible.
+    const refuseConversion = async (): Promise<never> => {
+      const model = await Model.get(context, column.fk_model_id);
+      const source = await Source.get(context, model.source_id);
+      if (source?.is_schema_readonly || (model.synced && column.readonly)) {
+        NcError.get(context).notImplemented(
+          `Updating ${column.uidt} => ${newType}`,
+        );
+      }
+      throwFieldNotConvertible(context, column.uidt, newType);
+    };
+
     if (isLinksOrLTAR(column)) {
       if (newType !== UITypes.SingleLineText) {
-        throwFieldNotConvertible(context, column.uidt, newType);
+        await refuseConversion();
       }
       return this.linkToTextDryRun(context, column, param.column, report);
     }
@@ -488,7 +500,7 @@ export class ColumnsV3Service {
       (UNCONVERTIBLE_TARGETS.has(newType) && !isLinksOrLTAR(newType)) ||
       (NO_CELL_VALUES.has(column.uidt) && column.uidt !== UITypes.Formula)
     ) {
-      throwFieldNotConvertible(context, column.uidt, newType);
+      await refuseConversion();
     }
 
     if (!holdsCells(column.uidt)) {

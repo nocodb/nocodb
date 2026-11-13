@@ -17,6 +17,7 @@ export * from './formula/types';
 export * from './formula/validate-extract-tree';
 export * from './formula/jsepInstances';
 export * from './formula/non-finite';
+export * from './formula/array-date-ref';
 export * from './formula/url-markup';
 export * from './formula/member-path';
 export * from './formula/method-scope';

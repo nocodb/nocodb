@@ -12,6 +12,7 @@ import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes, { isBtLikeV2Junction } from '~/lib/UITypes';
 import { FormulaDataTypes } from '~/lib/formula/enums';
+import { resolveFormulaArrayDateRef } from '~/lib/formula/array-date-ref';
 import { getRollupResultUidt } from '~/lib/formula/rollupFormula';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 import { getNodejsTimezone } from '~/lib/timezoneUtils';
@@ -246,8 +247,13 @@ export class RowFilterValidator {
         }
         const field = column.title!;
         const rawVal = data[field];
+        // `{MultiDateLookup}` filters like the lookup it resolves to (any-match)
+        const arrayDateRef =
+          column.uidt === UITypes.Formula
+            ? resolveFormulaArrayDateRef(column, columns)
+            : undefined;
         const effectiveUidt = this.resolveComparisonType({
-          column,
+          column: arrayDateRef ?? column,
           columns,
           metas,
           baseId,
@@ -414,10 +420,14 @@ export class RowFilterValidator {
               }
             }
           }
-        } else if (column.uidt === UITypes.Lookup) {
+        } else if (column.uidt === UITypes.Lookup || arrayDateRef) {
           // Non-user lookup: the cell is an array of looked-up scalar values.
+          // The formula over one holds them comma-joined.
           res = this.compareLookupArray({
-            value: rawVal,
+            value:
+              arrayDateRef && typeof rawVal === 'string'
+                ? rawVal.split(',')
+                : rawVal,
             effectiveUidt,
             filter,
             column,

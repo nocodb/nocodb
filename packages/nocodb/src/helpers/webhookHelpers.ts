@@ -8,6 +8,7 @@ import Handlebars from 'handlebars';
 import handlebarsHelpers from 'handlebars-helpers-v2';
 import {
   ColumnHelper,
+  getColumnResultType,
   HookOperationCode,
   isDateMonthFormat,
   isLinksOrLTAR,
@@ -28,6 +29,7 @@ import type { Column, FormView, Hook, Model, View } from '~/models';
 import { Filter, Source } from '~/models';
 import { populateUpdatePayloadDiff } from '~/utils';
 import { WebhookInvoker } from '~/utils/webhook-invoker';
+import { travelLookupColumn } from '~/helpers/columnHelpers';
 import { hardenHandlebarsPathHelpers } from '~/helpers/handlebarsProtoGuard';
 import { getModelContext, setModelContext } from '~/helpers/modelContext';
 
@@ -70,6 +72,49 @@ export function parseBody(
   }
 }
 
+const DATE_UIDTS = [
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+];
+
+// Ops a computed date field (Lookup, Rollup, Formula) compares as a date
+const COMPUTED_DATE_OPS = [
+  'eq',
+  'neq',
+  'gt',
+  'lt',
+  'gte',
+  'ge',
+  'lte',
+  'le',
+  'isWithin',
+];
+
+// Date type a condition column compares as: Lookup follows to its target, Rollup and Formula use their result type.
+async function resolveConditionDateType(
+  column: Column,
+  comparisonOp: string,
+): Promise<{ uidt?: UITypes; column?: Column }> {
+  if (DATE_UIDTS.includes(column.uidt)) return { uidt: column.uidt, column };
+  if (!COMPUTED_DATE_OPS.includes(comparisonOp)) return {};
+  try {
+    let target = column;
+    if (target.uidt === UITypes.Lookup) {
+      target = await travelLookupColumn({ context: column.context, column });
+    }
+    if (target && [UITypes.Formula, UITypes.Rollup].includes(target.uidt)) {
+      await target.getColOptions();
+    }
+    const uidt = getColumnResultType(target);
+    return DATE_UIDTS.includes(uidt) ? { uidt, column: target } : {};
+  } catch {
+    // broken lookup/relation: keep the generic comparison
+    return {};
+  }
+}
+
 export async function validateCondition(
   context: NcContext,
   filters: Filter[],
@@ -105,13 +150,10 @@ export async function validateCondition(
       const column = await filter.getColumn();
       const field = column.title;
       let val = data[field];
+      const { uidt: dateUidt, column: dateColumn } =
+        await resolveConditionDateType(column, filter.comparison_op);
       if (
-        [
-          UITypes.Date,
-          UITypes.DateTime,
-          UITypes.CreatedTime,
-          UITypes.LastModifiedTime,
-        ].includes(column.uidt) &&
+        dateUidt &&
         !['empty', 'blank', 'notempty', 'notblank'].includes(
           filter.comparison_op,
         )
@@ -120,15 +162,15 @@ export async function validateCondition(
           client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';
 
         let now = dayjs(new Date());
-        const dateFormatFromMeta = column?.meta?.date_format;
+        const dateFormatFromMeta = dateColumn?.meta?.date_format;
         const dataVal: any = val;
-        let filterVal: any = filter.value;
+        const rawFilterVal: any = filter.value;
+        let filterVal: any = rawFilterVal;
         if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
           // reset to 1st
           now = dayjs(now).date(1);
           if (val) val = dayjs(val).date(1);
         }
-        if (filterVal) res = dayjs(filterVal).isSame(dataVal, 'day');
 
         // handle sub operation
         switch (filter.comparison_sub_op) {
@@ -193,7 +235,10 @@ export async function validateCondition(
             break;
         }
 
-        if (dataVal) {
+        const matchDate = (dataVal: any) => {
+          let res;
+          if (rawFilterVal) res = dayjs(rawFilterVal).isSame(dataVal, 'day');
+          if (!dataVal) return res;
           switch (filter.comparison_op) {
             case 'eq':
               res = dayjs(dataVal).isSame(filterVal, 'day');
@@ -229,7 +274,7 @@ export async function validateCondition(
               break;
             case 'isWithin': {
               let now = dayjs(new Date()).format(dateFormat).toString();
-              now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
+              now = dateUidt === UITypes.Date ? now.substring(0, 10) : now;
               switch (filter.comparison_sub_op) {
                 case 'pastWeek':
                 case 'pastMonth':
@@ -246,6 +291,22 @@ export async function validateCondition(
               }
             }
           }
+          return res;
+        };
+
+        if (Array.isArray(dataVal)) {
+          // multi-value lookup: match if any value matches, `neq` if none equal
+          const values = dataVal
+            .flat(Infinity)
+            .filter((v) => v !== null && v !== undefined && v !== '');
+          // empty lookup is like a null date: only `neq` matches
+          if (!values.length)
+            res = filter.comparison_op === 'neq' ? true : matchDate(null);
+          else if (filter.comparison_op === 'neq')
+            res = values.every((v) => matchDate(v));
+          else res = values.some((v) => matchDate(v));
+        } else {
+          res = matchDate(dataVal);
         }
       } else {
         switch (typeof filter.value) {

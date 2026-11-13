@@ -1480,6 +1480,19 @@ describe('validateRowFilters — column type resolution', () => {
       colOptions: { parsed_tree: { dataType: 'string' } } as any,
     },
     {
+      id: 'fLkDate',
+      title: 'FLkDate',
+      uidt: UITypes.Formula,
+      colOptions: {
+        parsed_tree: {
+          type: 'Identifier',
+          name: 'lkDate',
+          dataType: 'date',
+          isDataArray: true,
+        },
+      } as any,
+    },
+    {
       id: 'lnk',
       title: 'LinkCount',
       uidt: UITypes.Links,
@@ -1673,6 +1686,23 @@ describe('validateRowFilters — column type resolution', () => {
           { FDate: '2026-03-05' }
         )
       ).toBe(true);
+    });
+
+    it('formula over a multi-value date lookup matches any of its dates', () => {
+      const exact = (value: string) =>
+        run(
+          [
+            {
+              fk_column_id: 'fLkDate',
+              comparison_op: 'eq',
+              comparison_sub_op: 'exactDate',
+              value,
+            },
+          ],
+          { FLkDate: '2026-11-08,2026-11-16,2026-12-01' }
+        );
+      expect(exact('2026-11-16')).toBe(true);
+      expect(exact('2026-11-09')).toBe(false);
     });
 
     it('string formula uses string comparison', () => {

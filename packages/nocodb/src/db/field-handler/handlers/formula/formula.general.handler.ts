@@ -1,5 +1,6 @@
 import {
   FormulaDataTypes,
+  getFormulaArrayDateRefColumnId,
   isFormulaNonFiniteValue,
   parseProp,
   UITypes,
@@ -118,6 +119,20 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     const model = await column.getModel();
     const formula = await column.getColOptions<FormulaColumn>();
     const parsedTree: ParsedFormulaNode = formula.getParsedTree();
+
+    // `{MultiDateLookup}` compiles to comma-joined text; filter the field
+    // itself so a date condition matches any of its dates.
+    const arrayDateRefId = getFormulaArrayDateRefColumnId(parsedTree);
+    const arrayDateRef =
+      arrayDateRefId &&
+      (await model.getColumns()).find((c) => c.id === arrayDateRefId);
+    if (arrayDateRef) {
+      return options.fieldHandler.applyFilter(filter, arrayDateRef, {
+        ...options,
+        customWhereClause: undefined,
+      });
+    }
+
     const isIeeeCapable = isPgNumericFormula(baseModelSqlv2, parsedTree);
     let builder = (
       await formulaQueryBuilderv2({

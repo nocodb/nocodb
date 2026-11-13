@@ -255,7 +255,11 @@ export class RowFilterValidator {
               )
             : undefined;
         const arrayDateRef = arrayDateRefId
-          ? columns.find((c) => c.id === arrayDateRefId)
+          ? columns.find(
+              (c) =>
+                c.id === arrayDateRefId &&
+                [UITypes.Lookup, UITypes.Formula].includes(c.uidt as UITypes)
+            )
           : undefined;
         const effectiveUidt = this.resolveComparisonType({
           column: arrayDateRef ?? column,

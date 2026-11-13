@@ -120,12 +120,16 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     const formula = await column.getColOptions<FormulaColumn>();
     const parsedTree: ParsedFormulaNode = formula.getParsedTree();
 
-    // `{MultiDateLookup}` compiles to comma-joined text; filter the field
+    // `{MultiDateLookup}` compiles to comma-joined text; filter the lookup
     // itself so a date condition matches any of its dates.
     const arrayDateRefId = getFormulaArrayDateRefColumnId(parsedTree);
     const arrayDateRef =
       arrayDateRefId &&
-      (await model.getColumns()).find((c) => c.id === arrayDateRefId);
+      (await model.getColumns()).find(
+        (c) =>
+          c.id === arrayDateRefId &&
+          [UITypes.Lookup, UITypes.Formula].includes(c.uidt as UITypes),
+      );
     if (arrayDateRef) {
       return options.fieldHandler.applyFilter(filter, arrayDateRef, {
         ...options,

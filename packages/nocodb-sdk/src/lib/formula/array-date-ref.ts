@@ -2,9 +2,10 @@ import { FormulaDataTypes, JSEPNode } from '~/lib/formula/enums';
 import type { ParsedFormulaNode } from '~/lib/formula/types';
 
 /**
- * Id of the multi-value date field (e.g. a has-many date lookup) a formula
- * only references, as in `{LkDue}`. Such a formula filters like that field:
- * a date condition matches when any of its dates does.
+ * Id of the multi-value date field a formula only references, as in
+ * `{LkDue}` over a has-many date lookup. Callers filter through that field
+ * when it is a Lookup (or a Formula of the same shape): a date condition
+ * matches when any of its dates does.
  */
 export function getFormulaArrayDateRefColumnId(
   parsedTree?: ParsedFormulaNode | null

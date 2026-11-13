@@ -25,7 +25,12 @@ const shouldRedirect = (to: string) => {
 
 shouldRedirect(route.name as string)
 
-router.afterEach((to) => shouldRedirect(to.name as string))
+// Only within this form: left unscoped it pulled later navigation back to the form.
+const removeAfterEach = router.afterEach((to) => {
+  if (isSharedFormViewRoute(to)) shouldRedirect(to.name as string)
+})
+
+onBeforeUnmount(removeAfterEach)
 </script>
 
 <template>

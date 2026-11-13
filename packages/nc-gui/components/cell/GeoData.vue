@@ -292,7 +292,7 @@ const isLocationSet = computed(() => {
 const { t } = useI18n()
 
 const latLongStr = computed(() => {
-  const [lat, lng] = (vModel.value || '').split(';')
+  const [lat, lng] = splitGeoDataValue(vModel.value)
   return lat && lng ? `${lat}; ${lng}` : t('labels.setLocation')
 })
 
@@ -363,14 +363,14 @@ const onClickSetCurrentLocation = () => {
 }
 
 const openInGoogleMaps = () => {
-  const [latitude, longitude] = (vModel.value || '').split(';')
+  const [latitude, longitude] = splitGeoDataValue(vModel.value)
   if (!latitude || !longitude) return
   const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(latitude)},${encodeURIComponent(longitude)}`
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const openInOSM = () => {
-  const [latitude, longitude] = (vModel.value || '').split(';')
+  const [latitude, longitude] = splitGeoDataValue(vModel.value)
   if (!latitude || !longitude) return
   const url = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(latitude)}&mlon=${encodeURIComponent(
     longitude,

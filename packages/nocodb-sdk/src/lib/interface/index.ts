@@ -88,11 +88,7 @@ export interface InterfaceUsersMatrixRow {
    */
   user: Pick<
     InterfaceUserType,
-    | 'id'
-    | 'email'
-    | 'display_name'
-    | 'meta'
-    | 'invite_pending'
+    'id' | 'email' | 'display_name' | 'meta' | 'invite_pending'
   >;
   /** True when the user is base owner/creator — full access, not editable here. */
   is_builder?: boolean;
@@ -308,3 +304,4 @@ export * from './buttons';
 export * from './pageConfigs';
 export * from './vizFields';
 export * from './copyFromView';
+export * from './tablePageFilters';

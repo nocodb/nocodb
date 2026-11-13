@@ -78,7 +78,7 @@ export interface InterfaceVizFieldConfig {
 
 interface InterfaceVizCommon {
   id: string;
-  /** Per-viz refinements — compose (AND) with the page-level filters. */
+  /** Per-viz refinement (Links embeds, view widgets). On a table page it is moved into `config.filters` on write and read. */
   filters?: InterfaceFilterGroup | null;
   sorts?: InterfaceSortConfig[];
   visible_field_ids?: string[];
@@ -456,7 +456,7 @@ export interface InterfaceAdvancedActionsConfig {
 export interface InterfaceTablePageConfig {
   description?: string;
   show_description?: boolean;
-  /** Page-level builder filter — composes (AND) with per-viz filters. */
+  /** Page-level builder filter — a table page's only filter; viz-level ones are moved (AND) into it. */
   filters?: InterfaceFilterGroup | null;
   /**
    * Builder-authored DEFAULTS for the end-user toolbar Filter menu — a separate

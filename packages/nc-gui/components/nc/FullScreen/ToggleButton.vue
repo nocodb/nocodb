@@ -81,6 +81,7 @@ const toggleFullScreenState = () => {
         'pointer-events-none': showLockResetLoading,
       }"
       :icon-only="!isFullScreen"
+      :aria-label="isFullScreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')"
       @click="toggleFullScreenState"
     >
       <template #icon>

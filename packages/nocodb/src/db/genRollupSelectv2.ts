@@ -34,7 +34,10 @@ import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupFormulaSelect from '~/db/genRollupFormulaSelect';
 import { excludeNonFiniteSql, isPgIeeeEnabled } from '~/db/formulav2/pg-ieee';
-import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import {
+  applyRelatedRls,
+  extractLinkRelFiltersAndApply,
+} from '~/db/conditionV2';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { readsHiddenTable } from '~/helpers/tableHelpers';
 import { Profiler } from '~/helpers/profiler';
@@ -487,6 +490,26 @@ export default async function genRollupSelectv2(param: {
     ? RelationTypes.MANY_TO_MANY
     : relationColumnOption.type;
 
+  // Link conditions of a rollup, or the related RLS of a Links count.
+  const applyScopeFilters = async (
+    qb: Knex.QueryBuilder,
+    scopeModel: IBaseModelSqlV2,
+  ) => {
+    if (!column) return;
+    if (column.uidt === UITypes.Links) {
+      await applyRelatedRls(scopeModel, qb, refTableAlias);
+      return;
+    }
+    await extractLinkRelFiltersAndApply({
+      qb,
+      column,
+      alias: refTableAlias,
+      table: scopeModel.model,
+      baseModel: scopeModel,
+      context: scopeModel.context,
+    });
+  };
+
   // The linked records of the current row, before any aggregate is selected.
   // Built once for a plain rollup, once per aggregate for a formula rollup.
   // Wrapped: an awaited query builder is a thenable and would execute.
@@ -522,16 +545,7 @@ export default async function genRollupSelectv2(param: {
           if (softDeleteFilter) {
             qb.where(softDeleteFilter);
           }
-          if (column) {
-            await extractLinkRelFiltersAndApply({
-              qb,
-              column,
-              alias: refTableAlias,
-              table: parentBaseModel.model,
-              baseModel: parentBaseModel,
-              context: parentBaseModel.context,
-            });
-          }
+          await applyScopeFilters(qb, parentBaseModel);
           return { qb };
         }
         const qb = knex(
@@ -559,16 +573,7 @@ export default async function genRollupSelectv2(param: {
           qb.where(softDeleteFilter);
         }
 
-        if (column) {
-          await extractLinkRelFiltersAndApply({
-            qb,
-            column,
-            alias: refTableAlias,
-            table: childBaseModel.model,
-            baseModel: childBaseModel,
-            context: childBaseModel.context,
-          });
-        }
+        await applyScopeFilters(qb, childBaseModel);
         return { qb };
       }
 
@@ -624,16 +629,7 @@ export default async function genRollupSelectv2(param: {
         }
 
         // no column yet while a new rollup is dry-run
-        if (column) {
-          await extractLinkRelFiltersAndApply({
-            qb: qb,
-            column,
-            alias: refTableAlias,
-            table: parentBaseModel.model,
-            baseModel: parentBaseModel,
-            context: parentBaseModel.context,
-          });
-        }
+        await applyScopeFilters(qb, parentBaseModel);
 
         // V2 MO/OO: single-record semantics — limit to 1 row
         if (isBtLikeV2Junction(relationColumn)) {

@@ -8,7 +8,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-  const { navigateToProject, getBaseUrl } = useGlobal()
+  const { navigateToProject, getBaseUrl, ncNavigateTo } = useGlobal()
   const { $api, $e } = useNuxtApp()
   const route = useRoute()
 
@@ -156,11 +156,20 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     }
   }
 
-  const onSelect = async (base: NcProject) => {
+  const onSelect = async (base: NcProject, { newTab = false }: { newTab?: boolean } = {}) => {
     // Prevent selecting bases in locked workspaces (CE mode, non-default)
     if (workspaceStore.isWorkspaceCeLocked(base.fk_workspace_id)) return
 
     $e('a:workspace:base:select')
+
+    // Same target order as below, without touching the current tab.
+    if (newTab) {
+      if (isAppInstall(base)) return navigateToApp(base, { newTab })
+      if (baseCardAppCount(base) > 0) return openBaseFromCard(base, { newTab })
+
+      return ncNavigateTo({ workspaceId: base.fk_workspace_id!, baseId: base.id!, newTab })
+    }
+
     closeModal()
 
     if (isEeUI && base.fk_workspace_id !== activeWorkspaceId.value) {
@@ -193,10 +202,13 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   }
 
   /** Force-open the data view — the "Go to data" action on a card that opens an interface or an app. */
-  const onOpenData = async (base: NcProject) => {
+  const onOpenData = async (base: NcProject, { newTab = false }: { newTab?: boolean } = {}) => {
     if (workspaceStore.isWorkspaceCeLocked(base.fk_workspace_id)) return
 
     $e('a:workspace:base:open-data')
+
+    if (newTab) return ncNavigateTo({ workspaceId: base.fk_workspace_id!, baseId: base.id!, newTab })
+
     closeModal()
 
     if (isEeUI && base.fk_workspace_id !== activeWorkspaceId.value) {

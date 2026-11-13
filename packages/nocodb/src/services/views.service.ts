@@ -5,6 +5,7 @@ import {
   extractRolesObj,
   getFirstNonPersonalView,
   MetaEventType,
+  parseProp,
   ProjectRoles,
   ViewLockType,
   ViewTypes,
@@ -52,6 +53,21 @@ import {
 import { normalizeViewTitle } from '~/helpers/viewTitleHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
+
+// The `meta` keys a share update may write; the rest (row colouring, lock note, …) stay as stored.
+const SHARE_META_KEYS = [
+  'allowCSVDownload',
+  'surveyMode',
+  'transitionDuration',
+  'withTheme',
+  'theme',
+  'defaultTheme',
+  'rtl',
+  'language',
+  'preFillEnabled',
+  'preFilledMode',
+  'groupingFieldColumn',
+];
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -193,6 +209,12 @@ export class ViewsService {
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },
   ) {
+    assertViewConfigEditable(
+      context,
+      await View.get(context, param.viewId),
+      param.req,
+    );
+
     const res = await View.share(context, param.viewId);
 
     const view = await View.get(context, param.viewId);
@@ -789,6 +811,8 @@ export class ViewsService {
       NcError.get(context).viewNotFound(param.viewId);
     }
 
+    assertViewConfigEditable(context, view, param.req);
+
     let customUrl: CustomUrl | undefined = await CustomUrl.get({
       view_id: view.id,
       id: view.fk_custom_url_id,
@@ -834,6 +858,12 @@ export class ViewsService {
 
     // Only share settings: lock, title and uuid go through viewUpdate.
     const shareFields = extractProps(param.sharedView, ['password', 'meta']);
+    if (shareFields.meta !== undefined) {
+      shareFields.meta = {
+        ...(parseProp(view.meta) ?? {}),
+        ...extractProps(parseProp(shareFields.meta) ?? {}, SHARE_META_KEYS),
+      };
+    }
 
     const result = await View.update(context, param.viewId, {
       ...shareFields,
@@ -871,6 +901,8 @@ export class ViewsService {
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
     }
+
+    assertViewConfigEditable(context, view, param.req);
 
     await View.sharedViewDelete(context, param.viewId);
 

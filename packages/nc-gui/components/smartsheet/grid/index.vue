@@ -555,12 +555,12 @@ onBeforeUnmount(() => {
   eventBus.off(smartsheetEvents)
 })
 
-const goToNextRow = () => {
-  navigateToSiblingRow(NavigateDir.NEXT)
+const goToNextRow = async () => {
+  if (!(await navigateToSiblingRow(NavigateDir.NEXT))) expandedFormRef.value?.stopLoading?.()
 }
 
-const goToPreviousRow = () => {
-  navigateToSiblingRow(NavigateDir.PREV)
+const goToPreviousRow = async () => {
+  if (!(await navigateToSiblingRow(NavigateDir.PREV))) expandedFormRef.value?.stopLoading?.()
 }
 
 const updateViewWidth = () => {

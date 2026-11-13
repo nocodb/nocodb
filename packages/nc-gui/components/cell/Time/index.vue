@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isSystemColumn } from 'nocodb-sdk'
+import { isSystemColumn, parseDateWithFormat } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | null | undefined
@@ -35,6 +35,8 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const column = inject(ColumnInj)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const dateFormat = isMysql(column.value.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
 const isTimeInvalid = ref(false)
@@ -48,6 +50,9 @@ const { t } = useI18n()
 const open = ref(false)
 
 const tempDate = ref<dayjs.Dayjs | undefined>()
+
+// Typed text that does not parse (e.g. 25:61); Enter keeps the stored value.
+const isTypedInvalid = ref(false)
 
 const localState = computed({
   get() {
@@ -121,6 +126,8 @@ watchEffect(() => {
 const handleUpdateValue = (e: Event, save = false) => {
   let targetValue = (e.target as HTMLInputElement).value
 
+  isTypedInvalid.value = false
+
   if (!targetValue) {
     tempDate.value = undefined
     return
@@ -134,7 +141,10 @@ const handleUpdateValue = (e: Event, save = false) => {
         .replace(/\s+/g, ' ')
     : targetValue.trim()
 
-  const parsedDate = dayjs(targetValue, parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm')
+  const parsedDate = parseDateWithFormat(targetValue, parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm')
+
+  isTypedInvalid.value = !parsedDate.isValid()
+  if (isTypedInvalid.value) tempDate.value = localState.value
 
   if (parsedDate.isValid()) {
     tempDate.value = dayjs(`${dayjs().format('YYYY-MM-DD')} ${parsedDate.format('HH:mm')}`)
@@ -235,7 +245,14 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
         e.stopPropagation()
       }
 
-      localState.value = tempDate.value ?? dayjs(new Date())
+      if (isTypedInvalid.value) {
+        isTypedInvalid.value = false
+        isClearedInputMode.value = false
+        ;(e.target as HTMLInputElement).value =
+          localState.value?.format(parseProp(column.value.meta).is12hrFormat ? 'hh:mm A' : 'HH:mm') ?? ''
+      } else {
+        localState.value = tempDate.value ?? dayjs(new Date())
+      }
       open.value = !_open
       if (!open.value) {
         if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
@@ -345,6 +362,7 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
       <input
         v-if="!rawReadOnly"
         ref="datePickerRef"
+        :aria-label="cellAriaLabel"
         type="text"
         :value="cellValue"
         :placeholder="placeholder"

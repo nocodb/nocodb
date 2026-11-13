@@ -58,12 +58,14 @@ const hasEditPermission = computed(() => {
 const { isSimpleLinkRecordList, isSimpleLinkRecordListReadonly } = useLinkRecordDropdownVariant(hasEditPermission)
 
 const value = computed(() => {
+  let v = null
   if (cellValue?.value) {
-    return cellValue?.value
+    v = cellValue?.value
   } else if (isNew.value) {
-    return state?.value?.[column?.value.title as string]
+    v = state?.value?.[column?.value.title as string]
   }
-  return null
+  // A single-record link holds one object; unwrap a one-item list (e.g. a form prefill).
+  return Array.isArray(v) ? v[0] ?? null : v
 })
 
 const unlinkRef = async (rec: Record<string, any>) => {
@@ -184,7 +186,10 @@ onUnmounted(() => {
           v-if="hasEditPermission"
           class="flex-none flex group items-center min-w-4"
           tabindex="0"
+          role="button"
+          :aria-label="$t('activity.linkRecord')"
           @keydown.enter.stop="listItemsDlg = true"
+          @keydown.space.stop.prevent="listItemsDlg = true"
         >
           <GeneralIcon
             :icon="isSimpleLinkRecordList ? 'chevronDown' : 'plus'"

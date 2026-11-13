@@ -170,6 +170,7 @@ function isV0Audit(audit: AuditType) {
             v-if="auditRetentionLimit"
             keypath="msg.info.planRevisionHistory"
             tag="div"
+            scope="global"
             class="text-center text-nc-content-gray-subtle2"
           >
             <template #limit>
@@ -181,7 +182,12 @@ function isV0Audit(audit: AuditType) {
       <template v-else>
         <div class="mt-auto" />
         <div v-if="auditRetentionLimit && !isHigherActivePlan" class="flex flex-col items-center gap-2 my-2 mx-3">
-          <i18n-t keypath="msg.info.revisionHistoryUpgrade" tag="div" class="text-center text-nc-content-gray-subtle2 text-xs">
+          <i18n-t
+            keypath="msg.info.revisionHistoryUpgrade"
+            tag="div"
+            scope="global"
+            class="text-center text-nc-content-gray-subtle2 text-xs"
+          >
             <template #limit>
               <span class="font-bold">{{ auditRetentionLimit }}</span>
             </template>

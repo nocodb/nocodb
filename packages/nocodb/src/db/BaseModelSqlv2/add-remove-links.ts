@@ -334,7 +334,8 @@ export const captureLinkHooks = async ({
     await refModel.getColumns();
     const refBaseModel = await Model.getBaseModelSQL(refContext, {
       model: refModel,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: baseModel.dbDriver,
     });
 
     const toRefId = (id: unknown) =>
@@ -587,14 +588,17 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       )?.id,
     );
 
+    // Pool as the base driver: post-commit clones must not reuse a finished trx
     const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: baseModel.dbDriver,
     });
 
     const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: baseModel.dbDriver,
     });
 
     const childTn = childBaseModel.getTnPath(childTable);
@@ -702,7 +706,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
-            dbDriver: baseModel.dbDriver,
+            dbDriver: baseModel.knex,
+            transaction: baseModel.dbDriver,
           });
 
           const refBaseModel = parentBaseModel;
@@ -1423,12 +1428,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: baseModel.dbDriver,
     });
 
     const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: baseModel.dbDriver,
     });
 
     const childTn = childBaseModel.getTnPath(childTable);
@@ -1503,7 +1510,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
-            dbDriver: baseModel.dbDriver,
+            dbDriver: baseModel.knex,
+            transaction: baseModel.dbDriver,
           });
           const refBaseModel = parentBaseModel;
 
@@ -1927,7 +1935,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     const vTable = await colOptions.getMMModel();
     const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
       model: vTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: baseModel.dbDriver,
     });
     const vTn = assocBaseModel.getTnPath(vTable);
 

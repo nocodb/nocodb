@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'util';
 import { nanoid } from 'nanoid';
 import {
   CacheDelDirection,
@@ -12,6 +13,28 @@ import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { buildRevokeIfActiveUpdate } from '~/models/oauth-token.queries';
+import { secretEquals, sha256Hex } from '~/helpers/sha256';
+
+// A scope of its own: a pod on the previous image reads `oAuthToken:<presented
+// token>`, so an entry keyed there by hash would accept the stored hash as a bearer.
+const hashCacheKey = (hash: string) => `${CacheScope.OAUTH_TOKEN_HASH}:${hash}`;
+const clearCacheKey = (accessToken: string) =>
+  `${CacheScope.OAUTH_TOKEN}:${accessToken}`;
+
+// The clear-token key stays maintained for pods on the previous image; a later
+// release drops it with the clear columns.
+const cacheKeysOf = (token: {
+  access_token?: string;
+  access_token_hash?: string;
+}) => {
+  const hash =
+    token.access_token_hash ??
+    (token.access_token ? sha256Hex(token.access_token) : null);
+  return [
+    hash && hashCacheKey(hash),
+    token.access_token && clearCacheKey(token.access_token),
+  ].filter(Boolean);
+};
 
 export default class OAuthToken {
   id: string;
@@ -19,9 +42,11 @@ export default class OAuthToken {
   fk_user_id: string;
 
   access_token: string;
+  access_token_hash?: string;
   access_token_expires_at: string;
 
   refresh_token?: string;
+  refresh_token_hash?: string;
   refresh_token_expires_at?: string;
 
   // MCP Requirements
@@ -71,7 +96,14 @@ export default class OAuthToken {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.OAUTH_TOKENS,
-      insertData,
+      // The clear columns stay for pods on the previous image; a later release drops them.
+      {
+        ...insertData,
+        access_token_hash: sha256Hex(insertData.access_token),
+        refresh_token_hash: insertData.refresh_token
+          ? sha256Hex(insertData.refresh_token)
+          : null,
+      },
       true,
     );
 
@@ -79,9 +111,15 @@ export default class OAuthToken {
       async (token) => {
         await NocoCache.appendToList(
           'root',
+          CacheScope.OAUTH_TOKEN_HASH,
+          [],
+          hashCacheKey(sha256Hex(insertData.access_token)),
+        );
+        await NocoCache.appendToList(
+          'root',
           CacheScope.OAUTH_TOKEN,
           [],
-          `${CacheScope.OAUTH_TOKEN}:${insertData.access_token}`,
+          clearCacheKey(insertData.access_token),
         );
         return token;
       },
@@ -100,25 +138,23 @@ export default class OAuthToken {
   }
 
   static async getByAccessToken(accessToken: string, ncMeta = Noco.ncMeta) {
-    let data = await NocoCache.get(
-      'root',
-      `${CacheScope.OAUTH_TOKEN}:${accessToken}`,
-      CacheGetType.TYPE_OBJECT,
+    if (typeof accessToken !== 'string' || !accessToken) return null;
+
+    const keys = [
+      hashCacheKey(sha256Hex(accessToken)),
+      clearCacheKey(accessToken),
+    ];
+    const [byHash, byClear] = await Promise.all(
+      keys.map((key) => NocoCache.get('root', key, CacheGetType.TYPE_OBJECT)),
     );
 
+    // Pods on the previous image update only the clear-token key.
+    let data = byHash && isDeepStrictEqual(byHash, byClear) ? byHash : null;
+
     if (!data) {
-      data = await ncMeta.metaGet(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.OAUTH_TOKENS,
-        { access_token: accessToken },
-      );
+      data = await this.getBySecret('access_token', accessToken, ncMeta);
       if (data) {
-        await NocoCache.set(
-          'root',
-          `${CacheScope.OAUTH_TOKEN}:${accessToken}`,
-          data,
-        );
+        for (const key of keys) await NocoCache.set('root', key, data);
       }
     }
 
@@ -126,14 +162,39 @@ export default class OAuthToken {
   }
 
   static async getByRefreshToken(refreshToken: string, ncMeta = Noco.ncMeta) {
-    const data = await ncMeta.metaGet(
+    const data = await this.getBySecret('refresh_token', refreshToken, ncMeta);
+
+    return data && this.castType(data);
+  }
+
+  // By the hash, then by the clear column for rows the backfill has not reached.
+  private static async getBySecret(
+    column: 'access_token' | 'refresh_token',
+    secret: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (typeof secret !== 'string' || !secret) return null;
+
+    const byHash = await ncMeta.metaGet(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.OAUTH_TOKENS,
-      { refresh_token: refreshToken },
+      { [`${column}_hash`]: sha256Hex(secret) },
     );
 
-    return data && this.castType(data);
+    if (
+      byHash &&
+      (byHash[column] == null || secretEquals(byHash[column], secret))
+    ) {
+      return byHash;
+    }
+
+    return ncMeta.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.OAUTH_TOKENS,
+      { [column]: secret },
+    );
   }
 
   static async listByUser(userId: string, ncMeta = Noco.ncMeta) {
@@ -165,12 +226,9 @@ export default class OAuthToken {
       { id },
     );
 
-    // Update cache by access token
-    await NocoCache.update(
-      'root',
-      `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
-      updateData,
-    );
+    for (const key of cacheKeysOf(token)) {
+      await NocoCache.update('root', key, updateData);
+    }
 
     return true;
   }
@@ -200,12 +258,10 @@ export default class OAuthToken {
       return false;
     }
 
-    // The strategy reads the grant through this cache entry on every call.
-    await NocoCache.update(
-      'root',
-      `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
-      updateData,
-    );
+    // The strategy reads the grant through these cache entries on every call.
+    for (const key of cacheKeysOf(token)) {
+      await NocoCache.update('root', key, updateData);
+    }
 
     return true;
   }
@@ -238,11 +294,9 @@ export default class OAuthToken {
       );
 
       if (updated) {
-        await NocoCache.update(
-          'root',
-          `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
-          { permissions },
-        );
+        for (const key of cacheKeysOf(token)) {
+          await NocoCache.update('root', key, { permissions });
+        }
         return permissions;
       }
     }
@@ -274,12 +328,9 @@ export default class OAuthToken {
       return false;
     }
 
-    // Update cache by access token
-    await NocoCache.update(
-      'root',
-      `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
-      { is_revoked: true },
-    );
+    for (const key of cacheKeysOf(token)) {
+      await NocoCache.update('root', key, { is_revoked: true });
+    }
 
     return true;
   }
@@ -314,11 +365,13 @@ export default class OAuthToken {
 
       // Clear cache for each token in the batch
       for (const token of tokens) {
-        await NocoCache.deepDel(
-          'root',
-          `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
+        for (const key of cacheKeysOf(token)) {
+          await NocoCache.deepDel(
+            'root',
+            key,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+        }
       }
 
       // Delete the batch. NOTE: passing `{ id: { in: [...] } }` to metaDelete's

@@ -259,6 +259,9 @@ const onClick = (row: Row) => {
   if (isPublic.value || isForm.value) return
   // Don't allow expanding if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
+  // A New record form closed without saving leaves these set; reset them so this row opens as itself.
+  isNewRecord.value = false
+  isBlueprintMode.value = false
   expandedFormRow.value = row
   expandedFormDlg.value = true
 }

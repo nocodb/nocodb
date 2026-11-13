@@ -1475,7 +1475,7 @@ export function useCanvasTable({
     scrollToLeftEdge,
   })
 
-  const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
+  const { canvasRef, renderCanvas, colResizeHoveredColIds, findRemoteRecordMarkAt } = useCanvasRender({
     width,
     interfaceActiveHeaderFieldId,
     mousePosition,
@@ -2025,6 +2025,12 @@ export function useCanvasTable({
       }
     }
 
+    if (row.rowMeta) {
+      delete row.rowMeta.skipPendingAutosave
+      delete row.rowMeta.autosavedDuringEdit
+      delete row.rowMeta.writeBackOnClose
+    }
+
     editEnabled.value = {
       rowIndex,
       x: xOffset + ([UITypes.LongText, UITypes.Formula].includes(column.uidt) ? -1 : 0),
@@ -2038,6 +2044,10 @@ export function useCanvasTable({
       path,
       isCellEditable: clickedColumn.isCellEditable,
       isSyncedColumn: clickedColumn.isSyncedColumn,
+      // Type-to-edit clears row.row before this runs; oldRow still holds the stored value
+      originalValue: column.title
+        ? deepClone(row.oldRow && column.title in row.oldRow ? row.oldRow[column.title] : row.row?.[column.title])
+        : undefined,
     }
     hideTooltip()
     return true
@@ -2300,6 +2310,7 @@ export function useCanvasTable({
     isResizing,
 
     // Functions
+    findRemoteRecordMarkAt,
     fetchChunk,
     updateVisibleRows,
     findColumnIndex,

@@ -16,6 +16,8 @@ const { showNull } = useGlobal()
 
 const column = inject(ColumnInj)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -162,6 +164,7 @@ const onTabPress = (e: KeyboardEvent) => {
       v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled || !percentMeta.is_progress : true)"
       :ref="focus"
       v-model="vModel"
+      :aria-label="cellAriaLabel"
       class="nc-cell-field w-full !border-none !outline-none focus:ring-0 py-1"
       :type="inputType"
       :placeholder="placeholder"

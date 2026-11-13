@@ -1205,11 +1205,15 @@ export function generateReadablePermissionErr(
   const roleLabels = Object.keys(roles)
     .filter((key) => roles[key])
     .map((role) => roleDescriptions[role])
+    .filter(Boolean)
     .join(', ');
 
   const permissionDescription =
     permissionDescriptions[permissionName] ||
     `perform the action "${permissionName}"`;
 
-  return `You do not have permission to ${permissionDescription} with the roles: ${roleLabels}.`;
+  // A caller with no role in this scope has nothing to list.
+  return roleLabels
+    ? `You do not have permission to ${permissionDescription} with the roles: ${roleLabels}.`
+    : `You do not have permission to ${permissionDescription}.`;
 }

@@ -969,8 +969,12 @@ export default async function genRollupFormulaSelect(params: {
       raw: name,
       dataType,
     });
-    const sql = escapeBindings(aggregateQbs[i].toQuery());
-    aliasToColumn[name] = async () => ({ builder: knex.raw(`(${sql})`) });
+    let sql = `(${escapeBindings(aggregateQbs[i].toQuery())})`;
+    // MSSQL can't add or multiply BIT: inside an expression a boolean is 1/0
+    if (baseModelSqlv2.isMssql && BOOLEANISH.includes(dataType)) {
+      sql = `CAST(${sql} AS INT)`;
+    }
+    aliasToColumn[name] = async () => ({ builder: knex.raw(sql) });
   });
 
   const { builder } = await formulaQueryBuilderv2({

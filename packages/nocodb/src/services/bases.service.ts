@@ -28,6 +28,7 @@ import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
 import { getIntegrationForSource } from '~/helpers/integrationAccess';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { parseConfigPayload } from '~/helpers/configPayload';
 import { validateDbConnectionTargets } from '~/helpers/validateDbConnectionHost';
 import { sanitizeBase } from '~/helpers/sanitizeBase';
 import syncMigration from '~/helpers/syncMigration';
@@ -352,6 +353,10 @@ export class BasesService {
         // Server-owned: they point the source at NocoDB's own database.
         delete source.is_meta;
         delete source.is_local;
+        source.config = parseConfigPayload(
+          { api_version: param.apiVersion },
+          source.config,
+        );
         validateAndNormalizeSqliteConfig(
           source.config,
           source.config?.client ?? source.type,
@@ -390,6 +395,7 @@ export class BasesService {
             },
             source.fk_integration_id,
             param.req.user?.id,
+            null,
           );
         }
       }

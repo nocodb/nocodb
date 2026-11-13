@@ -213,10 +213,10 @@ const onExpand = async () => {
   }
 }
 
-const onOpenTable = async () => {
+const onOpenTable = async (e?: MouseEvent) => {
   if (isEditing.value || isStopped.value) return
 
-  if (isMac() ? metaKey.value : control.value) {
+  if (isNewTabClick(e) || (isMac() ? metaKey.value : control.value)) {
     try {
       await _openTable(table.value, true)
     } catch (e: any) {
@@ -542,6 +542,7 @@ const isMmTable = computed(() => !!table.value?.mm)
           :data-testid="`nc-tbl-side-node-${table.title}`"
           @contextmenu="setMenuContext('table', table)"
           @click="onOpenTable"
+          @auxclick.middle="onOpenTable"
         >
           <div class="flex flex-row h-full items-center">
             <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
@@ -565,6 +566,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                   type="text"
                   size="xxsmall"
                   class="nc-table-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md !xs:hidden"
+                  :aria-label="isExpanded ? $t('general.collapse') : $t('general.expand')"
                   @click.stop="onExpand"
                 >
                   <GeneralIcon
@@ -932,6 +934,7 @@ const isMmTable = computed(() => !!table.value?.mm)
                   '!opacity-100 !visible': isOptionsOpen || isCreateViewMenuOpen,
                 }"
                 data-testid="nc-sidebar-table-create-view-btn"
+                :aria-label="$t('labels.createView')"
                 @click.stop
               >
                 <NcTooltip :title="$t('activity.createView')" hide-on-click :placement="isMobileMode ? 'topRight' : undefined">

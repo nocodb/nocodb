@@ -34,6 +34,24 @@ export type ExecQueryType = (param: {
   rows: any[];
 }) => any[];
 
+export interface BulkAllChunk {
+  ids: any[];
+  rows: any[];
+  /** The records as they were before the delete */
+  records: any[];
+  notifications: {
+    baseModel: any;
+    model: any;
+    ids: string[];
+    colId: string;
+  }[];
+}
+
+export interface BulkAllResult {
+  committed: BulkAllChunk[];
+  error?: unknown;
+}
+
 export type MetaQueryType = (param: {
   qb: any;
   ids: any[];
@@ -565,50 +583,33 @@ export class BaseModelDelete {
     };
   }
 
+  /**
+   * Deletes every chunk in one transaction. Returns the chunks that were
+   * committed and, on failure, the error; the caller runs the after-commit
+   * work for the committed chunks before it rethrows.
+   */
   async executeBulkAll({
     execQueries,
-    metaQueries,
-    ids,
-    rows,
+    chunks,
     qb,
   }: {
     execQueries: ExecQueryType[];
-    metaQueries: MetaQueryType[];
-    ids: any[];
-    rows: any[];
+    chunks: BulkAllChunk[];
     qb: any;
-  }) {
-    const response: any[] = [];
-
-    const oldRecords = await this.baseModel.list(
-      {
-        pks: ids
-          .map((id) =>
-            getCompositePkValue(this.baseModel.model.primaryKeys, id),
-          )
-          .join(','),
-      },
-      {
-        limitOverride: ids.length,
-        ignoreViewFilterAndSort: true,
-      },
-    );
+  }): Promise<BulkAllResult> {
     const trx = await this.baseModel.dbDriver.transaction();
     try {
-      for (const execQuery of execQueries) {
-        await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
+      for (const { ids, rows } of chunks) {
+        for (const execQuery of execQueries) {
+          await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
+        }
       }
       await trx.commit();
-      response.push(...oldRecords);
     } catch (ex) {
       await trx.rollback();
-      // silent error, may be improved to log into response
-      this.logger.error(ex.message);
+      return { committed: [], error: ex };
     }
-    for (const metaQuery of metaQueries) {
-      await metaQuery({ qb: qb.clone(), ids, rows });
-    }
-    return response;
+    return { committed: chunks };
   }
 
   async bulkAll(params: {
@@ -641,9 +642,8 @@ export class BaseModelDelete {
       ? AuditV1OperationTypes.DATA_SOFT_DELETE
       : AuditV1OperationTypes.DATA_DELETE;
 
-    const offset = 0;
     const limit = 100;
-    const response = [];
+    const primaryKeys = this.baseModel.model.primaryKeys;
 
     // paginate all the records and find file reference ids
     const selectQb = qb
@@ -651,88 +651,113 @@ export class BaseModelDelete {
       .select(
         attachmentColumns
           .map((c) => c.column_name)
-          .concat(this.baseModel.model.primaryKeys.map((pk) => pk.column_name)),
+          .concat(primaryKeys.map((pk) => pk.column_name)),
       );
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const rows = await this.baseModel.execAndParse(
-        selectQb
-          .clone()
-          .offset(offset)
-          .limit(limit + 1),
-        null,
-        {
-          raw: true,
-        },
-      );
+    if (primaryKeys.length) {
+      selectQb.orderBy(primaryKeys.map((pk) => pk.column_name));
+    }
+
+    // Read every chunk first, then delete them all in one transaction, so the
+    // delete applies in full or not at all. Nothing in the transaction reads
+    // meta: on sqlite that would wait on the connection the transaction holds.
+    // A single PK pages by key, so rows written mid-scan don't shift pages;
+    // composite PKs fall back to OFFSET.
+    const keyColumn =
+      primaryKeys.length === 1 ? primaryKeys[0].column_name : null;
+    const chunks: BulkAllChunk[] = [];
+    let lastKey: unknown;
+    for (let offset = 0; ; offset += limit) {
+      const pageQb = selectQb.clone().limit(limit + 1);
+      if (!keyColumn) pageQb.offset(offset);
+      else if (lastKey !== undefined) pageQb.where(keyColumn, '>', lastKey);
+
+      const rows = await this.baseModel.execAndParse(pageQb, null, {
+        raw: true,
+      });
 
       if (rows.length === 0) {
         break;
       }
 
-      let lastPage = false;
-
-      if (rows.length > limit) {
-        rows.pop();
-      } else {
-        lastPage = true;
-      }
+      const lastPage = rows.length <= limit;
+      if (!lastPage) rows.pop();
+      if (keyColumn) lastKey = rows[rows.length - 1][keyColumn];
 
       const chunkPrimaryKeyObjects = rows.map((row) => {
         const primaryData = {};
 
-        for (const pk of this.baseModel.model.primaryKeys) {
+        for (const pk of primaryKeys) {
           primaryData[pk.title] = row[pk.column_name];
         }
         return primaryData;
       }) as any[];
       const ids =
-        this.baseModel.model.primaryKeys.length > 1
+        primaryKeys.length > 1
           ? chunkPrimaryKeyObjects
           : chunkPrimaryKeyObjects.map(
               (row) => row[this.baseModel.model.primaryKey.title],
             );
 
-      // Phase 1: Collect linked IDs BEFORE executeBulkAll destroys link data
-      const chunkNotifications: {
-        baseModel: any;
-        model: any;
-        ids: string[];
-        colId: string;
-      }[] = [];
-
-      if (linkedRecordUpdates.length > 0) {
-        for (const entry of linkedRecordUpdates) {
-          try {
-            const linkedIds = await entry.getLinkedIds(ids);
-            if (linkedIds.length > 0) {
-              chunkNotifications.push({
-                baseModel: entry.baseModel,
-                model: entry.model,
-                ids: linkedIds,
-                colId: entry.column.id,
-              });
-            }
-          } catch (e) {
-            // Don't fail the delete if linked record collection fails
-            this.logger.warn(
-              `Failed to collect linked ids for column ${entry.column.id}: ${e.message}`,
-            );
+      // Collect linked IDs before the delete destroys the link data
+      const notifications: BulkAllChunk['notifications'] = [];
+      for (const entry of linkedRecordUpdates) {
+        try {
+          const linkedIds = await entry.getLinkedIds(ids);
+          if (linkedIds.length > 0) {
+            notifications.push({
+              baseModel: entry.baseModel,
+              model: entry.model,
+              ids: linkedIds,
+              colId: entry.column.id,
+            });
           }
+        } catch (e) {
+          // Don't fail the delete if linked record collection fails
+          this.logger.warn(
+            `Failed to collect linked ids for column ${entry.column.id}: ${e.message}`,
+          );
         }
       }
 
-      const chunkResponse = await this.executeBulkAll({
-        execQueries,
-        metaQueries,
+      chunks.push({
         ids,
         rows,
-        qb,
+        records: await this.baseModel.list(
+          {
+            pks: ids
+              .map((id) => getCompositePkValue(primaryKeys, id))
+              .join(','),
+          },
+          {
+            limitOverride: ids.length,
+            ignoreViewFilterAndSort: true,
+          },
+        ),
+        notifications,
       });
-      response.push(...chunkResponse);
 
-      // Phase 2: Notify linked records AFTER executeBulkAll commits
-      for (const entry of chunkNotifications) {
+      if (lastPage) {
+        break;
+      }
+    }
+
+    if (!chunks.length) return [];
+
+    const { committed, error } = await this.executeBulkAll({
+      execQueries,
+      chunks,
+      qb,
+    });
+
+    const response = [];
+    for (const { ids, rows, records, notifications } of committed) {
+      response.push(...records);
+
+      for (const metaQuery of metaQueries) {
+        await metaQuery({ qb: qb.clone(), ids, rows });
+      }
+
+      for (const entry of notifications) {
         try {
           await entry.baseModel.updateLastModified({
             model: entry.model,
@@ -753,6 +778,18 @@ export class BaseModelDelete {
         }
       }
 
+      if (!skip_hooks) {
+        await this.baseModel.afterBulkDelete(
+          records,
+          cookie,
+          true,
+          bulkAuditEvent,
+          rowAuditEvent,
+        );
+      }
+    }
+
+    if (committed.length) {
       // insert records updating record details to audit table
       await this.baseModel.bulkAudit({
         qb: qb.clone(),
@@ -760,25 +797,13 @@ export class BaseModelDelete {
         req: cookie,
         event: bulkAuditEvent,
       });
-
-      if (!skip_hooks) {
-        await this.baseModel.afterBulkDelete(
-          chunkResponse,
-          cookie,
-          true,
-          bulkAuditEvent,
-          rowAuditEvent,
-        );
-      }
-
-      if (lastPage) {
-        break;
-      }
     }
 
     if (isSoftDelete && response.length > 0) {
       await this.baseModel.afterSoftDeleteCompleted({ cookie, operationNow });
     }
+
+    if (error) throw error;
 
     return response;
   }

@@ -13,6 +13,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
 import { validateDbConnectionTargets } from '~/helpers/validateDbConnectionHost';
+import { assertIntegrationAvailableToBase } from '~/helpers/integrationAccess';
+import { parseConfigPayload } from '~/helpers/configPayload';
 import { Integration } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -50,6 +52,8 @@ export class SourceCreateController {
       );
     }
 
+    body.config = parseConfigPayload(context, body.config);
+
     // SSRF: check every target the source will dial. An integration-backed
     // source dials the integration's config (Source.getConfig only takes
     // database/searchPath from the body), so check both.
@@ -58,8 +62,10 @@ export class SourceCreateController {
         context,
         body.fk_integration_id,
       );
-      if (integration)
+      if (integration) {
+        await assertIntegrationAvailableToBase(context, integration, baseId);
         await validateDbConnectionTargets(integration.getConfig());
+      }
     }
     if (body?.config) await validateDbConnectionTargets(body.config);
 

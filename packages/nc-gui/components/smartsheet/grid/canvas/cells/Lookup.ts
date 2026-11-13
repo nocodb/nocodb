@@ -1,4 +1,5 @@
 import {
+  FormulaDataTypes,
   NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
@@ -8,7 +9,7 @@ import {
   isLinksOrLTAR,
   isVirtualCol,
 } from 'nocodb-sdk'
-import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { isBoxHovered, renderCellError, renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
@@ -151,11 +152,46 @@ export const LookupCellRenderer: CellRenderer = {
       }
     }
 
+    const formulaLeafColumn: ColumnType | undefined =
+      lookupColumn.uidt === UITypes.Formula
+        ? lookupColumn
+        : nestedLeafColumn?.uidt === UITypes.Formula
+        ? nestedLeafColumn
+        : undefined
+
+    const formulaParsedTree = (formulaLeafColumn?.colOptions as FormulaType | undefined)?.parsed_tree
+
+    const isPlainFormulaLeaf = !!formulaLeafColumn && !parseProp(formulaLeafColumn.meta).display_type
+
+    // A formula referencing a URL field (e.g. `{Website}`) yields the URL itself
+    const isUrlRefFormulaLeaf = isPlainFormulaLeaf && formulaParsedTree?.referencedColumn?.uidt === UITypes.URL
+
+    // String formulas can carry `URI::(…)` links (the URL() function)
+    const isStringFormulaLeaf =
+      isPlainFormulaLeaf && !isUrlRefFormulaLeaf && formulaParsedTree?.dataType === FormulaDataTypes.STRING
+
     // The URL column to render each value with — a single-level URL lookup, or the
     // resolved leaf of a nested chain ending in a URL. Rendered as a clickable link
     // (like a plain URL field) rather than a generic string.
     const urlLeafColumn: ColumnType | undefined =
       lookupColumn.uidt === UITypes.URL ? lookupColumn : nestedLeafColumn?.uidt === UITypes.URL ? nestedLeafColumn : undefined
+
+    // The URL a formula lookup value links to, if any; its tag stays as-is and only becomes clickable
+    const getFormulaValueSegments = (value: unknown): Array<{ text: string; url?: string }> | undefined => {
+      if (!ncIsString(value)) return
+
+      if (isUrlRefFormulaLeaf) {
+        const url = addMissingUrlSchma(value)
+        return url && isValidURL(url) ? [{ text: value, url }] : undefined
+      }
+
+      if (isStringFormulaLeaf) {
+        const html = replaceUrlsWithLink(value)
+        if (!ncIsString(html)) return
+        const segments = getFormulaTextSegments(html)
+        return segments.some((segment) => segment.url) ? segments : undefined
+      }
+    }
 
     // Clickable link boxes recorded during render for handleClick / cursor.
     const urlLinkBoxes: { x: number; y: number; width: number; height: number; url: string }[] = []
@@ -300,9 +336,27 @@ export const LookupCellRenderer: CellRenderer = {
         return point
       }
 
-      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
-        ? renderCell(ctx, lookupColumn, options)
-        : PlainCellRenderer.render(ctx, options)
+      // A link value keeps its tag; only its link text is underlined
+      const formulaSegments = isPlainFormulaLeaf ? getFormulaValueSegments(options.value) : undefined
+      const formulaUrl = formulaSegments?.find((segment) => segment.url)?.url
+      const renderOptions = formulaSegments ? { ...options, tag: { ...options.tag, tagSegments: formulaSegments } } : options
+
+      const point =
+        renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
+          ? renderCell(ctx, lookupColumn, renderOptions)
+          : PlainCellRenderer.render(ctx, renderOptions)
+
+      if (formulaUrl && point?.x) {
+        urlLinkBoxes.push({
+          x: options.x,
+          y: options.y,
+          width: Math.max(point.x - options.x, 0),
+          height: rowHeightInPx['1']!,
+          url: formulaUrl,
+        })
+      }
+
+      return point
     }
 
     const maxLines = rowHeightTruncateLines(height, true)
@@ -482,7 +536,7 @@ export const LookupCellRenderer: CellRenderer = {
 
     // Expose the clickable URL link boxes for handleClick and show a pointer
     // cursor when hovering one (only meaningful once the cell is selected).
-    if (urlLeafColumn && cellRenderStore) {
+    if ((urlLeafColumn || isUrlRefFormulaLeaf || isStringFormulaLeaf) && cellRenderStore) {
       cellRenderStore.links = urlLinkBoxes
 
       if (selected && mousePosition && urlLinkBoxes.some((box) => isBoxHovered(box, mousePosition))) {

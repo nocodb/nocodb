@@ -1,5 +1,6 @@
 import UITypes, { isArrayShapeLtar } from '~/lib/UITypes';
 import type { ColumnType } from '~/lib/Api';
+import { unwrapFormulaUrls } from '~/lib/formula/url-markup';
 
 const DEFAULT_MAX_DEPTH = 3;
 
@@ -196,10 +197,11 @@ export function recordV2ToV3(
   for (const [key, value] of Object.entries(record)) {
     if (!shouldIncludeField(key)) continue;
 
+    const column = columns?.find((col) => col.title === key || col.id === key);
+
     // Handle LTAR / Links nested records
-    if (columns) {
-      const column = columns.find((col) => col.title === key || col.id === key);
-      if (column && isLtarColumn(column)) {
+    if (column) {
+      if (isLtarColumn(column)) {
         const related = resolveRelatedModel(
           column.id!,
           columnModelMap,
@@ -257,6 +259,11 @@ export function recordV2ToV3(
         // Skip LTAR fields with missing related meta — don't pass raw nested data
         continue;
       }
+    }
+
+    if (column?.uidt === UITypes.Formula && typeof value === 'string') {
+      transformedFields[key] = unwrapFormulaUrls(value);
+      continue;
     }
 
     // Non-LTAR fields — copy as-is

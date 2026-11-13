@@ -5,6 +5,7 @@ import commonFns, {
   escapePlaceholders,
   extractDatetimeFormat,
   isNumericValueArg,
+  jsonPathFromLiteral,
   validateDateAddUnit,
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
@@ -376,7 +377,7 @@ END)`,
       return {
         builder: knex.raw(
           `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, ?) ELSE NULL END`,
-          [source, source, `$${pathArg.value}`],
+          [source, source, jsonPathFromLiteral(pathArg.value)],
         ),
       };
     }
@@ -384,7 +385,7 @@ END)`,
     const needle = (await fn(pathArg)).builder;
     return {
       builder: knex.raw(
-        `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, CONCAT('$', ?)) ELSE NULL END`,
+        `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, CONCAT('$', TRIM(LEADING '$' FROM ?))) ELSE NULL END`,
         [source, source, needle],
       ),
     };

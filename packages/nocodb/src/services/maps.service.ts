@@ -6,6 +6,7 @@ import { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
+import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { NcError } from '~/helpers/catchError';
 import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { claimObjectTitle } from '~/helpers/customObjects';
@@ -51,10 +52,18 @@ export class MapsService {
       tableId: string;
       map: ViewCreateReqType;
       user: UserType;
+      ownedBy?: string;
       req: NcRequest;
     },
     ncMeta = Noco.ncMeta,
   ) {
+    if (param?.ownedBy) {
+      await assertNotLaneInstance(
+        context,
+        'Personal views cannot be created in an environment instance. Create them on the production base.',
+      );
+    }
+
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.map,
@@ -94,7 +103,7 @@ export class MapsService {
           base_id: model.base_id,
           source_id: model.source_id,
           created_by: param.user?.id,
-          owned_by: param.user?.id,
+          owned_by: param.ownedBy || param.user?.id,
         },
         model,
         req: param.req,
@@ -111,7 +120,11 @@ export class MapsService {
       `${CacheScope.VIEW}:${id}`,
     );
 
-    const owner = param.req.user;
+    let owner = param.req.user;
+
+    if (param.ownedBy) {
+      owner = await User.get(param.ownedBy, ncMeta);
+    }
 
     this.appHooksService.emit(AppEvents.MAP_CREATE, {
       view,

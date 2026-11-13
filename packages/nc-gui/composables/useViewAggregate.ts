@@ -114,7 +114,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
           reloadVisibleDataHook?.trigger()
         } catch (error) {
           console.error(error)
-          message.error(await extractSdkResponseErrorMsgv2(error as any))
+          if (!silent) message.error(await extractSdkResponseErrorMsgv2(error as any))
         }
         return
       }

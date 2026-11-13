@@ -15,6 +15,7 @@ import { NcError } from '~/helpers/catchError';
 import { getIntegrationForSource } from '~/helpers/integrationAccess';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 import { validateChangedDbConnectionTargets } from '~/helpers/validateDbConnectionHost';
+import { parseConfigPayload } from '~/helpers/configPayload';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -52,6 +53,7 @@ export class SourcesService {
     }
 
     const baseBody = param.source;
+    baseBody.config = parseConfigPayload(context, baseBody.config);
 
     // Same server-determined flags as in baseCreate — `Source.update` also
     // extracts them, so without this an existing source could be flipped onto the
@@ -84,6 +86,7 @@ export class SourcesService {
           context,
           (baseBody as any).fk_integration_id,
           param.req.user?.id,
+          oldSource.base_id,
         ),
       );
     }
@@ -216,6 +219,7 @@ export class SourcesService {
     error?: any;
   }> {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
+    param.source.config = parseConfigPayload(context, param.source.config);
 
     // Unlike baseUpdate, this path never validated the filename — a source could
     // point at NocoDB's own metadata database (noco.db / nc_data.db).
@@ -272,6 +276,7 @@ export class SourcesService {
         context,
         (baseBody as any).fk_integration_id,
         param.req.user?.id,
+        base.id,
       );
 
       this.assertDatabaseIntegration(integration);

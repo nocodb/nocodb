@@ -83,6 +83,8 @@ function isOnlyBrTagsAndSpaces(str?: string) {
   return regex.test(str)
 }
 
+const { t } = useI18n()
+
 const editor = useEditor({
   content: vModel.value,
   extensions: tiptapExtensions,
@@ -125,6 +127,7 @@ const editor = useEditor({
     }
   },
   editorProps: {
+    attributes: { 'role': 'textbox', 'aria-label': t('general.comment') },
     handleKeyDown(this, view, event) {
       if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
         const { state } = view
@@ -296,7 +299,7 @@ defineExpose({
       'readonly': readOnly,
       'nc-rich-text-grid': isGrid,
     }"
-    :tabindex="1"
+    :tabindex="0"
     class="nc-rich-text-comment flex flex-col w-full h-full"
     @focus="onFocusWrapper"
   >
@@ -339,6 +342,7 @@ defineExpose({
         </div>
         <NcButton
           v-e="['a:row-expand:comment:save']"
+          :aria-label="$t('general.send')"
           :disabled="!vModel?.length && !extraSaveEnabled"
           class="!disabled:bg-nc-bg-gray-light nc-comment-save-btn !h-7 !w-7 !shadow-none"
           size="xsmall"

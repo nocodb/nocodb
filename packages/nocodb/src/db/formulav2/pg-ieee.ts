@@ -129,3 +129,29 @@ export function stripNaNSql(expr: string): string {
 export function excludeNonFiniteSql(expr: string): string {
   return `(CASE WHEN ${isFiniteSql(expr)} THEN (${expr}) END)`;
 }
+
+// Without IEEE semantics, an out-of-domain input blanks its own row. pg would
+// otherwise raise and fail the whole query, so one bad row errored every row
+// and blocked saving the formula. The operand types are left as they were.
+export function guardedSqrtSql(expr: string): string {
+  return `(CASE WHEN (${expr}) < 0 THEN NULL ELSE sqrt(${expr}) END)`;
+}
+
+export function guardedLogSql(expr: string): string {
+  return `(CASE WHEN (${expr}) <= 0 THEN NULL ELSE log(${expr}) END)`;
+}
+
+export function guardedLogBaseSql(base: string, value: string): string {
+  return (
+    `(CASE WHEN (${base}) > 0 AND (${base}) <> 1 AND (${value}) > 0 ` +
+    `THEN log(${base}, ${value}) END)`
+  );
+}
+
+export function guardedPowerSql(base: string, exponent: string): string {
+  return (
+    `(CASE WHEN ((${base}) < 0 AND (${exponent}) <> floor(${exponent})) ` +
+    `OR ((${base}) = 0 AND (${exponent}) < 0) THEN NULL ` +
+    `ELSE pow(${base}, ${exponent}) END)`
+  );
+}

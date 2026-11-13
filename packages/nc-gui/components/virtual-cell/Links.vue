@@ -254,7 +254,10 @@ onUnmounted(() => {
           :class="{ hidden: isUnderLookup }"
           :tabindex="readOnly ? -1 : 0"
           class="flex group justify-end group-hover:flex items-center nc-canvas-links-icon-plus"
+          role="button"
+          :aria-label="hasEditPermission ? $t('activity.linkRecord') : $t('general.expand')"
           @keydown.enter.stop="hasEditPermission ? openListDlg() : openChildList()"
+          @keydown.space.stop.prevent="hasEditPermission ? openListDlg() : openChildList()"
         >
           <GeneralIcon
             :icon="isSimpleLinkRecordList ? 'chevronDown' : 'plus'"

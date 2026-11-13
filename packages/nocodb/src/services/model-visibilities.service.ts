@@ -8,6 +8,7 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { assertNotLaneInstance } from '~/helpers/environmentGuards';
 import { Base, Model, ModelRoleVisibility, View } from '~/models';
+import { viewWithoutShareSecrets } from '~/helpers/publicViewSecrets';
 
 @Injectable()
 export class ModelVisibilitiesService {
@@ -122,7 +123,7 @@ export class ModelVisibilitiesService {
           tn: view.title,
           _tn: view.title,
           table_meta: model.meta,
-          ...view,
+          ...viewWithoutShareSecrets(view, false),
           disabled: { ...defaultDisabled },
         };
       }

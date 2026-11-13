@@ -16430,9 +16430,8 @@
             "type": "string"
           },
           "show": {
-            "description": "Whether to show this column or not",
-            "example": 1,
-            "type": "number"
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether to show this column or not"
           }
         },
         "title": "Map Column Model",

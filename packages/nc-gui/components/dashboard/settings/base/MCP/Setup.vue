@@ -55,7 +55,7 @@ const secret = computed(() => props.token.token ?? 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
 const mcpUrl = computed(() => `${appInfo.value.ncSiteUrl}/mcp/${props.token.id}`)
 
-// Windsurf, Copilot and AntiGravity cap the tool list at 100 and cannot defer schemas, so on EE
+// Devin (formerly Windsurf), Copilot and AntiGravity cap the tool list at 100 and cannot defer schemas, so on EE
 // they use the endpoint that keeps writes behind `listTools`/`callTool`. CE lists few enough tools.
 const cappedClientUrl = computed(() =>
   isEeUI ? `${appInfo.value.ncSiteUrl}/${MCP_DISCOVERY_PATH}/${props.token.id}` : mcpUrl.value,
@@ -131,7 +131,7 @@ const clients = [
   { key: 'codex', label: 'Codex', icon: 'ncLogoOpenAiColored' },
   { key: 'antigravity', label: 'AntiGravity', icon: 'ncLogoGeminiAiColored' },
   { key: 'cursor', label: 'Cursor', icon: 'ncCode' },
-  { key: 'windsurf', label: 'Windsurf', icon: 'ncCode' },
+  { key: 'windsurf', label: 'Devin', icon: 'ncCode' },
   { key: 'copilot', label: 'Copilot', icon: 'ncGithub' },
 ] as const
 </script>

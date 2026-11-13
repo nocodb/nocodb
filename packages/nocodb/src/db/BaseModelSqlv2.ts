@@ -16,6 +16,7 @@ import {
   CURRENT_USER_TOKEN,
   EventType,
   extractFilterFromXwhere,
+  getKanbanStackType,
   getRollupResultUidt,
   isAIPromptCol,
   isAttachment,
@@ -23,12 +24,14 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isDeletedCol,
+  isKanbanJunctionLink,
   isLinksOrLTAR,
   isMMOrMMLike,
   isOrderCol,
   isSelfLinkCol,
   isSystemColumn,
   isVirtualCol,
+  KanbanStackType,
   LongTextAiMetaProp,
   NC_ERROR_SENTINEL,
   NcApiVersion,
@@ -80,6 +83,7 @@ import type { SignAttachmentParams } from '~/models/PresignedUrl';
 import type { ResolverObj } from '~/utils';
 import type { FormulaColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { LinkHookChange } from '~/db/BaseModelSqlv2/add-remove-links';
+import { groupKeyOf } from '~/helpers/groupKeyHelpers';
 import {
   getLinkValue,
   LTARColsUpdater,
@@ -139,6 +143,7 @@ import {
   extractLinkFieldsByTitle,
   extractSortsObject,
   formatDataForAudit,
+  getAliasedSoftDeleteFilter,
   getAs,
   getBaseModelSqlFromModelId,
   getCompositePkValue,
@@ -164,7 +169,7 @@ import {
 import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import getAst from '~/helpers/getAst';
 import { setModelContext } from '~/helpers/modelContext';
-import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
+import { rawFromBuilder, sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import {
   Agent,
   Audit,
@@ -1913,7 +1918,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     const proto: ResolverObj = {
-      __columnAliases: {},
+      // Null prototype: a field titled e.g. `constructor` is not an alias.
+      __columnAliases: Object.create(null),
+    };
+    // A cross-base link reads pk/pv only; its Lookups still need their column.
+    const lookupFieldsByRelColId: Record<string, Set<string>> = {};
+    const withLookupFields = (
+      args: RelationLoaderArgs | undefined,
+      relColumn: Column,
+      relColOptions: LinkToAnotherRecordColumn,
+    ): RelationLoaderArgs | undefined => {
+      const lookupFields = lookupFieldsByRelColId[relColumn.id];
+      if (!lookupFields?.size || !relColOptions.isCrossBaseLink()) return args;
+      return {
+        ...args,
+        fieldsSet: new Set([...(args?.fieldsSet ?? []), ...lookupFields]),
+      };
     };
     const columns = await this.model.getColumns();
     await Promise.all(
@@ -1966,6 +1986,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               proto.__columnAliases[column.title] = {
                 path: [relColTitle, lookupCol.title],
               };
+              (lookupFieldsByRelColId[relCol.id] ??= new Set()).add(
+                lookupCol.title,
+              );
             }
             break;
           case UITypes.Links:
@@ -2025,7 +2048,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args?: RelationLoaderArgs): Promise<any> {
-                  listLoader.args = args;
+                  listLoader.args = withLookupFields(args, column, colOptions);
                   return listLoader.load(
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
@@ -2063,7 +2086,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 proto[column.title] = async function (
                   args?: RelationLoaderArgs,
                 ) {
-                  readLoader.args = args;
+                  readLoader.args = withLookupFields(args, column, colOptions);
                   return await readLoader.load(
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
@@ -2111,7 +2134,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args?: RelationLoaderArgs): Promise<any> {
-                  listLoader.args = args;
+                  listLoader.args = withLookupFields(args, column, colOptions);
                   return await listLoader.load(
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
@@ -2343,7 +2366,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       ? `_nc_lk_${column.title}`
                       : column.title
                   ] = async function (args?: RelationLoaderArgs): Promise<any> {
-                    listLoader.args = args;
+                    listLoader.args = withLookupFields(
+                      args,
+                      column,
+                      colOptions,
+                    );
                     return listLoader.load(
                       getCompositePkValue(self.model.primaryKeys, this),
                     );
@@ -3246,8 +3273,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             req: request,
           },
         );
-      // Dispatched after the row lands (this path is autocommit — no trx), so
-      // the worker can see it. See AttachmentUrlUploadPreparator.
+      // Dispatched after the commit, so the worker can see the row. See
+      // AttachmentUrlUploadPreparator.
       const postCommitOps = attachmentOperations.postCommitOps ?? [];
 
       await this.validate(insertObj, columns);
@@ -3294,168 +3321,183 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         (f) => f(),
         5,
       );
-      await this.runOps(preInsertResolved.map((s) => Promise.resolve(s)));
 
-      // Deposit displacement capture for the trace decorator.
-      // `displacedRecords` was populated by capture-ops in
-      // preInsertOps (SELECTs ran under the concurrency cap above,
-      // before runOps walked the resulting UPDATE/DELETE strings serially).
-      // Skipped under replay — replay reads from meta.extra, doesn't
-      // re-capture.
-      if (displacedRecords.length > 0 && !isReplay()) {
-        captureForTrace('displacedRecords', displacedRecords);
-      }
+      // Read before the trx: on MSSQL it would wait on the trx's locks
+      const mssqlHasTriggers =
+        this.isMssql && this.model.primaryKey
+          ? await mssqlTableHasTriggers(this)
+          : false;
+
+      // The link writes and the row land together. The mux runs each call on
+      // its own, so an external source stays autocommit.
+      const trx = this.dbDriver.isExternal
+        ? null
+        : await this.dbDriver.transaction();
+      // `execAndParse` reads meta on the way, which on sqlite would wait on the
+      // connection the trx holds; these are raw reads, so run them directly.
+      const exec = (qb: Knex.QueryBuilder | string) =>
+        trx
+          ? this.execAndGetRows(typeof qb === 'string' ? qb : qb.toQuery(), trx)
+          : this.execAndParse(qb, null, { raw: true });
 
       let response;
 
-      // Oracle has no `DEFAULT VALUES` / column-less `VALUES (default)`: an empty
-      // insert object compiles to `insert into "t" () values (default)` and fails
-      // with ORA-00947. Pin the PK to DEFAULT so it becomes a valid
-      // `insert into "t" ("PK") values (DEFAULT)` — other columns take their own
-      // defaults; an identity/sequence-trigger PK is generated as usual.
-      if (
-        this.isOracle &&
-        insertObj &&
-        Object.keys(insertObj).length === 0 &&
-        this.model.primaryKey
-      ) {
-        insertObj[this.model.primaryKey.column_name] =
-          this.dbDriver.raw('DEFAULT');
-      }
-
-      const query = this.dbDriver(this.tnPath).insert(insertObj);
-
-      // pg + mssql both support inline RETURNING/OUTPUT — knex's mssql
-      // dialect translates `.returning('col as alias')` to
-      // `OUTPUT INSERTED.[col] AS [alias]`, returning the same
-      // `[{ alias: value }]` shape the downstream extractor expects.
-      // Without this, mssql falls into the generic else-branch (shaped
-      // for mysql's `insertId`), the new PK gets read as the raw
-      // rows-affected count, and `extractCompositePK` returns '' →
-      // ERR_INVALID_PK_VALUE.
-      if ((this.isPg || this.isMssql) && this.model.primaryKey) {
-        query.returning(
-          `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
+      try {
+        await this.runOps(
+          preInsertResolved.map((s) => Promise.resolve(s)),
+          trx ?? undefined,
         );
 
-        if (this.isMssql) {
-          // Trigger tables and explicit-IDENTITY inserts can't use the
-          // bare OUTPUT INSERTED.* form knex emits — route through the
-          // OUTPUT-INTO-table-variable pattern.
-          const aiColName =
-            this.model.columns?.find((c) => c.ai)?.column_name ?? null;
-          const explicitIdentity = mssqlNeedsIdentityInsert(
-            [insertObj],
-            aiColName,
+        // Deposit displacement capture for the trace decorator.
+        // `displacedRecords` was populated by capture-ops in
+        // preInsertOps (SELECTs ran under the concurrency cap above,
+        // before runOps walked the resulting UPDATE/DELETE strings serially).
+        // Skipped under replay — replay reads from meta.extra, doesn't
+        // re-capture.
+        if (displacedRecords.length > 0 && !isReplay()) {
+          captureForTrace('displacedRecords', displacedRecords);
+        }
+
+        // Oracle has no `DEFAULT VALUES` / column-less `VALUES (default)`: an empty
+        // insert object compiles to `insert into "t" () values (default)` and fails
+        // with ORA-00947. Pin the PK to DEFAULT so it becomes a valid
+        // `insert into "t" ("PK") values (DEFAULT)` — other columns take their own
+        // defaults; an identity/sequence-trigger PK is generated as usual.
+        if (
+          this.isOracle &&
+          insertObj &&
+          Object.keys(insertObj).length === 0 &&
+          this.model.primaryKey
+        ) {
+          insertObj[this.model.primaryKey.column_name] =
+            this.dbDriver.raw('DEFAULT');
+        }
+
+        const query = this.dbDriver(this.tnPath).insert(insertObj);
+
+        // pg + mssql both support inline RETURNING/OUTPUT — knex's mssql
+        // dialect translates `.returning('col as alias')` to
+        // `OUTPUT INSERTED.[col] AS [alias]`, returning the same
+        // `[{ alias: value }]` shape the downstream extractor expects.
+        // Without this, mssql falls into the generic else-branch (shaped
+        // for mysql's `insertId`), the new PK gets read as the raw
+        // rows-affected count, and `extractCompositePK` returns '' →
+        // ERR_INVALID_PK_VALUE.
+        if ((this.isPg || this.isMssql) && this.model.primaryKey) {
+          query.returning(
+            `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
           );
-          const hasTriggers = await mssqlTableHasTriggers(this);
-          if (hasTriggers || explicitIdentity) {
-            const sql = mssqlBuildBulkInsertWithCapture({
-              knex: this.dbDriver,
-              tnPath: this.tnPath,
-              rows: [insertObj],
-              pkCols: this.model.primaryKeys ?? [],
-              explicitIdentity,
-              aliasField: 'id',
-            });
-            response = await this.execAndParse(sql, null, { raw: true });
+
+          if (this.isMssql) {
+            // Trigger tables and explicit-IDENTITY inserts can't use the
+            // bare OUTPUT INSERTED.* form knex emits — route through the
+            // OUTPUT-INTO-table-variable pattern.
+            const aiColName =
+              this.model.columns?.find((c) => c.ai)?.column_name ?? null;
+            const explicitIdentity = mssqlNeedsIdentityInsert(
+              [insertObj],
+              aiColName,
+            );
+            if (mssqlHasTriggers || explicitIdentity) {
+              const sql = mssqlBuildBulkInsertWithCapture({
+                knex: this.dbDriver,
+                tnPath: this.tnPath,
+                rows: [insertObj],
+                pkCols: this.model.primaryKeys ?? [],
+                explicitIdentity,
+                aliasField: 'id',
+              });
+              response = await exec(sql);
+            } else {
+              response = await exec(query);
+            }
           } else {
-            response = await this.execAndParse(query, null, { raw: true });
+            response = await exec(query);
           }
-        } else {
-          response = await this.execAndParse(query, null, { raw: true });
-        }
-      }
-
-      const ai = this.model.columns.find((c) => c.ai);
-
-      let ag: Column;
-      if (!ai) ag = this.model.columns.find((c) => c.meta?.ag);
-
-      // handle if autogenerated primary key is used
-      if (ag) {
-        rowId = insertObj[ag.column_name];
-        if (!response) await this.execAndParse(query);
-        response = await this.readRecord({
-          idOrRecord: insertObj[ag.column_name],
-          ignoreView: true,
-          getHiddenColumn: true,
-          validateFormula: false,
-          source,
-          ignoreRls: true,
-        });
-      } else if (
-        !response ||
-        (typeof response?.[0] !== 'object' && response?.[0] !== null)
-      ) {
-        if (response?.length) {
-          rowId = response[0];
-        } else {
-          rowId = await this.execAndParse(query, null, {
-            raw: true,
-          });
-          rowId = rowId.id ?? rowId[0]?.insertId ?? rowId;
         }
 
-        if (ai) {
-          if (this.isSqlite) {
-            // sqlite doesnt return id after insert
-            rowId = (
-              await this.execAndParse(
-                this.dbDriver(this.tnPath)
-                  .select(ai.column_name)
-                  .max(ai.column_name, { as: '__nc_ai_id' }),
-                null,
-                {
-                  raw: true,
-                  first: true,
-                },
-              )
-            )?.__nc_ai_id;
-          } else if (this.isSnowflake || this.isDatabricks || this.isOracle) {
-            rowId = (
-              await this.execAndParse(
-                this.dbDriver(this.tnPath).max(ai.column_name, {
-                  as: '__nc_ai_id',
-                }),
-                null,
-                { raw: true, first: true },
-              )
-            )?.__nc_ai_id;
+        const ai = this.model.columns.find((c) => c.ai);
+
+        let ag: Column;
+        if (!ai) ag = this.model.columns.find((c) => c.meta?.ag);
+
+        // handle if autogenerated primary key is used
+        if (ag) {
+          rowId = insertObj[ag.column_name];
+          if (!response) await exec(query);
+          // The record is read once the trx commits, below
+        } else if (
+          !response ||
+          (typeof response?.[0] !== 'object' && response?.[0] !== null)
+        ) {
+          if (response?.length) {
+            rowId = response[0];
+          } else {
+            rowId = await exec(query);
+            rowId = rowId.id ?? rowId[0]?.insertId ?? rowId;
           }
-          // response = await this.readByPk(
-          //   id,
-          //   false,
-          //   {},
-          //   { ignoreView: true, getHiddenColumn: true },
-          // );
-        } else {
-          response = data;
-        }
-      } else if (ai) {
-        rowId = Array.isArray(response)
-          ? response?.[0]?.[ai.id]
-          : response?.[ai.id];
-      }
-      rowId = this.extractCompositePK({ ai, ag, rowId, insertObj });
-      // when auto generated (with default) pk columns
-      if (!rowId && response.length === 1) {
-        if (this.model.primaryKeys.length === 1) {
-          rowId = response[0][this.model.primaryKeys[0].id];
-        } else {
-          const responseWithColumnTitle = Object.keys(response[0]).reduce(
-            (res, colId) => {
-              const col = this.model.columns.find((c) => c.id === colId);
-              res[col.title] = response[0][colId];
-              return res;
-            },
-            {},
-          );
-          rowId = this.extractPksValues(responseWithColumnTitle, true);
-        }
-      }
 
-      await this.runOps(postInsertOps.map((f) => f(rowId)));
+          if (ai) {
+            if (this.isSqlite) {
+              // sqlite doesnt return id after insert
+              rowId = (
+                await exec(
+                  this.dbDriver(this.tnPath)
+                    .select(ai.column_name)
+                    .max(ai.column_name, { as: '__nc_ai_id' }),
+                )
+              )?.[0]?.__nc_ai_id;
+            } else if (this.isSnowflake || this.isDatabricks || this.isOracle) {
+              rowId = (
+                await exec(
+                  this.dbDriver(this.tnPath).max(ai.column_name, {
+                    as: '__nc_ai_id',
+                  }),
+                )
+              )?.[0]?.__nc_ai_id;
+            }
+            // response = await this.readByPk(
+            //   id,
+            //   false,
+            //   {},
+            //   { ignoreView: true, getHiddenColumn: true },
+            // );
+          } else {
+            response = data;
+          }
+        } else if (ai) {
+          rowId = Array.isArray(response)
+            ? response?.[0]?.[ai.id]
+            : response?.[ai.id];
+        }
+        rowId = this.extractCompositePK({ ai, ag, rowId, insertObj });
+        // when auto generated (with default) pk columns
+        if (!rowId && response.length === 1) {
+          if (this.model.primaryKeys.length === 1) {
+            rowId = response[0][this.model.primaryKeys[0].id];
+          } else {
+            const responseWithColumnTitle = Object.keys(response[0]).reduce(
+              (res, colId) => {
+                const col = this.model.columns.find((c) => c.id === colId);
+                res[col.title] = response[0][colId];
+                return res;
+              },
+              {},
+            );
+            rowId = this.extractPksValues(responseWithColumnTitle, true);
+          }
+        }
+
+        await this.runOps(
+          postInsertOps.map((f) => f(rowId, trx ?? undefined)),
+          trx ?? undefined,
+        );
+
+        await trx?.commit();
+      } catch (e) {
+        await trx?.rollback();
+        throw e;
+      }
 
       for (const op of postCommitOps) {
         try {
@@ -4816,6 +4858,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
+      const writeLinks = apiVersion === NcApiVersion.V3 || inlineLinkWrites;
+      const updateLinks = (trx?: Knex.Transaction) =>
+        this.updateLTARCols({
+          datas,
+          cookie,
+          trx,
+          triggerUpdateHooks: triggerLinkUpdateHooks && !skip_hooks,
+        });
+
       transaction = await this.dbDriver.transaction();
       try {
         if (
@@ -4834,6 +4885,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
 
+        // In the field trx, so a rejected link rolls the fields back too.
+        // sqlite's single connection would deadlock on the link writer's reads.
+        if (writeLinks && !this.isSqlite) {
+          profiler.log('updateLTARCols start');
+          await updateLinks(transaction);
+        }
+
         await transaction.commit();
         transaction = null;
       } catch (ex) {
@@ -4847,14 +4905,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         throw ex;
       }
 
-      if (apiVersion === NcApiVersion.V3 || inlineLinkWrites) {
+      // sqlite: after the commit, so field and link writes aren't atomic
+      if (writeLinks && this.isSqlite) {
         profiler.log('updateLTARCols start');
-        // remove LTAR/Links if part of the update request
-        await this.updateLTARCols({
-          datas,
-          cookie,
-          triggerUpdateHooks: triggerLinkUpdateHooks && !skip_hooks,
-        });
+        await updateLinks();
       }
 
       if (apiVersion === NcApiVersion.V3) {
@@ -7497,6 +7551,234 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   /**
+   * Column a kanban groups by. A foreign-key link groups by the foreign key it
+   * owns; a link kept in a junction table is returned itself (with colOptions),
+   * and groups by `getGroupingKeyQuery`.
+   */
+  public async resolveGroupingColumn(groupColumnId: string): Promise<Column> {
+    const columns = await this.model.getColumns();
+    const column = columns?.find((col) => col.id === groupColumnId);
+
+    if (!column) NcError.get(this.context).fieldNotFound(groupColumnId);
+
+    if (
+      column.uidt !== UITypes.LinkToAnotherRecord &&
+      column.uidt !== UITypes.Links
+    )
+      return column;
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const linkColumn = setModelContext(
+      new Column({ ...column, colOptions }),
+      this.context,
+    );
+
+    // Junction links group through a correlated subquery, supported on Postgres only
+    if (isKanbanJunctionLink(linkColumn) && !this.isPg)
+      NcError.get(this.context).notImplemented(
+        'Stacking by a many-to-one link outside Postgres',
+      );
+
+    if (
+      getKanbanStackType(linkColumn, { junctionLinks: true }) !==
+      KanbanStackType.Link
+    )
+      NcError.get(this.context).notImplemented('Grouping for virtual columns');
+
+    if (isKanbanJunctionLink(linkColumn)) return linkColumn;
+
+    const fkColumn = columns.find(
+      (col) => col.id === colOptions.fk_child_column_id,
+    );
+    if (!fkColumn)
+      NcError.get(this.context).notImplemented('Grouping for virtual columns');
+
+    return fkColumn;
+  }
+
+  /** Whether a grouping column (from `resolveGroupingColumn`) is a junction link. */
+  public isJunctionGroupingColumn(column: Column) {
+    return (
+      (column.uidt === UITypes.LinkToAnotherRecord ||
+        column.uidt === UITypes.Links) &&
+      isKanbanJunctionLink(column)
+    );
+  }
+
+  /**
+   * SQL for a row's group key: the column itself, or for a junction link the id
+   * of the one record it names (null when unlinked or that record is deleted).
+   * `rootRef` is how the outer query names this table. Wrapped: a Knex.Raw is
+   * thenable, so resolving a promise with one would run it.
+   */
+  public async getGroupingKeyQuery(
+    column: Column,
+    rootRef: string = this.tnPath,
+  ): Promise<{ sql: Knex.Raw }> {
+    if (!this.isJunctionGroupingColumn(column)) {
+      return {
+        sql: this.dbDriver.raw('??', [`${rootRef}.${column.column_name}`]),
+      };
+    }
+
+    const relation = column.colOptions as LinkToAnotherRecordColumn;
+    const { parentContext, mmContext } = await relation.getParentChildContext(
+      column,
+    );
+    const childColumn = await relation.getChildColumn();
+    const parentColumn = await relation.getParentColumn();
+    const parentModel = await parentColumn.getModel();
+    const mmModel = await relation.getMMModel();
+    const mmChildColumn = await relation.getMMChildColumn();
+    const mmParentColumn = await relation.getMMParentColumn();
+
+    const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+      model: parentModel,
+      dbDriver: this.dbDriver,
+    });
+    const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: mmModel,
+      dbDriver: this.dbDriver,
+    });
+
+    const parentAlias = '__nc_grp_parent';
+    const mmAlias = '__nc_grp_mm';
+
+    const keyQb = this.dbDriver(
+      parentBaseModel.getTnPath(parentModel.table_name, parentAlias),
+    )
+      .select(`${parentAlias}.${parentColumn.column_name}`)
+      .innerJoin(
+        mmBaseModel.getTnPath(mmModel.table_name, mmAlias),
+        `${mmAlias}.${mmParentColumn.column_name}`,
+        `${parentAlias}.${parentColumn.column_name}`,
+      )
+      .where(
+        `${mmAlias}.${mmChildColumn.column_name}`,
+        this.dbDriver.raw('??', [`${rootRef}.${childColumn.column_name}`]),
+      )
+      // Stable when stray junction rows link one card twice
+      .orderBy(`${parentAlias}.${parentColumn.column_name}`)
+      .limit(1);
+
+    const softDeleteFilter = await getAliasedSoftDeleteFilter(
+      parentBaseModel,
+      parentAlias,
+    );
+    if (softDeleteFilter) keyQb.where(softDeleteFilter);
+
+    return { sql: rawFromBuilder(this.dbDriver, keyQb).wrap('(', ')') };
+  }
+
+  /**
+   * Linked (non-deleted) records of a junction link, joined to its junction
+   * table, and how a row of this table is referenced from outside.
+   */
+  private async getJunctionLinkedRows(column: Column) {
+    const relation = column.colOptions as LinkToAnotherRecordColumn;
+    const { parentContext, mmContext } = await relation.getParentChildContext(
+      column,
+    );
+    const childColumn = await relation.getChildColumn();
+    const parentColumn = await relation.getParentColumn();
+    const parentModel = await parentColumn.getModel();
+    const mmModel = await relation.getMMModel();
+    const mmChildColumn = await relation.getMMChildColumn();
+    const mmParentColumn = await relation.getMMParentColumn();
+
+    const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+      model: parentModel,
+      dbDriver: this.dbDriver,
+    });
+    const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: mmModel,
+      dbDriver: this.dbDriver,
+    });
+    const softDeleteFilter = await getAliasedSoftDeleteFilter(
+      parentBaseModel,
+      '__nc_grp_parent',
+    );
+
+    const linkedRows = () => {
+      const linked = this.dbDriver(
+        mmBaseModel.getTnPath(mmModel.table_name, '__nc_grp_mm'),
+      ).innerJoin(
+        parentBaseModel.getTnPath(parentModel.table_name, '__nc_grp_parent'),
+        `__nc_grp_parent.${parentColumn.column_name}`,
+        `__nc_grp_mm.${mmParentColumn.column_name}`,
+      );
+      if (softDeleteFilter) linked.where(softDeleteFilter);
+      return linked;
+    };
+
+    return {
+      linkedRows,
+      rowRef: `${this.tnPath}.${childColumn.column_name}`,
+      mmChildRef: `__nc_grp_mm.${mmChildColumn.column_name}`,
+      mmParentRef: `__nc_grp_mm.${mmParentColumn.column_name}`,
+    };
+  }
+
+  /**
+   * Narrows `qb` to one junction-link stack through the junction table's index
+   * on the linked record, instead of comparing every row's key subquery.
+   */
+  public async getJunctionStackFilter(column: Column) {
+    const { linkedRows, rowRef, mmChildRef, mmParentRef } =
+      await this.getJunctionLinkedRows(column);
+    const keyQuery = (await this.getGroupingKeyQuery(column)).sql;
+
+    return (qb: Knex.QueryBuilder, key: string | number | null) => {
+      if (key === null) {
+        // NOT EXISTS: a NULL in a NOT IN list would empty the stack
+        return qb.whereNotExists(
+          linkedRows()
+            .select(this.dbDriver.raw('1'))
+            .whereRaw('?? = ??', [mmChildRef, rowRef]),
+        );
+      }
+      // The index narrows to the linked rows; the key check keeps a card
+      // that stray junction rows link twice in the one stack its key names
+      return qb
+        .whereIn(
+          rowRef,
+          linkedRows().select(mmChildRef).where(mmParentRef, key),
+        )
+        .whereRaw('? = ?', [keyQuery, key]);
+    };
+  }
+
+  /**
+   * Narrows `qb` (on this table, unaliased) to rows that can fall in any of
+   * `keys`' junction-link stacks, through the junction table's index. A superset:
+   * the caller still matches each row's key.
+   */
+  public async applyJunctionStacksPrefilter(
+    column: Column,
+    qb: Knex.QueryBuilder,
+    keys: (string | number | null)[],
+  ) {
+    const { linkedRows, rowRef, mmChildRef, mmParentRef } =
+      await this.getJunctionLinkedRows(column);
+    const ids = keys.filter((k) => k !== null);
+    const withNull = ids.length !== keys.length;
+
+    qb.where((inner) => {
+      if (ids.length)
+        inner.whereIn(
+          rowRef,
+          linkedRows().select(mmChildRef).whereIn(mmParentRef, ids),
+        );
+      if (withNull)
+        inner.orWhereNotExists(
+          linkedRows()
+            .select(this.dbDriver.raw('1'))
+            .whereRaw('?? = ??', [mmChildRef, rowRef]),
+        );
+    });
+  }
+
+  /**
    * Extract distinct group column values for grouping operations
    * Handles options parameter, SingleSelect columns, and other column types
    *
@@ -7513,8 +7795,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extraConditions?: Filter[];
     },
   ): Promise<Set<any>> {
+    const isJunction = this.isJunctionGroupingColumn(column);
+
     // TODO: Add virtual column support
-    if (isVirtualCol(column)) {
+    if (isVirtualCol(column) && !isJunction) {
       NcError.get(this.context).notImplemented('Grouping for virtual columns');
     }
 
@@ -7531,9 +7815,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
       groupingValues.add(null);
     } else {
-      const qb = this.dbDriver(this.tnPath)
-        .select(column.column_name)
-        .distinct();
+      const keyAlias = '__nc_grp_key';
+      const qb = isJunction
+        ? this.dbDriver(this.tnPath).select(
+            this.dbDriver.raw('? as ??', [
+              (await this.getGroupingKeyQuery(column)).sql,
+              keyAlias,
+            ]),
+          )
+        : this.dbDriver(this.tnPath).select(column.column_name).distinct();
 
       const softDeleteFilter = await this.getSoftDeleteFilter();
       if (softDeleteFilter) {
@@ -7586,11 +7876,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ? MAX_GROUPING_VALUES_SQLITE
         : MAX_GROUPING_VALUES;
 
-      qb.orderBy(column.column_name).limit(maxGroupingValues + 1);
+      // A junction key is an expression: distinct over the scoped rows
+      const discoveryQb = isJunction
+        ? this.dbDriver
+            .from(qb.as('__nc_grp_keys'))
+            .distinct(keyAlias)
+            .orderBy(keyAlias)
+        : qb.orderBy(column.column_name);
+      discoveryQb.limit(maxGroupingValues + 1);
 
       const discoveredValues = (
-        await this.execAndParse(qb, null, { raw: true })
-      ).map((row) => row[column.column_name]);
+        await this.execAndParse(discoveryQb, null, { raw: true })
+      ).map((row) => row[isJunction ? keyAlias : column.column_name]);
 
       if (discoveredValues.length > maxGroupingValues) {
         NcError.get(this.context).badRequest(
@@ -7620,10 +7917,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       const { where, ...rest } = this._getListArgs(args);
       const columns = await this.model.getColumns();
-      const column = columns?.find((col) => col.id === args.groupColumnId);
+      const column = await this.resolveGroupingColumn(args.groupColumnId);
+      const isJunction = this.isJunctionGroupingColumn(column);
 
-      if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
-      if (isVirtualCol(column))
+      if (isVirtualCol(column) && !isJunction)
         NcError.get(this.context).notImplemented(
           'Grouping for virtual columns',
         );
@@ -7646,6 +7943,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb.offset(+rest?.offset || 0);
 
       await this.selectObject({ qb, extractPkAndPv: true });
+
+      const keyAlias = '__nc_grp_key';
+      const keyQuery = isJunction
+        ? (await this.getGroupingKeyQuery(column)).sql
+        : undefined;
+      if (keyQuery)
+        qb.select(this.dbDriver.raw('? as ??', [keyQuery, keyAlias]));
+      const filterJunctionStack = isJunction
+        ? await this.getJunctionStackFilter(column)
+        : undefined;
 
       // todo: refactor and move to a method (applyFilterAndSort)
       const aliasColObjMap = await this.model.getAliasColObjMap(columns);
@@ -7755,7 +8062,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           .unionAll(
             [...groupingValues].map((r) => {
               const query = qb.clone();
-              if (r === null) {
+              if (filterJunctionStack) {
+                filterJunctionStack(query, r as string | number | null);
+              } else if (r === null) {
                 query.where((qb) => {
                   qb.whereNull(column.column_name);
                   // Native PG enum columns can't be compared to ''
@@ -7791,12 +8100,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         return d;
       });
 
-      const groupedResult = result.reduce<Map<string | number | null, any[]>>(
+      const groupedResult = result.reduce<Map<unknown, any[]>>(
         (aggObj, row) => {
-          const rawVal = row[column.title];
           // Treat empty strings as null
-          const val =
-            typeof rawVal === 'string' && rawVal === '' ? null : rawVal;
+          const val = groupKeyOf(
+            column,
+            keyQuery ? row[keyAlias] : row[column.title],
+          );
+          if (keyQuery) delete row[keyAlias];
 
           if (!aggObj.has(val)) {
             aggObj.set(val, []);
@@ -7811,7 +8122,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       return [...groupingValues].map((key) => ({
         key,
-        value: groupedResult.get(key) ?? [],
+        value: groupedResult.get(groupKeyOf(column, key)) ?? [],
       }));
     } catch (e) {
       throw e;
@@ -7825,15 +8136,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } & XcFilter,
   ) {
     const columns = await this.model.getColumns();
-    const column = columns?.find((col) => col.id === args.groupColumnId);
+    const column = await this.resolveGroupingColumn(args.groupColumnId);
+    const isJunction = this.isJunctionGroupingColumn(column);
 
-    if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
-    if (isVirtualCol(column))
+    if (isVirtualCol(column) && !isJunction)
       NcError.get(this.context).notImplemented('Grouping for virtual columns');
 
-    const qb = this.dbDriver(this.tnPath).count('*', { as: 'count' });
+    // A junction key is an expression, which some dialects can't GROUP BY
+    // directly: select it per row here and count over it below
+    const qb: Knex.QueryBuilder = isJunction
+      ? this.dbDriver(this.tnPath).select(
+          this.dbDriver.raw('? as ??', [
+            (await this.getGroupingKeyQuery(column)).sql,
+            'key',
+          ]),
+        )
+      : this.dbDriver(this.tnPath).count('*', { as: 'count' });
 
-    if (
+    if (isJunction) {
+      // grouped by the outer query
+    } else if (
       column.uidt === UITypes.SingleSelect &&
       !column.internal_meta?.pg_enum_type_name
     ) {
@@ -7932,6 +8254,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const softDeleteFilterGLC = await this.getSoftDeleteFilter();
     if (softDeleteFilterGLC) {
       qb.where(softDeleteFilterGLC);
+    }
+
+    if (isJunction) {
+      return await this.execAndParse(
+        this.dbDriver
+          .from(qb.as('__nc_grp_keys'))
+          .select('key')
+          .count('*', { as: 'count' })
+          .groupBy('key'),
+        null,
+        { raw: true },
+      );
     }
 
     await this.selectObject({

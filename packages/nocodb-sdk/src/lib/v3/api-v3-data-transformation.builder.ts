@@ -701,11 +701,15 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     related_table_lookup_field_id: 'fk_lookup_column_id',
   },
   transformFn: (data) => {
+    // A v3 `formula` button is a URL button; stored as-is, no action handles
+    // the type and its formula is dropped.
+    if (data.type === 'formula') {
+      return { ...data, type: 'url' };
+    }
     // Handle button specific transformations
     if (data.type) {
       // For button columns, convert type-specific structure to the V2 format
       if (
-        data.type === 'formula' ||
         data.type === 'webhook' ||
         data.type === 'script' ||
         data.type === 'ai'

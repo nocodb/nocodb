@@ -51,11 +51,11 @@ const hasSecondary = computed(() => !!displayName.value?.trim() && !!email.value
       v-if="!preview"
       type="secondary"
       size="xsmall"
-      class="nc-signed-in-banner__switch !rounded-lg !px-2.5"
+      class="nc-signed-in-banner__switch !h-7 !rounded-lg !px-2.5"
       data-testid="nc-shared-form-switch-account"
       @click="emit('switch')"
     >
-      <div class="flex items-center gap-1.5">
+      <div class="flex items-center gap-1.5 text-bodySm">
         <GeneralIcon icon="ncRepeat" class="w-3.5 h-3.5" />
         <span>{{ $t('msg.info.switchAccount') }}</span>
       </div>
@@ -112,7 +112,7 @@ const hasSecondary = computed(() => !!displayName.value?.trim() && !!email.value
   }
 
   &__switch-preview {
-    @apply flex-none flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-bodySm font-medium text-nc-content-gray-subtle2 border-1 border-nc-border-gray-medium bg-nc-bg-default;
+    @apply flex-none flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-bodySm font-medium text-nc-content-gray-subtle2 border-1 border-nc-border-gray-medium bg-nc-bg-default;
   }
 }
 </style>

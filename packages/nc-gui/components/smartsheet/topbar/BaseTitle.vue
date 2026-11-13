@@ -27,7 +27,7 @@ const showTitle = computed(() => isSharedBase.value)
     }"
     data-testid="nc-topbar-base-crumb"
   >
-    <NcTooltip :disabled="showTitle || isOpen">
+    <NcTooltip class="flex flex-none" :disabled="showTitle || isOpen">
       <template #title>
         <span class="capitalize">
           {{ base?.title }}

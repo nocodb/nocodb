@@ -400,11 +400,13 @@ export const useBases = defineStore('basesStore', () => {
     }
   }
 
-  onMounted(() => {
-    if (!activeProjectId.value) return
-    if (isProjectPopulated(activeProjectId.value)) return
-    loadProject(activeProjectId.value)
-  })
+  // A store has no component of its own: only hook when created inside one.
+  if (getCurrentInstance())
+    onMounted(() => {
+      if (!activeProjectId.value) return
+      if (isProjectPopulated(activeProjectId.value)) return
+      loadProject(activeProjectId.value)
+    })
 
   const navigateToFirstProjectOrHome = async () => {
     // if active base id is deleted, navigate to first base or home page

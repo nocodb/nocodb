@@ -30,7 +30,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emits = defineEmits<{
-  (e: 'click'): void
+  (e: 'click', event: MouseEvent): void
+  (e: 'middleClick'): void
 }>()
 
 // Rail spellings (labels.rail*) mark a line break with a zero-width space; keep it out of the tooltip and aria-label.
@@ -71,7 +72,8 @@ function onActivateKey(e: KeyboardEvent) {
       :tabindex="disabled ? -1 : 0"
       :aria-label="tooltipText || undefined"
       :aria-disabled="disabled || undefined"
-      @click="!disabled && emits('click')"
+      @click="!disabled && emits('click', $event)"
+      @auxclick.middle="!disabled && emits('middleClick')"
       @keydown.enter.prevent="onActivateKey"
       @keydown.space.prevent="onActivateKey"
     >

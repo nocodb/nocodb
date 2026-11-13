@@ -151,7 +151,7 @@ const isToManyLink = (c: ColumnType) =>
 
 const formulaChips = useFormulaChips({
   meta: chipsMeta,
-  getMeta: (baseId, tableId) => getMeta(baseId, tableId),
+  getMeta: (baseId, tableId) => getMeta({ baseId, tableIdOrTitle: tableId }),
   getMetaByKey,
   iconClassFor: chipIconClass,
   bareReference: computed(() =>
@@ -642,10 +642,10 @@ async function resolveDotPathMenu(match: FormulaDotPathMatch) {
     }
     const colOptions = last.colOptions as LinkToAnotherRecordType
     isList = isList || isLinkToMany(last, colOptions)
-    tableMeta = await getMeta(
-      colOptions.fk_related_base_id || last.base_id || meta.value?.base_id || '',
-      colOptions.fk_related_model_id!,
-    )
+    tableMeta = await getMeta({
+      baseId: colOptions.fk_related_base_id || last.base_id || meta.value?.base_id || '',
+      tableIdOrTitle: colOptions.fk_related_model_id!,
+    })
     if (!tableMeta) return null
     breadcrumb.push(last.title ?? '')
   }

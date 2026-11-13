@@ -38,12 +38,13 @@ export class GenericMysqlFieldHandler
       for (let i = 0; i < items?.length; i++) {
         const bindings = [
           sourceField,
-          `%,${items[i]},%`,
+          `,${items[i]},`,
           sourceField,
-          `%, ${items[i]},%`,
+          `, ${items[i]},`,
         ];
+        // Literal, binary match: options differ by case and may contain % or _.
         const sql =
-          "(CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?)";
+          "(INSTR(CAST(CONCAT(',', ??, ',') AS BINARY), CAST(? AS BINARY)) > 0 OR INSTR(CAST(CONCAT(',', ??, ',') AS BINARY), CAST(? AS BINARY)) > 0)";
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

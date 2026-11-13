@@ -25,9 +25,11 @@ export function applyMysqlTypeCast(
   const connection = knexConfig.connection;
   if (!connection || typeof connection !== 'object') return;
   if ('typeCast' in connection && connection.typeCast) return;
-  // a copy: the connection object may be shared with other configs
+  // a copy: the connection object may be shared with other configs. knex makes
+  // `password` non-enumerable on the object it was given, so a spread drops it.
   knexConfig.connection = {
     ...connection,
+    ...('password' in connection ? { password: connection.password } : {}),
     typeCast(field: { type: string }, next: () => unknown): unknown {
       const res = next();
       if (res instanceof Buffer && !decimalsOnly) {

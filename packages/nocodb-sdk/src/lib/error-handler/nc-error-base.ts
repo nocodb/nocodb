@@ -1115,7 +1115,7 @@ export class NcErrorBase {
     args?: NcErrorArgs
   ) {
     // Add-on-only: no plan tier grants it, so skip the upgrade prefix entirely.
-    // On-prem entitlement is signed into the license key, hence sales-assisted.
+    // Add-ons are sales-assisted on both cloud and on-prem (no self-serve purchase).
     const addonMessage = PlanFeatureAddonMessages[props.feature];
     if (addonMessage) {
       throw this.errorCodex.generateError(
@@ -1123,7 +1123,7 @@ export class NcErrorBase {
         {
           params: props.isOnPrem
             ? `${addonMessage} Contact sales to add it to your license.`
-            : `${addonMessage} Add it from your workspace billing settings.`,
+            : `${addonMessage} Contact sales to add it to your plan.`,
           ...args,
         }
       );

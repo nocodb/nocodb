@@ -30,6 +30,9 @@ export const SECRETS_NAMESPACE = 'secrets';
 /** A vault's alias: a bare identifier, so `secrets.alias` always parses in dot form. */
 export const VAULT_ALIAS_PATTERN = /^[a-zA-Z][a-zA-Z0-9]*$/;
 
+/** Longest alias a vault may take. */
+export const VAULT_ALIAS_MAX_LENGTH = 64;
+
 /** Aliases a vault may not take. */
 export const RESERVED_VAULT_ALIASES = [
   'secrets',
@@ -49,6 +52,7 @@ export const RESERVED_VAULT_ALIASES = [
 
 export const isValidVaultAlias = (alias: string): boolean =>
   typeof alias === 'string' &&
+  alias.length <= VAULT_ALIAS_MAX_LENGTH &&
   VAULT_ALIAS_PATTERN.test(alias) &&
   !RESERVED_VAULT_ALIASES.includes(alias.toLowerCase());
 
@@ -88,11 +92,11 @@ export const parseSecretRef = (value: unknown): ParsedSecretRef | null => {
   const { alias, secret, path } = ref as Record<string, unknown>;
 
   if (typeof alias !== 'string' || !isValidVaultAlias(alias)) return null;
-  if (typeof secret !== 'string' || !secret) return null;
+  if (typeof secret !== 'string' || !secret.trim()) return null;
 
   if (path !== undefined) {
     if (!Array.isArray(path)) return null;
-    if (path.some((segment) => typeof segment !== 'string' || !segment))
+    if (path.some((segment) => typeof segment !== 'string' || !segment.trim()))
       return null;
   }
 
@@ -149,6 +153,15 @@ export interface SecretRefDraft {
 }
 
 const QUOTES = ['"', "'"];
+
+/** A double-quoted segment's escapes, as JSON.stringify wrote them. */
+const decodeJsonString = (escaped: string, fallback: string): string => {
+  try {
+    return JSON.parse(`"${escaped}"`);
+  } catch {
+    return fallback;
+  }
+};
 
 /** Tokenize the readable form, tolerating an unfinished tail. */
 export const parseSecretRefDraft = (text: string): SecretRefDraft => {
@@ -216,14 +229,16 @@ export const parseSecretRefDraft = (text: string): SecretRefDraft => {
       draft.fragmentStart = i;
       draft.bracketed = true;
 
-      // `formatSecretRef` escapes with JSON.stringify.
       let value = '';
+      let escaped = '';
       while (i < raw.length && raw[i] !== quote) {
         if (raw[i] === '\\' && i + 1 < raw.length) {
           value += raw[i + 1];
+          escaped += raw.slice(i, i + 2);
           i += 2;
           continue;
         }
+        escaped += raw[i];
         value += raw[i++];
       }
 
@@ -242,7 +257,10 @@ export const parseSecretRefDraft = (text: string): SecretRefDraft => {
       }
 
       i++;
-      draft.segments.push(value);
+      // `formatSecretRef` escapes with JSON.stringify, so decode the same way.
+      draft.segments.push(
+        quote === '"' ? decodeJsonString(escaped, value) : value
+      );
       draft.fragment = '';
       draft.bracketed = false;
       draft.fragmentStart = i;
@@ -263,14 +281,17 @@ export const parseSecretRefText = (text: string): ParsedSecretRef | null => {
   // A `["` left open is still being typed.
   if (!draft.rooted || !draft.valid || draft.bracketed) return null;
 
+  // A trailing `.` still awaits its segment.
+  if ((text ?? '').trimEnd().endsWith('.')) return null;
+
   const segments = [...draft.segments];
   if (draft.fragment) segments.push(draft.fragment);
 
   const [alias, secret, ...path] = segments;
 
   if (!alias || !isValidVaultAlias(alias)) return null;
-  if (!secret) return null;
-  if (path.some((segment) => !segment)) return null;
+  if (!secret?.trim()) return null;
+  if (path.some((segment) => !segment.trim())) return null;
 
   return { alias, secret, path };
 };
@@ -340,24 +361,45 @@ export interface VaultPermissionType extends EvaluablePermission {
   updated_at?: string;
 }
 
+/**
+ * Vault-only grant types, stored in `granted_type` beside `PermissionGrantedType`.
+ * `ORG_ADMINS`: the org's owners and admins, by org role. Org vaults only.
+ */
+export enum VaultGrantedType {
+  ORG_ADMINS = 'org_admins',
+}
+
 /** The body of `vaultPermissionSet`. */
 export interface VaultPermissionDraft {
-  granted_type: PermissionGrantedType;
+  granted_type: PermissionGrantedType | VaultGrantedType;
   granted_role?: PermissionRole;
   subjects?: PermissionSubject[];
 }
 
-/** What a vault with no stored permission resolves to. */
-export const defaultVaultPermission = (): VaultPermissionDraft => ({
-  granted_type: PermissionGrantedType.ROLE,
-  granted_role: PermissionRole.OWNER,
-  subjects: [],
-});
+/**
+ * What a vault with no stored permission resolves to: org owners and admins
+ * for an org vault, workspace owners for a workspace vault.
+ */
+export const defaultVaultPermission = (
+  orgScoped = false
+): VaultPermissionDraft =>
+  orgScoped
+    ? { granted_type: VaultGrantedType.ORG_ADMINS, subjects: [] }
+    : {
+        granted_type: PermissionGrantedType.ROLE,
+        granted_role: PermissionRole.OWNER,
+        subjects: [],
+      };
 
-export const isDefaultVaultPermission = (draft?: VaultPermissionDraft) =>
+export const isDefaultVaultPermission = (
+  draft?: VaultPermissionDraft,
+  orgScoped = false
+) =>
   !draft ||
-  (draft.granted_type === PermissionGrantedType.ROLE &&
-    draft.granted_role === PermissionRole.OWNER);
+  (orgScoped
+    ? draft.granted_type === VaultGrantedType.ORG_ADMINS
+    : draft.granted_type === PermissionGrantedType.ROLE &&
+      draft.granted_role === PermissionRole.OWNER);
 
 /** A specific-users grant needs at least one user. */
 export const isVaultPermissionComplete = (draft?: VaultPermissionDraft) =>
@@ -507,8 +549,7 @@ export const VAULT_PROVIDER_META: Record<VaultProviderType, VaultProviderMeta> =
           label: 'Vault URL',
           placeholder: 'https://my-vault.vault.azure.net',
           required: true,
-          helpText:
-            'The vault DNS name from the Key Vault overview page.',
+          helpText: 'The vault DNS name from the Key Vault overview page.',
         },
         {
           key: 'tenantId',

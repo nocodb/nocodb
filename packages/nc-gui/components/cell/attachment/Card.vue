@@ -62,7 +62,10 @@ const handleFileRenameStart = () => {
   nextTick(() => {
     setTimeout(() => {
       inputBox.value.focus()
-      inputBox.value.select()
+      // Same extension rule as normalizeAttachmentTitle ("v1.2" has none)
+      const extStart = renameTitle.value?.search(/\.(?=[a-z0-9]*[a-z])[a-z0-9]{1,10}$/i) ?? -1
+      if (extStart > 0) inputBox.value.setSelectionRange(0, extStart)
+      else inputBox.value.select()
     }, 100)
   })
 }
@@ -75,14 +78,17 @@ const handleResetFileRename = () => {
 const handleFileRename = async () => {
   if (!isRenamingFile.value) return
 
-  if (renameTitle.value) {
-    try {
-      await renameFileInline(props.index, renameTitle.value)
-      handleResetFileRename()
-    } catch (e) {
-      message.error(t('msg.error.renameFileFailed'))
-      throw e
-    }
+  if (!renameTitle.value?.trim()) {
+    message.error(t('labels.titleRequired'))
+    return
+  }
+
+  try {
+    await renameFileInline(props.index, renameTitle.value)
+    handleResetFileRename()
+  } catch (e) {
+    message.error(t('msg.error.renameFileFailed'))
+    throw e
   }
 }
 

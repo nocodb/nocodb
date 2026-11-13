@@ -138,6 +138,26 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       const colProp = sqlUi.value?.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined) ?? {}
 
+      // a new Lookup switched to Rollup (or back) keeps its link, target and conditions;
+      // the options form checks the target against the new type.
+      // `uidt` is already the new type here, the old type's keys are still set.
+      const old = formState.value
+      const carriedTarget =
+        old.uidt === UITypes.Rollup && old.fk_lookup_column_id
+          ? { fk_rollup_column_id: old.fk_lookup_column_id }
+          : old.uidt === UITypes.Lookup && old.fk_rollup_column_id
+          ? { fk_lookup_column_id: old.fk_rollup_column_id }
+          : null
+      const lookupRollupCarry =
+        !isEdit.value && carriedTarget && old.fk_relation_column_id
+          ? {
+              ...carriedTarget,
+              fk_relation_column_id: old.fk_relation_column_id,
+              filters: old.filters,
+            }
+          : null
+      const keepConditions = !!lookupRollupCarry && !!old.meta?.enableConditions
+
       formState.value = {
         ...(fromTableExplorer?.value || formState.value?.is_ai_field || formState.value?.ai_temp_id
           ? {
@@ -175,6 +195,14 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       if (preload) {
         formState.value = { ...formState.value, ...preload }
+      }
+
+      if (lookupRollupCarry) {
+        formState.value = {
+          ...formState.value,
+          ...lookupRollupCarry,
+          ...(keepConditions && { meta: { ...formState.value.meta, enableConditions: true } }),
+        }
       }
 
       formState.value.dtxp = sqlUi.value?.getDefaultLengthForDatatype(formState.value.dt) ?? null

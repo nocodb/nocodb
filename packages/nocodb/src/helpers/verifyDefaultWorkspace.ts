@@ -151,6 +151,16 @@ export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
 };
 
 /**
+ * The placeholder role for a member with no workspace role of their own. On
+ * on-prem every user sits in the default workspace, and a placeholder there
+ * must defer to team roles (INHERIT) rather than override them (NO_ACCESS).
+ */
+export const placeholderWorkspaceRole = (workspaceId?: string | null) =>
+  isOnPrem && workspaceId && workspaceId === Noco.ncDefaultWorkspaceId
+    ? WorkspaceUserRoles.INHERIT
+    : WorkspaceUserRoles.NO_ACCESS;
+
+/**
  * Ensures a user has a workspace_user entry in the default workspace.
  * Used for non-first signups and org-user invites (CE + on-prem).
  * Cloud EE manages workspace membership via its own EE service — skip there.
@@ -177,7 +187,10 @@ export const ensureUserInDefaultWorkspace = async (
       {
         fk_workspace_id: Noco.ncDefaultWorkspaceId,
         fk_user_id: userId,
-        roles: role,
+        roles:
+          role === WorkspaceUserRoles.NO_ACCESS
+            ? placeholderWorkspaceRole(Noco.ncDefaultWorkspaceId)
+            : role,
       },
       ncMeta,
     );

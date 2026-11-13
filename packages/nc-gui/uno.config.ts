@@ -31,6 +31,7 @@ export default defineConfig({
         /composables\/useColumnFilteredOrSorted\.ts($|\?)/,
         /components\/smartsheet\/header\/[^/]+\.ts($|\?)/,
         /components\/smartsheet\/grid\/canvas\/cells\/.+\.ts($|\?)/,
+        /components\/cell\/DateTime\/utils\.ts($|\?)/,
         /utils\/cssUtils\.ts($|\?)/,
         /utils\/workflowUtils\.ts($|\?)/,
         /utils\/roadmapUtils\.ts($|\?)/,

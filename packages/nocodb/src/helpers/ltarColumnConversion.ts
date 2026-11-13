@@ -16,6 +16,11 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NocoSocket from '~/socket/NocoSocket';
 import { tableForBroadcast } from '~/helpers/publicViewSecrets';
 import { processConcurrently } from '~/utils/dataUtils';
+import { batchLinkBroadcasts } from '~/db/BaseModelSqlv2/link-broadcast-batch';
+import {
+  linkCellDelimiter,
+  splitDisplayValues,
+} from '~/helpers/linkCellValues';
 import {
   getLtarDisplayValueContext,
   resolveLtarDisplayValuesToPks,
@@ -457,7 +462,7 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
       req,
     });
     svc.logger.log(
-      `Converted "${originalTitle}" to link: ${linkStats.linksCreated} links created, ${linkStats.valuesUnmatched} unmatched.`,
+      `Converted "${originalTitle}" to link: ${linkStats.linksCreated} links created, ${linkStats.valuesUnmatched} unmatched, ${linkStats.linksFailed} failed.`,
     );
 
     // Notify clients viewing the related table about its new back-link column.
@@ -487,17 +492,21 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
       delimiter: string;
       req: NcRequest;
     },
-  ): Promise<{ linksCreated: number; valuesUnmatched: number }> => {
+  ): Promise<{
+    linksCreated: number;
+    valuesUnmatched: number;
+    linksFailed: number;
+  }> => {
     const { baseModel, ltarColumn, snapshot, delimiter, req } = params;
-    if (!snapshot.length) return { linksCreated: 0, valuesUnmatched: 0 };
+    if (!snapshot.length)
+      return { linksCreated: 0, valuesUnmatched: 0, linksFailed: 0 };
 
     const groupCtx = await getLtarDisplayValueContext(context, ltarColumn);
 
+    const splitOn = linkCellDelimiter(delimiter, groupCtx.isSingleLink);
+
     const perRow = snapshot.map(({ pk, text }) => {
-      const values = String(text)
-        .split(delimiter)
-        .map((v) => v.trim())
-        .filter((v) => v.length > 0);
+      const values = splitDisplayValues(text, splitOn);
       return { pk, values };
     });
 
@@ -517,46 +526,51 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
 
     let linksCreated = 0;
     let valuesUnmatched = 0;
+    let linksFailed = 0;
     // Apply links with bounded concurrency instead of one sequential await per
     // row — a large table would otherwise serialize N `addLinks` round-trips.
     // Mirrors the data-import link phase. The counters are mutated only in
     // synchronous (post-await) statements, so single-threaded JS keeps them
     // race-free; each `pk` is distinct so concurrent writes never collide.
-    await processConcurrently(perRow, async ({ pk, values }) => {
-      const seen = new Set<string>();
-      const childIds: (string | number)[] = [];
-      for (const v of values) {
-        const matched = valueToPk.get(v);
-        if (matched === undefined || matched === null) {
-          valuesUnmatched += 1;
-          continue;
+    // Batched: one link broadcast per table instead of two per row.
+    await batchLinkBroadcasts(() =>
+      processConcurrently(perRow, async ({ pk, values }) => {
+        const seen = new Set<string>();
+        const childIds: (string | number)[] = [];
+        for (const v of values) {
+          const matched = valueToPk.get(v);
+          if (matched === undefined || matched === null) {
+            valuesUnmatched += 1;
+            continue;
+          }
+          const key = String(matched);
+          if (seen.has(key)) continue;
+          seen.add(key);
+          childIds.push(matched);
         }
-        const key = String(matched);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        childIds.push(matched);
-      }
-      if (!childIds.length) return;
+        if (!childIds.length) return;
 
-      const finalChildIds = groupCtx.isSingleLink ? [childIds[0]] : childIds;
-      try {
-        await baseModel.addLinks({
-          cookie: req,
-          colId: ltarColumn.id,
-          rowId: String(pk),
-          childIds: finalChildIds,
-        });
-        linksCreated += finalChildIds.length;
-      } catch (e) {
-        svc.logger.warn(
-          `Failed to link row ${pk} during text→link conversion: ${
-            (e as Error).message
-          }`,
-        );
-      }
-    });
+        const finalChildIds = groupCtx.isSingleLink ? [childIds[0]] : childIds;
+        try {
+          await baseModel.addLinks({
+            cookie: req,
+            colId: ltarColumn.id,
+            rowId: String(pk),
+            childIds: finalChildIds,
+          });
+          linksCreated += finalChildIds.length;
+        } catch (e) {
+          linksFailed += finalChildIds.length;
+          svc.logger.warn(
+            `Failed to link row ${pk} during text→link conversion: ${
+              (e as Error).message
+            }`,
+          );
+        }
+      }),
+    );
 
-    return { linksCreated, valuesUnmatched };
+    return { linksCreated, valuesUnmatched, linksFailed };
   };
 
   /**

@@ -15,6 +15,8 @@ const { showNull } = useGlobal()
 
 const column = inject(ColumnInj, null)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const rawReadOnly = inject(RawReadonlyInj, ref(false))
@@ -297,6 +299,7 @@ function handleSelectDate(value?: dayjs.Dayjs) {
       <input
         v-if="!rawReadOnly"
         ref="datePickerRef"
+        :aria-label="cellAriaLabel"
         type="text"
         :value="localState?.format('YYYY') ?? ''"
         :placeholder="placeholder"

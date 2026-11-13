@@ -5,6 +5,7 @@ export * from '~/lib/internalBatch';
 export * from '~/lib/timelineTypes';
 export * from '~/lib/ganttTypes';
 export * from '~/lib/timelineUtilization';
+export * from '~/lib/kanbanUtils';
 export * from '~/lib/columnRules';
 export * from '~/lib/sqlUi';
 export * from '~/lib/globals';
@@ -44,6 +45,8 @@ export {
   FieldNameFromUITypes,
   numericUITypes,
   isAIPromptCol,
+  FORM_HIDDEN_UI_TYPES,
+  isFormHiddenColumn,
   isNumericCol,
   isVirtualCol,
   isLinksOrLTAR,
@@ -95,6 +98,7 @@ export * from '~/lib/dateTimeHelper';
 export * from '~/lib/jalali';
 export * from '~/lib/form';
 export * from '~/lib/aggregationHelper';
+export * from '~/lib/kanbanSummary';
 export * from '~/lib/parser/queryFilter/query-filter-encoder';
 export * from '~/lib/aggregationCompute';
 export * from '~/lib/connectionConfigUtils';

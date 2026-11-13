@@ -38,6 +38,10 @@ const { getMeta, getMetaByKey, metasWithIdAsKey } = useMetas()
 
 const filterRef = ref()
 
+// conditions carried over from a Rollup of a new field
+// seeds the first mount only: a remount (conditions off and on) must not bring them back
+const initialFilters = ref(isEdit.value ? undefined : vModel.value.filters)
+
 // Lookup sort builder — mirrors filterRef: the child owns a local, status-tagged
 // sort set which we sync into `vModel.value.sorts`; the column save persists it.
 const sortRef = ref()
@@ -253,6 +257,10 @@ watch(
   { deep: true },
 )
 
+watch(filterRef, (filterComponent) => {
+  if (filterComponent) initialFilters.value = undefined
+})
+
 // Sync the lookup sort builder's local, status-tagged set into the column body so
 // postColumnAdd/postColumnUpdate persist it against fk_lookup_col_id on save.
 watch(
@@ -279,6 +287,31 @@ const onRelationColChange = async () => {
   vModel.value.fk_lookup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()
 }
+
+// a target carried over from a Rollup is kept only if it can be looked up;
+// checked once the linked table's fields have loaded
+let isCarriedTargetPending = !isEdit.value && !!vModel.value.fk_relation_column_id && !!vModel.value.fk_lookup_column_id
+
+watch(
+  () => lookupTargetMeta.value?.columns,
+  (cols) => {
+    if (!isCarriedTargetPending || !cols?.length) return
+    isCarriedTargetPending = false
+
+    const target = cols.find((c) => c.id === vModel.value.fk_lookup_column_id)
+    if (target && getValidLookupColumn({ column: target, lookupColumnId: vModel.value.id })) {
+      vModel.value.lookupColumnTitle = target.title || target.column_name
+      updateFieldName()
+    } else {
+      // cleared first: `columns` always lists the current target, valid or not
+      vModel.value.fk_lookup_column_id = null
+      vModel.value.fk_lookup_column_id = getNextColumnId() || columns.value?.[0]?.id
+    }
+
+    onDataTypeChange()
+  },
+  { immediate: true },
+)
 
 watchEffect(() => {
   if (!refTables.value.length) {
@@ -490,6 +523,7 @@ const handleScrollIntoView = () => {
               <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
                 <LazySmartsheetToolbarColumnFilter
                   ref="filterRef"
+                  :model-value="initialFilters"
                   class="!pl-8 !p-0"
                   :auto-save="false"
                   :show-loading="false"

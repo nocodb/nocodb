@@ -37,6 +37,7 @@ import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 import {
   ApiToken,
+  MCPToken,
   OAuthToken,
   PresignedUrl,
   User,
@@ -367,9 +368,8 @@ export class UsersService {
     // before the controller re-issues the current device's session.
     let sessionsRevoked = true;
     try {
-      await this.revokeAllSessions(user);
-      // API tokens aren't tied to token_version, so they'd survive the change.
-      await ApiToken.deleteByUser(user.id);
+      await this.revokeAllSessions(user, { revokeOAuthTokens: false });
+      if (param.body.disconnectApps) await this.disconnectApps(user.id);
     } catch (e) {
       this.logger.error(
         'Failed to revoke sessions after password change',
@@ -521,16 +521,27 @@ export class UsersService {
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);
     await NocoSocket.disconnectUsers([user.id]);
-    await this.revokeAllOAuthTokensByUser(user.id);
-    // API tokens aren't tied to token_version, so they'd survive the reset.
-    await ApiToken.deleteByUser(user.id);
+
+    // The reset is committed and the link used up, so this must not fail it.
+    let appsDisconnected = !!body.disconnectApps;
+    if (body.disconnectApps) {
+      try {
+        await this.disconnectApps(user.id);
+      } catch (e) {
+        this.logger.error(
+          'Failed to disconnect apps after password reset',
+          e?.stack,
+        );
+        appsDisconnected = false;
+      }
+    }
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,
       req: param.req,
     });
 
-    return true;
+    return { appsDisconnected };
   }
 
   async emailVerification(param: {
@@ -837,9 +848,8 @@ export class UsersService {
         await UserRefreshToken.deleteAllUserToken(user.id);
         await NocoSocket.disconnectUsers([user.id]);
         // OAuth tokens are not revoked on sign-out: sign-out ends the user's
-        // own session, not third-party OAuth client grants. OAuth tokens are
-        // revoked on password change/reset/forgot where credential compromise
-        // is assumed.
+        // own session, not third-party OAuth client grants. They are revoked
+        // only when the user asks to disconnect apps.
       }
       return { msg: 'Signed out successfully' };
     } catch (e) {
@@ -955,5 +965,13 @@ export class UsersService {
 
   protected async revokeAllOAuthTokensByUser(userId: string) {
     await OAuthToken.revokeAllByUser(userId);
+  }
+
+  // "Also disconnect apps" on a password change/reset: OAuth grants and every
+  // token the user minted. None of these are tied to token_version.
+  protected async disconnectApps(userId: string) {
+    await this.revokeAllOAuthTokensByUser(userId);
+    await ApiToken.deleteByUser(userId);
+    await MCPToken.bulkDelete({ fk_user_id: userId });
   }
 }

@@ -25,6 +25,7 @@ import {
   callExpressionBuilder,
 } from './parsed-tree-builder';
 import {
+  formulaDbErrorMessage,
   formulaOutputsRawJson,
   getFormulaOutputMaxLength,
   isListAggregateCall,
@@ -1063,6 +1064,7 @@ export default async function formulaQueryBuilderv2({
           ignoreDefault: true,
         });
         message =
+          formulaDbErrorMessage(e) ??
           dbError?.message ??
           stripQueryFromDbMessage(e?.message, dryRunSqlEnd(dryRunQb));
       }

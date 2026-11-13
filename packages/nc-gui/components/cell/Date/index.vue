@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isDateMonthFormat, isSystemColumn, parseDateWithFormat } from 'nocodb-sdk'
+import { hasDateOverflow, isDateMonthFormat, isSystemColumn, parseDateWithFormat } from 'nocodb-sdk'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 interface Props {
@@ -18,6 +18,8 @@ const { t } = useI18n()
 const { showNull } = useGlobal()
 
 const columnMeta = inject(ColumnInj, null)!
+
+const cellAriaLabel = useCellAriaLabel()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -50,6 +52,9 @@ const isClearedInputMode = ref<boolean>(false)
 const open = ref<boolean>(false)
 
 const tempDate = ref<dayjs.Dayjs | undefined>()
+
+// Typed text that doesn't parse (e.g. 2023-02-30); Enter keeps the stored value.
+const isTypedInvalid = ref(false)
 
 const localState = computed({
   get() {
@@ -119,6 +124,8 @@ watchEffect(() => {
 
 const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) => {
   const targetValue = valueToSave || (e.target as HTMLInputElement).value
+  isTypedInvalid.value = false
+
   if (!targetValue) {
     tempDate.value = undefined
     return
@@ -126,6 +133,10 @@ const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) =>
   // Accept unpadded input (e.g. "5/5/2026" for an MM/DD/YYYY column) so typing
   // an unpadded date normalizes the same way a padded one does.
   const value = dayjs.isDayjs(targetValue) ? targetValue : parseDateWithFormat(targetValue, dateFormat.value)
+
+  isTypedInvalid.value = !value.isValid()
+  // Drop the date an earlier keystroke parsed to, so unmount doesn't save it.
+  if (isTypedInvalid.value) tempDate.value = localState.value
 
   if (value.isValid()) {
     tempDate.value = value
@@ -148,8 +159,14 @@ onClickOutside(datePickerRef, (e) => {
 const onBlur = (e) => {
   const value = (e?.target as HTMLInputElement)?.value
 
-  if (value && dayjs(value).isValid()) {
-    handleUpdateValue(e, true, dayjs(dayjs(value).format(dateFormat.value)))
+  if (value) {
+    let parsed = parseDateWithFormat(value, dateFormat.value)
+    if (!parsed.isValid()) {
+      // ISO text in another column format; native dayjs rolls 2023-02-30 over, so drop that.
+      const nativeValue = dayjs(value)
+      if (nativeValue.isValid() && !hasDateOverflow(value, 'YYYY-MM-DD', nativeValue)) parsed = nativeValue
+    }
+    if (parsed.isValid()) handleUpdateValue(e, true, parsed)
   }
 
   if (
@@ -254,7 +271,13 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
       if (isSurveyForm.value) {
         e.stopPropagation()
       }
-      localState.value = tempDate.value ?? dayjs(new Date())
+      if (isTypedInvalid.value) {
+        isTypedInvalid.value = false
+        isClearedInputMode.value = false
+        ;(e.target as HTMLInputElement).value = localState.value?.format(dateFormat.value) ?? ''
+      } else {
+        localState.value = tempDate.value ?? dayjs(new Date())
+      }
       open.value = !_open
 
       if (!open.value) {
@@ -348,6 +371,7 @@ const currentDate = ($event) => {
       <input
         v-if="!rawReadOnly"
         ref="datePickerRef"
+        :aria-label="cellAriaLabel"
         type="text"
         :value="localState?.format(dateFormat) ?? ''"
         :placeholder="placeholder"

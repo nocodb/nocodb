@@ -121,6 +121,8 @@ export interface WorkflowNodeResult {
     retryable?: boolean;
     /** Server-requested wait before retrying, e.g. from Retry-After. */
     retryAfterMs?: number;
+    /** The step never started (a shared resource was full): the engine waits and runs it again, whatever its retry policy. */
+    deferred?: boolean;
   };
 
   loopContext?: LoopContext;

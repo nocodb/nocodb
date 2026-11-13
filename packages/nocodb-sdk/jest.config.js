@@ -6,6 +6,9 @@
  * that jest would otherwise run as ESM-in-CJS. The mappers mirror
  * `src/ee/tsconfig.json`: `~/*` prefers the EE overlay, `src/*` stays CE-only.
  */
+// Off UTC so zone bugs fail here too; workers inherit it. Not LA: date-time.spec breaks there.
+process.env.TZ = 'Asia/Tokyo';
+
 module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],

@@ -13,6 +13,15 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 
+const KANBAN_SUMMARY_PROPS = [
+  'summary_fn',
+  'fk_summary_col_id',
+  'summary_label',
+  'summary_colors',
+] as const;
+
+const KANBAN_JSON_PROPS = ['meta', 'summary_label', 'summary_colors'];
+
 export default class KanbanView implements KanbanType {
   fk_view_id: string;
   title: string;
@@ -22,6 +31,10 @@ export default class KanbanView implements KanbanType {
   fk_grp_col_id?: string;
   fk_cover_image_col_id?: string;
   meta?: MetaType;
+  summary_fn?: string | null;
+  fk_summary_col_id?: string | null;
+  summary_label?: MetaType;
+  summary_colors?: MetaType;
 
   // below fields are not in use at this moment
   // keep them for time being
@@ -58,7 +71,7 @@ export default class KanbanView implements KanbanType {
         },
       );
 
-      view = prepareForResponse(view);
+      view = prepareForResponse(view, KANBAN_JSON_PROPS);
 
       await NocoCache.set(context, `${CacheScope.KANBAN_VIEW}:${viewId}`, view);
     }
@@ -98,6 +111,7 @@ export default class KanbanView implements KanbanType {
       'fk_view_id',
       'fk_grp_col_id',
       'meta',
+      ...KANBAN_SUMMARY_PROPS,
     ]);
 
     insertObj.fk_cover_image_col_id =
@@ -111,6 +125,7 @@ export default class KanbanView implements KanbanType {
     };
 
     insertObj.meta = stringifyMetaProp(insertObj);
+    prepareForDb(insertObj, ['summary_label', 'summary_colors']);
 
     const viewRef = await View.get(
       context,
@@ -144,6 +159,7 @@ export default class KanbanView implements KanbanType {
       'fk_cover_image_col_id',
       'fk_grp_col_id',
       'meta',
+      ...KANBAN_SUMMARY_PROPS,
     ]);
 
     // update meta
@@ -151,7 +167,7 @@ export default class KanbanView implements KanbanType {
       context.workspace_id,
       context.base_id,
       MetaTable.KANBAN_VIEW,
-      prepareForDb(updateObj),
+      prepareForDb(updateObj, KANBAN_JSON_PROPS),
       {
         fk_view_id: kanbanId,
       },
@@ -160,18 +176,19 @@ export default class KanbanView implements KanbanType {
     await NocoCache.update(
       context,
       `${CacheScope.KANBAN_VIEW}:${kanbanId}`,
-      prepareForResponse(updateObj),
+      prepareForResponse(updateObj, KANBAN_JSON_PROPS),
     );
 
     const view = await View.get(context, kanbanId, false, ncMeta);
 
-    // on update, delete any optimised single query cache
-    await View.clearSingleQueryCache(
-      context,
-      view.fk_model_id,
-      [{ id: kanbanId }],
-      ncMeta,
-    );
+    // on update, delete any optimised single query cache (none for a trashed view)
+    if (view)
+      await View.clearSingleQueryCache(
+        context,
+        view.fk_model_id,
+        [{ id: kanbanId }],
+        ncMeta,
+      );
 
     return res;
   }

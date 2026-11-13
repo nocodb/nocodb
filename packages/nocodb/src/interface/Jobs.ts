@@ -42,6 +42,8 @@ export enum MigrationJobTypes {
   CreditAllowanceIncrease = 'credit-allowance-increase',
   McpTokenPlaintextCleanup = 'mcp-token-plaintext-cleanup',
   AtImportFailedJobScrub = 'at-import-failed-job-scrub',
+  EnvironmentChangelogSecretCleanup = 'environment-changelog-secret-cleanup',
+  AuthTokenHashBackfill = 'auth-token-hash-backfill',
 }
 
 export enum JobTypes {

@@ -178,7 +178,10 @@ onUnmounted(() => {
         v-if="hasEditPermission"
         class="flex justify-end group gap-1 min-h-4 items-center"
         tabindex="0"
+        role="button"
+        :aria-label="$t('activity.linkRecord')"
         @keydown.enter.stop="listItemsDlg = true"
+        @keydown.space.stop.prevent="listItemsDlg = true"
       >
         <GeneralIcon
           :icon="isSimpleLinkRecordList ? 'chevronDown' : addIcon"

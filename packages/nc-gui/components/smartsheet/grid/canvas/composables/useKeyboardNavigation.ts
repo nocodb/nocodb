@@ -1,4 +1,4 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isAutoSaved, isManualSaved } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData, getGroupSampleRow } from '../utils/groupby'
@@ -7,6 +7,30 @@ import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData, g
 const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.GeoData]
 
 const MIN_COLUMN_INDEX = 1
+
+/**
+ * Esc cancels the edit. If this edit's autosave already sent a value, restore the value from before
+ * editing and write it back on close; otherwise keep the stored value, which may be a teammate's.
+ */
+function revertEdit(edit: { row: Row; column: ColumnType; originalValue?: unknown }) {
+  const title = edit.column?.title
+  if (!title || !edit.row?.row || !('originalValue' in edit)) return
+  // Fields that save on every change have nothing left to cancel
+  if (!isAutoSaved(edit.column) && !isManualSaved(edit.column)) return
+
+  const rowMeta = edit.row.rowMeta
+  const autosaved = !!rowMeta.autosavedDuringEdit
+  delete rowMeta.autosavedDuringEdit
+
+  const target = autosaved ? edit.originalValue : edit.row.oldRow?.[title]
+
+  if (!autosaved && deepCompare(edit.row.row[title], target)) return
+
+  edit.row.row[title] = deepClone(target)
+  rowMeta.changed = false
+  rowMeta.skipPendingAutosave = true
+  if (autosaved) rowMeta.writeBackOnClose = true
+}
 export function useKeyboardNavigation({
   activeCell,
   columns,
@@ -47,6 +71,7 @@ export function useKeyboardNavigation({
     y: number
     width: number
     height: number
+    originalValue?: unknown
   } | null>
   copyValue: (target?: Cell, path?: Array<number>) => void
   clearCell: (ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
@@ -293,6 +318,7 @@ export function useKeyboardNavigation({
 
       case 'Escape':
         if (editEnabled.value) {
+          revertEdit(editEnabled.value)
           editEnabled.value = null
           selection.value.clear()
           selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })

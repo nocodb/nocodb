@@ -124,3 +124,10 @@ export const pickFormColumnUpdateBody = (col: Record<string, any>) => {
   if ('meta' in col) body.meta = col.meta
   return body
 }
+
+/** View titles are unique per table regardless of letter case. */
+export const isViewTitleTaken = (views: { id?: string; title?: string }[], title?: string, excludeId?: string) => {
+  const target = title?.trim().toLowerCase()
+  if (!target) return false
+  return views.some((v) => v.id !== excludeId && v.title?.trim().toLowerCase() === target)
+}

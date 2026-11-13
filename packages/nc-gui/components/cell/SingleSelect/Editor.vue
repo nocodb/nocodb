@@ -36,6 +36,20 @@ const active = computed(() => activeCell.value || isEditable.value || isForm.val
 
 const aselect = ref<typeof AntSelect>()
 
+const cellAriaLabel = useCellAriaLabel()
+
+// antd Select puts aria-label on its wrapper, not the search input, so name the input directly.
+watch(
+  [aselect, cellAriaLabel],
+  ([select, label]) => {
+    const input = (select as { $el?: HTMLElement } | undefined)?.$el?.querySelector?.('input')
+    if (!input) return
+    if (label) input.setAttribute('aria-label', label)
+    else input.removeAttribute('aria-label')
+  },
+  { flush: 'post' },
+)
+
 const isOpen = ref(false)
 const canvasSelectCell = inject(CanvasSelectCellInj, null)
 

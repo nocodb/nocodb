@@ -18,9 +18,10 @@ export const useAppsEntry = createSharedComposable(() => {
       workspaceId?: string
       aiApp?: { id?: string; title?: string } | null
       interfaceId?: string
+      newTab?: boolean
     }) => {},
     baseCardAppCount: (_base: NcProject) => 0,
-    openBaseFromCard: async (_base: NcProject) => {},
+    openBaseFromCard: async (_base: NcProject, _opts?: { newTab?: boolean }) => {},
     lastOpenedApp: (_baseId: string): { type: 'ai' | 'classic'; id: string } | undefined => undefined,
     visibleWorkspaceApps: computed<WorkspaceAppItem[]>(() => []),
     isWorkspaceAppsLoaded: computed(() => true),

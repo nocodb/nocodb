@@ -20,6 +20,7 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
+import { assertTableDataDownloadAllowed } from '~/helpers/tableDataDownloadPermission';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Controller()
@@ -45,6 +46,11 @@ export class DataExportController {
     const view = await View.get(context, viewId);
 
     if (!view) NcError.viewNotFound(viewId);
+
+    await assertTableDataDownloadAllowed(context, {
+      modelId: view.fk_model_id,
+      user: req.user,
+    });
 
     const job = await this.jobsService.add(JobTypes.DataExport, {
       context,

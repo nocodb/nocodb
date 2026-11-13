@@ -100,6 +100,7 @@ export function useGridViewData(
     getDataCache,
     groupDataCache,
     refreshLoadedRows,
+    replayOfflineEdits,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -125,6 +126,7 @@ export function useGridViewData(
     groupByColumns,
     where,
     isPublic,
+    retryOfflineEdits: true,
   })
 
   function triggerAggregateReload(params: {
@@ -199,8 +201,13 @@ export function useGridViewData(
   // placeholders. A page reload fixes it; so does resyncing the view on reconnect.
   // Not on the first handshake (data is already fresh then); also after a socket rebuilt on
   // token refresh, which drops events too.
-  const offSocketReady = $ncSocket.onReconnect(() => {
-    refreshInPlace()
+  const offSocketReady = $ncSocket.onReconnect(async () => {
+    // Save edits queued while offline first, so the resync shows them instead of the old values
+    try {
+      await replayOfflineEdits()
+    } finally {
+      refreshInPlace()
+    }
     // Footer/column aggregations aren't re-fetched by the data reload above (group
     // aggregations reload with their chunks, but the view-level footer only reloads
     // on view switch), so refresh them too or they'd stay stale after reconnect.
@@ -397,7 +404,8 @@ export function useGridViewData(
     }
   }
 
-  async function deleteSelectedRows(path: Array<number> = []): Promise<void> {
+  /** Resolves the number of saved records deleted (0 when nothing was deleted or the delete failed). */
+  async function deleteSelectedRows(path: Array<number> = []): Promise<number> {
     let removedRowsData: Record<string, any>[] = []
     let compositePrimaryKey = ''
     isBulkOperationInProgress.value = true
@@ -425,7 +433,7 @@ export function useGridViewData(
       }
     }
 
-    if (!removedRowsData.length) return
+    if (!removedRowsData.length) return 0
 
     try {
       // Full-record enrichment uses the PLAIN data ops — interface pages skip
@@ -455,11 +463,16 @@ export function useGridViewData(
         })
       }
 
-      await bulkDeleteRows(removedRowsData.map((row) => row.pkData))
+      // Quiet, so a failure reaches the catch below instead of being swallowed as success.
+      await bulkDeleteRows(
+        removedRowsData.map((row) => row.pkData),
+        { notify: false },
+      )
     } catch (e: any) {
       const errorMessage = await extractSdkResponseErrorMsg(e)
       isBulkOperationInProgress.value = false
-      return message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
+      message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
+      return 0
     }
 
     await updateCacheAfterDelete(removedRowsData, false, path)
@@ -467,6 +480,8 @@ export function useGridViewData(
     isBulkOperationInProgress.value = false
 
     await syncCount(path)
+
+    return removedRowsData.length
   }
 
   async function bulkUpdateRows(
@@ -767,8 +782,9 @@ export function useGridViewData(
     syncVisibleData()
   }
 
-  async function deleteRangeOfRows(cellRange: CellRange, path: Array<number> = [], { notify = true } = {}): Promise<void> {
-    if (!cellRange._start || !cellRange._end) return
+  /** Resolves the number of saved records deleted (0 when there were none). */
+  async function deleteRangeOfRows(cellRange: CellRange, path: Array<number> = [], { notify = true } = {}): Promise<number> {
+    if (!cellRange._start || !cellRange._end) return 0
     isBulkOperationInProgress.value = true
     const dataCache = getDataCache(path)
 
@@ -807,7 +823,10 @@ export function useGridViewData(
       }
     }
 
-    if (!rowsToDelete.length) return
+    if (!rowsToDelete.length) {
+      isBulkOperationInProgress.value = false
+      return 0
+    }
 
     try {
       // Same interface skip as `deleteSelectedRows` — plain-op enrichment only.
@@ -837,9 +856,10 @@ export function useGridViewData(
         })
       }
 
+      // Quiet, so a failure reaches the catch below instead of being swallowed as success.
       await bulkDeleteRows(
         rowsToDelete.map((row) => row.pkData),
-        { notify },
+        { notify: false },
       )
     } catch (e: any) {
       const errorMessage = await extractSdkResponseErrorMsg(e)
@@ -851,6 +871,8 @@ export function useGridViewData(
 
     await updateCacheAfterDelete(rowsToDelete, false, path)
     isBulkOperationInProgress.value = false
+
+    return rowsToDelete.length
   }
 
   async function bulkDeleteRows(

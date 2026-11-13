@@ -1,6 +1,12 @@
 import { Logger } from '@nestjs/common';
 import Noco from '~/Noco';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import {
+  CacheDelDirection,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import { encryptPropIfRequired } from '~/utils';
 
 const logger = new Logger('initDataSourceEncryption');
@@ -116,6 +122,48 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
   }
 
   await encryptSyncSourceDetails(_ncMeta, secret);
+  await encryptVaultConfigs(_ncMeta, secret);
+}
+
+// Vault provider credentials written before the key was set. Per row, like sync sources.
+async function encryptVaultConfigs(ncMeta: typeof Noco.ncMeta, secret: string) {
+  const vaults = await ncMeta
+    .knex(MetaTable.VAULTS)
+    .where((qb) => {
+      qb.where('is_encrypted', false).orWhereNull('is_encrypted');
+    })
+    .whereNotNull('config');
+
+  for (const vault of vaults) {
+    try {
+      JSON.parse(vault.config);
+    } catch {
+      logger.warn(`Invalid JSON in vault config ${vault.id}`);
+      continue;
+    }
+
+    try {
+      await ncMeta.metaUpdate(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.VAULTS,
+        {
+          config: encryptPropIfRequired({ data: vault, secret }),
+          is_encrypted: true,
+        },
+        vault.id,
+      );
+      // Cached lists still hold the plaintext row.
+      await NocoCache.deepDel(
+        'root',
+        `${CacheScope.VAULT}:${vault.fk_org_id ?? vault.fk_workspace_id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+      logger.log(`Encrypted vault config ${vault.id}`);
+    } catch (e) {
+      logger.error(`Failed to encrypt vault config ${vault.id}`, e?.stack);
+    }
+  }
 }
 
 // Per row and outside the transaction, so one failing sync row cannot block boot.

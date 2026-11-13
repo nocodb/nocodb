@@ -48,6 +48,23 @@ export enum DateValidationType {
   MaxDate = 'maxDate',
 }
 
+/** Dynamic bound for min/max date validators: resolved to the current date at validation time. */
+export const DATE_VALIDATION_TODAY = '{{today}}';
+
+export const isDateValidationToday = (value: unknown): boolean =>
+  typeof value === 'string' &&
+  value.trim().toLowerCase() === DATE_VALIDATION_TODAY;
+
+/**
+ * Resolves a min/max date bound to a `YYYY-MM-DD` literal when it is the
+ * `{{today}}` variable; any other value is returned unchanged. `today` is
+ * supplied by the caller (client: local date, server: UTC date).
+ */
+export const resolveDateValidationValue = <T>(
+  value: T,
+  today: string
+): T | string => (isDateValidationToday(value) ? today : value);
+
 export enum TimeValidationType {
   MinTime = 'minTime',
   MaxTime = 'maxTime',

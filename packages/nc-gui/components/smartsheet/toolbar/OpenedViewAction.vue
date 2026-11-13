@@ -71,6 +71,7 @@ function openDeleteDialog() {
       <NcButton
         v-e="['c:toolbar:view-actions']"
         class="nc-view-action-menu-btn nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
+        :aria-label="$t('labels.viewActions')"
         size="small"
         type="secondary"
       >

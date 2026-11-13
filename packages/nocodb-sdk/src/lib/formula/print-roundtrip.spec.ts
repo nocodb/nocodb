@@ -31,3 +31,22 @@ describe('jsepTreeToFormula parentheses', () => {
     }
   });
 });
+
+describe('jsepTreeToFormula string literals', () => {
+  const lastArgValue = (formula: string) =>
+    (formulaJsep(formula) as { arguments: { value: unknown }[] }).arguments.at(
+      -1
+    )?.value;
+
+  it.each([
+    [String.raw`CONCAT({A}, "line 1\nline 2")`, 'line 1\nline 2'],
+    [String.raw`CONCAT("say \"hi\"")`, 'say "hi"'],
+    [String.raw`CONCAT('say "hi"')`, 'say "hi"'],
+    [String.raw`CONCAT('it\'s')`, "it's"],
+    [String.raw`CONCAT("it\\'s")`, String.raw`it\'s`],
+    [String.raw`REGEX_MATCH({A}, "\d+")`, String.raw`\d+`],
+    [String.raw`CONCAT("a\\b")`, String.raw`a\b`],
+  ])('%s keeps its value after a save', (formula, expected) => {
+    expect(lastArgValue(roundTrip(formula))).toBe(expected);
+  });
+});

@@ -524,6 +524,8 @@ export class ExportService {
               case 'fk_cover_image_col_id':
               case 'fk_grp_col_id':
               case 'fk_prefix_column_id':
+              case 'fk_summary_col_id':
+              case 'fk_geo_data_col_id':
                 view.view[k] = idMap.get(v as string);
                 break;
               case 'levels':
@@ -1180,6 +1182,11 @@ export class ExportService {
                 skip = true;
                 break;
               case UITypes.JSON:
+                // JSON.stringify(null) is the text "null", which imports as a JSON null, not SQL NULL
+                if (v === null || v === undefined) {
+                  row[colId] = null;
+                  break;
+                }
                 // pg/mysql drivers parse JSON on read; the others hand back the stored JSON text
                 if (typeof v === 'string' && !jsonParsedOnRead) {
                   row[colId] = v;

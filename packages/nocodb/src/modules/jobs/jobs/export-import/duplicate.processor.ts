@@ -647,15 +647,21 @@ export class DuplicateProcessor {
 
       if (createdModels.length > 0) {
         for (const modelId of createdModels) {
-          await this.hardDeleteLinkColumns(context, modelId, req);
           // rollback: no trash entry or link placeholders for the copy
-          await this.tablesService.tableDelete(context, {
-            tableId: modelId,
-            forceDeleteRelations: true,
-            skipLinkPlaceholder: true,
-            skipTrash: true,
-            req,
-          });
+          try {
+            await this.tablesService.tableDelete(context, {
+              tableId: modelId,
+              forceDeleteRelations: true,
+              skipLinkPlaceholder: true,
+              skipTrash: true,
+              req,
+            });
+          } catch (cleanupErr) {
+            this.logger.error(
+              `Failed to remove table ${modelId} during rollback: ${cleanupErr.message}`,
+              cleanupErr.stack,
+            );
+          }
         }
       }
 
@@ -925,42 +931,6 @@ export class DuplicateProcessor {
         }
       }
       throw e;
-    }
-  }
-
-  // tableDelete doesn't forward skipTrash to its link-column deletes, so on EE
-  // they'd be trashed and leave the reverse links on the related tables.
-  protected async hardDeleteLinkColumns(
-    context: NcContext,
-    modelId: string,
-    req: NcRequest,
-  ) {
-    const model = await Model.get(context, modelId);
-    if (!model) return;
-
-    const columnWebhookManager = (
-      await new ColumnWebhookManagerBuilder(context).withModelId(modelId)
-    ).forDelete();
-
-    for (const column of await model.getColumns()) {
-      if (!isLinksOrLTAR(column) || column.system) continue;
-      // a self-ref link's inverse was already removed with its pair
-      if (!(await Column.get(context, { colId: column.id }))) continue;
-      try {
-        await this.columnsService.columnDelete(context, {
-          columnId: column.id,
-          req,
-          forceDeleteSystem: true,
-          skipLinkPlaceholder: true,
-          skipTrash: true,
-          columnWebhookManager,
-        });
-      } catch (cleanupErr) {
-        this.logger.error(
-          `Failed to remove link column ${column.id} of ${modelId}: ${cleanupErr.message}`,
-          cleanupErr.stack,
-        );
-      }
     }
   }
 

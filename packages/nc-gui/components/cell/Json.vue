@@ -378,12 +378,11 @@ onUnmounted(() => {
 .nc-expanded-cell .nc-cell-json .nc-cell-field {
   margin: 4px 0;
 }
-.nc-expand-col-JSON.nc-expanded-form-row .nc-cell-json {
-  min-height: 34px;
-  @apply !flex items-center max-w-full;
-  & > div {
-    @apply !max-w-full w-full;
-  }
+// Fill the field so the text isn't clamped short and the expand button sits on the right edge;
+// width 0 keeps a long value from widening the field past its neighbours.
+.nc-expanded-cell .nc-cell-json > div {
+  width: 0;
+  min-width: 100%;
 }
 
 .nc-default-value-wrapper,

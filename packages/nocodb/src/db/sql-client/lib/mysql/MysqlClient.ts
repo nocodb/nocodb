@@ -2717,7 +2717,15 @@ class MysqlClient extends KnexClient {
       }
     }
 
-    const defaultValue = this.sanitiseDefaultValue(n.cdf);
+    let defaultValue = this.sanitiseDefaultValue(n.cdf);
+    // TEXT/BLOB/JSON/GEOMETRY only take an expression default (MySQL 8.0.13+)
+    if (
+      defaultValue &&
+      /(text|blob|json|geometry)$/i.test(n.dt) &&
+      !/^null$/i.test(`${defaultValue}`)
+    ) {
+      defaultValue = `(${defaultValue})`;
+    }
     query += defaultValue
       ? `
     DEFAULT ${defaultValue}`

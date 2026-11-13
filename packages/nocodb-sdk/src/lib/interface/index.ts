@@ -203,6 +203,23 @@ export interface InterfacePublishResponse<
   brokenPageRefs: InterfaceBrokenPageRef[];
 }
 
+/** A page whose config points at another page (`interfacePageReferrers`). */
+export interface InterfacePageReferrer {
+  id: string;
+  title: string;
+  fk_interface_id: string;
+  buttons: number;
+  bookmarks: number;
+  /** Detail-page, form-page and edit-form links. */
+  links: number;
+}
+
+/** A page whose draft points at deleted pages or fields (`interfaceBrokenRefs`). */
+export interface InterfacePageBrokenRefs extends InterfacePageReferrer {
+  /** Distinct deleted fields the draft still uses. */
+  fields: number;
+}
+
 /** Anything but `desc` (any casing) sorts ascending. */
 export function normalizeInterfaceSortDirection(
   direction?: string | null

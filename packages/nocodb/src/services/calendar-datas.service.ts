@@ -233,6 +233,8 @@ export class CalendarDatasService {
 
     const data = await this.datasService.dataList(context, {
       ...param,
+      view,
+      viewName: view.id,
       baseName: model.base_id,
       tableName: model.id,
       ignorePagination: true,

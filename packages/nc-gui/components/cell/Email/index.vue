@@ -20,6 +20,8 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const column = inject(ColumnInj)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -81,6 +83,7 @@ watch(
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
+    :aria-label="cellAriaLabel"
     class="nc-cell-field w-full outline-none py-1"
     @blur="editEnabled = false"
     @keydown.down.stop

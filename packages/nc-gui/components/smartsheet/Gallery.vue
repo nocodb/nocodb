@@ -416,6 +416,12 @@ const FIELD_HEIGHT = {
 
 const scrollContainer = ref()
 
+const expandedFormRef = ref()
+
+async function goToSiblingRow(dir: NavigateDir) {
+  if (!(await navigateToSiblingRow(dir))) expandedFormRef.value?.stopLoading?.()
+}
+
 const scrollTop = ref(0)
 
 const rowSlice = reactive({
@@ -1308,6 +1314,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
+      ref="expandedFormRef"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
@@ -1318,8 +1325,8 @@ const { onCardEnter, onCardLeave } = useCardCommands({
       :view="view"
       show-next-prev-icons
       :expand-form="expandForm"
-      @next="navigateToSiblingRow(NavigateDir.NEXT)"
-      @prev="navigateToSiblingRow(NavigateDir.PREV)"
+      @next="goToSiblingRow(NavigateDir.NEXT)"
+      @prev="goToSiblingRow(NavigateDir.PREV)"
     />
   </Suspense>
 

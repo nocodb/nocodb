@@ -9,6 +9,10 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
+// The edit branch is a fragment (input or textarea), which can't inherit attrs,
+// so bind them explicitly on the single-root branches instead.
+defineOptions({ inheritAttrs: false })
+
 const { showNull } = useGlobal()
 
 const editEnabled = inject(EditModeInj, ref(false))
@@ -24,6 +28,8 @@ const vModel = useVModel(props, 'modelValue', emits)
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj, ref(false))
+
+const cellAriaLabel = useCellAriaLabel()
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
@@ -41,6 +47,7 @@ const textareaValue = computed({
       v-if="!isExpandedFormOpen"
       :ref="focus"
       v-model="vModel"
+      :aria-label="cellAriaLabel"
       class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
       @blur="editEnabled = false"
       @keydown.down.stop
@@ -60,15 +67,19 @@ const textareaValue = computed({
       :hide-scrollbar="false"
       :bordered="false"
       class="!px-2 !py-1 !min-h-7 !max-h-7.5rem resize-none nc-scrollbar-thin"
+      :aria-label="cellAriaLabel"
       style="color: inherit"
       @keydown.enter.prevent
     />
   </template>
 
-  <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
+  <span v-else-if="vModel === null && showNull" v-bind="$attrs" class="nc-cell-field nc-null uppercase">{{
+    $t('general.null')
+  }}</span>
 
   <LazyCellClampedText
     v-else
+    v-bind="$attrs"
     class="nc-cell-field clamped-text"
     :value="vModel"
     :lines="rowHeight"

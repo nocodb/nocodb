@@ -20,6 +20,13 @@ export const setNcErrorToastsSuppressed = (suppressed: boolean) => {
   ncErrorToastsSuppressed = suppressed
 }
 
+// Error payloads the axios interceptor already showed (its 402 warning). A caller passing the
+// same `extractSdkResponseErrorMsgv2` result to `message.error()` would show it a second time.
+const shownErrorPayloads = new WeakSet<object>()
+export const markErrorPayloadShown = (payload: unknown) => {
+  if (ncIsObject(payload)) shownErrorPayloads.add(payload)
+}
+
 interface NcAlertMessageProps
   extends Pick<
     NcAlertProps,
@@ -140,6 +147,16 @@ function isNcMessageObjectProps(params: any): params is NcMessageObjectProps {
 }
 
 /**
+ * `extractSdkResponseErrorMsgv2` resolves `{ error, message }`, and many call sites pass that
+ * straight to `message.error()`. It has no `title`/`content`, so it used to render nothing.
+ */
+function isSdkErrorResult(params: unknown): params is { error?: string; message: string } {
+  return (
+    ncIsObject(params) && !('title' in params) && !('content' in params) && ncIsString((params as { message?: unknown }).message)
+  )
+}
+
+/**
  * Processes `NcMessageProps` and merges them with default values.
  * - If a string is provided, it sets it as the description while applying a default content based on type.
  * - If neither `content` nor `description` exist, the content is set to the default localized text.
@@ -155,6 +172,8 @@ const getMessageProps = (
   params: NcMessageProps,
   ncMessageExtraProps: NcMessageExtraProps = defaultNcMessageExtraProps,
 ): NcMessageObjectProps => {
+  if (isSdkErrorResult(params)) params = params.message
+
   const updatedParams = { ...initialValue, ...(type === 'toast' ? initialToastTypeValue : {}) }
   let content = ''
 
@@ -236,6 +255,8 @@ const showMessage = (
   duration?: number,
   ncMessageExtraProps?: NcMessageExtraProps,
 ) => {
+  if (type === 'error' && ncIsObject(params) && shownErrorPayloads.has(params)) return
+
   const props = getMessageProps(type, params, ncMessageExtraProps)
 
   const {

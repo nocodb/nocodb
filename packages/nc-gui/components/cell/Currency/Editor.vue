@@ -13,6 +13,8 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'save'])
 
 const column = inject(ColumnInj)!
+
+const cellAriaLabel = useCellAriaLabel()
 const editEnabled = inject(EditModeInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -141,6 +143,7 @@ onMounted(() => {
     v-if="inputType === 'number'"
     :ref="focus"
     v-model="vModel"
+    :aria-label="cellAriaLabel"
     type="number"
     class="nc-cell-field h-full border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"
     :class="isForm && !isEditColumn && !hidePrefix ? 'flex flex-1' : 'w-full'"
@@ -162,6 +165,7 @@ onMounted(() => {
   <input
     v-else
     :ref="focus"
+    :aria-label="cellAriaLabel"
     :value="currency"
     type="text"
     class="nc-cell-field h-full border-none rounded-md py-1 outline-none focus:outline-none focus:ring-0"

@@ -31,6 +31,7 @@ import { omitSyncToken } from '~/models/SyncSource';
 import { NcError } from '~/helpers/catchError';
 import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
 import { pickBulkAllQuery } from '~/helpers/dataHelpers';
+import { assertTableDataDownloadAllowed } from '~/helpers/tableDataDownloadPermission';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
@@ -648,6 +649,12 @@ export class UiPostOperations
         const view = await View.get(context, req.query.viewId);
 
         if (!view) NcError.viewNotFound(req.query.viewId);
+
+        await assertTableDataDownloadAllowed(context, {
+          modelId: view.fk_model_id,
+          user: req.user,
+        });
+
         const options: DataExportJobData['options'] = payload.options ?? {};
 
         const job = await this.nocoJobsService.add(JobTypes.DataExport, {

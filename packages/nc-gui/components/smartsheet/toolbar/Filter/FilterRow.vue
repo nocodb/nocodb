@@ -119,6 +119,16 @@ const column = computed(() => {
   return props.columns.find((col) => col.id === fk_column_id)
 })
 
+// Text "is equal" / "is not equal" compare exact letter case, except on MSSQL's case-insensitive default collation
+const CASE_SENSITIVE_EQ_TYPES = [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
+
+const { isMssql } = useBase()
+
+const isCaseSensitiveOp = (op?: string) => {
+  const uidt = (column.value?.filterUidt ?? column.value?.uidt) as UITypes
+  return (op === 'eq' || op === 'neq') && CASE_SENSITIVE_EQ_TYPES.includes(uidt) && !isMssql(column.value?.source_id)
+}
+
 const dynamicColumns = computed(() => {
   if (!vModel.value?.dynamic) {
     return []
@@ -535,12 +545,25 @@ const onChangeToDynamic = async () => {
         :disabled="isDisabled"
         hide-details
         dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
+        option-label-prop="label"
         @change="onComparisonOpChange($event)"
       >
         <template v-for="compOp of comparisonOps" :key="compOp.value">
-          <a-select-option :value="compOp.value">
+          <a-select-option :value="compOp.value" :label="getFilterOpLabel(compOp.i18nKey, compOp.text)">
             <div class="flex items-center w-full justify-between w-full gap-2">
               <div class="truncate flex-1">{{ getFilterOpLabel(compOp.i18nKey, compOp.text) }}</div>
+              <NcTooltip
+                v-if="isCaseSensitiveOp(compOp.value)"
+                :title="$t(compOp.value === 'neq' ? 'tooltip.filterNeqCaseSensitive' : 'tooltip.filterEqCaseSensitive')"
+                placement="right"
+                class="flex flex-none"
+              >
+                <GeneralIcon
+                  icon="ncHelp"
+                  class="w-3.5 h-3.5 text-nc-content-gray-muted"
+                  data-testid="nc-filter-op-case-sensitive-info"
+                />
+              </NcTooltip>
               <component
                 :is="iconMap.check"
                 v-if="vModel.comparison_op === compOp.value"

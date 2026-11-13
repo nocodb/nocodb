@@ -45,6 +45,7 @@ const disableToolbar = computed(
 )
 
 // Public views download from the shared top bar; fall back to the toolbar when that bar is hidden.
+// Gantt and timeline render their own toolbar (ee/components/smartsheet/{gantt,timeline}/index.vue): keep them in sync.
 const showPublicDownload = computed(
   () =>
     isPublic.value && allowCSVDownload.value && (router.currentRoute.value.query?.disableTopbar === 'true' || isFullScreen.value),
@@ -127,6 +128,8 @@ function triggerToolbarControl(selector: string) {
           <SmartsheetToolbarListSetLevels v-if="isList" />
 
           <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap || isList" :show-system-fields="false" />
+
+          <SmartsheetToolbarKanbanSummarize v-if="isKanban && isEeUI && !isMobileMode" />
 
           <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isList" />
 

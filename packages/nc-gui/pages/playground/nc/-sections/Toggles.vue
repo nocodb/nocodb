@@ -2,7 +2,7 @@
 import PgDemo from '../../-components/PgDemo.vue'
 import PgSection from '../../-components/PgSection.vue'
 
-const SWITCH_SIZES = ['default', 'small', 'xsmall', 'xxsmall'] as const
+const SWITCH_SIZES = ['default', 'large', 'medium', 'small', 'xsmall', 'xxsmall'] as const
 
 const CHECKBOX_SIZES = ['small', 'default', 'large'] as const
 

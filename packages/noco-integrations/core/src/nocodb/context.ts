@@ -6,6 +6,7 @@ import type {
   IDataV3Service,
   IMailService,
   ITablesService,
+  IWorkflowsService,
 } from './services';
 
 /** An env-resolved base variable exposed to script runtimes. */
@@ -60,6 +61,8 @@ export interface NocoDBContext {
    * loop guard and the one-run-at-a-time queue apply to a workflow too.
    */
   agentsService: IAgentsService;
+  /** Workflows of the current base, for a picker. */
+  workflowsService: IWorkflowsService;
   /** Env-resolved base variables (incl. decrypted secrets) for the script node. */
   getVariables?: () => Promise<ResolvedBaseVariable[]>;
   /**

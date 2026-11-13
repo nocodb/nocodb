@@ -49,6 +49,7 @@ import { isSharedViewAccess } from '~/helpers/accessSource';
 import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
 import { setModelContext } from '~/helpers/modelContext';
 import { getAliasGenerator } from '~/utils';
+import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import {
   getDataQueryTimeout,
   NC_DISABLE_GROUP_BY_LIMIT,
@@ -1012,6 +1013,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           base_id: column.base_id,
           include_internal_user: true,
         });
+        // Public responses show the derived name, never the email.
+        const sortName = (user: (typeof baseUsers)[number]) =>
+          baseModel.context.is_public
+            ? extractDisplayNameFromEmail(user.email ?? '', user.display_name)
+            : user.display_name || user.email;
         const groupedCol = getAs(column);
         const groupedColQb = sqlNullIfBlank({
           columnName: baseModel.dbDriver.raw('??.??', ['g', groupedCol]),
@@ -1030,14 +1036,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             needleColumn: groupedColQb as any,
             stack: baseUsers.map((user) => ({
               key: user.id,
-              value: user.display_name || user.email,
+              value: sortName(user),
             })),
           })})`;
         } else {
           finalStatement = baseUsers.reduce((acc, user) => {
             const qbReplace = baseModel.dbDriver.raw(
               `REPLACE(${escapeBindingPlaceholders(acc)}, ?, ?)`,
-              [user.id, user.display_name || user.email],
+              [user.id, sortName(user)],
             );
             return qbReplace.toQuery();
           }, groupedColQb.toQuery());

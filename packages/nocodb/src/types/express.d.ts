@@ -9,6 +9,8 @@ declare module 'express-serve-static-core' {
     // @Acl permission of the matched route; lets token auth exempt discovery ops
     ncAclPermission?: string;
     ncBaseId?: string;
+    // `base_id` of the legacy API token authenticating this request, if any
+    ncApiTokenBaseId?: string | null;
     user: UserType & {
       base_roles?: Record<string, boolean>;
       workspace_roles?: Record<string, boolean>;

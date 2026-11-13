@@ -39,6 +39,7 @@ import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
 import { isUniqueConstraintViolationError } from '~/utils/errorUtils'
+import { type OfflineEdit, type OfflineEditReplayResult, createOfflineEditQueue, isNetworkError } from '~/utils/offlineEditQueue'
 
 // Value-equality check for group-by cells. A naive `!==` reports a false change
 // for non-primitive values (Link-to-record, JSON, …) since the socket payload and
@@ -127,9 +128,20 @@ export function useInfiniteData(args: {
   disableSmartsheet?: boolean
   isPublic?: Ref<boolean>
   groupByColumns?: ComputedRef<{ column: ColumnType; sort: string; order?: number }[]>
+  // Keep cell edits that fail for lack of a connection and retry them on reconnect.
+  retryOfflineEdits?: boolean
 }) {
   const NOCO = 'noco'
-  const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, groupByColumns = ref(null) } = args
+  const {
+    meta,
+    viewMeta,
+    callbacks,
+    where,
+    disableSmartsheet,
+    isPublic,
+    groupByColumns = ref(null),
+    retryOfflineEdits = false,
+  } = args
 
   const { $api, $ncSocket, $eventBus } = useNuxtApp()
 
@@ -290,6 +302,8 @@ export function useInfiniteData(args: {
     },
     { immediate: true },
   )
+
+  const offlineEditQueue = retryOfflineEdits ? createOfflineEditQueue() : null
 
   const selectedAllRecords = ref(false)
 
@@ -823,7 +837,7 @@ export function useInfiniteData(args: {
       const chunkIndex = getChunkIndex(index)
       maxChunk = Math.max(maxChunk, chunkIndex)
       const row = dataCache.cachedRows.value.get(index)
-      if (row && (row.rowMeta?.selected || row.rowMeta?.new || row.rowMeta?.isDragging)) {
+      if (row && (row.rowMeta?.selected || row.rowMeta?.new || row.rowMeta?.isDragging || row.rowMeta?.unsavedOffline)) {
         importantChunks.add(chunkIndex)
       }
     }
@@ -1119,17 +1133,32 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value = newCachedRows
   }
 
-  const navigateToSiblingRow = async (dir: NavigateDir) => {
+  // Where the expanded record sat when a realtime delete removed it from the cache
+  let removedExpandedRow: { rowId: string; rowIndex: number; cachedRows: Ref<Map<number, Row>> } | undefined
+
+  // Returns whether it navigated, so the caller can stop the expanded form's loading state.
+  const navigateToSiblingRow = async (dir: NavigateDir): Promise<boolean> => {
     const path = routeQuery.value?.path?.length === 0 ? [] : (routeQuery.value?.path?.split('-') ?? []).map((c) => +c)
-    const expandedRowIndex = await getExpandedRowIndexWithWait(path)
-    if (expandedRowIndex === -1) return
-
     const dataCache = getDataCache(path)
+    const expandedRowIndex = await getExpandedRowIndexWithWait(path)
 
-    const siblingIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+    let siblingIndex: number
+    if (expandedRowIndex !== -1) {
+      siblingIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+    } else if (
+      removedExpandedRow &&
+      removedExpandedRow.cachedRows === dataCache.cachedRows &&
+      removedExpandedRow.rowId === `${routeQuery.value.rowId}`
+    ) {
+      // The open record was deleted elsewhere: its next row has moved up into its index
+      siblingIndex = removedExpandedRow.rowIndex - (dir === NavigateDir.NEXT ? 0 : 1)
+    } else {
+      return false
+    }
 
     if (siblingIndex < 0 || siblingIndex >= dataCache.totalRows.value) {
-      return message.info(t('msg.info.noMoreRecords'))
+      message.info(t('msg.info.noMoreRecords'))
+      return false
     }
 
     let row = dataCache.cachedRows.value.get(siblingIndex)
@@ -1139,17 +1168,18 @@ export function useInfiniteData(args: {
       row = dataCache.cachedRows.value.get(siblingIndex)
     }
 
-    if (!row) return
+    if (!row) return false
 
     const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-    if (rowId) {
-      await router.push({
-        query: {
-          ...routeQuery.value,
-          rowId,
-        },
-      })
-    }
+    if (!rowId) return false
+
+    await router.push({
+      query: {
+        ...routeQuery.value,
+        rowId,
+      },
+    })
+    return true
   }
 
   // Remove invalid and moved(group change) rows from the cache
@@ -1504,11 +1534,17 @@ export function useInfiniteData(args: {
     return newRow
   }
 
-  async function deleteRow(rowIndex: number, path: Array<number> = [], { notify = true }: { notify?: boolean } = {}) {
+  /** Resolves `true` when a saved record was deleted on the server (not for an unsaved new row or a failure). */
+  async function deleteRow(
+    rowIndex: number,
+    path: Array<number> = [],
+    { notify = true }: { notify?: boolean } = {},
+  ): Promise<boolean> {
     const dataCache = getDataCache(path)
+    let deletedSaved = false
     try {
       const row = dataCache.cachedRows.value.get(rowIndex)
-      if (!row) return
+      if (!row) return false
 
       if (!row.rowMeta.new) {
         const id = meta?.value?.columns
@@ -1534,8 +1570,9 @@ export function useInfiniteData(args: {
 
         const deleted = await deleteRowById(id as string, { notify }, path)
         if (!deleted) {
-          return
+          return false
         }
+        deletedSaved = true
 
         if (fullRecord) row.row = fullRecord
       }
@@ -1561,11 +1598,13 @@ export function useInfiniteData(args: {
       dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
       await syncCount(path, true, false)
       callbacks?.syncVisibleData?.()
+      return deletedSaved
     } catch (e: any) {
       if (!notify) throw new Error(await extractSdkResponseErrorMsg(e))
       console.error(e)
 
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+      return false
     }
   }
 
@@ -1727,6 +1766,8 @@ export function useInfiniteData(args: {
 
     toUpdate.rowMeta.saving = true
 
+    const offlineSeqAtStart = offlineEditQueue?.currentSeq() ?? 0
+
     try {
       const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
 
@@ -1792,6 +1833,8 @@ export function useInfiniteData(args: {
       Object.assign(toUpdate.oldRow, updatedRowData)
       Object.assign(toUpdate.rowMeta, evaluateRowMeta(toUpdate.row))
 
+      if (offlineEditQueue) settleOfflineEdit(toUpdate, property, offlineSeqAtStart, metaValue)
+
       // Mark row as hidden if it moved out of user's RLS scope after update
       if (updatedRowData?.__nc_rls_hidden) {
         toUpdate.rowMeta.isRlsHidden = true
@@ -1805,8 +1848,16 @@ export function useInfiniteData(args: {
 
       callbacks?.syncVisibleData?.()
 
+      if (offlineEditQueue?.size() && !offlineEditQueue.isReplaying()) replayOfflineEdits()
+
       return updatedRowData
     } catch (e: any) {
+      if (offlineEditQueue && isNetworkError(e) && queueOfflineEdit(toUpdate, property, path, metaValue)) {
+        return undefined
+      }
+
+      if (offlineEditQueue) settleOfflineEdit(toUpdate, property, offlineSeqAtStart, metaValue)
+
       // Check if it's a unique constraint violation
       if (isUniqueConstraintViolationError(e)) {
         // Clear the cell value for unique constraint violations and set to previous value
@@ -1920,35 +1971,15 @@ export function useInfiniteData(args: {
       } catch (e: any) {
         // ignore
       }
+
+      // Queued for retry: nothing was saved yet, so skip the post-save checks.
+      if (!data && row.rowMeta.unsavedOffline?.[property]) {
+        callbacks?.syncVisibleData?.()
+        return
+      }
     }
 
-    const isValidationFailed = !passesRowFilters(data)
-    const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
-    if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
-
-    // check if the column is part of group by and value changed
-    if (row.rowMeta?.path?.length && groupByColumns?.value) {
-      const groupByFilter = await callbacks?.getWhereFilterArr?.(row.rowMeta?.path)
-      // Inserts carry no `property`; -1 would point onGroupRowChange at the parent level.
-      const index = Math.max(
-        groupByColumns.value.findIndex((c) => c.column.title === property),
-        0,
-      )
-
-      row.rowMeta.isGroupChanged = !validateRowFilters(
-        [...(groupByFilter ?? [])],
-        data,
-        meta.value?.columns as ColumnType[],
-        getBaseType(viewMeta.value?.view?.source_id),
-        metas.value,
-        meta.value?.base_id,
-        {
-          currentUser: user.value,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        },
-      )
-      row.rowMeta.changedGroupIndex = index
-    }
+    await markRowFilterState(row, property, data, dataCache)
     const changedFields = property ? [property] : Object.keys(row.row)
 
     changedFields.push(
@@ -2281,6 +2312,149 @@ export function useInfiniteData(args: {
       }
     }
     return null
+  }
+
+  const isOnline = offlineEditQueue ? useOnline() : null
+
+  // Keeps the typed value and marks the cell pending; false when the row has no pk to retry by.
+  function queueOfflineEdit(toUpdate: Row, property: string, path: Array<number>, metaValue?: TableType) {
+    if (!offlineEditQueue) return false
+
+    const pk = extractPkFromRow(toUpdate.row, (metaValue ?? meta.value)?.columns as ColumnType[])
+    if (!pk) return false
+
+    const wasEmpty = !offlineEditQueue.size()
+
+    offlineEditQueue.enqueue({ pk: `${pk}`, property, value: toUpdate.row[property] ?? null, path: [...path] })
+    toUpdate.rowMeta.unsavedOffline = { ...toUpdate.rowMeta.unsavedOffline, [property]: true }
+
+    if (wasEmpty) message.warning(t('msg.info.offlineEditQueued'))
+
+    callbacks?.syncVisibleData?.()
+
+    return true
+  }
+
+  // A save that reached the server supersedes edits queued before it started.
+  function settleOfflineEdit(toUpdate: Row, property: string, uptoSeq: number, metaValue?: TableType) {
+    if (!offlineEditQueue) return
+
+    const pk = extractPkFromRow(toUpdate.row, (metaValue ?? meta.value)?.columns as ColumnType[])
+    const isSettled = !pk || offlineEditQueue.removeIfNotNewer(`${pk}`, property, uptoSeq)
+
+    if (isSettled && toUpdate.rowMeta.unsavedOffline?.[property]) {
+      const rest = { ...toUpdate.rowMeta.unsavedOffline }
+      delete rest[property]
+      toUpdate.rowMeta.unsavedOffline = ncIsEmptyObject(rest) ? undefined : rest
+    }
+  }
+
+  /** Flags a saved row that no longer matches the view filter or its group (shown as hints) */
+  async function markRowFilterState(
+    row: Row,
+    property: string | undefined,
+    data: Record<string, any> | undefined,
+    dataCache: ReturnType<typeof getDataCache>,
+  ) {
+    const isValidationFailed = !passesRowFilters(data)
+    const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
+    if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
+
+    // check if the column is part of group by and value changed
+    if (row.rowMeta?.path?.length && groupByColumns?.value) {
+      const groupByFilter = await callbacks?.getWhereFilterArr?.(row.rowMeta?.path)
+      // Inserts carry no `property`; -1 would point onGroupRowChange at the parent level.
+      const index = Math.max(
+        groupByColumns.value.findIndex((c) => c.column.title === property),
+        0,
+      )
+
+      row.rowMeta.isGroupChanged = !validateRowFilters(
+        [...(groupByFilter ?? [])],
+        data,
+        meta.value?.columns as ColumnType[],
+        getBaseType(viewMeta.value?.view?.source_id),
+        metas.value,
+        meta.value?.base_id,
+        {
+          currentUser: user.value,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      )
+      row.rowMeta.changedGroupIndex = index
+    }
+  }
+
+  async function replayOfflineEdit(edit: OfflineEdit): Promise<OfflineEditReplayResult> {
+    const dataCaches = isGroupBy.value ? Array.from(groupDataCache.value.values()) : [getDataCache()]
+    const found = findCachedRowByPk(dataCaches, edit.pk)
+
+    if (!found || found.cachedRow.rowMeta.isRlsHidden) return 'dropped'
+
+    const row = found.cachedRow
+
+    // A reload may have replaced the row with the server copy.
+    row.row[edit.property] = edit.value
+
+    let data: Record<string, any> | undefined
+
+    try {
+      data = await updateRowProperty(row, edit.property, {}, row.rowMeta.path ?? edit.path)
+    } catch {
+      // Server rejected it: updateRowProperty already reverted the cell and showed the error.
+      return 'dropped'
+    }
+
+    // Re-queued by another network failure: wait for the next reconnect.
+    if ((offlineEditQueue?.get(edit.pk, edit.property)?.seq ?? 0) > edit.seq) return 'retry'
+
+    if (!data) return 'dropped'
+
+    // Same hints a normal cell save sets (row left the filter or its group)
+    await markRowFilterState(row, edit.property, data, found.dataCache)
+
+    return 'saved'
+  }
+
+  async function replayOfflineEdits() {
+    if (!offlineEditQueue?.size() || isOnline?.value === false) return
+
+    // A run is already going: wait for it; the caller that started it reports the result
+    if (offlineEditQueue.isReplaying()) {
+      await offlineEditQueue.replay(replayOfflineEdit)
+      return
+    }
+
+    const { saved, dropped, stopped } = await offlineEditQueue.replay(replayOfflineEdit)
+
+    if (dropped) message.warning(t('msg.info.offlineEditsDiscarded', { count: dropped }, dropped))
+    else if (saved && !stopped && !offlineEditQueue.size()) message.success(t('msg.success.offlineEditsSaved'))
+
+    callbacks?.syncVisibleData?.()
+  }
+
+  if (offlineEditQueue && isOnline) {
+    watch(isOnline, (online) => {
+      if (online) replayOfflineEdits()
+    })
+
+    // Queued edits belong to the table and view they were made in; say so when they're dropped
+    function discardOfflineEdits() {
+      const count = offlineEditQueue!.size()
+      offlineEditQueue!.clear()
+      if (count) message.warning(t('msg.info.offlineEditsDiscarded', { count }, count))
+    }
+
+    watch(() => `${meta.value?.id}:${viewMeta.value?.id}`, discardOfflineEdits)
+
+    // A reload or tab close would drop queued edits silently: ask first
+    useEventListener(window, 'beforeunload', (e: BeforeUnloadEvent) => {
+      if (!offlineEditQueue.size()) return
+      e.preventDefault()
+      e.returnValue = ''
+    })
+
+    onBeforeUnmount(discardOfflineEdits)
   }
 
   // Interface pages: a link change's realtime frame carries no link fields, so it can't tell
@@ -2618,6 +2792,13 @@ export function useInfiniteData(args: {
 
         if (found) {
           const { dataCache, rowIndex } = found
+          // A later delete above the removed record shifts its neighbours up too
+          if (removedExpandedRow?.cachedRows === dataCache.cachedRows && rowIndex < removedExpandedRow.rowIndex) {
+            removedExpandedRow.rowIndex--
+          }
+          if (`${routeQuery.value.rowId}` === `${id}`) {
+            removedExpandedRow = { rowId: `${id}`, rowIndex, cachedRows: dataCache.cachedRows }
+          }
           dataCache.cachedRows.value.delete(rowIndex)
 
           const rows = Array.from(dataCache.cachedRows.value.entries())
@@ -2888,6 +3069,7 @@ export function useInfiniteData(args: {
   return {
     getDataCache,
     refreshLoadedRows,
+    replayOfflineEdits,
     insertRow,
     updateRowProperty,
     addEmptyRow,

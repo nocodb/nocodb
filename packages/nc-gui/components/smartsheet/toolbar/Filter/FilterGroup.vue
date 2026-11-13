@@ -434,6 +434,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
       :list="vModel"
+      :item-key="(f) => vModel.indexOf(f)"
       v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
       group="nc-filter-group-rows"
       ghost-class="bg-nc-bg-gray-extralight"

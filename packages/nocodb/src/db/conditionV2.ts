@@ -466,14 +466,28 @@ const parseConditionV2 = async (
       (filter.comparison_op === 'eq' || filter.comparison_op === 'neq') &&
       typeof filter.value === 'string' &&
       filter.value.trim() !== '' &&
-      ['pg', 'mysql', 'mysql2', 'sqlite3'].includes(knex.clientType())
+      ['pg', 'mysql', 'mysql2', 'sqlite3', 'oracledb'].includes(
+        knex.clientType(),
+      )
     ) {
       const field = alias
         ? `${alias}.${column.column_name}`
         : column.column_name;
-      // `::text` lets a native pg enum (SingleSelect) take LOWER.
-      const lowered =
-        knex.clientType() === 'pg' ? 'LOWER(??::text)' : 'LOWER(??)';
+      // `::text` lets a native pg enum (SingleSelect) take LOWER; an Oracle
+      // LongText is a CLOB, which `=` cannot compare, so it is compared as
+      // CLOBs (a VARCHAR2 cut overflows on multibyte text and matches prefixes).
+      const isOracleClob =
+        knex.clientType() === 'oracledb' && column.uidt === UITypes.LongText;
+      const eqSql = isOracleClob
+        ? 'DBMS_LOB.COMPARE(LOWER(??), LOWER(TO_CLOB(?))) = 0'
+        : knex.clientType() === 'pg'
+        ? 'LOWER(??::text) = LOWER(?)'
+        : 'LOWER(??) = LOWER(?)';
+      const neqSql = isOracleClob
+        ? 'DBMS_LOB.COMPARE(LOWER(??), LOWER(TO_CLOB(?))) <> 0'
+        : knex.clientType() === 'pg'
+        ? 'LOWER(??::text) <> LOWER(?)'
+        : 'LOWER(??) <> LOWER(?)';
       const value = filter.value;
       const isEq = filter.comparison_op === 'eq';
       return {
@@ -481,11 +495,9 @@ const parseConditionV2 = async (
         clause: (qb: Knex.QueryBuilder) => {
           qb.where((nestedQb) => {
             if (isEq) {
-              nestedQb.whereRaw(`${lowered} = LOWER(?)`, [field, value]);
+              nestedQb.whereRaw(eqSql, [field, value]);
             } else {
-              nestedQb
-                .whereRaw(`${lowered} <> LOWER(?)`, [field, value])
-                .orWhereNull(field);
+              nestedQb.whereRaw(neqSql, [field, value]).orWhereNull(field);
             }
           });
         },

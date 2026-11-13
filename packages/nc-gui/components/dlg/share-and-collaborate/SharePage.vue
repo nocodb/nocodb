@@ -469,6 +469,8 @@ const toggleViewShare = async () => {
 const toggleShare = async () => {
   if (isUpdating.value.public) return
 
+  // NcSwitch has several roots, so a v-e on it never fires
+  $e('c:share:view:enable:toggle')
   isUpdating.value.public = true
   try {
     return await toggleViewShare()
@@ -571,9 +573,15 @@ const copyCustomUrl = async (custUrl = '') => {
       v-if="isFormRequireSigninEnabled"
       type="info"
       show-icon
+      class="!p-3 !gap-3"
       :message="$t('msg.info.formRequiresSignin')"
+      message-class="!text-sm !font-semibold !text-nc-content-gray-emphasis"
       data-testid="nc-share-form-require-signin-banner"
-    />
+    >
+      <template #icon>
+        <GeneralIcon icon="ncInfoSolid" class="w-5 h-5" />
+      </template>
+    </NcAlert>
     <div class="flex items-start gap-3">
       <slot name="icon" />
       <div class="flex-1 min-w-0 flex flex-col">
@@ -582,12 +590,12 @@ const copyCustomUrl = async (custUrl = '') => {
         </div>
         <div v-if="heading?.subtitle" class="text-bodySm text-nc-content-gray-subtle2">{{ heading.subtitle }}</div>
       </div>
-      <a-switch
+      <NcSwitch
         v-if="!restrictedSharing"
-        v-e="['c:share:view:enable:toggle']"
         :checked="isPublicShared"
         :disabled="isLocked"
         :loading="isUpdating.public"
+        size="medium"
         class="share-view-toggle !mt-0.25"
         data-testid="share-view-toggle"
         @click="toggleShare"
@@ -709,7 +717,16 @@ const copyCustomUrl = async (custUrl = '') => {
         <div
           v-if="
             activeView &&
-            [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
+            [
+              ViewTypes.GRID,
+              ViewTypes.KANBAN,
+              ViewTypes.GALLERY,
+              ViewTypes.MAP,
+              ViewTypes.CALENDAR,
+              ViewTypes.LIST,
+              ViewTypes.TIMELINE,
+              ViewTypes.GANTT,
+            ].includes(activeView.type)
           "
           class="nc-share-option gap-y-3"
         >

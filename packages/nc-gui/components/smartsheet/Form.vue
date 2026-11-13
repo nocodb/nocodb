@@ -20,6 +20,7 @@ import {
   UITypes,
   ViewTypes,
   getSystemColumns,
+  isBtLikeV2Junction,
   isLinksOrLTAR,
   isVirtualCol,
 } from 'nocodb-sdk'
@@ -352,11 +353,10 @@ const getPrefillValue = (c: ColumnType, value: any) => {
           return extractPkFromRow(row, getMetaByKey(relatedBaseId, fk_related_model_id)?.columns || [])
         })
         .filter((rowId) => !!rowId)
-        .join(',')
 
-      preFillValue = rowIds || undefined
-      // if bt/oo then extract object from array
-      if (c.colOptions?.type === RelationTypes.BELONGS_TO || c.colOptions?.type === RelationTypes.ONE_TO_ONE) {
+      preFillValue = rowIds.join(',') || undefined
+      // Single-record links take one id (not the first character of the joined list).
+      if (isBt(c) || isOo(c) || isBtLikeV2Junction(c)) {
         preFillValue = rowIds[0]
       }
 
@@ -1517,7 +1517,13 @@ useFormCommands({
                   <div v-show="!isSidebarVisible" class="absolute top-4 right-4 rtl:(left-4 right-auto) z-499">
                     <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
                       <template #title> {{ $t('activity.toggleSidebar') }}</template>
-                      <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = true">
+                      <NcButton
+                        :aria-label="$t('activity.toggleSidebar')"
+                        icon-only
+                        size="small"
+                        type="secondary"
+                        @click.stop="isSidebarVisible = true"
+                      >
                         <template #icon>
                           <GeneralIcon icon="sidebar" class="w-4 h-4" />
                         </template>
@@ -1525,7 +1531,7 @@ useFormCommands({
                     </NcTooltip>
                   </div>
                 </Transition>
-                <div class="nc-form-preview min-w-[616px] overflow-x-auto nc-scrollbar-thin" @click="handleOnClick">
+                <div class="nc-form-preview min-w-0 md:min-w-[616px] overflow-x-auto nc-scrollbar-thin" @click="handleOnClick">
                   <div v-if="!isAllowedToAddRecord" class="mb-6">
                     <NcAlert
                       type="warning"
@@ -1916,7 +1922,7 @@ useFormCommands({
                             :model-value="[]"
                             item-key="id"
                             group="form-inputs"
-                            class="nc-form-new-row-zone min-h-2 rounded-md border border-dashed border-nc-border-gray-medium"
+                            class="nc-form-new-row-zone relative min-h-8 rounded-md border border-dashed border-nc-border-gray-medium"
                             :move="onFieldMoveToNewRowCallback"
                             @change="onFieldMoveToNewRow($event)"
                           >
@@ -1925,7 +1931,7 @@ useFormCommands({
                             </template>
                             <template #footer>
                               <span
-                                class="pointer-events-none text-nc-content-gray-muted absolute -bottom-4 w-full text-center text-xs"
+                                class="nc-form-new-row-caption pointer-events-none text-nc-content-gray-muted absolute inset-0 flex items-center justify-center text-xs"
                               >
                                 {{ $t('title.dropHereToStartNewRow') }}
                               </span>
@@ -2188,7 +2194,13 @@ useFormCommands({
                       />
                       <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
                         <template #title> {{ $t('activity.toggleSidebar') }}</template>
-                        <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = !isSidebarVisible">
+                        <NcButton
+                          :aria-label="$t('activity.toggleSidebar')"
+                          icon-only
+                          size="small"
+                          type="secondary"
+                          @click.stop="isSidebarVisible = !isSidebarVisible"
+                        >
                           <template #icon>
                             <GeneralIcon icon="sidebar" class="w-4 h-4" />
                           </template>
@@ -2281,7 +2293,13 @@ useFormCommands({
                           </a-dropdown>
                           <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
                             <template #title> {{ $t('activity.toggleSidebar') }}</template>
-                            <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = !isSidebarVisible">
+                            <NcButton
+                              :aria-label="$t('activity.toggleSidebar')"
+                              icon-only
+                              size="small"
+                              type="secondary"
+                              @click.stop="isSidebarVisible = !isSidebarVisible"
+                            >
                               <template #icon>
                                 <GeneralIcon icon="sidebar" class="w-4 h-4" />
                               </template>
@@ -2758,6 +2776,49 @@ useFormCommands({
                               />
                             </div>
                           </div>
+
+                          <!-- Email the signed-in submitter a copy of their response -->
+                          <div
+                            v-if="isEeUI && (easterEgg || !!parseProp(formViewData.meta)?.require_signin)"
+                            class="flex items-start justify-between gap-3"
+                          >
+                            <div class="flex flex-col">
+                              <span>{{ $t('msg.info.sendResponseCopy') }}</span>
+                              <span class="text-xs text-nc-content-gray-subtle2">
+                                {{ $t('msg.info.sendResponseCopySubtitle') }}
+                              </span>
+                            </div>
+                            <div class="flex items-center gap-2 h-6">
+                              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORM_REQUIRE_SIGNIN" />
+                              <NcTooltip placement="topRight" :disabled="!!parseProp(formViewData.meta)?.require_signin">
+                                <template #title>{{ $t('msg.info.sendResponseCopyNeedsSignin') }}</template>
+                                <a-switch
+                                  v-e="['c:form-view:response-copy:toggle']"
+                                  :checked="
+                                    !!parseProp(formViewData.meta)?.require_signin &&
+                                    !!parseProp(formViewData.meta)?.send_response_copy
+                                  "
+                                  size="small"
+                                  class="nc-form-checkbox-send-response-copy"
+                                  data-testid="nc-form-checkbox-send-response-copy"
+                                  :disabled="
+                                    isLocked ||
+                                    !isEditable ||
+                                    !parseProp(formViewData.meta)?.require_signin ||
+                                    (!parseProp(formViewData.meta)?.send_response_copy && blockFormRequireSignin)
+                                  "
+                                  @change="(value: boolean) => {
+                                    if (value && blockFormRequireSignin) {
+                                      showUpgradeToUseFormRequireSignin()
+                                      return
+                                    }
+                                    (formViewData!.meta as Record<string,any>).send_response_copy = value
+                                    updateView()
+                                  }"
+                                />
+                              </NcTooltip>
+                            </div>
+                          </div>
                         </div>
 
                         <!-- Show this message -->
@@ -2859,6 +2920,11 @@ useFormCommands({
 
 :deep(.nc-form-theme-color-picker .color-selector) {
   @apply !text-nc-content-inverted-primary;
+}
+
+// The dragged field takes the caption's place
+.nc-form-new-row-zone:has(.nc-form-field-ghost) .nc-form-new-row-caption {
+  display: none;
 }
 
 .nc-form-field-ghost {

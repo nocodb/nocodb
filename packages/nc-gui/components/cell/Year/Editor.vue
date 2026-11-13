@@ -17,6 +17,8 @@ const { showNull, isMobileMode } = useGlobal()
 
 const column = inject(ColumnInj, null)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const rawReadOnly = inject(RawReadonlyInj, ref(false))
@@ -72,6 +74,12 @@ const localState = computed({
 
 const savingValue = ref()
 
+// Strict, so extra digits ('19982042') are rejected rather than read as a different year
+function parseYear(value: string) {
+  const year = dayjs(value.trim(), 'YYYY', true)
+  return year.isValid() ? year : undefined
+}
+
 function saveChanges(val?: dayjs.Dayjs) {
   if (!val) {
     if (savingValue.value === val && !ncIsUndefined(val)) {
@@ -87,7 +95,8 @@ function saveChanges(val?: dayjs.Dayjs) {
   if (val?.isValid()) {
     const formattedValue = val.format('YYYY')
 
-    if (savingValue.value === formattedValue) {
+    // Blur also saves, so skip a year that is already stored (stored as a number)
+    if (savingValue.value === formattedValue || `${modelValue ?? ''}` === formattedValue) {
       return
     }
 
@@ -109,9 +118,9 @@ const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) =>
     tempDate.value = undefined
     return
   }
-  const value = dayjs(targetValue, 'YYYY')
+  const value = dayjs.isDayjs(targetValue) ? targetValue : parseYear(targetValue)
 
-  if (value.isValid()) {
+  if (value?.isValid()) {
     tempDate.value = value
 
     if (save) {
@@ -129,10 +138,15 @@ onClickOutside(datePickerRef, (e) => {
 })
 
 const onBlur = (e) => {
-  const value = (e?.target as HTMLInputElement)?.value
+  const input = e?.target as HTMLInputElement | undefined
+  const value = input?.value
+  const year = value ? parseYear(value) : undefined
 
-  if (value && dayjs(value, 'YYYY').isValid()) {
-    handleUpdateValue(e, true, dayjs(dayjs(value).format('YYYY')))
+  if (year) {
+    handleUpdateValue(e, true, year)
+  } else if (value && input) {
+    // Not a 4-digit year: show the stored value again instead of keeping the typo
+    input.value = localState.value?.format('YYYY') ?? ''
   }
 
   if (
@@ -314,6 +328,7 @@ onMounted(() => {
       <input
         v-if="!rawReadOnly"
         ref="datePickerRef"
+        :aria-label="cellAriaLabel"
         type="text"
         :value="localState?.format('YYYY') ?? ''"
         :placeholder="placeholder"

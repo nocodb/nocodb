@@ -6,13 +6,30 @@ const emits = defineEmits<{
   'upload': [fileList: File[]]
 }>()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, appInfo } = useGlobal()
 
 const dropZoneRef = ref<HTMLDivElement>()
 
 const tempFiles = ref<File[]>([])
 
-const { isLoading } = useAttachmentCell()!
+const { isLoading, attachmentLimits } = useAttachmentCell()!
+
+const { t } = useI18n()
+
+// Same rule as the upload check in useAttachmentCell: EE only, limit compared in bytes
+function isOverSizeLimit(file: File) {
+  const max = attachmentLimits.value.maxAttachmentSize
+  return !!appInfo.value.ee && !!max && file.size > max
+}
+
+const uploadableFiles = computed(() => tempFiles.value.filter((file) => !isOverSizeLimit(file)))
+
+const totalSize = computed(() =>
+  formatBytes(
+    tempFiles.value.reduce((acc, file) => acc + file.size, 0),
+    0,
+  ),
+)
 
 const { files, open: _open } = useFileDialog({
   reset: true,
@@ -90,13 +107,7 @@ onBeforeUnmount(() => {
       </NcButton>
 
       <span class="text-xs">
-        {{ tempFiles.length }} files, total size:
-        {{
-          formatBytes(
-            tempFiles.reduce((acc, file) => acc + file.size, 0),
-            0,
-          )
-        }}
+        {{ t('labels.filesTotalSize', { count: tempFiles.length, size: totalSize }, tempFiles.length) }}
       </span>
 
       <NcButton type="text" size="small" @click="open">
@@ -166,7 +177,10 @@ onBeforeUnmount(() => {
                 </NcTooltip>
               </div>
             </div>
-            <div class="flex-none text-[10px] font-semibold text-nc-content-gray-muted">
+            <div v-if="isOverSizeLimit(file)" class="flex-none text-[10px] font-semibold text-nc-content-red-dark">
+              {{ $t('msg.error.fileExceedsSizeLimit', { size: getReadableFileSize(attachmentLimits.maxAttachmentSize) }) }}
+            </div>
+            <div v-else class="flex-none text-[10px] font-semibold text-nc-content-gray-muted">
               {{ formatBytes(file.size, 0) }}
             </div>
           </div>
@@ -178,11 +192,17 @@ onBeforeUnmount(() => {
         {{ $t('labels.cancel') }}
       </NcButton>
 
-      <NcButton :loading="isLoading" data-testid="nc-upload-file" size="small" @click="emits('upload', tempFiles)">
+      <NcButton
+        :loading="isLoading"
+        :disabled="!uploadableFiles.length"
+        data-testid="nc-upload-file"
+        size="small"
+        @click="emits('upload', uploadableFiles)"
+      >
         <template v-if="isLoading">
           {{ $t('labels.uploading') }}
         </template>
-        <template v-else> {{ $t('general.upload') }} {{ tempFiles.length }} {{ $t('objects.files') }} </template>
+        <template v-else> {{ t('labels.uploadNFiles', { count: uploadableFiles.length }, uploadableFiles.length) }} </template>
       </NcButton>
     </div>
   </div>

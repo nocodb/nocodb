@@ -15,6 +15,11 @@ const emits = defineEmits(['update:visible'])
 
 const visible = useVModel(props, 'visible', emits)
 
+// The meta refresh drops the deleted columns from the header selection, which
+// unmounts the menu hosting this modal; left open, the modal stays on screen.
+// So the delete closes the modal first and the rest runs once it has closed.
+const pendingResult = ref<{ deletedIds: Set<string>; failedIds: Set<string> } | null>(null)
+
 const { $api, $e } = useNuxtApp()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
@@ -61,6 +66,16 @@ const onDelete = async () => {
   const failedIds = new Set((result?.failedOps ?? []).map((f) => f.column.id))
   const deletedIds = new Set(deletableColumns.value.map((c) => c.id!).filter((id) => !failedIds.has(id)))
 
+  pendingResult.value = { deletedIds, failedIds }
+  visible.value = false
+}
+
+async function onAfterClose() {
+  const pending = pendingResult.value
+  if (!pending) return
+  pendingResult.value = null
+  const { deletedIds, failedIds } = pending
+
   // Refresh meta once after all deletions.
   await getMeta({ baseId: meta?.value?.base_id as string, tableIdOrTitle: meta?.value?.id as string, force: true })
 
@@ -97,7 +112,6 @@ const onDelete = async () => {
     message.error(t('msg.error.someFieldsCouldNotBeDeleted', { fields: failedTitles.join(', ') }))
   }
 
-  visible.value = false
   props.onDeleted?.()
 }
 </script>
@@ -109,6 +123,7 @@ const onDelete = async () => {
     :on-delete="onDelete"
     :show-default-delete-msg="false"
     :disable-delete-btn="!deletableColumns.length"
+    :after-close="onAfterClose"
   >
     <template #entity-preview>
       <div class="mb-3 text-nc-content-gray">

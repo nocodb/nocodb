@@ -155,11 +155,15 @@ const {
   state: rowState,
   isNew,
   isSaving,
+  isRecordDeleted,
   loadRow: _loadRow,
   primaryKey,
   row: _row,
   comments,
   save: _save,
+  confirmOverwriteConflicts,
+  conflictingColumns,
+  takeRemoteChanges,
   formatSaveError,
   loadComments,
   loadAudits,
@@ -309,6 +313,7 @@ const isSaveRecordBtnDisabled = computed(() => {
   if (props.templateMode) return isDuplicateTemplateName.value
   // In blueprint mode, always allow saving
   if (props.blueprintMode) return false
+  if (isRecordDeleted.value) return true
   return changedColumns.value.size === 0 && !isUnsavedFormExist.value && !isLTARChanged.value
 })
 
@@ -383,6 +388,11 @@ const save = async () => {
       return
     }
 
+    if (!isNew.value && !(await confirmOverwriteConflicts())) {
+      isSaving.value = false
+      return false
+    }
+
     let kanbanClbk
     if (activeView.value?.type === ViewTypes.KANBAN) {
       kanbanClbk = (row: any, isNewRow: boolean) => {
@@ -429,9 +439,12 @@ const save = async () => {
     emits('createdRecord', _row.value.row)
   } catch (e: any) {
     message.error(await formatSaveError(e))
+    isSaving.value = false
+    return false
   }
 
   isSaving.value = false
+  return true
 }
 
 const isPreventChangeModalOpen = ref(false)
@@ -454,9 +467,10 @@ const clearLtarBuffers = () => {
 const discardPreventModal = () => {
   // when user click on next or previous button
   if (isPreventChangeModalOpen.value) {
-    loadingEmit('next')
+    loadingEmit(interruptedDirectionToGo.value ?? 'next')
     if (_row.value?.rowMeta?.new) emits('cancel')
     isPreventChangeModalOpen.value = false
+    interruptedDirectionToGo.value = undefined
   }
   // when user click on close button
   if (isCloseModalOpen.value) {
@@ -489,8 +503,13 @@ const onPrev = async () => {
 
 const saveChanges = async () => {
   if (isPreventChangeModalOpen.value) {
+    const wasUnsavedFormExist = isUnsavedFormExist.value
     isUnsavedFormExist.value = false
-    await save()
+    if ((await save()) === false) {
+      isUnsavedFormExist.value = wasUnsavedFormExist
+      isPreventChangeModalOpen.value = false
+      return
+    }
     if (interruptedDirectionToGo.value) {
       loadingEmit(interruptedDirectionToGo.value)
     } else {
@@ -501,7 +520,7 @@ const saveChanges = async () => {
   }
   if (isCloseModalOpen.value) {
     isCloseModalOpen.value = false
-    await save()
+    if ((await save()) === false) return
     isExpanded.value = false
   }
 }
@@ -682,7 +701,7 @@ useActiveKeydownListener(
           okText: t('general.save'),
           cancelText: t('labels.discard'),
           onOk: async () => {
-            await save()
+            if ((await save()) === false) return
             reloadHook?.trigger(null)
             addNewRow()
           },
@@ -818,12 +837,11 @@ watch([expandedFormScrollWrapper, isLoading], () => {
 })
 
 const modalProps = computed(() => {
-  if (isMobileMode.value) {
-    return {
-      placement: 'bottom',
-    }
-  }
-  return {}
+  // The modal has no title, so name the dialog after the record (or its table).
+  const recordLabel =
+    ncIsString(displayValue.value) || ncIsNumber(displayValue.value) ? String(displayValue.value) : meta.value?.title
+  const wrapProps = { 'aria-label': recordLabel || t('labels.expandRecord') }
+  return isMobileMode.value ? { placement: 'bottom', wrapProps } : { wrapProps }
 })
 
 watch(
@@ -950,6 +968,7 @@ export default {
                 :disabled="isFirstRow || isLoading"
                 class="nc-prev-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
                 data-testid="nc-expanded-form-prev"
+                :aria-label="$t('labels.prevRow')"
                 type="text"
                 size="xsmall"
                 @click="onPrev"
@@ -963,6 +982,7 @@ export default {
                 :disabled="isLastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
                 data-testid="nc-expanded-form-next"
+                :aria-label="$t('labels.nextRow')"
                 type="text"
                 size="xsmall"
                 @click="onNext"
@@ -1060,6 +1080,22 @@ export default {
               class="text-md text-nc-content-inverted-secondary"
             />
           </NcButton>
+          <NcTooltip v-if="conflictingColumns.length" placement="bottom">
+            <template #title>{{
+              $t(hasLtarChanges ? 'tooltip.fieldChangedByOthersDropLinks' : 'tooltip.fieldChangedByOthers', {
+                fields: conflictingColumns.join(', '),
+              })
+            }}</template>
+            <NcButton
+              class="!w-7 !h-7"
+              type="secondary"
+              size="xsmall"
+              data-testid="nc-expanded-form-remote-change"
+              @click="takeRemoteChanges"
+            >
+              <GeneralIcon icon="reload" class="text-nc-content-orange-medium" />
+            </NcButton>
+          </NcTooltip>
           <PermissionsTooltip
             v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
             :entity="PermissionEntity.TABLE"
@@ -1099,6 +1135,7 @@ export default {
             v-if="!isMobileMode"
             class="nc-expand-form-close-btn !w-7 !h-7"
             data-testid="nc-expanded-form-close"
+            :aria-label="$t('general.close')"
             type="text"
             size="xsmall"
             @click="onClose()"
@@ -1106,6 +1143,14 @@ export default {
             <GeneralIcon class="text-md text-nc-content-inverted-secondary h-4 w-4" icon="close" />
           </NcButton>
         </div>
+      </div>
+      <div
+        v-if="isRecordDeleted && !isNew"
+        class="nc-expanded-form-deleted-notice flex items-center gap-2 px-4 py-2 border-b-1 border-nc-border-gray-medium bg-nc-bg-red-light text-nc-content-red-dark text-sm flex-shrink-0"
+        data-testid="nc-expanded-form-deleted-notice"
+      >
+        <GeneralIcon icon="ncAlertCircle" class="flex-none h-4 w-4" />
+        {{ $t('labels.recordDeletedCannotSave') }}
       </div>
       <div ref="wrapper" class="flex-grow w-full min-h-0">
         <template v-if="activeViewMode === ExpandedFormMode.FIELD">

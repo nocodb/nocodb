@@ -54,14 +54,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'enterprise_vaults',
-    title: 'Enterprise Vaults',
-    description: "Source integration credentials from your organization's own secrets manager.",
-    enabled: ncIsPlaywright(),
-    version: 1,
-    isEE: true,
-  },
-  {
     id: 'integrations',
     get title() {
       return getI18n().global.t('general.integrations')
@@ -317,15 +309,6 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEE: true,
-  },
-  {
-    // id is persisted in localStorage and drives FEATURE_FLAG — renaming it
-    // would silently reset the toggle for anyone who had it on.
-    id: 'rollup_formula',
-    title: 'Rollup formulas',
-    description: 'Aggregate linked records with a formula over their values, like ROUND(SUM(values) * 1.1, 2).',
-    enabled: false,
-    version: 1,
   },
 ] as const
 

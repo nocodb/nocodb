@@ -41,7 +41,7 @@ const onCancel = () => {
         {{ $t('activity.doYouWantToSaveTheChanges') }}
       </div>
       <div class="flex flex-row justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" size="small" @click="emits('discard')">
+        <NcButton type="secondary" size="small" data-testid="nc-discard-changes-modal-discard" @click="emits('discard')">
           {{ $t('labels.discard') }}
         </NcButton>
         <NcButton type="primary" size="small" :loading="loading" @click="emits('save-and-continue')">

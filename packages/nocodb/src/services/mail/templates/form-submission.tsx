@@ -32,6 +32,8 @@ interface FormSubmissionTemplateProps {
     uidt: UITypes | string;
   }>;
   branding?: WhiteLabelConfig | null;
+  /** The submitter's own copy: no table or base names, which they may not have access to */
+  submitterCopy?: boolean;
 }
 
 const FormSubmission = ({
@@ -40,16 +42,23 @@ const FormSubmission = ({
   tableTitle,
   submissionData,
   branding,
+  submitterCopy,
 }: FormSubmissionTemplateProps) => (
   <Html>
     <RootWrapper branding={branding}>
       <Head />
-      <Preview>You have a new response!</Preview>
+      <Preview>
+        {submitterCopy
+          ? 'Here is a copy of your response'
+          : 'You have a new response!'}
+      </Preview>
       <Body className="bg-white">
         <ContentWrapper branding={branding} disableContainerPadding>
           <Section className="p-6 mx-auto">
             <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-              You have a new response!
+              {submitterCopy
+                ? 'Thanks for your response!'
+                : 'You have a new response!'}
             </Heading>
 
             <Section
@@ -89,19 +98,27 @@ const FormSubmission = ({
               </table>
             </Section>
 
-            <Text className="text-center font-weight-thin text-gray-600 !my-0">
-              Someone has responded to your form, a record has been added to
-              <span className="font-bold text-gray-800"> {tableTitle} </span>
-              in
-              <span className="font-bold text-gray-800"> {baseTitle}</span>.
-            </Text>
+            {submitterCopy ? (
+              <Text className="text-center font-weight-thin text-gray-600 !my-0">
+                Your response to this form has been submitted.
+              </Text>
+            ) : (
+              <Text className="text-center font-weight-thin text-gray-600 !my-0">
+                Someone has responded to your form, a record has been added to
+                <span className="font-bold text-gray-800"> {tableTitle} </span>
+                in
+                <span className="font-bold text-gray-800"> {baseTitle}</span>.
+              </Text>
+            )}
           </Section>
 
           <Hr />
 
           <Section className="p-6 mx-auto">
             <Text className="text-lg font-bold text-center !my-0">
-              Here is a copy of the response
+              {submitterCopy
+                ? 'Here is a copy of your response'
+                : 'Here is a copy of the response'}
             </Text>
             <Section>
               {submissionData.map((s) => (

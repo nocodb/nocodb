@@ -24,6 +24,12 @@ export function escapePlaceholders(sql: string): string {
   return sql.replace(/\?/g, '\\?');
 }
 
+// JSON_EXTRACT documents `.key`; `$.key` and `$$.key` resolve the same way.
+// Every leading `$` is dropped, as the field-sourced path does in SQL.
+export function jsonPathFromLiteral(path: string): string {
+  return `$${path.replace(/^\$+/, '')}`;
+}
+
 // Reads the (optional) format argument of DATETIME_FORMAT. The format must be a
 // constant string literal so it can be translated to a SQL pattern at build
 // time; a missing argument falls back to the default format.
@@ -383,19 +389,26 @@ export async function treatArgAsConditionalExp(
       bindings = { condArg };
       break;
     case FormulaDataTypes.COND_EXP: {
-      // A comparison expression (`x > 0`, `a = b`, …). On MSSQL the binary
-      // builder materializes a top-level comparison into a `1/0` int (T-SQL
-      // has no boolean type), so it can't be used bare as a `CASE WHEN <int>`
-      // predicate — "An expression of non-boolean type ... near 'THEN'".
-      // Coerce it back to a boolean predicate with `<> 0`. Logical combos
-      // (AND/OR) stay native boolean predicates and pg/sqlite keep the bare
-      // comparison, both already valid in a CASE WHEN — so leave those as-is.
+      // A comparison (`x > 0`, `a = b`, …) or AND / OR. On MSSQL both are
+      // materialized into a `1/0` int (T-SQL has no boolean type), so they
+      // can't be used bare as a `CASE WHEN <int>` predicate — "An expression
+      // of non-boolean type ... near 'THEN'". Coerce back with `<> 0`.
       const isComparison =
         argument?.type === 'BinaryExpression' &&
         ['==', '=', '<', '>', '<=', '>=', '!='].includes(
           (argument as { operator?: string }).operator,
         );
-      if (args.knex.clientType() === 'mssql' && isComparison) {
+      const isLogicalCall =
+        argument?.type === 'CallExpression' &&
+        ['AND', 'OR'].includes(
+          (
+            argument as { callee?: { name?: string } }
+          ).callee?.name?.toUpperCase(),
+        );
+      if (
+        args.knex.clientType() === 'mssql' &&
+        (isComparison || isLogicalCall)
+      ) {
         condStr = `(:condArg) <> 0`;
         bindings = { condArg };
       }

@@ -19,6 +19,8 @@ const { showNull, isMobileMode } = useGlobal()
 
 const columnMeta = inject(ColumnInj, null)!
 
+const cellAriaLabel = useCellAriaLabel()
+
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const rawReadOnly = inject(RawReadonlyInj, ref(false))
@@ -68,6 +70,9 @@ const isClearedInputMode = ref<boolean>(false)
 const open = ref<boolean>(false)
 
 const tempDate = ref<dayjs.Dayjs | undefined>()
+
+// Typed text that doesn't parse (e.g. 2023-02-30); Enter keeps the stored value.
+const isTypedInvalid = ref(false)
 
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
@@ -144,11 +149,17 @@ watchEffect(() => {
 
 const handleUpdateValue = (e: Event, save = false, valueToSave?: dayjs.Dayjs) => {
   const targetValue = valueToSave || (e.target as HTMLInputElement).value
+  isTypedInvalid.value = false
+
   if (!targetValue) {
     tempDate.value = undefined
     return
   }
   const value = typeof targetValue === 'string' ? parseTypedDate(targetValue) : dayjs(targetValue, dateFormat.value)
+
+  isTypedInvalid.value = !value?.isValid()
+  // Drop the date an earlier keystroke parsed to, so unmount doesn't save it.
+  if (isTypedInvalid.value) tempDate.value = localState.value
 
   if (value?.isValid()) {
     tempDate.value = value
@@ -270,7 +281,13 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
       if (isSurveyForm.value) {
         e.stopPropagation()
       }
-      localState.value = tempDate.value ?? dayjs(new Date())
+      if (isTypedInvalid.value) {
+        isTypedInvalid.value = false
+        isClearedInputMode.value = false
+        ;(e.target as HTMLInputElement).value = localState.value?.format(dateFormat.value) ?? ''
+      } else {
+        localState.value = tempDate.value ?? dayjs(new Date())
+      }
       open.value = !_open
 
       if (!open.value) {
@@ -300,6 +317,10 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
       return
 
     case 'Tab':
+      // Closing re-renders the input with the stored value before blur runs, so commit typed text here
+      if ((e.target as HTMLInputElement).value !== (localState.value?.format(dateFormat.value) ?? '')) {
+        handleUpdateValue(e, true)
+      }
       open.value = false
       if (isGrid.value) {
         editable.value = false
@@ -392,6 +413,7 @@ onMounted(() => {
       <input
         v-if="!rawReadOnly"
         ref="datePickerRef"
+        :aria-label="cellAriaLabel"
         type="text"
         :value="localState?.format(dateFormat) ?? ''"
         :placeholder="placeholder"

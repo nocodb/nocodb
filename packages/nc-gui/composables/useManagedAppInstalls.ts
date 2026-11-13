@@ -7,7 +7,7 @@ export const useManagedAppInstalls = createSharedComposable(() => {
 
   const isAppConsumerRoute = (_route: { name?: unknown }) => false
 
-  const navigateToApp = (_base: NcProject, _opts?: { replace?: boolean }) => {}
+  const navigateToApp = (_base: NcProject, _opts?: { replace?: boolean; newTab?: boolean }) => {}
 
   return {
     isAppInstall,

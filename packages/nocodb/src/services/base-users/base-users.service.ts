@@ -19,6 +19,10 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
+import {
+  isSignupClaimTimeout,
+  withSignupClaimsHeld,
+} from '~/helpers/signupClaim';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { aliasesWithoutAccount } from '~/helpers/emailAliasHelpers';
@@ -158,12 +162,124 @@ export class BaseUsersService {
       // precedes this call already stored it on the row.
       const invite_token = param.invite_token || uuidv4();
       // add user to base if user already exist (canonical lookup handles alias variants)
-      const user = await User.getByCanonicalEmail(email, ncMeta);
+      let user = await User.getByCanonicalEmail(email, ncMeta);
 
       const base = await Base.get(context, param.baseId, ncMeta);
 
       if (!base) {
         return NcError.baseNotFound(param.baseId);
+      }
+
+      if (!user) {
+        // Claimed until the commit, for this address only, so a signup cannot
+        // add a second account meanwhile.
+        let claimError: unknown;
+        const outcome = await withSignupClaimsHeld([email], async () => {
+          // A signup may have created the account while this waited.
+          if (await User.getByCanonicalEmail(email, ncMeta)) return 'raced';
+          // One unit, so a failed invite leaves no account or membership behind.
+          const transaction = await ncMeta.startTransaction();
+          try {
+            // create new user with invite token
+            const created = await User.insert(
+              {
+                invite_token,
+                invite_token_expires: new Date(
+                  Date.now() + 24 * 60 * 60 * 1000,
+                ),
+                email,
+                roles: OrgUserRoles.VIEWER,
+                token_version: randomTokenString(),
+              },
+              transaction,
+            );
+
+            // Ensure user exists in default workspace with NO_ACCESS —
+            // role management happens at workspace or base level
+            await ensureUserInDefaultWorkspace(
+              created.id,
+              WorkspaceUserRoles.NO_ACCESS,
+              transaction,
+            );
+
+            // add user to base
+            await BaseUser.insert(
+              context,
+              {
+                base_id: param.baseId,
+                fk_user_id: created.id,
+                roles: param.baseUser.roles,
+                invited_by: param.req?.user?.id,
+              },
+              transaction,
+            );
+
+            await transaction.commit();
+            return created;
+          } catch (e) {
+            await transaction.rollback();
+            this.logger.error(e.message, e.stack);
+            return 'failed';
+          }
+        }).catch((e) => {
+          claimError = e;
+          // Another request held the address too long: fail this one only.
+          if (isSignupClaimTimeout(e)) return 'unclaimed' as const;
+          this.logger.error(e.message, e.stack);
+          return 'failed' as const;
+        });
+
+        if (outcome === 'raced') {
+          // A signup created the account meanwhile: invite it as an existing user.
+          user = await User.getByCanonicalEmail(email, ncMeta);
+        }
+        if (!user && typeof outcome === 'string') {
+          if (emails.length === 1) {
+            if (claimError) throw claimError;
+            NcError.get(context).baseUserError('Bad Request');
+          }
+          error.push({
+            email,
+            error:
+              outcome === 'unclaimed'
+                ? 'Unable to invite user right now, please retry'
+                : 'Failed to invite user',
+          });
+          continue;
+        } else if (typeof outcome !== 'string') {
+          const invited: User = outcome;
+
+          this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
+            base,
+            user: invited,
+            role: param.baseUser.roles,
+            req: param.req,
+            invitedBy: param.req?.user,
+            context,
+          });
+
+          try {
+            await this.mailService.sendMail(
+              {
+                mailEvent: MailEvent.BASE_INVITE,
+                payload: {
+                  req: param.req,
+                  user: invited,
+                  base: base,
+                  role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                  token: invite_token,
+                },
+              },
+              ncMeta,
+            );
+          } catch (e) {
+            this.logger.error(e.message, e.stack);
+            // A new row's link can be shared by hand when the mail fails.
+            if (emails.length === 1) return { invite_token, email };
+            error.push({ email, error: 'Failed to send invite email' });
+          }
+          continue;
+        }
       }
 
       if (user) {
@@ -318,83 +434,6 @@ export class BaseUsersService {
           req: param.req,
           context,
         });
-      } else {
-        let user: User;
-        // One unit, so a failed invite leaves no account or membership behind.
-        const transaction = await ncMeta.startTransaction();
-        try {
-          // create new user with invite token
-          user = await User.insert(
-            {
-              invite_token,
-              invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-              email,
-              roles: OrgUserRoles.VIEWER,
-              token_version: randomTokenString(),
-            },
-            transaction,
-          );
-
-          // Ensure user exists in default workspace with NO_ACCESS —
-          // role management happens at workspace or base level
-          await ensureUserInDefaultWorkspace(
-            user.id,
-            WorkspaceUserRoles.NO_ACCESS,
-            transaction,
-          );
-
-          // add user to base
-          await BaseUser.insert(
-            context,
-            {
-              base_id: param.baseId,
-              fk_user_id: user.id,
-              roles: param.baseUser.roles,
-              invited_by: param.req?.user?.id,
-            },
-            transaction,
-          );
-
-          await transaction.commit();
-        } catch (e) {
-          await transaction.rollback();
-          this.logger.error(e.message, e.stack);
-          if (emails.length === 1) {
-            NcError.get(context).baseUserError('Bad Request');
-          }
-          error.push({ email, error: 'Failed to invite user' });
-          continue;
-        }
-
-        this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
-          base,
-          user,
-          role: param.baseUser.roles,
-          req: param.req,
-          invitedBy: param.req?.user,
-          context,
-        });
-
-        try {
-          await this.mailService.sendMail(
-            {
-              mailEvent: MailEvent.BASE_INVITE,
-              payload: {
-                req: param.req,
-                user: user,
-                base: base,
-                role: (param.baseUser.roles || 'editor') as ProjectRoles,
-                token: invite_token,
-              },
-            },
-            ncMeta,
-          );
-        } catch (e) {
-          this.logger.error(e.message, e.stack);
-          // A new row's link can be shared by hand when the mail fails.
-          if (emails.length === 1) return { invite_token, email };
-          error.push({ email, error: 'Failed to send invite email' });
-        }
       }
     }
     if (emails.length === 1) {

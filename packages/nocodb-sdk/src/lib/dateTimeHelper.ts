@@ -6,8 +6,10 @@ import utc from 'dayjs/plugin/utc.js';
 import weekday from 'dayjs/plugin/weekday.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import { ColumnType } from './Api';
+import UITypes from './UITypes';
 import { parseProp } from './helperFunctions';
 import { ncIsNull, ncIsUndefined } from './is';
+import { getNodejsTimezone } from './timezoneUtils';
 import {
   isJalaliFormat,
   jalaliDateFormats,
@@ -123,7 +125,53 @@ export function parseDateWithFormat(value: string, format: string) {
     parsed = dayjs(value, getUnpaddedDateFormat(format), true);
   }
 
+  if (parsed.isValid() && hasDateOverflow(value, format, parsed)) {
+    return dayjs(NaN);
+  }
+
   return parsed;
+}
+
+// Non-strict dayjs rolls impossible values over (2023-02-29 -> 2023-03-01,
+// 25:61 -> 02:01). Compare each typed number against the parsed field, in
+// format-token order. Formats with other non-numeric tokens (Do, Z, ...) are
+// skipped, as their digit groups can't be matched to tokens.
+const NUMERIC_TOKEN_FIELDS: Record<string, (d: dayjs.Dayjs) => number> = {
+  YYYY: (d) => d.year(),
+  YY: (d) => d.year() % 100,
+  M: (d) => d.month() + 1,
+  D: (d) => d.date(),
+  H: (d) => d.hour(),
+  h: (d) => d.hour() % 12 || 12,
+  m: (d) => d.minute(),
+  s: (d) => d.second(),
+};
+
+export function hasDateOverflow(
+  value: string,
+  format: string,
+  parsed: dayjs.Dayjs
+) {
+  const tokens = format.replace(/\[[^\]]*]/g, '').match(/[A-Za-z]+/g) ?? [];
+  const fields: ((d: dayjs.Dayjs) => number)[] = [];
+
+  for (const token of tokens) {
+    // Meridiem, weekday and month-name tokens hold no digits.
+    if (/^(A|a|d{3,4}|M{3,4})$/.test(token)) continue;
+    const key = token === 'YYYY' || token === 'YY' ? token : token.slice(0, 1);
+    const field =
+      token.length <= 2 || token === 'YYYY'
+        ? NUMERIC_TOKEN_FIELDS[key]
+        : undefined;
+    if (!field || (token.length === 2 && token[0] !== token[1])) return false;
+    fields.push(field);
+  }
+
+  const numbers = String(value).match(/\d+/g) ?? [];
+
+  return fields.some(
+    (field, i) => i < numbers.length && field(parsed) !== +numbers[i]
+  );
 }
 
 export function parseStringDate(v: string, dateFormat: string) {
@@ -317,7 +365,9 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
 export const getDateTimeValue = (
   modelValue: string | null,
   col: ColumnType,
-  isXcdbBase?: boolean
+  isXcdbBase?: boolean,
+  /** IANA name; formats in this zone instead of the runtime's local one */
+  timezone?: string
 ) => {
   if (!modelValue || !dayjs(modelValue).isValid()) {
     return '';
@@ -326,6 +376,19 @@ export const getDateTimeValue = (
   const dateFormat = parseProp(col?.meta)?.date_format ?? dateFormats[0];
   const timeFormat = parseProp(col?.meta)?.time_format ?? timeFormats[0];
   const dateTimeFormat = `${dateFormat} ${timeFormat}`;
+
+  if (timezone) {
+    const raw = /^\d+$/.test(modelValue) ? +modelValue : modelValue;
+    // An offset-less DB value is UTC; don't read it in the server's zone
+    const parsed =
+      typeof raw === 'string' &&
+      !/\d{2}:\d{2}(:\d{2}(\.\d+)?)?\s*(Z|[+-]\d{2}(:?\d{2})?)$/i.test(
+        raw.trim()
+      )
+        ? dayjs.utc(raw)
+        : dayjs(raw);
+    return parsed.tz(getNodejsTimezone(timezone)).format(dateTimeFormat);
+  }
 
   if (!isXcdbBase) {
     // For a Jalali date_format the stored value is Gregorian and cannot be
@@ -341,6 +404,27 @@ export const getDateTimeValue = (
   }
 
   return dayjs(modelValue).utc().local().format(dateTimeFormat);
+};
+
+/** The zone the grid renders a DateTime-valued column in (EE), if any */
+export const getColumnDisplayTimezone = (
+  column: Pick<ColumnType, 'uidt' | 'meta'>
+): string | undefined => {
+  const meta = parseProp(column?.meta);
+  if (column?.uidt === UITypes.Formula) {
+    const displayMeta = parseProp(meta?.display_column_meta?.meta);
+    return meta?.display_type === UITypes.DateTime &&
+      displayMeta?.isDisplayTimezone
+      ? displayMeta.timezone
+      : undefined;
+  }
+  return [
+    UITypes.DateTime,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
+  ].includes(column?.uidt as UITypes)
+    ? meta?.timezone
+    : undefined;
 };
 
 export const getDateValue = (

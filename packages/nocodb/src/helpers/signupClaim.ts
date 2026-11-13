@@ -98,3 +98,56 @@ export async function findOrCreateUnderSignupClaim<T>(
     await NocoCache.del('root', key).catch(() => {});
   }
 }
+
+// Covers a transaction, not just one insert; still a crash net.
+const HELD_CLAIM_TTL_SECONDS = 30;
+
+const claimTimeouts = new WeakSet<object>();
+
+/** True only for `withSignupClaimsHeld`'s own "claim not taken in time" error. */
+export const isSignupClaimTimeout = (e: unknown) =>
+  typeof e === 'object' && e !== null && claimTimeouts.has(e);
+
+/**
+ * Holds the signup claim of each address until `fn` settles, waiting for one
+ * another request holds. For invites that insert the account inside a
+ * transaction: the claim has to outlive the commit, or a signup can pass its
+ * check before the row is visible. `fn` must re-check for an existing account.
+ */
+export async function withSignupClaimsHeld<T>(
+  emails: string[],
+  fn: () => Promise<T>,
+  { retries = 20, retryDelayMs = 100 } = {},
+): Promise<T> {
+  // Sorted, so two requests claiming overlapping sets cannot wait on each other.
+  const keys = [...new Set(emails.map(claimKey))].sort();
+  const held: string[] = [];
+  try {
+    for (const key of keys) {
+      for (let attempt = 0; ; attempt++) {
+        const claimed = await NocoCache.setIfNotExist(
+          'root',
+          key,
+          '1',
+          HELD_CLAIM_TTL_SECONDS,
+        );
+        if (claimed) break;
+        if (attempt >= retries) {
+          try {
+            NcError.badRequest('Unable to invite user right now, please retry');
+          } catch (e) {
+            claimTimeouts.add(e);
+            throw e;
+          }
+        }
+        await new Promise((r) => setTimeout(r, retryDelayMs));
+      }
+      held.push(key);
+    }
+    return await fn();
+  } finally {
+    for (const key of held) {
+      await NocoCache.del('root', key).catch(() => {});
+    }
+  }
+}

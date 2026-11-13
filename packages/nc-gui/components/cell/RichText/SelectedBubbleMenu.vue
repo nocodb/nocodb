@@ -456,6 +456,7 @@ const menuEntries = computed<MenuEntry[]>(() => {
           :class="{ 'is-active': entry.isActive() }"
           :disabled="entry.disabled()"
           :tabindex="tabIndex"
+          :aria-label="entry.tooltip"
           @click="entry.action"
         >
           <GeneralIcon :icon="entry.icon" />
@@ -474,6 +475,7 @@ const menuEntries = computed<MenuEntry[]>(() => {
             type="text"
             class="nc-highlight-btn"
             :class="{ 'is-active': activeHighlightColor || activeTextColor }"
+            :aria-label="$t('general.color')"
             :disabled="editor.isActive('codeBlock')"
             @click="showColorPicker = !showColorPicker"
           >
@@ -549,6 +551,7 @@ const menuEntries = computed<MenuEntry[]>(() => {
           :class="{ 'is-active': editor.isActive('link') }"
           :disabled="editor.isActive('codeBlock')"
           :tabindex="tabIndex"
+          :aria-label="$t('general.link')"
           @click="onToggleLink"
         >
           <GeneralIcon v-if="isFormField" icon="link2" />
@@ -580,6 +583,7 @@ const menuEntries = computed<MenuEntry[]>(() => {
           type="text"
           :class="{ 'is-active': editor?.isActive('suggestions') }"
           :tabindex="tabIndex"
+          :aria-label="$t('labels.mention')"
           @click="newMentionNode"
         >
           <GeneralIcon icon="atSign" />
@@ -588,7 +592,7 @@ const menuEntries = computed<MenuEntry[]>(() => {
 
       <!-- Close -->
       <div v-else-if="entry.type === 'close'" class="!sticky right-0 pr-0.5 bg-nc-bg-default">
-        <NcButton type="text" size="small" @click="emits('close')">
+        <NcButton type="text" size="small" :aria-label="$t('general.close')" @click="emits('close')">
           <GeneralIcon icon="close" />
         </NcButton>
       </div>

@@ -138,7 +138,8 @@ async function handleSave() {
       redirect_uris,
     }
 
-    await updateOAuthClient(props.clientId!, payload)
+    const updated = await updateOAuthClient(props.clientId!, payload)
+    if (!updated) return
     message.success(t('msg.success.oauthClientUpdated'))
     modalVisible.value = false
   } catch (error: any) {

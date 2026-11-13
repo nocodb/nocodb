@@ -4,7 +4,11 @@ import type {
   DBErrorExtractResult,
   IClientDbErrorExtractor,
 } from '~/helpers/db-error/utils';
-import { DBErrorKind, isTransientError } from '~/helpers/db-error/utils';
+import {
+  DBErrorKind,
+  ExtractedDbError,
+  isTransientError,
+} from '~/helpers/db-error/utils';
 import { PgDBErrorExtractor } from '~/helpers/db-error/pg.extractor';
 import { SqliteDBErrorExtractor } from '~/helpers/db-error/sqlite.extractor';
 import { MysqlDBErrorExtractor } from '~/helpers/db-error/mysql.extractor';
@@ -103,6 +107,8 @@ export class DBErrorExtractor {
     error: any,
     option?: { clientType?: ClientType; ignoreDefault?: boolean },
   ) {
+    if (error instanceof ExtractedDbError) return error.result;
+
     const clientType = option?.clientType ?? this.detectClientType(error);
 
     let extractResult: DBErrorExtractResult;

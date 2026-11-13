@@ -2,8 +2,29 @@ import {
   FORM_ROW_FULL_WIDTH_UI_TYPES,
   FORM_ROW_MAX_FIELDS,
   groupFormColumnsByRow,
+  isDateValidationToday,
+  resolveDateValidationValue,
 } from './form';
 import UITypes from './UITypes';
+
+describe('date validation {{today}} variable', () => {
+  it('detects the variable', () => {
+    expect(isDateValidationToday('{{today}}')).toBe(true);
+    expect(isDateValidationToday(' {{Today}} ')).toBe(true);
+    expect(isDateValidationToday('2024-01-01')).toBe(false);
+    expect(isDateValidationToday(null)).toBe(false);
+  });
+
+  it('resolves only the variable', () => {
+    expect(resolveDateValidationValue('{{today}}', '2026-11-04')).toBe(
+      '2026-11-04'
+    );
+    expect(resolveDateValidationValue('2024-01-01', '2026-11-04')).toBe(
+      '2024-01-01'
+    );
+    expect(resolveDateValidationValue(null, '2026-11-04')).toBe(null);
+  });
+});
 
 describe('form helpers', () => {
   describe('groupFormColumnsByRow', () => {

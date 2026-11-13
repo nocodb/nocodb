@@ -21,7 +21,9 @@ export interface ConversionPredicates {
   rounded: string;
 }
 
+// Duration: a bare number is rescaled to seconds (durationBareNumberUnit).
 const ROUNDING_TARGETS = new Set<UITypes>([
+  UITypes.Duration,
   UITypes.Number,
   UITypes.Rating,
   UITypes.Percent,
@@ -53,7 +55,7 @@ const stripTerminator = (sql: string) => sql.trim().replace(/;$/, '');
  */
 export function pgConversionPredicates(
   quotedColumn: string,
-  from: { uidt: string; dt: string },
+  from: { uidt: string; dt: string; meta?: unknown },
   to: ConversionTarget,
 ): ConversionPredicates {
   const source = formatColumn(quotedColumn, from.uidt as UITypes);
@@ -84,6 +86,9 @@ export function pgConversionPredicates(
   if ([UITypes.Decimal, UITypes.Currency].includes(to.uidt)) {
     setupSql.push(pgQueries.localeNumberFunction.default.sql);
   }
+  if (to.uidt === UITypes.JSON) {
+    setupSql.push(pgQueries.jsonConversionFunction.default.sql);
+  }
 
   const castArgs = {
     dt: to.dt,
@@ -93,6 +98,9 @@ export function pgConversionPredicates(
     durationType: to.meta?.duration ?? 0,
     meta: to.meta,
     sourceUidt: from.uidt as UITypes,
+    rawSource: quotedColumn,
+    sourceDt: from.dt,
+    sourceMeta: from.meta,
   };
   const cast = stripTerminator(
     generateCastQuery({ ...castArgs, uidt: to.uidt }),

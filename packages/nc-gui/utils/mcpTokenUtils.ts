@@ -70,5 +70,5 @@ export const MCP_SUPPORT_DOCS: SupportedDocsType[] = [
   { title: 'Getting Started with MCP Server', href: 'https://nocodb.com/docs/product-docs/mcp' },
   { title: 'Claude Setup', href: 'https://nocodb.com/docs/product-docs/mcp#claude' },
   { title: 'Cursor Setup', href: 'https://nocodb.com/docs/product-docs/mcp#cursor' },
-  { title: 'Windsurf Setup', href: 'https://nocodb.com/docs/product-docs/mcp#windsurf' },
+  { title: 'Devin Setup', href: 'https://nocodb.com/docs/product-docs/mcp#windsurf' },
 ]

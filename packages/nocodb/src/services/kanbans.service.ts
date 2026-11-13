@@ -2,6 +2,15 @@ import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
+  getKanbanStackType,
+  isKanbanJunctionLink,
+  isKanbanSummaryFnValid,
+  isLinksOrLTAR,
+  KANBAN_SUMMARY_COUNT,
+  KanbanStackType,
+  kanbanSummaryFromView,
+  kanbanSummarySupportsColors,
+  kanbanSummaryToView,
   parseProp,
   UITypes,
   ViewTypes,
@@ -29,7 +38,15 @@ import { claimObjectTitle } from '~/helpers/customObjects';
 import { normalizeViewTitle } from '~/helpers/viewTitleHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
-import { KanbanView, Model, User, View } from '~/models';
+import {
+  BaseUser,
+  Column,
+  KanbanView,
+  Model,
+  Source,
+  User,
+  View,
+} from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
@@ -79,6 +96,13 @@ export class KanbansService {
     await assertPersonalViewAllowed(context, param.kanban.lock_type);
 
     const model = await Model.get(context, param.tableId, false, ncMeta);
+
+    await this.assertStackFieldSupported(
+      context,
+      model,
+      param.kanban.fk_grp_col_id,
+      ncMeta,
+    );
 
     let fk_cover_image_col_id =
       (param.kanban as KanbanView).fk_cover_image_col_id ?? null;
@@ -248,7 +272,41 @@ export class KanbansService {
     const groupingColumnChanged =
       oldKanbanView.fk_grp_col_id !== param.kanban.fk_grp_col_id;
 
-    await KanbanView.update(context, param.kanbanViewId, param.kanban, ncMeta);
+    if (groupingColumnChanged) {
+      await this.assertStackFieldSupported(
+        context,
+        await Model.get(context, view.fk_model_id, false, ncMeta),
+        param.kanban.fk_grp_col_id,
+        ncMeta,
+      );
+    }
+
+    // Any summary field in the patch: validate it merged over the saved one.
+    const summaryKeys = [
+      'summary_fn',
+      'fk_summary_col_id',
+      'summary_label',
+      'summary_colors',
+    ] as const;
+    const kanbanUpdate = summaryKeys.some((key) => key in param.kanban)
+      ? {
+          ...param.kanban,
+          ...(await this.validateStackSummary(
+            context,
+            view.fk_model_id,
+            {
+              summary_fn: oldKanbanView.summary_fn,
+              fk_summary_col_id: oldKanbanView.fk_summary_col_id,
+              summary_label: oldKanbanView.summary_label,
+              summary_colors: oldKanbanView.summary_colors,
+              ...param.kanban,
+            },
+            ncMeta,
+          )),
+        }
+      : param.kanban;
+
+    await KanbanView.update(context, param.kanbanViewId, kanbanUpdate, ncMeta);
 
     if (groupingColumnChanged) {
       const updatedView = await View.get(
@@ -308,6 +366,94 @@ export class KanbansService {
     return safeView;
   }
 
+  // Summary fields always change together; an unset function clears them all.
+  private async validateStackSummary(
+    context: NcContext,
+    modelId: string,
+    body: KanbanUpdateReqType,
+    ncMeta?: MetaService,
+  ) {
+    const summary = kanbanSummaryFromView(body);
+    if (!summary) return kanbanSummaryToView(null);
+
+    let column: Column | undefined;
+    if (summary.fn !== KANBAN_SUMMARY_COUNT) {
+      if (!summary.fk_column_id) {
+        NcError.get(context).invalidRequestBody(
+          'Summary calculation field is required',
+        );
+      }
+      column = await Column.get(
+        context,
+        { colId: summary.fk_column_id },
+        ncMeta,
+      );
+      if (!column || column.fk_model_id !== modelId) {
+        NcError.get(context).fieldNotFound(summary.fk_column_id);
+      }
+      column.colOptions = await column.getColOptions(ncMeta);
+    }
+
+    if (!isKanbanSummaryFnValid(summary.fn, column)) {
+      NcError.get(context).invalidRequestBody(
+        `Summary function '${summary.fn}' is not supported for this field`,
+      );
+    }
+
+    return kanbanSummaryToView({
+      ...summary,
+      colors: kanbanSummarySupportsColors(summary.fn, column)
+        ? summary.colors
+        : null,
+    });
+  }
+
+  /** The stacking field must be one a kanban can stack by; a junction link only on Postgres. */
+  private async assertStackFieldSupported(
+    context: NcContext,
+    model: Model,
+    columnId?: string | null,
+    ncMeta?: MetaService,
+  ) {
+    const error = await this.getStackFieldError(
+      context,
+      model,
+      columnId,
+      ncMeta,
+    );
+    if (error) NcError.get(context).badRequest(error);
+  }
+
+  /** Why a kanban can't stack by this field, or null when it can (or no field is set). */
+  async getStackFieldError(
+    context: NcContext,
+    model: Model,
+    columnId?: string | null,
+    ncMeta?: MetaService,
+  ): Promise<string | null> {
+    if (!columnId || !model) return null;
+
+    const column = (await model.getColumns(ncMeta)).find(
+      (col) => col.id === columnId,
+    );
+    if (!column) NcError.get(context).fieldNotFound(columnId);
+
+    const stackColumn = isLinksOrLTAR(column)
+      ? { ...column, colOptions: await column.getColOptions(ncMeta) }
+      : column;
+
+    if (isKanbanJunctionLink(stackColumn)) {
+      const source = await Source.get(context, model.source_id, false, ncMeta);
+      return source?.type === 'pg'
+        ? null
+        : 'A kanban can stack by a many-to-one link only on a Postgres data source';
+    }
+
+    return getKanbanStackType(stackColumn)
+      ? null
+      : `A kanban can't stack by "${column.title}": use a single select, a single User field or a many-to-one / belongs-to link`;
+  }
+
   /**
    * Initialize or update kanban meta for the grouping column
    */
@@ -327,11 +473,16 @@ export class KanbansService {
       (col) => col.id === kanbanView.fk_grp_col_id,
     );
 
-    if (!column || column.uidt !== UITypes.SingleSelect) {
-      return; // Only handle SingleSelect columns
-    }
+    if (!column) return;
 
-    // Update groupingFieldColumn in view meta
+    const colOptions = await column.getColOptions(ncMeta);
+    const stackType = getKanbanStackType(
+      { ...column, colOptions },
+      { junctionLinks: true },
+    );
+    if (!stackType) return;
+
+    // Update groupingFieldColumn in view meta (shared views read it from there)
     const viewMeta = parseProp(view?.meta) || {};
     await View.update(
       context,
@@ -340,15 +491,20 @@ export class KanbansService {
         ...view,
         meta: {
           ...viewMeta,
-          groupingFieldColumn: column,
+          groupingFieldColumn:
+            stackType === KanbanStackType.Link
+              ? { ...column, colOptions }
+              : column,
         },
       },
       false,
       ncMeta,
     );
 
+    // Stacks by user or linked record are derived from members/records, not stored options
+    if (stackType !== KanbanStackType.SingleSelect) return;
+
     // Update kanban stack meta
-    const colOptions = await column.getColOptions(ncMeta);
     if (colOptions?.options) {
       const stackMetaObj = parseProp(kanbanView.meta) || {};
 
@@ -418,6 +574,42 @@ export class KanbansService {
     }
   }
 
+  /**
+   * User stack keys are user ids: accepts a base member's id or email, and the id of a removed
+   * user that is already in `savedIds` (what a v3 read returns). Rejects anything else.
+   */
+  private async resolveUserStackKeys(
+    context: NcContext,
+    baseId: string,
+    keys: string[],
+    savedIds: Set<string>,
+    ncMeta?: MetaService,
+  ) {
+    if (!keys.length) return keys;
+
+    const users = await BaseUser.getUsersList(
+      context,
+      { base_id: baseId, include_ws_deleted: true },
+      ncMeta,
+    );
+    const unknown: string[] = [];
+    const ids: string[] = [];
+    for (const key of keys) {
+      const user = users.find(
+        (u) => u.id === key || u.email?.toLowerCase() === key?.toLowerCase(),
+      );
+      if (user) ids.push(user.id);
+      else if (savedIds.has(key)) ids.push(key);
+      else unknown.push(key);
+    }
+    if (unknown.length) {
+      NcError.get(context).invalidRequestBody(
+        `stack_order: '${unknown.join("', '")}' is not a member of this base`,
+      );
+    }
+    return ids;
+  }
+
   async kanbanOptionsReorder(
     context: NcContext,
     param: {
@@ -458,8 +650,26 @@ export class KanbansService {
     if (!column) {
       NcError.get(context).fieldNotFound(kanbanView.fk_grp_col_id);
     }
-    const options = (await column.getColOptions()).options as SelectOption[];
+    const colOptions = await column.getColOptions(ncMeta);
+    const stackType = getKanbanStackType(
+      { ...column, colOptions },
+      { junctionLinks: true },
+    );
     const metaOptions: any[] = parseProp(kanbanView.meta)?.[column.id] ?? [];
+    if (stackType === KanbanStackType.User) {
+      param.optionsOrder = await this.resolveUserStackKeys(
+        context,
+        model.base_id,
+        param.optionsOrder,
+        new Set(metaOptions.map((o) => o.id)),
+        ncMeta,
+      );
+    }
+    // User / link stacks are keyed by user id / linked record id, with no stored options
+    const options: Pick<SelectOption, 'id' | 'title'>[] =
+      stackType === KanbanStackType.SingleSelect
+        ? (colOptions?.options as SelectOption[]) ?? []
+        : param.optionsOrder.map((key) => ({ id: key, title: key }));
     if (metaOptions.length === 0) {
       metaOptions.push({
         id: 'uncategorized',

@@ -67,7 +67,7 @@ const filterOption = (column: ColumnType) => {
 
             <div class="flex flex-col">
               <LazyPaymentUpgradeBadge
-                v-if="!isFeatureEnabled && !visibilityFilters?.length"
+                v-if="!isFeatureEnabled && !visibilityFilters?.length && !isFirstField"
                 :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION"
                 :content="
                   $t('upgrade.upgradeToShowFieldOnConditionsSubtitle', {

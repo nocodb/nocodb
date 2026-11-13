@@ -128,11 +128,6 @@ const isNonFiniteResult = computed(() => {
 // a text formula result renders as a text Formula cell (links, pg timestamps)
 const formulaTextColumn = computed(() => (column.value ? getRollupFormulaTextColumn(column.value) : undefined))
 
-provide(
-  ColumnInj,
-  computed(() => formulaTextColumn.value ?? column.value),
-)
-
 const displayValue = computed(() => {
   const options = column.value?.colOptions
   return column.value && childColumn.value && isRollupColOptions(column.value.uidt, options) && isRollupFormula(options)
@@ -148,6 +143,27 @@ const isIntegerResult = computed(() => {
     (isIntegerUiType(childColumn.value as ColumnType) && integerPreservingRollupFunctions.includes(fn))
   )
 })
+
+// Child field meta (e.g. Decimal precision) under the rollup's overrides, as the grid draws it.
+const numericRollupColumn = computed<ColumnType>(() => {
+  const child = (childColumn.value || {}) as ColumnType
+
+  return {
+    ...child,
+    uidt: isIntegerResult.value ? UITypes.Number : UITypes.Decimal,
+    meta: {
+      ...parseProp(child.meta),
+      ...getRollupColumnMeta(column.value?.meta, child.uidt as UITypes, (colOptions.value as RollupType)?.rollup_function ?? ''),
+    },
+  }
+})
+
+const isNumericResult = computed(() => renderAsTextFun.value.includes((colOptions.value as RollupType)?.rollup_function ?? ''))
+
+provide(
+  ColumnInj,
+  computed(() => formulaTextColumn.value ?? (isNumericResult.value ? numericRollupColumn.value : column.value)),
+)
 </script>
 
 <template>
@@ -164,11 +180,8 @@ const isIntegerResult = computed(() => {
   </div>
   <VirtualCellFormula v-else-if="formulaTextColumn" />
   <div v-else @dblclick="activateShowEditNonEditableFieldWarning">
-    <CellInteger
-      v-if="isIntegerResult && renderAsTextFun.includes((colOptions as RollupType).rollup_function!)"
-      :model-value="value"
-    />
-    <CellDecimal v-else-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
+    <CellInteger v-if="isNumericResult && isIntegerResult" :model-value="value" />
+    <CellDecimal v-else-if="isNumericResult" :model-value="value" />
     <LazySmartsheetCell v-else :model-value="displayValue" :column="childColumn" :edit-enabled="false" :read-only="true" />
     <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
       {{ $t('msg.info.computedFieldEditWarning') }}

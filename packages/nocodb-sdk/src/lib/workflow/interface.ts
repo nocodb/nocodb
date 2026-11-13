@@ -129,6 +129,8 @@ interface NodeExecutionResult {
   retryable?: boolean;
   // Server-requested wait before retrying (e.g. HTTP 429 Retry-After).
   retryAfterMs?: number;
+  // The step never started (a shared resource was full); it waits outside its retry policy.
+  deferred?: boolean;
   // Earlier failed tries of this step, oldest first; absent when it ran once.
   attempts?: NodeExecutionAttempt[];
   startTime: number;
@@ -285,6 +287,9 @@ interface WorkflowExecutionState {
   pendingRetry?: {
     key: string;
     attempts: NodeExecutionAttempt[];
+    // Deferred tries so far, and the total wait scheduled for them.
+    deferrals?: number;
+    deferredMs?: number;
   };
 
   // When the current step started; with no result for it, the step was in

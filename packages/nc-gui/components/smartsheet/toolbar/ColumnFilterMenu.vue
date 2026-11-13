@@ -79,7 +79,7 @@ watch(
         isWebhook: false,
         loadAllFilters: true,
       })
-      filtersLength.value = nonDeletedFilters.value.length || 0
+      updateFiltersCount(nonDeletedFilters.value)
     }
   },
   { immediate: true },
@@ -96,6 +96,43 @@ const allFilters = ref({})
 const filterKey = ref(1)
 
 provide(AllFiltersInj, allFilters)
+
+// undefined = the group's conditions aren't loaded yet, so it must not be treated as empty.
+function filterChildren(groupId: string): FilterType[] | undefined {
+  const loaded = (allFilters.value as Record<string, FilterType[]>)[groupId]
+  if (loaded) return loaded
+
+  const storeFilters = smatsheetAllFilters.value as FilterType[] | undefined
+  if (!storeFilters?.some((f) => f.id === groupId)) return undefined
+
+  return storeFilters.filter((f) => f.fk_parent_id === groupId && (f as { status?: string }).status !== 'delete')
+}
+
+function updateFiltersCount(list: FilterType[]) {
+  filtersLength.value = countActiveFilters(list, filterChildren)
+}
+
+// Drop empty groups when the menu closes, so it reopens with only groups that hold conditions.
+async function removeEmptyFilterGroups() {
+  if (isRestrictedEditor.value || !filterComp.value?.filters?.length) return
+
+  const filtersSnapshot = [...filterComp.value.filters] as FilterType[]
+
+  for (let i = filtersSnapshot.length - 1; i >= 0; i--) {
+    const filter = filtersSnapshot[i]
+
+    if ((filter as { status?: string }).status === 'delete' || !isEmptyFilterGroup(filter, filterChildren)) continue
+
+    // The await yields; the menu may unmount meanwhile.
+    if (!filterComp.value) return
+
+    await filterComp.value.deleteFilter(filter, i)
+  }
+}
+
+watch(open, (isOpen) => {
+  if (!isOpen) removeEmptyFilterGroups()
+})
 
 useMenuCloseOnEsc(open)
 
@@ -183,7 +220,7 @@ const smartsheetEventListener = async (event: string, payload?: any) => {
       loadAllFilters: true,
     })
 
-    filtersLength.value = nonDeletedFilters.value.length || 0
+    updateFiltersCount(nonDeletedFilters.value)
 
     filterKey.value++
   }
@@ -291,7 +328,7 @@ if (isEeUI) {
 watch(
   () => nonDeletedFilters.value.length,
   () => {
-    filtersLength.value = nonDeletedFilters.value.length || 0
+    updateFiltersCount(nonDeletedFilters.value)
   },
 )
 </script>

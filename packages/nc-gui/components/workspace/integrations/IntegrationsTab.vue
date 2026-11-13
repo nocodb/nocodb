@@ -45,7 +45,8 @@ const isShellPane = computed(() => isSettingsSidebar.value && !isModal)
 
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations, showEEFeatures } = useEeConfig()
+const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations, showEEFeatures, showEnterpriseVaults } =
+  useEeConfig()
 
 const { isUIAllowed } = useRoles()
 
@@ -430,13 +431,7 @@ watch(activeViewTab, (value) => {
                 <template v-else>
                   <!-- Enterprise Vaults CTA; not in the modal reuse of this tab. -->
                   <WorkspaceIntegrationsVaultBanner
-                    v-if="
-                      isEeUI &&
-                      showActiveConnections &&
-                      !isModal &&
-                      isUIAllowed('vaultList') &&
-                      isFeatureEnabled(FEATURE_FLAG.ENTERPRISE_VAULTS)
-                    "
+                    v-if="isEeUI && showActiveConnections && !isModal && isUIAllowed('vaultList') && showEnterpriseVaults"
                   />
 
                   <!-- Active connections section (shown as first section when not modal) -->

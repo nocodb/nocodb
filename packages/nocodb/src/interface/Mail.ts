@@ -158,6 +158,8 @@ interface FormSubmissionPayload {
     columnTitle: string;
     uidt: UITypes | string;
   }[];
+  /** A copy for the submitter of their own response, not the owner's alert */
+  submitterCopy?: boolean;
 }
 
 interface SendRecordPayload {

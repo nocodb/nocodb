@@ -84,11 +84,17 @@ onUnmounted(() => {
       </NcButton>
 
       <span class="text-xs">
-        {{ tempFiles.length }} files, total size:
         {{
-          formatBytes(
-            tempFiles.reduce((acc, file) => acc + file.size, 0),
-            0,
+          $t(
+            'labels.filesTotalSize',
+            {
+              count: tempFiles.length,
+              size: formatBytes(
+                tempFiles.reduce((acc, file) => acc + file.size, 0),
+                0,
+              ),
+            },
+            tempFiles.length,
           )
         }}
       </span>

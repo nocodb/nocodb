@@ -18,6 +18,7 @@ import {
   RelationTypes,
   UITypes,
   groupFormColumnsByRow,
+  isBtLikeV2Junction,
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
@@ -98,6 +99,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   // redirect and hides the signed-in banner. `signedInReal`/`signedInUserReal`
   // reflect the genuine login session regardless of route.
   const { isMobileMode, appInfo, signedInReal, signedInUserReal, realToken } = useGlobal()
+
+  // Where the backend mails the submitter's copy; set from the submit response, which only names it when a copy is sent
+  const responseCopyEmail = ref<string | undefined>()
 
   const { api, isLoading } = useApi()
 
@@ -520,6 +524,18 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }
   }
 
+  // The inline errors can be far above Submit on a long form: bring the first one into view.
+  async function scrollToFirstInvalidField() {
+    await nextTick()
+    const item = document.querySelector<HTMLElement>('.ant-form-item-has-error')
+    if (!item) return
+
+    item.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    item
+      .querySelector<HTMLElement>('input:not([disabled]), textarea:not([disabled]), [tabindex="0"]')
+      ?.focus({ preventScroll: true })
+  }
+
   const validateAllFields = async () => {
     await handleAddMissingRequiredFieldDefaultState()
 
@@ -537,6 +553,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       if (e?.errorFields?.length) {
         message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+        scrollToFirstInvalidField()
         return false
       }
     }
@@ -595,6 +612,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           ...(requireSignin.value && signedInReal.value && realToken.value ? { 'xc-auth': realToken.value } : {}),
         },
       })
+
+      // The insert can return an empty body; `in` throws on a non-object
+      responseCopyEmail.value =
+        ncIsObject(newRecord) && '__nc_response_copy' in newRecord && ncIsString(newRecord.__nc_response_copy)
+          ? newRecord.__nc_response_copy
+          : undefined
 
       const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
 
@@ -853,8 +876,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         const rows = await loadLinkedRecords(c, values)
 
         preFillValue = rows
-        // if bt/oo then extract object from array
-        if (c.colOptions?.type === RelationTypes.BELONGS_TO || c.colOptions?.type === RelationTypes.ONE_TO_ONE) {
+        // Single-record links (bt/oo, and v2 junction links that behave like bt) take one object, not a list.
+        if (isBt(c) || isOo(c) || isBtLikeV2Junction(c)) {
           preFillValue = preFillValue[0]
         }
         // Todo: create an api which will fetch query params records and then autofill records
@@ -1072,6 +1095,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isFormNotStarted,
     formStartsAt,
     requireSignin,
+    responseCopyEmail,
     // Expose the UNMASKED identity under the names the gate/banner consume, so
     // the require-sign-in flow sees the real login session on the shared route.
     signedIn: signedInReal,

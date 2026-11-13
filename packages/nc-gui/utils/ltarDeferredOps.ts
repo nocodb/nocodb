@@ -5,7 +5,8 @@
 // OSS fix for the same feature: nocodb/nocodb#14058 — "fix(gui): defer relation field
 // updates until save in expanded form" by Aakash Gautam (@aakashgautam-git).
 
-import type { RelationTypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isBtLikeV2Junction } from 'nocodb-sdk'
 
 /**
  * A single link/unlink operation queued by the expanded form while editing an
@@ -99,6 +100,46 @@ export type LtarCellShape =
 /** Cell value as a count, whichever shape it arrived in. */
 export function ltarCellCount(value: unknown): number {
   return Array.isArray(value) ? value.length : Number(value) || 0
+}
+
+/** The shape a relation column's cell holds (see `LtarCellShape`). */
+export function ltarCellShapeOf(column: ColumnType): LtarCellShape {
+  const type = (column.colOptions as LinkToAnotherRecordType | undefined)?.type
+  if (
+    type === RelationTypes.MANY_TO_ONE ||
+    type === RelationTypes.BELONGS_TO ||
+    type === RelationTypes.ONE_TO_ONE ||
+    isBtLikeV2Junction(column)
+  ) {
+    return 'single'
+  }
+  return column.uidt === UITypes.Links ? 'count' : 'records'
+}
+
+/**
+ * Cell value for an existing row with queued relation edits: the persisted value (`base`)
+ * with the column's queued unlinks removed and links added.
+ */
+export function resolveDeferredCellValue(params: {
+  queue: PendingLtarOp[]
+  columnId: string
+  shape: LtarCellShape
+  base: unknown
+  getRelatedRowId: (row: Record<string, any>) => unknown
+}): unknown {
+  const { queue, columnId, shape, base, getRelatedRowId } = params
+
+  if (shape === 'single') return resolveDeferredSingleTargetValue(queue, columnId, (base as Record<string, any>) ?? null)
+
+  if (shape === 'count') return resolveDeferredLtarCount(queue, columnId, ltarCellCount(base))
+
+  const ops = queue.filter((o) => o.columnId === columnId)
+  const unlinkIds = new Set(ops.filter((o) => o.op === 'unlink').map((o) => o.relatedRowId))
+  const baseArr = (Array.isArray(base) ? base : []).filter((r) => !unlinkIds.has(`${getRelatedRowId(r)}`))
+  const baseIds = new Set(baseArr.map((r) => `${getRelatedRowId(r)}`))
+  const linkRecords = ops.filter((o) => o.op === 'link' && !baseIds.has(o.relatedRowId)).map((o) => o.record)
+
+  return [...baseArr, ...linkRecords]
 }
 
 /**

@@ -14,6 +14,8 @@ const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
+const cellAriaLabel = useCellAriaLabel()
+
 const editEnabled = inject(EditModeInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -143,6 +145,7 @@ onMounted(() => {
       <input
         :ref="focus"
         v-model="vModel"
+        :aria-label="cellAriaLabel"
         class="nc-cell-field w-full !border-none !outline-none focus:ring-0 h-full min-h-[18px]"
         :class="isExpandedFormOpen ? 'py-1' : ''"
         :type="inputType"
@@ -167,6 +170,7 @@ onMounted(() => {
     <input
       :ref="focus"
       v-model="vModel"
+      :aria-label="cellAriaLabel"
       class="nc-cell-field w-full !border-none !outline-none focus:ring-0 py-1"
       :type="inputType"
       :placeholder="placeholder"

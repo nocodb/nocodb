@@ -118,6 +118,7 @@ useRowHeightCommands({
       <NcButton
         v-e="['c:row-height']"
         class="nc-height-menu-btn nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
+        :aria-label="$t('objects.rowHeight')"
         size="small"
         type="secondary"
         :show-as-disabled="isLocked"

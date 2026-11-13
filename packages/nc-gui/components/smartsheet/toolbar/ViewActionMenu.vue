@@ -277,6 +277,15 @@ const isUploadAllowed = computed(() => {
 
 const isUploadDisabledForMmTable = computed(() => !!table.value?.mm)
 
+const { isAllowed: isPermissionAllowed } = usePermissions()
+
+const isDownloadAllowed = computed(
+  () =>
+    isPublicView.value ||
+    !table.value?.id ||
+    isPermissionAllowed(PermissionEntity.TABLE, table.value.id, PermissionKey.TABLE_DATA_DOWNLOAD, { ignorePlanBlock: true }),
+)
+
 const copyViewConfigMenuItemStatus = computed(() => {
   return getCopyViewConfigBtnAccessStatus(view.value, 'view-action-menu')
 })
@@ -425,7 +434,7 @@ defineOptions({
           </template>
         </PaymentUpgradeBadgeProvider>
       </SmartsheetToolbarNotAllowedTooltip>
-      <template v-if="view.type !== ViewTypes.FORM">
+      <template v-if="view.type !== ViewTypes.FORM && (isUploadAllowed || isDownloadAllowed)">
         <NcDivider />
         <template v-if="isUploadAllowed">
           <NcSubMenu key="upload" variant="small" :disabled="isUploadDisabledForMmTable">
@@ -494,7 +503,7 @@ defineOptions({
             </template>
           </NcSubMenu>
         </template>
-        <NcSubMenu key="download" variant="small">
+        <NcSubMenu v-if="isDownloadAllowed" key="download" variant="small">
           <template #title>
             <div
               v-e="[

@@ -126,7 +126,8 @@ export function computeLtarNewRowState(
   if (!colOpt) return {}
 
   const colInRelatedTable = relatedMeta.columns.find((col) => {
-    if (!isLinksOrLTAR(col)) return false
+    // On a self-link the column itself also passes the checks below; only its reverse may be seeded.
+    if (!isLinksOrLTAR(col) || col.id === ltarColumn.id) return false
     const colOpt1 = col?.colOptions as LinkToAnotherRecordType
     if (colOpt1?.fk_related_model_id !== currentTableId) return false
 

@@ -311,6 +311,7 @@ useSearchCommands({
         type="text"
         class="nc-toolbar-btn !rounded-lg !h-7 !px-1.5 relative"
         data-testid="nc-global-search-show-input"
+        :aria-label="$t('placeholder.searchRecords')"
         @click="handleShowSearchInput"
       >
         <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />

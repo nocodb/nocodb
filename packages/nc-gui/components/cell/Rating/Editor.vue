@@ -59,19 +59,27 @@ const onKeyPress = (e: KeyboardEvent) => {
   }
 }
 
+const { t } = useI18n()
+
 const rateDomRef = ref()
 
-// Remove tabindex from rate inputs set by antd
-watch(rateDomRef, () => {
-  if (!rateDomRef.value) return
+// Remove tabindex from rate inputs set by antd, and name each star: antd renders one
+// shared character for every star, so it can't be labelled through the slot.
+watch(
+  [rateDomRef, () => ratingMeta.value.max],
+  () => {
+    if (!rateDomRef.value) return
 
-  const rateInputs = rateDomRef.value.$el.querySelectorAll('div[role="radio"]')
-  if (!rateInputs) return
+    const rateInputs = rateDomRef.value.$el.querySelectorAll('div[role="radio"]')
+    if (!rateInputs) return
 
-  for (let i = 0; i < rateInputs.length; i++) {
-    rateInputs[i].setAttribute('tabindex', '-1')
-  }
-})
+    for (let i = 0; i < rateInputs.length; i++) {
+      rateInputs[i].setAttribute('tabindex', '-1')
+      rateInputs[i].setAttribute('aria-label', t('labels.ratingOfMax', { value: i + 1, max: rateInputs.length }))
+    }
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>

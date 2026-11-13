@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 const { api, error } = useApi({ useGlobalInstance: true })
 
+const { $e } = useNuxtApp()
+
 const { t } = useI18n()
 
 const { refreshToken } = useGlobal()
@@ -12,6 +14,9 @@ const form = reactive({
   password: '',
   passwordRepeat: '',
 })
+
+// Sessions always end; apps and tokens only when the user opts in.
+const disconnectApps = ref(false)
 
 const formRules = {
   currentPassword: [{ required: true, message: t('msg.error.signUpRules.passwdRequired') }],
@@ -43,18 +48,25 @@ const passwordChange = async () => {
     await api.auth.passwordChange({
       currentPassword: form.currentPassword,
       newPassword: form.password,
+      disconnectApps: disconnectApps.value,
     })
 
+    $e('a:account:password:change', { disconnectApps: disconnectApps.value })
     message.success(t('msg.success.passwordChanged'))
 
     // The user stays on the page, so clear the old passwords from the form.
     formValidator.value?.resetFields()
+    disconnectApps.value = false
 
     // Password change bumps token_version, so swap the in-memory token for the re-issued session's.
     await refreshToken({})
   } catch {
     // ignore since error value is set by useApi and will be displayed in UI
   }
+}
+
+const onDisconnectAppsChange = (_e: Event, checked: boolean) => {
+  $e('c:account:password:disconnect-apps:toggle', { disconnectApps: checked })
 }
 
 const resetError = () => {
@@ -137,7 +149,20 @@ const resetError = () => {
               </a-form-item>
 
               <div class="text-nc-content-gray-muted text-small" data-rec="true">
-                {{ $t('msg.info.passwordChangeRevokesTokens') }}
+                {{ $t('msg.info.passwordChangeSignsOut') }}
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <NcCheckbox
+                  v-model:checked="disconnectApps"
+                  data-testid="nc-user-settings-form__disconnect-apps"
+                  @change="onDisconnectAppsChange"
+                >
+                  {{ $t('labels.alsoDisconnectApps') }}
+                </NcCheckbox>
+                <div class="text-nc-content-gray-muted text-small ml-6" data-rec="true">
+                  {{ $t('msg.info.disconnectAppsOnPasswordChange') }}
+                </div>
               </div>
 
               <div class="text-right mt-5">

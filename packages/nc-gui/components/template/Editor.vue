@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  RelationTypes,
+  UITypes,
+  getSeparatorChars,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+  resolveColumnSeparator,
+  serializeImportValue,
+} from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import type { InterfacePageDataApi } from '~/lib/interfaceData'
@@ -559,6 +570,50 @@ function getUnselectedFields(record: Record<string, any>, tn: string) {
   })
 }
 
+const warnedInvalidNumbers = new Set<string>()
+
+/**
+ * What the importer will store for a cell that isn't a plain number, or undefined when it imports as typed.
+ * Uses the importer's own conversion, so the warning matches the stored value.
+ */
+function lossyNumberResult(value: unknown, column: ColumnType): { stored: unknown } | undefined {
+  if (value === null || value === undefined) return
+  const text = String(value).trim()
+  if (text === '') return
+
+  // Values JS reads as numbers can still change on import (1e3 → 13, 1.5 → 1 in a Number field)
+  const stored = serializeImportValue(value, column)
+  if (stored === null || stored === undefined) return { stored }
+  if (!isNaN(+text) && +text === +stored) return
+  // The importer reads the column's own separators and strips currency symbols; that's not a loss.
+  const { thousandSeparator, decimalSeparator } = getSeparatorChars(resolveColumnSeparator(column.meta))
+  let plain = text.replace(/[\s$€£₹¥]/g, '')
+  if (thousandSeparator) plain = plain.split(thousandSeparator).join('')
+  plain = decimalSeparator === '.' ? plain.replace(/,/g, '') : plain.replace(decimalSeparator, '.')
+  if (plain !== '' && !isNaN(+plain) && +plain === +stored) return
+
+  return { stored }
+}
+
+function warnLossyNumber(tableName: string, record: Record<string, any>, rowIndex: number, value: unknown, stored: unknown) {
+  const key = `${tableName}:${record.srcCn}:${rowIndex}`
+  if (warnedInvalidNumbers.has(key)) return
+  warnedInvalidNumbers.add(key)
+
+  const params = { row: rowIndex + 1, column: record.srcTitle ?? record.srcCn, value: String(value) }
+
+  const looksNumeric = !isNaN(+String(value).trim())
+
+  message.warning(
+    stored === null || stored === undefined
+      ? t('msg.warning.invalidNumberImportedEmpty', params)
+      : t(looksNumeric ? 'msg.warning.numberImportedAs' : 'msg.warning.invalidNumberImportedAs', {
+          ...params,
+          stored: String(stored),
+        }),
+  )
+}
+
 function fieldsValidation(record: Record<string, any>, tn: string) {
   // if it is not selected, then pass validation
   if (!record.enabled) {
@@ -602,18 +657,18 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
 
     switch (v.uidt) {
       case UITypes.Number:
-        if (
-          importData[tableName]
-            .slice(0, maxRowsToParse)
-            .some(
-              (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
-            )
-        ) {
-          message.error(t('msg.error.sourceHasInvalidNumbers'))
-          return false
+      case UITypes.Decimal: {
+        // Not blocking: say what the importer will store instead.
+        const rows = importData[tableName].slice(0, maxRowsToParse)
+        for (let i = 0; i < rows.length; i++) {
+          const lossy = lossyNumberResult(rows[i][record.srcCn], v)
+          if (lossy) {
+            warnLossyNumber(tableName, record, i, rows[i][record.srcCn], lossy.stored)
+            break
+          }
         }
-
         break
+      }
       case UITypes.Checkbox:
         if (
           importData[tableName].slice(0, maxRowsToParse).some((r: Record<string, any>) => {

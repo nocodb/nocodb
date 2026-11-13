@@ -8,6 +8,7 @@ import Noco from '~/Noco';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { NcError } from '~/helpers/catchError';
 import { aliasesWithoutAccount } from '~/helpers/emailAliasHelpers';
+import { findOrCreateUnderSignupClaim } from '~/helpers/signupClaim';
 import validateParams from '~/helpers/validateParams';
 import { User } from '~/models';
 import Workspace from '~/models/Workspace';
@@ -203,24 +204,23 @@ export class WorkspaceUsersService {
 
     for (const emailAddr of emails) {
       const token = uuidv4();
-      // Check if user exists
-      let user = await User.getByCanonicalEmail(emailAddr, ncMeta);
-      let signupToken: string | null = null;
-
-      if (!user) {
-        // Create new user
-        user = await User.insert(
-          {
-            invite_token: token,
-            invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-            email: emailAddr,
-            roles: OrgUserRoles.VIEWER,
-            token_version: uuidv4(),
-          },
-          ncMeta,
-        );
-        signupToken = token;
-      }
+      // Find or create under the signup claim, so a racing signup cannot add a second account
+      const { value: user, created } = await findOrCreateUnderSignupClaim(
+        emailAddr,
+        () => User.getByCanonicalEmail(emailAddr, ncMeta),
+        () =>
+          User.insert(
+            {
+              invite_token: token,
+              invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              email: emailAddr,
+              roles: OrgUserRoles.VIEWER,
+              token_version: uuidv4(),
+            },
+            ncMeta,
+          ),
+      );
+      let signupToken: string | null = created ? token : null;
 
       // Check if already a workspace member
       const existingWsUser = await WorkspaceUser.get(
@@ -231,8 +231,11 @@ export class WorkspaceUsersService {
       );
 
       if (existingWsUser) {
-        // If user was pre-created with NO_ACCESS (e.g. from migration), upgrade their role
-        if (existingWsUser.roles === WorkspaceUserRoles.NO_ACCESS) {
+        // If user was pre-created with a placeholder role (e.g. from migration), upgrade their role
+        if (
+          existingWsUser.roles === WorkspaceUserRoles.NO_ACCESS ||
+          existingWsUser.roles === WorkspaceUserRoles.INHERIT
+        ) {
           await WorkspaceUser.update(
             workspaceId,
             user.id,

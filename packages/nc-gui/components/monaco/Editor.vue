@@ -3,7 +3,7 @@ import { initializeMonaco } from '../../lib/monaco'
 import PlaceholderContentWidget from './Placeholder'
 
 interface Props {
-  modelValue: string | Record<string, any>
+  modelValue: string | Record<string, any> | null
   hideMinimap?: boolean
   lang?: string
   validate?: boolean
@@ -126,11 +126,12 @@ const retryLoad = async () => {
 }
 
 const format = (space = monacoConfig.tabSize || 2) => {
+  const value = editor?.getValue()
+  if (!value?.trim()) return
   try {
-    const parsedValue = JSON.parse(editor?.getValue() as string)
-    editor.setValue(JSON.stringify(parsedValue, null, space))
-  } catch (error: unknown) {
-    console.error('Failed to parse and format JSON:', error)
+    editor.setValue(JSON.stringify(JSON.parse(value), null, space))
+  } catch {
+    // Invalid JSON is already reported through `isValid` / `error`
   }
 }
 

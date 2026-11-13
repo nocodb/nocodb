@@ -32,7 +32,7 @@ function renameFile(fileName: string) {
 // }
 
 const rules = {
-  title: [{ required: true, message: t('labels.titleRequired') }],
+  title: [{ required: true, whitespace: true, message: t('labels.titleRequired') }],
 }
 
 function onCancel() {

@@ -12458,7 +12458,7 @@
               },
               "stack_order": {
                 "type": "array",
-                "description": "Order of the stacks in kanban view. If not provided, the order will be determined by options listed in associated field.\n\nExample: ```stack_order: ['option1', 'option2', 'option3']```",
+                "description": "Order of the stacks in kanban view. If not provided, the order will be determined by options listed in associated field.\n\nStacks are named by option title for a SingleSelect field, by user id or email for a User field, and by linked record id for a link field.\n\nExample: ```stack_order: ['option1', 'option2', 'option3']```",
                 "items": {
                   "type": "string"
                 }
@@ -17611,9 +17611,10 @@
               "TABLE_VISIBILITY",
               "TABLE_RECORD_ADD",
               "TABLE_RECORD_DELETE",
+              "TABLE_DATA_DOWNLOAD",
               "RECORD_FIELD_EDIT"
             ],
-            "description": "`TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field."
+            "description": "`TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field. `TABLE_DATA_DOWNLOAD` controls CSV, Excel and JSON downloads; with no grant, every base member can download."
           },
           "granted_type": {
             "type": "string",
@@ -17705,9 +17706,10 @@
               "TABLE_VISIBILITY",
               "TABLE_RECORD_ADD",
               "TABLE_RECORD_DELETE",
+              "TABLE_DATA_DOWNLOAD",
               "RECORD_FIELD_EDIT"
             ],
-            "description": "`TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field."
+            "description": "`TABLE_*` keys attach to a table, `RECORD_FIELD_EDIT` to a field. `TABLE_DATA_DOWNLOAD` controls CSV, Excel and JSON downloads; with no grant, every base member can download."
           },
           "granted_type": {
             "type": "string",
@@ -19569,11 +19571,13 @@
             "examples": [
               "nocodb.trigger.after_insert",
               "nocodb.trigger.after_update",
+              "nocodb.trigger.record_created_or_updated",
               "nocodb.trigger.after_delete",
               "nocodb.trigger.form_submitted",
               "nocodb.trigger.record_enters_view",
               "nocodb.trigger.record_matches_condition",
               "nocodb.trigger.field_changed",
+              "nocodb.trigger.workflow_completed",
               "core.trigger.webhook",
               "core.trigger.manual",
               "core.trigger.cron",

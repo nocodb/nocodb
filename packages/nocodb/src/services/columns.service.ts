@@ -32,8 +32,6 @@ import {
   type OperationSource,
   parseProp,
   partialUpdateAllowedTypes,
-  PermissionEntity,
-  PermissionKey,
   ProjectRoles,
   readonlyMetaAllowedTypes,
   RelationTypes,
@@ -41,10 +39,10 @@ import {
   SqlUiFactory,
   substituteColumnAliasWithIdInFormula,
   UITypes,
+  UITypesName,
   validateFormulaAndExtractTreeWithType,
   WebhookActions,
 } from 'nocodb-sdk';
-import { getProjectRole } from 'nocodb-sdk';
 import {
   dateFormats,
   dateMonthFormats,
@@ -109,6 +107,7 @@ import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { isRowDataUnchanged } from '~/helpers/isRowDataUnchanged';
+import { isTableVisible } from '~/helpers/tableHelpers';
 import {
   escapeBindingPlaceholders,
   pgQuoteLiteral,
@@ -131,7 +130,6 @@ import {
   KanbanView,
   LmtTrackedField,
   Model,
-  Permission,
   RollupColumn,
   Script,
   Source,
@@ -161,6 +159,10 @@ import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
 import { tableForBroadcast } from '~/helpers/publicViewSecrets';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
+import {
+  dataConversionErrorReason,
+  ExtractedDbError,
+} from '~/helpers/db-error/utils';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { renameColumnInFormulaRaw } from '~/helpers/formulaHelpers';
 import {
@@ -681,7 +683,7 @@ export class ColumnsService implements IColumnsService {
       const formulas = await Noco.ncMeta
         .knex(MetaTable.COL_FORMULA)
         .where('formula', 'like', `%${oldColumn.id}%`);
-      if (formulas) {
+      if (formulas?.length) {
         oldColumn.column_name = colBody.column_name;
         oldColumn.title = colBody.title;
         for (const f of formulas) {
@@ -802,7 +804,31 @@ export class ColumnsService implements IColumnsService {
         id: source.base_id,
       }),
     );
-    await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+    try {
+      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+    } catch (e) {
+      const original = unfilteredColumns.find((c) => c.id === column.id);
+      const reason = original && dataConversionErrorReason(e);
+      const title = column.title || original?.title;
+      let message: string | undefined;
+      if (reason && column.uidt && column.uidt !== original.uidt) {
+        message = `Cannot convert field '${title}' to ${
+          UITypesName[column.uidt] || column.uidt
+        }: ${reason}`;
+      } else if (reason && column.dt && column.dt !== original.dt) {
+        message = `Cannot change data type of field '${title}' to ${column.dt}: ${reason}`;
+      }
+      const extracted = message && DBErrorExtractor.get().extractDbError(e);
+      if (extracted) {
+        // Same error type and code as before, naming the field.
+        throw new ExtractedDbError({
+          ...extracted,
+          message,
+          details: { ...extracted.details, column: title },
+        });
+      }
+      throw e;
+    }
 
     // Restore @me cdf for metadata storage
     if (savedCdf !== undefined) {
@@ -1510,8 +1536,26 @@ export class ColumnsService implements IColumnsService {
               column,
             );
           if (duplicateCheck.hasDuplicates) {
+            const shown = 3;
+            const duplicates =
+              await this.duplicateDetectionService.getDuplicateValues(
+                context,
+                column,
+                shown + 1,
+              );
+            const values = duplicates
+              .slice(0, shown)
+              .map((d) => {
+                const v =
+                  d.value instanceof Date
+                    ? d.value.toISOString()
+                    : String(d.value);
+                return `"${v.length > 30 ? `${v.slice(0, 30)}…` : v}"`;
+              })
+              .join(', ');
+            const more = duplicates.length > shown ? ' and more' : '';
             NcError.get(context).badRequest(
-              `Found ${duplicateCheck.count} duplicate values in this field. Please edit or remove duplicates before enabling uniqueness.`,
+              `Field '${column.title}' has duplicate values: ${values}${more}. Remove duplicates to enable unique values.`,
             );
           }
         }
@@ -2546,14 +2590,11 @@ export class ColumnsService implements IColumnsService {
             );
             const options = data.reduce<{ title: string }[]>((acc, el) => {
               if (el[column.column_name]) {
-                const values = String(el[column.column_name]).split(',');
-                if (values.length > 1) {
-                  if (colBody.uidt === UITypes.SingleSelect) {
-                    NcError.get(context).badRequest(
-                      'SingleSelect cannot have comma separated values, please use MultiSelect instead.',
-                    );
-                  }
-                }
+                // A comma is part of a single select value, not a separator.
+                const values =
+                  colBody.uidt === UITypes.SingleSelect
+                    ? [String(el[column.column_name])]
+                    : String(el[column.column_name]).split(',');
                 for (const v of values) {
                   if (!existingOptions.includes(v.trim())) {
                     acc.push({
@@ -7086,6 +7127,7 @@ export class ColumnsService implements IColumnsService {
       readonly?: boolean;
       meta?: Record<string, any>;
       ref_base_id?: string;
+      description?: string;
       // Sandbox-replay — pre-injected by `idField: 'column'` so each
       // back-link/oo/mm `Column.insert` can honor the recorded id.
       id?: string;
@@ -7346,6 +7388,7 @@ export class ColumnsService implements IColumnsService {
         {
           ...param.colExtra,
           readonly: ltarReq.readonly || false,
+          description: ltarReq.description,
           fk_display_value_column_id: hmBtDisplayValueColumnId,
         },
         undefined,
@@ -7469,6 +7512,7 @@ export class ColumnsService implements IColumnsService {
         {
           ...param.colExtra,
           readonly: ltarReq.readonly || false,
+          description: ltarReq.description,
           fk_display_value_column_id: ooDisplayValueColumnId,
         },
         undefined,
@@ -7856,6 +7900,7 @@ export class ColumnsService implements IColumnsService {
           singular: ltarReq.meta?.singular || singularize(refTable.title),
         },
         version: isMMLike ? 2 : 1,
+        description: ltarReq.description,
         // column_order and view_id if provided
         ...param.colExtra,
         // include cross base link props
@@ -8668,46 +8713,22 @@ export class ColumnsService implements IColumnsService {
       return col.pk || col.pv || col.id === customDisplayColId;
     });
 
-    // Check table visibility access and add flag
-    let is_private = false;
-    if (user && !isServiceUser(user)) {
-      const baseRoles = extractRolesObj((user as any)?.base_roles);
-      // Base owners always have access
-      if (!baseRoles?.[ProjectRoles.OWNER]) {
-        const permissions = await Permission.list(tableContext, table.base_id);
-        const visibilityPermission = permissions.find(
-          (p) =>
-            p.entity === PermissionEntity.TABLE &&
-            p.entity_id === tableId &&
-            p.permission === PermissionKey.TABLE_VISIBILITY,
-        );
-        if (visibilityPermission) {
-          // Get the user's project role (base role)
-          const userRole = getProjectRole(user) as ProjectRoles;
-          if (!userRole) {
-            is_private = true;
-          } else {
-            // Check if user has permission
-            // Type assertion needed because isAllowed is defined in EE Permission model
-            const hasPermission = await (Permission as any).isAllowed(
-              context,
-              visibilityPermission,
-              {
-                id: user.id,
-                role: userRole,
-              },
-            );
-            if (!hasPermission) {
-              is_private = true;
-            }
-          }
-        }
-      }
-    }
+    // Both hiding rules (TABLE_VISIBILITY and per-role) mark it private.
+    const is_private =
+      !!user &&
+      !isServiceUser(user) &&
+      !(await isTableVisible(tableContext, table.id, user));
 
-    // Add is_private flag to table object
+    // Only what the link picker renders; never the table's other columns.
     return {
-      ...table,
+      id: table.id,
+      base_id: table.base_id,
+      fk_workspace_id: table.fk_workspace_id,
+      source_id: table.source_id,
+      type: table.type,
+      mm: table.mm,
+      synced: table.synced,
+      columns: table.columns,
       is_private,
     };
   }

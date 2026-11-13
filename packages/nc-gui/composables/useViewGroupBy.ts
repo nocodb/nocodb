@@ -437,7 +437,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     ) {
       try {
         group = group || rootGroup.value
-        if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
+        // A public interface page has no base loaded; it fetches through the page instead.
+        if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id || !group) return
 
         if (groupBy.value.length === 0) {
           group.children = []
@@ -667,7 +668,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     async function loadGroupData(group: Group, force = false, params: any = {}) {
       try {
-        if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id) return
+        if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return
 
         if (group.children && !force) return
 

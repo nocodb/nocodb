@@ -6,6 +6,8 @@ import {
   isLinkV2,
   isRollupFormula,
   isVirtualCol,
+  KANBAN_SUMMARY_COUNT,
+  kanbanSummaryToView,
   NcApiVersion,
   parseProp,
   RelationTypes,
@@ -22,7 +24,7 @@ import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { CalendarView, LinksColumn, User } from '~/models';
+import type { CalendarView, LinksColumn, MapView, User } from '~/models';
 import type { AttachmentHolder } from '~/helpers/exportImportHelpers';
 import { getCustomLinkParam } from '~/helpers/linkHelpers';
 import { validateImportSchema } from '~/utils/modelUtils';
@@ -65,6 +67,7 @@ import { GridColumnsService } from '~/services/grid-columns.service';
 import { GridsService } from '~/services/grids.service';
 import { HooksService } from '~/services/hooks.service';
 import { KanbansService } from '~/services/kanbans.service';
+import { MapsService } from '~/services/maps.service';
 import { SortsService } from '~/services/sorts.service';
 import { TablesService } from '~/services/tables.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
@@ -96,6 +99,7 @@ export class ImportService {
     protected bulkDataService: BulkDataAliasService,
     protected hooksService: HooksService,
     protected viewsService: ViewsService,
+    protected mapsService: MapsService,
   ) {}
 
   async importUsers(
@@ -2267,6 +2271,7 @@ export class ImportService {
             switch (k) {
               case 'fk_grp_col_id':
               case 'fk_cover_image_col_id':
+              case 'fk_summary_col_id':
                 kanbanData[k] = idMap.get(v as string) ?? null;
                 break;
               case 'meta': {
@@ -2314,6 +2319,25 @@ export class ImportService {
               }
             }
           }
+          // A summary over a field that didn't come across is dropped, not fatal.
+          if (
+            kanbanData['summary_fn'] &&
+            kanbanData['summary_fn'] !== KANBAN_SUMMARY_COUNT &&
+            !kanbanData['fk_summary_col_id']
+          ) {
+            Object.assign(kanbanData, kanbanSummaryToView(null));
+          }
+          // A board stacked by a field it can't use (e.g. a junction link on a non-Postgres
+          // source) comes across without a stacking field rather than failing the job.
+          if (
+            await this.kanbansService.getStackFieldError(
+              context,
+              md,
+              kanbanData['fk_grp_col_id'],
+            )
+          ) {
+            kanbanData['fk_grp_col_id'] = null;
+          }
           await this.kanbansService.kanbanViewUpdate(context, {
             kanbanViewId: kview.id,
             kanban: kanbanData,
@@ -2321,6 +2345,26 @@ export class ImportService {
           });
         }
         return kview;
+      }
+      case ViewTypes.MAP: {
+        const mview = await this.mapsService.mapViewCreate(context, {
+          tableId: md.id,
+          ownedBy: vw.owned_by,
+          map: vw as ViewCreateReqType,
+          user,
+          req,
+        });
+        const geoColId = idMap.get(
+          (vw.view as Partial<MapView>)?.fk_geo_data_col_id,
+        );
+        if (geoColId) {
+          await this.mapsService.mapViewUpdate(context, {
+            mapViewId: mview.id,
+            map: { fk_geo_data_col_id: geoColId },
+            req,
+          });
+        }
+        return mview;
       }
     }
 

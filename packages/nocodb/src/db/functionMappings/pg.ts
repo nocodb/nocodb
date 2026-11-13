@@ -7,6 +7,7 @@ import commonFns, {
   getDatetimeFormatTimezone,
   isDatetimeInstantNode,
   isNumericValueArg,
+  jsonPathFromLiteral,
   safeDateAddUnitSQL,
   treatArgAsConditionalExp,
   validateDateAddUnit,
@@ -16,6 +17,10 @@ import type { MapFnArgs } from '~/db/mapFunctionName';
 import type { WorkdaySqlDialect } from '~/db/functionMappings/workday';
 import { questionFreeLiteral, rawFromBuilder } from '~/helpers/sqlSanitize';
 import {
+  guardedLogBaseSql,
+  guardedLogSql,
+  guardedPowerSql,
+  guardedSqrtSql,
   ieeeLogBaseSql,
   ieeeLogSql,
   ieeeModuloSql,
@@ -164,7 +169,7 @@ const pg = {
     const base = (await fn(pt.arguments[0])).builder;
     const exponent = (await fn(pt.arguments[1])).builder;
     if (!isPgIeeeEnabled(knex)) {
-      return { builder: knex.raw(`pow(${base}, ${exponent})`) };
+      return { builder: knex.raw(guardedPowerSql(`${base}`, `${exponent}`)) };
     }
     return { builder: knex.raw(ieeePowerSql(`${base}`, `${exponent}`)) };
   },
@@ -173,20 +178,20 @@ const pg = {
       const base = (await fn(pt.arguments[0])).builder;
       const value = (await fn(pt.arguments[1])).builder;
       if (!isPgIeeeEnabled(knex)) {
-        return { builder: knex.raw(`log(${base}, ${value})`) };
+        return { builder: knex.raw(guardedLogBaseSql(`${base}`, `${value}`)) };
       }
       return { builder: knex.raw(ieeeLogBaseSql(`${base}`, `${value}`)) };
     }
     const source = (await fn(pt.arguments[0])).builder;
     if (!isPgIeeeEnabled(knex)) {
-      return { builder: knex.raw(`log(${source})`) };
+      return { builder: knex.raw(guardedLogSql(`${source}`)) };
     }
     return { builder: knex.raw(ieeeLogSql(`${source}`)) };
   },
   SQRT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     if (!isPgIeeeEnabled(knex)) {
-      return { builder: knex.raw(`sqrt(${source})`) };
+      return { builder: knex.raw(guardedSqrtSql(`${source}`)) };
     }
     return { builder: knex.raw(ieeeSqrtSql(`${source}`)) };
   },
@@ -510,7 +515,9 @@ const pg = {
     const x = (await fn(pt.arguments[0])).builder;
     const y = (await fn(pt.arguments[1])).builder;
     if (!isPgIeeeEnabled(knex)) {
-      return { builder: knex.raw(`MOD((${x})::NUMERIC, (${y})::NUMERIC)`) };
+      return {
+        builder: knex.raw(`MOD((${x})::NUMERIC, NULLIF((${y})::NUMERIC, 0))`),
+      };
     }
     return { builder: knex.raw(ieeeModuloSql(`${x}`, `${y}`)) };
   },
@@ -722,7 +729,7 @@ END`,
               '?',
             )} )::jsonb, (${questionFreeLiteral(
               knex,
-              `$${pathArg.value}`,
+              jsonPathFromLiteral(pathArg.value),
             )})::jsonpath)`,
             `ELSE NULL END`,
           ].join(' '),
@@ -738,7 +745,7 @@ END`,
           `CASE WHEN ( ${removeNullUnicode('?')} )::jsonb IS NOT NULL`,
           `THEN jsonb_path_query_first(( ${removeNullUnicode(
             '?',
-          )} )::jsonb, CONCAT('$', ?)::jsonpath)`,
+          )} )::jsonb, CONCAT(chr(36), LTRIM(?::text, chr(36)))::jsonpath)`,
           `ELSE NULL END`,
         ].join(' '),
         [source, source, needle],

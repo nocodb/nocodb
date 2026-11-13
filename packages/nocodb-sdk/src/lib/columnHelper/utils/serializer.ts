@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { ColumnType, SelectOptionsType } from '~/lib/Api';
 import { convertDurationToSeconds } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
+import { hasDateOverflow } from '~/lib/dateTimeHelper';
 import {
   ncIsBoolean,
   ncIsFunction,
@@ -337,7 +338,15 @@ export const serializeTimeValue = (
     parsedTime = dayjs(`1999-01-01 ${value}`);
   }
 
-  if (!parsedTime.isValid()) {
+  if (
+    !parsedTime.isValid() ||
+    (/^\d{1,2}:\d{1,2}(:\d{1,2})?(\s*[AaPp][Mm])?$/.test(value) &&
+      hasDateOverflow(
+        value,
+        /[AaPp][Mm]$/.test(value) ? 'hh:mm:ss A' : 'HH:mm:ss',
+        parsedTime
+      ))
+  ) {
     return null;
   }
 

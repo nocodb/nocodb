@@ -261,6 +261,7 @@ onUnmounted(() => {
           size="xxsmall"
           type="secondary"
           class="nc-action-icon nc-many-to-many-plus-icon !h-5 !w-5 !min-w-5"
+          :aria-label="$t('activity.linkRecord')"
           @click.stop="openListDlg"
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus h-3 w-3" />
@@ -277,6 +278,7 @@ onUnmounted(() => {
             size="xxsmall"
             type="secondary"
             class="nc-action-icon nc-many-to-many-maximize-icon !h-5 !w-5 !min-w-5"
+            :aria-label="$t('general.expand')"
             @click.stop="openChildList"
           >
             <GeneralIcon icon="maximize" class="!h-3 !w-3" />

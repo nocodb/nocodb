@@ -18,7 +18,7 @@ import axios from 'axios'
 import type { CSSProperties, ComputedRef, Ref } from 'vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
-import type { CanvasGroup } from '../../../../lib/types'
+import type { CanvasGroup, GridRemoteFocus } from '../../../../lib/types'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered, renderSingleLineText } from './utils/canvas'
@@ -70,7 +70,7 @@ const props = defineProps<{
     rowOverwrite?: Record<string, any>,
     path?: Array<number>,
   ) => Row | undefined
-  deleteRow?: (rowIndex: number, path?: Array<number>, options?: { notify?: boolean }) => Promise<void>
+  deleteRow?: (rowIndex: number, path?: Array<number>, options?: { notify?: boolean }) => Promise<boolean | void>
   updateOrSaveRow: (
     row: Row,
     property?: string,
@@ -79,9 +79,9 @@ const props = defineProps<{
     beforeRow?: string,
     path?: Array<number>,
   ) => Promise<any>
-  deleteSelectedRows: (path?: Array<number>) => Promise<void>
+  deleteSelectedRows: (path?: Array<number>) => Promise<number | void>
   clearInvalidRows?: (path?: Array<number>) => void
-  deleteRangeOfRows: (cellRange: CellRange, path?: Array<number>, options?: { notify?: boolean }) => Promise<void>
+  deleteRangeOfRows: (cellRange: CellRange, path?: Array<number>, options?: { notify?: boolean }) => Promise<number | void>
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
@@ -298,7 +298,7 @@ const { selectedTemplate } = useRecordTemplate()
 const { base } = storeToRefs(useBase())
 const route = useRoute()
 const { $e, $api } = useNuxtApp()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const tooltipStore = useTooltipStore()
 const { targetReference, placement } = storeToRefs(tooltipStore)
 const tooltipRef = ref()
@@ -408,6 +408,8 @@ const {
   imageLoader,
   readOnly,
   baseRoleLoader,
+
+  findRemoteRecordMarkAt,
 
   // column resize related refs
   colResizeHoveredColIds,
@@ -805,6 +807,18 @@ function resetRowSelection() {
     }
   })
 
+  vSelectedAllRecords.value = false
+  vSelectedAllRecordsSkipPks.value = {}
+  shiftSelectAnchor = { index: null, path: [] }
+}
+
+// Unchecks rows in every cache, group caches included.
+function clearRowSelectionInAllCaches() {
+  for (const cache of [getDataCache(), ...groupDataCache.value.values()]) {
+    cache.cachedRows.value.forEach((row) => {
+      if (row.rowMeta.selected) row.rowMeta.selected = false
+    })
+  }
   vSelectedAllRecords.value = false
   vSelectedAllRecordsSkipPks.value = {}
   shiftSelectAnchor = { index: null, path: [] }
@@ -1579,7 +1593,15 @@ async function handleMouseDown(e: MouseEvent) {
     )
   ) {
     onActiveCellChanged()
-    resetRowSelection()
+    if (clickType !== MouseClickType.RIGHT_CLICK) resetRowSelection()
+  }
+
+  // Right-click keeps checked records only on a checked row, so the bulk menu never acts on other rows.
+  if (clickType === MouseClickType.RIGHT_CLICK) {
+    const isRowChecked = vSelectedAllRecords.value
+      ? !ncHasProperties(vSelectedAllRecordsSkipPks.value, row.rowMeta.rowIndex!)
+      : !!row.rowMeta?.selected
+    if (!isRowChecked) clearRowSelectionInAllCaches()
   }
 
   // If the user is trying to open the context menu
@@ -1777,6 +1799,27 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         toggleExpand(group)
       } else if (element?.isRow && row) {
         if (removeInlineAddRecord.value && rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
+
+        // A tap on a Button cell's button runs its action instead of opening the record
+        const { column: tappedColumn } = findClickedColumn(x, scrollLeft.value)
+        if (tappedColumn?.columnObj?.uidt === UITypes.Button) {
+          const handled = await handleCellClick({
+            event: e,
+            row,
+            column: tappedColumn,
+            value: row.row?.[tappedColumn.title],
+            mousePosition: { x, y },
+            pk: extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
+            selected: false,
+            imageLoader,
+            path: group?.path ?? [],
+            baseRoleLoader,
+          })
+          if (handled) {
+            triggerRefreshCanvas()
+            return
+          }
+        }
 
         expandForm(row, undefined, false, group?.path)
       }
@@ -2308,6 +2351,14 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   }
 }
 
+function remoteRecordMarkTooltip(focuses: GridRemoteFocus[]) {
+  // One name per person, however many tabs they have the record open in
+  const names = [...new Map(focuses.map((focus) => [focus.userId, focus.name])).values()]
+  // Locale keys use `_` (pt_BR); Intl wants BCP 47
+  const list = new Intl.ListFormat(locale.value.replace('_', '-'), { style: 'long', type: 'conjunction' }).format(names)
+  return t('labels.isViewingThisRecord', { names: list }, names.length)
+}
+
 const getHeaderTooltipRegions = (
   startColIndex: number,
   endColIndex: number,
@@ -2666,6 +2717,15 @@ const handleMouseMove = (e: MouseEvent) => {
     triggerRefreshCanvas()
   }
   if (mousePosition.y > headerRowHeight.value) {
+    const recordMark = findRemoteRecordMarkAt(mousePosition.x, mousePosition.y)
+    if (recordMark) {
+      tryShowTooltip({
+        rect: { x: recordMark.x, y: recordMark.y, width: 4, height: recordMark.height },
+        text: remoteRecordMarkTooltip(recordMark.focuses),
+        mousePosition,
+      })
+    }
+
     const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
     const row = element?.row
     const rowIndex = element?.rowIndex
@@ -3626,6 +3686,16 @@ onClickOutside(
   },
 )
 
+// Text is measured and cached on first paint; remeasure once a late font face (e.g. Inter italic) loads.
+useEventListener(
+  () => document.fonts,
+  'loadingdone',
+  () => {
+    clearTextCache()
+    triggerRefreshCanvas()
+  },
+)
+
 /**
  * Interface builder: clicking the config chrome (properties panel, topbar, toolbar
  * incl. the user-filter tab strip, page sidebar) drops the active cell. A cell held
@@ -3852,15 +3922,8 @@ watch(
 defineExpose({
   scrollToRow: scrollToCell,
   openColumnCreate,
-  // Unchecks rows in every cache, group caches included.
   clearRowSelection: () => {
-    for (const cache of [getDataCache(), ...groupDataCache.value.values()]) {
-      cache.cachedRows.value.forEach((row) => {
-        if (row.rowMeta.selected) row.rowMeta.selected = false
-      })
-    }
-    vSelectedAllRecords.value = false
-    vSelectedAllRecordsSkipPks.value = {}
+    clearRowSelectionInAllCaches()
     triggerRefreshCanvas()
   },
   // Re-checks rows by primary key once a bulk save's reload brings them back; reports what it found.
@@ -4269,6 +4332,7 @@ watch(
                 class="!rounded-l-none nc-add-record-more-info"
                 type="secondary"
                 :shadow="false"
+                :aria-label="$t('labels.newRecordOptions')"
               >
                 <GeneralIcon icon="arrowUp" />
               </NcButton>

@@ -589,7 +589,8 @@ export const binaryExpressionBuilder = async ({
           // an "invalid input syntax for type double precision" runtime error.
           return `(CASE WHEN btrim((${expr})::text) ~ '^[-+]?[0-9]+(\\.[0-9]+)?$' THEN (${expr})::double precision END)`;
         case 'mssql':
-          return `TRY_CAST(${expr} AS FLOAT)`;
+          // TRY_CAST('' AS FLOAT) is 0, not NULL
+          return `TRY_CAST(NULLIF(LTRIM(RTRIM(${expr})), '') AS FLOAT)`;
         case 'oracledb':
           return `CAST(${expr} AS BINARY_DOUBLE DEFAULT NULL ON CONVERSION ERROR)`;
         // mysql reads 'x' as 0 and sqlite ranks any text above any number;
@@ -804,6 +805,10 @@ export const binaryExpressionBuilder = async ({
       // needs it: the COALESCE above turns a blank divisor into a literal 0,
       // which pg rejects with `division by zero` instead of returning NULL.
       sql = ieeeModuloSql(left, right);
+    } else if (pt.operator === '%' && knex.clientType() === 'pg') {
+      // pg raises on a zero divisor (a blank one is COALESCEd to 0), failing
+      // every row; blank that row instead.
+      sql = `${left} % NULLIF(${right}, 0)`;
     } else if (pt.operator === '/') {
       // handle divide by zero
       const right = await callExpressionBuilder({

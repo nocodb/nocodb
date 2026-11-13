@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
-import { NavigateDir } from '#imports'
+import { NavigateDir } from '~/lib/enums'
 
 interface Props {
   column: ColumnType
@@ -97,13 +97,25 @@ const sqlUi = computed(() => baseStore.getSqlUiBySourceId(meta.value?.source_id 
 
 const abstractType = computed(() => column.value && sqlUi.value?.getAbstractType(column.value))
 
+const NOT_SAVED = Symbol('notSaved')
+
+// Value last sent with a save, so the unmount save does not repeat a write still in flight
+let lastSavedValue: unknown = NOT_SAVED
+
 const emitSave = () => {
+  lastSavedValue = currentRow.value.row?.[column.value.title]
   emit('save', [currentRow.value, column.value.title, state.value, undefined, undefined, path.value])
 }
 
 const syncValue = useDebounceFn(
   () => {
     currentRow.value.rowMeta.changed = false
+    // Esc cancelled the edit before this fired: nothing to save.
+    if (currentRow.value.rowMeta.skipPendingAutosave) {
+      delete currentRow.value.rowMeta.skipPendingAutosave
+      return
+    }
+    currentRow.value.rowMeta.autosavedDuringEdit = true
     emitSave()
   },
   500,
@@ -116,7 +128,11 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 onBeforeUnmount(() => {
   if (!isCanvasInjected) return
-  if (currentRow.value.oldRow?.[column.value.title] === currentRow.value.row?.[column.value.title]) return
+  const value = currentRow.value.row?.[column.value.title]
+  // Esc after an autosave: send the restored value even if the stored copy hasn't caught up yet.
+  const writeBack = !!currentRow.value.rowMeta.writeBackOnClose
+  delete currentRow.value.rowMeta.writeBackOnClose
+  if (!writeBack && (currentRow.value.oldRow?.[column.value.title] === value || lastSavedValue === value)) return
   currentRow.value.rowMeta.changed = false
   emitSave()
 })

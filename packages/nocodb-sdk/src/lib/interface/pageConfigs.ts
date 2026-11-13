@@ -18,6 +18,7 @@ import { InterfacePageLayoutTypes } from './enums';
 import { isSystemColumn } from '~/lib/helperFunctions';
 import { generateRandomUuid } from '~/lib/stringHelpers';
 import type { DateAxisUtilizationConfig } from '../timelineUtilization';
+import type { KanbanStackSummary } from '../kanbanSummary';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Visualizations (table pages; also embeddable in dashboard groups)
@@ -196,6 +197,8 @@ export interface InterfaceKanbanVizConfig
   display_field_names?: boolean;
   /** Skip blank (non-virtual) fields on cards — no empty label/value gaps. */
   hide_empty_card_fields?: boolean;
+  /** Per-stack summary — set by the builder; viewers can't change it. */
+  stack_summary?: KanbanStackSummary | null;
 }
 
 /**
@@ -343,6 +346,8 @@ export interface InterfaceTimelineVizConfig
   wrap_labels?: boolean;
   record_width?: 'timescale_filled' | 'fixed';
   group_by?: Array<{ fk_column_id: string; direction?: 'asc' | 'desc' }>;
+  /** Split a multi-value group field (many-to-many link, multi-user User) into one group per value. */
+  group_by_split?: boolean;
   /** Per-time-bucket summary bar config (+ per-group summaries when grouped). */
   summary?: DateAxisSummaryConfig | null;
   initial_view?: {

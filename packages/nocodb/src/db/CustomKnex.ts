@@ -617,16 +617,28 @@ knex.QueryBuilder.extend('concat', function (cn: any, orderBy?: any) {
     case 'sqlite3':
       this.select(this.client.raw(`GROUP_CONCAT(?? , ',')`, [cn]));
       break;
-    case 'mssql':
+    case 'mssql': {
+      // An aggregate cannot take a subquery (error 130, e.g. a looked-up
+      // rollup): select a computed value through an APPLY first.
+      let ref = cn;
+      if (typeof cn !== 'string') {
+        this.joinRaw('CROSS APPLY (SELECT ? AS ??) AS ??', [
+          cn,
+          '__nc_cv',
+          '__nc_ca',
+        ]);
+        ref = '__nc_ca.__nc_cv';
+      }
       // STRING_AGG (SQL Server 2017+); cast so non-text lookup values
       // aggregate. RTRIM strips trailing-space padding T-SQL preserves on
       // fixed-length char/nchar columns (no-op for varchar/numeric).
       this.select(
         this.client.raw(`STRING_AGG(RTRIM(CAST(?? AS NVARCHAR(MAX))), ',')`, [
-          cn,
+          ref,
         ]),
       );
       break;
+    }
     case 'oracledb':
       // LISTAGG requires a WITHIN GROUP clause; ORDER BY NULL keeps the
       // subquery's input order. TO_CHAR so non-text lookup values aggregate.

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 interface Props {
-  state: string
+  state?: string
   baseId: string
   reload?: boolean
 }

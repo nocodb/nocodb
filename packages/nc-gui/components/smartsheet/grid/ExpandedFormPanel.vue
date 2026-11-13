@@ -127,10 +127,14 @@ const {
   state: rowState,
   isNew,
   isSaving,
+  isRecordDeleted,
   loadRow: _loadRow,
   primaryKey,
   row: _row,
   save: _save,
+  confirmOverwriteConflicts,
+  conflictingColumns,
+  takeRemoteChanges,
   formatSaveError,
   loadComments,
   comments,
@@ -208,6 +212,7 @@ const isSaveDisabled = computed(() => {
   // a freshly duplicated row (`rowMeta.new` is set by MoreOptionsMenu's
   // duplicate handler — it replaces the row wholesale, so `changedColumns`
   // stays empty even though the form holds unsaved data).
+  if (isRecordDeleted.value) return true
   return changedColumns.value.size === 0 && !isNew.value && !hasLtarChanges.value
 })
 
@@ -255,10 +260,16 @@ watch(
   { immediate: true },
 )
 
-// Returns true on success, false on failure (error is surfaced via message.error).
+// Returns true on success, false on failure (error is surfaced via message.error) or a declined overwrite.
 // saveAndContinue relies on the return value to decide whether to navigate.
 const save = async (): Promise<boolean> => {
+  if (isSaving.value) return false
   isSaving.value = true
+
+  if (!isNew.value && !(await confirmOverwriteConflicts())) {
+    isSaving.value = false
+    return false
+  }
 
   try {
     if (isNew.value) {
@@ -745,9 +756,27 @@ watch(activeRowId, () => {
           </NcTooltip>
         </div>
 
+        <NcTooltip v-if="conflictingColumns.length" placement="bottom">
+          <template #title>{{
+            $t(hasLtarChanges ? 'tooltip.fieldChangedByOthersDropLinks' : 'tooltip.fieldChangedByOthers', {
+              fields: conflictingColumns.join(', '),
+            })
+          }}</template>
+          <NcButton
+            class="!px-1"
+            type="secondary"
+            size="xs"
+            data-testid="nc-expanded-form-remote-change"
+            @click="takeRemoteChanges"
+          >
+            <GeneralIcon icon="reload" class="w-4 h-4 text-nc-content-orange-medium" />
+          </NcButton>
+        </NcTooltip>
+
         <!-- Save — boundary between record navigation and mode switcher.
              Visually prominent (primary type, blue when there are unsaved
              changes), so position is less load-bearing than visual state. -->
+
         <NcTooltip
           v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
           :title="isNew ? $t('general.create') : $t('general.save')"
@@ -836,6 +865,14 @@ watch(activeRowId, () => {
       </div>
 
       <div class="flex-1 min-h-0 overflow-hidden flex flex-col">
+        <div
+          v-if="isRecordDeleted && !isNew"
+          class="nc-expanded-form-deleted-notice flex items-center gap-2 px-4 py-2 border-b-1 border-nc-border-gray-medium bg-nc-bg-red-light text-nc-content-red-dark text-sm flex-shrink-0"
+          data-testid="nc-expanded-form-deleted-notice"
+        >
+          <GeneralIcon icon="ncAlertCircle" class="flex-none h-4 w-4" />
+          {{ $t('labels.recordDeletedCannotSave') }}
+        </div>
         <div v-if="isLoading" class="flex items-center justify-center h-full">
           <GeneralLoader />
         </div>

@@ -2374,6 +2374,10 @@ export class AtImportProcessor {
             } else if (value?.value) {
               // AI generated text
               rec[key] = value.value;
+            } else if (value && typeof value === 'object') {
+              // AI field with no generated text (empty/error state): drop the
+              // object, it would be stored as "[object Object]"
+              delete rec[key];
             }
             break;
 

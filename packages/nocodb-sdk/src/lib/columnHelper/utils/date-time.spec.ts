@@ -175,6 +175,17 @@ describe('serialize', () => {
       serializeDateOrDateTimeValue('not-a-date', { col: col as any })
     ).toBeNull();
   });
+
+  it.each([
+    ['31/04/2026', 'DD/MM/YYYY'],
+    ['30/02/2023', 'DD/MM/YYYY'],
+    ['31 Apr 2026', 'DD MMM YYYY'],
+    ['2023-02-29', 'YYYY-MM-DD'],
+    ['2026-13-45', 'YYYY-MM-DD'],
+  ])('should return null for the impossible date %s', (value, date_format) => {
+    const col = { uidt: UITypes.Date, meta: { date_format } };
+    expect(serializeDateOrDateTimeValue(value, { col: col as any })).toBeNull();
+  });
 });
 
 // Regression tests for the Jalali (Persian) paste / fill / aggregation paths.

@@ -2208,6 +2208,11 @@ export class ColumnsService implements IColumnsService {
         }
 
         return safeTable;
+      } else if (isMetaOnlyUpdateAllowed) {
+        // Read-only schema or synced field: the type is locked, not unconvertible
+        NcError.get(context).notImplemented(
+          `Updating ${column.uidt} => ${colBody.uidt}`,
+        );
       } else {
         throwFieldNotConvertible(context, column.uidt, colBody.uidt);
       }

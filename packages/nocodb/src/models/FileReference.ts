@@ -333,11 +333,14 @@ export default class FileReference {
 
     try {
       // sumSize skips soft_deleted rows, which is every row being restored here.
+      // PG and MySQL return SUM as a string.
       fileReferencesSize =
-        (
+        +(
           await ncMeta
             .knexConnection(MetaTable.FILE_REFERENCES)
             .sum('file_size as total')
+            .where('fk_workspace_id', context.workspace_id)
+            .where('base_id', context.base_id)
             .whereIn('id', fileReferences)
             .where('soft_deleted', true)
             .first()

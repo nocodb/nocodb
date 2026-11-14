@@ -115,7 +115,8 @@ export class DocumentsV3Service {
     param: { docId: string },
     req: NcRequest,
   ): Promise<boolean> {
-    return await this.documentsService.delete(context, param.docId, req);
+    await this.documentsService.delete(context, param.docId, req);
+    return true;
   }
 
   async docReorder(

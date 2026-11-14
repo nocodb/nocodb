@@ -202,17 +202,26 @@ function isHtmlInert(segment: string): boolean {
 
 /**
  * A raw HTML tag at the start of a line can open a markdown HTML block, where
- * backticks are not code. Only a mid-line `<br>` is known not to.
+ * backticks are not code. Any tag but `<br>` counts. A line-start `<br>` (the
+ * composer writes one per empty paragraph) only counts when code sits in the
+ * block it opens, which ends at the next blank line.
  */
-function mayOpenHtmlBlock(text: string): boolean {
+function mayOpenHtmlBlock(text: string, placeholder: RegExp): boolean {
   let lineStart = 0;
   let lastIndex = 0;
+  let checkedTo = -1;
   for (const m of text.matchAll(/<(\/?[a-z0-9]+)/gi)) {
     if (m[1].toLowerCase() !== 'br') return true;
     const nl = text.slice(lastIndex, m.index).lastIndexOf('\n');
     if (nl !== -1) lineStart = lastIndex + nl + 1;
     lastIndex = m.index;
-    if (/^[\s>*+\-\d.)]*$/.test(text.slice(lineStart, m.index))) return true;
+    const atLineStart = /^[\s>*+\-\d.)]*$/.test(text.slice(lineStart, m.index));
+    if (atLineStart && m.index >= checkedTo) {
+      const blank = /\n[ \t]*\n/g;
+      blank.lastIndex = m.index;
+      checkedTo = blank.exec(text)?.index ?? text.length;
+      if (placeholder.test(text.slice(lineStart, checkedTo))) return true;
+    }
     lineStart = m.index;
   }
   return false;
@@ -239,7 +248,7 @@ export function sanitizeCommentBody(input: unknown): string {
   );
 
   // Code is kept as typed only where markdown will render it as code.
-  const keepRaw = !mayOpenHtmlBlock(sanitized);
+  const keepRaw = !mayOpenHtmlBlock(sanitized, new RegExp(`nccode${nonce}i`));
   let out = '';
   let pos = 0;
   let insideTag = false;

@@ -31701,7 +31701,8 @@
               "extension",
               "record",
               "hook",
-              "app"
+              "app",
+              "document"
             ]
           },
           "resource_id": {

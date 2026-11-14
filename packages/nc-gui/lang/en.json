@@ -1336,7 +1336,7 @@
     "vaults": "Vaults",
     "vaultDisconnect": "Disconnect vault",
     "vaultEdit": "Edit vault",
-    "baseTrash": "Project Trash",
+    "baseTrash": "Project trash",
     "noWorkspaceAccess": "No workspace access",
     "convertLegacyLink": "Upgrade Link Field",
     "versionHistory": "Version History",
@@ -8390,7 +8390,7 @@
       "migrating": "Migrating..."
     },
     "info": {
-      "docMovedToTrash": "Moved to Project Trash",
+      "docMovedToTrash": "Moved to project trash",
       "passwordChangeSignsOut": "Changing your password signs you out on other devices.",
       "disconnectAppsOnPasswordChange": "Also revokes apps like Claude or ChatGPT, and your API, MCP and app tokens.",
       "passwordResetAppsNotDisconnected": "Your password was reset, but we couldn't disconnect apps. Sign in and change your password with \"Also disconnect apps\" ticked.",

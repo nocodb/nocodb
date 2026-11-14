@@ -312,6 +312,10 @@ export function sanitizeSortValue(
  *    conservative `isCrossBaseLink() || !access`. Relaxing it would reopen the oracle
  *    on MySQL/disabled-optimization (unoptimized fetcher), where the SELECT genuinely
  *    hides the columns.
+ *  - v2/v3 `/links/` (`DataTableService.nestedDataList`): where/sort follow
+ *    `hasLimitedAccess` alone; the caller holds the projection to pk/pv separately for
+ *    any cross-base link. Safe because the oracle only matters to a caller without
+ *    access — don't copy this where the predicate must match the SELECT.
  *
  * Must be invoked at every nested-link entry point that forwards request query to a
  * fetcher — because the EE optimized path builds its own query from `param.query`
@@ -336,11 +340,10 @@ export async function restrictNestedLinkQuery(
   options?: {
     /**
      * Precomputed "user lacks visibility access to the related table" decision,
-     * threaded from the caller's SELECT exposure (the EE optimized list path's
-     * `extractOnlyPrimaries: hasLimitedAccess`). When provided, the where/sort is
-     * restricted iff this is true — resolving access once, from the same source as
-     * the SELECT, so the predicate and the SELECT can't disagree. Omitted everywhere
-     * else, where the conservative cross-base gate is computed here (see fn docs).
+     * threaded from the EE optimized list path (`extractOnlyPrimaries:
+     * hasLimitedAccess`) and v2/v3 `/links/`. When provided, the where/sort is
+     * restricted iff this is true. Omitted everywhere else, where the conservative
+     * cross-base gate is computed here (see fn docs).
      */
     hasLimitedAccess?: boolean;
   },

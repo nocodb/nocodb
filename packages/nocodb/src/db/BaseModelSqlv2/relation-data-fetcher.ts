@@ -1197,9 +1197,10 @@ export const relationDataFetcher = (param: {
         aliasColObjMap,
       );
 
+      // Filters target the related table: compile them in its base's context.
       await conditionV2(
         // cast as any before further refactor
-        baseModel as any,
+        childBaseModel as any,
         [
           new Filter({
             children: filterObj,

@@ -16,6 +16,7 @@ const {
   formattedData,
   formattedSideBarData,
   calendarRange,
+  getRangeRecords,
   selectedDate,
   displayField,
   updateRowProperty,
@@ -212,7 +213,8 @@ const calendarData = computed(() => {
   const recordsInDay = Array.from({ length: maxVisibleDays.value }, () => ({})) as Record<number, Record<number, boolean>>
   const recordsInRange = [] as Row[]
 
-  calendarRange.value.forEach(({ fk_from_col, fk_to_col }) => {
+  calendarRange.value.forEach((range) => {
+    const { fk_from_col, fk_to_col } = range
     if (!fk_from_col) return
 
     const processRecord = (record: Row) => {
@@ -266,7 +268,7 @@ const calendarData = computed(() => {
         ...record,
         rowMeta: {
           ...record.rowMeta,
-          range: { fk_from_col, fk_to_col },
+          range,
           position,
           id,
           rowIndex: suitableRow,
@@ -294,7 +296,7 @@ const calendarData = computed(() => {
     }
 
     if (fk_to_col) {
-      formattedData.value
+      getRangeRecords(range)
         .filter((r) => {
           const startDate = r.row[fk_from_col.title!] ? dayjs(r.row[fk_from_col.title!]) : null
           const endDate = r.row[fk_to_col.title!] ? dayjs(r.row[fk_to_col.title!]) : null
@@ -311,7 +313,7 @@ const calendarData = computed(() => {
         })
         .forEach(processRecord)
     } else {
-      formattedData.value.forEach(processRecord)
+      getRangeRecords(range).forEach(processRecord)
     }
   })
 

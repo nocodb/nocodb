@@ -9,6 +9,7 @@ const {
   formattedData,
   formattedSideBarData,
   calendarRange,
+  getRangeRecords,
   selectedDate,
   displayField,
   viewMetaProperties,
@@ -322,7 +323,7 @@ const recordsAcrossAllRange = computed<{
 
     // We fetch all the records that match the calendar ranges in a single time.
     // But not all fetched records are valid for the certain range, so we filter them out & sort them
-    const sortedFormattedData = [...formattedData.value]
+    const sortedFormattedData = [...getRangeRecords(range)]
       .filter((record) => {
         if (fromCol && toCol) {
           const hasFrom = !!record.row[fromCol.title!]

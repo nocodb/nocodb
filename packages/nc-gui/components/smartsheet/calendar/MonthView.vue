@@ -16,6 +16,7 @@ const {
   sideBarFilterOption,
   displayField,
   calendarRange,
+  getRangeRecords,
   viewMetaProperties,
   showSideMenu,
   updateRowProperty,
@@ -376,7 +377,7 @@ const recordsToDisplay = computed<{
     const endCol = range.fk_to_col
 
     // Filter out records that don't satisfy the range and sort them by start date
-    const sortedFormattedData = [...formattedData.value]
+    const sortedFormattedData = [...getRangeRecords(range)]
       .filter((record) => {
         if (startCol && endCol) {
           const fromDate = record.row[startCol.title!] ? timezoneDayjs.timezonize(record.row[startCol.title!]) : null

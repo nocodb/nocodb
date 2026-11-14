@@ -11,6 +11,7 @@ const {
   selectedTime,
   formattedData,
   calendarRange,
+  getRangeRecords,
   formattedSideBarData,
   updateRowProperty,
   displayField,
@@ -228,7 +229,7 @@ const recordsAcrossAllRange = computed<{
 
     // We fetch all the records that match the calendar ranges in a single time.
     // But not all fetched records are valid for the certain range, so we filter them out & sort them
-    const sortedFormattedData = [...formattedData.value]
+    const sortedFormattedData = [...getRangeRecords(range)]
       .filter((record) => {
         const fromDate = fromCol?.title && record.row[fromCol.title] ? timezoneDayjs.timezonize(record.row[fromCol.title]) : null
 

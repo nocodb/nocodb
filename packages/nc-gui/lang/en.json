@@ -7264,6 +7264,7 @@
     "toggleSidebar": "Toggle Sidebar",
     "endDate": "End Date",
     "withEndDate": "With end date",
+    "addDateRange": "Add date range",
     "googleOAuth": "Google OAuth",
     "registerOIDC": "Register OIDC Identity Provider",
     "registerSAML": "Register SAML Identity Provider",

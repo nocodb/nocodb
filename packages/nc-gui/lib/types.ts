@@ -161,6 +161,7 @@ interface Row {
       fk_from_col: ColumnType
       fk_to_col: ColumnType | null
       is_readonly?: boolean
+      colorIndex?: number
     }
     id?: string
     position?: string

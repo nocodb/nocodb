@@ -25,6 +25,7 @@ const {
   formattedData,
   formattedSideBarData,
   calendarRange,
+  getRangeRecords,
   updateRowProperty,
   isSyncedFromColumn,
   isAddDeleteInlineEnabled,
@@ -69,7 +70,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     const fromCol = range.fk_from_col
     const endCol = range.fk_to_col
     if (fromCol && endCol) {
-      const filteredData = formattedData.value.filter((record) => {
+      const filteredData = getRangeRecords(range).filter((record) => {
         const startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
         const endDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
         // If either date is missing, treat as single-day event using the available date
@@ -114,7 +115,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
         })
       }
     } else if (fromCol) {
-      for (const record of formattedData.value) {
+      for (const record of getRangeRecords(range)) {
         const id = record.rowMeta.id ?? generateRandomNumber()
 
         recordsByRange.push({

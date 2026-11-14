@@ -148,12 +148,31 @@ const filterEndDateOptions = (options, startColumnId) => {
   })
 }
 
-/*
-const removeRange = async (id: number) => {
-  _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
+// Additional ranges must match the first range's type and timezone, and can't reuse a used field
+function getFromOptions(index: number) {
+  const options = [...(dateFieldOptions.value ?? [])]
+  if (index === 0) return options
+
+  const firstColumn = meta.value?.columns?.find((c) => c.id === _calendar_ranges.value[0]?.fk_from_column_id)
+  const used = new Set(
+    _calendar_ranges.value
+      .flatMap((r, i) => (i === index ? [] : [r.fk_from_column_id, r.fk_to_column_id]))
+      .filter((id): id is string => !!id),
+  )
+
+  return options.filter(
+    (o) => o.uidt === firstColumn?.uidt && o.col?.meta?.timezone === firstColumn?.meta?.timezone && !used.has(o.value as string),
+  )
+}
+
+function addRange() {
+  _calendar_ranges.value.push({ fk_from_column_id: undefined, fk_to_column_id: null })
+}
+
+async function removeRange(index: number) {
+  _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== index)
   await saveCalendarRanges()
 }
-*/
 
 const onValueChange = async () => {
   _calendar_ranges.value = _calendar_ranges.value.map((range, i) => {
@@ -214,9 +233,22 @@ const onValueChange = async () => {
           class="flex flex-col w-full gap-2 mb-2"
           data-testid="nc-calendar-range-option"
         >
-          <span class="text-nc-content-gray">
-            {{ $t('labels.organiseBy') }}
-          </span>
+          <div class="flex items-center justify-between">
+            <span class="text-nc-content-gray">
+              {{ $t('labels.organiseBy') }}
+            </span>
+            <NcTooltip v-if="id > 0 && !isLocked" :title="$t('general.remove')">
+              <NcButton
+                v-e="['c:calendar:range:remove']"
+                size="xsmall"
+                type="text"
+                data-testid="nc-calendar-range-remove"
+                @click="removeRange(id)"
+              >
+                <GeneralIcon icon="delete" />
+              </NcButton>
+            </NcTooltip>
+          </div>
 
           <a-select
             v-model:value="range.fk_from_column_id"
@@ -234,15 +266,7 @@ const onValueChange = async () => {
             @click.stop
           >
             <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-            <a-select-option
-              v-for="(option, opId) in [...(dateFieldOptions ?? [])].filter((r) => {
-                if (id === 0) return true
-                const firstRange = (dateFieldOptions ?? []).find((f) => f.value === calendarRange[0].fk_from_column_id)
-                return firstRange?.uidt === r.uidt
-              })"
-              :key="opId"
-              :value="option.value"
-            >
+            <a-select-option v-for="(option, opId) in getFromOptions(id)" :key="opId" :value="option.value">
               <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                 <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
                   <SmartsheetHeaderIcon :column="option.col" />
@@ -352,6 +376,22 @@ const onValueChange = async () => {
             </PaymentUpgradeBadgeProvider>
           </div>
         </div>
+
+        <NcButton
+          v-if="isEeUI && isSetup && !isLocked"
+          v-e="['c:calendar:range:add']"
+          size="small"
+          type="text"
+          :shadow="false"
+          :disabled="!_calendar_ranges[_calendar_ranges.length - 1]?.fk_from_column_id"
+          data-testid="nc-calendar-range-add"
+          @click="addRange"
+        >
+          <div class="flex gap-2 items-center">
+            <component :is="iconMap.plus" class="h-4 w-4" />
+            {{ $t('activity.addDateRange') }}
+          </div>
+        </NcButton>
 
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
           <GeneralIcon icon="warning" class="text-sm mt-0.5 text-nc-content-orange-medium" />

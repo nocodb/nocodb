@@ -501,6 +501,22 @@ describe('validateFormulaAndExtractTreeWithType', () => {
     ).rejects.toHaveProperty('type', FormulaErrorType.INVALID_ARG);
   });
 
+  // the API shows this message; "Required arguments missing" was wrong for extra args
+  it.each([
+    ['UPPER("a", "b")', 'UPPER requires 1 arguments'],
+    ['NOW(1)', 'NOW requires 0 arguments'],
+    ['DATETIME_FORMAT("2024-01-01", "YYYY", "x")', 'DATETIME_FORMAT required maximum 2 arguments'],
+  ])('should name the expected argument count for %s', async (formula, msg) => {
+    await expect(
+      validateFormulaAndExtractTreeWithType({
+        formula,
+        columns: mockColumns,
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      })
+    ).rejects.toHaveProperty('message', msg);
+  });
+
   it('should throw INVALID_ARG for incorrect argument type (identifier)', async () => {
     await expect(
       validateFormulaAndExtractTreeWithType({

@@ -1443,7 +1443,7 @@ export async function validateFormulaAndExtractTreeWithType({
                     }
                   : undefined,
             },
-            'Required arguments missing'
+            `${calleeName} requires ${validation.args.rqd} arguments`
           );
         } else if (
           validation.args.min !== undefined &&
@@ -1463,7 +1463,7 @@ export async function validateFormulaAndExtractTreeWithType({
                     }
                   : undefined,
             },
-            'Minimum arguments required'
+            `${calleeName} required minimum ${validation.args.min} arguments`
           );
         } else if (
           validation.args.max !== undefined &&
@@ -1483,7 +1483,7 @@ export async function validateFormulaAndExtractTreeWithType({
                     }
                   : undefined,
             },
-            'Maximum arguments missing'
+            `${calleeName} required maximum ${validation.args.max} arguments`
           );
         }
       }

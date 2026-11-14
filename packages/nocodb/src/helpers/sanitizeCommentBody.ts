@@ -64,9 +64,12 @@ const NON_TAG_LT = new RegExp(
   'gi',
 );
 
-const escapeHtml = (s: string) =>
+// `&` is left alone in both so a second pass doesn't re-escape entities.
+// In text, `<` is the only character that can start markup.
+const escapeTextLt = (s: string) => s.replace(/</g, '&lt;');
+// In an attribute value, quotes are what could break out.
+const escapeAttrValue = (s: string) =>
   s
-    .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
@@ -262,9 +265,11 @@ export function sanitizeCommentBody(input: unknown): string {
     const segment = code[Number(m[1])];
     out +=
       sanitized.slice(pos, m.index) +
-      (keepRaw && !insideTag && isHtmlInert(segment)
+      (insideTag
+        ? escapeAttrValue(segment)
+        : keepRaw && isHtmlInert(segment)
         ? segment
-        : escapeHtml(segment));
+        : escapeTextLt(segment));
     pos = m.index + m[0].length;
   }
   return out + sanitized.slice(pos);

@@ -8390,6 +8390,7 @@
       "migrating": "Migrating..."
     },
     "info": {
+      "docDeleteGoesToTrash": "Its sub-pages and comments go with it. You can restore them from Project Trash.",
       "passwordChangeSignsOut": "Changing your password signs you out on other devices.",
       "disconnectAppsOnPasswordChange": "Also revokes apps like Claude or ChatGPT, and your API, MCP and app tokens.",
       "passwordResetAppsNotDisconnected": "Your password was reset, but we couldn't disconnect apps. Sign in and change your password with \"Also disconnect apps\" ticked.",
@@ -9846,7 +9847,8 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "withSubPages": "(and {count} sub-page) | (and {count} sub-pages)"
   },
   "payment": {
     "billingOwner": {

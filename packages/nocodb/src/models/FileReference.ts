@@ -332,12 +332,16 @@ export default class FileReference {
     let fileReferencesSize = 0;
 
     try {
-      fileReferencesSize = await FileReference.sumSize(
-        context,
-        {},
-        fileReferences,
-        ncMeta,
-      );
+      // sumSize skips soft_deleted rows, which is every row being restored here.
+      fileReferencesSize =
+        (
+          await ncMeta
+            .knexConnection(MetaTable.FILE_REFERENCES)
+            .sum('file_size as total')
+            .whereIn('id', fileReferences)
+            .where('soft_deleted', true)
+            .first()
+        )?.total || 0;
     } catch (error) {
       fileReferencesSize = -1;
       logger.error('Error while summing file reference size');
@@ -929,7 +933,9 @@ export default class FileReference {
       .knexConnection(MetaTable.FILE_REFERENCES)
       .select('id')
       .where({ base_id: context.base_id, deleted: false, soft_deleted: false })
-      .whereIn('fk_doc_id', docIds);
+      .whereIn('fk_doc_id', docIds)
+      // Revision snapshots are purged with their revisions (DocRevision.deleteForDoc).
+      .whereNull('fk_revision_id');
 
     return rows.map((r) => r.id);
   }

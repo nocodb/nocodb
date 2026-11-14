@@ -3,6 +3,8 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import {
+  COMPARISON_SUB_OPS,
+  DAY_COUNT_COMPARISON_SUB_OPS,
   getNodejsTimezone,
   isDateTimeStringHasTimezone,
   isFieldTrackingLmtCol,
@@ -73,6 +75,51 @@ export const dateTimeFromFormat = (
   return parsed.isValid() ? parsed.format('YYYY-MM-DD HH:mm:ssZ') : null;
 };
 
+const NULL_CHECK_OPS = [
+  'blank',
+  'notblank',
+  'null',
+  'notnull',
+  'empty',
+  'notempty',
+  'gb_null',
+];
+
+/**
+ * Why a date filter's sub-op or value can't be evaluated, or null. An unknown
+ * sub-op otherwise yields no clause and matches every row.
+ */
+export const dateFilterSubOpProblem = (
+  filter: Pick<Filter, 'comparison_op' | 'comparison_sub_op' | 'value'>,
+): string | null => {
+  const op = filter.comparison_op as string;
+  if (NULL_CHECK_OPS.includes(op) || op === 'in') return null;
+
+  const subOp = filter.comparison_sub_op as string;
+  const value = filter.value as unknown;
+  const hasValue = value !== null && value !== undefined && value !== '';
+
+  if (subOp && !(COMPARISON_SUB_OPS as readonly string[]).includes(subOp)) {
+    return `Sub-operation '${subOp}' is not supported`;
+  }
+  if (
+    hasValue &&
+    (DAY_COUNT_COMPARISON_SUB_OPS as readonly string[]).includes(subOp) &&
+    !(
+      (typeof value === 'number' || typeof value === 'string') &&
+      `${value}`.trim() !== '' &&
+      Number.isFinite(Number(value))
+    )
+  ) {
+    return `Value '${value}' for '${subOp}' must be a number of days`;
+  }
+  // the v3 where parser leaves an unrecognised sub-op in an array value
+  if (Array.isArray(value)) {
+    return `Value '${value.join(',')}' is not a date`;
+  }
+  return null;
+};
+
 export class DateTimeGeneralHandler extends GenericFieldHandler {
   dateValueFormat = 'YYYY-MM-DD HH:mm:ss';
 
@@ -119,6 +166,14 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     ) {
       return {
         isValid: true,
+      } as FilterVerificationResult;
+    }
+
+    const subOpProblem = dateFilterSubOpProblem(filter);
+    if (subOpProblem) {
+      return {
+        isValid: false,
+        errors: [`${subOpProblem} on column ${column.title}`],
       } as FilterVerificationResult;
     }
 

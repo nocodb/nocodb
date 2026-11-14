@@ -17,6 +17,7 @@ import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-han
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
+import { assertDateFiltersReadable } from '~/helpers/filterVerify';
 import NocoSocket from '~/socket/NocoSocket';
 import { Column, Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
@@ -60,6 +61,8 @@ export class FiltersService {
     if (!hook) {
       NcError.badRequest('Hook not found');
     }
+
+    await assertDateFiltersReadable(context, [param.filter]);
 
     const filter = await Filter.insert(context, {
       ...param.filter,
@@ -212,6 +215,8 @@ export class FiltersService {
     const view = await View.get(context, param.viewId);
     assertViewConfigEditable(context, view, param.req);
 
+    await assertDateFiltersReadable(context, [param.filter]);
+
     if (param.filter.fk_parent_id) {
       const parent = await Filter.get(context, param.filter.fk_parent_id);
       if (!parent || parent.fk_view_id !== param.viewId) {
@@ -297,6 +302,18 @@ export class FiltersService {
     if (!filter) {
       NcError.get(context).filterNotFound(param.filterId);
     }
+
+    // a partial update is checked as the filter it leaves behind
+    await assertDateFiltersReadable(context, [
+      {
+        fk_column_id: filter.fk_column_id,
+        comparison_op: filter.comparison_op,
+        comparison_sub_op: filter.comparison_sub_op,
+        value: filter.value,
+        is_group: filter.is_group,
+        ...param.filter,
+      },
+    ]);
 
     // A new parent must be a group of the same owner (view, hook, column, ...).
     if (

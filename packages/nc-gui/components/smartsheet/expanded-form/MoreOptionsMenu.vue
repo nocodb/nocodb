@@ -78,6 +78,8 @@ const showDeleteRowModal = ref(false)
 
 const duplicatingRowInProgress = ref(false)
 
+const isRlsReadonly = computed(() => !isNew.value && !!(_row.value?.rowMeta?.isRlsReadonly || _row.value?.row?.__nc_rls_readonly))
+
 const visibleMoreOptions = computed(() => {
   if (props.templateMode || props.blueprintMode) {
     return {
@@ -340,6 +342,23 @@ useExpandedRecordCommands({
         <NcTooltip v-if="visibleMoreOptions.deleteRecord && meta?.synced" placement="left">
           <template #title>
             {{ $t('msg.info.deleteNotAvailableForSyncedTable') }}
+          </template>
+          <NcMenuItem danger disabled>
+            <div class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
+              <GeneralIcon icon="delete" class="cursor-pointer nc-delete-row" />
+              <span class="-ml-0.25">
+                {{
+                  $t('general.deleteEntity', {
+                    entity: $t('objects.record').toLowerCase(),
+                  })
+                }}
+              </span>
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+        <NcTooltip v-else-if="visibleMoreOptions.deleteRecord && isRlsReadonly" placement="left">
+          <template #title>
+            {{ $t('objects.permissions.rlsPolicy.recordReadonlyToast') }}
           </template>
           <NcMenuItem danger disabled>
             <div class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">

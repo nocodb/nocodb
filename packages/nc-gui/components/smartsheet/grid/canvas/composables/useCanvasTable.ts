@@ -57,6 +57,21 @@ import { useFillHandler } from './useFillHandler'
 import { type RowDropTarget, useRowReorder } from './useRowReOrder'
 import { type BulkLtarOp, useCopyPaste } from './useCopyPaste'
 
+// Cells whose value lives in an overlay rather than the canvas: opening one is
+// how the user *reads* it, so these still open when editing is disallowed —
+// read-only, via makeEditable's forceReadOnly.
+const EXPANDABLE_CELL_UITYPES: UITypes[] = [
+  UITypes.LongText,
+  UITypes.Attachment,
+  UITypes.JSON,
+  UITypes.Links,
+  UITypes.Lookup,
+  UITypes.Barcode,
+  UITypes.QrCode,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Formula,
+]
+
 export function useCanvasTable({
   anchorActiveCell,
   rowHeightEnum,
@@ -1983,7 +1998,7 @@ export function useCanvasTable({
     return _generateRows(meta.value?.id, columnId, rowIds)
   }
 
-  function makeEditable(row: Row, clickedColumn: CanvasGridColumn) {
+  function makeEditable(row: Row, clickedColumn: CanvasGridColumn, forceReadOnly = false) {
     const column = metaColumnById.value[clickedColumn.id]
 
     const rowIndex = row.rowMeta.rowIndex + 1!
@@ -2042,7 +2057,7 @@ export function useCanvasTable({
       width: parseCellWidth(clickedColumn.width) + ([UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 2 : 0) + 2,
       fixed: clickedColumn.fixed,
       path,
-      isCellEditable: clickedColumn.isCellEditable,
+      isCellEditable: forceReadOnly ? false : clickedColumn.isCellEditable,
       isSyncedColumn: clickedColumn.isSyncedColumn,
       // Type-to-edit clears row.row before this runs; oldRow still holds the stored value
       originalValue: column.title
@@ -2063,6 +2078,22 @@ export function useCanvasTable({
     // Row is hidden by RLS policy — lock it to prevent edits before it's removed from view
     if (row.rowMeta?.isRlsHidden) return null
 
+    // Row is locked read-only by an RLS read_only policy. Expandable cells still
+    // open their viewer — forced read-only — because the value has to stay
+    // *readable*; "visible but locked" is the whole premise of the feature, and
+    // a LongText or Attachment cell is unreadable from the grid otherwise.
+    // Non-expandable cells stay inert with a toast, as before.
+    if (row.rowMeta?.isRlsReadonly) {
+      if (EXPANDABLE_CELL_UITYPES.includes(column.uidt)) {
+        makeEditable(row, clickedColumn, true)
+        return
+      }
+      if (showEditCellRestrictionTooltip) {
+        message.toast(t('objects.permissions.rlsPolicy.recordReadonlyToast'))
+      }
+      return null
+    }
+
     if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
     const isEditRestricted = column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
@@ -2079,19 +2110,7 @@ export function useCanvasTable({
       isEditRestricted ||
       clickedColumn.inlineEditDisabled
     ) {
-      if (
-        [
-          UITypes.LongText,
-          UITypes.Attachment,
-          UITypes.JSON,
-          UITypes.Links,
-          UITypes.Lookup,
-          UITypes.Barcode,
-          UITypes.QrCode,
-          UITypes.LinkToAnotherRecord,
-          UITypes.Formula,
-        ].includes(column.uidt)
-      ) {
+      if (EXPANDABLE_CELL_UITYPES.includes(column.uidt)) {
         makeEditable(row, clickedColumn)
         return
       }

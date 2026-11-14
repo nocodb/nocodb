@@ -1145,8 +1145,8 @@
         "accessLevelDescription": "Choose whether matching rows can be edited or are locked as read-only.",
         "editRecords": "Edit records",
         "editRecordsDescription": "Members can view and edit matching rows.",
-        "viewOnly": "View only",
-        "viewOnlyDescription": "Members can view matching rows but cannot edit them.",
+        "viewOnly": "Read-only",
+        "viewOnlyDescription": "Matching rows that members can already see are locked for editing. This doesn't give access to rows they can't see.",
         "readOnlyBadge": "Read-only",
         "recordReadonlyToast": "This record is read-only and can't be edited.",
         "recordReadonlyBanner": "This record is read-only. It's visible to you but locked for editing by a row-level security policy."

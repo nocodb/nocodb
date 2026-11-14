@@ -27,29 +27,6 @@ export interface PmJsonNode {
   [key: string]: unknown
 }
 
-/**
- * Clear task attribution from a ProseMirror JSON document, in place of the
- * paste-time strip for flows that copy content as JSON (page duplicate).
- * Returns a new document; the input is left untouched.
- *
- * Takes parsed PM JSON — run `parseDocContent` first where the value can still
- * be a stringified column (SQLite text vs PG jsonb), or the strip is a no-op
- * and the copy keeps the original actor ids.
- */
-export function stripTaskAttribution(node: PmJsonNode): PmJsonNode {
-  const next: PmJsonNode = { ...node }
-
-  if (node.type === 'taskItem' && node.attrs) {
-    next.attrs = { ...node.attrs, checkedBy: null, checkedAt: null }
-  }
-
-  if (Array.isArray(node.content)) {
-    next.content = node.content.map(stripTaskAttribution)
-  }
-
-  return next
-}
-
 // TODO: Extend from tiptap extension
 export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpec }>({
   name: 'taskItem',

@@ -332,12 +332,16 @@ export default class FileReference {
     let fileReferencesSize = 0;
 
     try {
-      fileReferencesSize = await FileReference.sumSize(
-        context,
-        {},
-        fileReferences,
-        ncMeta,
-      );
+      // sumSize skips soft_deleted rows, which is every row being restored here.
+      fileReferencesSize =
+        (
+          await ncMeta
+            .knexConnection(MetaTable.FILE_REFERENCES)
+            .sum('file_size as total')
+            .whereIn('id', fileReferences)
+            .where('soft_deleted', true)
+            .first()
+        )?.total || 0;
     } catch (error) {
       fileReferencesSize = -1;
       logger.error('Error while summing file reference size');
@@ -917,39 +921,23 @@ export default class FileReference {
     await this.updateWorkspaceCache(context, totalSize, true);
   }
 
-  /**
-   * Bulk soft-delete FileReferences for multiple docs in a single query.
-   * Uses nc_fr_doc_idx (base_id, fk_doc_id) with WHERE IN for doc tree cascade.
-   */
-  public static async bulkDeleteForDocs(
+  /** Ids of live (not deleted, not in trash) FileReferences owned by these docs. */
+  public static async listLiveIdsForDocs(
     context: NcContext,
     docIds: string[],
     ncMeta = Noco.ncMeta,
-  ) {
-    if (!docIds.length) return;
+  ): Promise<string[]> {
+    if (!docIds.length) return [];
 
-    let totalSize = 0;
-    try {
-      const sizeResult = await ncMeta
-        .knexConnection(MetaTable.FILE_REFERENCES)
-        .where({ base_id: context.base_id, deleted: false })
-        .whereIn('fk_doc_id', docIds)
-        .sum('file_size as totalSize')
-        .first();
-      totalSize = sizeResult?.totalSize ? +sizeResult.totalSize : 0;
-    } catch (error) {
-      totalSize = -1;
-      logger.error('Error while summing file reference size');
-      logger.error(error);
-    }
-
-    await ncMeta
+    const rows = await ncMeta
       .knexConnection(MetaTable.FILE_REFERENCES)
-      .where({ base_id: context.base_id, deleted: false })
+      .select('id')
+      .where({ base_id: context.base_id, deleted: false, soft_deleted: false })
       .whereIn('fk_doc_id', docIds)
-      .update({ deleted: true });
+      // Revision snapshots are purged with their revisions (DocRevision.deleteForDoc).
+      .whereNull('fk_revision_id');
 
-    await this.updateWorkspaceCache(context, totalSize, true);
+    return rows.map((r) => r.id);
   }
 
   /**

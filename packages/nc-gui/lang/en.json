@@ -7153,7 +7153,16 @@
     "editScript": "Edit Script",
     "creatingWorkspace": "Creating Workspace",
     "notFound": "Not found",
-    "goToApp": "Go to App"
+    "goToApp": "Go to App",
+    "timelineRecordsPanel": {
+      "hiddenCount": "{count} record without a start or end date isn't on the timeline | {count} records without a start or end date aren't on the timeline",
+      "withoutDates": "Without dates",
+      "withDates": "With dates",
+      "allRecords": "All records",
+      "noStartDate": "No start date",
+      "noEndDate": "No end date",
+      "noDates": "No dates"
+    }
   },
   "activity": {
     "blockUser": "Block user",

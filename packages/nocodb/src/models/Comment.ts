@@ -368,18 +368,49 @@ export default class Comment implements CommentType {
   }
 
   /**
-   * Soft-delete all comments for a given document (cascade on doc delete).
+   * Soft-delete the live comments of these documents (cascade on doc delete).
+   * Returns their ids so a trash restore brings back only these.
    */
   static async deleteDocComments(
     context: NcContext,
-    fk_doc_id: string,
+    docIds: string[],
     ncMeta = Noco.ncMeta,
-  ) {
-    return ncMeta
+  ): Promise<string[]> {
+    if (!docIds.length) return [];
+
+    const rows = await ncMeta
       .knex(MetaTable.COMMENTS)
-      .where('fk_doc_id', fk_doc_id)
+      .select('id')
+      .whereIn('fk_doc_id', docIds)
+      .where('base_id', context.base_id)
+      .where(function () {
+        this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+      });
+    const ids = rows.map((r) => r.id);
+    if (!ids.length) return [];
+
+    await ncMeta
+      .knex(MetaTable.COMMENTS)
+      .whereIn('id', ids)
       .where('base_id', context.base_id)
       .update({ is_deleted: true });
+
+    return ids;
+  }
+
+  /** Undo `deleteDocComments` for the given comment ids (trash restore). */
+  static async restoreDocComments(
+    context: NcContext,
+    ids: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!ids?.length) return;
+
+    await ncMeta
+      .knex(MetaTable.COMMENTS)
+      .whereIn('id', ids)
+      .where('base_id', context.base_id)
+      .update({ is_deleted: false });
   }
 
   /**

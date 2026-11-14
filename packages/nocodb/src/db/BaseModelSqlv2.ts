@@ -11824,59 +11824,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * - oo (both sides): additionally displaces whichever row currently holds the
    *   link — see `assertOoDisplacedRowWritable`.
    * - mm / mm-like: only junction rows change — no record row is mutated.
-   * No-op in CE builds (assertRowsWritable is an EE override).
+   * CE version: no-op (no RLS). EE resolves the relation and asserts the rows.
    */
-  public async assertLinkRowsWritable({
-    colId,
-    rowId,
-    childIds,
-    isLink,
-  }: {
+  public async assertLinkRowsWritable(_params: {
     colId: string;
     rowId: string;
     childIds: (string | number)[];
     // Only a link displaces a third row; unlink just clears the named row's FK.
     isLink?: boolean;
-  }): Promise<void> {
-    await this.model.getColumns();
-    const column = this.model.columnsById[colId];
-    if (!column || !isLinksOrLTAR(column)) return;
-
-    // mm / mm-like: junction-table rows only — neither record is mutated
-    if (isMMOrMMLike(column)) return;
-
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
-
-    // Same bt-side detection as RelationManager.isRelationReversed
-    const isBtSide =
-      colOptions.type === RelationTypes.BELONGS_TO || column.meta?.bt;
-
-    if (isBtSide) {
-      // FK lives on this table's row — the locked row itself would be rewritten
-      await this.assertRowsWritable([rowId]);
-    } else {
-      // hm / oo(reverse): FK lives on the related (child) table's rows
-      if (!childIds?.length) return;
-
-      const { childContext } = await colOptions.getParentChildContext();
-      const childColumn = await colOptions.getChildColumn();
-      const childTable = await childColumn.getModel();
-      const childBaseModel = await Model.getBaseModelSQL(childContext, {
-        model: childTable,
-        dbDriver: this.dbDriver,
-      });
-      await childBaseModel.assertRowsWritable(childIds);
-    }
-
-    if (isLink && colOptions.type === RelationTypes.ONE_TO_ONE) {
-      await this.assertOoDisplacedRowWritable({
-        column,
-        colOptions,
-        rowId,
-        childIds,
-      });
-    }
-  }
+  }): Promise<void> {}
 
   /**
    * A one-to-one link is exclusive, so linking nulls the FK of whatever row

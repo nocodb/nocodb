@@ -72,26 +72,50 @@ const escapeHtml = (s: string) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
+/** Closed fenced code blocks, found line by line. An unclosed fence is left to be escaped. */
+function findFences(input: string): Array<[number, number]> {
+  const fences: Array<[number, number]> = [];
+  let open: { char: string; len: number; start: number } | null = null;
+  let offset = 0;
+  for (const line of input.split('\n')) {
+    const lineEnd = offset + line.length;
+    if (!open) {
+      const m = /^ {0,3}(`{3,}|~{3,})/.exec(line);
+      const info = m ? line.slice(m[0].length) : '';
+      if (m && !(m[1][0] === '`' && info.includes('`'))) {
+        open = { char: m[1][0], len: m[1].length, start: offset };
+      }
+    } else {
+      const m = /^ {0,3}(`+|~+)[ \t]*$/.exec(line);
+      if (m && m[1][0] === open.char && m[1].length >= open.len) {
+        fences.push([open.start, lineEnd]);
+        open = null;
+      }
+    }
+    offset = lineEnd + 1;
+  }
+  return fences;
+}
+
 /**
  * Markdown code spans and fenced blocks. Conservative: anything not found here
  * is escaped like plain text, which is safe (only cosmetic inside code).
+ * Linear in the input: comments reach this unbounded (doc comments, import).
  */
 function findCodeSegments(input: string): Array<[number, number]> {
-  const segments: Array<[number, number]> = [];
+  const fences = findFences(input);
+  const segments: Array<[number, number]> = [...fences];
+  const unclosedRuns = new Set<number>();
 
-  const fence =
-    /^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n {0,3}\1[`~]*[ \t]*(?=\n|$)/gm;
-  for (const m of input.matchAll(fence)) {
-    segments.push([m.index, m.index + m[0].length]);
-  }
-
-  const fences = [...segments];
-  const inFence = (i: number) => fences.some(([s, e]) => i >= s && i < e);
-  const crossesFence = (a: number, b: number) =>
-    fences.some(([s, e]) => s < b && e > a);
+  let fi = 0;
   let i = 0;
   while (i < input.length) {
-    if (input[i] !== '`' || inFence(i)) {
+    while (fi < fences.length && fences[fi][1] <= i) fi++;
+    if (fi < fences.length && fences[fi][0] <= i) {
+      i = fences[fi][1];
+      continue;
+    }
+    if (input[i] !== '`') {
       i++;
       continue;
     }
@@ -100,7 +124,7 @@ function findCodeSegments(input: string): Array<[number, number]> {
 
     let slashes = 0;
     for (let j = i - 1; j >= 0 && input[j] === '\\'; j--) slashes++;
-    if (slashes % 2 === 1) {
+    if (slashes % 2 === 1 || unclosedRuns.has(run)) {
       i += run;
       continue;
     }
@@ -108,12 +132,14 @@ function findCodeSegments(input: string): Array<[number, number]> {
     const closer = new RegExp(`(?<!\`)\`{${run}}(?!\`)`, 'g');
     closer.lastIndex = i + run;
     const close = closer.exec(input);
-    const end = close ? close.index + run : -1;
-    if (
-      close &&
-      !crossesFence(i, end) &&
-      !/\n[ \t]*\n/.test(input.slice(i, end))
-    ) {
+    if (!close) {
+      unclosedRuns.add(run);
+      i += run;
+      continue;
+    }
+    const end = close.index + run;
+    const crossesFence = fi < fences.length && fences[fi][0] < end;
+    if (!crossesFence && !/\n[ \t]*\n/.test(input.slice(i, end))) {
       segments.push([i, end]);
       i = end;
     } else {
@@ -155,15 +181,23 @@ const RAW_TEXT_OR_ACTIVE_TAGS = new Set([
  * `Array<string>` and `Map<K, V>` pass.
  */
 function isHtmlInert(segment: string): boolean {
-  for (const m of segment.matchAll(/<([!?/]?)([a-z][^\s/>]*)?/gi)) {
-    if (m[1] === '!' || m[1] === '?') return false;
-    if (!m[2]) continue;
-    const close = segment.indexOf('>', m.index);
-    if (close === -1) return false;
-    if (segment.slice(m.index, close).includes('=')) return false;
-    if (RAW_TEXT_OR_ACTIVE_TAGS.has(m[2].toLowerCase())) return false;
+  let inTag = false;
+  for (let i = 0; i < segment.length; i++) {
+    const c = segment[i];
+    if (c === '<') {
+      const name = /^<([!?]|\/?[a-z][^\s/>]*)/i.exec(segment.slice(i, i + 64));
+      if (!name) continue;
+      if (name[1] === '!' || name[1] === '?') return false;
+      if (RAW_TEXT_OR_ACTIVE_TAGS.has(name[1].replace('/', '').toLowerCase()))
+        return false;
+      inTag = true;
+    } else if (inTag && c === '=') {
+      return false;
+    } else if (c === '>') {
+      inTag = false;
+    }
   }
-  return true;
+  return !inTag;
 }
 
 /**
@@ -171,10 +205,15 @@ function isHtmlInert(segment: string): boolean {
  * backticks are not code. Only a mid-line `<br>` is known not to.
  */
 function mayOpenHtmlBlock(text: string): boolean {
+  let lineStart = 0;
+  let lastIndex = 0;
   for (const m of text.matchAll(/<(\/?[a-z0-9]+)/gi)) {
     if (m[1].toLowerCase() !== 'br') return true;
-    const lineStart = text.lastIndexOf('\n', m.index) + 1;
+    const nl = text.slice(lastIndex, m.index).lastIndexOf('\n');
+    if (nl !== -1) lineStart = lastIndex + nl + 1;
+    lastIndex = m.index;
     if (/^[\s>*+\-\d.)]*$/.test(text.slice(lineStart, m.index))) return true;
+    lineStart = m.index;
   }
   return false;
 }
@@ -201,15 +240,23 @@ export function sanitizeCommentBody(input: unknown): string {
 
   // Code is kept as typed only where markdown will render it as code.
   const keepRaw = !mayOpenHtmlBlock(sanitized);
-  return sanitized.replace(
+  let out = '';
+  let pos = 0;
+  let insideTag = false;
+  for (const m of sanitized.matchAll(
     new RegExp(`nccode${nonce}i(\\d+)x`, 'g'),
-    (_, idx: string, offset: number) => {
-      const segment = code[Number(idx)];
-      const insideTag =
-        sanitized.lastIndexOf('<', offset) > sanitized.lastIndexOf('>', offset);
-      return keepRaw && !insideTag && isHtmlInert(segment)
+  )) {
+    for (let k = pos; k < m.index; k++) {
+      if (sanitized[k] === '<') insideTag = true;
+      else if (sanitized[k] === '>') insideTag = false;
+    }
+    const segment = code[Number(m[1])];
+    out +=
+      sanitized.slice(pos, m.index) +
+      (keepRaw && !insideTag && isHtmlInert(segment)
         ? segment
-        : escapeHtml(segment);
-    },
-  );
+        : escapeHtml(segment));
+    pos = m.index + m[0].length;
+  }
+  return out + sanitized.slice(pos);
 }

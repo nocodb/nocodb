@@ -860,6 +860,9 @@ export const parsePlainCellValue = (
     else return col.colOptions?.label
   }
 
+  // a numeric 0 (e.g. a formula group header) is falsy and rendered blank
+  if (ncIsNumber(value)) return String(value)
+
   return value as unknown as string
 }
 

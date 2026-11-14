@@ -107,18 +107,16 @@ export const bulkAggregate =
   ): Promise<Record<string, Record<string, unknown>>> => {
     const { model, view, source, args, bulkFilterList } = ctx;
 
-    // Enforced OUTSIDE the try below (whose catch swallows to `{}`) so it
-    // surfaces as a 400 the client can act on instead of a silent empty result.
+    // Enforced before the try below so it surfaces as a 400 the client can act on.
     if ((bulkFilterList?.length ?? 0) > MAX_BULK_AGGREGATE_BUCKETS) {
       NcError.get(context).badRequest(
         `Too many aggregation buckets requested (${bulkFilterList.length} > ${MAX_BULK_AGGREGATE_BUCKETS}). Reduce the group-by page size.`,
       );
     }
 
-    // Validate every bucket's filterArrJson up-front — outside the try below,
-    // whose catch swallows errors into `{}`, so a malformed filter surfaces as
-    // a 400 instead of being silently dropped (which would run the aggregation
-    // unfiltered). Keyed by the bucket's unique alias for reuse in the loop.
+    // Validate every bucket's filterArrJson up-front, before the try below, so a
+    // malformed filter surfaces as a 400 instead of being silently dropped
+    // (which would run the aggregation unfiltered). Keyed by the bucket's unique alias for reuse in the loop.
     const parsedFilterArrJsonByAlias = new Map(
       (bulkFilterList ?? []).map((f): [string, Filter[] | undefined] => [
         f.alias,
@@ -543,7 +541,7 @@ export const bulkAggregate =
 
       // The caller's alias is not safe as an identifier: knex splits `??` on
       // dots, so a bucket called "Dr. Amara Chen" builds a two-part name and
-      // the whole statement is lost to the catch below as an empty result.
+      // the whole statement fails.
       // Select under a generated name and put the caller's back afterwards.
       const callerAliasBySafe = new Map<string, string>();
 
@@ -630,8 +628,7 @@ export const bulkAggregate =
         if (Object.keys(expressions).length === 0) {
           // Nothing to aggregate (e.g. aggregation type 'none'). The scalar
           // subquery wrapper around JSON_BUILD_OBJECT() then matches >1 row and
-          // PG errors "more than one row returned by a subquery"; the catch below
-          // swallows that to `{}` and the client re-fires in a tight loop.
+          // PG errors "more than one row returned by a subquery".
           // Emit the empty-object literal rather than SQL NULL — NULL survives
           // the parser as JS null and crashes AliasMapper's Object.keys().
           selectors.push(baseModel.dbDriver.raw('? as ??', ['{}', safeAlias]));
@@ -670,7 +667,8 @@ export const bulkAggregate =
         ]),
       ) as Record<string, Record<string, unknown>>;
     } catch (err) {
+      // rethrow like the single aggregate: an empty 201 reads as "no data"
       logger.error((err as Error).message, (err as Error).stack);
-      return {};
+      throw err;
     }
   };

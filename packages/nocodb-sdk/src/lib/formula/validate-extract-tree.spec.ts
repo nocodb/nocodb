@@ -505,7 +505,10 @@ describe('validateFormulaAndExtractTreeWithType', () => {
   it.each([
     ['UPPER("a", "b")', 'UPPER requires 1 arguments'],
     ['NOW(1)', 'NOW requires 0 arguments'],
-    ['DATETIME_FORMAT("2024-01-01", "YYYY", "x")', 'DATETIME_FORMAT required maximum 2 arguments'],
+    [
+      'DATETIME_FORMAT("2024-01-01", "YYYY", "x")',
+      'DATETIME_FORMAT required maximum 2 arguments',
+    ],
   ])('should name the expected argument count for %s', async (formula, msg) => {
     await expect(
       validateFormulaAndExtractTreeWithType({
@@ -763,6 +766,20 @@ describe('validateFormulaAndExtractTreeWithType', () => {
         formula: `${fnName}({Column3})`,
         columns: mockColumns,
         clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      });
+      expect(result.type).toBe(JSEPNode.CALL_EXP);
+    }
+  );
+
+  // SQLite reads a number as a Julian day, MySQL a YYYYMMDD integer as a date
+  it.each(['sqlite3', 'mysql2'])(
+    'should accept a number as the argument of DAY on %s',
+    async (client) => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: 'DAY({Column2})',
+        columns: mockColumns,
+        clientOrSqlUi: SqlUiFactory.create({ client }),
         getMeta: mockGetMeta,
       });
       expect(result.type).toBe(JSEPNode.CALL_EXP);

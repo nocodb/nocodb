@@ -424,15 +424,20 @@ const getAst = async (
     if (isRequested || col.pk)
       await extractDependencies(context, col, dependencyFields);
 
-    if (isRequested && !linksAsLtar && isBtLikeV2Junction(col))
+    if (
+      isRequested &&
+      col.uidt === UITypes.Links &&
+      !linksAsLtar &&
+      isBtLikeV2Junction(col)
+    )
       junctionLinkTitles.push(col.title);
 
     ast[getFieldKey(col)] = isRequested;
   }
 
   // A Lookup through such a link shares its nested bucket and would narrow the
-  // link's read to the looked-up column, dropping pk/pv (nocodb/nocodb#14951). Keep the
-  // read unnarrowed; the full row still carries every lookup target.
+  // link's read to the looked-up column, dropping pk/pv (nocodb/nocodb#14951).
+  // Keep the read unnarrowed; the full row still carries every lookup target.
   for (const title of junctionLinkTitles) {
     if (dependencyFields.nested[title]?.fieldsSet) {
       delete dependencyFields.nested[title].fieldsSet;

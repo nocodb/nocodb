@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes, readonlyMetaAllowedTypes, resolveColumnSeparator } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, isFormatEditableOnReadonlySource, resolveColumnSeparator } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -31,7 +31,7 @@ const { isMetaReadOnly } = useRoles()
 const { formState } = useColumnCreateStoreOrThrow()
 
 const disableConfiguration = computed(
-  () => Boolean(isMetaReadOnly.value) && !readonlyMetaAllowedTypes.includes(formState.value.uidt),
+  () => Boolean(isMetaReadOnly.value) && !isFormatEditableOnReadonlySource(formState.value.uidt),
 )
 
 // Backward compat: resolve isLocaleString to separator if separator is not yet set

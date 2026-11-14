@@ -344,7 +344,7 @@ const recordsAcrossAllRange = computed<{
                 rowMeta: {
                   ...record.rowMeta,
                   id: getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value),
-                  range: range as any,
+                  range,
                 },
               })
               return false

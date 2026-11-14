@@ -159,7 +159,7 @@ interface Row {
     style?: Partial<CSSStyleDeclaration>
     range?: {
       fk_from_col: ColumnType
-      fk_to_col: ColumnType | null
+      fk_to_col?: ColumnType | null
       is_readonly?: boolean
       colorIndex?: number
     }

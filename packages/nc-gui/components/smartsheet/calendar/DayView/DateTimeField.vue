@@ -244,7 +244,7 @@ const recordsAcrossAllRange = computed<{
                 rowMeta: {
                   ...record.rowMeta,
                   id: getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value),
-                  range: range as any,
+                  range,
                 },
               })
               return false
@@ -300,7 +300,7 @@ const recordsAcrossAllRange = computed<{
             ...record.rowMeta,
             style,
             id,
-            range: range as any,
+            range,
           },
         })
       } else if (fromCol) {
@@ -328,7 +328,7 @@ const recordsAcrossAllRange = computed<{
           ...record,
           rowMeta: {
             ...record.rowMeta,
-            range: range as any,
+            range,
             style,
             id,
           },
@@ -997,7 +997,7 @@ function onRecordContextMenu(event: MouseEvent, record: Row) {
               </NcButton>
               <template #overlay>
                 <NcMenu class="w-64">
-                  <NcMenuItem> {{ $t('labels.selectDateFieldToAdd') }} </NcMenuItem>
+                  <div class="px-3 py-1.5 text-captionSm text-nc-content-gray-muted">{{ $t('labels.selectDateFieldToAdd') }}</div>
                   <template v-for="(range, calIndex) in calendarRange" :key="calIndex">
                     <NcMenuItem
                       v-if="!range.is_readonly"

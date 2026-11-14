@@ -56,11 +56,9 @@ export default class CalendarRange implements CalendarRangeType {
           NcError.get(context).badRequest(
             `Calendar date range column ${colId} not found`,
           );
-        // A lone range keeps its legacy leniency on field type.
-        if (
-          (ranges.length > 1 || toId) &&
-          !CALENDAR_DATE_UITYPES.includes(column.uidt)
-        )
+        // A lone range keeps its legacy leniency on field type, end column
+        // included: the end-date picker has always offered date formulas.
+        if (ranges.length > 1 && !CALENDAR_DATE_UITYPES.includes(column.uidt))
           NcError.get(context).badRequest(
             `Calendar date range column '${column.title}' must be a date field`,
           );

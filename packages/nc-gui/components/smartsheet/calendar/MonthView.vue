@@ -1230,7 +1230,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                 </NcButton>
                 <template #overlay>
                   <NcMenu class="w-64">
-                    <NcMenuItem> {{ $t('labels.selectDateFieldToAdd') }} </NcMenuItem>
+                    <div class="px-3 py-1.5 text-captionSm text-nc-content-gray-muted">{{ $t('labels.selectDateFieldToAdd') }}</div>
                     <NcMenuItem
                       v-for="(range, index) in calendarRange"
                       :key="index"

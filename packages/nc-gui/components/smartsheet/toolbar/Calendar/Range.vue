@@ -131,19 +131,23 @@ const saveCalendarRanges = async () => {
 
       await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
       // calendarRangeDropdown.value = false
-    } catch (e) {
-      message.error(t('msg.error.errorWhileUpdatingView'))
+    } catch (e: any) {
+      // Put back the saved ranges so the menu doesn't show a value the server rejected
+      _calendar_ranges.value = calendarRange.value.map((r) => ({ ...r }))
+      message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.errorWhileUpdatingView'))
     }
   } else {
     message.error(t('msg.error.selectViewFirst'))
   }
 }
 
-const filterEndDateOptions = (options, startColumnId) => {
+const filterEndDateOptions = (options, startColumnId, index: number) => {
   if (!options || !startColumnId) return []
 
   const startColumn = meta.value?.columns?.find((c) => c.id === startColumnId)
   const startTimezone = startColumn?.meta?.timezone
+  const used = getUsedColumnIds(index)
+  const hasSeveralRanges = _calendar_ranges.value.length > 1
 
   return options.filter((option) => {
     const firstRange = dateFieldOptions.value.find((f) => f.value === startColumnId)
@@ -151,24 +155,40 @@ const filterEndDateOptions = (options, startColumnId) => {
 
     const optionColumn = meta.value?.columns?.find((c) => c.id === option.value)
     const timezoneMatches = optionColumn?.meta?.timezone === startTimezone
-    return uidtMatches && option.value !== startColumnId && timezoneMatches
+    return (
+      uidtMatches &&
+      option.value !== startColumnId &&
+      timezoneMatches &&
+      !used.has(option.value as string) &&
+      !(hasSeveralRanges && option.uidt === UITypes.Formula)
+    )
   })
 }
 
-// Additional ranges must match the first range's type and timezone, and can't reuse a used field
-function getFromOptions(index: number) {
-  const options = [...(dateFieldOptions.value ?? [])]
-  if (index === 0) return options
-
-  const firstColumn = meta.value?.columns?.find((c) => c.id === _calendar_ranges.value[0]?.fk_from_column_id)
-  const used = new Set(
+// Fields taken by every range except the one at `index` (start and end)
+function getUsedColumnIds(index: number) {
+  return new Set(
     _calendar_ranges.value
       .flatMap((r, i) => (i === index ? [] : [r.fk_from_column_id, r.fk_to_column_id]))
       .filter((id): id is string => !!id),
   )
+}
+
+// With several ranges every range (the first included) must match the others' type and timezone;
+// the backend accepts only plain date fields there, so formulas drop out
+function getFromOptions(index: number) {
+  const options = [...(dateFieldOptions.value ?? [])]
+  const used = getUsedColumnIds(index)
+  const reference = meta.value?.columns?.find((c) => c.id === _calendar_ranges.value[index === 0 ? 1 : 0]?.fk_from_column_id)
+
+  if (!reference) return options.filter((o) => !used.has(o.value as string))
 
   return options.filter(
-    (o) => o.uidt === firstColumn?.uidt && o.col?.meta?.timezone === firstColumn?.meta?.timezone && !used.has(o.value as string),
+    (o) =>
+      o.uidt !== UITypes.Formula &&
+      o.uidt === reference.uidt &&
+      o.col?.meta?.timezone === reference.meta?.timezone &&
+      !used.has(o.value as string),
   )
 }
 
@@ -356,7 +376,7 @@ const onValueChange = (index: number) => {
                       <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
 
                       <a-select-option
-                        v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id)"
+                        v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id, id)"
                         :key="opId"
                         :value="option.value"
                       >
@@ -396,7 +416,11 @@ const onValueChange = (index: number) => {
                 size="small"
                 type="text"
                 :shadow="false"
-                :disabled="isRangeLimitReached || !_calendar_ranges[_calendar_ranges.length - 1]?.fk_from_column_id"
+                :disabled="
+                  isRangeLimitReached ||
+                  !_calendar_ranges[_calendar_ranges.length - 1]?.fk_from_column_id ||
+                  getFromOptions(_calendar_ranges.length).length === 0
+                "
                 data-testid="nc-calendar-range-add"
                 @click="click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, addRange)"
               >
@@ -405,7 +429,8 @@ const onValueChange = (index: number) => {
                   {{ $t('activity.addDateRange') }}
                   <PaymentUpgradeBadge
                     :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
-                    :content="$t('upgrade.upgradeToUseCalendarRangeSubtitle', { plan: getPlanTitle(PlanTitles.PLUS) })"
+                    :title="$t('upgrade.upgradeToUseMultipleCalendarRanges')"
+                    :content="$t('upgrade.upgradeToUseMultipleCalendarRangesSubtitle', { plan: getPlanTitle(PlanTitles.PLUS) })"
                     :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
                   />
                 </div>

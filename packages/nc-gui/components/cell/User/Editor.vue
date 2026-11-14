@@ -2,7 +2,7 @@
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
-import { getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
+import { extractUserKeys, getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -49,6 +49,32 @@ const idUserMap = computed(() => {
   }, {} as Record<string, any>)
 })
 
+const { resolvedUsers, resolveUsers } = useResolveUsers()
+
+// Stored users outside the collaborator list: shown, never offered in the picker
+const unresolvedKeys = computed(() => extractUserKeys(modelValue).filter((key) => !idUserMap.value[key]))
+
+watch(
+  [unresolvedKeys, () => meta.value?.base_id, () => meta.value?.id],
+  ([keys, baseId, tableId]) => {
+    if (keys.length && baseId && tableId) resolveUsers(baseId, tableId, keys)
+  },
+  { immediate: true },
+)
+
+const resolvedOptions = computed<UserFieldRecordType[]>(() =>
+  unresolvedKeys.value
+    .map((key) => resolvedUsers.value.get(key))
+    .filter((u): u is UserFieldRecordType => !!u)
+    .map((u) => ({
+      id: u.id,
+      email: u.email,
+      display_name: u.display_name,
+      meta: u.meta,
+      deleted: true,
+    })),
+)
+
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
 const active = computed(() => activeCell.value || isEditable.value)
@@ -92,7 +118,12 @@ const options = computed(() => {
   }
   const systemUsers = isInFilter.value ? getSystemUserFilterOptions(column.value) : []
 
-  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)), ...systemUsers]
+  return [
+    ...currentUserField,
+    ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)),
+    ...resolvedOptions.value,
+    ...systemUsers,
+  ]
 })
 
 const nonDeletedOptions = computed(() => {
@@ -302,7 +333,10 @@ const filterOption = (input: string, option: any): boolean => {
 
 // check if user is part of the base
 const isCollaborator = (userIdOrEmail) => {
-  return !idUserMap.value?.[userIdOrEmail]?.deleted
+  const baseUser = idUserMap.value?.[userIdOrEmail]
+  if (baseUser) return !baseUser.deleted
+
+  return !resolvedUsers.value.has(userIdOrEmail)
 }
 
 const onKeyDown = (e: KeyboardEvent) => {

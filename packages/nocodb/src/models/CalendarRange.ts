@@ -42,6 +42,9 @@ export default class CalendarRange implements CalendarRangeType {
     ranges: { fk_from_column_id?: string; fk_to_column_id?: string }[],
     ncMeta = Noco.ncMeta,
   ) {
+    // A lone range keeps its legacy leniency: no type, timezone or reuse checks.
+    if (ranges.length < 2) return;
+
     const used = new Set<string>();
     let first: { uidt: string; timezone: string | undefined };
 
@@ -57,9 +60,7 @@ export default class CalendarRange implements CalendarRangeType {
           NcError.get(context).badRequest(
             `Calendar date range column ${colId} not found`,
           );
-        // A lone range keeps its legacy leniency on field type, end column
-        // included: the end-date picker has always offered date formulas.
-        if (ranges.length > 1 && !CALENDAR_DATE_UITYPES.includes(column.uidt))
+        if (!CALENDAR_DATE_UITYPES.includes(column.uidt))
           NcError.get(context).badRequest(
             `Calendar date range column '${column.title}' must be a date field`,
           );
@@ -160,7 +161,8 @@ export default class CalendarRange implements CalendarRangeType {
     );
     let { list: ranges } = cachedList;
     const { isNoneList } = cachedList;
-    if (!isNoneList && !ranges.length) {
+    // Entries cached before created_at was kept lack it and would sort by id only.
+    if (!isNoneList && (!ranges.length || ranges.some((r) => !r.created_at))) {
       ranges = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,

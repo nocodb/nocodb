@@ -263,7 +263,12 @@ const onValueChange = (index: number) => {
           data-testid="nc-calendar-range-option"
         >
           <div class="flex items-center justify-between">
-            <span class="text-nc-content-gray">
+            <span class="flex items-center gap-2 text-nc-content-gray">
+              <span
+                v-if="_calendar_ranges.length > 1"
+                class="w-2 h-2 rounded-full flex-none"
+                :style="{ backgroundColor: getCalendarRangeAccent(id) }"
+              ></span>
               {{ id === 0 ? $t('labels.organiseBy') : $t('labels.dateRangeN', { n: id + 1 }) }}
             </span>
             <NcTooltip v-if="id > 0 && !isLocked" :title="$t('general.remove')">

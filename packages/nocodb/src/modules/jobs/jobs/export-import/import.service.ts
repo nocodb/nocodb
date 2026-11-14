@@ -2215,6 +2215,7 @@ export class ImportService {
         ).map((a) => ({
           fk_from_column_id: idMap.get(a.fk_from_column_id),
           fk_to_column_id: idMap.get((a as any).fk_to_column_id),
+          label: a.label,
         }));
 
         return await this.calendarsService.calendarViewCreate(context, {

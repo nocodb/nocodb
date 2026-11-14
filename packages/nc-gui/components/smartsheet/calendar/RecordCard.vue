@@ -234,6 +234,15 @@ const cardShadow = computed(() => {
           </template>
         </NcTooltip>
       </div>
+      <!-- Range label, right-aligned (Airtable-style "with label") -->
+      <span
+        v-if="props.record?.rowMeta?.range?.label"
+        class="nc-cal-range-label flex-none self-center pl-1 pr-1.5 max-w-[40%] truncate text-[10px] leading-4 uppercase tracking-wide text-nc-content-gray-muted"
+        :class="{ 'pr-8': position === 'leftRounded' }"
+        data-testid="nc-calendar-card-range-tag"
+      >
+        {{ props.record.rowMeta.range.label }}
+      </span>
       <!-- Sits left of the label-image tile (right-0.5, w-5) when one is shown. -->
       <NcTooltip
         v-if="position === 'leftRounded' || position === 'none'"

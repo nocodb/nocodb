@@ -150,6 +150,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         is_readonly: boolean
         // Set only when the view has several ranges; picks the card accent
         colorIndex?: number
+        label?: string
       }>
     >(() => {
       const hasMultipleRanges = (calendarMetaData.value?.calendar_range?.length ?? 0) > 1
@@ -193,6 +194,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 fk_to_col: toCol,
                 is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
                 colorIndex: hasMultipleRanges ? index : undefined,
+                label: hasMultipleRanges ? (range as any)?.label || undefined : undefined,
               }
             },
           )

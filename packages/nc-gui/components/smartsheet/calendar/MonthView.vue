@@ -1240,10 +1240,12 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                       class="text-nc-content-gray-default font-semibold text-sm"
                       @click="addRecordWithRange(range, day.date)"
                     >
-                      <div class="flex items-center gap-1">
-                        <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
-
-                        <span class="ml-1">{{ range.fk_from_col!.title }}</span>
+                      <div class="flex items-center gap-2">
+                        <span
+                          class="inline-block h-2 w-2 flex-none rounded-full"
+                          :style="{ backgroundColor: getCalendarRangeAccent(index) }"
+                        />
+                        <span>{{ range.label || range.fk_from_col!.title }}</span>
                       </div>
                     </NcMenuItem>
                   </NcMenu>

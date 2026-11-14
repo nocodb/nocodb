@@ -26315,8 +26315,9 @@
             "x-stoplight": {
               "id": "uqq8xmyz97t1u"
             },
-            "description": "Base ID",
-            "type": "string"
+            "description": "Label shown on the range's cards",
+            "type": "string",
+            "maxLength": 40
           }
         },
         "x-stoplight": {

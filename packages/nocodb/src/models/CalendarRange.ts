@@ -26,6 +26,7 @@ const compareRanges = (a: any, b: any) => {
 export default class CalendarRange implements CalendarRangeType {
   id?: string;
   fk_from_column_id?: string;
+  label?: string;
   fk_workspace_id?: string;
   base_id?: string;
   fk_view_id?: string;
@@ -101,10 +102,16 @@ export default class CalendarRange implements CalendarRangeType {
     const calRanges: {
       fk_from_column_id?: string;
       fk_view_id?: string;
+      label?: string | null;
     }[] = [];
 
     for (const d of data) {
-      const tempObj = extractProps(d, ['fk_from_column_id', 'fk_view_id']);
+      const tempObj = extractProps(d, [
+        'fk_from_column_id',
+        'fk_view_id',
+        'label',
+      ]);
+      tempObj.label = tempObj.label?.trim() || null;
       calRanges.push(tempObj);
     }
 

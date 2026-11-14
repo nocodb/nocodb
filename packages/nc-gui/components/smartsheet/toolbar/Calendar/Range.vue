@@ -88,6 +88,7 @@ const calendarRange = computed<CalendarRangeType[]>(() => {
     tempCalendarRange.push({
       fk_from_column_id: range.fk_from_column_id,
       fk_to_column_id: range.fk_to_column_id,
+      label: range.label,
     })
   })
   return tempCalendarRange
@@ -124,12 +125,13 @@ watch(calendarRange, () => {
 const saveCalendarRanges = async () => {
   if (activeView.value) {
     try {
-      const calRanges = _calendar_ranges.value
-        .filter((range) => range.fk_from_column_id)
-        .map((range) => ({
-          fk_from_column_id: range.fk_from_column_id,
-          fk_to_column_id: range.fk_to_column_id,
-        }))
+      const filled = _calendar_ranges.value.filter((range) => range.fk_from_column_id)
+      const calRanges = filled.map((range) => ({
+        fk_from_column_id: range.fk_from_column_id,
+        fk_to_column_id: range.fk_to_column_id,
+        // Labels only apply once there are several ranges
+        label: filled.length > 1 ? range.label?.trim() || null : null,
+      }))
 
       await updateViewMeta(activeView.value?.id as string, ViewTypes.CALENDAR, {
         calendar_range: calRanges as CalendarRangeType[],
@@ -221,8 +223,16 @@ const onValueChange = (index: number) => {
     return {
       fk_from_column_id: range.fk_from_column_id,
       fk_to_column_id: endStillValid ? range.fk_to_column_id : range.fk_to_column_id === null ? null : undefined,
+      label: range.label,
     }
   })
+}
+
+// Persist a label edit on blur / Enter, only when it differs from what is saved
+function onLabelCommit(index: number) {
+  const next = _calendar_ranges.value[index]?.label?.trim() || null
+  const saved = calendarRange.value[index]?.label || null
+  if (next !== saved) saveCalendarRanges()
 }
 
 function showEndDate(index: number) {
@@ -398,6 +408,19 @@ function onEndDateChange(index: number, value?: string) {
             </PaymentUpgradeBadgeProvider>
             <span v-else />
 
+            <a-input
+              v-if="_calendar_ranges.length > 1"
+              v-model:value="range.label"
+              class="nc-calendar-range-label-input !rounded-lg"
+              :maxlength="40"
+              :disabled="isLocked"
+              :placeholder="$t('labels.rangeLabelPlaceholder')"
+              data-testid="nc-calendar-range-label-input"
+              @blur="onLabelCommit(id)"
+              @press-enter="onLabelCommit(id)"
+              @click.stop
+            />
+
             <template v-if="_calendar_ranges.length > 1 && !isLocked">
               <NcTooltip v-if="id === 0" :title="$t('msg.info.firstCalendarRangeNotRemovable')">
                 <NcButton
@@ -505,8 +528,16 @@ function onEndDateChange(index: number, value?: string) {
   @apply grid items-center gap-2;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
 
+  &:has(.nc-calendar-range-label-input) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr);
+  }
+
   &.nc-calendar-range-row-removable {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 28px;
+
+    &:has(.nc-calendar-range-label-input) {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr) 28px;
+    }
   }
 }
 

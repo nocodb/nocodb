@@ -586,10 +586,12 @@ export class ExportService {
                     (r: {
                       fk_to_column_id?: string;
                       fk_from_column_id: string;
+                      label?: string;
                     }) => {
                       return {
                         fk_to_column_id: idMap.get(r.fk_to_column_id),
                         fk_from_column_id: idMap.get(r.fk_from_column_id),
+                        label: r.label,
                       };
                     },
                   );

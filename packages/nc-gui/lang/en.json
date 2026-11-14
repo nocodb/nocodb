@@ -5665,6 +5665,8 @@
       "turnedOffTitle": "This workflow was turned off",
       "rerunFromStart": "Run again from the start",
       "retryOf": "Retried from",
+      "runBy": "Run by",
+      "runByUser": "Run by {user}",
       "originalRun": "the original run",
       "runDetails": "Run details",
       "stepsRun": "Steps",

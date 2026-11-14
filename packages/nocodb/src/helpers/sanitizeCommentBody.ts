@@ -1,5 +1,8 @@
 import { getDOMPurify } from '~/helpers/domPurify';
 
+// Matches the CommentReq / CommentUpdateReq maxLength for row comments.
+export const COMMENT_MAX_LENGTH = 10_000;
+
 /**
  * Allowlist of tags / attributes permitted in row + document comments.
  * Anything outside this set is stripped before the comment reaches the

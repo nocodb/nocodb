@@ -115,6 +115,16 @@ const renderData = computed<Array<Row>>(() => {
 
   const rangedData: Array<Row> = []
 
+  // Not tied to a window, so each record is listed once (attributed to the first range)
+  if (calendarRange.value.length > 1 && ['withoutDates', 'allRecords'].includes(sideBarFilterOption.value)) {
+    formattedSideBarData.value.forEach((record) => {
+      if (sideBarFilterOption.value === 'allRecords' || isRecordUndated(record.row, calendarRange.value)) {
+        pushToArray(rangedData, record, calendarRange.value[0])
+      }
+    })
+    return rangedData
+  }
+
   calendarRange.value.forEach((range) => {
     const fromCol = range.fk_from_col
     const toCol = range.fk_to_col
@@ -430,7 +440,7 @@ function newRecordFromDate(): dayjs.Dayjs | undefined {
   }
 }
 
-const newRecord = () => {
+const newRecord = (range = calendarRange.value[0]) => {
   if (interfaceEditSelect.value) return interfaceEditSelect.value()
   if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value) return
 
@@ -448,14 +458,14 @@ const newRecord = () => {
   }
 
   // Set the from date
-  if (calendarRange.value[0]?.fk_from_col) {
-    row[calendarRange.value[0].fk_from_col.title!] = fromDate.format(updateFormat.value)
+  if (range?.fk_from_col) {
+    row[range.fk_from_col.title!] = fromDate.format(updateFormat.value)
   }
 
   // Set the to date if to_col is configured (same as from date + 1 hour)
-  if (calendarRange.value[0]?.fk_to_col) {
+  if (range?.fk_to_col) {
     const toDate = fromDate.endOf('hour')
-    row[calendarRange.value[0].fk_to_col.title!] = toDate.format(updateFormat.value)
+    row[range.fk_to_col.title!] = toDate.format(updateFormat.value)
   }
 
   emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })
@@ -507,7 +517,7 @@ const selectOption = (option) => {
   sideBarFilterOption.value = option.value
 }
 
-useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
+useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord: () => newRecord() })
 </script>
 
 <template>
@@ -673,19 +683,37 @@ useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
           placement="left"
           show-overlay
         >
-          <NcButton
-            v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
-            data-testid="nc-calendar-side-menu-new-btn"
-            class="!h-7 !rounded-md"
-            size="small"
-            type="secondary"
-            @click="newRecord"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="ncPlus" />
-              {{ $t('general.record') }}
-            </div>
-          </NcButton>
+          <NcDropdown :trigger="calendarRange.length > 1 ? ['click'] : []" auto-close>
+            <NcButton
+              v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
+              data-testid="nc-calendar-side-menu-new-btn"
+              class="!h-7 !rounded-md"
+              size="small"
+              type="secondary"
+              @click="calendarRange.length > 1 ? undefined : newRecord()"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncPlus" />
+                {{ $t('general.record') }}
+              </div>
+            </NcButton>
+            <template v-if="calendarRange.length > 1" #overlay>
+              <NcMenu class="w-64">
+                <NcMenuItem> {{ $t('labels.selectDateFieldToAdd') }} </NcMenuItem>
+                <NcMenuItem
+                  v-for="(range, index) in calendarRange"
+                  :key="index"
+                  class="text-nc-content-gray-default font-semibold text-sm"
+                  @click="newRecord(range)"
+                >
+                  <div class="flex items-center gap-1">
+                    <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
+                    <span class="ml-1">{{ range.fk_from_col!.title }}</span>
+                  </div>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </PermissionsTooltip>
       </div>
 

@@ -498,6 +498,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         combinedFilters = []
       } else if (sideBarFilterOption.value === 'withoutDates') {
         // If the sideBarFilterOption is withoutDates, then we need to filter out records that don't have a date
+        // One range: any blank date; several: every range column blank (see isRecordUndated)
+        const blankOp = calendarRange.value.length > 1 ? 'and' : 'or'
+
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
           const toCol = range.fk_to_col
@@ -507,7 +510,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (fromCol) {
             filters.push({
               fk_column_id: fromCol.id,
-              logical_op: 'or',
+              logical_op: blankOp,
               comparison_op: 'blank',
             })
           }
@@ -515,7 +518,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (toCol) {
             filters.push({
               fk_column_id: toCol.id,
-              logical_op: 'or',
+              logical_op: blankOp,
               comparison_op: 'blank',
             })
           }

@@ -72,6 +72,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getWidgetHandler } from '~/db/widgets';
 import { getQueriedColumns } from '~/helpers/dbHelpers';
+import { getFilterIdsToDrop } from '~/helpers/droppedColumnFilters';
 import {
   excelColumnFormat,
   excelNumberValue,
@@ -284,7 +285,12 @@ export class ExportService {
 
       await model.getColumns();
 
+      const allColumns = model.columns;
       model.columns = this.filterOutCrossBaseColumns(model);
+      // Filters/sorts on these are dropped: the copy has no such column.
+      const droppedColumnIds = new Set(
+        allColumns.filter((c) => !model.columns.includes(c)).map((c) => c.id),
+      );
 
       await model.getViews();
 
@@ -479,7 +485,12 @@ export class ExportService {
         await view.getSorts();
         if (view.filter) {
           const export_filters = [];
+          const dropFilterIds = getFilterIdsToDrop(
+            view.filter.children,
+            droppedColumnIds,
+          );
           for (const fl of view.filter.children) {
+            if (dropFilterIds.has(fl.id)) continue;
             const tempFl = {
               id: `${idMap.get(view.id)}::${fl.id}`,
               fk_parent_column_id: fl.fk_parent_column_id
@@ -507,6 +518,7 @@ export class ExportService {
         if (view.sorts) {
           const export_sorts = [];
           for (const sr of view.sorts) {
+            if (droppedColumnIds.has(sr.fk_column_id)) continue;
             const tempSr = {
               fk_column_id: idMap.get(sr.fk_column_id),
               direction: sr.direction,
@@ -679,6 +691,7 @@ export class ExportService {
           views: model.views,
           idMap,
           mapColumnId: true,
+          droppedColumnIds,
         });
       }
 
@@ -694,9 +707,14 @@ export class ExportService {
             hookId: hook.id,
           });
           const export_filters = [];
+          const dropFilterIds = getFilterIdsToDrop(
+            hookFilters?.children ?? [],
+            droppedColumnIds,
+          );
 
           if (hookFilters?.children?.length) {
             for (const fl of hookFilters.children) {
+              if (dropFilterIds.has(fl.id)) continue;
               const tempFl = {
                 id: `${idMap.get(hook.id)}::${fl.id}`,
                 fk_column_id: idMap.get(fl.fk_column_id),
@@ -719,7 +737,8 @@ export class ExportService {
           serializedHooks.push({
             id: idMap.get(hook.id),
             title: hook.title,
-            active: hook.active,
+            // Fewer filters would fire it on more rows; leave it for the user to re-enable.
+            active: dropFilterIds.size ? false : hook.active,
             condition: hook.condition,
             event: hook.event,
             operation: hook.operation,

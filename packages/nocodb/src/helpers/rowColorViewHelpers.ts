@@ -51,6 +51,7 @@ export class RowColorViewHelpers {
     views: View[];
     idMap: Map<string, string>;
     mapColumnId?: boolean;
+    droppedColumnIds?: Set<string>;
   }): Promise<{
     result: GetRowColorConditionsResult;
     filters: Filter[];

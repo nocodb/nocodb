@@ -99,6 +99,23 @@ export function getTimeZoneFromName(name: string = Intl.DateTimeFormat().resolve
   return timezone
 }
 
+// @vvo/tzdb holds one static abbreviation (NZST all year); Intl knows the DST name
+export function getTimezoneAbbreviation(name?: string, date: Date = new Date()) {
+  const timezone = getTimeZoneFromName(name)
+  if (!timezone) return undefined
+  try {
+    const abbr = new Intl.DateTimeFormat(`en-${timezone.countryCode}`, {
+      timeZone: name ?? timezone.name,
+      timeZoneName: 'short',
+    })
+      .formatToParts(date)
+      .find((p) => p.type === 'timeZoneName')?.value
+    // Intl has no name for many zones and falls back to "GMT+9"
+    if (abbr && !/^(GMT|UTC)[+-]/.test(abbr)) return abbr
+  } catch {}
+  return timezone.abbreviation
+}
+
 export function withTimezone(timezone?: string) {
   return workerWithTimezone(isEeUI, timezone)
 }

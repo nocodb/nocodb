@@ -8390,6 +8390,7 @@
       "migrating": "Migrating..."
     },
     "info": {
+      "docMovedToTrash": "Moved to Project Trash",
       "docDeleteGoesToTrash": "Its sub-pages and comments go with it. You can restore them from Project Trash.",
       "passwordChangeSignsOut": "Changing your password signs you out on other devices.",
       "disconnectAppsOnPasswordChange": "Also revokes apps like Claude or ChatGPT, and your API, MCP and app tokens.",

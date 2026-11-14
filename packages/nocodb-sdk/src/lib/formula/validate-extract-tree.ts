@@ -28,6 +28,7 @@ import {
 } from '~/lib/formula/jsepInstances';
 import { ClientTypeOrSqlUI } from '~/lib/formula/types';
 import { SqlUiFactory } from '~/lib/sqlUi';
+import { PgUi } from '~/lib/sqlUi/PgUi';
 import {
   extractBinaryExpReferencedInfo,
   extractCallExpressionReferencedInfo,
@@ -935,6 +936,8 @@ async function checkForCircularFormulaRef(
   }
 }
 
+const DATE_PART_FUNCTIONS = ['DAY', 'MONTH', 'YEAR', 'HOUR'];
+
 export async function validateFormulaAndExtractTreeWithType({
   formula,
   column,
@@ -1443,7 +1446,7 @@ export async function validateFormulaAndExtractTreeWithType({
                     }
                   : undefined,
             },
-            'Required arguments missing'
+            `${calleeName} requires ${validation.args.rqd} arguments`
           );
         } else if (
           validation.args.min !== undefined &&
@@ -1463,7 +1466,7 @@ export async function validateFormulaAndExtractTreeWithType({
                     }
                   : undefined,
             },
-            'Minimum arguments required'
+            `${calleeName} required minimum ${validation.args.min} arguments`
           );
         } else if (
           validation.args.max !== undefined &&
@@ -1483,7 +1486,7 @@ export async function validateFormulaAndExtractTreeWithType({
                     }
                   : undefined,
             },
-            'Maximum arguments missing'
+            `${calleeName} required maximum ${validation.args.max} arguments`
           );
         }
       }
@@ -1522,6 +1525,26 @@ export async function validateFormulaAndExtractTreeWithType({
       ) {
         throw new FormulaError(
           FormulaErrorType.INVALID_ARG,
+          {
+            key: 'msg.formula.firstArgumentMustBeDate',
+            calleeName,
+            position: nodePosition(parsedTree),
+          },
+          `The first argument of ${calleeName} must be a date`
+        );
+      }
+
+      // pg can't cast a number or checkbox to a timestamp; SQLite and MySQL
+      // read one as a date, so formulas saved there keep working
+      if (
+        DATE_PART_FUNCTIONS.includes(calleeName) &&
+        sqlUI instanceof PgUi &&
+        [FormulaDataTypes.NUMERIC, FormulaDataTypes.BOOLEAN].includes(
+          argTypes[0]
+        )
+      ) {
+        throw new FormulaError(
+          FormulaErrorType.TYPE_MISMATCH,
           {
             key: 'msg.formula.firstArgumentMustBeDate',
             calleeName,

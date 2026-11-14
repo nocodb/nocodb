@@ -503,8 +503,8 @@ export const getDurationValue = (modelValue: string | null, col: ColumnType) => 
   return convertMS2Duration(modelValue, durationType)
 }
 
-export const getPercentValue = (modelValue: string | null) => {
-  return modelValue ? `${modelValue}%` : ''
+export const getPercentValue = (modelValue: string | number | null) => {
+  return modelValue || modelValue === 0 ? `${modelValue}%` : ''
 }
 
 export const getCurrencyValue = (modelValue: string | number | null | undefined, col: ColumnType): string => {
@@ -859,6 +859,9 @@ export const parsePlainCellValue = (
     if ((col.colOptions as ButtonType).type === 'url') return value
     else return col.colOptions?.label
   }
+
+  // a numeric 0 (e.g. a formula group header) is falsy and rendered blank
+  if (ncIsNumber(value)) return String(value)
 
   return value as unknown as string
 }

@@ -10,8 +10,9 @@ const activeView = inject(ActiveViewInj, ref())
 
 const timezoneAbbreviation = computed(() => {
   if (!props.column || !isDateType(props.column.filterUidt ?? props.column.uidt)) return null
-  return getTimeZoneFromName(getEffectiveFilterTimezone(props.filter, props.column, getFilterRequestTimezone(activeView.value)))
-    ?.abbreviation
+  return getTimezoneAbbreviation(
+    getEffectiveFilterTimezone(props.filter, props.column, getFilterRequestTimezone(activeView.value)),
+  )
 })
 </script>
 

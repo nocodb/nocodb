@@ -294,7 +294,7 @@ export const formulas: Record<string, FormulaMeta> = {
         rqd: 1,
       },
     },
-    syntax: 'DAY(time | datetime)',
+    syntax: 'HOUR(time | datetime)',
     description: 'Extract hour from a time field (0-23)',
     examples: ['HOUR({column1})'],
     returnType: FormulaDataTypes.STRING,

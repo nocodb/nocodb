@@ -501,6 +501,25 @@ describe('validateFormulaAndExtractTreeWithType', () => {
     ).rejects.toHaveProperty('type', FormulaErrorType.INVALID_ARG);
   });
 
+  // the API shows this message; "Required arguments missing" was wrong for extra args
+  it.each([
+    ['UPPER("a", "b")', 'UPPER requires 1 arguments'],
+    ['NOW(1)', 'NOW requires 0 arguments'],
+    [
+      'DATETIME_FORMAT("2024-01-01", "YYYY", "x")',
+      'DATETIME_FORMAT required maximum 2 arguments',
+    ],
+  ])('should name the expected argument count for %s', async (formula, msg) => {
+    await expect(
+      validateFormulaAndExtractTreeWithType({
+        formula,
+        columns: mockColumns,
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      })
+    ).rejects.toHaveProperty('message', msg);
+  });
+
   it('should throw INVALID_ARG for incorrect argument type (identifier)', async () => {
     await expect(
       validateFormulaAndExtractTreeWithType({
@@ -727,6 +746,45 @@ describe('validateFormulaAndExtractTreeWithType', () => {
       mocked.mockRestore();
     });
   }
+
+  // the database casts these to a timestamp, so a number fails only on save
+  it.each(['DAY', 'MONTH', 'YEAR', 'HOUR'])(
+    'should reject a number as the argument of %s',
+    async (fnName) => {
+      await expect(
+        validateFormulaAndExtractTreeWithType({
+          formula: `${fnName}({Column2})`,
+          columns: mockColumns,
+          clientOrSqlUi: mockClientOrSqlUi,
+          getMeta: mockGetMeta,
+        })
+      ).rejects.toHaveProperty(
+        'message',
+        `The first argument of ${fnName} must be a date`
+      );
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: `${fnName}({Column3})`,
+        columns: mockColumns,
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      });
+      expect(result.type).toBe(JSEPNode.CALL_EXP);
+    }
+  );
+
+  // SQLite reads a number as a Julian day, MySQL a YYYYMMDD integer as a date
+  it.each(['sqlite3', 'mysql2'])(
+    'should accept a number as the argument of DAY on %s',
+    async (client) => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: 'DAY({Column2})',
+        columns: mockColumns,
+        clientOrSqlUi: SqlUiFactory.create({ client }),
+        getMeta: mockGetMeta,
+      });
+      expect(result.type).toBe(JSEPNode.CALL_EXP);
+    }
+  );
 
   // Test cases for unary expression
   it('should handle negative numeric literal', async () => {

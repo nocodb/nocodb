@@ -3220,6 +3220,10 @@ export class AtImportProcessor {
         } else if (dateTypes.includes(datatype)) {
           const mode = filter.value?.mode;
           if (!mode) continue; // incomplete in Airtable too
+          // relative dates resolve in the filter's own timezone
+          const meta = filter.value?.timeZone
+            ? { timezone: filter.value.timeZone }
+            : undefined;
           if (filter.operator === 'isWithin') {
             const subOp = isWithinMap[mode];
             if (!subOp) {
@@ -3237,6 +3241,7 @@ export class AtImportProcessor {
               comparison_op: filter.operator,
               comparison_sub_op: subOp,
               value: filter.value?.numberOfDays,
+              meta,
             });
           } else {
             const subOp = dateModeMap[mode];
@@ -3260,6 +3265,7 @@ export class AtImportProcessor {
                 : subOp === 'exactDate'
                 ? filter.value?.exactDate
                 : undefined,
+              meta,
             });
           }
         }

@@ -1118,7 +1118,7 @@ async function resetDynamicField(filter: any, i) {
   await saveOrUpdate(filter, i)
 }
 
-const { sqlUis, baseId } = storeToRefs(useBase())
+const { sqlUis, baseId, isSharedBase } = storeToRefs(useBase())
 
 const sqlUi = computed(() => {
   return meta.value?.source_id && meta.value?.base_id === baseId.value && sqlUis.value[meta.value?.source_id]
@@ -2004,16 +2004,13 @@ defineExpose({
 
                 <NcTooltip
                   v-if="
-                    !filter.readOnly &&
-                    !readOnly &&
-                    appInfo.ee &&
-                    isViewFilter &&
-                    !filter.is_group &&
-                    !webHook &&
-                    !link &&
-                    !widget &&
-                    !isList &&
-                    !isInterfacePage
+                    isFilterPinShown({
+                      isEe: !!appInfo.ee,
+                      isViewFilter: !!isViewFilter && !webHook && !link && !widget && !isList && !isInterfacePage,
+                      isTempFilters: isPublic || isSharedBase,
+                      readOnly: !!readOnly,
+                      filter,
+                    })
                   "
                 >
                   <template #title>

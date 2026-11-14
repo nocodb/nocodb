@@ -392,6 +392,21 @@ export function getTimezoneFromColumn(col: ColumnTypeForFilter, defaultValue = I
   return columnMeta.timezone || defaultValue
 }
 
+export interface FilterPinContext {
+  isEe: boolean
+  /** A view's own filter list (not a webhook, link, widget, list-level or interface filter). */
+  isViewFilter: boolean
+  /** Shared view or shared base: filter edits stay in the browser. */
+  isTempFilters: boolean
+  readOnly: boolean
+  filter: { is_group?: boolean | null; readOnly?: boolean }
+}
+
+/** Pinning saves to the view's toolbar, so it is offered only where filter edits persist. */
+export function isFilterPinShown({ isEe, isViewFilter, isTempFilters, readOnly, filter }: FilterPinContext): boolean {
+  return isEe && isViewFilter && !isTempFilters && !readOnly && !filter.readOnly && !filter.is_group
+}
+
 // Fields the backend actually persists on a filter row. UI-only fields like
 // `tmp_id`, `children`, and `id` are deliberately excluded so callers can
 // diff/snapshot the persistable subset without reacting to UI noise.

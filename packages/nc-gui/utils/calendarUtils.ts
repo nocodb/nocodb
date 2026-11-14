@@ -1,5 +1,5 @@
 import type dayjs from 'dayjs'
-import { type ColumnType, parseProp } from 'nocodb-sdk'
+import { type ColumnType, type FormulaType, UITypes, getRollupResultUidt, parseProp } from 'nocodb-sdk'
 
 const isRowInDateRange = (
   rowData: Record<string, any>,
@@ -288,4 +288,34 @@ const getCalendarMoveEnd = (
   return newEnd
 }
 
-export { isRowInDateRange, isRowInCurrentDateRange, isRowMatchingSidebarFilter, is12hrTimeColumn, getCalendarMoveEnd }
+const CALENDAR_DATE_UIDTS: string[] = [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime]
+
+/**
+ * The type a calendar renders its range column as. A Formula or Rollup that yields a
+ * date-only value is a Date: rendered as DateTime, its UTC midnight shows as a time
+ * (05:30 in IST).
+ */
+const getCalendarDataType = (col?: ColumnType | null): string | undefined => {
+  if (!col) return undefined
+
+  const displayType = parseProp(col.meta)?.display_type
+  if (displayType && CALENDAR_DATE_UIDTS.includes(displayType)) return displayType
+
+  if (col.uidt === UITypes.Formula) {
+    const refUidt = (col.colOptions as FormulaType | undefined)?.parsed_tree?.referencedColumn?.uidt
+    return refUidt === UITypes.Date ? UITypes.Date : UITypes.Formula
+  }
+
+  if (col.uidt === UITypes.Rollup) return getRollupResultUidt(col) ?? UITypes.Rollup
+
+  return col.uidt
+}
+
+export {
+  isRowInDateRange,
+  isRowInCurrentDateRange,
+  isRowMatchingSidebarFilter,
+  is12hrTimeColumn,
+  getCalendarMoveEnd,
+  getCalendarDataType,
+}

@@ -503,8 +503,8 @@ export const getDurationValue = (modelValue: string | null, col: ColumnType) => 
   return convertMS2Duration(modelValue, durationType)
 }
 
-export const getPercentValue = (modelValue: string | null) => {
-  return modelValue ? `${modelValue}%` : ''
+export const getPercentValue = (modelValue: string | number | null) => {
+  return modelValue || modelValue === 0 ? `${modelValue}%` : ''
 }
 
 export const getCurrencyValue = (modelValue: string | number | null | undefined, col: ColumnType): string => {

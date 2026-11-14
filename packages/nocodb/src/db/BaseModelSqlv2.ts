@@ -10014,16 +10014,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (Object.keys(updateObject).length === 0) return;
 
+    // Trashed rows keep their LMT: record trash entries are keyed by it.
+    const deletedColumn = columns.find((c) => isDeletedCol(c));
+
     // One OR term per row, and SQLite caps expression depth at 1000.
     for (const chunk of chunkArray(
       Array.isArray(rowIds) ? rowIds : [rowIds],
       UPDATE_BY_PK_CHUNK_SIZE,
     )) {
-      const qb = knex(baseModel.getTnPath(model.table_name)).update(
-        updateObject,
-      );
-      for (const rowId of chunk) {
-        qb.orWhere(_wherePk(model.primaryKeys, rowId));
+      const qb = knex(baseModel.getTnPath(model.table_name))
+        .update(updateObject)
+        .where((pkQb) => {
+          for (const rowId of chunk) {
+            pkQb.orWhere(_wherePk(model.primaryKeys, rowId));
+          }
+        });
+      if (deletedColumn) {
+        qb.where((delQb) =>
+          delQb
+            .whereNull(deletedColumn.column_name)
+            .orWhere(
+              deletedColumn.column_name,
+              deletedColValue(baseModel, false),
+            ),
+        );
       }
       await this.execAndParse(qb, null, { raw: true });
     }

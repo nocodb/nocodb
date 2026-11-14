@@ -532,7 +532,7 @@ useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord: () => new
     class="h-full flex flex-col relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
-    <div v-if="!interfacePageDataApi" class="flex min-w-[288px] flex-col">
+    <div v-if="!interfacePageDataApi" class="nc-calendar-sidebar-pickers flex min-w-[288px] flex-col">
       <NcDateWeekSelector
         v-if="activeCalendarView === ('day' as const)"
         v-model:active-dates="activeDates"
@@ -594,7 +594,7 @@ useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord: () => new
       <div class="flex px-4 h-8 items-center gap-3">
         <NcDropdown v-model:visible="isDropdownOpen">
           <div
-            class="font-medium text-nc-content-gray cursor-pointer gap-2 flex items-center font-bold leading-6"
+            class="font-medium text-nc-content-gray cursor-pointer gap-2 flex items-center leading-6"
             data-testid="nc-calendar-sidebar-filter"
           >
             <div class="truncate">
@@ -821,6 +821,25 @@ useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord: () => new
 </template>
 
 <style lang="scss" scoped>
+// The shared date pickers run heavy for a sidebar; lighten them here only
+.nc-calendar-sidebar-pickers {
+  :deep(.nc-month-item),
+  :deep(.nc-year-item) {
+    font-size: 13px;
+  }
+
+  :deep(.font-medium) {
+    font-weight: 450 !important;
+  }
+
+  :deep(.font-semibold),
+  :deep(.font-bold),
+  :deep(.\!font-semibold),
+  :deep(.\!font-bold) {
+    font-weight: 600 !important;
+  }
+}
+
 :deep(.nc-attachment-image) {
   @apply rounded-md;
 }

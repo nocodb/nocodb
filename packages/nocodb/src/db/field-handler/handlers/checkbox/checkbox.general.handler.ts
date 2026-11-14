@@ -82,6 +82,55 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
     };
   }
 
+  // `is`/`isnot` accept `true`/`false` on a Checkbox, e.g.
+  // `(field,is,true)` in the `where` query param. They read as `checked` and
+  // `notchecked`, so an unset (NULL) cell counts as unchecked, as in the grid.
+  // Every other value (`null`, `notnull`, `blank`, ...) is handled generically.
+  override async filterIs(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ) {
+    switch (this.booleanFilterValue(args.val)) {
+      case true:
+        return this.filterChecked(args as any, rootArgs, options);
+      case false:
+        return this.filterNotchecked(args as any, rootArgs, options);
+      default:
+        return super.filterIs(args, rootArgs, options);
+    }
+  }
+
+  override async filterIsnot(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ) {
+    switch (this.booleanFilterValue(args.val)) {
+      case true:
+        return this.filterNotchecked(args as any, rootArgs, options);
+      case false:
+        return this.filterChecked(args as any, rootArgs, options);
+      default:
+        return super.filterIsnot(args, rootArgs, options);
+    }
+  }
+
+  // Only the literal `true`/`false` (boolean or string) are boolean operands
+  // of `is`/`isnot`; anything else is left to the generic handler.
+  private booleanFilterValue(val: any): boolean | undefined {
+    if (val === true || val === 'true') return true;
+    if (val === false || val === 'false') return false;
+    return undefined;
+  }
+
   override async filterEq(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;

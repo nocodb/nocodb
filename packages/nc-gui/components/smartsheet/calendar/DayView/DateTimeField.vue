@@ -1023,6 +1023,7 @@ function onRecordContextMenu(event: MouseEvent, record: Row) {
                 isUIAllowed('dataEdit') &&
                 isAddDeleteInlineEnabled &&
                 [UITypes.DateTime, UITypes.Date].includes(calDataType) &&
+                !calendarRange[0]?.is_readonly &&
                 !isSyncedTable
               "
               :class="{ '!block': hour.isSame(selectedTime), '!hidden': !hour.isSame(selectedTime) }"

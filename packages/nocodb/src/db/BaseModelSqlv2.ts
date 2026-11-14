@@ -2048,10 +2048,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args?: RelationLoaderArgs): Promise<any> {
+                  const pk = getCompositePkValue(self.model.primaryKeys, this);
+                  if (pk === null || pk === undefined) return [];
                   listLoader.args = withLookupFields(args, column, colOptions);
-                  return listLoader.load(
-                    getCompositePkValue(self.model.primaryKeys, this),
-                  );
+                  return listLoader.load(pk);
                 };
               } else if (isBtLikeV2Junction(column)) {
                 // V2 MO/OO: single-record — return object (like BT)
@@ -2086,10 +2086,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 proto[column.title] = async function (
                   args?: RelationLoaderArgs,
                 ) {
+                  const pk = getCompositePkValue(self.model.primaryKeys, this);
+                  if (pk === null || pk === undefined) return null;
                   readLoader.args = withLookupFields(args, column, colOptions);
-                  return await readLoader.load(
-                    getCompositePkValue(self.model.primaryKeys, this),
-                  );
+                  return await readLoader.load(pk);
                 };
               } else if (colOptions.type === 'mm' || isMMLike) {
                 const listLoader = new DataLoaderWithArgs(
@@ -2134,10 +2134,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args?: RelationLoaderArgs): Promise<any> {
+                  const pk = getCompositePkValue(self.model.primaryKeys, this);
+                  if (pk === null || pk === undefined) return [];
                   listLoader.args = withLookupFields(args, column, colOptions);
-                  return await listLoader.load(
-                    getCompositePkValue(self.model.primaryKeys, this),
-                  );
+                  return await listLoader.load(pk);
                 };
               } else if (colOptions.type === 'bt' && !isMMLike) {
                 // @ts-ignore
@@ -2366,14 +2366,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       ? `_nc_lk_${column.title}`
                       : column.title
                   ] = async function (args?: RelationLoaderArgs): Promise<any> {
+                    const pk = getCompositePkValue(
+                      self.model.primaryKeys,
+                      this,
+                    );
+                    if (pk === null || pk === undefined) return null;
                     listLoader.args = withLookupFields(
                       args,
                       column,
                       colOptions,
                     );
-                    return listLoader.load(
-                      getCompositePkValue(self.model.primaryKeys, this),
-                    );
+                    return listLoader.load(pk);
                   };
                 }
               }

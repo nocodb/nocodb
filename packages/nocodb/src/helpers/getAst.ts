@@ -250,6 +250,9 @@ const getAst = async (
   // Collected with the broad strategy-result type; narrowed to `Ast` on return.
   const ast: Record<string, AstResult> = {};
 
+  // Requested V2 junction mo/oo links read as a full record (no nested AST).
+  const junctionLinkTitles: string[] = [];
+
   // Shared inputs for the per-column strategy chain (see getAstColumnStrategy).
   const astCtx: ColumnAstContext = {
     model,
@@ -421,7 +424,19 @@ const getAst = async (
     if (isRequested || col.pk)
       await extractDependencies(context, col, dependencyFields);
 
+    if (isRequested && !linksAsLtar && isBtLikeV2Junction(col))
+      junctionLinkTitles.push(col.title);
+
     ast[getFieldKey(col)] = isRequested;
+  }
+
+  // A Lookup through such a link shares its nested bucket and would narrow the
+  // link's read to the looked-up column, dropping pk/pv (nocodb/nocodb#14951). Keep the
+  // read unnarrowed; the full row still carries every lookup target.
+  for (const title of junctionLinkTitles) {
+    if (dependencyFields.nested[title]?.fieldsSet) {
+      delete dependencyFields.nested[title].fieldsSet;
+    }
   }
 
   // Narrow back to `Ast`: falsy entries are runtime-only "not requested" markers

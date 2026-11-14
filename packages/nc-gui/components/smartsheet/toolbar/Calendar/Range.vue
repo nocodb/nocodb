@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, FormulaDataTypes, PlanFeatureTypes, PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
+import {
+  type CalendarRangeType,
+  FormulaDataTypes,
+  MAX_CALENDAR_RANGES,
+  PlanFeatureTypes,
+  PlanTitles,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
@@ -124,7 +132,6 @@ const saveCalendarRanges = async () => {
       await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
       // calendarRangeDropdown.value = false
     } catch (e) {
-      console.log(e)
       message.error(t('msg.error.errorWhileUpdatingView'))
     }
   } else {
@@ -165,6 +172,8 @@ function getFromOptions(index: number) {
   )
 }
 
+const isRangeLimitReached = computed(() => _calendar_ranges.value.length >= MAX_CALENDAR_RANGES)
+
 function addRange() {
   _calendar_ranges.value.push({ fk_from_column_id: undefined, fk_to_column_id: null })
 }
@@ -174,16 +183,16 @@ async function removeRange(index: number) {
   await saveCalendarRanges()
 }
 
-const onValueChange = async () => {
-  _calendar_ranges.value = _calendar_ranges.value.map((range, i) => {
-    if (i === 0) {
-      return {
-        fk_from_column_id: range.fk_from_column_id,
-        fk_to_column_id: undefined,
-      }
-    }
-    return range
-  })
+// The end-date options depend on the start field, so only the changed range's end date is reset
+const onValueChange = (index: number) => {
+  _calendar_ranges.value = _calendar_ranges.value.map((range, i) =>
+    i === index
+      ? {
+          fk_from_column_id: range.fk_from_column_id,
+          fk_to_column_id: range.fk_to_column_id === null ? null : undefined,
+        }
+      : range,
+  )
 }
 </script>
 
@@ -223,7 +232,7 @@ const onValueChange = async () => {
     <template #overlay>
       <div
         v-if="calendarRangeDropdown"
-        class="w-full sm:w-108 space-y-4 sm:space-y-6 sm:rounded-2xl px-0 py-1 sm:p-6"
+        class="w-full sm:w-108 space-y-4 sm:space-y-6 sm:rounded-2xl px-0 py-1 sm:p-6 max-h-[70vh] overflow-auto"
         data-testid="nc-calendar-range-menu"
         @click.stop
       >
@@ -235,7 +244,7 @@ const onValueChange = async () => {
         >
           <div class="flex items-center justify-between">
             <span class="text-nc-content-gray">
-              {{ $t('labels.organiseBy') }}
+              {{ id === 0 ? $t('labels.organiseBy') : $t('labels.dateRangeN', { n: id + 1 }) }}
             </span>
             <NcTooltip v-if="id > 0 && !isLocked" :title="$t('general.remove')">
               <NcButton
@@ -243,6 +252,7 @@ const onValueChange = async () => {
                 size="xsmall"
                 type="text"
                 data-testid="nc-calendar-range-remove"
+                :aria-label="$t('general.remove')"
                 @click="removeRange(id)"
               >
                 <GeneralIcon icon="delete" />
@@ -259,7 +269,7 @@ const onValueChange = async () => {
             :disabled="isLocked"
             @change="
               () => {
-                onValueChange()
+                onValueChange(id)
                 saveCalendarRanges()
               }
             "
@@ -362,7 +372,7 @@ const onValueChange = async () => {
                             </NcTooltip>
                           </div>
                           <GeneralIcon
-                            v-if="option.value === range.fk_from_column_id"
+                            v-if="option.value === range.fk_to_column_id"
                             id="nc-selected-item-icon"
                             icon="check"
                             class="flex-none text-primary w-4 h-4"
@@ -377,21 +387,32 @@ const onValueChange = async () => {
           </div>
         </div>
 
-        <NcButton
-          v-if="isEeUI && isSetup && !isLocked"
-          v-e="['c:calendar:range:add']"
-          size="small"
-          type="text"
-          :shadow="false"
-          :disabled="!_calendar_ranges[_calendar_ranges.length - 1]?.fk_from_column_id"
-          data-testid="nc-calendar-range-add"
-          @click="addRange"
-        >
-          <div class="flex gap-2 items-center">
-            <component :is="iconMap.plus" class="h-4 w-4" />
-            {{ $t('activity.addDateRange') }}
-          </div>
-        </NcButton>
+        <PaymentUpgradeBadgeProvider v-if="isEeUI && isSetup && !isLocked" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+          <template #default="{ click }">
+            <NcTooltip :disabled="!isRangeLimitReached">
+              <template #title>{{ $t('msg.info.maxCalendarRanges', { max: MAX_CALENDAR_RANGES }) }}</template>
+              <NcButton
+                v-e="['c:calendar:range:add']"
+                size="small"
+                type="text"
+                :shadow="false"
+                :disabled="isRangeLimitReached || !_calendar_ranges[_calendar_ranges.length - 1]?.fk_from_column_id"
+                data-testid="nc-calendar-range-add"
+                @click="click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, addRange)"
+              >
+                <div class="flex gap-2 items-center">
+                  <component :is="iconMap.plus" class="h-4 w-4" />
+                  {{ $t('activity.addDateRange') }}
+                  <PaymentUpgradeBadge
+                    :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                    :content="$t('upgrade.upgradeToUseCalendarRangeSubtitle', { plan: getPlanTitle(PlanTitles.PLUS) })"
+                    :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                  />
+                </div>
+              </NcButton>
+            </NcTooltip>
+          </template>
+        </PaymentUpgradeBadgeProvider>
 
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
           <GeneralIcon icon="warning" class="text-sm mt-0.5 text-nc-content-orange-medium" />

@@ -320,3 +320,6 @@ export const getFirstNonPersonalView = <T extends ViewType>(
       return true;
     });
 };
+
+// Max date ranges on one calendar view.
+export const MAX_CALENDAR_RANGES = 20;

@@ -30,12 +30,30 @@ const NEUTRAL: CalendarEventColors = {
   onAccent: '#ffffff',
 }
 
+// Accents for uncoloured events when a view has several date ranges, one per range.
+const RANGE_ACCENTS = ['#3366FF', '#F97316', '#16A34A', '#9333EA', '#E11D48', '#0891B2']
+
+// Accent of the range at `index`, as used on its cards.
+export const getCalendarRangeAccent = (index: number) => RANGE_ACCENTS[index % RANGE_ACCENTS.length]
+
 export function getCalendarEventColors(record?: Row): CalendarEventColors {
   const accent = record?.rowMeta?.rowLeftBorderColor
   const tint = record?.rowMeta?.rowBgColor
   const border = record?.rowMeta?.rowBorderColor
 
-  if (!accent && !tint) return NEUTRAL
+  if (!accent && !tint) {
+    const colorIndex = record?.rowMeta?.range?.colorIndex
+    if (colorIndex == null) return NEUTRAL
+
+    const rangeAccent = getCalendarRangeAccent(colorIndex)
+    return {
+      hasColor: true,
+      accent: rangeAccent,
+      tint: `color-mix(in srgb, ${rangeAccent} 12%, var(--nc-bg-default))`,
+      border: `color-mix(in srgb, ${rangeAccent} 45%, transparent)`,
+      onAccent: getOppositeColorOfBackground(rangeAccent),
+    }
+  }
 
   // Prefer the strong left-border colour as the accent; fall back to the tint
   // when a row colour was set without an explicit left-border colour.

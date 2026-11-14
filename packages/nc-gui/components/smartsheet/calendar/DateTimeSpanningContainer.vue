@@ -130,61 +130,60 @@ const calendarData = computed(() => {
   const perDayWidth = containerWidth.value / maxVisibleDays.value
 
   const recordsInRange = [] as Row[]
-  calendarRange.value.forEach(({ fk_from_col, fk_to_col }) => {
-    if (!fk_from_col || !fk_to_col) return
-    for (const record of records.value) {
-      const id = record.rowMeta.id ?? generateRandomNumber()
+  // Records arrive already split per range, each carrying its own range
+  for (const record of records.value) {
+    const range = record.rowMeta.range
+    const { fk_from_col, fk_to_col } = range ?? {}
+    if (!range || !fk_from_col || !fk_to_col) continue
+    const id = record.rowMeta.id ?? generateRandomNumber()
 
-      // Use whichever date is available; fall back to the other if one is missing
-      const startDate = record.row[fk_from_col.title!]
-        ? timezoneDayjs.timezonize(record.row[fk_from_col.title!])
-        : record.row[fk_to_col.title!]
-        ? timezoneDayjs.timezonize(record.row[fk_to_col.title!])
-        : null
-      if (!startDate) continue
+    // Use whichever date is available; fall back to the other if one is missing
+    const startDate = record.row[fk_from_col.title!]
+      ? timezoneDayjs.timezonize(record.row[fk_from_col.title!])
+      : record.row[fk_to_col.title!]
+      ? timezoneDayjs.timezonize(record.row[fk_to_col.title!])
+      : null
+    if (!startDate) continue
 
-      const endDate = record.row[fk_to_col.title!]
-        ? timezoneDayjs.timezonize(record.row[fk_to_col.title!])
-        : startDate.endOf('day')
+    const endDate = record.row[fk_to_col.title!] ? timezoneDayjs.timezonize(record.row[fk_to_col.title!]) : startDate.endOf('day')
 
-      const startDayIndex = Math.max(startDate.diff(viewStartDate.value, 'day'), 0)
-      const endDayIndex = Math.min(endDate.diff(viewStartDate.value, 'day'), maxVisibleDays.value - 1)
+    const startDayIndex = Math.max(startDate.diff(viewStartDate.value, 'day'), 0)
+    const endDayIndex = Math.min(endDate.diff(viewStartDate.value, 'day'), maxVisibleDays.value - 1)
 
-      const spanDays = endDayIndex - startDayIndex + 1
+    const spanDays = endDayIndex - startDayIndex + 1
 
-      const row = findFirstSuitableRow(recordsInDay, startDayIndex, spanDays)
+    const row = findFirstSuitableRow(recordsInDay, startDayIndex, spanDays)
 
-      for (let i = 0; i < spanDays; i++) {
-        const dayIndex = startDayIndex + i
-        recordsInDay[dayIndex][row] = true
-      }
-
-      const isStartInRange = isInRange(startDate)
-      const isEndInRange = isInRange(endDate)
-
-      let position = 'none'
-      if (isStartInRange && isEndInRange) position = 'rounded'
-      else if (isStartInRange) position = 'leftRounded'
-      else if (isEndInRange) position = 'rightRounded'
-
-      const style: Partial<CSSStyleDeclaration> = {
-        top: `${row * 28 + row * 8 + 8}px`,
-        left: `${startDayIndex * perDayWidth}px`,
-        width: `${spanDays * perDayWidth}px`,
-      }
-
-      recordsInRange.push({
-        ...record,
-        rowMeta: {
-          ...record.rowMeta,
-          style,
-          position,
-          range: { fk_from_col, fk_to_col },
-          id,
-        },
-      })
+    for (let i = 0; i < spanDays; i++) {
+      const dayIndex = startDayIndex + i
+      recordsInDay[dayIndex][row] = true
     }
-  })
+
+    const isStartInRange = isInRange(startDate)
+    const isEndInRange = isInRange(endDate)
+
+    let position = 'none'
+    if (isStartInRange && isEndInRange) position = 'rounded'
+    else if (isStartInRange) position = 'leftRounded'
+    else if (isEndInRange) position = 'rightRounded'
+
+    const style: Partial<CSSStyleDeclaration> = {
+      top: `${row * 28 + row * 8 + 8}px`,
+      left: `${startDayIndex * perDayWidth}px`,
+      width: `${spanDays * perDayWidth}px`,
+    }
+
+    recordsInRange.push({
+      ...record,
+      rowMeta: {
+        ...record.rowMeta,
+        style,
+        position,
+        range,
+        id,
+      },
+    })
+  }
 
   return recordsInRange
 })

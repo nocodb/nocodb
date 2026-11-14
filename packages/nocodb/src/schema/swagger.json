@@ -26042,6 +26042,7 @@
           },
           "calendar_range": {
             "type": "array",
+            "maxItems": 20,
             "description": "Calendar Date Range",
             "items": {
               "$ref": "#/components/schemas/CalendarRange"
@@ -26314,8 +26315,9 @@
             "x-stoplight": {
               "id": "uqq8xmyz97t1u"
             },
-            "description": "Base ID",
-            "type": "string"
+            "description": "Label shown on the range's cards",
+            "type": "string",
+            "maxLength": 40
           }
         },
         "x-stoplight": {
@@ -26355,6 +26357,7 @@
           },
           "calendar_range": {
             "type": "array",
+            "maxItems": 20,
             "description": "Calendar Columns",
             "items": {
               "$ref": "#/components/schemas/CalendarRange"

@@ -12516,6 +12516,11 @@
                 "end_date_field_id": {
                   "type": "string",
                   "description": "Date field ID to be used as end date in calendar view."
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "description": "Optional label shown on this range's cards when the view has several date ranges."
                 }
               },
               "required": [

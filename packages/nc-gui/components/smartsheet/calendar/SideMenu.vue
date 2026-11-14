@@ -115,6 +115,17 @@ const renderData = computed<Array<Row>>(() => {
 
   const rangedData: Array<Row> = []
 
+  // Not tied to a window, so each record is listed once, under the first range it has a date in
+  // (undated records fall back to the first range)
+  if (calendarRange.value.length > 1 && ['withoutDates', 'allRecords'].includes(sideBarFilterOption.value)) {
+    formattedSideBarData.value.forEach((record) => {
+      if (sideBarFilterOption.value === 'allRecords' || isRecordUndated(record.row, calendarRange.value)) {
+        pushToArray(rangedData, record, getRecordOwnRange(record.row, calendarRange.value))
+      }
+    })
+    return rangedData
+  }
+
   calendarRange.value.forEach((range) => {
     const fromCol = range.fk_from_col
     const toCol = range.fk_to_col
@@ -430,7 +441,7 @@ function newRecordFromDate(): dayjs.Dayjs | undefined {
   }
 }
 
-const newRecord = () => {
+const newRecord = (range = calendarRange.value[0]) => {
   if (interfaceEditSelect.value) return interfaceEditSelect.value()
   if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value) return
 
@@ -448,14 +459,14 @@ const newRecord = () => {
   }
 
   // Set the from date
-  if (calendarRange.value[0]?.fk_from_col) {
-    row[calendarRange.value[0].fk_from_col.title!] = fromDate.format(updateFormat.value)
+  if (range?.fk_from_col) {
+    row[range.fk_from_col.title!] = fromDate.format(updateFormat.value)
   }
 
   // Set the to date if to_col is configured (same as from date + 1 hour)
-  if (calendarRange.value[0]?.fk_to_col) {
+  if (range?.fk_to_col) {
     const toDate = fromDate.endOf('hour')
-    row[calendarRange.value[0].fk_to_col.title!] = toDate.format(updateFormat.value)
+    row[range.fk_to_col.title!] = toDate.format(updateFormat.value)
   }
 
   emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })
@@ -507,7 +518,7 @@ const selectOption = (option) => {
   sideBarFilterOption.value = option.value
 }
 
-useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
+useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord: () => newRecord() })
 </script>
 
 <template>
@@ -521,7 +532,7 @@ useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
     class="h-full flex flex-col relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
-    <div v-if="!interfacePageDataApi" class="flex min-w-[288px] flex-col">
+    <div v-if="!interfacePageDataApi" class="nc-calendar-sidebar-pickers flex min-w-[288px] flex-col">
       <NcDateWeekSelector
         v-if="activeCalendarView === ('day' as const)"
         v-model:active-dates="activeDates"
@@ -583,7 +594,7 @@ useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
       <div class="flex px-4 h-8 items-center gap-3">
         <NcDropdown v-model:visible="isDropdownOpen">
           <div
-            class="font-medium text-nc-content-gray cursor-pointer gap-2 flex items-center font-bold leading-6"
+            class="font-medium text-nc-content-gray cursor-pointer gap-2 flex items-center leading-6"
             data-testid="nc-calendar-sidebar-filter"
           >
             <div class="truncate">
@@ -673,19 +684,40 @@ useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
           placement="left"
           show-overlay
         >
-          <NcButton
-            v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
-            data-testid="nc-calendar-side-menu-new-btn"
-            class="!h-7 !rounded-md"
-            size="small"
-            type="secondary"
-            @click="newRecord"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="ncPlus" />
-              {{ $t('general.record') }}
-            </div>
-          </NcButton>
+          <NcDropdown :trigger="calendarRange.length > 1 ? ['click'] : []" auto-close>
+            <NcButton
+              v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
+              data-testid="nc-calendar-side-menu-new-btn"
+              class="!h-7 !rounded-md"
+              size="small"
+              type="secondary"
+              @click="calendarRange.length > 1 ? undefined : newRecord()"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncPlus" />
+                {{ $t('general.record') }}
+              </div>
+            </NcButton>
+            <template v-if="calendarRange.length > 1" #overlay>
+              <NcMenu class="w-64">
+                <div class="px-3 py-1.5 text-captionSm text-nc-content-gray-muted">{{ $t('labels.selectDateFieldToAdd') }}</div>
+                <NcMenuItem
+                  v-for="(range, index) in calendarRange"
+                  :key="index"
+                  class="text-nc-content-gray-default font-semibold text-sm"
+                  @click="newRecord(range)"
+                >
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="inline-block h-2 w-2 flex-none rounded-full"
+                      :style="{ backgroundColor: getCalendarRangeAccent(index) }"
+                    />
+                    <span>{{ range.label || range.fk_from_col!.title }}</span>
+                  </div>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </PermissionsTooltip>
       </div>
 
@@ -792,6 +824,25 @@ useCalendarNewRecordCommands({ fromDate: newRecordFromDate, newRecord })
 </template>
 
 <style lang="scss" scoped>
+// The shared date pickers run heavy for a sidebar; lighten them here only
+.nc-calendar-sidebar-pickers {
+  :deep(.nc-month-item),
+  :deep(.nc-year-item) {
+    font-size: 13px;
+  }
+
+  :deep(.font-medium) {
+    font-weight: 450 !important;
+  }
+
+  :deep(.font-semibold),
+  :deep(.font-bold),
+  :deep(.\!font-semibold),
+  :deep(.\!font-bold) {
+    font-weight: 600 !important;
+  }
+}
+
 :deep(.nc-attachment-image) {
   @apply rounded-md;
 }

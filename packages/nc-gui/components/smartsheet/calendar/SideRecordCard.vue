@@ -122,7 +122,7 @@ const errorInfo = computed(() => {
   <div
     :class="[`nc-side-card--${sideTheme}`, { 'nc-side-card--uncolored': !colors.hasColor }]"
     :style="themeVars"
-    class="nc-side-card cursor-pointer h-12.5 flex-none flex gap-2 flex-col rounded-lg overflow-hidden"
+    class="nc-side-card cursor-pointer h-12.5 flex-none flex gap-2 flex-col justify-center rounded-lg overflow-hidden"
   >
     <div class="flex relative items-center gap-2">
       <span v-if="showLeftBar" class="nc-side-card-leftbar block h-12 w-1"></span>
@@ -142,7 +142,7 @@ const errorInfo = computed(() => {
           :class="{
             '!max-w-35': invalid,
           }"
-          class="nc-side-card-title text-[13px] leading-4 max-w-56 font-medium truncate text-nc-content-gray"
+          class="nc-side-card-title text-[13px] leading-4 max-w-56 font-500 truncate text-nc-content-gray"
         >
           <template #title>
             <slot name="tooltip" />
@@ -163,7 +163,7 @@ const errorInfo = computed(() => {
         <NcTooltip
           v-if="showDate"
           show-on-truncate-only
-          class="nc-side-card-date text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
+          class="nc-side-card-date text-xs font-500 truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
         >
           {{
             fromDate && toDate

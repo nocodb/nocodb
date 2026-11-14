@@ -16,6 +16,7 @@ const {
   sideBarFilterOption,
   displayField,
   calendarRange,
+  getRangeRecords,
   viewMetaProperties,
   showSideMenu,
   updateRowProperty,
@@ -376,7 +377,7 @@ const recordsToDisplay = computed<{
     const endCol = range.fk_to_col
 
     // Filter out records that don't satisfy the range and sort them by start date
-    const sortedFormattedData = [...formattedData.value]
+    const sortedFormattedData = [...getRangeRecords(range)]
       .filter((record) => {
         if (startCol && endCol) {
           const fromDate = record.row[startCol.title!] ? timezoneDayjs.timezonize(record.row[startCol.title!]) : null
@@ -417,15 +418,13 @@ const recordsToDisplay = computed<{
         const startDate = timezoneDayjs.timezonize(record.row[startCol.title!])
         const dateKey = startDate.format('YYYY-MM-DD')
 
-        const id = record.rowMeta.id ?? generateRandomNumber()
+        const id = getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value)
 
         const lane = findAvailableLane(dateKey)
         if (lane === -1) {
           recordsInDay[dateKey].overflow = true
           recordsInDay[dateKey].overflowCount++
-          record.rowMeta.id = id
-          record.rowMeta.range = range
-          recordsInDay[dateKey].overflowRecords.push(record)
+          recordsInDay[dateKey].overflowRecords.push({ ...record, rowMeta: { ...record.rowMeta, id, range } })
           return // Skip this record as there's no available lane
         }
 
@@ -486,7 +485,7 @@ const recordsToDisplay = computed<{
           startDate = calendarData.value.weeks[0].days[0].date
         }
 
-        const id = record.rowMeta.id ?? generateRandomNumber()
+        const id = getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value)
         // Since the records can span multiple weeks, to display, we render multiple elements
         // for each week the record spans. The id is used to identify the elements that belong to the same record
         let recordIndex = 0
@@ -524,15 +523,14 @@ const recordsToDisplay = computed<{
           const lane = findAvailableLane(dateKey, duration)
 
           if (lane === -1) {
-            record.rowMeta.id = id
-            record.rowMeta.range = range
+            const overflowRecord = { ...record, rowMeta: { ...record.rowMeta, id, range } }
 
             for (let i = 0; i < duration; i++) {
               const overflowDate = recordStart.add(i, 'day').format('YYYY-MM-DD')
               if (recordsInDay[overflowDate]) {
                 recordsInDay[overflowDate].overflow = true
                 recordsInDay[overflowDate].overflowCount++
-                recordsInDay[overflowDate].overflowRecords.push(record)
+                recordsInDay[overflowDate].overflowRecords.push(overflowRecord)
               }
             }
             currentWeekStart = currentWeekStart.add(1, 'week')
@@ -1224,25 +1222,30 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                     '!block': isDateSelected(day.date),
                     '!hidden': !isDateSelected(day.date),
                   }"
-                  class="!group-hover:block rounded"
-                  size="small"
-                  type="secondary"
+                  class="!group-hover:block !w-6 !h-6 !rounded nc-calendar-add-record-btn"
+                  size="xsmall"
+                  type="text"
+                  :aria-label="$t('activity.newRecord')"
                 >
                   <component :is="iconMap.plus" class="h-4 w-4" />
                 </NcButton>
                 <template #overlay>
                   <NcMenu class="w-64">
-                    <NcMenuItem> {{ $t('labels.selectDateFieldToAdd') }} </NcMenuItem>
+                    <div class="px-3 py-1.5 text-captionSm text-nc-content-gray-muted">
+                      {{ $t('labels.selectDateFieldToAdd') }}
+                    </div>
                     <NcMenuItem
                       v-for="(range, index) in calendarRange"
                       :key="index"
                       class="text-nc-content-gray-default font-semibold text-sm"
                       @click="addRecordWithRange(range, day.date)"
                     >
-                      <div class="flex items-center gap-1">
-                        <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
-
-                        <span class="ml-1">{{ range.fk_from_col!.title }}</span>
+                      <div class="flex items-center gap-2">
+                        <span
+                          class="inline-block h-2 w-2 flex-none rounded-full"
+                          :style="{ backgroundColor: getCalendarRangeAccent(index) }"
+                        />
+                        <span>{{ range.label || range.fk_from_col!.title }}</span>
                       </div>
                     </NcMenuItem>
                   </NcMenu>
@@ -1263,9 +1266,10 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                       '!block': isDateSelected(day.date),
                       '!hidden': !isDateSelected(day.date),
                     }"
-                    class="!group-hover:block !w-6 !h-6 !rounded"
+                    class="!group-hover:block !w-6 !h-6 !rounded nc-calendar-add-record-btn"
                     size="xsmall"
-                    type="secondary"
+                    type="text"
+                    :aria-label="$t('activity.newRecord')"
                     :disabled="!isAllowed"
                     @click="addRecordWithRange(calendarRange[0], day.date)"
                   >
@@ -1470,6 +1474,20 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
 
 .grid-cols-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+// Day cell "+": a bare icon, so it doesn't cover the day; hover tints it brand
+.nc-calendar-add-record-btn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--nc-content-gray-subtle) !important;
+  transition: color 0.15s, background-color 0.15s;
+
+  &:hover {
+    background: var(--nc-bg-brand) !important;
+    color: var(--nc-content-brand) !important;
+  }
 }
 
 .nc-cal-jump-target {

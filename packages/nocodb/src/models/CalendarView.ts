@@ -1,7 +1,9 @@
+import { MAX_CALENDAR_RANGES } from 'nocodb-sdk';
 import type { BoolType, MetaType } from 'nocodb-sdk';
 import type { CalendarType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/ncError';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
@@ -104,6 +106,13 @@ export default class CalendarView implements CalendarType {
     const updateObj = extractProps(body, ['fk_cover_image_col_id', 'meta']);
 
     if (body.calendar_range) {
+      if (body.calendar_range.length > MAX_CALENDAR_RANGES) {
+        NcError.get(context).badRequest(
+          `A calendar view can have at most ${MAX_CALENDAR_RANGES} date ranges`,
+        );
+      }
+      // Validate before the delete below so a bad payload keeps old ranges.
+      await CalendarRange.validateRanges(context, body.calendar_range, ncMeta);
       await ncMeta.metaDelete(
         context.workspace_id,
         context.base_id,

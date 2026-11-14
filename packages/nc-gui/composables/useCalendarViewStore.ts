@@ -148,8 +148,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         fk_to_col?: ColumnType | null
         id: string
         is_readonly: boolean
+        // Set only when the view has several ranges; picks the card accent
+        colorIndex?: number
+        label?: string
       }>
     >(() => {
+      const hasMultipleRanges = (calendarMetaData.value?.calendar_range?.length ?? 0) > 1
+
       return (
         calendarMetaData.value?.calendar_range
           ?.map(
@@ -157,6 +162,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               range: CalendarRangeType & {
                 id?: string
               },
+              index: number,
             ) => {
               const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
               const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
@@ -187,6 +193,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 fk_from_col: fromCol,
                 fk_to_col: toCol,
                 is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
+                colorIndex: hasMultipleRanges ? index : undefined,
+                label: hasMultipleRanges ? (range as any)?.label || undefined : undefined,
               }
             },
           )
@@ -492,6 +500,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         combinedFilters = []
       } else if (sideBarFilterOption.value === 'withoutDates') {
         // If the sideBarFilterOption is withoutDates, then we need to filter out records that don't have a date
+        // One range: any blank date; several: every range column blank (see isRecordUndated)
+        const blankOp = calendarRange.value.length > 1 ? 'and' : 'or'
+
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
           const toCol = range.fk_to_col
@@ -501,7 +512,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (fromCol) {
             filters.push({
               fk_column_id: fromCol.id,
-              logical_op: 'or',
+              logical_op: blankOp,
               comparison_op: 'blank',
             })
           }
@@ -509,7 +520,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           if (toCol) {
             filters.push({
               fk_column_id: toCol.id,
-              logical_op: 'or',
+              logical_op: blankOp,
               comparison_op: 'blank',
             })
           }
@@ -739,6 +750,17 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             })
           }
         })
+
+        // A record belongs in the window if it matches any of the ranges
+        if (combinedFilters.length > 1) {
+          combinedFilters = [
+            {
+              is_group: true,
+              logical_op: 'and',
+              children: combinedFilters.map((f: any) => ({ ...f, logical_op: 'or' })),
+            },
+          ]
+        }
       }
 
       if (displayField.value && ncIsObject(validSearchQueryForDisplayField.value)) {
@@ -984,6 +1006,73 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           return a.ts - b.ts
         })
         .map((d) => d.row)
+    }
+
+    // The dates currently on screen, mirroring the window loadCalendarData fetches
+    function getVisibleWindow(): { from: dayjs.Dayjs; to: dayjs.Dayjs } | null {
+      switch (activeCalendarView.value) {
+        case 'day':
+          return { from: selectedDate.value.startOf('day'), to: selectedDate.value.endOf('day') }
+        case '3day':
+        case 'custom': {
+          if (isDayAnchoredMode.value) {
+            const from = selectedDateRange.value.start.startOf('day')
+            return { from, to: selectedDateRange.value.start.add(dayAnchoredSpan.value - 1, 'day').endOf('day') }
+          }
+          const from = selectedDateRange.value.start.startOf('week')
+          return {
+            from,
+            to: from
+              .clone()
+              .add(weeksInRange.value * 7 - 1, 'day')
+              .endOf('day'),
+          }
+        }
+        case 'week':
+        case '2week':
+        case '6week': {
+          const from = selectedDateRange.value.start.startOf('week')
+          return {
+            from,
+            to: from
+              .clone()
+              .add(weeksInRange.value * 7 - 1, 'day')
+              .endOf('day'),
+          }
+        }
+        case 'month':
+          return {
+            from: timezoneDayjs.timezonize(selectedMonth.value.startOf('month')).startOf('week'),
+            to: timezoneDayjs.timezonize(selectedMonth.value.endOf('month')).endOf('week'),
+          }
+        default:
+          return null
+      }
+    }
+
+    // Records of one range. With several ranges the fetch returns a record when ANY of its
+    // ranges is on screen, so each range keeps only the records whose own dates are visible.
+    function getRangeRecords(range: { fk_from_col: ColumnType; fk_to_col?: ColumnType | null }): Row[] {
+      if ((calendarRange.value?.length ?? 0) < 2) return formattedData.value
+
+      const window = getVisibleWindow()
+      if (!window) return formattedData.value
+
+      const from = window.from.valueOf()
+      const to = window.to.valueOf()
+
+      return formattedData.value.filter((record) => {
+        const rawStart = record.row[range.fk_from_col.title!]
+        const rawEnd = range.fk_to_col ? record.row[range.fk_to_col.title!] : null
+        const start = rawStart ?? rawEnd
+        const end = rawEnd ?? rawStart
+        if (!start) return false
+
+        const startMs = timezoneDayjs.timezonize(start).valueOf()
+        const endMs = timezoneDayjs.timezonize(end).valueOf()
+
+        return Math.min(startMs, endMs) <= to && Math.max(startMs, endMs) >= from
+      })
     }
 
     async function loadCalendarData(showLoading = true) {
@@ -1984,6 +2073,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       changeCalendarView,
       calDataType,
       calendarRange,
+      getRangeRecords,
       loadCalendarData,
       formattedData,
       totalRecordCount,

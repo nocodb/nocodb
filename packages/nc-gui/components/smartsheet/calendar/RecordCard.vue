@@ -66,6 +66,12 @@ const themeVars = computed(() => ({
   '--cal-on-accent': colors.value.onAccent,
 }))
 
+// With several ranges, the date field this card stands for (shown first in the tooltip)
+const rangeLabel = computed(() => {
+  const range = props.record?.rowMeta?.range
+  return range?.colorIndex != null ? { title: range.fk_from_col?.title, accent: getCalendarRangeAccent(range.colorIndex) } : null
+})
+
 const isBordered = computed(() => effectiveTheme.value === CalendarEventTheme.BORDERED)
 const isDot = computed(() => effectiveTheme.value === CalendarEventTheme.DOT)
 const isPill = computed(() => effectiveTheme.value === CalendarEventTheme.PILL)
@@ -184,6 +190,14 @@ const cardShadow = computed(() => {
           class="w-full overflow-hidden"
         >
           <template #title>
+            <div
+              v-if="rangeLabel?.title"
+              class="flex items-center gap-1.5 mb-1 font-bold"
+              data-testid="nc-calendar-card-range-label"
+            >
+              <span class="w-2 h-2 rounded-full flex-none" :style="{ backgroundColor: rangeLabel.accent }"></span>
+              {{ rangeLabel.title }}
+            </div>
             <slot name="tooltip">
               <slot />
             </slot>
@@ -206,12 +220,29 @@ const cardShadow = computed(() => {
         >
           <slot class="text-sm text-nowrap text-nc-content-gray leading-7" />
           <template #title>
+            <div
+              v-if="rangeLabel?.title"
+              class="flex items-center gap-1.5 mb-1 font-bold"
+              data-testid="nc-calendar-card-range-label"
+            >
+              <span class="w-2 h-2 rounded-full flex-none" :style="{ backgroundColor: rangeLabel.accent }"></span>
+              {{ rangeLabel.title }}
+            </div>
             <slot name="tooltip">
               <slot />
             </slot>
           </template>
         </NcTooltip>
       </div>
+      <!-- Range label, right-aligned (Airtable-style "with label") -->
+      <span
+        v-if="props.record?.rowMeta?.range?.label"
+        class="nc-cal-range-label flex-none self-center pl-1 pr-1.5 max-w-[40%] truncate text-[10px] leading-4 uppercase tracking-wide text-nc-content-gray-muted"
+        :class="{ 'pr-8': position === 'leftRounded' }"
+        data-testid="nc-calendar-card-range-tag"
+      >
+        {{ props.record.rowMeta.range.label }}
+      </span>
       <!-- Sits left of the label-image tile (right-0.5, w-5) when one is shown. -->
       <NcTooltip
         v-if="position === 'leftRounded' || position === 'none'"

@@ -9835,7 +9835,7 @@
     "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
-    "secondsAgo": "{count} seconds ago",
+    "secondsAgo": "{count}s ago",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",

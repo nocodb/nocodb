@@ -114,7 +114,12 @@ export class BasesV3Service {
 
   async getProjectWithInfo(
     context: NcContext,
-    param: { baseId: string; qsInclude?: string[]; includeConfig?: boolean },
+    param: {
+      baseId: string;
+      qsInclude?: string[];
+      includeConfig?: boolean;
+      req?: NcRequest;
+    },
   ) {
     const base = await this.basesService.getProjectWithInfo(context, param);
 

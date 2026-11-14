@@ -52,7 +52,9 @@ const idUserMap = computed(() => {
 const { resolvedUsers, resolveUsers } = useResolveUsers()
 
 // Stored users outside the collaborator list: shown, never offered in the picker
-const unresolvedKeys = computed(() => extractUserKeys(modelValue).filter((key) => !idUserMap.value[key]))
+const unresolvedKeys = computed(() =>
+  isInFilter.value ? [] : extractUserKeys(modelValue).filter((key) => key !== CURRENT_USER_TOKEN && !idUserMap.value[key]),
+)
 
 watch(
   [unresolvedKeys, () => meta.value?.base_id, () => meta.value?.id],

@@ -284,7 +284,12 @@ export class ExportService {
 
       await model.getColumns();
 
+      const allColumns = model.columns;
       model.columns = this.filterOutCrossBaseColumns(model);
+      // View filters/sorts on these are dropped: the copy has no such column.
+      const droppedColumnIds = new Set(
+        allColumns.filter((c) => !model.columns.includes(c)).map((c) => c.id),
+      );
 
       await model.getViews();
 
@@ -480,6 +485,12 @@ export class ExportService {
         if (view.filter) {
           const export_filters = [];
           for (const fl of view.filter.children) {
+            if (
+              droppedColumnIds.has(fl.fk_column_id) ||
+              droppedColumnIds.has(fl.fk_parent_column_id)
+            ) {
+              continue;
+            }
             const tempFl = {
               id: `${idMap.get(view.id)}::${fl.id}`,
               fk_parent_column_id: fl.fk_parent_column_id
@@ -507,6 +518,7 @@ export class ExportService {
         if (view.sorts) {
           const export_sorts = [];
           for (const sr of view.sorts) {
+            if (droppedColumnIds.has(sr.fk_column_id)) continue;
             const tempSr = {
               fk_column_id: idMap.get(sr.fk_column_id),
               direction: sr.direction,

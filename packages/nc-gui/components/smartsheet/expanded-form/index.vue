@@ -174,6 +174,11 @@ const {
   isAllowedAddNewRecord,
 } = expandedFormStore
 
+// Record locked read-only by an RLS read_only policy (never a new/unsaved row).
+const isRecordReadonly = computed(
+  () => !_row.value?.rowMeta?.new && !!(_row.value?.rowMeta?.isRlsReadonly || (_row.value?.row as any)?.__nc_rls_readonly),
+)
+
 const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | 'createdRecord') => {
   emits(event)
   isLoading.value = true
@@ -1149,6 +1154,13 @@ export default {
       >
         <GeneralIcon icon="ncAlertCircle" class="flex-none h-4 w-4" />
         {{ $t('labels.recordDeletedCannotSave') }}
+      </div>
+      <div
+        v-else-if="isRecordReadonly"
+        class="nc-rls-readonly-banner flex items-center gap-2 px-4 py-2 text-bodyDefaultSm text-nc-content-orange-dark bg-nc-bg-orange-light border-b border-nc-border-gray-medium"
+      >
+        <GeneralIcon icon="ncLock" class="w-4 h-4 flex-none" />
+        <span>{{ $t('objects.permissions.rlsPolicy.recordReadonlyBanner') }}</span>
       </div>
       <div ref="wrapper" class="flex-grow w-full min-h-0">
         <template v-if="activeViewMode === ExpandedFormMode.FIELD">

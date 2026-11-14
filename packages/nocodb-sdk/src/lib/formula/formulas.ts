@@ -29,6 +29,24 @@ const customValidationArray: FormulaMetaCustomValidation = (
   }
 };
 
+// DAY/MONTH/YEAR/HOUR cast their argument to a timestamp; a number or checkbox fails at save time
+const dateOrTimeArgValidation: FormulaMetaCustomValidation = (
+  argTypes: FormulaDataTypes[],
+  parsedTree: CallExpressionNode
+) => {
+  if (
+    argTypes[0] === FormulaDataTypes.NUMERIC ||
+    argTypes[0] === FormulaDataTypes.BOOLEAN
+  ) {
+    const calleeName = parsedTree.callee?.name?.toUpperCase();
+    throw new FormulaError(
+      FormulaErrorType.TYPE_MISMATCH,
+      { key: 'msg.formula.firstArgumentMustBeDate', calleeName },
+      `The first argument of ${calleeName} must be a date`
+    );
+  }
+};
+
 // WORKDAY / WORKDAY_DIFF: positions (0-based) of the date and numeric args;
 // the optional last arg is the comma-separated holidays text
 const workdayArgsValidation =
@@ -257,6 +275,7 @@ export const formulas: Record<string, FormulaMeta> = {
       args: {
         rqd: 1,
       },
+      custom: dateOrTimeArgValidation,
     },
     syntax: 'DAY(date | datetime)',
     description: 'Extract day from a date field (1-31)',
@@ -269,6 +288,7 @@ export const formulas: Record<string, FormulaMeta> = {
       args: {
         rqd: 1,
       },
+      custom: dateOrTimeArgValidation,
     },
     syntax: 'MONTH(date | datetime)',
     description: 'Extract month from a date field (1-12)',
@@ -281,6 +301,7 @@ export const formulas: Record<string, FormulaMeta> = {
       args: {
         rqd: 1,
       },
+      custom: dateOrTimeArgValidation,
     },
     syntax: 'YEAR(date | datetime)',
     description: 'Extract year from a date field',
@@ -293,8 +314,9 @@ export const formulas: Record<string, FormulaMeta> = {
       args: {
         rqd: 1,
       },
+      custom: dateOrTimeArgValidation,
     },
-    syntax: 'DAY(time | datetime)',
+    syntax: 'HOUR(time | datetime)',
     description: 'Extract hour from a time field (0-23)',
     examples: ['HOUR({column1})'],
     returnType: FormulaDataTypes.STRING,

@@ -728,6 +728,31 @@ describe('validateFormulaAndExtractTreeWithType', () => {
     });
   }
 
+  // the database casts these to a timestamp, so a number fails only on save
+  it.each(['DAY', 'MONTH', 'YEAR', 'HOUR'])(
+    'should reject a number as the argument of %s',
+    async (fnName) => {
+      await expect(
+        validateFormulaAndExtractTreeWithType({
+          formula: `${fnName}({Column2})`,
+          columns: mockColumns,
+          clientOrSqlUi: mockClientOrSqlUi,
+          getMeta: mockGetMeta,
+        })
+      ).rejects.toHaveProperty(
+        'message',
+        `The first argument of ${fnName} must be a date`
+      );
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: `${fnName}({Column3})`,
+        columns: mockColumns,
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      });
+      expect(result.type).toBe(JSEPNode.CALL_EXP);
+    }
+  );
+
   // Test cases for unary expression
   it('should handle negative numeric literal', async () => {
     const result = await validateFormulaAndExtractTreeWithType({

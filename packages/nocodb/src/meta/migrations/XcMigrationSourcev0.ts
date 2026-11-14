@@ -138,6 +138,7 @@ import * as nc_202611061200_agents_scope from './v0/nc_202611061200_agents_scope
 import * as nc_202611062030_kanban_view_stack_summary from './v0/nc_202611062030_kanban_view_stack_summary';
 import * as nc_202611100742_subscriptions_price_switch from './v0/nc_202611100742_subscriptions_price_switch';
 import * as nc_202611111200_auth_token_hash from './v0/nc_202611111200_auth_token_hash';
+import * as nc_202611141200_rls_policy_access_level from './v0/nc_202611141200_rls_policy_access_level';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -287,6 +288,7 @@ export default class XcMigrationSourcev0 {
       'nc_202611062030_kanban_view_stack_summary',
       'nc_202611100742_subscriptions_price_switch',
       'nc_202611111200_auth_token_hash',
+      'nc_202611141200_rls_policy_access_level',
     ]);
   }
 
@@ -576,6 +578,8 @@ export default class XcMigrationSourcev0 {
         return nc_202611100742_subscriptions_price_switch;
       case 'nc_202611111200_auth_token_hash':
         return nc_202611111200_auth_token_hash;
+      case 'nc_202611141200_rls_policy_access_level':
+        return nc_202611141200_rls_policy_access_level;
     }
   }
 }

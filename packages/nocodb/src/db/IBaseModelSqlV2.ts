@@ -478,7 +478,7 @@ export interface IBaseModelSqlV2 {
   applyRlsReadonlyFlags(rows: any[]): Promise<void>;
   assertConditionWritable(
     scopeFilters: Filter[],
-    options?: { includeSoftDeleted?: boolean },
+    options?: { includeSoftDeleted?: boolean; skipPks?: string },
   ): Promise<void>;
   assertRowsWritable(pkVals: any[]): Promise<void>;
   assertLinkRowsWritable(params: {

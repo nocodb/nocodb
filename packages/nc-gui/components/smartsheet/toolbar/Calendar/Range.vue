@@ -10,6 +10,9 @@ import {
 } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
+// Option value of "No end date" in the end-date picker
+const NO_END_DATE = '__nc_no_end_date__'
+
 const meta = inject(MetaInj, ref())
 
 const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
@@ -36,6 +39,9 @@ const { updateViewMeta } = viewStore
 const { loadCalendarData, loadSidebarData, fetchActiveDates } = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
+
+// Index of the range whose end-date picker should open as soon as "+ End date" reveals it
+const autoOpenEndIndex = ref<number | null>(null)
 
 const dateFieldOptions = computed<SelectProps['options']>(() => {
   return (
@@ -203,16 +209,31 @@ async function removeRange(index: number) {
   await saveCalendarRanges()
 }
 
-// The end-date options depend on the start field, so only the changed range's end date is reset
+// The end-date options depend on the start field: keep the end date only while it still fits the new start
 const onValueChange = (index: number) => {
-  _calendar_ranges.value = _calendar_ranges.value.map((range, i) =>
-    i === index
-      ? {
-          fk_from_column_id: range.fk_from_column_id,
-          fk_to_column_id: range.fk_to_column_id === null ? null : undefined,
-        }
-      : range,
-  )
+  _calendar_ranges.value = _calendar_ranges.value.map((range, i) => {
+    if (i !== index) return range
+
+    const endStillValid =
+      !!range.fk_to_column_id &&
+      filterEndDateOptions(dateFieldOptions.value, range.fk_from_column_id, i).some((o) => o.value === range.fk_to_column_id)
+
+    return {
+      fk_from_column_id: range.fk_from_column_id,
+      fk_to_column_id: endStillValid ? range.fk_to_column_id : range.fk_to_column_id === null ? null : undefined,
+    }
+  })
+}
+
+function showEndDate(index: number) {
+  _calendar_ranges.value[index].fk_to_column_id = undefined
+  autoOpenEndIndex.value = index
+}
+
+// Picking "No end date" removes the end date and brings back "+ End date"
+function onEndDateChange(index: number, value?: string) {
+  _calendar_ranges.value[index].fk_to_column_id = value === NO_END_DATE ? null : value
+  saveCalendarRanges()
 }
 </script>
 
@@ -252,163 +273,156 @@ const onValueChange = (index: number) => {
     <template #overlay>
       <div
         v-if="calendarRangeDropdown"
-        class="w-full sm:w-108 space-y-4 sm:space-y-6 sm:rounded-2xl px-0 py-1 sm:p-6 max-h-[70vh] overflow-auto"
+        class="nc-calendar-range-menu w-full sm:w-130 space-y-3 sm:rounded-2xl px-0 py-1 sm:p-4 max-h-[70vh] overflow-auto"
         data-testid="nc-calendar-range-menu"
         @click.stop
       >
-        <div
-          v-for="(range, id) in _calendar_ranges"
-          :key="id"
-          class="flex flex-col w-full gap-2 mb-2"
-          data-testid="nc-calendar-range-option"
-        >
-          <div class="flex items-center justify-between">
-            <span class="flex items-center gap-2 text-nc-content-gray">
-              <span
-                v-if="_calendar_ranges.length > 1"
-                class="w-2 h-2 rounded-full flex-none"
-                :style="{ backgroundColor: getCalendarRangeAccent(id) }"
-              ></span>
-              {{ id === 0 ? $t('labels.organiseBy') : $t('labels.dateRangeN', { n: id + 1 }) }}
-            </span>
-            <NcTooltip v-if="id > 0 && !isLocked" :title="$t('general.remove')">
-              <NcButton
-                v-e="['c:calendar:range:remove']"
-                size="xsmall"
-                type="text"
-                data-testid="nc-calendar-range-remove"
-                :aria-label="$t('general.remove')"
-                @click="removeRange(id)"
-              >
-                <GeneralIcon icon="delete" />
-              </NcButton>
-            </NcTooltip>
-          </div>
+        <div class="flex flex-col w-full gap-2">
+          <span class="text-[13px] text-nc-content-gray mb-0.5">{{ $t('labels.organiseBy') }}</span>
 
-          <a-select
-            v-model:value="range.fk_from_column_id"
-            class="nc-select-shadow w-full !rounded-lg"
-            dropdown-class-name="!rounded-lg"
-            :placeholder="$t('placeholder.notSelected')"
-            data-testid="nc-calendar-range-from-field-select"
-            :disabled="isLocked"
-            @change="
-              () => {
-                onValueChange(id)
-                saveCalendarRanges()
-              }
-            "
-            @click.stop
+          <!-- One row per range: start field, end date, remove -->
+          <div
+            v-for="(range, id) in _calendar_ranges"
+            :key="id"
+            class="nc-calendar-range-row"
+            :class="{ 'nc-calendar-range-row-removable': _calendar_ranges.length > 1 && !isLocked }"
+            data-testid="nc-calendar-range-option"
           >
-            <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-            <a-select-option v-for="(option, opId) in getFromOptions(id)" :key="opId" :value="option.value">
-              <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                  <SmartsheetHeaderIcon :column="option.col" />
+            <a-select
+              v-model:value="range.fk_from_column_id"
+              class="nc-select-shadow w-full !rounded-lg"
+              dropdown-class-name="!rounded-lg nc-calendar-range-dropdown"
+              :placeholder="$t('placeholder.notSelected')"
+              data-testid="nc-calendar-range-from-field-select"
+              :disabled="isLocked"
+              @change="
+                () => {
+                  onValueChange(id)
+                  saveCalendarRanges()
+                }
+              "
+              @click.stop
+            >
+              <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+              <a-select-option v-for="(option, opId) in getFromOptions(id)" :key="opId" :value="option.value">
+                <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                  <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                    <SmartsheetHeaderIcon :column="option.col" class="nc-calendar-range-field-icon" />
 
-                  <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                    <template #title>
-                      {{ option.label }}
-                    </template>
-                    <template #default>{{ option.label }}</template>
-                  </NcTooltip>
+                    <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ option.label }}
+                      </template>
+                      <template #default>{{ option.label }}</template>
+                    </NcTooltip>
+                  </div>
+                  <GeneralIcon
+                    v-if="option.value === range.fk_from_column_id"
+                    id="nc-selected-item-icon"
+                    icon="check"
+                    class="flex-none text-primary w-4 h-4"
+                  />
                 </div>
-                <GeneralIcon
-                  v-if="option.value === range.fk_from_column_id"
-                  id="nc-selected-item-icon"
-                  icon="check"
-                  class="flex-none text-primary w-4 h-4"
-                />
-              </div>
-            </a-select-option>
-          </a-select>
-          <div v-if="showEEFeatures" class="w-full space-y-2">
-            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              </a-select-option>
+            </a-select>
+
+            <PaymentUpgradeBadgeProvider v-if="showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
               <template #default="{ click }">
-                <NcButton
-                  v-if="range.fk_to_column_id === null"
-                  size="small"
-                  data-testid="nc-calendar-range-add-end-date"
-                  type="text"
-                  :shadow="false"
-                  :disabled="isLocked"
-                  @click="
-                    click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => {
-                      range.fk_to_column_id = undefined
-                    })
-                  "
+                <div v-if="range.fk_to_column_id === null" class="flex">
+                  <NcButton
+                    size="small"
+                    data-testid="nc-calendar-range-add-end-date"
+                    type="text"
+                    class="nc-calendar-range-text-btn"
+                    :shadow="false"
+                    :disabled="isLocked || !range.fk_from_column_id"
+                    @click="click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => showEndDate(id))"
+                  >
+                    <div class="flex gap-2 items-center">
+                      <component :is="iconMap.plus" class="h-3.5 w-3.5" />
+                      {{ $t('activity.endDate') }}
+                      <PaymentUpgradeBadge
+                        :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                        :content="$t('upgrade.upgradeToUseCalendarRangeSubtitle', { plan: getPlanTitle(PlanTitles.PLUS) })"
+                        :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                      />
+                    </div>
+                  </NcButton>
+                </div>
+
+                <a-select
+                  v-else
+                  :value="range.fk_to_column_id"
+                  class="nc-select-shadow w-full !rounded-lg"
+                  :default-open="autoOpenEndIndex === id"
+                  :autofocus="autoOpenEndIndex === id"
+                  :disabled="!range.fk_from_column_id || isLocked || blockCalendarRange"
+                  :placeholder="$t('placeholder.notSelected')"
+                  data-testid="nc-calendar-range-to-field-select"
+                  dropdown-class-name="!rounded-lg nc-calendar-range-dropdown"
+                  @change="(value) => onEndDateChange(id, value)"
+                  @dropdown-visible-change="(open) => !open && (autoOpenEndIndex = null)"
+                  @click.stop
                 >
-                  <div class="flex gap-2 items-center">
-                    <component :is="iconMap.plus" class="h-4 w-4" />
-                    {{ $t('activity.endDate') }}
-                    <PaymentUpgradeBadge
-                      :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
-                      :content="
-                        $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
-                          plan: getPlanTitle(PlanTitles.PLUS),
-                        })
-                      "
-                      :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
-                    />
-                  </div>
-                </NcButton>
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
 
-                <template v-else>
-                  <div class="flex gap-2 items-center">
-                    {{ $t('activity.withEndDate') }}
-                    <PaymentUpgradeBadge
-                      :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
-                      :content="
-                        $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
-                          plan: getPlanTitle(PlanTitles.PLUS),
-                        })
-                      "
-                      :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
-                    />
-                  </div>
-                  <div class="flex">
-                    <a-select
-                      v-model:value="range.fk_to_column_id"
-                      class="!rounded-r-none nc-select-shadow w-full flex-1"
-                      allow-clear
-                      :disabled="!range.fk_from_column_id || isLocked || blockCalendarRange"
-                      :placeholder="$t('placeholder.notSelected')"
-                      data-testid="nc-calendar-range-to-field-select"
-                      dropdown-class-name="!rounded-lg"
-                      @change="saveCalendarRanges"
-                      @click.stop
-                    >
-                      <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                  <a-select-option :value="NO_END_DATE" data-testid="nc-calendar-range-no-end-date">
+                    <span class="text-nc-content-gray-subtle">{{ $t('labels.noEndDate') }}</span>
+                  </a-select-option>
+                  <a-select-option
+                    v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id, id)"
+                    :key="opId"
+                    :value="option.value"
+                  >
+                    <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                      <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                        <SmartsheetHeaderIcon :column="option.col" class="nc-calendar-range-field-icon" />
 
-                      <a-select-option
-                        v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id, id)"
-                        :key="opId"
-                        :value="option.value"
-                      >
-                        <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                          <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                            <SmartsheetHeaderIcon :column="option.col" />
-
-                            <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                              <template #title>
-                                {{ option.label }}
-                              </template>
-                              <template #default>{{ option.label }}</template>
-                            </NcTooltip>
-                          </div>
-                          <GeneralIcon
-                            v-if="option.value === range.fk_to_column_id"
-                            id="nc-selected-item-icon"
-                            icon="check"
-                            class="flex-none text-primary w-4 h-4"
-                          />
-                        </div>
-                      </a-select-option>
-                    </a-select>
-                  </div>
-                </template>
+                        <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                          <template #title>
+                            {{ option.label }}
+                          </template>
+                          <template #default>{{ option.label }}</template>
+                        </NcTooltip>
+                      </div>
+                      <GeneralIcon
+                        v-if="option.value === range.fk_to_column_id"
+                        id="nc-selected-item-icon"
+                        icon="check"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </a-select>
               </template>
             </PaymentUpgradeBadgeProvider>
+            <span v-else />
+
+            <template v-if="_calendar_ranges.length > 1 && !isLocked">
+              <NcTooltip v-if="id === 0" :title="$t('msg.info.firstCalendarRangeNotRemovable')">
+                <NcButton
+                  size="xsmall"
+                  type="text"
+                  class="!cursor-not-allowed"
+                  :aria-label="$t('msg.info.firstCalendarRangeNotRemovable')"
+                  aria-disabled="true"
+                >
+                  <GeneralIcon icon="delete" class="text-nc-content-gray-disabled" />
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip v-else :title="$t('general.remove')">
+                <NcButton
+                  v-e="['c:calendar:range:remove']"
+                  size="xsmall"
+                  type="text"
+                  data-testid="nc-calendar-range-remove"
+                  :aria-label="$t('general.remove')"
+                  @click="removeRange(id)"
+                >
+                  <GeneralIcon icon="delete" />
+                </NcButton>
+              </NcTooltip>
+            </template>
           </div>
         </div>
 
@@ -420,6 +434,7 @@ const onValueChange = (index: number) => {
                 v-e="['c:calendar:range:add']"
                 size="small"
                 type="text"
+                class="nc-calendar-range-text-btn"
                 :shadow="false"
                 :disabled="
                   isRangeLimitReached ||
@@ -430,7 +445,7 @@ const onValueChange = (index: number) => {
                 @click="click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, addRange)"
               >
                 <div class="flex gap-2 items-center">
-                  <component :is="iconMap.plus" class="h-4 w-4" />
+                  <component :is="iconMap.plus" class="h-3.5 w-3.5" />
                   {{ $t('activity.addDateRange') }}
                   <PaymentUpgradeBadge
                     :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
@@ -456,6 +471,45 @@ const onValueChange = (index: number) => {
 </template>
 
 <style lang="scss">
+// Menu-item weight and size (matches the toolbar's other menus) instead of NcButton's 600 / 14px
+.nc-calendar-range-text-btn,
+.nc-calendar-range-text-btn * {
+  font-weight: 450 !important;
+  font-size: 13px !important;
+}
+
+.nc-calendar-range-menu .ant-select {
+  font-size: 13px;
+}
+
+// Field-type icons at the menu's 13px scale: lighter stroke and colour than the 16px default
+.nc-calendar-range-menu,
+.nc-calendar-range-dropdown {
+  .nc-calendar-range-field-icon {
+    width: 14px !important;
+    height: 14px !important;
+    color: var(--nc-content-gray-subtle);
+
+    path {
+      stroke-width: 1.33;
+    }
+  }
+}
+
+// The pickers' option lists render outside the menu
+.nc-calendar-range-dropdown .ant-select-item {
+  font-size: 13px;
+}
+
+.nc-calendar-range-row {
+  @apply grid items-center gap-2;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+
+  &.nc-calendar-range-row-removable {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 28px;
+  }
+}
+
 .nc-to-select .ant-select-selector {
   @apply !rounded-r-none;
 }

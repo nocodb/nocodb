@@ -1222,15 +1222,18 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                     '!block': isDateSelected(day.date),
                     '!hidden': !isDateSelected(day.date),
                   }"
-                  class="!group-hover:block rounded"
-                  size="small"
-                  type="secondary"
+                  class="!group-hover:block !w-6 !h-6 !rounded nc-calendar-add-record-btn"
+                  size="xsmall"
+                  type="text"
+                  :aria-label="$t('activity.newRecord')"
                 >
                   <component :is="iconMap.plus" class="h-4 w-4" />
                 </NcButton>
                 <template #overlay>
                   <NcMenu class="w-64">
-                    <div class="px-3 py-1.5 text-captionSm text-nc-content-gray-muted">{{ $t('labels.selectDateFieldToAdd') }}</div>
+                    <div class="px-3 py-1.5 text-captionSm text-nc-content-gray-muted">
+                      {{ $t('labels.selectDateFieldToAdd') }}
+                    </div>
                     <NcMenuItem
                       v-for="(range, index) in calendarRange"
                       :key="index"
@@ -1261,9 +1264,10 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                       '!block': isDateSelected(day.date),
                       '!hidden': !isDateSelected(day.date),
                     }"
-                    class="!group-hover:block !w-6 !h-6 !rounded"
+                    class="!group-hover:block !w-6 !h-6 !rounded nc-calendar-add-record-btn"
                     size="xsmall"
-                    type="secondary"
+                    type="text"
+                    :aria-label="$t('activity.newRecord')"
                     :disabled="!isAllowed"
                     @click="addRecordWithRange(calendarRange[0], day.date)"
                   >
@@ -1468,6 +1472,20 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
 
 .grid-cols-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+// Day cell "+": a bare icon, so it doesn't cover the day; hover tints it brand
+.nc-calendar-add-record-btn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--nc-content-gray-subtle) !important;
+  transition: color 0.15s, background-color 0.15s;
+
+  &:hover {
+    background: var(--nc-bg-brand) !important;
+    color: var(--nc-content-brand) !important;
+  }
 }
 
 .nc-cal-jump-target {

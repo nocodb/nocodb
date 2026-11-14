@@ -8871,6 +8871,8 @@
       "iframeTrustNote": "Important: Only embed URLs from sources you control or completely trust.",
       "iframeEmbedRefusalNote": "Some sites don't allow embedding. If the frame shows \"refused to connect\", the site blocks being displayed inside other pages.",
       "iframeDomainNotAllowed": "This domain is not in the embed allowlist.",
+      "interfaceDetailUnboundedNote": "Viewers can open any record of this table, because {page} shows it unfiltered.",
+      "interfacePageGrantOtherPagesNote": "Viewers can still see this table's records through other pages that show them.",
       "numberColorFirstMatch": "Numbers are assigned the first color that they match.",
       "interfacePrintNotWhileEditing": "Printing is not supported while editing",
       "interfaceImportNotWhileEditing": "Switch to Preview to import a CSV",

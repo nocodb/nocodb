@@ -84,7 +84,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
         const startDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : dayjs(record.row[endCol.title!])
         const endDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : startDate
 
-        const id = record.rowMeta.id ?? generateRandomNumber()
+        const id = getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value)
 
         // This property is used to determine which side the record should be rounded. It can be left, right, both or none
         let position = 'none'
@@ -116,7 +116,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
       }
     } else if (fromCol) {
       for (const record of getRangeRecords(range)) {
-        const id = record.rowMeta.id ?? generateRandomNumber()
+        const id = getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value)
 
         recordsByRange.push({
           ...record,

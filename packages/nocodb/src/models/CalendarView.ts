@@ -111,6 +111,8 @@ export default class CalendarView implements CalendarType {
           `A calendar view can have at most ${MAX_CALENDAR_RANGES} date ranges`,
         );
       }
+      // Validate before the delete below so a bad payload keeps old ranges.
+      await CalendarRange.validateRanges(context, body.calendar_range, ncMeta);
       await ncMeta.metaDelete(
         context.workspace_id,
         context.base_id,

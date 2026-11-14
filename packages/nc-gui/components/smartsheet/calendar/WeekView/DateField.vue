@@ -218,7 +218,7 @@ const calendarData = computed(() => {
     if (!fk_from_col) return
 
     const processRecord = (record: Row) => {
-      const id = record.rowMeta.id ?? generateRandomNumber()
+      const id = getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value)
       // Use whichever date is available; fall back to the other if one is missing
       let startDate = record.row[fk_from_col.title!]
         ? dayjs(record.row[fk_from_col.title!])

@@ -239,7 +239,14 @@ const recordsAcrossAllRange = computed<{
           if (fromDate?.isValid() && toDate?.isValid()) {
             if (!fromDate.isSame(toDate, 'day')) {
               // TODO: If multiple range is introduced, we have to make sure no duplicate records are inserted
-              recordSpanningDays.push(record)
+              recordSpanningDays.push({
+                ...record,
+                rowMeta: {
+                  ...record.rowMeta,
+                  id: getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value),
+                  range: range as any,
+                },
+              })
               return false
             }
             return fromDate.isSameOrBefore(toDate)
@@ -256,7 +263,7 @@ const recordsAcrossAllRange = computed<{
       })
 
     for (const record of sortedFormattedData) {
-      const id = record.rowMeta.id ?? generateRandomNumber()
+      const id = getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value)
 
       if (fromCol && endCol) {
         // Use whichever date is available; fall back to the other if one is missing

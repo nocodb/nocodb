@@ -418,15 +418,13 @@ const recordsToDisplay = computed<{
         const startDate = timezoneDayjs.timezonize(record.row[startCol.title!])
         const dateKey = startDate.format('YYYY-MM-DD')
 
-        const id = record.rowMeta.id ?? generateRandomNumber()
+        const id = getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value)
 
         const lane = findAvailableLane(dateKey)
         if (lane === -1) {
           recordsInDay[dateKey].overflow = true
           recordsInDay[dateKey].overflowCount++
-          record.rowMeta.id = id
-          record.rowMeta.range = range
-          recordsInDay[dateKey].overflowRecords.push(record)
+          recordsInDay[dateKey].overflowRecords.push({ ...record, rowMeta: { ...record.rowMeta, id, range } })
           return // Skip this record as there's no available lane
         }
 
@@ -487,7 +485,7 @@ const recordsToDisplay = computed<{
           startDate = calendarData.value.weeks[0].days[0].date
         }
 
-        const id = record.rowMeta.id ?? generateRandomNumber()
+        const id = getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value)
         // Since the records can span multiple weeks, to display, we render multiple elements
         // for each week the record spans. The id is used to identify the elements that belong to the same record
         let recordIndex = 0
@@ -525,15 +523,14 @@ const recordsToDisplay = computed<{
           const lane = findAvailableLane(dateKey, duration)
 
           if (lane === -1) {
-            record.rowMeta.id = id
-            record.rowMeta.range = range
+            const overflowRecord = { ...record, rowMeta: { ...record.rowMeta, id, range } }
 
             for (let i = 0; i < duration; i++) {
               const overflowDate = recordStart.add(i, 'day').format('YYYY-MM-DD')
               if (recordsInDay[overflowDate]) {
                 recordsInDay[overflowDate].overflow = true
                 recordsInDay[overflowDate].overflowCount++
-                recordsInDay[overflowDate].overflowRecords.push(record)
+                recordsInDay[overflowDate].overflowRecords.push(overflowRecord)
               }
             }
             currentWeekStart = currentWeekStart.add(1, 'week')

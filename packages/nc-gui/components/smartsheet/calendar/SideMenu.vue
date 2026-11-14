@@ -115,11 +115,12 @@ const renderData = computed<Array<Row>>(() => {
 
   const rangedData: Array<Row> = []
 
-  // Not tied to a window, so each record is listed once (attributed to the first range)
+  // Not tied to a window, so each record is listed once, under the first range it has a date in
+  // (undated records fall back to the first range)
   if (calendarRange.value.length > 1 && ['withoutDates', 'allRecords'].includes(sideBarFilterOption.value)) {
     formattedSideBarData.value.forEach((record) => {
       if (sideBarFilterOption.value === 'allRecords' || isRecordUndated(record.row, calendarRange.value)) {
-        pushToArray(rangedData, record, calendarRange.value[0])
+        pushToArray(rangedData, record, getRecordOwnRange(record.row, calendarRange.value))
       }
     })
     return rangedData

@@ -339,7 +339,14 @@ const recordsAcrossAllRange = computed<{
           if (fromDate.isValid() && toDate.isValid()) {
             const isMultiDay = !fromDate.isSame(toDate, 'day')
             if (isMultiDay) {
-              recordSpanningDays.push(record)
+              recordSpanningDays.push({
+                ...record,
+                rowMeta: {
+                  ...record.rowMeta,
+                  id: getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value),
+                  range: range as any,
+                },
+              })
               return false
             }
             return true
@@ -354,7 +361,7 @@ const recordsAcrossAllRange = computed<{
       })
 
     for (const record of sortedFormattedData) {
-      const id = record.rowMeta.id ?? generateRandomNumber()
+      const id = getCalendarCardKey(record.rowMeta.id ?? generateRandomNumber(), range, calendarRange.value)
 
       if (fromCol && toCol) {
         // Use whichever date is available; fall back to the other if one is missing

@@ -501,7 +501,8 @@ function onEndDateChange(index: number, value?: string) {
   font-size: 13px !important;
 }
 
-.nc-calendar-range-menu .ant-select {
+.nc-calendar-range-menu .ant-select,
+.nc-calendar-range-menu .nc-calendar-range-label-input {
   font-size: 13px;
 }
 

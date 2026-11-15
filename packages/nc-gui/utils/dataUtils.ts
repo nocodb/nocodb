@@ -3,6 +3,7 @@ import {
   RelationTypes,
   UITypes,
   dateFormats,
+  formatCurrencyValue,
   getEffectiveDisplayColumn,
   getEffectiveLookupColumn,
   getRenderAsTextFunForUiType,
@@ -24,6 +25,7 @@ import {
   ncIsArray,
   ncIsNumber,
   resolveCurrentUserToken,
+  roundUpToPrecision,
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
   timeFormats,
@@ -518,10 +520,8 @@ export const getCurrencyValue = (modelValue: string | number | null | undefined,
     if (modelValue === null || modelValue === undefined || isNaN(modelValue)) {
       return modelValue === null || modelValue === undefined ? '' : (modelValue as string)
     }
-    return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
-      style: 'currency',
-      currency: currencyMeta.currency_code || 'USD',
-    }).format(+modelValue)
+    // Same rounding and formatting as the grid cell, so the field's precision applies
+    return formatCurrencyValue(Number(roundUpToPrecision(Number(modelValue), currencyMeta.precision ?? 2)), currencyMeta)
   } catch (e) {
     return modelValue as string
   }

@@ -115,6 +115,19 @@ describe('fill-handler.utils', () => {
       expect(fill(['5', '3'], 4)).toEqual(['1', '-1']);
       expect(fill(['-1.5', '-3'], 4)).toEqual(['-4.5', '-6']);
     });
+    it('will continue a multi-digit suffix', () => {
+      const fill = (highlightedData: any[], numberOfRows: number) =>
+        populateFillHandleStringNumber({
+          highlightedData,
+          column: {} as any,
+          numberOfRows,
+        });
+      expect(fill(['INV-98', 'INV-99'], 4)).toEqual(['INV-100', 'INV-101']);
+      expect(fill(['B-9', 'B-10'], 4)).toEqual(['B-11', 'B-12']);
+      expect(fill(['Room 10', 'Room 20'], 4)).toEqual(['Room 30', 'Room 40']);
+      expect(fill(['INV-008', 'INV-009'], 4)).toEqual(['INV-010', 'INV-011']);
+      expect(fill(['v1.2.9', 'v1.2.10'], 3)).toEqual(['v1.2.11']);
+    });
     it('will populate decimal value', () => {
       const data = ['33.11', '33.12', '33.13'];
       const result = populateFillHandleStringNumber({

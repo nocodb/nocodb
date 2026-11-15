@@ -32,7 +32,7 @@ export const Paragraph = TiptapParagraph.extend<ParagraphOptions, { markdown: Ma
           const isLastNode = parent && parent.child(parent.childCount - 1) === node
 
           if (isEmpty && !isLastNode) {
-            state.write(' <br>\n\n ')
+            state.write(' <br>\n\n')
             return
           }
 

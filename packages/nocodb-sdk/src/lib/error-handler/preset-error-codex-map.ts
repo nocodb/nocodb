@@ -655,6 +655,13 @@ export const presetErrorCodexMap: Partial<
     message: (method: string) => `Method ${method} not allowed`,
     code: 405,
   },
+  [NcErrorType.ERR_PAYLOAD_TOO_LARGE]: {
+    message: (limit: string) =>
+      limit
+        ? `Request body is larger than the ${limit} limit`
+        : 'Request body is too large',
+    code: 413,
+  },
   [NcErrorType.ERR_LICENSE_REQUIRED]: {
     // Not a plan-tier refusal — the instance has no active license at all.
     // Tier checks throw ERR_PLAN_LIMIT_EXCEEDED / featureNotSupported instead.

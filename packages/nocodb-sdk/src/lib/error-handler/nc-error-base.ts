@@ -1482,6 +1482,13 @@ export class NcErrorBase {
     });
   }
 
+  payloadTooLarge(limit?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_PAYLOAD_TOO_LARGE, {
+      params: limit || '',
+      ...args,
+    });
+  }
+
   licenseRequired(
     operation?: string,
     reason?: LicenseInactiveReason,

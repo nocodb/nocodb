@@ -104,9 +104,11 @@ export default class GalleryView implements GalleryType {
         ? view?.fk_cover_image_col_id
         : columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
 
+    // Keep the rest of the meta: a duplicated view carries its settings over.
+    const meta = parseMetaProp(insertObj) ?? {};
     insertObj.meta = {
-      fk_cover_image_object_fit:
-        parseMetaProp(insertObj)?.fk_cover_image_object_fit || 'fit',
+      ...meta,
+      fk_cover_image_object_fit: meta.fk_cover_image_object_fit || 'fit',
     };
 
     insertObj.meta = stringifyMetaProp(insertObj);

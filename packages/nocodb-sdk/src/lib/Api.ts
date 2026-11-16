@@ -43,6 +43,8 @@ export interface WorkflowExecutionGetResponseV3Type {
   parent_execution_id?: string | null;
   /** Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule */
   execution_depth?: number;
+  /** ID of the user who started this execution by hand (a manual run or a retry); null for runs fired by an event or a schedule. The execution still runs as the workflow's run-as identity. */
+  triggered_by?: string | null;
   /**
    * Timestamp when the execution record was created
    * @format date-time
@@ -80,6 +82,8 @@ export interface WorkflowExecutionListV3Type {
     parent_execution_id?: string | null;
     /** Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule */
     execution_depth?: number;
+    /** ID of the user who started this execution by hand (a manual run or a retry); null for runs fired by an event or a schedule. The execution still runs as the workflow's run-as identity. */
+    triggered_by?: string | null;
     /**
      * Timestamp when the execution record was created
      * @format date-time
@@ -2637,6 +2641,11 @@ export interface FilterResponseV3Type {
   value?: string | null;
   /** Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on. */
   enabled?: boolean;
+  /**
+   * IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. An unknown zone is rejected. On create, a date filter that omits it stores the request's `whereTz` when the field has no time zone of its own; `null` stores no zone. Send `null` on update to clear it.
+   * @example Asia/Kolkata
+   */
+  timezone?: string | null;
 }
 
 export interface FilterGroupV3Type {
@@ -2697,6 +2706,11 @@ export interface FilterV3Type {
   value?: string | number | boolean | null;
   /** Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on. */
   enabled?: boolean;
+  /**
+   * IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. An unknown zone is rejected. On create, a date filter that omits it stores the request's `whereTz` when the field has no time zone of its own; `null` stores no zone. Send `null` on update to clear it.
+   * @example Asia/Kolkata
+   */
+  timezone?: string | null;
 }
 
 /**
@@ -4660,6 +4674,8 @@ export interface ViewOptionsCalendarV3Type {
     start_date_field_id: string;
     /** Date field ID to be used as end date in calendar view. */
     end_date_field_id?: string;
+    /** Optional label shown on this range's cards when the view has several date ranges. */
+    label?: string;
   }[];
 }
 
@@ -7520,7 +7536,7 @@ export interface CalendarRangeType {
   fk_from_column_id?: IdType;
   /** Foreign Key to View */
   fk_view_id?: StringOrNullType;
-  /** Base ID */
+  /** Label shown on the range's cards */
   label?: string;
 }
 
@@ -9546,7 +9562,8 @@ export interface BaseTrashType {
     | 'extension'
     | 'record'
     | 'hook'
-    | 'app';
+    | 'app'
+    | 'document';
   /** ID of the trashed resource */
   resource_id?: IdType;
   /** Type of the parent entity */
@@ -16037,6 +16054,8 @@ export class Api<
         next_date: string;
         sort?: any[];
         where?: string;
+        /** IANA time zone for date conditions in `where` and in view filters without a time zone of their own */
+        whereTz?: string;
         /** @min 1 */
         limit?: number;
         /** @min 0 */

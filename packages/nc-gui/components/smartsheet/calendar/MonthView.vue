@@ -1124,6 +1124,8 @@ const isDateSelected = (date: dayjs.Dayjs) => {
 const addRecord = (date: dayjs.Dayjs) => {
   if (interfaceEditSelect.value) return interfaceEditSelect.value()
   if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
+  // A formula or rollup date can't take the clicked date
+  if (calendarRange.value[0]?.is_readonly) return
   const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
@@ -1208,11 +1210,13 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                   'block group-hover:hidden':
                     isAddDeleteInlineEnabled &&
                     !isDateSelected(day.date) &&
-                    [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                    [UITypes.DateTime, UITypes.Date].includes(calDataType) &&
+                    !calendarRange[0]?.is_readonly,
                   'hidden':
                     isAddDeleteInlineEnabled &&
                     isDateSelected(day.date) &&
-                    [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                    [UITypes.DateTime, UITypes.Date].includes(calDataType) &&
+                    !calendarRange[0]?.is_readonly,
                 }"
               ></span>
 
@@ -1254,7 +1258,10 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
 
               <PermissionsTooltip
                 v-else-if="
-                  isAddDeleteInlineEnabled && [UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedFromColumn
+                  isAddDeleteInlineEnabled &&
+                  [UITypes.DateTime, UITypes.Date].includes(calDataType) &&
+                  !calendarRange[0]?.is_readonly &&
+                  !isSyncedFromColumn
                 "
                 :entity="PermissionEntity.TABLE"
                 :entity-id="meta?.id"

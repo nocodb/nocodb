@@ -704,6 +704,8 @@ const addRecord = (date: dayjs.Dayjs) => {
   // Records can't be added to synced (read-only) tables — return if synced.
   // (This guard was inverted; the sibling MonthView/DateTimeView use the same check.)
   if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
+  // A formula or rollup date can't take the clicked date
+  if (calendarRange.value[0]?.is_readonly) return
   const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {

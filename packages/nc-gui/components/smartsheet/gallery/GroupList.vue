@@ -79,7 +79,9 @@ function loadChildren(group: Group) {
 
 function loadRows(group: Group) {
   if (!hasMoreRows(group) || isCollapsed(group)) return
-  return withLoading(groupPath(group), () => loadMoreGroupRows(group, props.pageSize))
+  // A full first page paints fast; later pages are larger to cut round trips.
+  const limit = group.rows?.length ? props.pageSize * 2 : props.pageSize
+  return withLoading(groupPath(group), () => loadMoreGroupRows(group, limit, { lean: true }))
 }
 
 function loadMoreGroups() {
@@ -182,9 +184,9 @@ function toggleGroup(group: Group) {
             class="nc-gallery-group-grid grid gap-3 px-3 pb-3"
             :style="{ gridAutoRows: `${cardHeight}px` }"
           >
-            <div v-for="(record, index) of group.rows" :key="rowKey(record, index)">
+            <SmartsheetGalleryCardSlot v-for="(record, index) of group.rows" :key="rowKey(record, index)" :root="scrollRoot">
               <slot name="card" :record="record" />
-            </div>
+            </SmartsheetGalleryCardSlot>
           </div>
 
           <div v-if="loadingKeys.has(groupPath(group))" class="flex justify-center pb-3">

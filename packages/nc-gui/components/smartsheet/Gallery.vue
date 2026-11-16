@@ -315,7 +315,7 @@ async function refreshGroup(group?: Group): Promise<void> {
 
   if (!group.rows) return
   group.paginationData = { page: 1, pageSize: Math.max(GROUP_ROWS_PAGE_SIZE, group.rows.length) }
-  await viewGroupBy.loadGroupData(group, true)
+  await viewGroupBy.loadGroupData(group, true, {}, { lean: true })
 }
 
 function refreshGroupsFromPeer() {

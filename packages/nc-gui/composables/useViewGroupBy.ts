@@ -666,7 +666,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
     }
 
-    async function fetchGroupRows(group: Group, offset: number, limit: number, params: any = {}) {
+    /** `lean`: only the view's shown fields, no comment counts (cards that never show them). */
+    interface GroupRowsOptions {
+      lean?: boolean
+    }
+
+    async function fetchGroupRows(group: Group, offset: number, limit: number, params: any = {}, opts: GroupRowsOptions = {}) {
       const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
 
       const query = {
@@ -691,14 +696,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             ...query,
             ...params,
             include_row_color: true,
-            getHiddenColumns: true,
+            ...(opts.lean ? {} : { getHiddenColumns: true }),
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           } as any)
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query }, { isGroupBy: true })
     }
 
-    async function loadGroupData(group: Group, force = false, params: any = {}) {
+    async function loadGroupData(group: Group, force = false, params: any = {}, opts: GroupRowsOptions = {}) {
       try {
         if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return
 
@@ -710,13 +715,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         const pageSize = group.paginationData.pageSize ?? groupByRecordLimit.value
 
-        const response = await fetchGroupRows(group, ((group.paginationData.page ?? 0) - 1) * pageSize, pageSize, params)
+        const response = await fetchGroupRows(group, ((group.paginationData.page ?? 0) - 1) * pageSize, pageSize, params, opts)
 
         group.count = response.pageInfo.totalRows ?? 0
         group.rows = group.nestedIn[group.nestedIn.length - 1]?.split
           ? shareSplitRows(formatData(response.list), group)
           : formatData(response.list)
-        await loadAggCommentsCount(group.rows)
+        if (!opts.lean) await loadAggCommentsCount(group.rows)
         group.paginationData = response.pageInfo
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -724,14 +729,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     }
 
     /** Appends the group's next `limit` rows instead of replacing the page. */
-    async function loadMoreGroupRows(group: Group, limit: number) {
+    async function loadMoreGroupRows(group: Group, limit: number, opts: GroupRowsOptions = {}) {
       try {
         if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return
 
         const before = group.rows
         const loaded = before ?? []
 
-        const response = await fetchGroupRows(group, loaded.length, limit)
+        const response = await fetchGroupRows(group, loaded.length, limit, {}, opts)
 
         // A refresh replaced the rows meanwhile: drop this page, the trigger asks again.
         if (group.rows !== before) return
@@ -742,7 +747,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           return !pk || !seen.has(pk)
         })
 
-        await loadAggCommentsCount(next)
+        if (!opts.lean) await loadAggCommentsCount(next)
 
         group.rows = [...loaded, ...next]
         group.count = response.pageInfo.totalRows ?? group.count

@@ -803,22 +803,23 @@ export class DataImportProcessor {
 
     const fireInsertHooks = async (pks: (string | number)[]) => {
       if (!deferHooks || !pks.length) return;
-      try {
-        hookModel ??= await Model.getBaseModelSQL(context, {
-          model,
-          dbDriver: await NcConnectionMgrv2.get(
-            await Source.get(context, model.source_id),
-          ),
-        });
-        for (const chunk of chunkArray(pks.map(String), BATCH_SIZE)) {
+      // The rows are committed; a hook failure must not fail the import, and
+      // one failing chunk must not skip the chunks after it.
+      for (const chunk of chunkArray(pks.map(String), BATCH_SIZE)) {
+        try {
+          hookModel ??= await Model.getBaseModelSQL(context, {
+            model,
+            dbDriver: await NcConnectionMgrv2.get(
+              await Source.get(context, model.source_id),
+            ),
+          });
           await hookModel.dispatchInsertHooks(chunk, req);
+        } catch (e: any) {
+          this.logger.error(
+            `after-insert hooks failed on import for model ${model.id}: ${e?.message}`,
+            e?.stack,
+          );
         }
-      } catch (e: any) {
-        // The rows are committed; a hook failure must not fail the import.
-        this.logger.error(
-          `after-insert hooks failed on import for model ${model.id}: ${e?.message}`,
-          e?.stack,
-        );
       }
     };
 

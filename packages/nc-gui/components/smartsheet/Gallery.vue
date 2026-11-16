@@ -342,8 +342,9 @@ async function patchSavedRow(held: RowType, pk: string) {
   try {
     const fresh = await $api.dbViewRow.read('noco', meta.value.base_id, meta.value.id, view.value.id, pk)
     const sortTitles = sorts.value.map((s) => meta.value?.columns?.find((c) => c.id === s.fk_column_id)?.title)
-    if (sortTitles.some((title) => title && `${fresh[title]}` !== `${held.row[title]}`)) return false
+    if (sortTitles.some((title) => title && JSON.stringify(fresh[title]) !== JSON.stringify(held.row[title]))) return false
     Object.assign(held.row, fresh)
+    restampRowColors(held)
     return true
   } catch {
     return false
@@ -369,7 +370,10 @@ function findGroupedRow(pk: string, group = viewGroupBy?.rootGroup.value): { gro
 function patchGroupedRow(id: string, payload: Record<string, any>) {
   if (!isGroupedGallery.value) return false
   const found = findGroupedRow(id)
-  if (found) Object.assign(found.row.row, payload)
+  if (found) {
+    Object.assign(found.row.row, payload)
+    restampRowColors(found.row)
+  }
   return true
 }
 
@@ -647,9 +651,15 @@ const visibleRows = computed(() => {
 
 const {
   isRowColouringEnabled,
+  getEvaluatedRowMetaRowColorInfo,
   getCellColorStyle: _getCellColorStyle,
   getCellLeftBorderStyle: _getCellLeftBorderStyle,
 } = useViewRowColorRender()
+
+/** A card patched in place keeps the colours of its old values; a refetch would re-stamp them. */
+function restampRowColors(record: RowType) {
+  Object.assign(record.rowMeta, getEvaluatedRowMetaRowColorInfo(record.row))
+}
 
 function getCardColorStyle(record: RowType): Record<string, string> {
   const colorStyle = extractRowBackgroundColorStyle(record)

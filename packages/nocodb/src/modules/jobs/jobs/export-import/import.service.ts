@@ -2059,12 +2059,22 @@ export class ImportService {
     // create row color info
     for (const data of param.data) {
       if (param.existingModel) break;
-      if (data.rowColorConditions?.rowColorConditions?.length > 0) {
+      // Conditions of a view that wasn't created have no view to attach to.
+      const rowColorConditions = (
+        data.rowColorConditions?.rowColorConditions ?? []
+      ).filter((rc) => getIdOrExternalId(rc.fk_view_id));
+      const rowColorConditionIds = new Set(
+        rowColorConditions.map((rc) => rc.id),
+      );
+      const rowColorFilters = (data.rowColorConditions?.filters ?? []).filter(
+        (flt) => rowColorConditionIds.has(flt.fk_row_color_condition_id),
+      );
+      if (rowColorConditions.length > 0) {
         await ncMeta.bulkMetaInsert(
           targetContext.workspace_id,
           targetContext.base_id,
           MetaTable.ROW_COLOR_CONDITIONS,
-          data.rowColorConditions.rowColorConditions.map((rc) => {
+          rowColorConditions.map((rc) => {
             return {
               ...rc,
               fk_view_id: getIdOrExternalId(rc.fk_view_id),
@@ -2072,12 +2082,12 @@ export class ImportService {
           }),
         );
       }
-      if (data.rowColorConditions?.filters?.length > 0) {
+      if (rowColorFilters.length > 0) {
         await ncMeta.bulkMetaInsert(
           targetContext.workspace_id,
           targetContext.base_id,
           MetaTable.FILTER_EXP,
-          data.rowColorConditions.filters.map((flt) => {
+          rowColorFilters.map((flt) => {
             return {
               ...flt,
               fk_column_id: getIdOrExternalId(flt.fk_column_id),

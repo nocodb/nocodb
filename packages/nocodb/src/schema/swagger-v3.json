@@ -3544,38 +3544,36 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "list": [
-                        {
-                          "id": "root",
-                          "group_operator": "AND",
-                          "filters": [
-                            {
-                              "id": "fiml6n8qzam4wmvl",
-                              "field_id": "c580jyan91qwrbx",
-                              "operator": "eq",
-                              "value": "Midmarket"
-                            },
-                            {
-                              "id": "fi3egizdiubzfo9u",
-                              "group_operator": "OR",
-                              "filters": [
-                                {
-                                  "id": "fih624x0srskaf1i",
-                                  "field_id": "caymvuj3az60wyk",
-                                  "operator": "eq",
-                                  "value": "Mexico"
-                                },
-                                {
-                                  "id": "fi1pjkf0f88r8s6l",
-                                  "field_id": "caymvuj3az60wyk",
-                                  "operator": "eq",
-                                  "value": "Canada"
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
+                      "list": {
+                        "id": "root",
+                        "group_operator": "AND",
+                        "filters": [
+                          {
+                            "id": "fiml6n8qzam4wmvl",
+                            "field_id": "c580jyan91qwrbx",
+                            "operator": "eq",
+                            "value": "Midmarket"
+                          },
+                          {
+                            "id": "fi3egizdiubzfo9u",
+                            "group_operator": "OR",
+                            "filters": [
+                              {
+                                "id": "fih624x0srskaf1i",
+                                "field_id": "caymvuj3az60wyk",
+                                "operator": "eq",
+                                "value": "Mexico"
+                              },
+                              {
+                                "id": "fi1pjkf0f88r8s6l",
+                                "field_id": "caymvuj3az60wyk",
+                                "operator": "eq",
+                                "value": "Canada"
+                              }
+                            ]
+                          }
+                        ]
+                      }
                     }
                   }
                 }
@@ -12428,6 +12426,80 @@
           "propertyName": "mode"
         }
       },
+      "ViewRowColourResponse": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "title": "conditions",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "filter"
+                ],
+                "description": "Mode of row coloring. In this mode, the color is selected based on conditions applied to the fields."
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the condition.",
+                      "readOnly": true
+                    },
+                    "apply_as_row_background": {
+                      "type": "boolean"
+                    },
+                    "color": {
+                      "type": "string"
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterGroupResponse",
+                      "description": "The condition's filters, nested under a root group. Values come back as strings, as in `FilterResponse`."
+                    }
+                  }
+                }
+              }
+            },
+            "required": [
+              "mode",
+              "conditions"
+            ]
+          },
+          {
+            "type": "object",
+            "title": "select",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "select"
+                ],
+                "description": "Mode of row coloring. In this mode, the color is selected based on a single select field."
+              },
+              "field_id": {
+                "type": "string",
+                "description": "Single select field ID to be used for colouring rows in the view."
+              },
+              "apply_as_row_background": {
+                "type": "boolean",
+                "description": "Whether to additionally apply the color as row background."
+              }
+            },
+            "required": [
+              "mode",
+              "field_id"
+            ]
+          }
+        ],
+        "discriminator": {
+          "propertyName": "mode"
+        },
+        "description": "Row colour configuration as returned by the API. Same shape as `ViewRowColour`, except that condition filters are `FilterGroupResponse`."
+      },
       "ViewOptionsGrid": {
         "type": "object",
         "properties": {
@@ -13465,7 +13537,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 }
@@ -13497,7 +13569,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 }
@@ -13529,7 +13601,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 },
@@ -13564,7 +13636,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 },
@@ -13599,7 +13671,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 },
@@ -13634,7 +13706,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 }
@@ -13666,7 +13738,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 }
@@ -15777,16 +15849,10 @@
         "type": "object",
         "properties": {
           "list": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FilterGroupResponse"
-            },
-            "description": "List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**. A view with no filters still returns that root group, with an empty `filters` array and `group_operator` set to `null`."
+            "$ref": "#/components/schemas/FilterGroupResponse",
+            "description": "The view's filters, nested under a single root group whose `id` is **root**. Despite the name this is one group object, not an array. Omitted when the view has no filters."
           }
-        },
-        "required": [
-          "list"
-        ]
+        }
       },
       "FilterGroupLevel3": {
         "type": "object",

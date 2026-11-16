@@ -521,7 +521,8 @@ const getWorkflowExecutionStatusDisplay = (
   if (status === 'error' && state?.errorCode === 'INTERRUPTED') {
     return WORKFLOW_EXECUTION_STATUS_DISPLAY.interrupted
   }
-  if (status === 'error' && state?.errorCode === 'INVALID_SCHEDULE') {
+  // A run-level reason (invalid schedule, no steps to run, ...): no step carries it.
+  if (status === 'error' && state?.errorMessage) {
     return { ...WORKFLOW_EXECUTION_STATUS_DISPLAY.error, detail: state.errorMessage }
   }
   if (status === 'cancelled' && state?.errorCode === 'APP_SUSPENDED') {

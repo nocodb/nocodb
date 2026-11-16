@@ -30702,6 +30702,27 @@
             "type": "number",
             "description": "Order",
             "example": 1
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Group By"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Group By Order",
+            "example": 1,
+            "nullable": true
+          },
+          "group_by_sort": {
+            "type": "string",
+            "description": "Group By Sort",
+            "enum": ["asc", "desc", "count-asc", "count-desc", null],
+            "example": "asc",
+            "nullable": true
+          },
+          "group_by_enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this group-by is enabled. Disabled group-bys retain their config but are not applied."
           }
         }
       },

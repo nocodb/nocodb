@@ -32,7 +32,10 @@ export const Paragraph = TiptapParagraph.extend<ParagraphOptions, { markdown: Ma
           const isLastNode = parent && parent.child(parent.childCount - 1) === node
 
           if (isEmpty && !isLastNode) {
-            state.write(' <br>\n\n ')
+            state.write(' <br>')
+            // closeBlock, not a raw "\n\n ": a leading space before the next block
+            // indents a code fence, and CommonMark strips it from every code line.
+            state.closeBlock(node)
             return
           }
 

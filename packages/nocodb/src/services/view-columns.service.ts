@@ -178,7 +178,7 @@ export class ViewColumnsService {
         ).forUpdate();
     }
 
-    // width/group_by* are grid-only and go through GridColumnsService.gridColumnUpdate
+    // Grid width/group_by* go through GridColumnsService.gridColumnUpdate; gallery group_by* come here
     const result = await View.updateColumn(
       context,
       param.viewId,

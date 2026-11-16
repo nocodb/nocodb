@@ -30225,7 +30225,7 @@
         }
       },
       "ViewColumnUpdateReq": {
-        "description": "Model for View Column Update Request. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views). Grid-only properties (`width`, `group_by`, `group_by_order`, `group_by_sort`) are ignored; use the Grid Column Update endpoint (`PATCH /api/v1/db/meta/grid-columns/{columnId}`) for those.",
+        "description": "Model for View Column Update Request. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views, and `group_by`/`group_by_order`/`group_by_sort`/`group_by_enabled` on gallery views). On a grid, `width` and the `group_by*` properties are ignored; use the Grid Column Update endpoint (`PATCH /api/v1/db/meta/grid-columns/{columnId}`) for those.",
         "x-stoplight": {
           "id": "7xso36z6hvh43"
         },
@@ -30250,6 +30250,27 @@
             "description": "The order of the list of views.",
             "example": 1,
             "minimum": 0
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Gallery only: group by this column"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Gallery only: position of this column among the group-bys",
+            "example": 1,
+            "nullable": true
+          },
+          "group_by_sort": {
+            "type": "string",
+            "description": "Gallery only: group order",
+            "enum": ["asc", "desc", "count-asc", "count-desc", null],
+            "example": "asc",
+            "nullable": true
+          },
+          "group_by_enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Gallery only: whether this group-by is applied. Disabled group-bys keep their config."
           }
         }
       },

@@ -3,7 +3,8 @@ import type { Group, Row } from '~/lib/types'
 
 interface Props {
   parent: Group
-  collapsedKeys: Set<string>
+  /** Groups start collapsed; the expanded ones persist per view. */
+  expandedKeys: Set<string>
   pageSize: number
   groupPageSize: number
   scrollRoot?: HTMLElement | null
@@ -23,6 +24,8 @@ defineSlots<{
 
 const { meta } = useSmartsheetStoreOrThrow()
 
+const view = inject(ActiveViewInj, ref())
+
 const { loadGroups, loadMoreGroupRows } = useViewGroupByOrThrow()
 
 const loadingKeys = reactive(new Set<string>())
@@ -37,8 +40,13 @@ function groupPath(group: Group) {
   return group.nestedIn.map((n) => `${n.column_id ?? n.title}:${n.key}`).join('/')
 }
 
+/** Same key format the canvas grid stores its expanded groups under. */
+function expansionKey(group: Group) {
+  return group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_')
+}
+
 function isCollapsed(group: Group) {
-  return props.collapsedKeys.has(groupPath(group))
+  return !props.expandedKeys.has(expansionKey(group))
 }
 
 function hasMoreRows(group: Group) {
@@ -81,9 +89,11 @@ function loadMoreGroups() {
 }
 
 function toggleGroup(group: Group) {
-  const key = groupPath(group)
-  if (props.collapsedKeys.has(key)) props.collapsedKeys.delete(key)
-  else props.collapsedKeys.add(key)
+  const key = expansionKey(group)
+  const expand = !props.expandedKeys.has(key)
+  if (expand) props.expandedKeys.add(key)
+  else props.expandedKeys.delete(key)
+  groupKeysManager.toggleKey(view.value?.base_id, view.value?.id, key, expand)
 }
 </script>
 
@@ -128,7 +138,7 @@ function toggleGroup(group: Group) {
           <SmartsheetGalleryGroupList
             v-if="group.children"
             :parent="group"
-            :collapsed-keys="collapsedKeys"
+            :expanded-keys="expandedKeys"
             :page-size="pageSize"
             :group-page-size="groupPageSize"
             :scroll-root="scrollRoot"

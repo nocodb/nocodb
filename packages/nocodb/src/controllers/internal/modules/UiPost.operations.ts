@@ -17,7 +17,6 @@ import { SortsService } from '~/services/sorts.service';
 import { HooksService } from '~/services/hooks.service';
 import { GridsService } from '~/services/grids.service';
 import { GridColumnsService } from '~/services/grid-columns.service';
-import { GalleryColumnsService } from '~/services/gallery-columns.service';
 import { FormsService } from '~/services/forms.service';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { GalleriesService } from '~/services/galleries.service';
@@ -68,7 +67,6 @@ export class UiPostOperations
     protected extensionsService: ExtensionsService,
     protected dataImportService: DataImportService,
     protected buttonsService: ButtonsService,
-    protected galleryColumnsService: GalleryColumnsService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -92,7 +90,6 @@ export class UiPostOperations
     'gridColumnUpdate' as const,
     'timelineColumnUpdate' as const,
     'ganttColumnUpdate' as const,
-    'galleryColumnUpdate' as const,
     'listColumnUpdate' as const,
     'viewRowColorConditionAdd' as const,
     'viewRowColorConditionUpdate' as const,
@@ -307,12 +304,6 @@ export class UiPostOperations
         return await this.gridColumnsService.gridColumnUpdate(context, {
           gridViewColumnId: req.query.gridViewColumnId,
           grid: payload,
-          req,
-        });
-      case 'galleryColumnUpdate':
-        return await this.galleryColumnsService.galleryColumnUpdate(context, {
-          galleryViewColumnId: req.query.galleryViewColumnId,
-          gallery: payload,
           req,
         });
       case 'viewColumnCreate':

@@ -104,7 +104,7 @@ const GROUP_ROWS_PAGE_SIZE = 24
 
 const GROUP_LIST_PAGE_SIZE = 25
 
-const collapsedGroupKeys = reactive(new Set<string>())
+const expandedGroupKeys = reactive(new Set<string>())
 
 const isGroupedGalleryLoading = ref(false)
 
@@ -912,6 +912,16 @@ watch(
   { immediate: true },
 )
 
+// Groups start collapsed; the ones a user expanded are restored per view.
+watch(
+  () => [view.value?.base_id, view.value?.id],
+  ([baseId, viewId]) => {
+    expandedGroupKeys.clear()
+    for (const key of groupKeysManager.getKeys(baseId, viewId)) expandedGroupKeys.add(key)
+  },
+  { immediate: true },
+)
+
 // Leaving grouped mode: the flat cache was not kept in sync while groups were shown.
 watch(isGroupedGallery, (grouped, wasGrouped) => {
   if (wasGrouped && !grouped) reloadViewDataListener()
@@ -1360,7 +1370,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
           <SmartsheetGalleryGroupList
             v-else
             :parent="viewGroupBy.rootGroup.value"
-            :collapsed-keys="collapsedGroupKeys"
+            :expanded-keys="expandedGroupKeys"
             :page-size="GROUP_ROWS_PAGE_SIZE"
             :group-page-size="GROUP_LIST_PAGE_SIZE"
             :scroll-root="scrollContainer"

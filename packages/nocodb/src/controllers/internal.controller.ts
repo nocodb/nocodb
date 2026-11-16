@@ -44,7 +44,6 @@ import {
 import {
   Filter,
   FormViewColumn,
-  GalleryViewColumn,
   GridViewColumn,
   ListViewColumn,
   Sort,
@@ -170,7 +169,6 @@ export class InternalController {
       'showAllColumns',
       'gridViewUpdate',
       'gridColumnUpdate',
-      'galleryColumnUpdate',
       'galleryViewUpdate',
       'kanbanViewUpdate',
       'mapViewUpdate',
@@ -245,13 +243,6 @@ export class InternalController {
           req.query.gridViewColumnId as string,
         );
         await addChildView(gridCol);
-      }
-      if (req.query.galleryViewColumnId) {
-        const galleryCol = await GalleryViewColumn.get(
-          context,
-          req.query.galleryViewColumnId as string,
-        );
-        await addChildView(galleryCol);
       }
       if (req.query.timelineViewColumnId) {
         const timelineCol = await TimelineViewColumn.get(

@@ -666,6 +666,38 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
     }
 
+    async function fetchGroupRows(group: Group, offset: number, limit: number, params: any = {}) {
+      const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+
+      const query = {
+        offset,
+        limit,
+        where: `${nestedWhere}`,
+      }
+
+      return interfaceDataApi
+        ? await interfaceDataApi.fetchList({
+            offset: query.offset,
+            limit: query.limit,
+            // search rides `where` (Search-action gated server-side); the
+            // group-nesting predicate rides `nestedWhere` (always applied).
+            where: where?.value,
+            nestedWhere: calculateNestedWhere(group.nestedIn),
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+          })
+        : !isPublic
+        ? await api.dbViewRow.list('noco', base.value!.id!, view.value!.fk_model_id!, view.value!.id!, {
+            ...query,
+            ...params,
+            include_row_color: true,
+            getHiddenColumns: true,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          } as any)
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query }, { isGroupBy: true })
+    }
+
     async function loadGroupData(group: Group, force = false, params: any = {}) {
       try {
         if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return
@@ -676,35 +708,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group.paginationData = { page: 1, pageSize: groupByRecordLimit.value }
         }
 
-        const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+        const pageSize = group.paginationData.pageSize ?? groupByRecordLimit.value
 
-        const query = {
-          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByRecordLimit.value),
-          limit: group.paginationData.pageSize ?? groupByRecordLimit.value,
-          where: `${nestedWhere}`,
-        }
-
-        const response = interfaceDataApi
-          ? await interfaceDataApi.fetchList({
-              offset: query.offset,
-              limit: query.limit,
-              // search rides `where` (Search-action gated server-side); the
-              // group-nesting predicate rides `nestedWhere` (always applied).
-              where: where?.value,
-              nestedWhere: calculateNestedWhere(group.nestedIn),
-              sortsArr: sorts.value,
-              filtersArr: nestedFilters.value,
-            })
-          : !isPublic
-          ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-              ...query,
-              ...params,
-              include_row_color: true,
-              getHiddenColumns: true,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-            } as any)
-          : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query }, { isGroupBy: true })
+        const response = await fetchGroupRows(group, ((group.paginationData.page ?? 0) - 1) * pageSize, pageSize, params)
 
         group.count = response.pageInfo.totalRows ?? 0
         group.rows = group.nestedIn[group.nestedIn.length - 1]?.split
@@ -712,6 +718,31 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           : formatData(response.list)
         await loadAggCommentsCount(group.rows)
         group.paginationData = response.pageInfo
+      } catch (e) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
+
+    /** Appends the group's next `limit` rows instead of replacing the page. */
+    async function loadMoreGroupRows(group: Group, limit: number) {
+      try {
+        if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return
+
+        const loaded = group.rows ?? []
+
+        const response = await fetchGroupRows(group, loaded.length, limit)
+
+        const seen = new Set(loaded.map((r) => extractPkFromRow(r.row, meta?.value?.columns ?? [])))
+        const next = formatData(response.list).filter((r) => {
+          const pk = extractPkFromRow(r.row, meta?.value?.columns ?? [])
+          return !pk || !seen.has(pk)
+        })
+
+        await loadAggCommentsCount(next)
+
+        group.rows = [...loaded, ...next]
+        group.count = response.pageInfo.totalRows ?? group.count
+        group.paginationData = { ...response.pageInfo, page: 1, pageSize: group.rows.length }
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
       }
@@ -1054,6 +1085,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       loadGroups,
       loadGroupData,
       loadGroupPage,
+      loadMoreGroupRows,
       loadGroupAggregation,
       groupWrapperChangePage,
       redistributeRows,
@@ -1063,7 +1095,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
   'useViewGroupBy',
 )
 
-export { useProvideViewGroupBy }
+export { useProvideViewGroupBy, useViewGroupBy }
 
 export function useViewGroupByOrThrow() {
   const viewColumns = useViewGroupBy()

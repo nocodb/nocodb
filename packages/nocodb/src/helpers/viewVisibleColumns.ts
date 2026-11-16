@@ -7,6 +7,7 @@ import {
   DateDependency,
   Filter,
   GalleryView,
+  GalleryViewColumn,
   GridViewColumn,
   KanbanView,
   KanbanViewColumn,
@@ -151,7 +152,7 @@ export async function resolveViewVisibleColumns(
         ...o,
         [c.fk_column_id]:
           c.show ||
-          (c instanceof GridViewColumn &&
+          ((c instanceof GridViewColumn || c instanceof GalleryViewColumn) &&
             c.group_by &&
             (!sharedAccess || alwaysShown.has(c.fk_column_id))) ||
           (c instanceof KanbanViewColumn &&

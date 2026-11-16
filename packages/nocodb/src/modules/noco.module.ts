@@ -96,6 +96,7 @@ import { FormColumnsService } from '~/services/form-columns.service';
 import { FormsService } from '~/services/forms.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { GridColumnsService } from '~/services/grid-columns.service';
+import { GalleryColumnsService } from '~/services/gallery-columns.service';
 import { GridsService } from '~/services/grids.service';
 import { HooksService } from '~/services/hooks.service';
 import { ButtonsService } from '~/services/buttons.service';
@@ -314,6 +315,7 @@ export const nocoModuleMetadata = {
     FormsService,
     GalleriesService,
     GridColumnsService,
+    GalleryColumnsService,
     GridsService,
     HooksService,
     ButtonsService,
@@ -420,6 +422,7 @@ export const nocoModuleMetadata = {
     GridsService,
     CalendarsService,
     GridColumnsService,
+    GalleryColumnsService,
     FormsService,
     FormColumnsService,
     GalleriesService,

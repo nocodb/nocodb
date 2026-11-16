@@ -12,6 +12,10 @@ export default class GalleryViewColumn {
   title?: string;
   show?: BoolType;
   order?: number;
+  group_by?: BoolType;
+  group_by_order?: number;
+  group_by_sort?: string;
+  group_by_enabled?: BoolType;
 
   fk_view_id: string;
   fk_column_id: string;
@@ -165,7 +169,14 @@ export default class GalleryViewColumn {
     body: Partial<GalleryViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(body, ['order', 'show']);
+    const updateObj = extractProps(body, [
+      'order',
+      'show',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+      'group_by_enabled',
+    ]);
 
     // set meta
     const res = await ncMeta.metaUpdate(

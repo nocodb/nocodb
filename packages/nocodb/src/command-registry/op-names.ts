@@ -60,6 +60,7 @@ export const OperationName = {
   formColumnUpdate: 'formColumnUpdate',
   timelineColumnUpdate: 'timelineColumnUpdate',
   ganttColumnUpdate: 'ganttColumnUpdate',
+  galleryColumnUpdate: 'galleryColumnUpdate',
   listColumnUpdate: 'listColumnUpdate',
   showAllColumns: 'showAllColumns',
   hideAllColumns: 'hideAllColumns',

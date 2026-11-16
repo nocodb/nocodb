@@ -115,7 +115,12 @@ export interface OperationSandbox<S extends ZodType = ZodType, R = any> {
    * formula column → other columns). Persisted on `meta.deps`, used by
    * sandbox cherry-pick to auto-include referenced entities.
    */
-  readonly dependencies?: (params: z.infer<S>, result: R) => TraceCommandDep[];
+  readonly dependencies?: (
+    params: z.infer<S>,
+    result: R,
+    /** The `extra` the entry's `before` resolved. */
+    extra?: Record<string, unknown>,
+  ) => TraceCommandDep[];
 }
 
 export interface InverseOp {

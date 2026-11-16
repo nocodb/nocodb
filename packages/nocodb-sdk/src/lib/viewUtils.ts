@@ -119,7 +119,12 @@ export const copyViewConfigOptionMap: Record<
     label: 'Group',
     value: ViewSettingOverrideOptions.GROUP,
     i18nLabel: `objects.copyViewConfig.${ViewSettingOverrideOptions.GROUP}`,
-    supportedViewTypes: [ViewTypes.GRID, ViewTypes.TIMELINE, ViewTypes.GANTT],
+    supportedViewTypes: [
+      ViewTypes.GRID,
+      ViewTypes.GALLERY,
+      ViewTypes.TIMELINE,
+      ViewTypes.GANTT,
+    ],
     icon: 'group',
   },
   [ViewSettingOverrideOptions.SORT]: {

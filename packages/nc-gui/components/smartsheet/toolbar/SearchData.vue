@@ -100,7 +100,8 @@ const isSearchResultVisible = computed(() => {
     !isDropdownOpen.value &&
     search.value.query?.trim() &&
     !isMobileMode.value &&
-    ((isGrid.value && !isGroupBy.value) || isGallery.value)
+    (isGrid.value || isGallery.value) &&
+    !isGroupBy.value
   )
 })
 

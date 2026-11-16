@@ -123,6 +123,8 @@ export function useInfiniteData(args: {
     refreshInPlace?: () => void
     // A peer's edit kept every group's rows; reload group aggregations a changed field feeds.
     refreshGroupAggregations?: (changedFields?: string[]) => void
+    // Applies a peer's edit to a row this cache doesn't hold; true when nothing else needs reloading.
+    patchUnloadedRow?: (id: string, payload: Record<string, any>) => boolean
   }
   where?: ComputedRef<string | undefined>
   disableSmartsheet?: boolean
@@ -2731,8 +2733,10 @@ export function useInfiniteData(args: {
               .filter((title): title is string => !!title),
             isPrevMembershipWithheld: isPrevMembershipWithheld(data),
           })
-          if (outcome === 'aggregates') callbacks?.refreshGroupAggregations?.(data.changedFields)
-          else if (outcome === 'refresh') requestInPlaceRefresh()
+          if (outcome === 'aggregates') {
+            if (!callbacks?.patchUnloadedRow?.(String(id), payload ?? {}))
+              callbacks?.refreshGroupAggregations?.(data.changedFields)
+          } else if (outcome === 'refresh') requestInPlaceRefresh()
           return
         }
 

@@ -1992,6 +1992,7 @@ export class ImportService {
             case ViewTypes.GRID:
             case ViewTypes.TIMELINE:
             case ViewTypes.GANTT:
+            case ViewTypes.GALLERY:
               for (const cl of vwColumns) {
                 const fcl = view.columns.find(
                   (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
@@ -2017,7 +2018,6 @@ export class ImportService {
                 });
               }
               break;
-            case ViewTypes.GALLERY:
             case ViewTypes.KANBAN:
             case ViewTypes.CALENDAR:
               break;

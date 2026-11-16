@@ -1491,6 +1491,10 @@ export default class View implements ViewType {
       underline?: BoolType;
       bold?: BoolType;
       italic?: BoolType;
+      group_by?: BoolType;
+      group_by_order?: number;
+      group_by_sort?: string;
+      group_by_enabled?: BoolType;
     },
     ncMeta = Noco.ncMeta,
     // Set when colId was read from this view's own columns.
@@ -1545,7 +1549,7 @@ export default class View implements ViewType {
       return;
     }
 
-    // width/group_by* are grid-only and go through GridViewColumn.update
+    // Grid width/group_by* go through GridViewColumn.update
     let updateObj = extractProps(colData, ['order', 'show']);
 
     // keep primary_value_column always visible and first in grid view
@@ -1623,6 +1627,18 @@ export default class View implements ViewType {
       updateObj = {
         ...updateObj,
         ...extractProps(colData, ['underline', 'bold', 'italic']),
+      };
+    }
+
+    if (view.type === ViewTypes.GALLERY) {
+      updateObj = {
+        ...updateObj,
+        ...extractProps(colData, [
+          'group_by',
+          'group_by_order',
+          'group_by_sort',
+          'group_by_enabled',
+        ]),
       };
     }
 
@@ -2853,6 +2869,7 @@ export default class View implements ViewType {
                 'group_by',
                 'group_by_order',
                 'group_by_sort',
+                'group_by_enabled',
                 'aggregation',
               ]),
         ]);

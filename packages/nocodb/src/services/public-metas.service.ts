@@ -20,6 +20,7 @@ import type { NcContext } from '~/interface/config';
 import {
   Base,
   Column,
+  GalleryViewColumn,
   GridViewColumn,
   Model,
   Permission,
@@ -200,7 +201,8 @@ export class PublicMetasService {
         if (!column) return false;
 
         return (
-          (c instanceof GridViewColumn && c.group_by) ||
+          ((c instanceof GridViewColumn || c instanceof GalleryViewColumn) &&
+            c.group_by) ||
           c.show ||
           column.pk ||
           view.model.columns.some(

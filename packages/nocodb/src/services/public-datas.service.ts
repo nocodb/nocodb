@@ -534,6 +534,7 @@ export class PublicDatasService {
 
     if (
       view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.TIMELINE &&
       view.type !== ViewTypes.GANTT
     ) {
@@ -571,6 +572,7 @@ export class PublicDatasService {
 
     if (
       view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.TIMELINE &&
       view.type !== ViewTypes.GANTT
     ) {

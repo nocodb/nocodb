@@ -36,6 +36,8 @@ export interface AppBuildLockPayload {
  */
 export interface AppBuildState {
   previewUrl?: string;
+  /** Epoch ms when the token inside `previewUrl` expires. */
+  previewExpiresAt?: number;
   building: boolean;
   buildingBy?: string;
   buildingById?: string;
@@ -53,4 +55,12 @@ export interface AppBuildState {
     parts: ChatContentBlock[];
     lastSeq: number;
   };
+}
+
+/** `refreshAppPreviewToken`: a fresh token for the same app, sha and persona. */
+export interface AppPreviewTokenRefreshResult {
+  token: string;
+  previewUrl: string;
+  /** Epoch ms. */
+  expiresAt: number;
 }

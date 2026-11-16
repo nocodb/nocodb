@@ -258,12 +258,17 @@ export function sanitizeCommentBody(input: unknown): string {
   let out = '';
   let pos = 0;
   let insideTag = false;
+  // The serializer leaves `>` raw inside quoted attribute values; only an unquoted `>` ends a tag.
+  let inQuote = false;
   for (const m of sanitized.matchAll(
     new RegExp(`nccode${nonce}i(\\d+)x`, 'g'),
   )) {
     for (let k = pos; k < m.index; k++) {
-      if (sanitized[k] === '<') insideTag = true;
-      else if (sanitized[k] === '>') insideTag = false;
+      const c = sanitized[k];
+      if (!insideTag) {
+        if (c === '<') insideTag = true;
+      } else if (c === '"') inQuote = !inQuote;
+      else if (c === '>' && !inQuote) insideTag = false;
     }
     const segment = code[Number(m[1])];
     out +=

@@ -102,6 +102,7 @@ export * from '~/lib/kanbanSummary';
 export * from '~/lib/parser/queryFilter/query-filter-encoder';
 export * from '~/lib/aggregationCompute';
 export * from '~/lib/connectionConfigUtils';
+export * from '~/lib/dataSourceIntegrationUtils';
 export * from '~/lib/currencyHelpers';
 export * from '~/lib/filterHelpers';
 export * from '~/lib/errorUtils';

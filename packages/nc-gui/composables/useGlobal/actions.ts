@@ -1,10 +1,22 @@
 import { getActivePinia } from 'pinia'
+import { watch } from 'vue'
 import { isAxiosError } from 'axios'
 import type { Actions, AppInfo, Getters, State } from './types'
 import type { NcBreakpoint } from '~/lib/constants'
 
-export function useGlobalActions(state: State, _getters: Getters): Actions {
+export function useGlobalActions(state: State, getters: Getters): Actions {
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
+
+  // The stores hold a user's data only once a session has been live in this page.
+  // `signedIn` is masked on shared base, ERD and view routes, so read the real token.
+  let hadSessionInPage = false
+  watch(
+    getters.signedInReal,
+    (signedIn) => {
+      if (signedIn) hadSessionInPage = true
+    },
+    { immediate: true },
+  )
 
   const setIsMobileMode = (isMobileMode: boolean) => {
     state.isMobileMode.value = isMobileMode
@@ -20,6 +32,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     signinUrl = '/signin',
     skipApiCall = false,
   }: SignOutParams = {}) => {
+    const router = useNuxtApp().$router
     try {
       // call and invalidate refresh token only if user manually triggered logout
       if (!skipApiCall) {
@@ -42,12 +55,20 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
         // composable may not have been instantiated yet — safe to ignore
       }
 
+      // App-lifetime composables keep the stores disposed below, so the next navigation must be a page load.
+      if (hadSessionInPage) {
+        router.beforeEach((to) => {
+          window.location.assign(router.resolve(to.fullPath).href)
+          return false
+        })
+      }
+
       if (redirectToSignin) {
         await navigateTo(signinUrl)
       }
 
-      // clear all stores data on logout
-      const pn = getActivePinia()
+      // clear all stores data on logout; before any session they hold none
+      const pn = hadSessionInPage ? getActivePinia() : undefined
       if (pn) {
         pn._s.forEach((store) => {
           store.$dispose()

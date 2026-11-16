@@ -1,4 +1,9 @@
-import { UITypes } from 'nocodb-sdk';
+import {
+  IntegrationsType,
+  isDataSourceAuthClient,
+  knexConfigFromSqlAuthConfig,
+  UITypes,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
@@ -80,6 +85,7 @@ export default class Source implements SourceType {
   fk_integration_id?: string;
   integration_config?: string;
   integration_title?: string;
+  integration_type?: string;
   is_encrypted?: boolean;
   deleted?: boolean;
 
@@ -467,10 +473,22 @@ export default class Source implements SourceType {
       return this.normalizeMssqlConfig(config);
     }
 
-    const integrationConfig = decryptPropIfRequired({
+    let integrationConfig = decryptPropIfRequired({
       data: this,
       prop: 'integration_config',
     });
+    // A combined app connection stores the flat auth shape. Convert it whole
+    // (by the row's type, not its shape) so knex keys in it never reach the
+    // driver past the checks, which read the converted config.
+    const isAuthConfig = this.integration_type
+      ? this.integration_type === IntegrationsType.Auth
+      : !integrationConfig?.client;
+    if (isAuthConfig && isDataSourceAuthClient(this.type)) {
+      integrationConfig = knexConfigFromSqlAuthConfig(
+        this.type,
+        integrationConfig,
+      );
+    }
     // merge integration config with source config
     // override integration config with source config if exists
     // only override database and searchPath
@@ -814,6 +832,7 @@ export default class Source implements SourceType {
     qb.select(
       `${MetaTable.INTEGRATIONS}.config as integration_config`,
       `${MetaTable.INTEGRATIONS}.title as integration_title`,
+      `${MetaTable.INTEGRATIONS}.type as integration_type`,
     ).leftJoin(
       MetaTable.INTEGRATIONS,
       `${MetaTable.SOURCES}.fk_integration_id`,

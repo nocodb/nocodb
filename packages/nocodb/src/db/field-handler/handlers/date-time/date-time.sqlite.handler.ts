@@ -82,8 +82,14 @@ export class DateTimeSQLiteHandler extends DateTimeGeneralHandler {
       );
     }
     // a value with ms needs a ms bound; with the offset it sorts correctly
-    // against both stored shapes and equals an identical stored value
-    if (args.val.millisecond() !== 0) {
+    // against both stored shapes and equals an identical stored value.
+    // `>` and `<=` need it for whole seconds too: a stored value at the bound
+    // sorts after the bare `HH:mm:ss` prefix.
+    if (
+      args.val.millisecond() !== 0 ||
+      args.comparisonOp === '>' ||
+      args.comparisonOp === '<='
+    ) {
       args.qb.where(
         rootArgs.knex.raw(`?? ${args.comparisonOp} ?`, [
           args.sourceField,

@@ -17297,7 +17297,8 @@
                                 }
                               }
                             },
-                            "description": "Row Count"
+                            "nullable": true,
+                            "description": "Row Count. Always null: counting rows would connect to every data source."
                           },
                           "userCount": {
                             "type": "integer",
@@ -17343,11 +17344,7 @@
                           "webhookCount": 0,
                           "filterCount": 0,
                           "sortCount": 0,
-                          "rowCount": [
-                            {
-                              "TotalRecords": "76"
-                            }
-                          ],
+                          "rowCount": null,
                           "userCount": 1
                         }
                       ],
@@ -17385,11 +17382,7 @@
                           "webhookCount": 0,
                           "filterCount": 0,
                           "sortCount": 0,
-                          "rowCount": [
-                            {
-                              "TotalRecords": "76"
-                            }
-                          ],
+                          "rowCount": null,
                           "userCount": 1
                         }
                       ],

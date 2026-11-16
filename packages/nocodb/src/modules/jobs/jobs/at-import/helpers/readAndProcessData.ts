@@ -154,11 +154,7 @@ export async function importData(
     nocoBaseDataProcessing_v2;
     // link related props start
     insertedAssocRef: { [assocTableId: string]: boolean };
-    atNcAliasRef: {
-      [ncTableId: string]: {
-        [ncTitle: string]: string;
-      };
-    };
+    atNcAliasRef: Map<string, Map<string, string>>;
     ncLinkMappingTable: Record<string, Record<string, any>>[];
     // link related props end
     syncDB;
@@ -378,11 +374,7 @@ export async function importLTARData(
     table: { title?: string; id?: string };
     insertedAssocRef: { [assocTableId: string]: boolean };
     dataStream?: Readable;
-    atNcAliasRef: {
-      [ncTableId: string]: {
-        [ncTitle: string]: string;
-      };
-    };
+    atNcAliasRef: Map<string, Map<string, string>>;
     ncLinkMappingTable: Record<string, Record<string, any>>[];
     syncDB;
     source: Source;
@@ -483,8 +475,10 @@ export async function importLTARData(
                 }
 
                 // todo: use actual alias instead of sanitized
-                const links =
-                  rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || [];
+                const linkField = atNcAliasRef
+                  .get(table.id)
+                  ?.get(assocMeta.colMeta.title);
+                const links = (linkField && rec?.[linkField]) || [];
                 for (const id of links) {
                   if (!idMap.has(id)) {
                     idMap.set(

@@ -1,6 +1,9 @@
 import {
   type BoolType,
+  dataSourceClientOf,
   integrationCategoryNeedDefault,
+  isCombinedDataSourceIntegration,
+  knexConfigFromSqlAuthConfig,
   IntegrationsType,
   type IntegrationType,
   preserveSecretRefs,
@@ -470,6 +473,15 @@ export default class Integration implements IntegrationType {
     }
 
     return config;
+  }
+
+  /**
+   * `config` (default: the stored production config) in the knex shape a
+   * data source connects with. Only a combined app connection differs.
+   */
+  public dataSourceConfigOf(config: any = this.getConfig()): any {
+    if (!isCombinedDataSourceIntegration(this)) return config;
+    return knexConfigFromSqlAuthConfig(dataSourceClientOf(this), config);
   }
 
   public wrapper: IntegrationWrapper;

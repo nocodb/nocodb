@@ -957,6 +957,8 @@ const selectHour = (hour: dayjs.Dayjs) => {
 const addRecord = (date: dayjs.Dayjs) => {
   if (interfaceEditSelect.value) return interfaceEditSelect.value()
   if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
+  // A formula or rollup date can't take the clicked date
+  if (calendarRange.value[0]?.is_readonly) return
   const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {

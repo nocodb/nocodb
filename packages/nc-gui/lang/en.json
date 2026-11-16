@@ -8339,6 +8339,7 @@
       "tableDataImportedLinksUnmatched": "Imported successfully. {links} record links created, {unmatched} value(s) matched no record and were skipped.",
       "tableDataImportedLinksFailed": "{failed} record link(s) matched a record but could not be created. See the import log for details.",
       "attachmentsNotCopied": "{count} attachment(s) were not copied: the source base does not hold their files.",
+      "personalViewsNotCopied": "{count} personal view(s) were not copied: the target workspace's plan does not include personal views.",
       "importLinkReassignField": "“{field}” is a has-many / one-to-one link. Importing values here can move records away from other records they're currently linked to.",
       "webhookDelete": "Button fields relying on this webhook will be impacted",
       "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date/ date time field!",

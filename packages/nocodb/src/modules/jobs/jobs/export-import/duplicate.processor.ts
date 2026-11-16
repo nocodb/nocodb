@@ -26,6 +26,7 @@ import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import {
   DroppedAttachments,
+  type SkippedViews,
   findWithIdentifier,
   generateUniqueName,
   holdCopiedSmartTextImages,
@@ -109,6 +110,7 @@ export class DuplicateProcessor {
     operation,
     targetContext: _targetContext,
     droppedAttachments = new DroppedAttachments(),
+    skippedViews,
   }: {
     sourceBase: Base; // Base to duplicate
     targetBase: Base; // Base to duplicate to
@@ -132,6 +134,7 @@ export class DuplicateProcessor {
     operation: JobTypes;
     // Files an external source's rows name that its base doesn't hold are left out and counted here.
     droppedAttachments?: DroppedAttachments;
+    skippedViews?: SkippedViews;
   }) {
     this.assertDuplicateBases({ sourceBase, targetBase });
 
@@ -280,6 +283,7 @@ export class DuplicateProcessor {
         req: req,
         isDuplicateOperation: true,
         attachmentHolder: null,
+        skippedViews,
       });
 
       if (exportedScripts) {
@@ -439,6 +443,7 @@ export class DuplicateProcessor {
     );
     const source = await Source.get(context, sourceId);
     const droppedAttachments = new DroppedAttachments();
+    const skippedViews: SkippedViews = { personal: 0 };
 
     await this.duplicateBaseJob({
       sourceBase: base,
@@ -463,11 +468,13 @@ export class DuplicateProcessor {
       },
       operation: JobTypes.DuplicateBase,
       droppedAttachments,
+      skippedViews,
     });
 
     return {
       id: dupProject.id,
       droppedAttachments: droppedAttachments.count || undefined,
+      skippedPersonalViews: skippedViews.personal || undefined,
     };
   }
 
@@ -477,6 +484,7 @@ export class DuplicateProcessor {
 
     const hrTime = initTime();
     const droppedAttachments = new DroppedAttachments();
+    const skippedViews: SkippedViews = { personal: 0 };
 
     const {
       context,
@@ -570,6 +578,7 @@ export class DuplicateProcessor {
         user,
         req,
         attachmentHolder: null,
+        skippedViews,
         externalModels: relatedModels,
         columnWebhookManager,
         isDuplicateOperation: true,
@@ -625,6 +634,7 @@ export class DuplicateProcessor {
       const res = {
         id: findWithIdentifier(idMap, sourceModel.id),
         droppedAttachments: droppedAttachments.count || undefined,
+        skippedPersonalViews: skippedViews.personal || undefined,
       };
 
       this.appHooksService.emit(AppEvents.TABLE_DUPLICATE_COMPLETE, {

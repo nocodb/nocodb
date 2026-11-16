@@ -14,34 +14,42 @@ export const convertMS2Duration = (val: any, durationType: number) => {
   if (val === '' || val === null || val === undefined) {
     return val;
   }
-  // 600.000 s --> 10:00 (10 mins)
-  const milliseconds = Math.round((val % 1) * 1000);
-  const centiseconds = Math.round(milliseconds / 10);
-  const deciseconds = Math.round(centiseconds / 10);
-  const hours = Math.floor(parseInt(val, 10) / (60 * 60));
-  const minutes = Math.floor((parseInt(val, 10) - hours * 60 * 60) / 60);
-  const seconds = parseInt(val, 10) - hours * 60 * 60 - minutes * 60;
-
   if (durationType === 0) {
     // h:mm
-    return `${padZero(hours)}:${padZero(minutes + (seconds >= 30 ? 1 : 0))}`;
-  } else if (durationType === 1) {
+    const totalMinutes = Math.round(val / 60);
+    return `${padZero(Math.floor(totalMinutes / 60))}:${padZero(
+      totalMinutes % 60
+    )}`;
+  }
+
+  // Round the total once so fractional units carry into seconds and minutes.
+  const precision =
+    durationType >= 2 && durationType <= 4 ? 10 ** (durationType - 1) : 1;
+  const totalUnits =
+    precision > 1 ? Math.round(val * precision) : parseInt(val, 10);
+  const totalSeconds = Math.floor(totalUnits / precision);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds - hours * 3600) / 60);
+  const seconds = totalSeconds - hours * 3600 - minutes * 60;
+  const fraction = totalUnits % precision;
+
+  if (durationType === 1) {
     // h:mm:ss
     return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`;
   } else if (durationType === 2) {
     // h:mm:ss.s
     return `${padZero(hours)}:${padZero(minutes)}:${padZero(
       seconds
-    )}.${deciseconds}`;
+    )}.${fraction}`;
   } else if (durationType === 3) {
     // h:mm:ss.ss
     return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${padZero(
-      centiseconds
+      fraction
     )}`;
   } else if (durationType === 4) {
     // h:mm:ss.sss
     return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${padZero(
-      milliseconds,
+      fraction,
       true
     )}`;
   } else if (durationType >= 5) {

@@ -7,6 +7,7 @@ export function useGalleryViewData(
   where?: ComputedRef<string | undefined>,
   /** Grouped galleries: refresh the loaded groups after a peer's change. */
   refreshGroups?: () => void,
+  patchGroupedRow?: (id: string, payload: Record<string, any>) => boolean,
 ) {
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -45,6 +46,7 @@ export function useGalleryViewData(
       getWhereFilter: async () => where?.value ?? '',
       refreshInPlace: refreshGroupsDebounced,
       refreshGroupAggregations: refreshGroupsDebounced,
+      patchUnloadedRow: patchGroupedRow,
     },
     where,
     isPublic,

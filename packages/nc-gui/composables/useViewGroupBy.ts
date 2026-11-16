@@ -255,43 +255,56 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return tempColor
     }
 
+    // The legacy where parser can't read a line break, bracket or `~` in a value; quoted `@` syntax can.
+    const needsQuotedWhere = (nestedIn: GroupNestedIn[], existing: string) =>
+      existing.startsWith('@') || nestedIn.some((n) => /[\n\r()~]/.test(n.key ?? ''))
+
     const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
-      return nestedIn.reduce((acc, curr) => {
+      const quoted = needsQuotedWhere(nestedIn, existing)
+      // The parser doesn't unescape quotes, so wrap in whichever quote the text doesn't contain.
+      const quote = (text: string) => (text.includes('"') && !text.includes("'") ? `'${text}'` : `"${text}"`)
+      const field = (title?: string) => (quoted ? quote(title ?? '') : title)
+      const val = (v: unknown) => (quoted ? quote(String(v ?? '')) : v)
+      const cond = (title: string | undefined, rest: string) => `(${field(title)},${rest})`
+
+      const where = nestedIn.reduce((acc, curr) => {
+        const and = acc.length ? '~and' : ''
         if (curr.key === GROUP_BY_VARS.NULL && curr.split && curr.column_uidt === UITypes.Links) {
           // A Links field holds a count: nobody linked is 0, not null.
-          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,0)`
+          acc += `${and}${cond(curr.title, 'eq,0')}`
         } else if (curr.key === GROUP_BY_VARS.NULL) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_null)`
+          acc += `${and}${cond(curr.title, 'gb_null')}`
         } else if (curr.split && curr.splitId !== undefined) {
           // One linked record among several sharing a display value.
-          acc += `${acc.length ? '~and' : ''}(${curr.title}.Id,eq,${curr.splitId})`
+          acc += `${and}${cond(`${curr.title}.Id`, `eq,${val(curr.splitId)}`)}`
         } else if (curr.split) {
           // Rows that contain this value, alongside any others.
           const value = splitGroupValue(curr.key)
           acc +=
             curr.column_uidt === UITypes.User
-              ? `${acc.length ? '~and' : ''}(${curr.title},anyof,${value?.id})`
-              : `${acc.length ? '~and' : ''}(${curr.title},eq,${value})`
+              ? `${and}${cond(curr.title, `anyof,${val(value?.id)}`)}`
+              : `${and}${cond(curr.title, `eq,${val(value)}`)}`
         } else if (curr.column_uidt === UITypes.Checkbox) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
+          acc += `${and}${cond(curr.title, curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked')}`
         } else if (
           [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
         ) {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,exactDate,${curr.key})`
+          acc += `${and}${cond(curr.title, `gb_eq,exactDate,${val(curr.key)}`)}`
         } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
           try {
             const value = JSON.parse(curr.key)
-            acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${(Array.isArray(value) ? value : [value])
-              .map((v: any) => v.id)
-              .join(',')})`
+            const ids = (Array.isArray(value) ? value : [value]).map((v: any) => v.id).join(',')
+            acc += `${and}${cond(curr.title, `gb_eq,${val(ids)}`)}`
           } catch (e) {
             console.error(e)
           }
         } else {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
+          acc += `${and}${cond(curr.title, `gb_eq,${val(curr.key)}`)}`
         }
         return acc
-      }, existing)
+      }, existing.replace(/^@/, ''))
+
+      return quoted ? `@${where}` : where
     }
 
     const getSortParams = (sort: string) => {
@@ -660,9 +673,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             })
           }
         }
+        return true
       } catch (e) {
         console.log(e)
         message.error(await extractSdkResponseErrorMsg(e))
+        return false
       }
     }
 
@@ -731,7 +746,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     /** Appends the group's next `limit` rows instead of replacing the page. */
     async function loadMoreGroupRows(group: Group, limit: number, opts: GroupRowsOptions = {}) {
       try {
-        if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return
+        if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return true
 
         const before = group.rows
         const loaded = before ?? []
@@ -739,7 +754,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const response = await fetchGroupRows(group, loaded.length, limit, {}, opts)
 
         // A refresh replaced the rows meanwhile: drop this page, the trigger asks again.
-        if (group.rows !== before) return
+        if (group.rows !== before) return true
 
         const seen = new Set(loaded.map((r) => extractPkFromRow(r.row, meta?.value?.columns ?? [])))
         const next = formatData(response.list).filter((r) => {
@@ -752,8 +767,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         group.rows = [...loaded, ...next]
         group.count = response.pageInfo.totalRows ?? group.count
         group.paginationData = { ...response.pageInfo, page: 1, pageSize: group.rows.length }
+        return true
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
+        return false
       }
     }
 

@@ -30,6 +30,9 @@ const { loadGroups, loadMoreGroupRows } = useViewGroupByOrThrow()
 
 const loadingKeys = reactive(new Set<string>())
 
+// A failed load stays failed until Retry, so an always-visible trigger can't loop on it.
+const failedKeys = reactive(new Set<string>())
+
 const listEl = ref<HTMLElement>()
 
 // Top-level group whose header is stuck with cards scrolling under it.
@@ -67,14 +70,23 @@ function rowKey(record: Row, index: number) {
   return extractPkFromRow(record.row, meta.value?.columns ?? []) || `idx-${index}`
 }
 
-async function withLoading(key: string, fn: () => Promise<unknown>) {
-  if (loadingKeys.has(key)) return
+async function withLoading(key: string, fn: () => Promise<boolean | undefined>) {
+  if (loadingKeys.has(key) || failedKeys.has(key)) return
   loadingKeys.add(key)
   try {
-    await fn()
+    if ((await fn()) === false) failedKeys.add(key)
   } finally {
     loadingKeys.delete(key)
   }
+}
+
+function canLoad(key: string) {
+  return !loadingKeys.has(key) && !failedKeys.has(key)
+}
+
+function retry(key: string, load: () => unknown) {
+  failedKeys.delete(key)
+  load()
 }
 
 function loadChildren(group: Group) {
@@ -189,11 +201,20 @@ useEventListener(
             </template>
           </SmartsheetGalleryGroupList>
           <div v-else class="flex justify-center py-4">
-            <GeneralLoader size="regular" />
+            <NcButton
+              v-if="failedKeys.has(groupPath(group))"
+              size="xs"
+              type="secondary"
+              data-testid="nc-gallery-group-retry"
+              @click.stop="retry(groupPath(group), () => loadChildren(group))"
+            >
+              {{ $t('general.retry') }}
+            </NcButton>
+            <GeneralLoader v-else size="regular" />
           </div>
           <SmartsheetGalleryLoadTrigger
             v-if="!group.children"
-            :active="!loadingKeys.has(groupPath(group))"
+            :active="canLoad(groupPath(group))"
             :root="scrollRoot"
             @load="loadChildren(group)"
           />
@@ -207,20 +228,31 @@ useEventListener(
           <!-- Covers the whole placeholder: a jump past its top edge still loads the group. -->
           <SmartsheetGalleryLoadTrigger
             class="absolute inset-0 !h-full"
-            :active="!loadingKeys.has(groupPath(group))"
+            :active="canLoad(groupPath(group))"
             :root="scrollRoot"
             @load="loadRows(group)"
           />
-          <GeneralLoader size="regular" />
+          <NcButton
+            v-if="failedKeys.has(groupPath(group))"
+            size="xs"
+            type="secondary"
+            class="relative"
+            data-testid="nc-gallery-group-retry"
+            @click.stop="retry(groupPath(group), () => loadRows(group))"
+          >
+            {{ $t('general.retry') }}
+          </NcButton>
+          <GeneralLoader v-else size="regular" />
         </div>
 
         <template v-else>
-          <div
-            v-if="group.rows.length"
-            class="nc-gallery-group-grid grid gap-3 px-3 pb-3"
-            :style="{ gridAutoRows: `${cardHeight}px` }"
-          >
-            <SmartsheetGalleryCardSlot v-for="(record, index) of group.rows" :key="rowKey(record, index)" :root="scrollRoot">
+          <div v-if="group.rows.length" class="nc-gallery-group-grid grid gap-3 px-3 pb-3">
+            <SmartsheetGalleryCardSlot
+              v-for="(record, index) of group.rows"
+              :key="rowKey(record, index)"
+              :root="scrollRoot"
+              :estimated-height="cardHeight"
+            >
               <slot name="card" :record="record" />
             </SmartsheetGalleryCardSlot>
           </div>
@@ -229,14 +261,19 @@ useEventListener(
             <GeneralLoader size="regular" />
           </div>
           <div v-else-if="hasMoreRows(group)" class="flex justify-center pb-3">
-            <NcButton size="xs" type="text" data-testid="nc-gallery-group-load-more" @click.stop="loadRows(group)">
+            <NcButton
+              size="xs"
+              type="text"
+              data-testid="nc-gallery-group-load-more"
+              @click.stop="retry(groupPath(group), () => loadRows(group))"
+            >
               {{ $t('general.loadMore') }}
               <span class="ml-1 text-nc-content-gray-muted tabular-nums">({{ group.count - group.rows.length }})</span>
             </NcButton>
           </div>
 
           <SmartsheetGalleryLoadTrigger
-            :active="hasMoreRows(group) && !loadingKeys.has(groupPath(group))"
+            :active="hasMoreRows(group) && canLoad(groupPath(group))"
             :root="scrollRoot"
             @load="loadRows(group)"
           />
@@ -246,14 +283,20 @@ useEventListener(
 
     <div v-if="hasMoreGroups" class="flex justify-center">
       <GeneralLoader v-if="loadingKeys.has(`${groupPath(parent)}#groups`)" size="regular" />
-      <NcButton v-else size="xs" type="secondary" data-testid="nc-gallery-load-more-groups" @click="loadMoreGroups">
+      <NcButton
+        v-else
+        size="xs"
+        type="secondary"
+        data-testid="nc-gallery-load-more-groups"
+        @click="retry(`${groupPath(parent)}#groups`, loadMoreGroups)"
+      >
         {{ $t('general.loadMore') }}
         <span class="ml-1 text-nc-content-gray-muted tabular-nums">({{ totalGroupCount - loadedGroupCount }})</span>
       </NcButton>
     </div>
     <SmartsheetGalleryLoadTrigger
       v-if="hasMoreGroups"
-      :active="!loadingKeys.has(`${groupPath(parent)}#groups`)"
+      :active="canLoad(`${groupPath(parent)}#groups`)"
       :root="scrollRoot"
       @load="loadMoreGroups"
     />
@@ -263,6 +306,10 @@ useEventListener(
 <style lang="scss" scoped>
 .nc-gallery-group-header-stuck {
   box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.12);
+}
+
+:global([theme='dark'] .nc-gallery-group-header-stuck) {
+  box-shadow: 0 4px 8px -4px rgba(0, 0, 0, 0.6);
 }
 
 .nc-gallery-group-grid {

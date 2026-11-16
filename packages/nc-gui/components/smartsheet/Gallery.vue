@@ -27,7 +27,7 @@ const fields = inject(FieldsInj, ref([]))
 const { appInfo, user } = useGlobal()
 const { isViewDataLoading, isActiveViewFieldHeaderVisible: storeFieldHeaderVisible } = storeToRefs(useViewsStore())
 
-const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus } =
+const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus, sorts } =
   useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const { metas } = useMetas()
@@ -64,7 +64,13 @@ const {
   clearCache,
   viewData: galleryData,
   updateOrSaveRow,
-} = useGalleryViewData(meta, view, xWhere, () => refreshGroupsFromPeer())
+} = useGalleryViewData(
+  meta,
+  view,
+  xWhere,
+  () => refreshGroupsFromPeer(),
+  (id, payload) => patchGroupedRow(id, payload),
+)
 
 const { copy } = useCopy()
 
@@ -320,6 +326,25 @@ async function refreshGroup(group?: Group): Promise<void> {
 
 function refreshGroupsFromPeer() {
   if (isGroupedGallery.value) refreshGroup(viewGroupBy?.rootGroup.value)
+}
+
+/** The loaded leaf group holding the row with this pk. */
+function findGroupedRow(pk: string, group = viewGroupBy?.rootGroup.value): { group: Group; row: RowType } | undefined {
+  if (!group) return
+  for (const child of group.children ?? []) {
+    const found = findGroupedRow(pk, child)
+    if (found) return found
+  }
+  const row = group.rows?.find((r) => `${extractPkFromRow(r.row, meta.value?.columns ?? [])}` === pk)
+  return row ? { group, row } : undefined
+}
+
+/** A peer edit that kept the row's group and order: patch the card, no refetch. */
+function patchGroupedRow(id: string, payload: Record<string, any>) {
+  if (!isGroupedGallery.value) return false
+  const found = findGroupedRow(id)
+  if (found) Object.assign(found.row.row, payload)
+  return true
 }
 
 function cardTestId(record: RowType) {
@@ -892,8 +917,15 @@ const { onCardEnter, onCardLeave } = useCardCommands({
   saveField: async (record, column, value) => {
     record.row[column.title!] = value
     await updateOrSaveRow(record, column.title!)
-    // The edit can move the card to another group.
-    if (isGroupedGallery.value) await refreshGroup(viewGroupBy?.rootGroup.value)
+    if (!isGroupedGallery.value) return
+    // A grouped field moves the card to another group; a sorted one reorders its group.
+    if (viewGroupBy?.groupBy.value.some((g) => g.column.id === column.id)) {
+      await refreshGroup(viewGroupBy.rootGroup.value)
+    } else if (sorts.value.some((s) => s.fk_column_id === column.id)) {
+      const pk = extractPkFromRow(record.row, meta.value?.columns ?? [])
+      const found = pk ? findGroupedRow(`${pk}`) : undefined
+      if (found) await refreshGroup(found.group)
+    }
   },
   sendRecord: (record) => {
     contextMenuTarget.value = { row: record, index: record.rowMeta.rowIndex! }

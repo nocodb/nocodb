@@ -26316,7 +26316,10 @@
               "id": "uqq8xmyz97t1u"
             },
             "description": "Label shown on the range's cards",
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 40
           }
         },

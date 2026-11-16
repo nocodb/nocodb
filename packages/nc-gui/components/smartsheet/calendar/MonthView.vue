@@ -1208,11 +1208,13 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
                   'block group-hover:hidden':
                     isAddDeleteInlineEnabled &&
                     !isDateSelected(day.date) &&
-                    [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                    [UITypes.DateTime, UITypes.Date].includes(calDataType) &&
+                    !calendarRange[0]?.is_readonly,
                   'hidden':
                     isAddDeleteInlineEnabled &&
                     isDateSelected(day.date) &&
-                    [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                    [UITypes.DateTime, UITypes.Date].includes(calDataType) &&
+                    !calendarRange[0]?.is_readonly,
                 }"
               ></span>
 
@@ -1254,7 +1256,10 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
 
               <PermissionsTooltip
                 v-else-if="
-                  isAddDeleteInlineEnabled && [UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedFromColumn
+                  isAddDeleteInlineEnabled &&
+                  [UITypes.DateTime, UITypes.Date].includes(calDataType) &&
+                  !calendarRange[0]?.is_readonly &&
+                  !isSyncedFromColumn
                 "
                 :entity="PermissionEntity.TABLE"
                 :entity-id="meta?.id"

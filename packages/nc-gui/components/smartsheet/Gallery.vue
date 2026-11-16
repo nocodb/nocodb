@@ -30,6 +30,8 @@ const { isViewDataLoading, isActiveViewFieldHeaderVisible: storeFieldHeaderVisib
 const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus, sorts } =
   useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
+
+const { $api } = useNuxtApp()
 const { metas } = useMetas()
 const route = useRoute()
 const router = useRouter()
@@ -287,41 +289,65 @@ async function loadGroupedGallery() {
   const seq = ++groupedLoadSeq
   const root = viewGroupBy.rootGroup.value
   root.children = []
-  root.paginationData = { page: 1, pageSize: GROUP_LIST_PAGE_SIZE }
 
-  // Load into a detached root so an overlapping, older load can't land on top of this one.
-  const fresh: Group = { ...toRaw(root), children: [], rows: undefined }
+  // Load into a new root and swap it in: a load or refresh still in flight writes into the old one.
+  const fresh: Group = {
+    ...toRaw(root),
+    children: [],
+    rows: undefined,
+    paginationData: { page: 1, pageSize: GROUP_LIST_PAGE_SIZE },
+  }
 
   isGroupedGalleryLoading.value = true
   try {
     await viewGroupBy.loadGroups({}, fresh)
     if (seq !== groupedLoadSeq) return
 
-    Object.assign(root, {
-      children: fresh.children,
-      paginationData: fresh.paginationData,
-      displayValueProp: fresh.displayValueProp,
-      relatedPkProp: fresh.relatedPkProp,
-    })
+    viewGroupBy.rootGroup.value = fresh
   } finally {
     if (seq === groupedLoadSeq) isGroupedGalleryLoading.value = false
   }
 }
 
-/** Refetches what is already loaded, keeping collapse state and scroll position. */
-async function refreshGroup(group?: Group): Promise<void> {
+// Saving a group-by changes it in several requests, then emits GROUP_BY_RELOAD: load once for all of them.
+const scheduleGroupedLoad = useDebounceFn(() => loadGroupedGallery(), 250)
+
+/**
+ * Refetches what is already loaded, keeping collapse state and scroll position.
+ * `savedPk`: after that record's save, reload only the groups whose count changed or that hold it.
+ */
+async function refreshGroup(group?: Group, savedPk?: string, prevCount?: number): Promise<void> {
   if (!viewGroupBy || !group) return
 
   if (group.nested) {
     if (!group.children) return
+    const counts = new Map(group.children.map((child) => [child.key, child.count]))
     await viewGroupBy.loadGroups({ offset: 0, limit: Math.max(GROUP_LIST_PAGE_SIZE, group.children.length) }, group)
-    await Promise.all((group.children ?? []).map((child) => refreshGroup(child)))
+    await Promise.all((group.children ?? []).map((child) => refreshGroup(child, savedPk, counts.get(child.key))))
     return
   }
 
   if (!group.rows) return
+  if (savedPk !== undefined && prevCount === group.count) {
+    const held = group.rows.find((r) => `${extractPkFromRow(r.row, meta.value?.columns ?? [])}` === savedPk)
+    if (!held || (await patchSavedRow(held, savedPk))) return
+  }
   group.paginationData = { page: 1, pageSize: Math.max(GROUP_ROWS_PAGE_SIZE, group.rows.length) }
   await viewGroupBy.loadGroupData(group, true, {}, { lean: true })
+}
+
+/** Patches a card from its saved record; false when a sorted field changed, so its group must reorder. */
+async function patchSavedRow(held: RowType, pk: string) {
+  if (!meta.value?.base_id || !meta.value.id || !view.value?.id) return false
+  try {
+    const fresh = await $api.dbViewRow.read('noco', meta.value.base_id, meta.value.id, view.value.id, pk)
+    const sortTitles = sorts.value.map((s) => meta.value?.columns?.find((c) => c.id === s.fk_column_id)?.title)
+    if (sortTitles.some((title) => title && `${fresh[title]}` !== `${held.row[title]}`)) return false
+    Object.assign(held.row, fresh)
+    return true
+  } catch {
+    return false
+  }
 }
 
 function refreshGroupsFromPeer() {
@@ -827,9 +853,10 @@ if (interfacePageDataApi) {
   })
 }
 
-const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean }) => {
+const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean; skipLoadingRowId?: string }) => {
   if (isGroupedGallery.value) {
-    if (params?.inPlace) await refreshGroup(viewGroupBy?.rootGroup.value)
+    const savedPk = params?.skipLoadingRowId === undefined ? undefined : `${params.skipLoadingRowId}`
+    if (params?.inPlace) await refreshGroup(viewGroupBy?.rootGroup.value, savedPk)
     else await loadGroupedGallery()
     return
   }
@@ -860,7 +887,7 @@ const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableI
   }
 
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD && isGroupedGallery.value) {
-    loadGroupedGallery()
+    scheduleGroupedLoad()
   }
 }
 
@@ -938,8 +965,12 @@ watch(
     isGroupedGallery.value
       ? `${view.value?.id}|${viewGroupBy?.groupBy.value.map((g) => `${g.column.id}:${g.sort}`).join(',')}`
       : '',
-  (signature) => {
-    if (signature) loadGroupedGallery()
+  (signature, prev) => {
+    if (!signature) return
+    // Opening a view loads now; a group-by edit arrives in steps, so it loads once they settle.
+    const isViewSwitch = !!prev && prev.split('|')[0] !== signature.split('|')[0]
+    if (prev === undefined || isViewSwitch) loadGroupedGallery()
+    else scheduleGroupedLoad()
   },
   { immediate: true },
 )

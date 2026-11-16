@@ -1,6 +1,7 @@
 import {
   type ColumnType,
   CommonAggregations,
+  type FilterType,
   type GridType,
   type LinkToAnotherRecordType,
   type LookupType,
@@ -255,56 +256,71 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return tempColor
     }
 
-    // The legacy where parser can't read a line break, bracket or `~` in a value; quoted `@` syntax can.
-    const needsQuotedWhere = (nestedIn: GroupNestedIn[], existing: string) =>
-      existing.startsWith('@') || nestedIn.some((n) => /[\n\r()~]/.test(n.key ?? ''))
+    // The legacy where parser can't read these in a value; such levels go as filter objects.
+    const isUnsafeWhereValue = (curr: GroupNestedIn) =>
+      curr.key !== GROUP_BY_VARS.NULL &&
+      curr.column_uidt !== UITypes.Checkbox &&
+      ![UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes) &&
+      ![UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes) &&
+      !(curr.split && curr.splitId !== undefined) &&
+      /[\n\r()~]/.test(curr.split ? `${splitGroupValue(curr.key) ?? ''}` : curr.key ?? '')
+
+    const calculateNestedFilterArr = (nestedIn: GroupNestedIn[]): FilterType[] =>
+      nestedIn.filter(isUnsafeWhereValue).map((curr) => ({
+        fk_column_id: curr.column_id,
+        comparison_op: curr.split ? 'eq' : 'gb_eq',
+        value: curr.split ? splitGroupValue(curr.key) : curr.key,
+      }))
+
+    /** View filters (unless synced) plus the group levels the where string can't carry. */
+    const filtersFor = (nestedIn: GroupNestedIn[], includeViewFilters = true) => [
+      ...(includeViewFilters ? nestedFilters.value ?? [] : []),
+      ...calculateNestedFilterArr(nestedIn),
+    ]
+
+    const filterArrJsonFor = (nestedIn: GroupNestedIn[]) => {
+      const filters = filtersFor(nestedIn, !isUIAllowed('filterSync'))
+      return isUIAllowed('filterSync') && !filters.length ? {} : { filterArrJson: JSON.stringify(filters) }
+    }
 
     const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
-      const quoted = needsQuotedWhere(nestedIn, existing)
-      // The parser doesn't unescape quotes, so wrap in whichever quote the text doesn't contain.
-      const quote = (text: string) => (text.includes('"') && !text.includes("'") ? `'${text}'` : `"${text}"`)
-      const field = (title?: string) => (quoted ? quote(title ?? '') : title)
-      const val = (v: unknown) => (quoted ? quote(String(v ?? '')) : v)
-      const cond = (title: string | undefined, rest: string) => `(${field(title)},${rest})`
-
-      const where = nestedIn.reduce((acc, curr) => {
-        const and = acc.length ? '~and' : ''
+      return nestedIn.reduce((acc, curr) => {
+        if (isUnsafeWhereValue(curr)) return acc
         if (curr.key === GROUP_BY_VARS.NULL && curr.split && curr.column_uidt === UITypes.Links) {
           // A Links field holds a count: nobody linked is 0, not null.
-          acc += `${and}${cond(curr.title, 'eq,0')}`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},eq,0)`
         } else if (curr.key === GROUP_BY_VARS.NULL) {
-          acc += `${and}${cond(curr.title, 'gb_null')}`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_null)`
         } else if (curr.split && curr.splitId !== undefined) {
           // One linked record among several sharing a display value.
-          acc += `${and}${cond(`${curr.title}.Id`, `eq,${val(curr.splitId)}`)}`
+          acc += `${acc.length ? '~and' : ''}(${curr.title}.Id,eq,${curr.splitId})`
         } else if (curr.split) {
           // Rows that contain this value, alongside any others.
           const value = splitGroupValue(curr.key)
           acc +=
             curr.column_uidt === UITypes.User
-              ? `${and}${cond(curr.title, `anyof,${val(value?.id)}`)}`
-              : `${and}${cond(curr.title, `eq,${val(value)}`)}`
+              ? `${acc.length ? '~and' : ''}(${curr.title},anyof,${value?.id})`
+              : `${acc.length ? '~and' : ''}(${curr.title},eq,${value})`
         } else if (curr.column_uidt === UITypes.Checkbox) {
-          acc += `${and}${cond(curr.title, curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked')}`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
         } else if (
           [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
         ) {
-          acc += `${and}${cond(curr.title, `gb_eq,exactDate,${val(curr.key)}`)}`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,exactDate,${curr.key})`
         } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
           try {
             const value = JSON.parse(curr.key)
-            const ids = (Array.isArray(value) ? value : [value]).map((v: any) => v.id).join(',')
-            acc += `${and}${cond(curr.title, `gb_eq,${val(ids)}`)}`
+            acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${(Array.isArray(value) ? value : [value])
+              .map((v: any) => v.id)
+              .join(',')})`
           } catch (e) {
             console.error(e)
           }
         } else {
-          acc += `${and}${cond(curr.title, `gb_eq,${val(curr.key)}`)}`
+          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
         }
         return acc
-      }, existing.replace(/^@/, ''))
-
-      return quoted ? `@${where}` : where
+      }, existing)
     }
 
     const getSortParams = (sort: string) => {
@@ -519,7 +535,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
                 sortsArr: sorts.value,
-                filtersArr: nestedFilters.value,
+                filtersArr: filtersFor(group.nestedIn),
                 ...(isServerSplit ? { split_values: true } : {}),
               })
             : !isPublic
@@ -530,7 +546,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 ...(isSplit ? { offset } : {}),
                 ...(isServerSplit ? { split_values: true } : {}),
                 ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                ...filterArrJsonFor(group.nestedIn),
                 where: `${effectiveWhere}`,
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
@@ -547,7 +563,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                   sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                   column_name: groupby.column.title,
                   sortsArr: sorts.value,
-                  filtersArr: nestedFilters.value,
+                  filtersArr: filtersFor(group.nestedIn),
                 },
                 {
                   headers: {
@@ -638,7 +654,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             return {
               where: calculateNestedWhere(child.nestedIn, where?.value),
               alias: aggregationAliasMapper.generateAlias(child.key),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              ...filterArrJsonFor(child.nestedIn),
             }
           })
 
@@ -704,7 +720,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             where: where?.value,
             nestedWhere: calculateNestedWhere(group.nestedIn),
             sortsArr: sorts.value,
-            filtersArr: nestedFilters.value,
+            filtersArr: filtersFor(group.nestedIn),
           })
         : !isPublic
         ? await api.dbViewRow.list('noco', base.value!.id!, view.value!.fk_model_id!, view.value!.id!, {
@@ -713,9 +729,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             include_row_color: true,
             ...(opts.lean ? {} : { getHiddenColumns: true }),
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            ...filterArrJsonFor(group.nestedIn),
           } as any)
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query }, { isGroupBy: true })
+        : await fetchSharedViewData(
+            { sortsArr: sorts.value, filtersArr: filtersFor(group.nestedIn), ...query },
+            { isGroupBy: true },
+          )
     }
 
     async function loadGroupData(group: Group, force = false, params: any = {}, opts: GroupRowsOptions = {}) {
@@ -805,7 +824,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           return {
             where: calculateNestedWhere(child.nestedIn, where?.value),
             alias: aliasMapper.generateAlias(child.key),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            ...filterArrJsonFor(child.nestedIn),
           }
         })
 

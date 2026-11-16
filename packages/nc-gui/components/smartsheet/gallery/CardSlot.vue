@@ -28,7 +28,9 @@ useIntersectionObserver(
 useIntersectionObserver(
   el,
   ([entry]) => {
-    if (entry && !entry.isIntersecting) isMounted.value = false
+    // A keyed move detaches the node for a moment and reports it as out of view.
+    if (!entry || entry.isIntersecting || !el.value?.isConnected || !entry.boundingClientRect.height) return
+    isMounted.value = false
   },
   { root, rootMargin: `${UNMOUNT_PX}px 0px` },
 )

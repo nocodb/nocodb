@@ -182,4 +182,4 @@ Isto não somente para democratizar o acesso para uma computação poderosa, mas
 
 # Licença
 
-Este projeto está sobre a licença de [AGPLv3](https://github.com/nocodb/nocodb/blob/develop/LICENSE).
+Este projeto está sobre a licença de [AGPLv3](https://github.com/nocodb/nocodb/blob/develop/LICENSE.md).

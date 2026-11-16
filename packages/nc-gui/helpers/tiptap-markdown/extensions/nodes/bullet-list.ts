@@ -20,6 +20,8 @@ export const BulletList = Node.create<any, { markdown: MarkdownNodeSpec }>({
           if (isDifferentListType) {
             state.write(' <br>')
             state.closeBlock(previousNode)
+            // A tight parent list would close with one newline, gluing the next list to the <br>
+            state.flushClose(2)
           }
 
           state.renderList(node, '  ', () => `${this.editor.storage.markdown.options.bulletListMarker || '-'} `)

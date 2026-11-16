@@ -21,6 +21,8 @@ export const TaskList = Node.create<any, { markdown: MarkdownNodeSpec }>({
           if (isDifferentListType) {
             state.write(' <br>')
             state.closeBlock(previousNode)
+            // A tight parent list would close with one newline, gluing the next list to the <br>
+            state.flushClose(2)
           }
 
           // Use BulletList's serialize logic

@@ -337,7 +337,7 @@ interface IWorkflowExecution {
   // The run whose write triggered this one, and how many trigger hops led here.
   parent_execution_id?: string | null;
   execution_depth?: number;
-  // The user who started the run by hand (manual run or retry); not who it runs as.
+  // The person who started the run (manual run, retry, button, record change); not who it runs as.
   triggered_by?: string | null;
 }
 

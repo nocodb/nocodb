@@ -5667,6 +5667,7 @@
       "retryOf": "Retried from",
       "runBy": "Run by",
       "runByUser": "Run by {user}",
+      "ownRunsOnly": "Only runs you started are shown here",
       "originalRun": "the original run",
       "runDetails": "Run details",
       "stepsRun": "Steps",

@@ -645,6 +645,9 @@ const getCellColorBgVar = (record: Row, columnId: string) => {
 }
 
 const updateVisibleRows = async () => {
+  // Grouped sections load their own rows.
+  if (isGroupedGallery.value) return
+
   const { start, end } = rowSlice
 
   const firstChunkId = Math.floor(start / CHUNK_SIZE)

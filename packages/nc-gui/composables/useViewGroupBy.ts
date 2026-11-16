@@ -728,9 +728,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       try {
         if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return
 
-        const loaded = group.rows ?? []
+        const before = group.rows
+        const loaded = before ?? []
 
         const response = await fetchGroupRows(group, loaded.length, limit)
+
+        // A refresh replaced the rows meanwhile: drop this page, the trigger asks again.
+        if (group.rows !== before) return
 
         const seen = new Set(loaded.map((r) => extractPkFromRow(r.row, meta?.value?.columns ?? [])))
         const next = formatData(response.list).filter((r) => {

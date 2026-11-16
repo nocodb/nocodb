@@ -67,6 +67,10 @@ export default class GalleryViewColumn {
       'show',
       'base_id',
       'source_id',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+      'group_by_enabled',
     ]);
     const replayId = replayedViewColumnId(
       insertObj.fk_view_id,

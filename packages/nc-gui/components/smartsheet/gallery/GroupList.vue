@@ -156,8 +156,9 @@ function toggleGroup(group: Group) {
           class="nc-gallery-group-placeholder relative flex justify-center pt-6"
           :style="{ height: `${placeholderHeight(group)}px` }"
         >
+          <!-- Covers the whole placeholder: a jump past its top edge still loads the group. -->
           <SmartsheetGalleryLoadTrigger
-            class="absolute top-0 left-0"
+            class="absolute inset-0 !h-full"
             :active="!loadingKeys.has(groupPath(group))"
             :root="scrollRoot"
             @load="loadRows(group)"

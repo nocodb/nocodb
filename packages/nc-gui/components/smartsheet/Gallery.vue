@@ -64,7 +64,7 @@ const {
   clearCache,
   viewData: galleryData,
   updateOrSaveRow,
-} = useGalleryViewData(meta, view, xWhere)
+} = useGalleryViewData(meta, view, xWhere, () => refreshGroupsFromPeer())
 
 const { copy } = useCopy()
 
@@ -107,6 +107,8 @@ const GROUP_LIST_PAGE_SIZE = 25
 const collapsedGroupKeys = reactive(new Set<string>())
 
 const isGroupedGalleryLoading = ref(false)
+
+let groupedLoadSeq = 0
 
 const isActiveViewFieldHeaderVisible = computed(() => {
   if (interfacePageDataApi) return parseProp(galleryData.value?.meta)?.is_field_header_visible ?? true
@@ -276,15 +278,27 @@ async function deleteGroupedRow(pk: string) {
 async function loadGroupedGallery() {
   if (!viewGroupBy) return
 
+  const seq = ++groupedLoadSeq
   const root = viewGroupBy.rootGroup.value
   root.children = []
   root.paginationData = { page: 1, pageSize: GROUP_LIST_PAGE_SIZE }
 
+  // Load into a detached root so an overlapping, older load can't land on top of this one.
+  const fresh: Group = { ...toRaw(root), children: [], rows: undefined }
+
   isGroupedGalleryLoading.value = true
   try {
-    await viewGroupBy.loadGroups({}, root)
+    await viewGroupBy.loadGroups({}, fresh)
+    if (seq !== groupedLoadSeq) return
+
+    Object.assign(root, {
+      children: fresh.children,
+      paginationData: fresh.paginationData,
+      displayValueProp: fresh.displayValueProp,
+      relatedPkProp: fresh.relatedPkProp,
+    })
   } finally {
-    isGroupedGalleryLoading.value = false
+    if (seq === groupedLoadSeq) isGroupedGalleryLoading.value = false
   }
 }
 
@@ -302,6 +316,10 @@ async function refreshGroup(group?: Group): Promise<void> {
   if (!group.rows) return
   group.paginationData = { page: 1, pageSize: Math.max(GROUP_ROWS_PAGE_SIZE, group.rows.length) }
   await viewGroupBy.loadGroupData(group, true)
+}
+
+function refreshGroupsFromPeer() {
+  if (isGroupedGallery.value) refreshGroup(viewGroupBy?.rootGroup.value)
 }
 
 function cardTestId(record: RowType) {

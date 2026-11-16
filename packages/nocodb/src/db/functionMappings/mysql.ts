@@ -281,12 +281,13 @@ const mysql2 = {
   },
   // MariaDB's REGEXP_SUBSTR/REGEXP_REPLACE take no position/occurrence/match-type
   // args, so case sensitivity comes from the inline `(?-i)` flag (MySQL ICU and
-  // MariaDB PCRE both accept it) instead of the 'c' match type.
+  // MariaDB PCRE both accept it) instead of the 'c' match type. `\\?` keeps knex
+  // from reading the flag's `?` as a binding.
   REGEX_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
-      builder: knex.raw(`REGEXP_SUBSTR(?, CONCAT('(?-i)', ?))`, [
+      builder: knex.raw(`REGEXP_SUBSTR(?, CONCAT('(\\?-i)', ?))`, [
         source,
         pattern,
       ]),
@@ -297,7 +298,7 @@ const mysql2 = {
     const pattern = (await fn(pt.arguments[1])).builder;
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
-      builder: knex.raw(`REGEXP_REPLACE(?, CONCAT('(?-i)', ?), ?)`, [
+      builder: knex.raw(`REGEXP_REPLACE(?, CONCAT('(\\?-i)', ?), ?)`, [
         source,
         pattern,
         replacement,

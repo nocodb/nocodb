@@ -1935,6 +1935,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         fieldsSet: new Set([...(args?.fieldsSet ?? []), ...lookupFields]),
       };
     };
+    // A row read without its pk skips its relations instead of throwing; log
+    // it so a field-narrowing regression shows up rather than empty links.
+    const warnedMissingPk = new Set<string>();
+    const isMissingPk = (pk: unknown, relColumn: Column) => {
+      if (pk !== null && pk !== undefined) return false;
+      if (warnedMissingPk.has(relColumn.id)) return true;
+      warnedMissingPk.add(relColumn.id);
+      logger.warn(
+        `Relation '${relColumn.title}' (${relColumn.id}) skipped on ${this.model.title}: row has no primary key`,
+      );
+      return true;
+    };
     const columns = await this.model.getColumns();
     await Promise.all(
       columns.map(async (column) => {
@@ -2048,10 +2060,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args?: RelationLoaderArgs): Promise<any> {
+                  const pk = getCompositePkValue(self.model.primaryKeys, this);
+                  if (isMissingPk(pk, column)) return [];
                   listLoader.args = withLookupFields(args, column, colOptions);
-                  return listLoader.load(
-                    getCompositePkValue(self.model.primaryKeys, this),
-                  );
+                  return listLoader.load(pk);
                 };
               } else if (isBtLikeV2Junction(column)) {
                 // V2 MO/OO: single-record — return object (like BT)
@@ -2086,10 +2098,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 proto[column.title] = async function (
                   args?: RelationLoaderArgs,
                 ) {
+                  const pk = getCompositePkValue(self.model.primaryKeys, this);
+                  if (isMissingPk(pk, column)) return null;
                   readLoader.args = withLookupFields(args, column, colOptions);
-                  return await readLoader.load(
-                    getCompositePkValue(self.model.primaryKeys, this),
-                  );
+                  return await readLoader.load(pk);
                 };
               } else if (colOptions.type === 'mm' || isMMLike) {
                 const listLoader = new DataLoaderWithArgs(
@@ -2134,10 +2146,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args?: RelationLoaderArgs): Promise<any> {
+                  const pk = getCompositePkValue(self.model.primaryKeys, this);
+                  if (isMissingPk(pk, column)) return [];
                   listLoader.args = withLookupFields(args, column, colOptions);
-                  return await listLoader.load(
-                    getCompositePkValue(self.model.primaryKeys, this),
-                  );
+                  return await listLoader.load(pk);
                 };
               } else if (colOptions.type === 'bt' && !isMMLike) {
                 // @ts-ignore
@@ -2366,14 +2378,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       ? `_nc_lk_${column.title}`
                       : column.title
                   ] = async function (args?: RelationLoaderArgs): Promise<any> {
+                    const pk = getCompositePkValue(
+                      self.model.primaryKeys,
+                      this,
+                    );
+                    if (isMissingPk(pk, column)) return null;
                     listLoader.args = withLookupFields(
                       args,
                       column,
                       colOptions,
                     );
-                    return listLoader.load(
-                      getCompositePkValue(self.model.primaryKeys, this),
-                    );
+                    return listLoader.load(pk);
                   };
                 }
               }

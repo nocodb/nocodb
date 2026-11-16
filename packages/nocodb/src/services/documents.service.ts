@@ -49,12 +49,13 @@ export class DocumentsService {
     return null;
   }
 
+  /** `permanent` when the delete skipped the trash. */
   async delete(
     _context: NcContext,
     _docId: string,
     _req: NcRequest,
-  ): Promise<boolean> {
-    return true;
+  ): Promise<{ permanent: boolean }> {
+    return { permanent: false };
   }
 
   async reorder(

@@ -1412,7 +1412,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
       </div>
     </NcDropdown>
     <!-- Floating new-record button — not shown in interfaces -->
-    <div class="sticky bottom-4 w-[fit-content] z-10">
+    <div class="sticky bottom-4 w-[fit-content] z-30">
       <PermissionsTooltip
         v-if="isUIAllowed('dataInsert') && !isSyncedTable && canAddDeleteRows && !interfacePageDataApi"
         :entity="PermissionEntity.TABLE"

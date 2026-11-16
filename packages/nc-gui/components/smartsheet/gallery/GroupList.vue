@@ -30,6 +30,11 @@ const { loadGroups, loadMoreGroupRows } = useViewGroupByOrThrow()
 
 const loadingKeys = reactive(new Set<string>())
 
+const listEl = ref<HTMLElement>()
+
+// Top-level group whose header is stuck with cards scrolling under it.
+const stuckGroupPath = ref<string | null>(null)
+
 const loadedGroupCount = computed(() => props.parent.children?.length ?? 0)
 
 const totalGroupCount = computed(() => props.parent.paginationData?.totalRows ?? loadedGroupCount.value)
@@ -90,6 +95,20 @@ function loadMoreGroups() {
   )
 }
 
+function updateStuckHeader() {
+  if (props.depth || !props.scrollRoot || !listEl.value) return
+  const top = props.scrollRoot.getBoundingClientRect().top
+  let stuck: string | null = null
+  for (const el of listEl.value.querySelectorAll<HTMLElement>(':scope > .nc-gallery-group')) {
+    const rect = el.getBoundingClientRect()
+    if (rect.top < top - 1 && rect.bottom > top + 44) {
+      stuck = el.dataset.groupPath ?? null
+      break
+    }
+  }
+  stuckGroupPath.value = stuck
+}
+
 function toggleGroup(group: Group) {
   const key = expansionKey(group)
   const expand = !props.expandedKeys.has(key)
@@ -97,13 +116,30 @@ function toggleGroup(group: Group) {
   else props.expandedKeys.delete(key)
   groupKeysManager.toggleKey(view.value?.base_id, view.value?.id, key, expand)
 }
+
+let stuckRaf = false
+
+useEventListener(
+  () => props.scrollRoot,
+  'scroll',
+  () => {
+    if (stuckRaf) return
+    stuckRaf = true
+    requestAnimationFrame(() => {
+      stuckRaf = false
+      updateStuckHeader()
+    })
+  },
+  { passive: true },
+)
 </script>
 
 <template>
-  <div class="nc-gallery-group-list flex flex-col" :class="depth ? 'gap-2' : 'gap-3'">
+  <div ref="listEl" class="nc-gallery-group-list flex flex-col" :class="depth ? 'gap-2' : 'gap-3'">
     <section
       v-for="group of parent.children ?? []"
       :key="groupPath(group)"
+      :data-group-path="groupPath(group)"
       class="nc-gallery-group rounded-xl border-1 border-nc-border-gray-medium"
       :class="depth % 2 ? 'bg-nc-bg-gray-extralight' : 'bg-nc-bg-default'"
       :data-testid="`nc-gallery-group-${group.key}`"
@@ -114,6 +150,7 @@ function toggleGroup(group: Group) {
         class="nc-gallery-group-header flex items-center gap-2 h-11 px-3 cursor-pointer select-none rounded-xl"
         :class="{
           'sticky top-0 z-20 bg-nc-bg-default': depth === 0,
+          'nc-gallery-group-header-stuck': depth === 0 && stuckGroupPath === groupPath(group),
           'rounded-b-none': !isCollapsed(group),
         }"
         :aria-expanded="!isCollapsed(group)"
@@ -224,6 +261,10 @@ function toggleGroup(group: Group) {
 </template>
 
 <style lang="scss" scoped>
+.nc-gallery-group-header-stuck {
+  box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.12);
+}
+
 .nc-gallery-group-grid {
   // auto-fill keeps a lone card at track width instead of stretching it across the row.
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));

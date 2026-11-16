@@ -20478,7 +20478,7 @@
                 },
                 "triggered_by": {
                   "type": ["string", "null"],
-                  "description": "ID of the user who started this execution by hand (a manual run or a retry); null for runs fired by an event or a schedule. The execution still runs as the workflow's run-as identity."
+                  "description": "ID of the person who started this execution: a manual run, retry, button click or record change. Null for schedules, webhooks, service accounts, agents and other workflows' writes. The execution still runs as the workflow's run-as identity. Below Creator, only executions the caller started are returned."
                 },
                 "created_at": {
                   "type": "string",
@@ -20533,7 +20533,7 @@
           },
           "triggered_by": {
             "type": ["string", "null"],
-            "description": "ID of the user who started this execution by hand (a manual run or a retry); null for runs fired by an event or a schedule. The execution still runs as the workflow's run-as identity."
+            "description": "ID of the person who started this execution: a manual run, retry, button click or record change. Null for schedules, webhooks, service accounts, agents and other workflows' writes. The execution still runs as the workflow's run-as identity. Below Creator, only executions the caller started are returned."
           },
           "created_at": {
             "type": "string",

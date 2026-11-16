@@ -1,7 +1,7 @@
 import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
-// Who started a run by hand (manual run or retry); attribution only.
+// The person who started a run; also limits editors to their own runs.
 // nc_automation_executions is in the prod logical-replication publication with an
 // explicit column list — mirror this column on the replica.
 const up = async (knex: Knex) => {

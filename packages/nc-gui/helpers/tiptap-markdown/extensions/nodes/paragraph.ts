@@ -40,6 +40,8 @@ export const Paragraph = TiptapParagraph.extend<ParagraphOptions, { markdown: Ma
             // closeBlock, not a raw "\n\n ": a leading space before the next block
             // indents a code fence, and CommonMark strips it from every code line.
             state.closeBlock(node)
+            // A tight list would close with one newline, gluing a following nested list to the <br>
+            state.flushClose(2)
             return
           }
 

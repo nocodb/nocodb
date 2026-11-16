@@ -15,7 +15,13 @@ export default defineNuxtConfig({
 
   ignore: [...(process.env.NODE_ENV === 'production' ? ['pages/playground.vue', 'pages/playground/**/*'] : [])],
 
-  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
+  /**
+   * `@productdevbook/chatwoot` is intentionally not registered as a module: its client plugin injects
+   * `<baseUrl>/packs/js/sdk.js` on app boot, before the backend has told us whether support chat is
+   * enabled. The SDK is instead installed on demand from `useProvideChatwoot`, so an instance running
+   * with `NC_DISABLE_SUPPORT_CHAT=true` never reaches out to chatwoot.
+   */
+  modules: ['@vueuse/nuxt', '@unocss/nuxt', '@nuxt/image', '@pinia/nuxt'],
   ssr: false,
 
   // 'uno.css' is imported from the `css` array instead, so it keeps WindiCSS's position.
@@ -27,16 +33,6 @@ export default defineNuxtConfig({
   router: {
     options: {
       hashMode: false,
-    },
-  },
-  chatwoot: {
-    init: {
-      websiteToken: 'ke2YjiPnKw9gnz4PCq4RuQqR',
-      baseUrl: 'https://app.chatwoot.com',
-    },
-    settings: {
-      darkMode: 'light',
-      hideMessageBubble: true,
     },
   },
   spaLoadingTemplate: false,
@@ -153,6 +149,16 @@ export default defineNuxtConfig({
       devCommentsPort: 0,
       // NC_CLAUDE_COMMENTS=false turns Claude comments off: no dock, no picks, no listener
       claudeComments: process.env.NC_CLAUDE_COMMENTS !== 'false',
+      chatwoot: {
+        init: {
+          websiteToken: 'ke2YjiPnKw9gnz4PCq4RuQqR',
+          baseUrl: 'https://app.chatwoot.com',
+        },
+        settings: {
+          darkMode: 'light',
+          hideMessageBubble: true,
+        },
+      },
     },
   },
 

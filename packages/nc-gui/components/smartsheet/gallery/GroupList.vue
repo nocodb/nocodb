@@ -127,7 +127,6 @@ function toggleGroup(group: Group) {
           class="flex-none w-4 h-4 text-nc-content-gray-subtle transition-transform"
           :class="{ '-rotate-90': isCollapsed(group) }"
         />
-        <span class="flex-none text-captionSm text-nc-content-gray-muted max-w-40 truncate">{{ group.column.title }}</span>
         <SmartsheetGalleryGroupValue :group="group" class="flex-1" />
         <span class="nc-gallery-group-count flex-none text-xs text-nc-content-gray-muted">
           {{ $t('datatype.Count') }}

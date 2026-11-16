@@ -9,13 +9,7 @@ import type {
   WorkflowNodeDefinition,
   WorkflowType,
 } from 'nocodb-sdk'
-import {
-  GeneralNodeID,
-  INIT_WORKFLOW_NODES,
-  TRIGGER_MAX_CHAIN_DEPTH,
-  WorkflowNodeCategory,
-  WorkflowSkipReason,
-} from 'nocodb-sdk'
+import { GeneralNodeID, INIT_WORKFLOW_NODES, TRIGGER_MAX_CHAIN_DEPTH, WorkflowNodeCategory, WorkflowSkipReason } from 'nocodb-sdk'
 import { generateRandomUUID } from '~/utils/generateName'
 import type { IconMapKey } from '~/utils/iconUtils'
 import { getI18n } from '~/plugins/a.i18n'
@@ -670,6 +664,7 @@ const getRunStepVariableGroups = (
   nodes: WorkflowGeneralNode[],
   edges: WorkflowGeneralEdge[],
   getNodeMeta: (type: string) => UIWorkflowNodeDefinition | null,
+  expandVariable: (v: VariableDefinition) => VariableDefinition = (v) => v,
 ) => {
   const loopBody = getLoopBodyNodeIds(nodes, edges)
 
@@ -694,7 +689,7 @@ const getRunStepVariableGroups = (
           category: meta?.category ?? WorkflowNodeCategory.ACTION,
           isEnclosingLoop: false,
           variables: variables.map((v) => ({
-            ...prefixVariableKeysRecursive(v, prefix),
+            ...prefixVariableKeysRecursive(expandVariable(v), prefix),
             extra: { ...v.extra, sourceNodeId: node.id, sourceNodeTitle: title, nodeIcon: meta?.icon },
           })),
         },

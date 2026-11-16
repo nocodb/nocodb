@@ -26,8 +26,6 @@ import {
 import { withRecordIndex } from '~/db/BaseModelSqlv2/with-record-index';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
-import getAst from '~/helpers/getAst';
-import { nocoExecute } from '~/utils';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
 import { captureNestedLinkHooks } from '~/db/BaseModelSqlv2/add-remove-links';
@@ -691,35 +689,13 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               insertData: datas?.[0],
               req: cookie,
             });
-          } else if (!baseModel.model.primaryKeys?.length) {
-            // A PK-less table's readback pk filter (`_wherePk`) resolves to an
-            // empty `{}` where-clause, which `orWhere` no-ops — chunkList would
-            // silently return the table's first N pre-existing rows instead of
-            // the ones just inserted, dispatching hooks against the wrong rows.
-            logger.warn(
-              `skipping after-insert hook dispatch for model ${baseModel.model?.id}: table has no primary key columns to re-read inserted rows by`,
-            );
           } else {
-            const insertResponseList = await baseModel.chunkList({
-              // composite PKs require the `___`-joined string form (asString=true);
-              // the object form stringifies to "[object Object]" in chunkList's join
-              pks: responses.map((d) => baseModel.extractPksValues(d, true)),
-            });
-
-            // get ast
-            const { ast, parsedQuery } = await getAst(baseModel.context, {
-              model: baseModel.model,
-              query: {},
-              extractOnlyPrimaries: false,
-            });
-            // nocoexecute
-            const insertResponses = await nocoExecute(
-              ast,
-              insertResponseList,
-              {},
-              parsedQuery,
+            // composite PKs require the `___`-joined string form (asString=true);
+            // the object form stringifies to "[object Object]" in chunkList's join
+            await baseModel.dispatchInsertHooks(
+              responses.map((d) => baseModel.extractPksValues(d, true)),
+              cookie,
             );
-            await baseModel.afterBulkInsert(insertResponses, cookie);
           }
         } catch (hookErr: any) {
           // The rows are already durably committed above. On the raw import

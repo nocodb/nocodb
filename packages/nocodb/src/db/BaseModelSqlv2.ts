@@ -6173,6 +6173,29 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.handleRichTextMentions(null, data, req);
   }
 
+  public async dispatchInsertHooks(
+    pks: string[],
+    req: NcRequest,
+  ): Promise<void> {
+    if (!pks.length) return;
+    // A PK-less table's readback pk filter resolves to an empty where-clause,
+    // so chunkList would return pre-existing rows instead of the inserted ones.
+    if (!this.model.primaryKeys?.length) {
+      logger.warn(
+        `skipping after-insert hook dispatch for model ${this.model?.id}: table has no primary key columns to re-read inserted rows by`,
+      );
+      return;
+    }
+    const rows = await this.chunkList({ pks });
+    const { ast, parsedQuery } = await getAst(this.context, {
+      model: this.model,
+      query: {},
+      extractOnlyPrimaries: false,
+    });
+    const data = await nocoExecute(ast, rows, {}, parsedQuery);
+    await this.afterBulkInsert(data, req);
+  }
+
   public async afterBulkInsert(
     data: Record<string, any>[],
     req: NcRequest,

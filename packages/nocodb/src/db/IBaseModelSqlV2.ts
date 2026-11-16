@@ -219,6 +219,9 @@ export interface IBaseModelSqlV2 {
 
   afterBulkInsert(data: any[], req): Promise<void>;
 
+  /** Reads inserted rows back by pk (`___`-joined strings) and fires `afterBulkInsert` for them. */
+  dispatchInsertHooks(pks: string[], req): Promise<void>;
+
   afterBulkDelete(
     data: any,
     req: any,

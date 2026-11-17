@@ -288,6 +288,8 @@ interface RawMailParams {
 
 export interface IMailService {
   sendMailRaw(param: RawMailParams): Promise<boolean>;
+  /** Optional: older hosts don't expose it. */
+  isConfigured?(): Promise<boolean>;
 }
 
 /** A NocoDB attachment cell entry (record attachment or uploaded workflow asset). */

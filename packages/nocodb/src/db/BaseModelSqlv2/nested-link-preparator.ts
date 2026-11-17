@@ -305,7 +305,10 @@ export class NestedLinkPreparator {
     // Same reason as the field check above: these links bypass addLinks(), so
     // the RLS read_only row lock has to be applied here too. Rejects the whole
     // payload before any op is queued.
-    await this.assertNestedLinkRowsWritable(baseModel, { nestedCols, data });
+    await this.assertNestedLinkRowsWritable(baseModel, {
+      nestedCols,
+      data: linkData,
+    });
 
     for (const col of nestedCols) {
       if (Object.hasOwn(linkData, col.title)) {

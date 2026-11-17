@@ -502,7 +502,12 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
   },
   getQuery: () => childrenExcludedListPagination.query,
   onEscapeEmptyQuery: () => emit('escape'),
-  onEnterWithQuery: () => {
+  onEnterWithQuery: async () => {
+    // A barcode scanner's Enter lands before the debounced search runs; wait for it
+    // so Enter links from this query's results, not the previous ones.
+    const query = childrenExcludedListPagination.query
+    await until(isChildrenExcludedLoading).toBe(false)
+    if (!vModel.value || query !== childrenExcludedListPagination.query) return
     const list = childrenExcludedList.value?.list
     if (ncIsArray(list) && list.length) onClick(list[0], '0')
   },

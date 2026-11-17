@@ -93,8 +93,8 @@ export default class Local implements IStorageAdapterV2 {
         stream.pipe(writableStream);
       });
 
-      // Verify file was written successfully
-      await this.fileRead(destPath);
+      // destPath is already resolved; don't re-key it through fileRead
+      await fs.promises.access(destPath, fs.constants.R_OK);
 
       return null;
     } catch (e) {

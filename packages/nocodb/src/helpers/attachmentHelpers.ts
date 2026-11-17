@@ -186,17 +186,17 @@ export function validateAndNormaliseLocalPath(
   fileOrFolderPath = slash(fileOrFolderPath);
 
   const toolDir = getToolDir();
+  // slash() skips non-ASCII paths, so strip whichever form of toolDir matches
+  const slashedToolDir = slash(toolDir);
+  const relativePath = fileOrFolderPath.includes(slashedToolDir)
+    ? fileOrFolderPath.replace(slashedToolDir, '')
+    : fileOrFolderPath.replace(toolDir, '');
 
   // Defense-in-depth only: every caller today reaches this via `path.join(...)`,
   // which already collapses `..` before we see it. It still guards the storage
   // adapters (`Local.ts`), which take a raw `key` straight from the caller.
   // Legitimate storage keys never contain `..`.
-  if (
-    fileOrFolderPath
-      .replace(toolDir, '')
-      .split('/')
-      .some((segment) => segment === '..')
-  ) {
+  if (relativePath.split('/').some((segment) => segment === '..')) {
     if (throw404) {
       NcError.notFound();
     } else {
@@ -209,7 +209,7 @@ export function validateAndNormaliseLocalPath(
 
   // Get the absolute path to the file
   const absolutePath = path.resolve(
-    path.join(toolDir, ...fileOrFolderPath.replace(toolDir, '').split('/')),
+    path.join(toolDir, ...relativePath.split('/')),
   );
 
   // Check if the resolved path is within the intended directory

@@ -7247,13 +7247,13 @@ export class ColumnsService implements IColumnsService {
     }
 
     // The FK / junction columns reference a single PK column, so a composite
-    // PK on a referenced side would create a broken relation. Allowed when
-    // that column is unique on its own: a unique constraint makes a real FK
-    // valid; an AI / auto-generated id is enough for a virtual relation.
+    // PK on a referenced side would create a broken relation. A virtual
+    // relation is fine when that column is unique on its own. Real FKs stay
+    // rejected: PG introspection marks multi-column UNIQUE members as unique.
     for (const t of isMMLike ? [table, refTable] : [table]) {
       const pk = t.primaryKey;
       const singleColOk =
-        !!pk.unique || (!!ltarReq.virtual && !!(pk.ai || pk.meta?.ag));
+        !!ltarReq.virtual && !!(pk.unique || pk.ai || pk.meta?.ag);
       if (t.primaryKeys.length > 1 && !singleColOk) {
         NcError.get(context).badRequest(
           `Cannot create relation: table '${

@@ -562,6 +562,8 @@ export function useGridViewData(
             if (newRow.__nc_rls_hidden) {
               row.rowMeta.isRlsHidden = true
             }
+            // Mark row as read-only if it became locked by an RLS read_only policy
+            row.rowMeta.isRlsReadonly = !!newRow.__nc_rls_readonly
             dataCache.cachedRows.value.set(rowIndex, row)
           }
         }

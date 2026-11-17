@@ -39,6 +39,8 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
 
   const createDocument = async (..._params: any) => null
 
+  const duplicateDocument = async (..._params: any) => null
+
   const updateDocument = async (..._params: any) => null
 
   const deleteDocument = async (..._params: any) => true
@@ -70,6 +72,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     loadDocument,
     loadAllDocuments,
     createDocument,
+    duplicateDocument,
     updateDocument,
     deleteDocument,
     reorderDocument,

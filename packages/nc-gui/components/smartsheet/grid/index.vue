@@ -98,6 +98,7 @@ const {
   toggleExpand,
   totalGroups,
   clearGroupCache,
+  toggleExpandSubgroups,
   toggleExpandAll,
   groupDataCache,
   refreshInPlace,
@@ -995,6 +996,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :fetch-missing-group-chunks="fetchMissingGroupChunks"
         :fetch-missing-group-aggregations="fetchMissingGroupAggregations"
         :is-bulk-operation-in-progress="isBulkOperationInProgress"
+        :toggle-expand-subgroups="toggleExpandSubgroups"
         :toggle-expand-all="toggleExpandAll"
         :refresh-in-place="refreshInPlace"
         :refresh-part-in-place="refreshPartInPlace"

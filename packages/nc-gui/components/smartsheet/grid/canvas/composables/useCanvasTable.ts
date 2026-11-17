@@ -1181,10 +1181,13 @@ export function useCanvasTable({
     let xOffset = 0
 
     const fixedCols = columns.value.filter((col) => col.fixed)
+    // The frozen area renders the group-by indent too; columnWidths leaves it out
+    const groupIndent = groupByColumns.value.length * 13
 
-    for (const column of fixedCols) {
+    for (const [index, column] of fixedCols.entries()) {
       const width = columnWidths.value[columns.value.indexOf(column)] ?? 180
-      if (x >= xOffset && x < xOffset + width) {
+      const hitWidth = index === fixedCols.length - 1 ? width + groupIndent : width
+      if (x >= xOffset && x < xOffset + hitWidth) {
         if (!column.uidt) {
           xOffset += width
         }

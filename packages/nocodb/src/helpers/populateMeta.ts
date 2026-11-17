@@ -13,7 +13,9 @@ import { META_COL_NAME } from '~/constants';
 import { getSourceIntrospectionSchema, normalizeDr } from '~/helpers/dbHelpers';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
-import getColumnUiType from '~/helpers/getColumnUiType';
+import getColumnUiType, {
+  getIntrospectedColumnMeta,
+} from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import View from '~/models/View';
 import NcHelp from '~/utils/NcHelp';
@@ -465,10 +467,12 @@ export async function populateMeta(
           }
         }
 
+        const uidt = column.uidt || getColumnUiType(source, column);
         await Column.insert(context, {
-          uidt: column.uidt || getColumnUiType(source, column),
+          uidt,
           fk_model_id: models2[table.tn].id,
           ...column,
+          meta: getIntrospectedColumnMeta(uidt, column),
           title: getColumnNameAlias(column.cn, source),
           column_name: column.cn,
           order: colOrder++,
@@ -619,12 +623,14 @@ export async function populateMeta(
       info.apiCount += 2;
 
       for (const column of columns) {
+        const uidt = getColumnUiType(source, column);
         await Column.insert(context, {
           fk_model_id: models2[table.table_name].id,
           ...column,
+          meta: getIntrospectedColumnMeta(uidt, column),
           title: getColumnNameAlias(column.cn, source),
           order: colOrder++,
-          uidt: getColumnUiType(source, column),
+          uidt,
         });
       }
 

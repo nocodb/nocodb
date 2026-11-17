@@ -18,7 +18,9 @@ import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
-import getColumnUiType from '~/helpers/getColumnUiType';
+import getColumnUiType, {
+  getIntrospectedColumnMeta,
+} from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
@@ -973,10 +975,12 @@ export class MetaDiffsService {
               });
 
               for (const column of columns) {
+                const uidt = getColumnUiType(source, column);
                 await Column.insert(context, {
-                  uidt: getColumnUiType(source, column),
+                  uidt,
                   fk_model_id: model.id,
                   ...column,
+                  meta: getIntrospectedColumnMeta(uidt, column),
                   title: getColumnNameAlias(column.column_name, source),
                 });
               }
@@ -1001,10 +1005,12 @@ export class MetaDiffsService {
               });
 
               for (const column of columns) {
+                const uidt = getColumnUiType(source, column);
                 await Column.insert(context, {
-                  uidt: getColumnUiType(source, column),
+                  uidt,
                   fk_model_id: model.id,
                   ...column,
+                  meta: getIntrospectedColumnMeta(uidt, column),
                   title: getColumnNameAlias(column.column_name, source),
                 });
               }
@@ -1027,6 +1033,7 @@ export class MetaDiffsService {
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
               column.uidt = getColumnUiType(source, column);
+              column.meta = getIntrospectedColumnMeta(column.uidt, column);
               //todo: inflection
               column.title = getColumnNameAlias(column.cn, source);
               await Column.insert(context, {
@@ -1057,6 +1064,14 @@ export class MetaDiffsService {
               if (!allowedDatatypes?.includes(column.dt)) {
                 column.uidt = sqlUi.getMetaUIDataType(column);
               }
+
+              // only reached on a `dt` change (scale-only changes produce no diff);
+              // a Decimal keeps a chosen precision, else takes the DB scale
+              const meta = getIntrospectedColumnMeta(
+                column.uidt ?? change.column.uidt,
+                { dtxs: column.dtxs, meta: change.column.meta },
+              );
+              if (meta !== change.column.meta) column.meta = meta;
 
               column.title = change.column.title;
               await Column.update(context, change.column.id, column);

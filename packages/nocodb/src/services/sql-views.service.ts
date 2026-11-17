@@ -7,7 +7,9 @@ import { NcError } from '~/helpers/catchError';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
-import getColumnUiType from '~/helpers/getColumnUiType';
+import getColumnUiType, {
+  getIntrospectedColumnMeta,
+} from '~/helpers/getColumnUiType';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Column, Model } from '~/models';
 
@@ -139,12 +141,14 @@ export class SqlViewsService {
     let colOrder = 1;
 
     for (const column of columns) {
+      const uidt = getColumnUiType(source, column);
       await Column.insert(context, {
         fk_model_id: model.id,
         ...column,
+        meta: getIntrospectedColumnMeta(uidt, column),
         title: getColumnNameAlias(column.cn, source),
         order: colOrder++,
-        uidt: getColumnUiType(source, column),
+        uidt,
       });
     }
 

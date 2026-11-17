@@ -12,20 +12,9 @@ import { createGroupUniqueIdentifier, generateGroupPath } from '../components/sm
 import { mergeRefetchedGroups } from '../components/smartsheet/grid/canvas/utils/groupRefresh'
 import { GROUP_CHUNK_SIZE } from '../components/smartsheet/grid/canvas/utils/constants'
 import type { CanvasGroup } from '#imports'
-import { GROUP_SCOPE_ALL, groupKeysManager } from '#imports'
+import { GROUP_SCOPE_ALL, groupKeyChain, groupKeysManager } from '#imports'
 
 const MAX_GROUP_CACHE_SIZE = 100
-
-/** Persisted expansion keys of a group's ancestors and the group itself, outermost first. */
-function groupKeyChain(group: CanvasGroup): string[] {
-  const segments = group.nestedIn.map((n) => `${n.key}-${n.column_name}`)
-  return segments.length ? segments.map((_, i) => segments.slice(0, i + 1).join('_')) : ['default']
-}
-
-function groupKey(group: CanvasGroup): string {
-  const chain = groupKeyChain(group)
-  return chain[chain.length - 1]!
-}
 
 const getSortParams = (sort: string) => {
   if (sort === 'asc') return '+'
@@ -920,7 +909,7 @@ export const useInfiniteGroups = (
     group.isExpanded = !group.isExpanded
 
     if (!view.value?.id) return
-    groupKeysManager.setGroupExpanded(base.value?.id, view.value.id, groupKey(group), group.isExpanded)
+    groupKeysManager.setGroupExpanded(base.value?.id, view.value.id, groupKeyChain(group), group.isExpanded)
   }
 
   /** Sets every loaded group below `groups`, at any depth, to `expand`. */
@@ -931,12 +920,19 @@ export const useInfiniteGroups = (
     })
   }
 
-  /** Expands or collapses a group and all of its subgroups, including ones not loaded yet. */
+  /**
+   * Expand opens a group and all of its subgroups; collapse closes the subgroups and leaves the
+   * group as it is. Covers subgroups not loaded yet.
+   */
   const toggleExpandSubgroups = (group: CanvasGroup, expand: boolean) => {
     if (!view.value?.id) return
 
-    groupKeysManager.setScope(base.value?.id, view.value.id, groupKey(group), expand)
-    group.isExpanded = expand
+    const chain = groupKeyChain(group)
+    groupKeysManager.setScope(base.value?.id, view.value.id, chain[chain.length - 1]!, expand)
+
+    if (expand) group.isExpanded = true
+    else if (group.isExpanded) groupKeysManager.setGroupExpanded(base.value?.id, view.value.id, chain, true)
+
     if (group.groups?.size) setLoadedGroupsExpanded(group.groups, expand)
 
     callbacks?.syncVisibleData()

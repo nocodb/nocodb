@@ -26,13 +26,13 @@ const { group } = toRefs(props)
       {{ $t('labels.expandGroup') }}
     </NcMenuItem>
     <template v-if="hasSubgroups">
-      <NcMenuItem v-if="group?.isExpanded" @click="emit('toggleExpandSubgroups', group, false)">
-        <GeneralIcon icon="minimizeAll" />
-        {{ $t('labels.collapseSubgroups') }}
-      </NcMenuItem>
-      <NcMenuItem v-else @click="emit('toggleExpandSubgroups', group, true)">
+      <NcMenuItem @click="emit('toggleExpandSubgroups', group, true)">
         <GeneralIcon icon="maximizeAll" />
         {{ $t('labels.expandSubgroups') }}
+      </NcMenuItem>
+      <NcMenuItem @click="emit('toggleExpandSubgroups', group, false)">
+        <GeneralIcon icon="minimizeAll" />
+        {{ $t('labels.collapseSubgroups') }}
       </NcMenuItem>
     </template>
     <NcMenuItem @click="emit('toggleExpandAll', true)">

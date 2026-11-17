@@ -9174,6 +9174,7 @@
       "previewUtilizationWorkingHoursHint": "Working hours read from each {table} record, or one number for all.",
       "utilizationShareHiddenFields": "This view is shared. Its shared link shows no utilization until these fields are shown in the view: {fields}",
       "utilizationPageHiddenFields": "This page shows no utilization until these fields are shown on it: {fields}",
+      "summaryPageHiddenField": "This page shows no summary until this field is shown on it: {fields}",
       "utilizationShareNoTimeOff": "This view is shared. Its shared link doesn't count time off.",
       "sharedLinkMissingTitle": "The shared link won't show everything in this view",
       "sharedLinkGroupedByHidden": "Grouped by {fields}, which is hidden: the shared link shows the rows ungrouped.",

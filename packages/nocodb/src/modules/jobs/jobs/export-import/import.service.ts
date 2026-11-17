@@ -13,6 +13,7 @@ import {
   RelationTypes,
   SqlUiFactory,
   UITypes,
+  ViewLockType,
   ViewTypes,
 } from 'nocodb-sdk';
 import hash from 'object-hash';
@@ -25,7 +26,10 @@ import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { CalendarView, LinksColumn, MapView, User } from '~/models';
-import type { AttachmentHolder } from '~/helpers/exportImportHelpers';
+import type {
+  AttachmentHolder,
+  SkippedViews,
+} from '~/helpers/exportImportHelpers';
 import { getCustomLinkParam } from '~/helpers/linkHelpers';
 import { validateImportSchema } from '~/utils/modelUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
@@ -236,6 +240,8 @@ export class ImportService {
       isDuplicateOperation?: boolean;
       // Set when the payload isn't read from a base on this server; null trusts it.
       attachmentHolder: AttachmentHolder | null;
+      // Views the target could not take are left out and counted here.
+      skippedViews?: SkippedViews;
     },
   ) {
     const targetContext = param.targetContext ?? context;
@@ -1915,7 +1921,11 @@ export class ImportService {
             param.user,
             param.req,
           );
-          if (!vw) return;
+          if (!vw) {
+            if (param.skippedViews && view.lock_type === ViewLockType.Personal)
+              param.skippedViews.personal++;
+            return;
+          }
 
           idMap.set(view.id, vw.id);
 
@@ -2059,12 +2069,22 @@ export class ImportService {
     // create row color info
     for (const data of param.data) {
       if (param.existingModel) break;
-      if (data.rowColorConditions?.rowColorConditions?.length > 0) {
+      // Conditions of a view that wasn't created have no view to attach to.
+      const rowColorConditions = (
+        data.rowColorConditions?.rowColorConditions ?? []
+      ).filter((rc) => getIdOrExternalId(rc.fk_view_id));
+      const rowColorConditionIds = new Set(
+        rowColorConditions.map((rc) => rc.id),
+      );
+      const rowColorFilters = (data.rowColorConditions?.filters ?? []).filter(
+        (flt) => rowColorConditionIds.has(flt.fk_row_color_condition_id),
+      );
+      if (rowColorConditions.length > 0) {
         await ncMeta.bulkMetaInsert(
           targetContext.workspace_id,
           targetContext.base_id,
           MetaTable.ROW_COLOR_CONDITIONS,
-          data.rowColorConditions.rowColorConditions.map((rc) => {
+          rowColorConditions.map((rc) => {
             return {
               ...rc,
               fk_view_id: getIdOrExternalId(rc.fk_view_id),
@@ -2072,12 +2092,12 @@ export class ImportService {
           }),
         );
       }
-      if (data.rowColorConditions?.filters?.length > 0) {
+      if (rowColorFilters.length > 0) {
         await ncMeta.bulkMetaInsert(
           targetContext.workspace_id,
           targetContext.base_id,
           MetaTable.FILTER_EXP,
-          data.rowColorConditions.filters.map((flt) => {
+          rowColorFilters.map((flt) => {
             return {
               ...flt,
               fk_column_id: getIdOrExternalId(flt.fk_column_id),

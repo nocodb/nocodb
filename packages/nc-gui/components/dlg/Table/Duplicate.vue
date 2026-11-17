@@ -207,6 +207,9 @@ const _duplicate = async () => {
             if (data.data?.result?.droppedAttachments) {
               message.warning(t('msg.warning.attachmentsNotCopied', { count: data.data.result.droppedAttachments }))
             }
+            if (data.data?.result?.skippedPersonalViews) {
+              message.warning(t('msg.warning.personalViewsNotCopied', { count: data.data.result.skippedPersonalViews }))
+            }
             isLoading.value = false
             dialogShow.value = false
           } else if (data.status === JobStatus.FAILED) {

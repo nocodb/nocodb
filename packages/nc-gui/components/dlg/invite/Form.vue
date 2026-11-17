@@ -291,9 +291,14 @@ watch(
   { immediate: true },
 )
 
+/** Emails are case-insensitive, so `A@x.io` and `a@x.io` are one chip. */
+const badgeIndex = (str: string) => emailBadges.value.findIndex((e) => e.toLowerCase() === str.toLowerCase())
+
+const hasBadge = (str: string) => badgeIndex(str) !== -1
+
 const insertOrUpdateString = (str: string) => {
   // Check if the string already exists in the array
-  const index = emailBadges.value.indexOf(str)
+  const index = badgeIndex(str)
 
   if (index !== -1) {
     // If the string exists, remove it
@@ -316,7 +321,7 @@ function clearInvalidEmail() {
 }
 
 const emailInputValidation = (input: string, isBulkEmailCopyPaste = false): boolean => {
-  if (!input.length) {
+  if (!input.trim().length) {
     if (isBulkEmailCopyPaste) return false
 
     return false
@@ -352,7 +357,7 @@ const validRecipients = computed(() => {
   const list = [...emailBadges.value]
   const pending = pendingEmail.value
 
-  if (pending && validateEmail(pending) && !list.includes(pending)) list.push(pending)
+  if (pending && validateEmail(pending) && !hasBadge(pending)) list.push(pending)
 
   return list.filter((email) => !isExistingMember(email))
 })
@@ -464,7 +469,7 @@ watch(inviteData, (newVal) => {
      if email is already entered we delete the already
      existing email and add new one
      **/
-    if (emailBadges.value.includes(emailToAdd)) {
+    if (hasBadge(emailToAdd)) {
       insertOrUpdateString(emailToAdd)
       inviteData.email = ''
       return
@@ -533,7 +538,7 @@ const onPaste = (e: ClipboardEvent) => {
      if email is already entered we delete the already
      existing email and add new one
      **/
-    if (emailBadges.value.includes(el)) {
+    if (hasBadge(el)) {
       insertOrUpdateString(el)
       return
     }
@@ -707,7 +712,7 @@ const onEmailInputBlur = () => {
 const selectOrgUser = (user: OrgUserListItemType) => {
   if (!user?.email) return
 
-  if (!emailBadges.value.includes(user.email)) {
+  if (!hasBadge(user.email)) {
     emailBadges.value.push(user.email)
   }
 

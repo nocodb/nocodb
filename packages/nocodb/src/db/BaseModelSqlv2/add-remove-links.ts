@@ -731,7 +731,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             // Exclude soft-deleted target rows — otherwise the link succeeds
             // but the linked record is invisible under the read filter.
             const parentSoftDeleteFilter =
-              await refBaseModel.getSoftDeleteFilter();
+              await refBaseModel.getSoftDeleteFilter(parentTn);
             if (parentSoftDeleteFilter) {
               childRowsQb.where(parentSoftDeleteFilter);
             }

@@ -343,7 +343,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   protected _queryQueue: PQueue;
   protected _columns = {};
-  protected _softDeleteFilter: Promise<Knex.QueryCallback | null> | undefined;
+  protected _softDeleteColumnName: Promise<string | null> | undefined;
   protected _rlsConditions: Promise<Filter[]> | undefined;
   protected source: Source;
   public model: Model;
@@ -11786,27 +11786,35 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   /**
    * Returns a knex where-clause callback that excludes soft-deleted records,
    * or null if the table has no __nc_deleted column or is not a meta (NocoDB-managed) source.
+   * Pass `tableAlias` when the query joins a table that may also have __nc_deleted.
    */
-  public async getSoftDeleteFilter(): Promise<Knex.QueryCallback | null> {
-    if (this._softDeleteFilter !== undefined) return this._softDeleteFilter;
+  public async getSoftDeleteFilter(
+    tableAlias?: string,
+  ): Promise<Knex.QueryCallback | null> {
+    if (this._softDeleteColumnName === undefined) {
+      this._softDeleteColumnName = (async () => {
+        const columns = await this.model.getColumns();
+        const deletedColumn = columns.find((c) => isDeletedCol(c));
+        if (!deletedColumn) return null;
 
-    this._softDeleteFilter = (async () => {
-      const columns = await this.model.getColumns();
-      const deletedColumn = columns.find((c) => isDeletedCol(c));
-      if (!deletedColumn) return null;
+        const source = await this.getSource();
+        if (!source.isMeta() || !this.model.isTrashEnabled) return null;
+        return deletedColumn.column_name;
+      })();
+    }
 
-      const source = await this.getSource();
-      if (!source.isMeta() || !this.model.isTrashEnabled) return null;
-      const columnName = deletedColumn.column_name;
-      const notDeletedSql = boolSqlLiteral(this, false);
-      return function () {
-        this.whereNull(columnName).orWhereRaw(`?? = ${notDeletedSql}`, [
-          columnName,
-        ]);
-      };
-    })();
+    const columnName = await this._softDeleteColumnName;
+    if (!columnName) return null;
 
-    return this._softDeleteFilter;
+    const qualifiedName = tableAlias
+      ? `${tableAlias}.${columnName}`
+      : columnName;
+    const notDeletedSql = boolSqlLiteral(this, false);
+    return function () {
+      this.whereNull(qualifiedName).orWhereRaw(`?? = ${notDeletedSql}`, [
+        qualifiedName,
+      ]);
+    };
   }
 }
 

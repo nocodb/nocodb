@@ -478,7 +478,7 @@ export interface IBaseModelSqlV2 {
    */
   formulaDryRunFailed?: boolean;
   getRlsConditions(): Promise<Filter[]>;
-  getSoftDeleteFilter(): Promise<Knex.QueryCallback | null>;
+  getSoftDeleteFilter(tableAlias?: string): Promise<Knex.QueryCallback | null>;
   updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any): Promise<void>;
   afterSoftDeleteCompleted(params: {
     cookie: NcRequest;

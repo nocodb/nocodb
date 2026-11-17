@@ -496,7 +496,7 @@ export const relationDataFetcher = (param: {
       qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
       // Exclude soft-deleted records from MM results so they don't leak through links
-      const mmSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
+      const mmSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter(rtn);
       if (mmSoftDeleteFilter) qb.where(mmSoftDeleteFilter);
       await applyRelatedRls(refBaseModel, qb, rtn);
 
@@ -578,7 +578,7 @@ export const relationDataFetcher = (param: {
         .limit(1);
 
       // Exclude soft-deleted records from MM read results
-      const refSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
+      const refSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter(rtn);
       if (refSoftDeleteFilter) {
         qb.where(refSoftDeleteFilter);
       }
@@ -986,7 +986,9 @@ export const relationDataFetcher = (param: {
         prioritizePvSort: true,
       });
 
-      const mmListSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
+      const mmListSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter(
+        rtn,
+      );
       await applyRelatedRls(refBaseModel, qb, rtn);
 
       const refColumns = await refTable.getColumns();
@@ -1090,7 +1092,9 @@ export const relationDataFetcher = (param: {
         .count(`${vtn}.${vcn}`, { as: 'count' });
 
       // Exclude soft-deleted records from MM count results
-      const mmCountSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter();
+      const mmCountSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter(
+        rtn,
+      );
       if (mmCountSoftDeleteFilter) qb.where(mmCountSoftDeleteFilter);
       await applyRelatedRls(refBaseModel, qb, rtn);
 
@@ -1185,8 +1189,9 @@ export const relationDataFetcher = (param: {
         );
 
       // Exclude soft-deleted records from MM count results
-      const mmCountSoftDeleteFilter =
-        await childBaseModel.getSoftDeleteFilter();
+      const mmCountSoftDeleteFilter = await childBaseModel.getSoftDeleteFilter(
+        rtn,
+      );
       if (mmCountSoftDeleteFilter) qb.where(mmCountSoftDeleteFilter);
       await applyRelatedRls(childBaseModel, qb, rtn);
 

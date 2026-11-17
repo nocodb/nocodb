@@ -99,3 +99,17 @@ export function resolvePkAfterSync(
 ): boolean {
   return !!(dbPk || noCoDbPk);
 }
+
+/**
+ * `internal_meta` for a type-change apply: introspected keys merged over the
+ * stored ones, so NocoDB-managed keys (unique_constraint_name) survive.
+ * `pg_generated` is left to the props-changed apply. Undefined = leave as is.
+ */
+export function mergeIntrospectedInternalMeta<T extends Record<string, any>>(
+  stored: T | null | undefined,
+  introspected: Record<string, any> | null | undefined,
+): T | undefined {
+  const { pg_generated: _pgGenerated, ...rest } = introspected || {};
+  if (!Object.keys(rest).length) return undefined;
+  return { ...(stored || {}), ...rest } as T;
+}

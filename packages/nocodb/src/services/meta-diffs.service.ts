@@ -28,6 +28,7 @@ import { NcError } from '~/helpers/catchError';
 import { getSourceIntrospectionSchema, normalizeDr } from '~/helpers/dbHelpers';
 import {
   detectColumnSchemaPropsChanged,
+  mergeIntrospectedInternalMeta,
   resolveGeneratedReadonlyAfterSync,
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
@@ -1088,6 +1089,10 @@ export class MetaDiffsService {
               if (meta !== change.column.meta) column.meta = meta;
 
               column.title = change.column.title;
+              column.internal_meta = mergeIntrospectedInternalMeta(
+                change.column.internal_meta,
+                column.internal_meta,
+              );
               await Column.update(context, change.column.id, column);
             }
             break;

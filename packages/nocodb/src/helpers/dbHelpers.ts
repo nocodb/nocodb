@@ -1291,7 +1291,8 @@ export function getArrayAggExpression(
   // Note: columnName and alias are controlled by our code, so it's safe to use directly
   const exprMap: Record<string, string> = {
     pg: `ARRAY_AGG(DISTINCT ${columnName}) FILTER (WHERE ${columnName} IS NOT NULL) AS ${alias}`,
-    mysql2: `CAST(CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT('"', ${columnName}, '"')), ']') AS JSON) AS ${alias}`,
+    // JSON_EXTRACT(.., '$') rather than CAST(.. AS JSON): MariaDB has no JSON cast target
+    mysql2: `JSON_EXTRACT(CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT('"', ${columnName}, '"')), ']'), '$') AS ${alias}`,
     sqlite3: `json_group_array(DISTINCT ${columnName}) AS ${alias}`,
   };
 

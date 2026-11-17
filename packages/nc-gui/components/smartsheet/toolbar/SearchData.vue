@@ -271,6 +271,9 @@ useEventListener('keydown', (e: KeyboardEvent) => {
   if ((e.target as HTMLElement)?.closest?.('.nc-smart-text-panel')) return
 
   if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    // An open record is DOM, not canvas: leave Ctrl/Cmd+F to the browser's find
+    if (isExpandedFormOpenExist()) return
+
     e.preventDefault()
     handleShowSearchInput()
   } else if (e.key === 'Escape') {

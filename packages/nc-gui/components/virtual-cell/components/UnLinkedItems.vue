@@ -492,6 +492,9 @@ const onFilterChange = () => {
 
 const isSearchInputFocused = ref(false)
 
+// The query an Enter is already waiting on; a repeat Enter for it would toggle the row back off
+let pendingEnterQuery: string | null = null
+
 const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
   scrollContainerRef,
   filterQueryRef,
@@ -502,9 +505,24 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
   },
   getQuery: () => childrenExcludedListPagination.query,
   onEscapeEmptyQuery: () => emit('escape'),
-  onEnterWithQuery: () => {
-    const list = childrenExcludedList.value?.list
-    if (ncIsArray(list) && list.length) onClick(list[0], '0')
+  onEnterWithQuery: async () => {
+    const query = childrenExcludedListPagination.query
+    // Only a repeat Enter for the same query is dropped; an Enter after editing the query waits for its own results
+    if (pendingEnterQuery === query) return
+    pendingEnterQuery = query
+    try {
+      // A barcode scanner's Enter lands before the debounced search runs; wait for it
+      // so Enter links from this query's results, not the previous ones.
+      const staleList = isChildrenExcludedLoading.value ? childrenExcludedList.value : undefined
+      await until(isChildrenExcludedLoading).toBe(false)
+      if (!vModel.value || query !== childrenExcludedListPagination.query) return
+      // The load failed: the list still holds the previous query's rows
+      if (staleList && childrenExcludedList.value === staleList) return
+      const list = childrenExcludedList.value?.list
+      if (ncIsArray(list) && list.length) onClick(list[0], '0')
+    } finally {
+      if (pendingEnterQuery === query) pendingEnterQuery = null
+    }
   },
 })
 </script>

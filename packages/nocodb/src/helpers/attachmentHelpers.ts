@@ -186,6 +186,8 @@ export function validateAndNormaliseLocalPath(
   fileOrFolderPath = slash(fileOrFolderPath);
 
   const toolDir = getToolDir();
+  // slash the tool dir too, or Windows absolute paths never match it
+  const toolDirKey = slash(toolDir);
 
   // Defense-in-depth only: every caller today reaches this via `path.join(...)`,
   // which already collapses `..` before we see it. It still guards the storage
@@ -193,7 +195,7 @@ export function validateAndNormaliseLocalPath(
   // Legitimate storage keys never contain `..`.
   if (
     fileOrFolderPath
-      .replace(toolDir, '')
+      .replace(toolDirKey, '')
       .split('/')
       .some((segment) => segment === '..')
   ) {
@@ -209,7 +211,7 @@ export function validateAndNormaliseLocalPath(
 
   // Get the absolute path to the file
   const absolutePath = path.resolve(
-    path.join(toolDir, ...fileOrFolderPath.replace(toolDir, '').split('/')),
+    path.join(toolDir, ...fileOrFolderPath.replace(toolDirKey, '').split('/')),
   );
 
   // Check if the resolved path is within the intended directory

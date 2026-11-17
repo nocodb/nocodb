@@ -7241,6 +7241,18 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
+    // The FK / junction columns reference a single PK column, so a composite
+    // PK on a referenced side would create a broken relation.
+    for (const t of isMMLike ? [table, refTable] : [table]) {
+      if (t.primaryKeys.length > 1) {
+        NcError.get(context).badRequest(
+          `Cannot create relation: table '${
+            t.title || t.table_name
+          }' has a composite primary key. Links to tables with a composite primary key are not supported.`,
+        );
+      }
+    }
+
     let refColumn: Column;
     const childView: View | null = ltarReq?.childViewId
       ? await View.getByTitleOrId(refContext, {

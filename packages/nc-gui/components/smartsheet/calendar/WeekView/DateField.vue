@@ -55,6 +55,11 @@ const container = ref<null | HTMLElement>(null)
 
 const { $e } = useNuxtApp()
 
+const { locale } = useI18n()
+
+// Sunday-first, so it can be indexed with dayjs().day()
+const weekdayLabels = computed(() => getCalendarWeekdayLabels(locale.value, { weekStartsOn: 0 }))
+
 const { width: containerWidth } = useElementSize(container)
 
 const { isUIAllowed } = useRoles()
@@ -731,7 +736,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         @click="selectDate(date)"
         @dblclick="addRecord(date)"
       >
-        {{ dayjs(date).format('DD ddd') }}
+        {{ dayjs(date).format('DD') }} {{ weekdayLabels[dayjs(date).day()] }}
       </div>
     </div>
     <div

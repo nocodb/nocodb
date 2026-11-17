@@ -44,6 +44,11 @@ const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
+const { locale } = useI18n()
+
+// Sunday-first, so it can be indexed with dayjs().day()
+const weekdayLabels = computed(() => getCalendarWeekdayLabels(locale.value, { weekStartsOn: 0 }))
+
 const container = ref<null | HTMLElement>(null)
 
 const scrollContainer = ref<null | HTMLElement>(null)
@@ -1041,7 +1046,7 @@ watch(
         :style="{ width: columnWidthPct(index) }"
         class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted py-1 border-nc-border-gray-medium last:border-r-0 border-b-1 border-l-1 border-r-0 bg-nc-bg-gray-extralight"
       >
-        {{ timezoneDayjs.dayjsTz(date[0]).format('DD ddd') }}
+        {{ timezoneDayjs.dayjsTz(date[0]).format('DD') }} {{ weekdayLabels[timezoneDayjs.dayjsTz(date[0]).day()] }}
       </div>
     </div>
     <div

@@ -84,19 +84,13 @@ const getDatesCacheKey = () => {
   }`
 }
 
+const { locale } = useI18n()
+
 const days = computed(() => {
-  let days = []
-  if (props.isMondayFirst) {
-    days = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-  } else {
-    days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-  }
+  // Mon-Fri when weekends are hidden, regardless of the first day of the week
+  if (maxVisibleDays.value === 5) return getCalendarWeekdayLabels(locale.value, { format: 'narrow' }).slice(0, 5)
 
-  if (maxVisibleDays.value === 5) {
-    days = days.filter((day) => day !== 'Sa' && day !== 'Su')
-  }
-
-  return days
+  return getCalendarWeekdayLabels(locale.value, { weekStartsOn: props.isMondayFirst ? 1 : 0, format: 'narrow' })
 })
 
 const currentMonthYear = computed(() => {
@@ -256,7 +250,7 @@ watch(activeDates, (newActiveDates) => {
               'text-xs w-6 h-6': size === 'small',
             }"
             class="flex items-center uppercase py-1 font-medium justify-center text-nc-content-gray-muted"
-            >{{ day[0] }}</span
+            >{{ day }}</span
           >
         </div>
       </div>

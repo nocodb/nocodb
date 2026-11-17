@@ -311,7 +311,30 @@ const getCalendarDataType = (col?: ColumnType | null): string | undefined => {
   return col.uidt
 }
 
+// 2023-01-01 is a Sunday
+const WEEKDAY_REFERENCE_SUNDAY_UTC = Date.UTC(2023, 0, 1)
+
+/**
+ * Weekday labels in the UI locale, starting from `weekStartsOn` (0 = Sunday, 1 = Monday).
+ */
+const getCalendarWeekdayLabels = (
+  locale: string,
+  { weekStartsOn = 1, format = 'short' }: { weekStartsOn?: 0 | 1; format?: 'short' | 'narrow' } = {},
+): string[] => {
+  let formatter: Intl.DateTimeFormat
+  try {
+    formatter = new Intl.DateTimeFormat(locale.replace(/_/g, '-'), { weekday: format, timeZone: 'UTC' })
+  } catch {
+    formatter = new Intl.DateTimeFormat('en', { weekday: format, timeZone: 'UTC' })
+  }
+
+  return Array.from({ length: 7 }, (_, i) =>
+    formatter.format(WEEKDAY_REFERENCE_SUNDAY_UTC + ((i + weekStartsOn) % 7) * 86400000).replace(/\.$/, ''),
+  )
+}
+
 export {
+  getCalendarWeekdayLabels,
   isRowInDateRange,
   isRowInCurrentDateRange,
   isRowMatchingSidebarFilter,

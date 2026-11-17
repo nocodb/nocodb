@@ -93,20 +93,13 @@ const maxVisibleDays = computed(() => {
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
+const { locale } = useI18n()
+
 const days = computed(() => {
-  let days = []
+  // Mon-Fri when weekends are hidden, regardless of the first day of the week
+  if (maxVisibleDays.value === 5) return getCalendarWeekdayLabels(locale.value).slice(0, 5)
 
-  if (isMondayFirst.value) {
-    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  } else {
-    days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  }
-
-  if (maxVisibleDays.value === 5) {
-    days = days.filter((day) => day !== 'Sat' && day !== 'Sun')
-  }
-
-  return days
+  return getCalendarWeekdayLabels(locale.value, { weekStartsOn: isMondayFirst.value ? 1 : 0 })
 })
 
 const calendarGridContainer = ref()
@@ -1171,7 +1164,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="nc-calendar-weekday-label text-center bg-nc-bg-gray-extralight py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
+        class="nc-calendar-weekday-label truncate text-center bg-nc-bg-gray-extralight py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
       >
         {{ day }}
       </div>

@@ -7241,17 +7241,20 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
+    // if xcdb base then treat as virtual relation to avoid creating foreign key
+    if (param.source.isMeta() || param.source.type === 'snowflake') {
+      ltarReq.virtual = true;
+    }
+
     // The FK / junction columns reference a single PK column, so a composite
-    // PK on a referenced side would create a broken relation. A virtual
-    // relation is fine when that column is unique on its own (e.g. AI id).
-    const isVirtual =
-      ltarReq.virtual ||
-      param.source.isMeta() ||
-      param.source.type === 'snowflake';
+    // PK on a referenced side would create a broken relation. Allowed when
+    // that column is unique on its own: a unique constraint makes a real FK
+    // valid; an AI / auto-generated id is enough for a virtual relation.
     for (const t of isMMLike ? [table, refTable] : [table]) {
       const pk = t.primaryKey;
-      const pkIsUnique = !!(pk.ai || pk.meta?.ag || pk.unique);
-      if (t.primaryKeys.length > 1 && !(isVirtual && pkIsUnique)) {
+      const singleColOk =
+        !!pk.unique || (!!ltarReq.virtual && !!(pk.ai || pk.meta?.ag));
+      if (t.primaryKeys.length > 1 && !singleColOk) {
         NcError.get(context).badRequest(
           `Cannot create relation: table '${
             t.title || t.table_name
@@ -7298,11 +7301,6 @@ export class ColumnsService implements IColumnsService {
           });
     const isLinks =
       param.column.uidt === UITypes.Links || ltarReq.type === 'bt';
-
-    // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.source.isMeta() || param.source.type === 'snowflake') {
-      ltarReq.virtual = true;
-    }
 
     if (!isMMLike && (ltarReq.type === 'hm' || ltarReq.type === 'bt')) {
       // populate fk column name

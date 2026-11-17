@@ -314,6 +314,9 @@ export class DataAttachmentV3Service {
       NcError.get(context).recordNotFound(recordId);
     }
 
+    // The raw UPDATE below bypasses the BaseModel write path.
+    await baseModel.assertRowsWritable([recordId]);
+
     if (!attachment.contentType || !attachment.file || !attachment.filename) {
       NcError.get(context).invalidRequestBody(
         `Field contentType, file and filename is required`,

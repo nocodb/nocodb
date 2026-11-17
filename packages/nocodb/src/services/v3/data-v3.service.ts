@@ -111,6 +111,13 @@ function pastEndPage(e: unknown): PagedResponseImpl<Record<string, any>> {
   });
 }
 
+/** The RLS read-only row flag is for the app's own UI, not part of a public v3 record. */
+function stripRlsRowFlags(record: Record<string, any>): Record<string, any> {
+  if (!record || !('__nc_rls_readonly' in record)) return record;
+  const { __nc_rls_readonly: _, ...rest } = record;
+  return rest;
+}
+
 @Injectable()
 export class DataV3Service {
   constructor(protected dataTableService: DataTableService) {}
@@ -305,7 +312,7 @@ export class DataV3Service {
 
     const pks = param.primaryKeys ?? [param.primaryKey];
 
-    return recordV2ToV3(param.record, {
+    return recordV2ToV3(stripRlsRowFlags(param.record), {
       primaryKeys: pks,
       columns,
       requestedFields: param.requestedFields,
@@ -351,7 +358,7 @@ export class DataV3Service {
 
     const pks = param.primaryKeys ?? [param.primaryKey];
 
-    return recordsV2ToV3(records, {
+    return recordsV2ToV3(records?.map(stripRlsRowFlags), {
       primaryKeys: pks,
       columns,
       requestedFields: param.requestedFields,

@@ -1309,6 +1309,18 @@ export function useCanvasRender({
       })
 
       currentX += Math.max(24, rowIndexWidth + 16)
+
+      // Passive cue for rows locked by an RLS read_only policy; skipped when it would hit the right-hand slot.
+      const lockSize = 12
+      if (row.rowMeta.isRlsReadonly && currentX + lockSize <= xOffset + width - 26 - rowColouringBoxTotalWidth) {
+        spriteLoader.renderIcon(ctx, {
+          icon: 'ncLock',
+          size: lockSize,
+          x: currentX,
+          y: yOffset + (rowHeight.value - lockSize) / 2,
+          color: getColor(themeV4Colors.gray['400']),
+        })
+      }
     } else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
       /**
        * 2. Render drag icon -

@@ -160,6 +160,11 @@ const isContextMenuRowChecked = computed(() => {
     : !!row.rowMeta?.selected
 })
 
+const isContextMenuRowRlsReadonly = computed(() => {
+  if (contextMenuRow.value === null || !contextMenuPath.value) return false
+  return !!getDataCache(contextMenuPath.value).cachedRows.value.get(contextMenuRow.value)?.rowMeta?.isRlsReadonly
+})
+
 // Right-click on a checked row's cell: show only the bulk actions.
 const isBulkCellMenu = computed(() => contextMenuCol.value !== null && isContextMenuRowChecked.value)
 
@@ -893,7 +898,7 @@ const execBulkAction = async (path: Array<number>) => {
               key="cell-paste"
               class="nc-base-menu-item"
               data-testid="context-menu-item-paste"
-              :disabled="disablePasteCell || !isAllowed"
+              :disabled="disablePasteCell || !isAllowed || isContextMenuRowRlsReadonly"
               @click="paste"
             >
               <div v-e="['a:row:paste']" class="flex gap-2 items-center">
@@ -951,7 +956,7 @@ const execBulkAction = async (path: Array<number>) => {
                 v-if="selection.isSingleCell() && ((columns[contextMenuCol]?.columnObj && isLinksOrLTAR(columns[contextMenuCol]?.columnObj!)) || !columns[contextMenuCol]?.virtual)"
                 key="cell-clear"
                 class="nc-base-menu-item"
-                :disabled="disableClearCell || !isAllowed"
+                :disabled="disableClearCell || !isAllowed || isContextMenuRowRlsReadonly"
                 data-testid="context-menu-item-clear"
                 @click="clearCell(contextMenuTarget)"
               >
@@ -1078,7 +1083,7 @@ const execBulkAction = async (path: Array<number>) => {
                   key="delete-row"
                   class="nc-base-menu-item"
                   danger
-                  :disabled="!isAllowed"
+                  :disabled="!isAllowed || isContextMenuRowRlsReadonly"
                   @click="confirmDeleteRow(contextMenuRow, contextMenuPath)"
                 >
                   <div v-e="['a:row:delete']" class="flex gap-2 items-center">

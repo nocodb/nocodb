@@ -2,6 +2,7 @@ import {
   getDateTimeValue,
   getUnpaddedDateFormat,
   parseDateWithFormat,
+  parseStoredDate,
 } from './dateTimeHelper';
 
 describe('getUnpaddedDateFormat', () => {
@@ -69,6 +70,31 @@ describe('parseDateWithFormat', () => {
     ['12:30 AM', 'hh:mm A', 'HH:mm', '00:30'],
   ])('still accepts the real value %s', (v, f, out, expected) => {
     expect(parseDateWithFormat(v, f).format(out)).toBe(expected);
+  });
+});
+
+describe('years before 0100', () => {
+  it.each([
+    '0050-03-04',
+    '0001-01-01',
+    '0099-12-31',
+    '0100-01-01',
+    '1950-03-04',
+  ])('parseStoredDate keeps the stored year of %s', (v) => {
+    expect(parseStoredDate(v).format('YYYY-MM-DD')).toBe(v);
+  });
+
+  it.each([
+    ['0050-03-04', 'YYYY-MM-DD'],
+    ['04/03/0050', 'DD/MM/YYYY'],
+    ['4/3/0050', 'DD/MM/YYYY'],
+    ['04 Mar 0050', 'DD MMM YYYY'],
+  ])('parseDateWithFormat accepts the typed value %s', (v, f) => {
+    expect(parseDateWithFormat(v, f).format('YYYY-MM-DD')).toBe('0050-03-04');
+  });
+
+  it('leaves 2-digit years to the YY token', () => {
+    expect(parseDateWithFormat('04.03.20', 'DD.MM.YY').year()).toBe(2020);
   });
 });
 

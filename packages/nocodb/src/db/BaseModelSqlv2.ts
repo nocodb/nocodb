@@ -45,6 +45,7 @@ import {
   PermissionKey,
   RelationTypes,
   resolveCurrentUserToken,
+  restoreEarlyYear,
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -9615,7 +9616,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if ((getRollupResultUidt(col) ?? col.uidt) === UITypes.Date) {
-        d[col.id] = dayjs(d[col.id]).format('YYYY-MM-DD');
+        d[col.id] = restoreEarlyYear(
+          dayjs(d[col.id]),
+          String(d[col.id]),
+        ).format('YYYY-MM-DD');
         continue;
       }
 

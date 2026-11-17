@@ -24,6 +24,7 @@ import {
   ncIsArray,
   ncIsNumber,
   resolveCurrentUserToken,
+  restoreEarlyYear,
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
   timeFormats,
@@ -434,7 +435,9 @@ export const getDateValue = (modelValue: string | null | number, col: ColumnType
       return parsedDate.format(dateFormat) as string
     }
   } else {
-    return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
+    return restoreEarlyYear(dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue), String(modelValue)).format(
+      dateFormat,
+    )
   }
 
   return ''

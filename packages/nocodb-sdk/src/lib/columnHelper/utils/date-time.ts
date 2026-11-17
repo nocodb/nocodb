@@ -6,6 +6,7 @@ import {
   getDateFormat,
   getDateTimeFormat,
   parseDateWithFormat,
+  restoreEarlyYear,
 } from '~/lib/dateTimeHelper';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
@@ -83,7 +84,10 @@ export const parseDateValue = (
     return null;
   } else {
     value = value?.toString().trim();
-    return dayjs(/^\d+$/.test(value) ? +value : value).format(dateFormat);
+    return restoreEarlyYear(
+      dayjs(/^\d+$/.test(value) ? +value : value),
+      value
+    ).format(dateFormat);
   }
 };
 
@@ -156,7 +160,11 @@ export const serializeDateOrDateTimeValue = (
         ? 'YYYY-MM-DD'
         : 'YYYY-MM-DD HH:mm:ssZ';
 
-    parsedDateOrDateTime = dayjs(params.clipboardItem.dbCellValue, formatting);
+    parsedDateOrDateTime = restoreEarlyYear(
+      dayjs(params.clipboardItem.dbCellValue, formatting),
+      params.clipboardItem.dbCellValue,
+      formatting
+    );
   }
 
   // If clipboardItem not present or invalid, then use default method to parse the value

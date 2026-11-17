@@ -19,6 +19,24 @@ describe('parse date', () => {
     expect(parseDateValue('10/27/2023', col as any)).toBe('10/27/2023');
   });
 
+  it('keeps a year before 0100', () => {
+    const col = { meta: { date_format: 'DD/MM/YYYY' }, uidt: UITypes.Date };
+    expect(parseDateValue('0050-03-04', col as any)).toBe('04/03/0050');
+  });
+
+  it('pastes a copied Date cell before 0100 as is', () => {
+    const col = { uidt: UITypes.Date, meta: null };
+    expect(
+      serializeDateOrDateTimeValue('0050-03-04', {
+        col: col as any,
+        clipboardItem: {
+          column: col,
+          dbCellValue: '0050-03-04',
+        },
+      } as any)
+    ).toBe('0050-03-04');
+  });
+
   it('should parse a valid numeric timestamp', () => {
     const col = { meta: null, uidt: UITypes.Date };
     // FIXME: this is still affected by system's timezone (error when America/Los_Angeles)

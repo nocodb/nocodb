@@ -119,6 +119,8 @@ export function useKeyboardNavigation({
   const _handleKeyDown = async (e: KeyboardEvent) => {
     // Skip keyboard handling during IME composition (e.g. Japanese, Chinese, Korean input)
     if (e.isComposing) return
+    // An IME is starting in the proxy textarea; its committed text opens the editor on compositionend
+    if (isGridImeProxy(e.target) && (e.key === 'Process' || e.keyCode === 229)) return
 
     if ((e.target as HTMLElement)?.closest?.('.nc-smart-text-panel')) return
     if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideScriptPane() || isActiveElementInsideExtension())
@@ -469,4 +471,35 @@ export function useKeyboardNavigation({
   const handleKeyDown = useThrottleFn(_handleKeyDown, 50)
 
   useEventListener('keydown', handleKeyDown)
+
+  // Committed IME text: open the editor the way a typed key does, then type the text into it
+  useEventListener('compositionend', async (e: CompositionEvent) => {
+    const proxy = e.target
+    // The proxy sits beside this grid's canvas; another grid's proxy is not ours
+    if (!isGridImeProxy(proxy) || (hostEl?.value && !proxy.parentElement?.contains(hostEl.value))) return
+    proxy.value = ''
+    const text = e.data
+    if (!text || editEnabled.value) return
+
+    const title = columns.value[activeCell.value.column]?.columnObj?.title
+    const row = getDataCache(activeCell.value.path).cachedRows.value.get(activeCell.value.row)?.row
+    const before = title && row ? row[title] : undefined
+
+    await _handleKeyDown(new KeyboardEvent('keydown', { key: text[0] }))
+    if (!editEnabled.value) return
+
+    // Some editors (rich text) focus a few frames after they mount
+    const isEditable = (el: Element | null) =>
+      el !== proxy &&
+      (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || !!(el as HTMLElement)?.isContentEditable)
+    for (let i = 0; i < 20 && editEnabled.value && !isEditable(document.activeElement); i++) {
+      await new Promise((resolve) => setTimeout(resolve, 25))
+    }
+    if (!editEnabled.value || !isEditable(document.activeElement)) return
+
+    // Handlers that seed the value with the typed key already hold the first character
+    const after = title && row ? row[title] : undefined
+    const seeded = after !== before && typeof after === 'string' && after.endsWith(text[0]!)
+    document.execCommand('insertText', false, seeded ? text.slice(1) : text)
+  })
 }

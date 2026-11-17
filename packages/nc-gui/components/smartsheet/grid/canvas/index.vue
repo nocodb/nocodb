@@ -348,6 +348,7 @@ const {
   hoverRow,
   selection,
   makeCellEditable,
+  getCellPosition,
   findClickedColumn,
   findColumnPosition,
   findColumnAtPosition,
@@ -3433,6 +3434,62 @@ watch(
 // those so clicking outside a column doesn't close the panel.
 const expandedFormPanelStore = useExpandedFormPanel()
 
+// With nothing editable focused the browser never hands the first key to an IME, so a hidden
+// textarea over the active cell holds focus until the cell editor opens.
+const imeProxyRef = ref<HTMLTextAreaElement>()
+
+const isImeProxyEnabled = computed(
+  () =>
+    isDataEditAllowed.value &&
+    !readOnly.value &&
+    !isMobileMode.value &&
+    !editEnabled.value &&
+    activeCell.value.row !== -1 &&
+    activeCell.value.column !== -1 &&
+    (selection.value.isEmpty() || selection.value.isSingleCell()),
+)
+
+const imeProxyStyle = computed(() => {
+  const column = isImeProxyEnabled.value ? columns.value[activeCell.value.column] : undefined
+  if (!column) return {}
+  const { x, y } = getCellPosition(column, activeCell.value.row, activeCell.value.path ?? [])
+  // Kept inside the grid so typing never scrolls an ancestor to reveal the caret
+  const top = Math.max(0, Math.min(y, height.value - rowHeight.value))
+  const left = Math.max(0, Math.min(x, width.value - 1))
+  return { left: `${left}px`, top: `${top}px`, height: `${rowHeight.value}px` }
+})
+
+function focusImeProxy() {
+  nextTick(() => {
+    const proxy = imeProxyRef.value
+    const active = document.activeElement
+    if (!proxy || !isImeProxyEnabled.value || active === proxy || (active && active !== document.body)) return
+    if (
+      isDrawerOrModalExist() ||
+      isExpandedCellInputExist() ||
+      isLinkDropdownExist() ||
+      isNcDropdownOpen() ||
+      isGeneralOverlayActive() ||
+      isPortalledOverlayActive() ||
+      isInterfaceRecordSheetOpen(canvasRef.value) ||
+      cmdKActive() ||
+      isCmdJActive()
+    )
+      return
+    proxy.focus({ preventScroll: true })
+  })
+}
+
+function onImeProxyInput(e: Event) {
+  // Typing outside a composition either opened the editor or did nothing; drop what landed here
+  if (!(e as InputEvent).isComposing) (e.target as HTMLTextAreaElement).value = ''
+}
+
+watch([isImeProxyEnabled, () => activeCell.value.row, () => activeCell.value.column, () => activeCell.value.path], () => {
+  if (isImeProxyEnabled.value) return focusImeProxy()
+  if (imeProxyRef.value && document.activeElement === imeProxyRef.value) imeProxyRef.value.blur()
+})
+
 // Interface pages: the record sheet follows the active row the same way.
 const interfaceExpandRecord = inject(InterfaceExpandRecordInj, undefined)
 const interfaceSheetFollowsActiveRow = inject(InterfaceSheetFollowsActiveRowInj, undefined)
@@ -3972,6 +4029,16 @@ watch(
 
 <template>
   <div ref="wrapperRef" dir="ltr" class="w-full h-full relative">
+    <textarea
+      ref="imeProxyRef"
+      class="nc-grid-ime-proxy"
+      :style="imeProxyStyle"
+      tabindex="-1"
+      aria-hidden="true"
+      autocomplete="off"
+      spellcheck="false"
+      @input="onImeProxyInput"
+    />
     <div
       v-if="isBulkOperationInProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-nc-bg-default/30"
@@ -4025,6 +4092,7 @@ watch(
             :width="`${width}px`"
             oncontextmenu="return false"
             @mousedown="handleMouseDown"
+            @mouseup="focusImeProxy"
             @mousemove="handleMouseMove"
             @mouseleave="handleMouseLeave"
           >
@@ -4390,6 +4458,10 @@ watch(
 </template>
 
 <style scoped lang="scss">
+.nc-grid-ime-proxy {
+  @apply absolute w-px p-0 border-0 opacity-0 pointer-events-none resize-none overflow-hidden;
+}
+
 .nc-canvas-table-editable-cell-wrapper {
   @apply sticky !text-small !leading-[18px] overflow-hidden;
 

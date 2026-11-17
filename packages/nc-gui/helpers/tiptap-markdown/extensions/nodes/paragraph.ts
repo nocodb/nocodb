@@ -26,13 +26,22 @@ export const Paragraph = TiptapParagraph.extend<ParagraphOptions, { markdown: Ma
       markdown: {
         serialize(state, node, parent, index) {
           // Check if the paragraph is empty
-          const isEmpty = node.childCount === 0
+          // Inside a list or quote, ` <br>` reloads as a lone hard break, which serializes to nothing
+          let isEmpty = true
+          node.forEach((child) => {
+            if (child.type.name !== 'hardBreak') isEmpty = false
+          })
 
           // Check if it's the last block in the document
           const isLastNode = parent && parent.child(parent.childCount - 1) === node
 
           if (isEmpty && !isLastNode) {
-            state.write(' <br>\n\n ')
+            state.write(' <br>')
+            // closeBlock, not a raw "\n\n ": a leading space before the next block
+            // indents a code fence, and CommonMark strips it from every code line.
+            state.closeBlock(node)
+            // A tight list would close with one newline, gluing a following nested list to the <br>
+            state.flushClose(2)
             return
           }
 

@@ -40,7 +40,7 @@ import type {
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { decode as decodeHtmlEntities } from 'html-entities'
-import { isColumnRequiredAndNull } from './columnUtils'
+import { isColumnRequiredAndNull, isReadonlyDataCol } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 import type { GetMetaParams } from '~/composables/useMetas'
 
@@ -317,10 +317,7 @@ export const getDuplicateRowData = (
   for (const col of columns) {
     if (
       col.title &&
-      (isSystemColumn(col) ||
-        col.pk ||
-        (col.readonly && !isVirtualCol(col)) ||
-        (!keepSingleParentLinks && isSingleParentLinkColumn(col)))
+      (isSystemColumn(col) || col.pk || isReadonlyDataCol(col) || (!keepSingleParentLinks && isSingleParentLinkColumn(col)))
     ) {
       delete clonedRow[col.title]
     }

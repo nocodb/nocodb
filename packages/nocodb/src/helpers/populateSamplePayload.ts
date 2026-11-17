@@ -5,6 +5,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import { Logger } from '@nestjs/common';
 import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
@@ -14,6 +15,8 @@ import type { NcContext } from '~/interface/config';
 import { Column, Model, View } from '~/models';
 import { sanitizeUserForHook } from '~/helpers/webhookHelpers';
 import { isEE } from '~/utils';
+
+const logger = new Logger('populateSamplePayload');
 
 export async function populateSamplePayload(
   context: NcContext,
@@ -186,8 +189,11 @@ export async function populateSamplePayloadV2(
       ].includes(column.uidt)
         ? await getSampleLinkValue(column)
         : await getSampleColumnValue(context, column);
-    } catch {
+    } catch (e) {
       // a broken link/lookup (e.g. to a deleted table) is left out, not a failed sample
+      logger.warn(
+        `Skipped column ${column.id} in webhook sample payload: ${e?.message}`,
+      );
     }
   }
 

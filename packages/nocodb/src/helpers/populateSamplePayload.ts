@@ -127,7 +127,6 @@ export async function populateSamplePayloadView(
 export async function populateSamplePayloadV2(
   context: NcContext,
   viewOrModel: View | Model,
-  includeNested = false,
   operation = 'insert',
   scope = 'records',
   includeUser = false,
@@ -180,13 +179,11 @@ export async function populateSamplePayloadV2(
   };
 
   for (const column of columns) {
-    if (
-      !includeNested &&
-      [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(column.uidt)
+    rows[column.title] = [UITypes.LinkToAnotherRecord, UITypes.Links].includes(
+      column.uidt,
     )
-      continue;
-
-    rows[column.title] = await getSampleColumnValue(context, column);
+      ? await getSampleLinkValue(column)
+      : await getSampleColumnValue(context, column);
   }
 
   let prevRows;
@@ -207,6 +204,36 @@ export async function populateSamplePayloadV2(
   };
 
   return samplePayload;
+}
+
+// Matches what a record read puts in a hook payload: a Links field is its count, a
+// single link is the linked record's { pk, display value }, a list link is a list of those.
+async function getSampleLinkValue(column: Column): Promise<any> {
+  // hidden link columns, e.g. the junction side of a many-to-many
+  if (column.system) return undefined;
+  if (column.uidt === UITypes.Links) return 1;
+
+  const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
+  const { refContext } = colOpt.getRelContext();
+  const relatedModel = await colOpt.getRelatedTable();
+  await relatedModel.getColumns();
+  const { primaryKey, displayValue } = relatedModel;
+  const linkedRecord = {
+    ...(primaryKey && { [primaryKey.title]: 1 }),
+    ...(displayValue &&
+      displayValue.id !== primaryKey?.id && {
+        [displayValue.title]: await getSampleColumnValue(
+          refContext,
+          displayValue,
+        ),
+      }),
+  };
+
+  return [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+    colOpt.type as RelationTypes,
+  )
+    ? linkedRecord
+    : [linkedRecord];
 }
 
 async function getSampleColumnValue(

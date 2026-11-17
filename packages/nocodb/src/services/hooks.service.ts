@@ -609,7 +609,6 @@ export class HooksService {
     return await populateSamplePayloadV2(
       context,
       model,
-      false,
       param.operation,
       'records',
       param.includeUser,
@@ -660,7 +659,6 @@ export class HooksService {
     return await populateSamplePayloadV2(
       context,
       model,
-      false,
       param.operation,
       undefined,
       param.includeUser,

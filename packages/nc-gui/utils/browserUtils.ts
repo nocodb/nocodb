@@ -226,9 +226,13 @@ export function hasAncestorWithClass(element: HTMLElement, className: string | A
 }
 export const cmdKActive = () => document.querySelector('.cmdk-modal-active')
 export const isCmdJActive = () => document.querySelector('.DocSearch--active')
+/** The canvas grid's hidden IME textarea: focus on it still means no input is active. */
+export const isGridImeProxy = (el?: EventTarget | null): el is HTMLTextAreaElement =>
+  el instanceof HTMLTextAreaElement && el.classList.contains('nc-grid-ime-proxy')
+
 export const isActiveInputElementExist = (e?: Event) => {
-  const activeElement = document.activeElement
-  const target = e?.target
+  const activeElement = isGridImeProxy(document.activeElement) ? null : document.activeElement
+  const target = isGridImeProxy(e?.target) ? null : e?.target
 
   // A rich text editor is a div with the contenteditable attribute set to true.
   return (

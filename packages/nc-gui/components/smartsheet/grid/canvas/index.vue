@@ -348,6 +348,7 @@ const {
   hoverRow,
   selection,
   makeCellEditable,
+  getCellPosition,
   findClickedColumn,
   findColumnPosition,
   findColumnAtPosition,
@@ -3433,6 +3434,87 @@ watch(
 // those so clicking outside a column doesn't close the panel.
 const expandedFormPanelStore = useExpandedFormPanel()
 
+// With nothing editable focused the browser never hands the first key to an IME, so a hidden
+// textarea over the active cell holds focus until the cell editor opens.
+const imeProxyRef = ref<HTMLTextAreaElement>()
+
+const isImeProxyEnabled = computed(
+  () =>
+    isDataEditAllowed.value &&
+    !readOnly.value &&
+    !isMobileMode.value &&
+    !editEnabled.value &&
+    activeCell.value.row !== -1 &&
+    activeCell.value.column !== -1 &&
+    (selection.value.isEmpty() || selection.value.isSingleCell()),
+)
+
+// Placed on demand, not bound reactively, so scrolling never re-renders the grid for it
+function placeImeProxy() {
+  const proxy = imeProxyRef.value
+  const column = isImeProxyEnabled.value ? columns.value[activeCell.value.column] : undefined
+  if (!proxy || !column) return
+  const { x, y } = getCellPosition(column, activeCell.value.row, activeCell.value.path ?? [])
+  // Kept inside the grid so typing never scrolls an ancestor to reveal the caret
+  proxy.style.top = `${Math.max(0, Math.min(y, height.value - rowHeight.value))}px`
+  proxy.style.left = `${Math.max(0, Math.min(x, width.value - 1))}px`
+  proxy.style.height = `${rowHeight.value}px`
+  proxy.setAttribute('aria-label', column.title ?? '')
+}
+
+function focusImeProxy() {
+  nextTick(() => {
+    const proxy = imeProxyRef.value
+    const active = document.activeElement
+    if (!proxy || !isImeProxyEnabled.value || active === proxy || (active && active !== document.body)) return
+    if (
+      isDrawerOrModalExist() ||
+      isExpandedCellInputExist() ||
+      isLinkDropdownExist() ||
+      isNcDropdownOpen() ||
+      isGeneralOverlayActive() ||
+      isPortalledOverlayActive() ||
+      isInterfaceRecordSheetOpen(canvasRef.value) ||
+      cmdKActive() ||
+      isCmdJActive()
+    )
+      return
+    placeImeProxy()
+    proxy.focus({ preventScroll: true })
+  })
+}
+
+// Whether the last key in the proxy was handled by an IME (the grid's keydown skips those)
+let isImeKeyPending = false
+
+function onImeProxyKeydown(e: KeyboardEvent) {
+  isImeKeyPending = e.key === 'Process' || e.keyCode === 229
+}
+
+// A flag left over from the composition that opened the last editor must not apply to new input
+function onImeProxyFocus() {
+  isImeKeyPending = false
+}
+
+function onImeProxyInput(e: Event) {
+  if ((e as InputEvent).isComposing) return
+  const proxy = e.target as HTMLTextAreaElement
+  const text = proxy.value
+  proxy.value = ''
+  const isImeKey = isImeKeyPending
+  isImeKeyPending = false
+  // Some IMEs commit a handled key with no composition (e.g. MS Pinyin digits and punctuation).
+  // A plain key was already handled on keydown (e.g. a Rating cell), so only replay an IME key.
+  if (text && isImeKey && !editEnabled.value && !/^[\r\n]+$/.test(text)) {
+    proxy.dispatchEvent(new CompositionEvent('compositionend', { data: text, bubbles: true }))
+  }
+}
+
+watch([isImeProxyEnabled, () => activeCell.value.row, () => activeCell.value.column, () => activeCell.value.path], () => {
+  if (isImeProxyEnabled.value) return focusImeProxy()
+  if (imeProxyRef.value && document.activeElement === imeProxyRef.value) imeProxyRef.value.blur()
+})
+
 // Interface pages: the record sheet follows the active row the same way.
 const interfaceExpandRecord = inject(InterfaceExpandRecordInj, undefined)
 const interfaceSheetFollowsActiveRow = inject(InterfaceSheetFollowsActiveRowInj, undefined)
@@ -3972,6 +4054,18 @@ watch(
 
 <template>
   <div ref="wrapperRef" dir="ltr" class="w-full h-full relative">
+    <textarea
+      ref="imeProxyRef"
+      class="nc-grid-ime-proxy"
+      tabindex="-1"
+      inputmode="none"
+      autocomplete="off"
+      spellcheck="false"
+      @keydown="onImeProxyKeydown"
+      @focus="onImeProxyFocus"
+      @compositionstart="placeImeProxy"
+      @input="onImeProxyInput"
+    />
     <div
       v-if="isBulkOperationInProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-nc-bg-default/30"
@@ -4025,6 +4119,7 @@ watch(
             :width="`${width}px`"
             oncontextmenu="return false"
             @mousedown="handleMouseDown"
+            @mouseup="focusImeProxy"
             @mousemove="handleMouseMove"
             @mouseleave="handleMouseLeave"
           >
@@ -4390,6 +4485,10 @@ watch(
 </template>
 
 <style scoped lang="scss">
+.nc-grid-ime-proxy {
+  @apply absolute w-px p-0 border-0 opacity-0 pointer-events-none resize-none overflow-hidden;
+}
+
 .nc-canvas-table-editable-cell-wrapper {
   @apply sticky !text-small !leading-[18px] overflow-hidden;
 

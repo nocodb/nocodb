@@ -1382,7 +1382,7 @@ onKeyDown('Backspace', () => {
 })
 
 onKeyDown('ArrowRight', () => {
-  if (document.activeElement?.tagName === 'TEXTAREA') return
+  if (document.activeElement?.tagName === 'TEXTAREA' && !isGridImeProxy(document.activeElement)) return
   if (activeField.value) {
     const input = document.querySelector('.nc-fields-input') as HTMLInputElement
     if (input) {

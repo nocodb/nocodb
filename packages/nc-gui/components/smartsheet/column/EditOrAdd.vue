@@ -552,6 +552,7 @@ watchEffect(() => {
       if (
         (document.activeElement === document.body ||
           document.activeElement === null ||
+          isGridImeProxy(document.activeElement) ||
           ['BUTTON', 'DIV'].includes(document.activeElement?.tagName)) &&
         !props.disableTitleFocus
       ) {

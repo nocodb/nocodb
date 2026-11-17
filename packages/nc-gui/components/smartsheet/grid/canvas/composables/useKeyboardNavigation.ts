@@ -1,4 +1,4 @@
-import { type ColumnType, UITypes, isAutoSaved, isManualSaved } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isAutoSaved, isManualSaved, isNumericCol } from 'nocodb-sdk'
 import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData, getGroupSampleRow } from '../utils/groupby'
@@ -478,10 +478,15 @@ export function useKeyboardNavigation({
     // The proxy sits beside this grid's canvas; another grid's proxy is not ours
     if (!isGridImeProxy(proxy) || (hostEl?.value && !proxy.parentElement?.contains(hostEl.value))) return
     proxy.value = ''
-    const text = e.data
+    const columnObj = columns.value[activeCell.value.column]?.columnObj
+    // An IME commits full-width digits (e.g. `１` from Windows MS-IME); numeric cells only take ASCII
+    const text =
+      columnObj && isNumericCol(columnObj)
+        ? e.data?.replace(/[０-９．－＋]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
+        : e.data
     if (!text || editEnabled.value) return
 
-    const title = columns.value[activeCell.value.column]?.columnObj?.title
+    const title = columnObj?.title
     const row = getDataCache(activeCell.value.path).cachedRows.value.get(activeCell.value.row)?.row
     const before = title && row ? row[title] : undefined
 

@@ -183,10 +183,7 @@ export async function populateSamplePayloadV2(
 
   for (const column of columns) {
     try {
-      rows[column.title] = [
-        UITypes.LinkToAnotherRecord,
-        UITypes.Links,
-      ].includes(column.uidt)
+      rows[column.title] = isLinkColumn(column)
         ? await getSampleLinkValue(column)
         : await getSampleColumnValue(context, column);
     } catch (e) {
@@ -216,6 +213,9 @@ export async function populateSamplePayloadV2(
 
   return samplePayload;
 }
+
+const isLinkColumn = (column: Column) =>
+  [UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt);
 
 // Matches what a record read puts in a hook payload: a Links field is its count, a
 // single link is the linked record's { pk, display value }, a list link is a list of those.
@@ -284,10 +284,10 @@ async function getSampleColumnValue(
         const relColOpt = await colOpt
           .getRelationColumn()
           .then((r) => r.getColOptions<LinkToAnotherRecordColumn>());
-        const sampleVal = await getSampleColumnValue(
-          context,
-          await colOpt.getLookupColumn(),
-        );
+        const lookupCol = await colOpt.getLookupColumn();
+        const sampleVal = isLinkColumn(lookupCol)
+          ? await getSampleLinkValue(lookupCol)
+          : await getSampleColumnValue(context, lookupCol);
         return relColOpt.type === RelationTypes.BELONGS_TO
           ? sampleVal
           : [sampleVal].flat();

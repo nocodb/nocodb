@@ -492,6 +492,8 @@ const onFilterChange = () => {
 
 const isSearchInputFocused = ref(false)
 
+let isEnterPending = false
+
 const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
   scrollContainerRef,
   filterQueryRef,
@@ -503,13 +505,23 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
   getQuery: () => childrenExcludedListPagination.query,
   onEscapeEmptyQuery: () => emit('escape'),
   onEnterWithQuery: async () => {
-    // A barcode scanner's Enter lands before the debounced search runs; wait for it
-    // so Enter links from this query's results, not the previous ones.
-    const query = childrenExcludedListPagination.query
-    await until(isChildrenExcludedLoading).toBe(false)
-    if (!vModel.value || query !== childrenExcludedListPagination.query) return
-    const list = childrenExcludedList.value?.list
-    if (ncIsArray(list) && list.length) onClick(list[0], '0')
+    // A second Enter during the wait would toggle the same row back off
+    if (isEnterPending) return
+    isEnterPending = true
+    try {
+      // A barcode scanner's Enter lands before the debounced search runs; wait for it
+      // so Enter links from this query's results, not the previous ones.
+      const query = childrenExcludedListPagination.query
+      const staleList = isChildrenExcludedLoading.value ? childrenExcludedList.value : undefined
+      await until(isChildrenExcludedLoading).toBe(false)
+      if (!vModel.value || query !== childrenExcludedListPagination.query) return
+      // The load failed: the list still holds the previous query's rows
+      if (staleList && childrenExcludedList.value === staleList) return
+      const list = childrenExcludedList.value?.list
+      if (ncIsArray(list) && list.length) onClick(list[0], '0')
+    } finally {
+      isEnterPending = false
+    }
   },
 })
 </script>

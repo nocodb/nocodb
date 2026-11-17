@@ -1164,7 +1164,7 @@ const addRecordWithRange = (range: any, date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="nc-calendar-weekday-label text-center bg-nc-bg-gray-extralight py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
+        class="nc-calendar-weekday-label truncate text-center bg-nc-bg-gray-extralight py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
       >
         {{ day }}
       </div>

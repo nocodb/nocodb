@@ -1046,7 +1046,9 @@ watch(
         :style="{ width: columnWidthPct(index) }"
         class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted py-1 border-nc-border-gray-medium last:border-r-0 border-b-1 border-l-1 border-r-0 bg-nc-bg-gray-extralight"
       >
-        {{ timezoneDayjs.dayjsTz(date[0]).format('DD') }} {{ weekdayLabels[timezoneDayjs.dayjsTz(date[0]).day()] }}
+        <span class="truncate">
+          {{ timezoneDayjs.dayjsTz(date[0]).format('DD') }} {{ weekdayLabels[timezoneDayjs.dayjsTz(date[0]).day()] }}
+        </span>
       </div>
     </div>
     <div

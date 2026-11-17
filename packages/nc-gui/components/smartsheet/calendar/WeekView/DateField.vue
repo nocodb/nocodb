@@ -736,7 +736,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         @click="selectDate(date)"
         @dblclick="addRecord(date)"
       >
-        {{ dayjs(date).format('DD') }} {{ weekdayLabels[dayjs(date).day()] }}
+        <span class="truncate">{{ dayjs(date).format('DD') }} {{ weekdayLabels[dayjs(date).day()] }}</span>
       </div>
     </div>
     <div

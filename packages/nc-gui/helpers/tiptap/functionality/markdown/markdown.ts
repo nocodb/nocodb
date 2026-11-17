@@ -102,6 +102,19 @@ export function sanitizeRichTextHtml(html: string): string {
 // Precompiled regex patterns
 const taskRegex = /^(?!.*- )(\s*)\[( |x|X)\]/gm // Matches unchecked and checked tasks
 const strikeThroughRegex = /(?<!~)~(?!~)(.*?)(?<!~)~(?!~)/g // Matches strikethrough syntax
+// Opening code fence, also inside blockquotes and on a list item's marker line ("- ```").
+// A backtick fence's info string has no backticks, so "```x``` text" is inline code.
+const fenceOpenRegex = /^(?:\s|>|[-*+]\s|\d{1,9}[.)]\s)*(`{3,}(?=[^`]*$)|~{3,})/
+// Inline code span: a backtick run closed by a run of the same length
+const inlineCodeRegex = /(?<![`\\])(`+)(?!`).*?(?<!`)\1(?!`)/g
+// Private-use character: stands in for an inline code span while the rewrites run
+const CODE_MASK = '\uE000'
+const codeMaskRegex = /\uE000(\d+)\uE000/g
+
+function isClosingFence(line: string, fence: string) {
+  const match = line.match(/^[\s>]*(`{3,}|~{3,})\s*$/)
+  return !!match && match[1]![0] === fence[0] && match[1]!.length >= fence.length
+}
 
 export class NcMarkdownParser {
   private static instance: NcMarkdownParser | null = null
@@ -176,17 +189,40 @@ export class NcMarkdownParser {
 
   public static preprocessMarkdown(markdownText: string, _isEditor = false): string {
     if (!ncIsString(markdownText)) return markdownText ?? ''
-    // Only process task lists if not in editor mode
-    // if (!isEditor) {
-    // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
-    markdownText = markdownText.replace(taskRegex, (_match, spaces, state) => {
-      const checked = state.toLowerCase() === 'x' ? '[x]' : '[ ]'
-      return `${spaces}- ${checked}`
-    })
-    // }
 
-    // Replace single tilde strikethrough syntax with <s> tags
-    return markdownText.replace(strikeThroughRegex, '<s>$1</s>')
+    // Code is literal: skip fenced blocks, and mask inline code spans on other lines.
+    let fence: string | null = null
+
+    return markdownText
+      .split('\n')
+      .map((line) => {
+        if (fence) {
+          if (isClosingFence(line, fence)) fence = null
+          return line
+        }
+
+        const open = line.match(fenceOpenRegex)
+        if (open) {
+          fence = open[1]!
+          return line
+        }
+
+        const spans: string[] = []
+        const masked = line.replace(inlineCodeRegex, (span) => `${CODE_MASK}${spans.push(span) - 1}${CODE_MASK}`)
+
+        return (
+          masked
+            // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
+            .replace(taskRegex, (_match, spaces, state) => {
+              const checked = state.toLowerCase() === 'x' ? '[x]' : '[ ]'
+              return `${spaces}- ${checked}`
+            })
+            // Replace single tilde strikethrough syntax with <s> tags
+            .replace(strikeThroughRegex, '<s>$1</s>')
+            .replace(codeMaskRegex, (_match, i) => spans[Number(i)]!)
+        )
+      })
+      .join('\n')
   }
 
   /**

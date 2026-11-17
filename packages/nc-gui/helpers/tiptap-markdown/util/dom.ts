@@ -8,7 +8,11 @@ export function elementFromString(value) {
 export function escapeHTML(value) {
   if (!ncIsString(value)) return value
 
-  return value?.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // Only an & that would read as an entity (&lt;, &amp;, &#39;): a bare one stays as typed
+  return value
+    ?.replace(/&(?=#?\w+;)/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 }
 
 export function extractElement(node) {

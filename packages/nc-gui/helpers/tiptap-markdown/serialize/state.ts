@@ -22,6 +22,15 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
     this.inlines = []
   }
 
+  // Covers whitespace ProseMirror moves out of a mark ("  **bold**") too, which bypasses the text node serializer
+  override text(text: string, escape = true): void {
+    const atLineStart = this.atBlockStart || this.out.endsWith('<br>')
+    if (escape && atLineStart && this.options.preserveLeadingSpaces) {
+      text = text.replace(/^[ \u00A0]+/, (spaces) => '&nbsp;'.repeat(spaces.length))
+    }
+    super.text(text, escape)
+  }
+
   override render(node: Node, parent: Node, index: number): void {
     super.render(node, parent, index)
     const top = this.inlines[this.inlines.length - 1]

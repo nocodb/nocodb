@@ -10,6 +10,7 @@ export const Text = Node.create<any, { markdown: MarkdownNodeSpec }>({
     return {
       markdown: {
         serialize(state, node) {
+          // Leading spaces are encoded in MarkdownSerializerState.text
           state.text(escapeHTML(node.text))
         },
         parse: {

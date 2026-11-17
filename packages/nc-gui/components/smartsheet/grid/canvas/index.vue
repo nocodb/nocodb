@@ -3449,15 +3449,18 @@ const isImeProxyEnabled = computed(
     (selection.value.isEmpty() || selection.value.isSingleCell()),
 )
 
-const imeProxyStyle = computed(() => {
+// Placed on demand, not bound reactively, so scrolling never re-renders the grid for it
+function placeImeProxy() {
+  const proxy = imeProxyRef.value
   const column = isImeProxyEnabled.value ? columns.value[activeCell.value.column] : undefined
-  if (!column) return {}
+  if (!proxy || !column) return
   const { x, y } = getCellPosition(column, activeCell.value.row, activeCell.value.path ?? [])
   // Kept inside the grid so typing never scrolls an ancestor to reveal the caret
-  const top = Math.max(0, Math.min(y, height.value - rowHeight.value))
-  const left = Math.max(0, Math.min(x, width.value - 1))
-  return { left: `${left}px`, top: `${top}px`, height: `${rowHeight.value}px` }
-})
+  proxy.style.top = `${Math.max(0, Math.min(y, height.value - rowHeight.value))}px`
+  proxy.style.left = `${Math.max(0, Math.min(x, width.value - 1))}px`
+  proxy.style.height = `${rowHeight.value}px`
+  proxy.setAttribute('aria-label', column.title ?? '')
+}
 
 function focusImeProxy() {
   nextTick(() => {
@@ -3476,6 +3479,7 @@ function focusImeProxy() {
       isCmdJActive()
     )
       return
+    placeImeProxy()
     proxy.focus({ preventScroll: true })
   })
 }
@@ -3487,15 +3491,21 @@ function onImeProxyKeydown(e: KeyboardEvent) {
   isImeKeyPending = e.key === 'Process' || e.keyCode === 229
 }
 
+// A flag left over from the composition that opened the last editor must not apply to new input
+function onImeProxyFocus() {
+  isImeKeyPending = false
+}
+
 function onImeProxyInput(e: Event) {
   if ((e as InputEvent).isComposing) return
   const proxy = e.target as HTMLTextAreaElement
   const text = proxy.value
   proxy.value = ''
+  const isImeKey = isImeKeyPending
+  isImeKeyPending = false
   // Some IMEs commit a handled key with no composition (e.g. MS Pinyin digits and punctuation).
   // A plain key was already handled on keydown (e.g. a Rating cell), so only replay an IME key.
-  if (text && isImeKeyPending && !editEnabled.value) {
-    isImeKeyPending = false
+  if (text && isImeKey && !editEnabled.value && !/^[\r\n]+$/.test(text)) {
     proxy.dispatchEvent(new CompositionEvent('compositionend', { data: text, bubbles: true }))
   }
 }
@@ -4047,13 +4057,13 @@ watch(
     <textarea
       ref="imeProxyRef"
       class="nc-grid-ime-proxy"
-      :style="imeProxyStyle"
       tabindex="-1"
       inputmode="none"
-      aria-hidden="true"
       autocomplete="off"
       spellcheck="false"
       @keydown="onImeProxyKeydown"
+      @focus="onImeProxyFocus"
+      @compositionstart="placeImeProxy"
       @input="onImeProxyInput"
     />
     <div

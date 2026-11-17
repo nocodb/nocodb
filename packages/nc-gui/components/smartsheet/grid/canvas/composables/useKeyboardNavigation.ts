@@ -498,6 +498,12 @@ export function useKeyboardNavigation({
         : e.data
     if (!text) return
 
+    // A lone IME space (full-width in Japanese mode) is the Space shortcut, as on develop
+    if (!editEnabled.value && /^[ \u3000]+$/.test(text)) {
+      await _handleKeyDown(new KeyboardEvent('keydown', { key: ' ' }))
+      return
+    }
+
     // Committed while the editor was opening (e.g. Korean starts the next syllable on the same key)
     if (editEnabled.value) {
       if (await waitForImeEditorFocus(proxy)) document.execCommand('insertText', false, text)

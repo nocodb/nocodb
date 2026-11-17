@@ -15,6 +15,43 @@ export function getColumnDropTargetIndex(columns: CanvasGridColumn[], hoveredInd
   return columns[hoveredIndex]?.pv ? hoveredIndex : hoveredIndex - 1
 }
 
+/**
+ * Orders to save when `movedId` is placed right before `beforeId` (null: at the end).
+ * `viewCols` must hold every field of the view, hidden ones too, so the new order can't
+ * equal a hidden field's. When the neighbours leave no room (equal orders, float limit),
+ * the moved field and any field after it that isn't above the previous one get the next
+ * whole number; only changed orders are returned.
+ */
+export function getColumnReorderUpdates(
+  viewCols: { id: string; order?: number | null }[],
+  movedId: string,
+  beforeId: string | null,
+): Record<string, number> {
+  const moved = viewCols.find((c) => c.id === movedId)
+  if (!moved) return {}
+
+  const others = viewCols.filter((c) => c.id !== movedId).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+  let index = beforeId ? others.findIndex((c) => c.id === beforeId) : -1
+  if (index < 0) index = others.length
+
+  const prevOrder = index > 0 ? others[index - 1]!.order ?? 0 : 0
+  const nextOrder = index < others.length ? others[index]!.order ?? 0 : null
+  const newOrder = nextOrder === null ? prevOrder + 1 : prevOrder + (nextOrder - prevOrder) / 2
+
+  // strictly between the neighbours (and > 0, as an order of 0 reads as unset)
+  if (newOrder > prevOrder && (nextOrder === null || newOrder < nextOrder)) return { [movedId]: newOrder }
+
+  const updates: Record<string, number> = {}
+  let last = prevOrder
+  for (const c of [moved, ...others.slice(index)]) {
+    const order = c !== moved && (c.order ?? 0) > last ? c.order! : Math.floor(last) + 1
+    if (order !== c.order) updates[c.id] = order
+    last = order
+  }
+  return updates
+}
+
 // Display value drop slot: gutter + left half of the display value; edgeX = gutter right border
 export function getDisplayValueDropSlot(columns: CanvasGridColumn[], scrollLeft: number, x: number) {
   const pvIndex = columns.findIndex((c) => c.pv)

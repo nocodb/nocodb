@@ -27,6 +27,7 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
+import { getColumnReorderUpdates } from '../utils/headerUtils'
 import { extractUserKeys } from '../../../../cell/User/utils'
 import { clearTextCache, selectOptionBgColorCache, selectOptionTextColorCache } from '../utils/canvas'
 import {
@@ -1776,30 +1777,43 @@ export function useCanvasTable({
       const lastViewCol = gridViewCols.value[lastCol.id]
 
       if (nextToViewCol === null && lastViewCol === null) return
+      if (nextToColField?.id === toBeReorderedCol.id) return
 
-      // the display value is pinned first but isn't always lowest-order (interface `field_order`)
-      const lowerOrder = toCol.pv && nextToViewCol ? Math.min(toViewCol.order, nextToViewCol.order - 1) : toViewCol.order
-      const newOrder = nextToViewCol ? lowerOrder + (nextToViewCol.order - lowerOrder) / 2 : lastViewCol.order + 1
+      // Insert right before the next visible field, among all of the view's fields (hidden
+      // ones included). The display value is pinned first whatever its order, so this
+      // also covers dropping right after it.
+      const orderUpdates = getColumnReorderUpdates(
+        Object.entries(gridViewCols.value).map(([id, col]) => ({ id, order: col.order })),
+        toBeReorderedCol.id,
+        nextToViewCol ? nextToColField!.id : null,
+      )
 
-      toBeReorderedViewCol.order = newOrder
+      const saves: Promise<void>[] = []
+      for (const [columnId, newOrder] of Object.entries(orderUpdates)) {
+        const viewCol = gridViewCols.value[columnId]
+        if (!viewCol) continue
 
-      if (isDefaultView.value && toBeReorderedViewCol.fk_column_id) {
-        meta.value.columns = (meta.value?.columns ?? [])?.map((c) => {
-          if (c.id !== toBeReorderedViewCol.fk_column_id) return c
-          c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: newOrder }
-          return c
-        })
+        viewCol.order = newOrder
 
-        if (meta.value?.columnsById?.[toBeReorderedViewCol.fk_column_id]) {
-          meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta = {
-            ...parseProp(meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta),
-            defaultViewColOrder: newOrder,
+        if (isDefaultView.value && viewCol.fk_column_id) {
+          meta.value.columns = (meta.value?.columns ?? [])?.map((c) => {
+            if (c.id !== viewCol.fk_column_id) return c
+            c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: newOrder }
+            return c
+          })
+
+          if (meta.value?.columnsById?.[viewCol.fk_column_id]) {
+            meta.value.columnsById[viewCol.fk_column_id].meta = {
+              ...parseProp(meta.value.columnsById[viewCol.fk_column_id].meta),
+              defaultViewColOrder: newOrder,
+            }
           }
         }
-      }
 
-      updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
-      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        saves.push(updateGridViewColumn(columnId, { order: newOrder }))
+      }
+      // reload the fields only once every order is saved, or it can read stale orders back
+      Promise.all(saves).finally(() => eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD))
     },
     isViewOperationsAllowed,
   )

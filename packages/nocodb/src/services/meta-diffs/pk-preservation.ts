@@ -11,8 +11,9 @@
  *   - `pk` *lost* on the DB side while NocoDB has it: keep NocoDB's value.
  *
  * Other props (`rqd`, `un`, `ai`, `unique`) are propagated symmetrically.
- * `readonly` is one-way too: the DB only ever reports it (PG generated
- * columns), and NocoDB sets it on its own columns (AutoNumber, UUID).
+ * `readonly` follows the DB only for PG generated columns, marked by
+ * `internal_meta.pg_generated`; a readonly NocoDB set itself (AutoNumber,
+ * UUID, synced fields) is never cleared.
  *
  * Tests in `tests/unit/helpersTest/pkPreservation.test.ts` lock the
  * behavior.
@@ -31,6 +32,7 @@ export interface ColumnSchemaProps {
   ai?: boolean | null;
   unique?: boolean | null;
   readonly?: boolean | null;
+  internal_meta?: { pg_generated?: boolean } | null;
 }
 
 /** True when NocoDB has pk and the DB column does not. */
@@ -64,8 +66,27 @@ export function detectColumnSchemaPropsChanged(
     !!oldCol.un !== !!dbCol.un ||
     !!oldCol.ai !== !!dbCol.ai ||
     !!oldCol.unique !== !!dbCol.unique ||
-    (!!dbCol.readonly && !oldCol.readonly)
+    resolveGeneratedReadonlyAfterSync(oldCol, dbCol) !== null
   );
+}
+
+/**
+ * The `readonly` change a sync applies for a PG generated column, or null for
+ * none: a column that became generated turns readonly and gets the marker; one
+ * that stopped (PG 13+ `DROP EXPRESSION`) turns writable again — only when the
+ * marker shows introspection set the readonly.
+ */
+export function resolveGeneratedReadonlyAfterSync(
+  oldCol: ColumnSchemaProps,
+  dbCol: ColumnSchemaProps,
+): { readonly: boolean; pg_generated: boolean } | null {
+  const wasGenerated = !!oldCol.internal_meta?.pg_generated;
+  if (dbCol.internal_meta?.pg_generated) {
+    return oldCol.readonly && wasGenerated
+      ? null
+      : { readonly: true, pg_generated: true };
+  }
+  return wasGenerated ? { readonly: false, pg_generated: false } : null;
 }
 
 /**

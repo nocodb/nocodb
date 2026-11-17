@@ -7242,9 +7242,16 @@ export class ColumnsService implements IColumnsService {
     }
 
     // The FK / junction columns reference a single PK column, so a composite
-    // PK on a referenced side would create a broken relation.
+    // PK on a referenced side would create a broken relation. A virtual
+    // relation is fine when that column is unique on its own (e.g. AI id).
+    const isVirtual =
+      ltarReq.virtual ||
+      param.source.isMeta() ||
+      param.source.type === 'snowflake';
     for (const t of isMMLike ? [table, refTable] : [table]) {
-      if (t.primaryKeys.length > 1) {
+      const pk = t.primaryKey;
+      const pkIsUnique = !!(pk.ai || pk.meta?.ag || pk.unique);
+      if (t.primaryKeys.length > 1 && !(isVirtual && pkIsUnique)) {
         NcError.get(context).badRequest(
           `Cannot create relation: table '${
             t.title || t.table_name

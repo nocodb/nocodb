@@ -1,3 +1,5 @@
+import type { ColumnInternalMeta } from '~/types/column-internal-meta';
+
 /**
  * Pure helpers for column-property diff between NocoDB metadata and the
  * external DB schema, with asymmetric handling of `pk`.
@@ -32,7 +34,7 @@ export interface ColumnSchemaProps {
   ai?: boolean | null;
   unique?: boolean | null;
   readonly?: boolean | null;
-  internal_meta?: { pg_generated?: boolean } | null;
+  internal_meta?: ColumnInternalMeta | null;
 }
 
 /** True when NocoDB has pk and the DB column does not. */
@@ -87,6 +89,27 @@ export function resolveGeneratedReadonlyAfterSync(
       : { readonly: true, pg_generated: true };
   }
   return wasGenerated ? { readonly: false, pg_generated: false } : null;
+}
+
+/**
+ * `readonly` + `internal_meta` to write for a PG generated column change.
+ * Only `pg_generated` changes; the rest of `current.internal_meta` is kept, so
+ * pass the column as stored now, not a pre-sync snapshot.
+ */
+export function generatedReadonlyUpdate<
+  T extends Record<string, any> = Record<string, any>,
+>(
+  current: ColumnSchemaProps & { internal_meta?: T | null },
+  dbCol: ColumnSchemaProps,
+): { readonly?: boolean; internal_meta?: T } {
+  const next = resolveGeneratedReadonlyAfterSync(current, dbCol);
+  if (!next) return {};
+  const internal_meta: Record<string, any> = {
+    ...(current.internal_meta || {}),
+  };
+  if (next.pg_generated) internal_meta.pg_generated = true;
+  else delete internal_meta.pg_generated;
+  return { readonly: next.readonly, internal_meta: internal_meta as T };
 }
 
 /**

@@ -28,8 +28,8 @@ import { NcError } from '~/helpers/catchError';
 import { getSourceIntrospectionSchema, normalizeDr } from '~/helpers/dbHelpers';
 import {
   detectColumnSchemaPropsChanged,
+  generatedReadonlyUpdate,
   mergeIntrospectedInternalMeta,
-  resolveGeneratedReadonlyAfterSync,
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
@@ -157,19 +157,6 @@ type MetaDiffChange = {
       dr: string | null;
     }
 );
-
-/** `readonly` + `internal_meta.pg_generated` to write for a PG generated column change. */
-function generatedReadonlyUpdate(
-  oldCol: Column,
-  dbCol: Record<string, any>,
-): Partial<Pick<Column, 'readonly' | 'internal_meta'>> {
-  const next = resolveGeneratedReadonlyAfterSync(oldCol, dbCol);
-  if (!next) return {};
-  const internal_meta = { ...(oldCol.internal_meta || {}) };
-  if (next.pg_generated) internal_meta.pg_generated = true;
-  else delete internal_meta.pg_generated;
-  return { readonly: next.readonly, internal_meta };
-}
 
 @Injectable()
 export class MetaDiffsService {
@@ -1112,7 +1099,12 @@ export class MetaDiffsService {
                 rqd,
                 un,
                 unique,
-                ...generatedReadonlyUpdate(change.column, colMeta),
+                // From the stored column: a type change applied in this sync may have updated internal_meta.
+                ...generatedReadonlyUpdate(
+                  (await Column.get(context, { colId: change.column.id })) ??
+                    change.column,
+                  colMeta,
+                ),
               });
             }
             break;

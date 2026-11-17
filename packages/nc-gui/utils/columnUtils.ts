@@ -506,6 +506,10 @@ const isFormViewHiddenCol = (col: ColumnType | UITypes): boolean => {
 // Check the column itself — the shared form forces `readonly` on every field it locks.
 const isReadonlyDataCol = (col?: ColumnType): boolean => !!col?.readonly && !isVirtualCol(col)
 
+// Form views leave these out; synced tables keep showing their readonly synced fields.
+const isFormHiddenReadonlyCol = (col?: ColumnType, table?: Pick<TableType, 'synced'> | null): boolean =>
+  !table?.synced && isReadonlyDataCol(col)
+
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const getColumnValidationError = (column: ColumnType, value?: any) => {
@@ -674,6 +678,7 @@ export {
   formViewHiddenColTypes,
   isFormViewHiddenCol,
   isReadonlyDataCol,
+  isFormHiddenReadonlyCol,
   columnToValidate,
   getColumnValidationError,
   getColumnParsedTree,

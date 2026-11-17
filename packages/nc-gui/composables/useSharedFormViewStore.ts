@@ -337,7 +337,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       )
 
       columns.value = (viewMeta.model?.columns || [])
-        .filter((c: ColumnType) => fieldById[c.id] && !isReadonlyDataCol(c))
+        .filter((c: ColumnType) => fieldById[c.id] && !isFormHiddenReadonlyCol(c, viewMeta.model))
         .map((c: ColumnType) => {
           if (
             !isSystemColumn(c) &&

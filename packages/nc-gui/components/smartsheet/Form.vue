@@ -1019,7 +1019,10 @@ function setFormData() {
   }
 
   localColumns.value = col
-    .filter((f) => !isFormViewHiddenCol(f) && !isReadonlyDataCol(f) && !systemFieldsIds.value.includes(f.fk_column_id))
+    .filter(
+      (f) =>
+        !isFormViewHiddenCol(f) && !isFormHiddenReadonlyCol(f, meta.value) && !systemFieldsIds.value.includes(f.fk_column_id),
+    )
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 

@@ -539,7 +539,8 @@ const onFilterChange = () => {
 
 const isSearchInputFocused = ref(false)
 
-let isEnterPending = false
+// The query an Enter is already waiting on; a repeat Enter for it would toggle the row back
+let pendingEnterQuery: string | null = null
 
 const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
   scrollContainerRef,
@@ -552,12 +553,12 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
   getQuery: () => childrenListPagination.query,
   onEscapeEmptyQuery: () => emit('escape'),
   onEnterWithQuery: async () => {
-    // A second Enter during the wait would toggle the same row back
-    if (isEnterPending) return
-    isEnterPending = true
+    const query = childrenListPagination.query
+    // Only a repeat Enter for the same query is dropped; an Enter after editing the query waits for its own results
+    if (pendingEnterQuery === query) return
+    pendingEnterQuery = query
     try {
       // Wait for the debounced search so Enter acts on this query's results, not the previous ones
-      const query = childrenListPagination.query
       const staleList = isChildrenLoading.value ? childrenList.value : undefined
       await until(isChildrenLoading).toBe(false)
       if (!vModel.value || query !== childrenListPagination.query) return
@@ -566,7 +567,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
       const list = childrenList.value?.list ?? state.value?.[colTitle.value]
       if (ncIsArray(list) && list.length) linkOrUnLink(list[0], '0')
     } finally {
-      isEnterPending = false
+      if (pendingEnterQuery === query) pendingEnterQuery = null
     }
   },
 })

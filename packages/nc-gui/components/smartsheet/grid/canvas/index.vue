@@ -3481,8 +3481,15 @@ function focusImeProxy() {
 }
 
 function onImeProxyInput(e: Event) {
-  // Typing outside a composition either opened the editor or did nothing; drop what landed here
-  if (!(e as InputEvent).isComposing) (e.target as HTMLTextAreaElement).value = ''
+  if ((e as InputEvent).isComposing) return
+  const proxy = e.target as HTMLTextAreaElement
+  const text = proxy.value
+  proxy.value = ''
+  // Some IMEs commit a handled key with no composition (e.g. MS Pinyin digits and punctuation);
+  // plain keys already opened the editor on keydown, so only an IME commit lands here
+  if (text && !editEnabled.value) {
+    proxy.dispatchEvent(new CompositionEvent('compositionend', { data: text, bubbles: true }))
+  }
 }
 
 watch([isImeProxyEnabled, () => activeCell.value.row, () => activeCell.value.column, () => activeCell.value.path], () => {

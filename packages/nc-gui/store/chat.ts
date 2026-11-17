@@ -16,7 +16,7 @@ export const useChatStore = defineStore('chatStore', () => {
 
   const emptySuggestions = ref<Map<string, string[]>>(new Map())
 
-  const isLoadingSuggestions = ref(false)
+  const loadingSuggestionTypes = ref<Set<string>>(new Set())
 
   const activeSession = computed<ChatSessionType | undefined>(() => undefined)
 
@@ -69,7 +69,7 @@ export const useChatStore = defineStore('chatStore', () => {
     agentLabel,
     followUps,
     emptySuggestions,
-    isLoadingSuggestions,
+    loadingSuggestionTypes,
     activeSession,
     activeMessages,
     activeStreamingParts,

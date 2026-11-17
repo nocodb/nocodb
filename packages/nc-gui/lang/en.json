@@ -3295,6 +3295,7 @@
     "closeSidebar": "Close sidebar",
     "openSidebar": "Open sidebar",
     "chatRecommended": "Recommended",
+    "chatNoSuggestions": "No suggestions right now",
     "chatAsk": "Ask",
     "chatAnalyze": "Analyze",
     "chatBuild": "Build",

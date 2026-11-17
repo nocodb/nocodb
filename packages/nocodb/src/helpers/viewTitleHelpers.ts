@@ -9,13 +9,30 @@ const titleLength = (title: string) => [...title].length;
 
 // Trims a view title and rejects empty or over-long ones.
 export function normalizeViewTitle(context: NcContext, title: unknown): string {
-  const trimmed = typeof title === 'string' ? title.trim() : '';
+  return normalizeTitle(
+    context,
+    typeof title === 'string' ? title : '',
+    'View',
+  );
+}
+
+// Same rule for workflows, scripts, dashboards and docs; a blank title takes `fallback` if given.
+export function normalizeTitle(
+  context: NcContext,
+  title: unknown,
+  label: string,
+  fallback?: string,
+): string {
+  if (title !== undefined && title !== null && typeof title !== 'string') {
+    NcError.get(context).invalidRequestBody(`${label} title must be text`);
+  }
+  const trimmed = (typeof title === 'string' ? title.trim() : '') || fallback;
   if (!trimmed) {
-    NcError.get(context).invalidRequestBody('View title is required');
+    NcError.get(context).invalidRequestBody(`${label} title is required`);
   }
   if (titleLength(trimmed) > VIEW_TITLE_MAX_LENGTH) {
     NcError.get(context).invalidRequestBody(
-      `View title must be at most ${VIEW_TITLE_MAX_LENGTH} characters`,
+      `${label} title must be at most ${VIEW_TITLE_MAX_LENGTH} characters`,
     );
   }
   return trimmed;

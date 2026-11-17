@@ -5,14 +5,11 @@ export function elementFromString(value) {
   return new window.DOMParser().parseFromString(wrappedValue, 'text/html').body
 }
 
-export function escapeHTML(value) {
+export function escapeHTML(value, escapeEntities = false) {
   if (!ncIsString(value)) return value
 
   // Only an & that would read as an entity (&lt;, &amp;, &#39;): a bare one stays as typed
-  return value
-    ?.replace(/&(?=#?\w+;)/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+  return (escapeEntities ? value.replace(/&(?=#?\w+;)/g, '&amp;') : value).replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 export function extractElement(node) {

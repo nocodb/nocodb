@@ -13,7 +13,7 @@ export interface MarkdownOptions {
   transformPastedText?: boolean
   transformCopiedText?: boolean
   renderImagesAsLinks?: boolean
-  /** Write spaces that start a line as &nbsp;, for editors that reload their own markdown */
+  /** Write leading spaces as &nbsp; and escape typed entities, for editors that reload their own markdown */
   preserveLeadingSpaces?: boolean
 }
 

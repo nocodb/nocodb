@@ -10,8 +10,8 @@ export const Text = Node.create<any, { markdown: MarkdownNodeSpec }>({
     return {
       markdown: {
         serialize(state, node) {
-          // Leading spaces are encoded in MarkdownSerializerState.text
-          state.text(escapeHTML(node.text))
+          // Leading spaces are encoded in MarkdownSerializerState.text; WorkflowInput stores this output unescaped
+          state.text(escapeHTML(node.text, !!state.options.preserveLeadingSpaces))
         },
         parse: {
           // handled by markdown-it

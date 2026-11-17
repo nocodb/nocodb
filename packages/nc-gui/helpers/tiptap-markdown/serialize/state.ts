@@ -22,6 +22,9 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
     this.inlines = []
   }
 
+  declare atBlockStart: boolean
+  declare readonly options: BaseMarkdownSerializerState['options'] & { preserveLeadingSpaces?: boolean }
+
   // Covers whitespace ProseMirror moves out of a mark ("  **bold**") too, which bypasses the text node serializer
   override text(text: string, escape = true): void {
     const atLineStart = this.atBlockStart || this.out.endsWith('<br>')

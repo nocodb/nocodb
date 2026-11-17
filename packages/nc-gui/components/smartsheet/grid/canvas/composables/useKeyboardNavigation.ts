@@ -472,11 +472,23 @@ export function useKeyboardNavigation({
 
   useEventListener('keydown', handleKeyDown)
 
+  function isImeEditorTarget(el: Element | null, proxy: HTMLTextAreaElement) {
+    return (
+      el !== proxy &&
+      (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || !!(el as HTMLElement)?.isContentEditable)
+    )
+  }
+
+  // Some editors (rich text) focus a few frames after they mount
+  async function waitForImeEditorFocus(proxy: HTMLTextAreaElement) {
+    for (let i = 0; i < 20 && editEnabled.value && !isImeEditorTarget(document.activeElement, proxy); i++) {
+      await new Promise((resolve) => setTimeout(resolve, 25))
+    }
+    return editEnabled.value && isImeEditorTarget(document.activeElement, proxy)
+  }
+
   // Committed IME text: open the editor the way a typed key does, then type the text into it
-  useEventListener('compositionend', async (e: CompositionEvent) => {
-    const proxy = e.target
-    // The proxy sits beside this grid's canvas; another grid's proxy is not ours
-    if (!isGridImeProxy(proxy) || (hostEl?.value && !proxy.parentElement?.contains(hostEl.value))) return
+  async function onImeCommit(e: CompositionEvent, proxy: HTMLTextAreaElement) {
     proxy.value = ''
     const columnObj = columns.value[activeCell.value.column]?.columnObj
     // An IME commits full-width digits (e.g. `１` from Windows MS-IME); numeric cells only take ASCII
@@ -484,27 +496,34 @@ export function useKeyboardNavigation({
       columnObj && isNumericCol(columnObj)
         ? e.data?.replace(/[０-９．－＋]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
         : e.data
-    if (!text || editEnabled.value) return
+    if (!text) return
+
+    // Committed while the editor was opening (e.g. Korean starts the next syllable on the same key)
+    if (editEnabled.value) {
+      if (await waitForImeEditorFocus(proxy)) document.execCommand('insertText', false, text)
+      return
+    }
 
     const title = columnObj?.title
     const row = getDataCache(activeCell.value.path).cachedRows.value.get(activeCell.value.row)?.row
     const before = title && row ? row[title] : undefined
 
     await _handleKeyDown(new KeyboardEvent('keydown', { key: text[0] }))
-    if (!editEnabled.value) return
-
-    // Some editors (rich text) focus a few frames after they mount
-    const isEditable = (el: Element | null) =>
-      el !== proxy &&
-      (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || !!(el as HTMLElement)?.isContentEditable)
-    for (let i = 0; i < 20 && editEnabled.value && !isEditable(document.activeElement); i++) {
-      await new Promise((resolve) => setTimeout(resolve, 25))
-    }
-    if (!editEnabled.value || !isEditable(document.activeElement)) return
+    if (!editEnabled.value || !(await waitForImeEditorFocus(proxy))) return
 
     // Handlers that seed the value with the typed key already hold the first character
     const after = title && row ? row[title] : undefined
     const seeded = after !== before && typeof after === 'string' && after.endsWith(text[0]!)
     document.execCommand('insertText', false, seeded ? text.slice(1) : text)
+  }
+
+  // One commit at a time, so a commit that lands while the editor opens is typed after the first
+  let imeCommitQueue: Promise<void> = Promise.resolve()
+
+  useEventListener('compositionend', (e: CompositionEvent) => {
+    const proxy = e.target
+    // The proxy sits beside this grid's canvas; another grid's proxy is not ours
+    if (!isGridImeProxy(proxy) || (hostEl?.value && !proxy.parentElement?.contains(hostEl.value))) return
+    imeCommitQueue = imeCommitQueue.then(() => onImeCommit(e, proxy)).catch(() => {})
   })
 }

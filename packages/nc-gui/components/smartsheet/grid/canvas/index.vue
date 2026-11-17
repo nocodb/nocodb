@@ -4034,6 +4034,7 @@ watch(
       class="nc-grid-ime-proxy"
       :style="imeProxyStyle"
       tabindex="-1"
+      inputmode="none"
       aria-hidden="true"
       autocomplete="off"
       spellcheck="false"

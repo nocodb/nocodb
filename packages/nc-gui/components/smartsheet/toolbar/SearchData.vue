@@ -273,6 +273,9 @@ useEventListener('keydown', (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
     // An open record is DOM, not canvas: leave Ctrl/Cmd+F to the browser's find
     if (isExpandedFormOpenExist()) return
+    // Interface record sheet: only a search inside the sheet (LTAR viz) keeps the shortcut
+    const recordSheet = document.querySelector('.nc-interface-record-form-sheet-layer')
+    if (recordSheet && !recordSheet.contains(globalSearchWrapperRef.value ?? null)) return
 
     e.preventDefault()
     handleShowSearchInput()

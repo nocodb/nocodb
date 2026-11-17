@@ -179,11 +179,16 @@ export async function populateSamplePayloadV2(
   };
 
   for (const column of columns) {
-    rows[column.title] = [UITypes.LinkToAnotherRecord, UITypes.Links].includes(
-      column.uidt,
-    )
-      ? await getSampleLinkValue(column)
-      : await getSampleColumnValue(context, column);
+    try {
+      rows[column.title] = [
+        UITypes.LinkToAnotherRecord,
+        UITypes.Links,
+      ].includes(column.uidt)
+        ? await getSampleLinkValue(column)
+        : await getSampleColumnValue(context, column);
+    } catch {
+      // a broken link/lookup (e.g. to a deleted table) is left out, not a failed sample
+    }
   }
 
   let prevRows;
@@ -216,6 +221,7 @@ async function getSampleLinkValue(column: Column): Promise<any> {
   const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
   const { refContext } = colOpt.getRelContext();
   const relatedModel = await colOpt.getRelatedTable();
+  if (!relatedModel) return undefined;
   await relatedModel.getColumns();
   const { primaryKey, displayValue } = relatedModel;
   const linkedRecord = {

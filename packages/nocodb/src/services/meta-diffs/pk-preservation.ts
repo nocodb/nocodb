@@ -11,6 +11,8 @@
  *   - `pk` *lost* on the DB side while NocoDB has it: keep NocoDB's value.
  *
  * Other props (`rqd`, `un`, `ai`, `unique`) are propagated symmetrically.
+ * `readonly` is one-way too: the DB only ever reports it (PG generated
+ * columns), and NocoDB sets it on its own columns (AutoNumber, UUID).
  *
  * Tests in `tests/unit/helpersTest/pkPreservation.test.ts` lock the
  * behavior.
@@ -28,6 +30,7 @@ export interface ColumnSchemaProps {
   un?: boolean | null;
   ai?: boolean | null;
   unique?: boolean | null;
+  readonly?: boolean | null;
 }
 
 /** True when NocoDB has pk and the DB column does not. */
@@ -60,7 +63,8 @@ export function detectColumnSchemaPropsChanged(
     !!oldCol.rqd !== !!dbCol.rqd ||
     !!oldCol.un !== !!dbCol.un ||
     !!oldCol.ai !== !!dbCol.ai ||
-    !!oldCol.unique !== !!dbCol.unique
+    !!oldCol.unique !== !!dbCol.unique ||
+    (!!dbCol.readonly && !oldCol.readonly)
   );
 }
 

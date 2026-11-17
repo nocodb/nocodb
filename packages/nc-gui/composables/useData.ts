@@ -1,5 +1,5 @@
 import type { ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isAIPromptCol } from 'nocodb-sdk'
+import { UITypes, isAIPromptCol, isVirtualCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { CellRange } from '#imports'
 
@@ -175,6 +175,8 @@ export function useData(args: {
               col.uidt === UITypes.Attachment ||
               isAIPromptCol(col) ||
               col.au ||
+              // DB-computed (e.g. PG generated column)
+              (col.readonly && !isVirtualCol(col)) ||
               (isValidValue(col?.cdf) && / on update /i.test(col.cdf)))
           )
             acc[col.title!] = updatedRowData[col.title!]

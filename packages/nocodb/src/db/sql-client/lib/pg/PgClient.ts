@@ -14,6 +14,7 @@ import {
   generateCastQuery,
 } from '~/db/sql-client/lib/pg/typeCast';
 import pgQueries from '~/db/sql-client/lib/pg/pg.queries';
+import { applyPgGeneratedColumnProps } from '~/db/sql-client/lib/pg/generatedColumn';
 import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('PGClient');
@@ -978,6 +979,11 @@ class PGClient extends KnexClient {
             column.ai = true;
           }
         }
+
+        applyPgGeneratedColumnProps(
+          column,
+          response.rows[i].generation_expression,
+        );
 
         columns.push(column);
       }

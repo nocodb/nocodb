@@ -1084,7 +1084,7 @@ export class MetaDiffsService {
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const colMeta = columns.find((c) => c.cn === change.cn);
               if (!colMeta) break;
-              const { ai, rqd, un, unique } = colMeta;
+              const { ai, rqd, un, unique, readonly } = colMeta;
               // pk asymmetry — see `~/services/meta-diffs/pk-preservation`.
               const pk = resolvePkAfterSync(change.column.pk, colMeta.pk);
               await Column.update(context, change.column.id, {
@@ -1093,6 +1093,7 @@ export class MetaDiffsService {
                 rqd,
                 un,
                 unique,
+                ...(readonly ? { readonly } : {}),
               });
             }
             break;

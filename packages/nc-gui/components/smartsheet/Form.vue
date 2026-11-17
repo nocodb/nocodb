@@ -482,7 +482,7 @@ function isDbRequired(column: Record<string, any>) {
           column.fk_column_id === c.colOptions.fk_child_column_id,
       )) ||
     // primary column
-    (column.pk && !column.ai && !column.cdf)
+    (column.pk && !column.ai && !column.cdf && !column.readonly)
   if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions?.type === RelationTypes.BELONGS_TO) {
     const col = columns.value.find((c: Record<string, any>) => c.id === column.colOptions.fk_child_column_id) as Record<
       string,

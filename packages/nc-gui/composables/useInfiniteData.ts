@@ -19,6 +19,7 @@ import {
   isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
+  isVirtualCol,
 } from 'nocodb-sdk'
 import axios from 'axios'
 import type { CanvasGroup } from '../lib/types'
@@ -1824,6 +1825,8 @@ export function useInfiniteData(args: {
             (columnsToUpdate.has(col.uidt as UITypes) ||
               isAIPromptCol(col) ||
               col.au ||
+              // DB-computed (e.g. PG generated column)
+              (col.readonly && !isVirtualCol(col)) ||
               (isValidValue(col?.cdf) && / on update /i.test(col.cdf as string)))
           ) {
             acc[col.title] = updatedRowData[col.title]

@@ -12,9 +12,20 @@ import { createGroupUniqueIdentifier, generateGroupPath } from '../components/sm
 import { mergeRefetchedGroups } from '../components/smartsheet/grid/canvas/utils/groupRefresh'
 import { GROUP_CHUNK_SIZE } from '../components/smartsheet/grid/canvas/utils/constants'
 import type { CanvasGroup } from '#imports'
-import { groupKeysManager } from '#imports'
+import { GROUP_SCOPE_ALL, groupKeysManager } from '#imports'
 
 const MAX_GROUP_CACHE_SIZE = 100
+
+/** Persisted expansion keys of a group's ancestors and the group itself, outermost first. */
+function groupKeyChain(group: CanvasGroup): string[] {
+  const segments = group.nestedIn.map((n) => `${n.key}-${n.column_name}`)
+  return segments.length ? segments.map((_, i) => segments.slice(0, i + 1).join('_')) : ['default']
+}
+
+function groupKey(group: CanvasGroup): string {
+  const chain = groupKeyChain(group)
+  return chain[chain.length - 1]!
+}
 
 const getSortParams = (sort: string) => {
   if (sort === 'asc') return '+'
@@ -394,9 +405,7 @@ export const useInfiniteGroups = (
 
         const isExpanded = groupPath.join('-') === routePath.join('-')
 
-        const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
-
-        group.isExpanded = groupKeysManager.hasKey(base.value?.id, view.value.id!, nestedKey) || isExpanded
+        group.isExpanded = groupKeysManager.isGroupExpanded(base.value?.id, view.value.id!, groupKeyChain(group)) || isExpanded
 
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {
@@ -909,39 +918,36 @@ export const useInfiniteGroups = (
 
   const toggleExpand = async (group: CanvasGroup) => {
     group.isExpanded = !group.isExpanded
-    const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
 
     if (!view.value?.id) return
-    groupKeysManager.toggleKey(base.value?.id, view.value.id, nestedKey, group.isExpanded)
+    groupKeysManager.setGroupExpanded(base.value?.id, view.value.id, groupKey(group), group.isExpanded)
   }
 
-  const toggleExpandAll = async (path: number[], expand: boolean) => {
-    let targetGroups: Map<number, CanvasGroup>
-    if (!path?.length) {
-      path = [0]
-    }
+  /** Sets every loaded group below `groups`, at any depth, to `expand`. */
+  function setLoadedGroupsExpanded(groups: Map<number, CanvasGroup>, expand: boolean) {
+    groups.forEach((group) => {
+      group.isExpanded = expand
+      if (group.groups?.size) setLoadedGroupsExpanded(group.groups, expand)
+    })
+  }
 
-    if (path.length === 1) {
-      targetGroups = cachedGroups.value
-    } else {
-      let currentGroups = cachedGroups.value
-
-      for (let i = 0; i < path.length - 1; i++) {
-        const group = currentGroups.get(path[i])
-        if (!group || !group.groups) return
-        currentGroups = group.groups
-      }
-
-      targetGroups = currentGroups
-    }
-
+  /** Expands or collapses a group and all of its subgroups, including ones not loaded yet. */
+  const toggleExpandSubgroups = (group: CanvasGroup, expand: boolean) => {
     if (!view.value?.id) return
 
-    targetGroups.forEach((group) => {
-      const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
-      group.isExpanded = expand
-      groupKeysManager.toggleKey(base.value?.id, view.value.id!, nestedKey, expand)
-    })
+    groupKeysManager.setScope(base.value?.id, view.value.id, groupKey(group), expand)
+    group.isExpanded = expand
+    if (group.groups?.size) setLoadedGroupsExpanded(group.groups, expand)
+
+    callbacks?.syncVisibleData()
+  }
+
+  /** Expands or collapses every group in the view at every level, including ones not loaded yet. */
+  const toggleExpandAll = (expand: boolean) => {
+    if (!view.value?.id) return
+
+    groupKeysManager.setScope(base.value?.id, view.value.id, GROUP_SCOPE_ALL, expand)
+    setLoadedGroupsExpanded(cachedGroups.value, expand)
 
     callbacks?.syncVisibleData()
   }
@@ -1046,6 +1052,7 @@ export const useInfiniteGroups = (
     gridViewColByTitle,
     updateGroupAggregations,
     fetchMissingGroupAggregations,
+    toggleExpandSubgroups,
     toggleExpandAll,
   }
 }

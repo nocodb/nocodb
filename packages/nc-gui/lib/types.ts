@@ -1432,6 +1432,10 @@ interface AttachmentCellDropOverType {
 interface GroupKeysStorage {
   [viewId: string]: {
     keys: Array<string>
+    // Groups collapsed by hand while an expanding scope covers them
+    collapsedKeys?: Array<string>
+    // Group key (or GROUP_SCOPE_ALL) → default state of that group and every group below it
+    scopes?: Record<string, boolean>
     lastAccessed: number // timestamp
   }
 }

@@ -132,7 +132,8 @@ const props = defineProps<{
     sort: string
   }>
   toggleExpand: (group: CanvasGroup) => void
-  toggleExpandAll: (path: Array<number>, expand: boolean) => void
+  toggleExpandSubgroups: (group: CanvasGroup, expand: boolean) => void
+  toggleExpandAll: (expand: boolean) => void
   groupSyncCount: (group?: CanvasGroup, throwError?: boolean, showToastMessage?: boolean) => Promise<void>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup, force?: boolean) => Promise<void>
   fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
@@ -169,6 +170,7 @@ const {
   fetchMissingGroupChunks,
   fetchMissingGroupAggregations,
   clearGroupCache,
+  toggleExpandSubgroups,
   toggleExpandAll,
   refreshInPlace,
   refreshPartInPlace,
@@ -3712,10 +3714,17 @@ function toggleGroupExpand(group: CanvasGroup) {
   triggerRefreshCanvas()
 }
 
-const toggleGroupExpandAll = (path: number[], isExpand?: boolean) => {
+function toggleGroupExpandSubgroups(group: CanvasGroup, expand: boolean) {
   isDropdownVisible.value = false
   openGroupContextMenuDropdown.value = null
-  toggleExpandAll(path, isExpand)
+  toggleExpandSubgroups(group, expand)
+  triggerRefreshCanvas()
+}
+
+function toggleGroupExpandAll(expand: boolean) {
+  isDropdownVisible.value = false
+  openGroupContextMenuDropdown.value = null
+  toggleExpandAll(expand)
   triggerRefreshCanvas()
 }
 
@@ -4323,7 +4332,9 @@ watch(
             v-else-if="openGroupContextMenuDropdown"
             class="canvas-group-context-menu"
             :group="openGroupContextMenuDropdown"
+            :has-subgroups="openGroupContextMenuDropdown.nestedIn.length < groupByColumns.length"
             @toggle-expand="toggleGroupExpand"
+            @toggle-expand-subgroups="toggleGroupExpandSubgroups"
             @toggle-expand-all="toggleGroupExpandAll"
           />
 

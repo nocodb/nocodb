@@ -4599,6 +4599,8 @@
     "fieldGroups": "{field} groups",
     "collapseGroup": "Collapse group",
     "expandGroup": "Expand group",
+    "collapseSubgroups": "Collapse subgroups",
+    "expandSubgroups": "Expand subgroups",
     "rowFiltered": "Row filtered",
     "rowMoved": "Row moved",
     "rowHidden": "Row hidden",

@@ -1,6 +1,9 @@
 import { useStorage } from '@vueuse/core'
 import type { GroupKeysStorage } from '#imports'
 
+/** Scope key that covers every group in a view. */
+export const GROUP_SCOPE_ALL = '*'
+
 /**
  * Persists which groups are expanded per view in localStorage.
  *
@@ -110,6 +113,74 @@ export class GroupKeysManager {
     } else {
       this.removeKey(baseId, viewId, key)
     }
+  }
+
+  /**
+   * Resolve a group's expanded state. `chain` holds the keys of the group's ancestors and the
+   * group itself, outermost first. The group's own explicit state wins, then the nearest scope.
+   */
+  isGroupExpanded(baseId: string | undefined, viewId: string | undefined, chain: Array<string>): boolean {
+    const storageKey = this.storageKey(baseId, viewId)
+    if (!storageKey || !chain.length) return false
+
+    const viewData = this.storage.value[storageKey]
+    if (!viewData) return false
+
+    this.touch(storageKey)
+
+    const self = chain[chain.length - 1]!
+    if (viewData.keys?.includes(self)) return true
+    if (viewData.collapsedKeys?.includes(self)) return false
+
+    const scopes = viewData.scopes ?? {}
+    for (let i = chain.length - 1; i >= 0; i--) {
+      const scoped = scopes[chain[i]!]
+      if (scoped !== undefined) return scoped
+    }
+
+    return scopes[GROUP_SCOPE_ALL] ?? false
+  }
+
+  /** Expand or collapse a single group. */
+  setGroupExpanded(baseId: string | undefined, viewId: string | undefined, key: string, expand: boolean): void {
+    const storageKey = this.storageKey(baseId, viewId)
+    if (!storageKey) return
+
+    const entry = this.ensureView(storageKey)
+    entry.keys = entry.keys.filter((k) => k !== key)
+    entry.collapsedKeys = (entry.collapsedKeys ?? []).filter((k) => k !== key)
+
+    if (expand) entry.keys.push(key)
+    // Without a scope, a collapsed group is the default and needs no entry
+    else if (entry.scopes && Object.keys(entry.scopes).length) entry.collapsedKeys.push(key)
+
+    this.touch(storageKey)
+  }
+
+  /**
+   * Expand or collapse a group and every group below it, or the whole view with GROUP_SCOPE_ALL.
+   * Clears any state recorded below the scope so it applies uniformly.
+   */
+  setScope(baseId: string | undefined, viewId: string | undefined, key: string, expand: boolean): void {
+    const storageKey = this.storageKey(baseId, viewId)
+    if (!storageKey) return
+
+    const entry = this.ensureView(storageKey)
+
+    if (key === GROUP_SCOPE_ALL) {
+      entry.keys = []
+      entry.collapsedKeys = []
+      entry.scopes = expand ? { [GROUP_SCOPE_ALL]: true } : {}
+    } else {
+      const isAtOrUnder = (k: string) => k === key || k.startsWith(`${key}_`)
+
+      entry.keys = entry.keys.filter((k) => !isAtOrUnder(k))
+      entry.collapsedKeys = (entry.collapsedKeys ?? []).filter((k) => !isAtOrUnder(k))
+      entry.scopes = Object.fromEntries(Object.entries(entry.scopes ?? {}).filter(([k]) => !isAtOrUnder(k)))
+      entry.scopes[key] = expand
+    }
+
+    this.touch(storageKey)
   }
 
   clearView(baseId?: string, viewId?: string): void {

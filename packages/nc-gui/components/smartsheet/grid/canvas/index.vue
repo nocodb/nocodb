@@ -3480,14 +3480,22 @@ function focusImeProxy() {
   })
 }
 
+// Whether the last key in the proxy was handled by an IME (the grid's keydown skips those)
+let isImeKeyPending = false
+
+function onImeProxyKeydown(e: KeyboardEvent) {
+  isImeKeyPending = e.key === 'Process' || e.keyCode === 229
+}
+
 function onImeProxyInput(e: Event) {
   if ((e as InputEvent).isComposing) return
   const proxy = e.target as HTMLTextAreaElement
   const text = proxy.value
   proxy.value = ''
-  // Some IMEs commit a handled key with no composition (e.g. MS Pinyin digits and punctuation);
-  // plain keys already opened the editor on keydown, so only an IME commit lands here
-  if (text && !editEnabled.value) {
+  // Some IMEs commit a handled key with no composition (e.g. MS Pinyin digits and punctuation).
+  // A plain key was already handled on keydown (e.g. a Rating cell), so only replay an IME key.
+  if (text && isImeKeyPending && !editEnabled.value) {
+    isImeKeyPending = false
     proxy.dispatchEvent(new CompositionEvent('compositionend', { data: text, bubbles: true }))
   }
 }
@@ -4045,6 +4053,7 @@ watch(
       aria-hidden="true"
       autocomplete="off"
       spellcheck="false"
+      @keydown="onImeProxyKeydown"
       @input="onImeProxyInput"
     />
     <div

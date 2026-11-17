@@ -18,9 +18,9 @@ export function getColumnDropTargetIndex(columns: CanvasGridColumn[], hoveredInd
 /**
  * Orders to save when `movedId` is placed right before `beforeId` (null: at the end).
  * `viewCols` must hold every field of the view, hidden ones too, so the new order can't
- * equal a hidden field's. When the neighbours leave no room (equal orders, float limit),
- * the moved field and any field after it that isn't above the previous one get the next
- * whole number; only changed orders are returned.
+ * equal a hidden field's. When the neighbours leave no room (equal orders, or a gap the
+ * stored column can't represent), the moved field and any field after it that isn't above
+ * the previous one get the next whole number; only changed orders are returned.
  */
 export function getColumnReorderUpdates(
   viewCols: { id: string; order?: number | null }[],
@@ -37,10 +37,17 @@ export function getColumnReorderUpdates(
 
   const prevOrder = index > 0 ? others[index - 1]!.order ?? 0 : 0
   const nextOrder = index < others.length ? others[index]!.order ?? 0 : null
-  const newOrder = nextOrder === null ? prevOrder + 1 : prevOrder + (nextOrder - prevOrder) / 2
+  // `order` is float4 on pg and float(8,2) on mysql: keep 2 decimals and check the stored value
+  const newOrder =
+    nextOrder === null ? Math.floor(prevOrder) + 1 : Math.round((prevOrder + (nextOrder - prevOrder) / 2) * 100) / 100
 
-  // strictly between the neighbours (and > 0, as an order of 0 reads as unset)
-  if (newOrder > prevOrder && (nextOrder === null || newOrder < nextOrder)) return { [movedId]: newOrder }
+  // strictly between the neighbours once stored (and > 0, as an order of 0 reads as unset)
+  if (
+    newOrder > prevOrder &&
+    Math.fround(newOrder) > Math.fround(prevOrder) &&
+    (nextOrder === null || (newOrder < nextOrder && Math.fround(newOrder) < Math.fround(nextOrder)))
+  )
+    return { [movedId]: newOrder }
 
   const updates: Record<string, number> = {}
   let last = prevOrder

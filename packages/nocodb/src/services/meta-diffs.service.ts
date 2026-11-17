@@ -1065,6 +1065,13 @@ export class MetaDiffsService {
                 column.uidt = sqlUi.getMetaUIDataType(column);
               }
 
+              // a column that is (or becomes) Decimal keeps a chosen precision, else takes the DB scale
+              const meta = getIntrospectedColumnMeta(
+                column.uidt ?? change.column.uidt,
+                { dtxs: column.dtxs, meta: change.column.meta },
+              );
+              if (meta !== change.column.meta) column.meta = meta;
+
               column.title = change.column.title;
               await Column.update(context, change.column.id, column);
             }

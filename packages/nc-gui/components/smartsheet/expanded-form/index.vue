@@ -704,7 +704,8 @@ useActiveKeydownListener(
       // remove focus from the active input if any to avoid unwanted input
       ;(document.activeElement as HTMLInputElement)?.blur?.()
 
-      if (changedColumns.value.size > 0) {
+      // Held linked records that failed to create count as unsaved changes too
+      if (changedColumns.value.size > 0 || (!isNew.value && hasLtarChanges.value)) {
         Modal.confirm({
           title: t('msg.saveChanges'),
           okText: t('general.save'),
@@ -712,6 +713,8 @@ useActiveKeydownListener(
           onOk: async () => {
             if ((await save()) === false) return
             reloadHook?.trigger(null)
+            // Some are still held: stay on this record
+            if (hasLtarChanges.value) return
             addNewRow()
           },
           onCancel: () => {

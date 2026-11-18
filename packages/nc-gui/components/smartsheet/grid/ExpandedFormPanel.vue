@@ -414,6 +414,11 @@ const saveAndContinue = async () => {
   const ok = await save()
   if (!ok) return // save failed — stay on current row so user can fix/retry
   showDiscardModal.value = false
+  // Linked records that failed to create are still held on this row: stay on it
+  if (hasLtarChanges.value) {
+    pendingAction.value = null
+    return
+  }
   runPending()
 }
 

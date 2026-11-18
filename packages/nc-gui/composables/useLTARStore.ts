@@ -52,8 +52,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const rowStoreCurrentRow = smartsheetRowStore?.currentRow
 
     // Linked records held on a saved row after they failed to create; shown as pending links.
+    // One already created (only records nested in it failed) is linked, so the server lists it.
     const heldBlueprints = (): Record<string, any>[] =>
-      isNewRow?.value ? [] : smartsheetRowStore?.heldLtarBlueprints.value[column.value.title as string] ?? []
+      isNewRow?.value
+        ? []
+        : (smartsheetRowStore?.heldLtarBlueprints.value[column.value.title as string] ?? []).filter(
+            (blueprint) => !blueprint._createdRecord,
+          )
 
     // Related records queued as pending links for this column (existing-row deferral).
     const queuedLinkRecords = () =>

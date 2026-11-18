@@ -152,6 +152,7 @@ const {
   commentsDrawer,
   changedColumns,
   hasLtarChanges,
+  heldLtarBlueprints,
   pendingLtarOps,
   displayValue,
   state: rowState,
@@ -421,7 +422,8 @@ const save = async () => {
     if (_row.value?.row?.__nc_rls_hidden) {
       message.info(t('msg.info.recordSavedButHidden'))
       isExpanded.value = false
-    } else if (props.closeAfterSave) {
+    } else if (props.closeAfterSave && !hasLtarChanges.value) {
+      // Stays open while linked records that failed to create are held for a retry
       isExpanded.value = false
     } else {
       if (isUnsavedDuplicatedRecordExist.value) {
@@ -462,6 +464,7 @@ const clearLtarBuffers = () => {
     _row.value.rowMeta.smartTextDrafts = {}
   }
   pendingLtarOps.value = []
+  heldLtarBlueprints.value = {}
 }
 
 const discardPreventModal = () => {

@@ -424,8 +424,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     }
 
+    // Linked records (blueprints) that failed to create once this row was saved, kept for the next
+    // Save. Held here, not on the row, since a view reload may replace the row's rowMeta.
+    const heldLtarBlueprints = ref<Record<string, Record<string, any>[]>>({})
+
     // Create records held on this row (blueprints) once it is saved. Ones that fail stay held so the
-    // next Save retries them, and the save fails with every error.
+    // next Save retries them. The row itself is saved, so failures are reported, not thrown.
     const createHeldLtarBlueprints = async (record: Record<string, any>, blueprints: Record<string, Record<string, any>[]>) => {
       if (!Object.keys(blueprints).length) return
 
@@ -438,11 +442,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         createRecord: (relatedMeta, data) => $api.dbTableRow.create('noco', relatedMeta.base_id!, relatedMeta.id!, data),
       })
 
-      if (row.value.rowMeta) row.value.rowMeta.ltarState = failed
+      heldLtarBlueprints.value = failed
       if (!errors.length) return
 
-      const details = await Promise.all(errors.map((e) => extractSdkResponseErrorMsg(e as Error)))
-      throw new Error(t('msg.error.linkedRecordsNotCreated', { details: details.join('; ') }))
+      const details = await Promise.all(
+        errors.map(
+          async ({ table, record: name, error }) =>
+            `${name ? `${table} "${name}"` : table}: ${await extractSdkResponseErrorMsg(error as Error)}`,
+        ),
+      )
+      message.error(t('msg.error.linkedRecordsNotCreated', { details: details.join('; ') }))
     }
 
     const save = async (
@@ -542,13 +551,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         const hasLtarChanges = rowStore.hasLtarChanges.value
 
         // Records left held by a save whose linked-record creation failed.
-        const { blueprints: heldBlueprints } = splitLtarBlueprints(row.value.rowMeta?.ltarState)
-        if (Object.keys(heldBlueprints).length) {
+        const heldBlueprints = heldLtarBlueprints.value
+        const hasHeldBlueprints = Object.keys(heldBlueprints).length > 0
+        if (hasHeldBlueprints) {
           const { getMeta } = useMetas()
           await validateLtarBlueprints({ meta: meta.value, blueprints: heldBlueprints, getMeta })
         }
 
-        if (Object.keys(updateOrInsertObj).length || hasLtarChanges || hasSmartTextDrafts) {
+        if (Object.keys(updateOrInsertObj).length || hasLtarChanges || hasSmartTextDrafts || hasHeldBlueprints) {
           const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
           if (!id) {
@@ -580,8 +590,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           // Persist queued link/unlink changes after the row update.
           if (hasLtarChanges) {
             await applyPendingLtarOps()
-            await createHeldLtarBlueprints(row.value.row, heldBlueprints)
           }
+
+          await createHeldLtarBlueprints(row.value.row, heldBlueprints)
 
           if (commentsDrawer.value) {
             await Promise.all([loadComments()])
@@ -1137,7 +1148,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       isSaving,
       formatSaveError,
       changedColumns,
-      hasLtarChanges: rowStore.hasLtarChanges,
+      // Held linked records also leave the record with something to save.
+      hasLtarChanges: computed(() => rowStore.hasLtarChanges.value || Object.keys(heldLtarBlueprints.value).length > 0),
+      heldLtarBlueprints,
       pendingLtarOps: rowStore.pendingLtarOps,
       localOnlyChanges,
       takeRemoteChanges,

@@ -70,6 +70,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       } else if (target && value?._isBlueprint) {
         target[title] = next
       }
+      // A new row's cell shows its buffered links; a saved row redraws held ones itself
+      if (currentRow.value?.rowMeta?.new && currentRow.value.row) {
+        const buffered = currentRow.value.rowMeta.ltarState?.[title]
+        currentRow.value.row[title] = Array.isArray(buffered) ? [...buffered] : buffered ?? null
+      }
     }
 
     return {

@@ -262,7 +262,11 @@ const onClick = (row: Row) => {
   if (isPublic.value || isForm.value) return
   // A linked record not created yet opens in its own editor
   if ((row as Record<string, any>)?._isBlueprint) {
-    openBlueprintEditor(row as Record<string, any>, {
+    // On a new row the list hands over a decorated copy; the staged entry at _index is the one to replace
+    const blueprint = isNew.value
+      ? childrenList.value?.list?.[(row as Record<string, any>)._index] ?? row
+      : (row as Record<string, any>)
+    openBlueprintEditor(blueprint, {
       breadcrumbs: parentBreadcrumbs.value,
       linkOnParentSave: !isTemplateMode.value,
     })
@@ -422,7 +426,8 @@ const totalItemsToShow = computed(() => {
   if (isChildrenLoading.value) {
     return props.items
   }
-  return childrenListCount.value
+  // Held records (failed to create) are listed as pending links but aren't in the server count
+  return childrenListCount.value + pendingLinkRows.value.filter((r) => r?._isBlueprint).length
 })
 
 const isDataExist = computed<boolean>(() => {

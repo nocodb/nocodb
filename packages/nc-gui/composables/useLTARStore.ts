@@ -1133,6 +1133,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         newRecordHeader: `Edit ${relatedTableMeta.value?.title} Record`,
         createdRecord: (record: Record<string, any>) => {
           smartsheetRowStore?.replaceLtarBlueprint(column.value.title as string, blueprint, { ...record, _isBlueprint: true })
+          // A new row's list is a snapshot of its buffered links
+          if (isNewRow?.value) loadChildrenList(false)
         },
       })
     }

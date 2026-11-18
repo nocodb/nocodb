@@ -4128,7 +4128,7 @@
     "selectFields": "Вибрати поля",
     "selectRecord": "- Вибрати запис -",
     "sharedSource": "Спільне джерело",
-    "selectDateFieldToAdd": "Виберіть поле дати для додавання",
+    "selectDateFieldToAdd": "Виберіть діапазон дат",
     "seeWhatsNewEachVersion": "Дивіться, що нового в кожній версії",
     "selectTable": "Виберіть таблицю",
     "showBookmarkColor": "Показувати колір закладки",
@@ -8955,7 +8955,10 @@
       "customersSeeNothing": "Клієнти бачать: нічого (внутрішній)",
       "estimateInvalid": "Використайте ціле число, 0 або більше.",
       "adjustmentPublic": "Клієнти бачать скориговану суму.",
-      "labels": "Мітки"
+      "labels": "Мітки",
+      "votes": "Голоси",
+      "unassigned": "Не призначено",
+      "target": "Цільова дата"
     },
     "links": {
       "urlPlaceholder": "Вставте посилання на GitHub, Slack або документ",
@@ -8986,6 +8989,146 @@
       "settings": "Не вдалося завантажити ваші налаштування дорожньої карти."
     },
     "loadFailed": "Не вдалося завантажити цей запит",
-    "mergedFollowHint": "Голоси та оновлення тривають там."
+    "mergedFollowHint": "Голоси та оновлення тривають там.",
+    "mute": {
+      "pendingTitle": "Вимикаємо сповіщення за цим запитом",
+      "pending": "Один момент…",
+      "mutedTitle": "Сповіщення за запитом вимкнено",
+      "muted": "Ви більше не отримуватимете оновлення щодо «{title}» — ні поштою, ні в застосунку.",
+      "unmutedTitle": "Оновлення знову увімкнено",
+      "unmuted": "Ви знову отримуватимете оновлення щодо «{title}».",
+      "undo": "Скасувати",
+      "muteAgain": "Вимкнути знову",
+      "viewRequest": "Відкрити запит",
+      "emailSettings": "Налаштування листів про план розвитку",
+      "goToRoadmap": "Перейти до плану розвитку",
+      "invalidTitle": "Це посилання більше не працює",
+      "invalid": "Посилання для вимкнення сповіщень недійсне або застаріло. Вимкнути їх можна на сторінці самого запиту.",
+      "failedTitle": "Не вдалося вимкнути сповіщення за цим запитом",
+      "failed": "Щось пішло не так. Спробуйте ще раз."
+    },
+    "shortTitle": "План розвитку",
+    "railTooltip": "План розвитку Noco",
+    "searchPlaceholder": "Пошук запитів",
+    "sortBy": "Сортування: {sort}",
+    "showMore": "Показати ще {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Команда NocoDB",
+    "requestsSection": "Запити",
+    "notification": {
+      "approved": "Ваш запит {title} потрапив до плану розвитку",
+      "declined": "Ваш запит {title} відхилено",
+      "statusChanged": "{title} тепер {status}",
+      "statusChangedStaff": "{actor} перемістив(ла) {title} до {status}",
+      "merged": "{title} об'єднано з {target}",
+      "assigned": "{actor} призначив(ла) вам {title}",
+      "staffReply": "{actor} із команди NocoDB відповів(ла) у {title}",
+      "comment": "{actor} залишив(ла) коментар до {title}",
+      "internalComment": "{actor} залишив(ла) внутрішню нотатку до {title}",
+      "reply": "{actor} відповів(ла) на ваш коментар до {title}",
+      "activity": "Нова активність у {title}",
+      "someone": "Хтось"
+    },
+    "previewBanner": "Ви переглядаєте план розвитку так, як його бачить клієнт.",
+    "notFound": "Такого запиту не існує або він вам недоступний.",
+    "positionOf": "{index} з {total}",
+    "resultsCount": "{count} запит | {count} запитів",
+    "state": {
+      "open": "Відкрито",
+      "shipped": "Випущено",
+      "closed": "Закрито"
+    },
+    "sort": {
+      "top": "Найбільше голосів",
+      "new": "Спершу нові",
+      "revenue": "Дохід",
+      "priority": "Пріоритет",
+      "manual": "Вручну",
+      "updated": "За оновленням",
+      "oldest": "Спершу старі"
+    },
+    "publicStatus": {
+      "under_review": "На розгляді",
+      "backlog": "У черзі",
+      "planned": "Заплановано",
+      "in_progress": "У роботі",
+      "shipped": "Випущено",
+      "closed": "Закрито",
+      "declined": "Відхилено",
+      "merged": "Об'єднано"
+    },
+    "status": {
+      "triage": "Сортування",
+      "backlog": "У черзі",
+      "todo": "До виконання",
+      "in_progress": "У роботі",
+      "in_review": "На перевірці",
+      "done": "Готово",
+      "canceled": "Скасовано",
+      "duplicate": "Дублікат"
+    },
+    "priority": {
+      "none": "Без пріоритету",
+      "urgent": "Терміновий",
+      "high": "Високий",
+      "medium": "Середній",
+      "low": "Низький"
+    },
+    "resolution": {
+      "month": "Місяць",
+      "quarter": "Квартал",
+      "half_year": "Півріччя",
+      "year": "Рік"
+    },
+    "relation": {
+      "title": "Зв'язки",
+      "blocks": "Блокує",
+      "blocked_by": "Заблоковано",
+      "related": "Пов'язано з",
+      "add": "Додати зв'язок",
+      "empty": "Зв'язків поки немає",
+      "searchPlaceholder": "Пошук запитів",
+      "type": "Тип зв'язку",
+      "remove": "Видалити зв'язок",
+      "removeNamed": "Видалити зв'язок із {title}",
+      "removed": "Зв'язок видалено"
+    },
+    "metaEditor": {
+      "title": "Метадані",
+      "add": "Додати поле",
+      "empty": "Метаданих поки немає",
+      "key": "Ключ",
+      "value": "Значення (текст або JSON)",
+      "invalidKey": "Використовуйте не більше 64 літер, цифр і символів _ . : -",
+      "remove": "Видалити поле",
+      "removeNamed": "Видалити {key}",
+      "removed": "«{key}» видалено"
+    },
+    "submit": {
+      "button": "Надіслати запит",
+      "hint": "Наша команда розглядає кожен запит, перш ніж він з'явиться в плані розвитку.",
+      "descriptionPlaceholder": "Що ви намагаєтеся зробити і що вам заважає?",
+      "groupPlaceholder": "Виберіть {group}",
+      "confirm": "Надіслати",
+      "created": "Дякуємо! Ми скоро розглянемо ваш запит.",
+      "createdStaff": "Запит створено",
+      "descriptionLabel": "Опис",
+      "groupRequired": "Виберіть {group}.",
+      "requiredHint": "* Обов'язково",
+      "browse": "переглянути"
+    },
+    "railTooltipUnseen": "План розвитку Noco · Вийшли нові оновлення",
+    "stateTabs": "Стан запиту",
+    "reward": {
+      "giftCard": "Подарункова картка",
+      "amount": "${amount}",
+      "title": "Перетворіть свою ідею на подарункову картку",
+      "body": "Якщо ваш запит потрапить до нашого плану розвитку, подарункова картка ваша. Надсилайте стільки запитів, скільки хочете.",
+      "action": "Запропонувати функцію"
+    },
+    "previousRequest": "Попередній запит",
+    "nextRequest": "Наступний запит",
+    "saved": "Зміни збережено",
+    "saveShortcut": "⌘/Ctrl + Enter — зберегти · Esc — скасувати"
   }
 }

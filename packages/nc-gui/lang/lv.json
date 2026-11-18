@@ -4124,7 +4124,7 @@
     "selectFields": "Izvēlēties laukus",
     "selectRecord": "- Izvēlēties ierakstu -",
     "sharedSource": "Koplietots avots",
-    "selectDateFieldToAdd": "Izvēlies pievienojamo datuma lauku",
+    "selectDateFieldToAdd": "Atlasiet datumu diapazonu",
     "seeWhatsNewEachVersion": "Skati, kas jauns katrā versijā",
     "selectTable": "Izvēlies tabulu",
     "showBookmarkColor": "Rādīt grāmatzīmes krāsu",
@@ -8947,7 +8947,10 @@
       "customersSeeNothing": "Klienti redz: neko (iekšējs)",
       "estimateInvalid": "Izmantojiet veselu skaitli, 0 vai lielāku.",
       "adjustmentPublic": "Klienti redz koriģēto kopsummu.",
-      "labels": "Etiķetes"
+      "labels": "Etiķetes",
+      "votes": "Balsis",
+      "unassigned": "Nav piešķirts",
+      "target": "Mērķa datums"
     },
     "links": {
       "urlPlaceholder": "Ielīmējiet GitHub, Slack vai dokumenta saiti",
@@ -8978,6 +8981,146 @@
       "settings": "Neizdevās ielādēt jūsu ceļa kartes iestatījumus."
     },
     "loadFailed": "Neizdevās ielādēt šo pieprasījumu",
-    "mergedFollowHint": "Balsis un jaunumi turpinās tur."
+    "mergedFollowHint": "Balsis un jaunumi turpinās tur.",
+    "mute": {
+      "pendingTitle": "Notiek šī pieprasījuma apklusināšana",
+      "pending": "Vienu mirkli…",
+      "mutedTitle": "Pieprasījums apklusināts",
+      "muted": "Vairs nesaņemsiet jaunumus par “{title}” — ne e-pastā, ne lietotnē.",
+      "unmutedTitle": "Jaunumi atkal ir ieslēgti",
+      "unmuted": "Atkal saņemsiet jaunumus par “{title}”.",
+      "undo": "Atsaukt",
+      "muteAgain": "Apklusināt vēlreiz",
+      "viewRequest": "Skatīt pieprasījumu",
+      "emailSettings": "Attīstības plāna e-pasta iestatījumi",
+      "goToRoadmap": "Doties uz attīstības plānu",
+      "invalidTitle": "Šī saite vairs nedarbojas",
+      "invalid": "Apklusināšanas saite nav derīga vai ir beigusies. Pieprasījumu joprojām varat apklusināt tā lapā.",
+      "failedTitle": "Neizdevās apklusināt šo pieprasījumu",
+      "failed": "Kaut kas nogāja greizi. Mēģiniet vēlreiz."
+    },
+    "shortTitle": "Attīstības plāns",
+    "railTooltip": "Noco attīstības plāns",
+    "searchPlaceholder": "Meklēt pieprasījumus",
+    "sortBy": "Kārtošana: {sort}",
+    "showMore": "Rādīt vēl {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB komanda",
+    "requestsSection": "Pieprasījumi",
+    "notification": {
+      "approved": "Jūsu pieprasījums {title} ir attīstības plānā",
+      "declined": "Jūsu pieprasījums {title} tika noraidīts",
+      "statusChanged": "{title} tagad ir {status}",
+      "statusChangedStaff": "{actor} pārvietoja {title} uz {status}",
+      "merged": "{title} tika apvienots ar {target}",
+      "assigned": "{actor} piešķīra jums {title}",
+      "staffReply": "{actor} no NocoDB komandas atbildēja pie {title}",
+      "comment": "{actor} komentēja {title}",
+      "internalComment": "{actor} atstāja iekšēju piezīmi pie {title}",
+      "reply": "{actor} atbildēja uz jūsu komentāru pie {title}",
+      "activity": "Jauna aktivitāte pie {title}",
+      "someone": "Kāds"
+    },
+    "previewBanner": "Jūs skatāt attīstības plānu tā, kā to redz klients.",
+    "notFound": "Šis pieprasījums neeksistē vai jums nav redzams.",
+    "positionOf": "{index} no {total}",
+    "resultsCount": "{count} pieprasījums | {count} pieprasījumi",
+    "state": {
+      "open": "Atvērts",
+      "shipped": "Izlaists",
+      "closed": "Slēgts"
+    },
+    "sort": {
+      "top": "Visvairāk balsu",
+      "new": "Jaunākie",
+      "revenue": "Ieņēmumi",
+      "priority": "Prioritāte",
+      "manual": "Manuāli",
+      "updated": "Atjaunināts",
+      "oldest": "Vecākie vispirms"
+    },
+    "publicStatus": {
+      "under_review": "Tiek izskatīts",
+      "backlog": "Rindā",
+      "planned": "Plānots",
+      "in_progress": "Procesā",
+      "shipped": "Izlaists",
+      "closed": "Slēgts",
+      "declined": "Noraidīts",
+      "merged": "Apvienots"
+    },
+    "status": {
+      "triage": "Šķirošana",
+      "backlog": "Rindā",
+      "todo": "Darāmais",
+      "in_progress": "Procesā",
+      "in_review": "Pārskatīšanā",
+      "done": "Pabeigts",
+      "canceled": "Atcelts",
+      "duplicate": "Dublikāts"
+    },
+    "priority": {
+      "none": "Bez prioritātes",
+      "urgent": "Steidzama",
+      "high": "Augsta",
+      "medium": "Vidēja",
+      "low": "Zema"
+    },
+    "resolution": {
+      "month": "Mēnesis",
+      "quarter": "Ceturksnis",
+      "half_year": "Pusgads",
+      "year": "Gads"
+    },
+    "relation": {
+      "title": "Saistības",
+      "blocks": "Bloķē šo",
+      "blocked_by": "Bloķē",
+      "related": "Saistīts ar",
+      "add": "Pievienot saistību",
+      "empty": "Vēl nav saistību",
+      "searchPlaceholder": "Meklēt pieprasījumus",
+      "type": "Saistības veids",
+      "remove": "Noņemt saistību",
+      "removeNamed": "Noņemt saistību ar {title}",
+      "removed": "Saistība noņemta"
+    },
+    "metaEditor": {
+      "title": "Metadati",
+      "add": "Pievienot lauku",
+      "empty": "Vēl nav metadatu",
+      "key": "Atslēga",
+      "value": "Vērtība (teksts vai JSON)",
+      "invalidKey": "Izmantojiet līdz 64 burtiem, cipariem un _ . : -",
+      "remove": "Noņemt lauku",
+      "removeNamed": "Noņemt {key}",
+      "removed": "“{key}” noņemts"
+    },
+    "submit": {
+      "button": "Iesniegt pieprasījumu",
+      "hint": "Mūsu komanda izskata katru pieprasījumu, pirms tas parādās attīstības plānā.",
+      "descriptionPlaceholder": "Ko jūs mēģināt izdarīt un kas traucē?",
+      "groupPlaceholder": "Izvēlieties {group}",
+      "confirm": "Iesniegt",
+      "created": "Paldies! Mēs drīz izskatīsim jūsu pieprasījumu.",
+      "createdStaff": "Pieprasījums izveidots",
+      "descriptionLabel": "Apraksts",
+      "groupRequired": "Izvēlieties {group}.",
+      "requiredHint": "* Obligāts",
+      "browse": "pārlūkot"
+    },
+    "railTooltipUnseen": "Noco attīstības plāns · Izlaisti jauni atjauninājumi",
+    "stateTabs": "Pieprasījuma stāvoklis",
+    "reward": {
+      "giftCard": "Dāvanu karte",
+      "amount": "${amount}",
+      "title": "Pārvērtiet savu ideju dāvanu kartē",
+      "body": "Ja jūsu pieprasījums nonāks mūsu attīstības plānā, dāvanu karte ir jūsu. Sūtiet tik daudz, cik vēlaties.",
+      "action": "Ieteikt funkciju"
+    },
+    "previousRequest": "Iepriekšējais pieprasījums",
+    "nextRequest": "Nākamais pieprasījums",
+    "saved": "Izmaiņas saglabātas",
+    "saveShortcut": "⌘/Ctrl + Enter, lai saglabātu · Esc, lai atceltu"
   }
 }

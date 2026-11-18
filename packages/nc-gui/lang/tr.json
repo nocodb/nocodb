@@ -4128,7 +4128,7 @@
     "selectFields": "Alanları seç",
     "selectRecord": "- Kayıt Seç -",
     "sharedSource": "Paylaşılan kaynak",
-    "selectDateFieldToAdd": "Eklenecek tarih alanını seçin",
+    "selectDateFieldToAdd": "Tarih aralığı seçin",
     "seeWhatsNewEachVersion": "Her sürümde neler yeni olduğunu görün",
     "selectTable": "Bir tablo seçin",
     "showBookmarkColor": "Yer imi rengini göster",
@@ -8947,7 +8947,10 @@
       "customersSeeNothing": "Müşteriler şunu görür: hiçbir şey (dahili)",
       "estimateInvalid": "Tam sayı kullanın, 0 veya daha büyük.",
       "adjustmentPublic": "Müşteriler düzeltilmiş toplamı görür.",
-      "labels": "Etiketler"
+      "labels": "Etiketler",
+      "votes": "Oylar",
+      "unassigned": "Atanmamış",
+      "target": "Hedef tarih"
     },
     "links": {
       "urlPlaceholder": "Bir GitHub, Slack veya belge bağlantısı yapıştırın",
@@ -8978,6 +8981,146 @@
       "settings": "Yol haritası ayarlarınız yüklenemedi."
     },
     "loadFailed": "Bu talep yüklenemedi",
-    "mergedFollowHint": "Oylar ve güncellemeler orada devam eder."
+    "mergedFollowHint": "Oylar ve güncellemeler orada devam eder.",
+    "mute": {
+      "pendingTitle": "Bu istek sessize alınıyor",
+      "pending": "Bir saniye…",
+      "mutedTitle": "İstek sessize alındı",
+      "muted": "“{title}” hakkında artık e-postayla da uygulamada da güncelleme almayacaksınız.",
+      "unmutedTitle": "Güncellemeler yeniden açık",
+      "unmuted": "“{title}” hakkında yeniden güncelleme alacaksınız.",
+      "undo": "Geri al",
+      "muteAgain": "Tekrar sessize al",
+      "viewRequest": "İsteği görüntüle",
+      "emailSettings": "Yol haritası e-posta ayarları",
+      "goToRoadmap": "Yol haritasına git",
+      "invalidTitle": "Bu bağlantı artık çalışmıyor",
+      "invalid": "Sessize alma bağlantısı geçersiz veya süresi dolmuş. İsteği yine de kendi sayfasından sessize alabilirsiniz.",
+      "failedTitle": "Bu istek sessize alınamadı",
+      "failed": "Bir şeyler ters gitti. Tekrar deneyin."
+    },
+    "shortTitle": "Yol haritası",
+    "railTooltip": "Noco Yol Haritası",
+    "searchPlaceholder": "İstekleri ara",
+    "sortBy": "Sıralama: {sort}",
+    "showMore": "{count} tane daha göster",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB ekibi",
+    "requestsSection": "İstekler",
+    "notification": {
+      "approved": "{title} isteğiniz yol haritasında",
+      "declined": "{title} isteğiniz reddedildi",
+      "statusChanged": "{title} artık {status}",
+      "statusChangedStaff": "{actor}, {title} öğesini {status} durumuna taşıdı",
+      "merged": "{title}, {target} ile birleştirildi",
+      "assigned": "{actor}, {title} öğesini size atadı",
+      "staffReply": "NocoDB ekibinden {actor}, {title} üzerinde yanıt verdi",
+      "comment": "{actor}, {title} öğesine yorum yaptı",
+      "internalComment": "{actor}, {title} öğesine dahili bir not bıraktı",
+      "reply": "{actor}, {title} üzerindeki yorumunuza yanıt verdi",
+      "activity": "{title} üzerinde yeni etkinlik",
+      "someone": "Birisi"
+    },
+    "previewBanner": "Yol haritasını bir müşterinin gördüğü şekilde önizliyorsunuz.",
+    "notFound": "Bu istek mevcut değil veya size görünmüyor.",
+    "positionOf": "{total} içinden {index}",
+    "resultsCount": "{count} istek | {count} istek",
+    "state": {
+      "open": "Açık",
+      "shipped": "Yayınlandı",
+      "closed": "Kapatıldı"
+    },
+    "sort": {
+      "top": "En çok oylanan",
+      "new": "En yeni",
+      "revenue": "Gelir",
+      "priority": "Öncelik",
+      "manual": "Elle",
+      "updated": "Güncellenme",
+      "oldest": "Önce en eski"
+    },
+    "publicStatus": {
+      "under_review": "İnceleniyor",
+      "backlog": "Sırada",
+      "planned": "Planlandı",
+      "in_progress": "Devam ediyor",
+      "shipped": "Yayınlandı",
+      "closed": "Kapatıldı",
+      "declined": "Reddedildi",
+      "merged": "Birleştirildi"
+    },
+    "status": {
+      "triage": "Ayıklama",
+      "backlog": "Sırada",
+      "todo": "Yapılacak",
+      "in_progress": "Devam ediyor",
+      "in_review": "İncelemede",
+      "done": "Tamamlandı",
+      "canceled": "İptal edildi",
+      "duplicate": "Yinelenen"
+    },
+    "priority": {
+      "none": "Öncelik yok",
+      "urgent": "Acil",
+      "high": "Yüksek",
+      "medium": "Orta",
+      "low": "Düşük"
+    },
+    "resolution": {
+      "month": "Ay",
+      "quarter": "Çeyrek",
+      "half_year": "Yarım yıl",
+      "year": "Yıl"
+    },
+    "relation": {
+      "title": "İlişkiler",
+      "blocks": "Engelliyor",
+      "blocked_by": "Engelleyen",
+      "related": "İlgili",
+      "add": "İlişki ekle",
+      "empty": "Henüz ilişki yok",
+      "searchPlaceholder": "İstekleri ara",
+      "type": "İlişki türü",
+      "remove": "İlişkiyi kaldır",
+      "removeNamed": "{title} ile ilişkiyi kaldır",
+      "removed": "İlişki kaldırıldı"
+    },
+    "metaEditor": {
+      "title": "Meta veriler",
+      "add": "Alan ekle",
+      "empty": "Henüz meta veri yok",
+      "key": "Anahtar",
+      "value": "Değer (metin veya JSON)",
+      "invalidKey": "En fazla 64 harf, rakam ve _ . : - kullanın",
+      "remove": "Alanı kaldır",
+      "removeNamed": "{key} kaldır",
+      "removed": "“{key}” kaldırıldı"
+    },
+    "submit": {
+      "button": "İstek gönder",
+      "hint": "Ekibimiz, yol haritasında görünmeden önce her isteği inceler.",
+      "descriptionPlaceholder": "Ne yapmaya çalışıyorsunuz ve önünüzde ne engel var?",
+      "groupPlaceholder": "Bir {group} seçin",
+      "confirm": "Gönder",
+      "created": "Teşekkürler! İsteğinizi kısa süre içinde inceleyeceğiz.",
+      "createdStaff": "İstek oluşturuldu",
+      "descriptionLabel": "Açıklama",
+      "groupRequired": "Bir {group} seçin.",
+      "requiredHint": "* Zorunlu",
+      "browse": "göz atın"
+    },
+    "railTooltipUnseen": "Noco Yol Haritası · Yeni güncellemeler yayınlandı",
+    "stateTabs": "İstek durumu",
+    "reward": {
+      "giftCard": "Hediye kartı",
+      "amount": "${amount}",
+      "title": "Fikrinizi hediye kartına dönüştürün",
+      "body": "İsteğiniz yol haritamıza girerse hediye kartı sizindir. İstediğiniz kadar gönderin.",
+      "action": "Bir özellik önerin"
+    },
+    "previousRequest": "Önceki istek",
+    "nextRequest": "Sonraki istek",
+    "saved": "Değişiklikler kaydedildi",
+    "saveShortcut": "Kaydetmek için ⌘/Ctrl + Enter · İptal için Esc"
   }
 }

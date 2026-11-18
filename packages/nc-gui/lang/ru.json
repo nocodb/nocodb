@@ -4128,7 +4128,7 @@
     "selectFields": "Выбрать поля",
     "selectRecord": "- Выбрать запись -",
     "sharedSource": "Общий источник",
-    "selectDateFieldToAdd": "Выберите поле даты для добавления",
+    "selectDateFieldToAdd": "Выберите диапазон дат",
     "seeWhatsNewEachVersion": "Смотрите, что нового в каждой версии",
     "selectTable": "Выберите таблицу",
     "showBookmarkColor": "Показывать цвет закладки",
@@ -8955,7 +8955,10 @@
       "customersSeeNothing": "Клиенты видят: ничего (внутренний)",
       "estimateInvalid": "Используйте целое число, 0 или больше.",
       "adjustmentPublic": "Клиенты видят скорректированный итог.",
-      "labels": "Метки"
+      "labels": "Метки",
+      "votes": "Голоса",
+      "unassigned": "Не назначено",
+      "target": "Целевая дата"
     },
     "links": {
       "urlPlaceholder": "Вставьте ссылку на GitHub, Slack или документ",
@@ -8986,6 +8989,146 @@
       "settings": "Не удалось загрузить ваши настройки дорожной карты."
     },
     "loadFailed": "Не удалось загрузить этот запрос",
-    "mergedFollowHint": "Голоса и обновления продолжаются там."
+    "mergedFollowHint": "Голоса и обновления продолжаются там.",
+    "mute": {
+      "pendingTitle": "Отключаем уведомления по этому запросу",
+      "pending": "Один момент…",
+      "mutedTitle": "Уведомления по запросу отключены",
+      "muted": "Вы больше не будете получать обновления по «{title}» — ни по почте, ни в приложении.",
+      "unmutedTitle": "Обновления снова включены",
+      "unmuted": "Вы снова будете получать обновления по «{title}».",
+      "undo": "Отменить",
+      "muteAgain": "Отключить снова",
+      "viewRequest": "Открыть запрос",
+      "emailSettings": "Настройки писем о плане развития",
+      "goToRoadmap": "Перейти к плану развития",
+      "invalidTitle": "Эта ссылка больше не работает",
+      "invalid": "Ссылка для отключения уведомлений недействительна или устарела. Отключить их можно на странице самого запроса.",
+      "failedTitle": "Не удалось отключить уведомления по этому запросу",
+      "failed": "Что-то пошло не так. Попробуйте ещё раз."
+    },
+    "shortTitle": "План развития",
+    "railTooltip": "План развития Noco",
+    "searchPlaceholder": "Поиск запросов",
+    "sortBy": "Сортировка: {sort}",
+    "showMore": "Показать ещё {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Команда NocoDB",
+    "requestsSection": "Запросы",
+    "notification": {
+      "approved": "Ваш запрос {title} попал в план развития",
+      "declined": "Ваш запрос {title} отклонён",
+      "statusChanged": "{title} теперь {status}",
+      "statusChangedStaff": "{actor} перенёс(ла) {title} в {status}",
+      "merged": "{title} объединён с {target}",
+      "assigned": "{actor} назначил(а) вам {title}",
+      "staffReply": "{actor} из команды NocoDB ответил(а) в {title}",
+      "comment": "{actor} оставил(а) комментарий к {title}",
+      "internalComment": "{actor} оставил(а) внутреннюю заметку к {title}",
+      "reply": "{actor} ответил(а) на ваш комментарий к {title}",
+      "activity": "Новая активность в {title}",
+      "someone": "Кто-то"
+    },
+    "previewBanner": "Вы просматриваете план развития так, как его видит клиент.",
+    "notFound": "Такого запроса не существует или он вам недоступен.",
+    "positionOf": "{index} из {total}",
+    "resultsCount": "{count} запрос | {count} запросов",
+    "state": {
+      "open": "Открыт",
+      "shipped": "Выпущен",
+      "closed": "Закрыт"
+    },
+    "sort": {
+      "top": "Больше всего голосов",
+      "new": "Сначала новые",
+      "revenue": "Выручка",
+      "priority": "Приоритет",
+      "manual": "Вручную",
+      "updated": "По обновлению",
+      "oldest": "Сначала старые"
+    },
+    "publicStatus": {
+      "under_review": "На рассмотрении",
+      "backlog": "В очереди",
+      "planned": "Запланирован",
+      "in_progress": "В работе",
+      "shipped": "Выпущен",
+      "closed": "Закрыт",
+      "declined": "Отклонён",
+      "merged": "Объединён"
+    },
+    "status": {
+      "triage": "Сортировка",
+      "backlog": "В очереди",
+      "todo": "К выполнению",
+      "in_progress": "В работе",
+      "in_review": "На проверке",
+      "done": "Готово",
+      "canceled": "Отменён",
+      "duplicate": "Дубликат"
+    },
+    "priority": {
+      "none": "Без приоритета",
+      "urgent": "Срочный",
+      "high": "Высокий",
+      "medium": "Средний",
+      "low": "Низкий"
+    },
+    "resolution": {
+      "month": "Месяц",
+      "quarter": "Квартал",
+      "half_year": "Полугодие",
+      "year": "Год"
+    },
+    "relation": {
+      "title": "Связи",
+      "blocks": "Блокирует",
+      "blocked_by": "Заблокирован",
+      "related": "Связан с",
+      "add": "Добавить связь",
+      "empty": "Связей пока нет",
+      "searchPlaceholder": "Поиск запросов",
+      "type": "Тип связи",
+      "remove": "Удалить связь",
+      "removeNamed": "Удалить связь с {title}",
+      "removed": "Связь удалена"
+    },
+    "metaEditor": {
+      "title": "Метаданные",
+      "add": "Добавить поле",
+      "empty": "Метаданных пока нет",
+      "key": "Ключ",
+      "value": "Значение (текст или JSON)",
+      "invalidKey": "Используйте не более 64 букв, цифр и символов _ . : -",
+      "remove": "Удалить поле",
+      "removeNamed": "Удалить {key}",
+      "removed": "«{key}» удалено"
+    },
+    "submit": {
+      "button": "Отправить запрос",
+      "hint": "Наша команда рассматривает каждый запрос, прежде чем он появится в плане развития.",
+      "descriptionPlaceholder": "Что вы пытаетесь сделать и что вам мешает?",
+      "groupPlaceholder": "Выберите {group}",
+      "confirm": "Отправить",
+      "created": "Спасибо! Мы скоро рассмотрим ваш запрос.",
+      "createdStaff": "Запрос создан",
+      "descriptionLabel": "Описание",
+      "groupRequired": "Выберите {group}.",
+      "requiredHint": "* Обязательно",
+      "browse": "посмотреть"
+    },
+    "railTooltipUnseen": "План развития Noco · Вышли новые обновления",
+    "stateTabs": "Состояние запроса",
+    "reward": {
+      "giftCard": "Подарочная карта",
+      "amount": "${amount}",
+      "title": "Превратите свою идею в подарочную карту",
+      "body": "Если ваш запрос попадёт в наш план развития, подарочная карта ваша. Отправляйте столько запросов, сколько хотите.",
+      "action": "Предложить функцию"
+    },
+    "previousRequest": "Предыдущий запрос",
+    "nextRequest": "Следующий запрос",
+    "saved": "Изменения сохранены",
+    "saveShortcut": "⌘/Ctrl + Enter — сохранить · Esc — отменить"
   }
 }

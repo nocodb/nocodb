@@ -4124,7 +4124,7 @@
     "selectFields": "Seleziona i campi",
     "selectRecord": "- Seleziona un record -",
     "sharedSource": "Origine condivisa",
-    "selectDateFieldToAdd": "Seleziona il campo data da aggiungere",
+    "selectDateFieldToAdd": "Seleziona intervallo di date",
     "seeWhatsNewEachVersion": "Scopri le novità di ogni versione",
     "selectTable": "Seleziona una tabella",
     "showBookmarkColor": "Mostra il colore del segnalibro",
@@ -8941,7 +8941,10 @@
       "customersSeeNothing": "I clienti vedono: nulla (interno)",
       "estimateInvalid": "Usa un numero intero, 0 o maggiore.",
       "adjustmentPublic": "I clienti vedono il totale rettificato.",
-      "labels": "Etichette"
+      "labels": "Etichette",
+      "votes": "Voti",
+      "unassigned": "Non assegnato",
+      "target": "Data obiettivo"
     },
     "links": {
       "urlPlaceholder": "Incolla un link GitHub, Slack o a un documento",
@@ -8972,6 +8975,145 @@
       "settings": "Impossibile caricare le tue impostazioni della roadmap."
     },
     "loadFailed": "Impossibile caricare questa richiesta",
-    "mergedFollowHint": "I voti e gli aggiornamenti proseguono lì."
+    "mergedFollowHint": "I voti e gli aggiornamenti proseguono lì.",
+    "mute": {
+      "pendingTitle": "Silenziamento della richiesta in corso",
+      "pending": "Un momento…",
+      "mutedTitle": "Richiesta silenziata",
+      "muted": "Non riceverai più aggiornamenti su «{title}», né via e-mail né nell'app.",
+      "unmutedTitle": "Gli aggiornamenti sono riattivati",
+      "unmuted": "Riceverai di nuovo aggiornamenti su «{title}».",
+      "undo": "Annulla",
+      "muteAgain": "Silenzia di nuovo",
+      "viewRequest": "Visualizza richiesta",
+      "emailSettings": "Impostazioni e-mail della tabella di marcia",
+      "goToRoadmap": "Vai alla tabella di marcia",
+      "invalidTitle": "Questo link non funziona più",
+      "invalid": "Il link per silenziare non è valido o è scaduto. Puoi comunque silenziare la richiesta dalla sua pagina.",
+      "failedTitle": "Impossibile silenziare questa richiesta",
+      "failed": "Qualcosa è andato storto. Riprova."
+    },
+    "shortTitle": "Tabella di marcia",
+    "searchPlaceholder": "Cerca richieste",
+    "sortBy": "Ordina: {sort}",
+    "showMore": "Mostra altri {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Team NocoDB",
+    "requestsSection": "Richieste",
+    "notification": {
+      "approved": "La tua richiesta {title} è nella tabella di marcia",
+      "declined": "La tua richiesta {title} è stata rifiutata",
+      "statusChanged": "{title} ora è {status}",
+      "statusChangedStaff": "{actor} ha spostato {title} in {status}",
+      "merged": "{title} è stata unita a {target}",
+      "assigned": "{actor} ti ha assegnato {title}",
+      "staffReply": "{actor} del team NocoDB ha risposto su {title}",
+      "comment": "{actor} ha commentato {title}",
+      "internalComment": "{actor} ha lasciato una nota interna su {title}",
+      "reply": "{actor} ha risposto al tuo commento su {title}",
+      "activity": "Nuova attività su {title}",
+      "someone": "Qualcuno"
+    },
+    "previewBanner": "Stai visualizzando l'anteprima della tabella di marcia come la vede un cliente.",
+    "notFound": "Questa richiesta non esiste o non è visibile per te.",
+    "positionOf": "{index} di {total}",
+    "resultsCount": "{count} richiesta | {count} richieste",
+    "state": {
+      "open": "Aperta",
+      "shipped": "Rilasciata",
+      "closed": "Chiusa"
+    },
+    "sort": {
+      "top": "Più votate",
+      "new": "Più recenti",
+      "revenue": "Ricavi",
+      "priority": "Priorità",
+      "manual": "Manuale",
+      "updated": "Aggiornate",
+      "oldest": "Meno recenti prima"
+    },
+    "publicStatus": {
+      "under_review": "In esame",
+      "backlog": "Da valutare",
+      "planned": "Pianificata",
+      "in_progress": "In corso",
+      "shipped": "Rilasciata",
+      "closed": "Chiusa",
+      "declined": "Rifiutata",
+      "merged": "Unita"
+    },
+    "status": {
+      "triage": "Smistamento",
+      "backlog": "Da valutare",
+      "todo": "Da fare",
+      "in_progress": "In corso",
+      "in_review": "In revisione",
+      "done": "Completata",
+      "canceled": "Annullata",
+      "duplicate": "Duplicata"
+    },
+    "priority": {
+      "none": "Nessuna priorità",
+      "urgent": "Urgente",
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Bassa"
+    },
+    "resolution": {
+      "month": "Mese",
+      "quarter": "Trimestre",
+      "half_year": "Semestre",
+      "year": "Anno"
+    },
+    "relation": {
+      "title": "Relazioni",
+      "blocks": "Blocca",
+      "blocked_by": "Bloccata da",
+      "related": "Correlata a",
+      "add": "Aggiungi relazione",
+      "empty": "Nessuna relazione per ora",
+      "searchPlaceholder": "Cerca richieste",
+      "type": "Tipo di relazione",
+      "remove": "Rimuovi relazione",
+      "removeNamed": "Rimuovi la relazione con {title}",
+      "removed": "Relazione rimossa"
+    },
+    "metaEditor": {
+      "title": "Metadati",
+      "add": "Aggiungi campo",
+      "empty": "Nessun metadato per ora",
+      "key": "Chiave",
+      "value": "Valore (testo o JSON)",
+      "invalidKey": "Usa fino a 64 lettere, cifre e _ . : -",
+      "remove": "Rimuovi campo",
+      "removeNamed": "Rimuovi {key}",
+      "removed": "«{key}» rimosso"
+    },
+    "submit": {
+      "button": "Invia una richiesta",
+      "hint": "Il nostro team esamina ogni richiesta prima che compaia nella tabella di marcia.",
+      "descriptionPlaceholder": "Cosa stai cercando di fare e cosa te lo impedisce?",
+      "groupPlaceholder": "Scegli un {group}",
+      "confirm": "Invia",
+      "created": "Grazie! Esamineremo presto la tua richiesta.",
+      "createdStaff": "Richiesta creata",
+      "descriptionLabel": "Descrizione",
+      "groupRequired": "Scegli un {group}.",
+      "requiredHint": "* Obbligatorio",
+      "browse": "sfoglia"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Nuovi aggiornamenti rilasciati",
+    "stateTabs": "Stato della richiesta",
+    "reward": {
+      "giftCard": "Carta regalo",
+      "amount": "${amount}",
+      "title": "Trasforma la tua idea in una carta regalo",
+      "body": "Se la tua richiesta entra nella nostra tabella di marcia, la carta regalo è tua. Inviane quante vuoi.",
+      "action": "Suggerisci una funzionalità"
+    },
+    "previousRequest": "Richiesta precedente",
+    "nextRequest": "Richiesta successiva",
+    "saved": "Modifiche salvate",
+    "saveShortcut": "⌘/Ctrl + Invio per salvare · Esc per annullare"
   }
 }

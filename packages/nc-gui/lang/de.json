@@ -4074,7 +4074,7 @@
     "sharedSource": "Gemeinsame Quelle",
     "saveRecord": "Eintrag speichern",
     "relationSettings": "Beziehungseinstellungen",
-    "selectDateFieldToAdd": "Hinzuzufügendes Datumsfeld wählen",
+    "selectDateFieldToAdd": "Datumsbereich auswählen",
     "publishVersion": "v{version} veröffentlichen",
     "publishNothingToConverge": "Die Produktion hat bereits alles aus dieser Kopie.",
     "publishStoreVersion": "Store-Version",
@@ -8939,7 +8939,10 @@
       "customersSeeNothing": "Kunden sehen: nichts (intern)",
       "estimateInvalid": "Verwenden Sie eine ganze Zahl, 0 oder größer.",
       "adjustmentPublic": "Kunden sehen die angepasste Gesamtzahl.",
-      "labels": "Bezeichnungen"
+      "labels": "Bezeichnungen",
+      "votes": "Stimmen",
+      "unassigned": "Nicht zugewiesen",
+      "target": "Zieldatum"
     },
     "links": {
       "urlPlaceholder": "GitHub-, Slack- oder Dokument-Link einfügen",
@@ -8970,6 +8973,141 @@
       "settings": "Ihre Roadmap-Einstellungen konnten nicht geladen werden."
     },
     "loadFailed": "Diese Anfrage konnte nicht geladen werden",
-    "mergedFollowHint": "Stimmen und Aktualisierungen laufen dort weiter."
+    "mergedFollowHint": "Stimmen und Aktualisierungen laufen dort weiter.",
+    "mute": {
+      "pendingTitle": "Anfrage wird stummgeschaltet",
+      "pending": "Einen Moment …",
+      "mutedTitle": "Anfrage stummgeschaltet",
+      "muted": "Sie erhalten keine Updates mehr zu „{title}“ – weder per E-Mail noch in der App.",
+      "unmutedTitle": "Updates sind wieder aktiviert",
+      "unmuted": "Sie erhalten wieder Updates zu „{title}“.",
+      "undo": "Rückgängig",
+      "muteAgain": "Erneut stummschalten",
+      "viewRequest": "Anfrage ansehen",
+      "emailSettings": "E-Mail-Einstellungen für die Roadmap",
+      "goToRoadmap": "Zur Roadmap",
+      "invalidTitle": "Dieser Link funktioniert nicht mehr",
+      "invalid": "Der Link zum Stummschalten ist ungültig oder abgelaufen. Sie können die Anfrage weiterhin auf ihrer Seite stummschalten.",
+      "failedTitle": "Anfrage konnte nicht stummgeschaltet werden",
+      "failed": "Etwas ist schiefgelaufen. Bitte erneut versuchen."
+    },
+    "searchPlaceholder": "Anfragen suchen",
+    "sortBy": "Sortierung: {sort}",
+    "showMore": "{count} weitere anzeigen",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB-Team",
+    "requestsSection": "Anfragen",
+    "notification": {
+      "approved": "Ihre Anfrage {title} steht auf der Roadmap",
+      "declined": "Ihre Anfrage {title} wurde abgelehnt",
+      "statusChanged": "{title} ist jetzt {status}",
+      "statusChangedStaff": "{actor} hat {title} nach {status} verschoben",
+      "merged": "{title} wurde in {target} zusammengeführt",
+      "assigned": "{actor} hat Ihnen {title} zugewiesen",
+      "staffReply": "{actor} vom NocoDB-Team hat zu {title} geantwortet",
+      "comment": "{actor} hat {title} kommentiert",
+      "internalComment": "{actor} hat eine interne Notiz zu {title} hinterlassen",
+      "reply": "{actor} hat auf Ihren Kommentar zu {title} geantwortet",
+      "activity": "Neue Aktivität bei {title}",
+      "someone": "Jemand"
+    },
+    "previewBanner": "Sie sehen eine Vorschau der Roadmap aus Kundensicht.",
+    "notFound": "Diese Anfrage existiert nicht oder ist für Sie nicht sichtbar.",
+    "positionOf": "{index} von {total}",
+    "resultsCount": "{count} Anfrage | {count} Anfragen",
+    "state": {
+      "open": "Offen",
+      "shipped": "Veröffentlicht",
+      "closed": "Geschlossen"
+    },
+    "sort": {
+      "top": "Meiste Stimmen",
+      "new": "Neueste",
+      "revenue": "Umsatz",
+      "priority": "Priorität",
+      "manual": "Manuell",
+      "updated": "Aktualisiert",
+      "oldest": "Älteste zuerst"
+    },
+    "publicStatus": {
+      "under_review": "In Prüfung",
+      "planned": "Geplant",
+      "in_progress": "In Arbeit",
+      "shipped": "Veröffentlicht",
+      "closed": "Geschlossen",
+      "declined": "Abgelehnt",
+      "merged": "Zusammengeführt"
+    },
+    "status": {
+      "todo": "Zu erledigen",
+      "in_progress": "In Arbeit",
+      "in_review": "In Prüfung",
+      "done": "Erledigt",
+      "canceled": "Abgebrochen",
+      "duplicate": "Duplikat"
+    },
+    "priority": {
+      "none": "Keine Priorität",
+      "urgent": "Dringend",
+      "high": "Hoch",
+      "medium": "Mittel",
+      "low": "Niedrig"
+    },
+    "resolution": {
+      "month": "Monat",
+      "quarter": "Quartal",
+      "half_year": "Halbjahr",
+      "year": "Jahr"
+    },
+    "relation": {
+      "title": "Beziehungen",
+      "blocks": "Blockiert",
+      "blocked_by": "Blockiert von",
+      "related": "Verwandt mit",
+      "add": "Beziehung hinzufügen",
+      "empty": "Noch keine Beziehungen",
+      "searchPlaceholder": "Anfragen suchen",
+      "type": "Beziehungstyp",
+      "remove": "Beziehung entfernen",
+      "removeNamed": "Beziehung zu {title} entfernen",
+      "removed": "Beziehung entfernt"
+    },
+    "metaEditor": {
+      "title": "Metadaten",
+      "add": "Feld hinzufügen",
+      "empty": "Noch keine Metadaten",
+      "key": "Schlüssel",
+      "value": "Wert (Text oder JSON)",
+      "invalidKey": "Verwenden Sie bis zu 64 Buchstaben, Ziffern und _ . : -",
+      "remove": "Feld entfernen",
+      "removeNamed": "{key} entfernen",
+      "removed": "„{key}“ entfernt"
+    },
+    "submit": {
+      "button": "Anfrage einreichen",
+      "hint": "Unser Team prüft jede Anfrage, bevor sie auf der Roadmap erscheint.",
+      "descriptionPlaceholder": "Was möchten Sie tun, und was steht dem im Weg?",
+      "groupPlaceholder": "{group} auswählen",
+      "confirm": "Einreichen",
+      "created": "Danke! Wir prüfen Ihre Anfrage in Kürze.",
+      "createdStaff": "Anfrage erstellt",
+      "descriptionLabel": "Beschreibung",
+      "groupRequired": "Bitte {group} auswählen.",
+      "requiredHint": "* Erforderlich",
+      "browse": "durchsuchen"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Neue Updates veröffentlicht",
+    "stateTabs": "Status der Anfrage",
+    "reward": {
+      "giftCard": "Geschenkkarte",
+      "amount": "${amount}",
+      "title": "Machen Sie aus Ihrer Idee eine Geschenkkarte",
+      "body": "Wenn Ihre Anfrage es auf unsere Roadmap schafft, gehört die Geschenkkarte Ihnen. Reichen Sie so viele ein, wie Sie möchten.",
+      "action": "Funktion vorschlagen"
+    },
+    "previousRequest": "Vorherige Anfrage",
+    "nextRequest": "Nächste Anfrage",
+    "saved": "Änderungen gespeichert",
+    "saveShortcut": "⌘/Strg + Enter zum Speichern · Esc zum Abbrechen"
   }
 }

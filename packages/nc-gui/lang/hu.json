@@ -4128,7 +4128,7 @@
     "selectFields": "Mezők kiválasztása",
     "selectRecord": "- Rekord kiválasztása -",
     "sharedSource": "Megosztott forrás",
-    "selectDateFieldToAdd": "Válaszd ki a hozzáadandó dátummezőt",
+    "selectDateFieldToAdd": "Válasszon dátumtartományt",
     "seeWhatsNewEachVersion": "Nézd meg, mi új az egyes verziókban",
     "selectTable": "Válassz egy táblát",
     "showBookmarkColor": "Könyvjelző színének megjelenítése",
@@ -8948,7 +8948,10 @@
       "customersSeeNothing": "Az ügyfelek ezt látják: semmit (belső)",
       "estimateInvalid": "Egész számot adj meg, 0-t vagy annál nagyobbat.",
       "adjustmentPublic": "Az ügyfelek a korrigált összeget látják.",
-      "labels": "Címkék"
+      "labels": "Címkék",
+      "votes": "Szavazatok",
+      "unassigned": "Nincs hozzárendelve",
+      "target": "Céldátum"
     },
     "links": {
       "urlPlaceholder": "Illessz be egy GitHub-, Slack- vagy dokumentumhivatkozást",
@@ -8979,6 +8982,145 @@
       "settings": "A roadmap-beállításaid betöltése nem sikerült."
     },
     "loadFailed": "Ennek a kérésnek a betöltése nem sikerült",
-    "mergedFollowHint": "A szavazatok és a frissítések ott folytatódnak."
+    "mergedFollowHint": "A szavazatok és a frissítések ott folytatódnak.",
+    "mute": {
+      "pendingTitle": "A kérés némítása folyamatban",
+      "pending": "Egy pillanat…",
+      "mutedTitle": "Kérés némítva",
+      "muted": "Többé nem kap értesítéseket a következőről: „{title}” – sem e-mailben, sem az alkalmazásban.",
+      "unmutedTitle": "Az értesítések újra be vannak kapcsolva",
+      "unmuted": "Ismét kap értesítéseket a következőről: „{title}”.",
+      "undo": "Visszavonás",
+      "muteAgain": "Némítás újra",
+      "viewRequest": "Kérés megtekintése",
+      "emailSettings": "Az ütemterv e-mail-beállításai",
+      "goToRoadmap": "Ugrás az ütemtervhez",
+      "invalidTitle": "Ez a hivatkozás már nem működik",
+      "invalid": "A némítási hivatkozás érvénytelen vagy lejárt. A kérést továbbra is némíthatja a saját oldaláról.",
+      "failedTitle": "Nem sikerült némítani ezt a kérést",
+      "failed": "Valami hiba történt. Próbálja újra."
+    },
+    "shortTitle": "Ütemterv",
+    "searchPlaceholder": "Kérések keresése",
+    "sortBy": "Rendezés: {sort}",
+    "showMore": "Még {count} megjelenítése",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB csapat",
+    "requestsSection": "Kérések",
+    "notification": {
+      "approved": "A(z) {title} kérése felkerült az ütemtervre",
+      "declined": "A(z) {title} kérését elutasítottuk",
+      "statusChanged": "{title} állapota most: {status}",
+      "statusChangedStaff": "{actor} áthelyezte a következőt: {title} ide: {status}",
+      "merged": "{title} beolvadt ebbe: {target}",
+      "assigned": "{actor} Önhöz rendelte a következőt: {title}",
+      "staffReply": "{actor} a NocoDB csapatából válaszolt itt: {title}",
+      "comment": "{actor} hozzászólt ehhez: {title}",
+      "internalComment": "{actor} belső megjegyzést hagyott itt: {title}",
+      "reply": "{actor} válaszolt a hozzászólására itt: {title}",
+      "activity": "Új tevékenység itt: {title}",
+      "someone": "Valaki"
+    },
+    "previewBanner": "Az ütemtervet úgy tekinti meg, ahogyan egy ügyfél látja.",
+    "notFound": "Ez a kérés nem létezik, vagy nem látható az Ön számára.",
+    "positionOf": "{index} / {total}",
+    "resultsCount": "{count} kérés | {count} kérés",
+    "state": {
+      "open": "Nyitott",
+      "shipped": "Kiadva",
+      "closed": "Lezárva"
+    },
+    "sort": {
+      "top": "Legtöbb szavazat",
+      "new": "Legújabb",
+      "revenue": "Bevétel",
+      "priority": "Prioritás",
+      "manual": "Kézi",
+      "updated": "Frissítve",
+      "oldest": "Legrégebbi elöl"
+    },
+    "publicStatus": {
+      "under_review": "Elbírálás alatt",
+      "backlog": "Várólistán",
+      "planned": "Tervezett",
+      "in_progress": "Folyamatban",
+      "shipped": "Kiadva",
+      "closed": "Lezárva",
+      "declined": "Elutasítva",
+      "merged": "Egyesítve"
+    },
+    "status": {
+      "triage": "Besorolás",
+      "backlog": "Várólistán",
+      "todo": "Tennivaló",
+      "in_progress": "Folyamatban",
+      "in_review": "Ellenőrzés alatt",
+      "done": "Kész",
+      "canceled": "Megszakítva",
+      "duplicate": "Másolat"
+    },
+    "priority": {
+      "none": "Nincs prioritás",
+      "urgent": "Sürgős",
+      "high": "Magas",
+      "medium": "Közepes",
+      "low": "Alacsony"
+    },
+    "resolution": {
+      "month": "Hónap",
+      "quarter": "Negyedév",
+      "half_year": "Félév",
+      "year": "Év"
+    },
+    "relation": {
+      "title": "Kapcsolatok",
+      "blocks": "Blokkol",
+      "blocked_by": "Blokkolja",
+      "related": "Kapcsolódik ehhez",
+      "add": "Kapcsolat hozzáadása",
+      "empty": "Még nincsenek kapcsolatok",
+      "searchPlaceholder": "Kérések keresése",
+      "type": "Kapcsolat típusa",
+      "remove": "Kapcsolat eltávolítása",
+      "removeNamed": "A(z) {title} kapcsolatának eltávolítása",
+      "removed": "Kapcsolat eltávolítva"
+    },
+    "metaEditor": {
+      "title": "Metaadatok",
+      "add": "Mező hozzáadása",
+      "empty": "Még nincsenek metaadatok",
+      "key": "Kulcs",
+      "value": "Érték (szöveg vagy JSON)",
+      "invalidKey": "Legfeljebb 64 betűt, számjegyet és _ . : - karaktert használjon",
+      "remove": "Mező eltávolítása",
+      "removeNamed": "{key} eltávolítása",
+      "removed": "„{key}” eltávolítva"
+    },
+    "submit": {
+      "button": "Kérés beküldése",
+      "hint": "Csapatunk minden kérést átnéz, mielőtt megjelenne az ütemtervben.",
+      "descriptionPlaceholder": "Mit szeretne csinálni, és mi akadályozza benne?",
+      "groupPlaceholder": "Válasszon {group} elemet",
+      "confirm": "Beküldés",
+      "created": "Köszönjük! Hamarosan áttekintjük a kérését.",
+      "createdStaff": "Kérés létrehozva",
+      "descriptionLabel": "Leírás",
+      "groupRequired": "Válasszon {group} elemet.",
+      "requiredHint": "* Kötelező",
+      "browse": "tallózás"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Új frissítések jelentek meg",
+    "stateTabs": "A kérés állapota",
+    "reward": {
+      "giftCard": "Ajándékkártya",
+      "amount": "${amount}",
+      "title": "Váltsa ötletét ajándékkártyára",
+      "body": "Ha a kérése felkerül az ütemtervünkre, az ajándékkártya az Öné. Annyit küldhet be, amennyit csak szeretne.",
+      "action": "Funkció javaslása"
+    },
+    "previousRequest": "Előző kérés",
+    "nextRequest": "Következő kérés",
+    "saved": "Módosítások mentve",
+    "saveShortcut": "⌘/Ctrl + Enter a mentéshez · Esc a megszakításhoz"
   }
 }

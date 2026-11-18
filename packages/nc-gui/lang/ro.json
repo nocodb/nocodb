@@ -4116,7 +4116,7 @@
     "selectFields": "Selectează câmpurile",
     "selectRecord": "- Selectează înregistrarea -",
     "sharedSource": "Sursă partajată",
-    "selectDateFieldToAdd": "Selectează câmpul de dată de adăugat",
+    "selectDateFieldToAdd": "Selectați intervalul de date",
     "seeWhatsNewEachVersion": "Vezi noutățile fiecărei versiuni",
     "selectTable": "Selectează un tabel",
     "showBookmarkColor": "Afișează culoarea marcajului",
@@ -8925,7 +8925,10 @@
       "customersSeeNothing": "Clienții văd: nimic (intern)",
       "estimateInvalid": "Folosește un număr întreg, 0 sau mai mare.",
       "adjustmentPublic": "Clienții văd totalul ajustat.",
-      "labels": "Etichete"
+      "labels": "Etichete",
+      "votes": "Voturi",
+      "unassigned": "Neatribuit",
+      "target": "Dată țintă"
     },
     "links": {
       "urlPlaceholder": "Lipește o legătură GitHub, Slack sau către un document",
@@ -8956,6 +8959,145 @@
       "settings": "Setările tale de roadmap nu au putut fi încărcate."
     },
     "loadFailed": "Această solicitare nu a putut fi încărcată",
-    "mergedFollowHint": "Voturile și actualizările continuă acolo."
+    "mergedFollowHint": "Voturile și actualizările continuă acolo.",
+    "mute": {
+      "pendingTitle": "Se amuțește această solicitare",
+      "pending": "Un moment…",
+      "mutedTitle": "Solicitare amuțită",
+      "muted": "Nu veți mai primi actualizări despre „{title}”, nici pe e-mail, nici în aplicație.",
+      "unmutedTitle": "Actualizările sunt active din nou",
+      "unmuted": "Veți primi din nou actualizări despre „{title}”.",
+      "undo": "Anulați",
+      "muteAgain": "Amuțiți din nou",
+      "viewRequest": "Vedeți solicitarea",
+      "emailSettings": "Setări de e-mail pentru foaia de parcurs",
+      "goToRoadmap": "Mergeți la foaia de parcurs",
+      "invalidTitle": "Acest link nu mai funcționează",
+      "invalid": "Linkul de amuțire este invalid sau a expirat. Puteți amuți în continuare solicitarea din pagina acesteia.",
+      "failedTitle": "Această solicitare nu a putut fi amuțită",
+      "failed": "Ceva nu a funcționat. Încercați din nou."
+    },
+    "shortTitle": "Foaie de parcurs",
+    "searchPlaceholder": "Căutați solicitări",
+    "sortBy": "Sortare: {sort}",
+    "showMore": "Afișați încă {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Echipa NocoDB",
+    "requestsSection": "Solicitări",
+    "notification": {
+      "approved": "Solicitarea dvs. {title} este pe foaia de parcurs",
+      "declined": "Solicitarea dvs. {title} a fost respinsă",
+      "statusChanged": "{title} este acum {status}",
+      "statusChangedStaff": "{actor} a mutat {title} în {status}",
+      "merged": "{title} a fost îmbinată în {target}",
+      "assigned": "{actor} v-a atribuit {title}",
+      "staffReply": "{actor} din echipa NocoDB a răspuns la {title}",
+      "comment": "{actor} a comentat la {title}",
+      "internalComment": "{actor} a lăsat o notă internă la {title}",
+      "reply": "{actor} a răspuns la comentariul dvs. de la {title}",
+      "activity": "Activitate nouă la {title}",
+      "someone": "Cineva"
+    },
+    "previewBanner": "Previzualizați foaia de parcurs așa cum o vede un client.",
+    "notFound": "Această solicitare nu există sau nu este vizibilă pentru dvs.",
+    "positionOf": "{index} din {total}",
+    "resultsCount": "{count} solicitare | {count} solicitări",
+    "state": {
+      "open": "Deschisă",
+      "shipped": "Lansată",
+      "closed": "Închisă"
+    },
+    "sort": {
+      "top": "Cele mai votate",
+      "new": "Cele mai noi",
+      "revenue": "Venit",
+      "priority": "Prioritate",
+      "manual": "Manuală",
+      "updated": "Actualizate",
+      "oldest": "Cele mai vechi primele"
+    },
+    "publicStatus": {
+      "under_review": "În analiză",
+      "backlog": "În așteptare",
+      "planned": "Planificată",
+      "in_progress": "În curs",
+      "shipped": "Lansată",
+      "closed": "Închisă",
+      "declined": "Respinsă",
+      "merged": "Îmbinată"
+    },
+    "status": {
+      "triage": "Triere",
+      "backlog": "În așteptare",
+      "todo": "De făcut",
+      "in_progress": "În curs",
+      "in_review": "În recenzie",
+      "done": "Finalizată",
+      "canceled": "Anulată",
+      "duplicate": "Duplicat"
+    },
+    "priority": {
+      "none": "Fără prioritate",
+      "urgent": "Urgentă",
+      "high": "Ridicată",
+      "medium": "Medie",
+      "low": "Scăzută"
+    },
+    "resolution": {
+      "month": "Lună",
+      "quarter": "Trimestru",
+      "half_year": "Semestru",
+      "year": "An"
+    },
+    "relation": {
+      "title": "Relații",
+      "blocks": "Blochează",
+      "blocked_by": "Blocată de",
+      "related": "Legată de",
+      "add": "Adăugați relație",
+      "empty": "Încă nu există relații",
+      "searchPlaceholder": "Căutați solicitări",
+      "type": "Tip de relație",
+      "remove": "Eliminați relația",
+      "removeNamed": "Eliminați relația cu {title}",
+      "removed": "Relație eliminată"
+    },
+    "metaEditor": {
+      "title": "Metadate",
+      "add": "Adăugați câmp",
+      "empty": "Încă nu există metadate",
+      "key": "Cheie",
+      "value": "Valoare (text sau JSON)",
+      "invalidKey": "Folosiți până la 64 de litere, cifre și _ . : -",
+      "remove": "Eliminați câmpul",
+      "removeNamed": "Eliminați {key}",
+      "removed": "„{key}” a fost eliminat"
+    },
+    "submit": {
+      "button": "Trimiteți o solicitare",
+      "hint": "Echipa noastră analizează fiecare solicitare înainte să apară pe foaia de parcurs.",
+      "descriptionPlaceholder": "Ce încercați să faceți și ce vă stă în cale?",
+      "groupPlaceholder": "Alegeți un {group}",
+      "confirm": "Trimiteți",
+      "created": "Mulțumim! Vă vom analiza solicitarea în curând.",
+      "createdStaff": "Solicitare creată",
+      "descriptionLabel": "Descriere",
+      "groupRequired": "Alegeți un {group}.",
+      "requiredHint": "* Obligatoriu",
+      "browse": "răsfoiți"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Actualizări noi lansate",
+    "stateTabs": "Starea solicitării",
+    "reward": {
+      "giftCard": "Card cadou",
+      "amount": "${amount}",
+      "title": "Transformați-vă ideea într-un card cadou",
+      "body": "Dacă solicitarea dvs. ajunge pe foaia noastră de parcurs, cardul cadou este al dvs. Trimiteți câte doriți.",
+      "action": "Sugerați o funcționalitate"
+    },
+    "previousRequest": "Solicitarea anterioară",
+    "nextRequest": "Solicitarea următoare",
+    "saved": "Modificări salvate",
+    "saveShortcut": "⌘/Ctrl + Enter pentru salvare · Esc pentru anulare"
   }
 }

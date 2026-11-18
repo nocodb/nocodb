@@ -4124,7 +4124,7 @@
     "selectFields": "Selecionar colunas",
     "selectRecord": "- Selecionar registro -",
     "sharedSource": "Fonte compartilhada",
-    "selectDateFieldToAdd": "Selecione a coluna de data para adicionar",
+    "selectDateFieldToAdd": "Selecionar intervalo de datas",
     "seeWhatsNewEachVersion": "Veja as novidades de cada versão",
     "selectTable": "Selecione uma tabela",
     "showBookmarkColor": "Mostrar cor do marcador",
@@ -8940,7 +8940,10 @@
       "customersSeeNothing": "Os clientes veem: nada (interno)",
       "estimateInvalid": "Use um número inteiro, 0 ou maior.",
       "adjustmentPublic": "Os clientes veem o total ajustado.",
-      "labels": "Etiquetas"
+      "labels": "Etiquetas",
+      "votes": "Votos",
+      "unassigned": "Não atribuído",
+      "target": "Data-alvo"
     },
     "links": {
       "urlPlaceholder": "Cole um link do GitHub, do Slack ou de um documento",
@@ -8971,6 +8974,144 @@
       "settings": "Não foi possível carregar suas configurações da roadmap."
     },
     "loadFailed": "Não foi possível carregar esta solicitação",
-    "mergedFollowHint": "Os votos e as novidades continuam lá."
+    "mergedFollowHint": "Os votos e as novidades continuam lá.",
+    "mute": {
+      "pendingTitle": "Silenciando esta solicitação",
+      "pending": "Um momento…",
+      "mutedTitle": "Solicitação silenciada",
+      "muted": "Você não receberá mais novidades sobre “{title}”, nem por e-mail nem no aplicativo.",
+      "unmutedTitle": "As novidades estão ativadas novamente",
+      "unmuted": "Você voltará a receber novidades sobre “{title}”.",
+      "undo": "Desfazer",
+      "muteAgain": "Silenciar novamente",
+      "viewRequest": "Ver solicitação",
+      "emailSettings": "Configurações de e-mail do roteiro",
+      "goToRoadmap": "Ir para o roteiro",
+      "invalidTitle": "Este link não funciona mais",
+      "invalid": "O link para silenciar é inválido ou expirou. Você ainda pode silenciar a solicitação na página dela.",
+      "failedTitle": "Não foi possível silenciar esta solicitação",
+      "failed": "Algo deu errado. Tente novamente."
+    },
+    "shortTitle": "Roteiro",
+    "searchPlaceholder": "Pesquisar solicitações",
+    "sortBy": "Ordenar: {sort}",
+    "showMore": "Mostrar mais {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Equipe NocoDB",
+    "requestsSection": "Solicitações",
+    "notification": {
+      "approved": "Sua solicitação {title} está no roteiro",
+      "declined": "Sua solicitação {title} foi recusada",
+      "statusChanged": "{title} agora está em {status}",
+      "statusChangedStaff": "{actor} moveu {title} para {status}",
+      "merged": "{title} foi mesclada em {target}",
+      "assigned": "{actor} atribuiu {title} a você",
+      "staffReply": "{actor} da equipe NocoDB respondeu em {title}",
+      "comment": "{actor} comentou em {title}",
+      "internalComment": "{actor} deixou uma nota interna em {title}",
+      "reply": "{actor} respondeu ao seu comentário em {title}",
+      "activity": "Nova atividade em {title}",
+      "someone": "Alguém"
+    },
+    "previewBanner": "Você está visualizando o roteiro como um cliente o vê.",
+    "notFound": "Esta solicitação não existe ou não está visível para você.",
+    "positionOf": "{index} de {total}",
+    "resultsCount": "{count} solicitação | {count} solicitações",
+    "state": {
+      "open": "Aberta",
+      "shipped": "Lançada",
+      "closed": "Fechada"
+    },
+    "sort": {
+      "top": "Mais votadas",
+      "new": "Mais recentes",
+      "revenue": "Receita",
+      "priority": "Prioridade",
+      "updated": "Atualizadas",
+      "oldest": "Mais antigas primeiro"
+    },
+    "publicStatus": {
+      "under_review": "Em análise",
+      "backlog": "Pendentes",
+      "planned": "Planejada",
+      "in_progress": "Em andamento",
+      "shipped": "Lançada",
+      "closed": "Fechada",
+      "declined": "Recusada",
+      "merged": "Mesclada"
+    },
+    "status": {
+      "triage": "Triagem",
+      "backlog": "Pendentes",
+      "todo": "A fazer",
+      "in_progress": "Em andamento",
+      "in_review": "Em revisão",
+      "done": "Concluída",
+      "canceled": "Cancelada",
+      "duplicate": "Duplicada"
+    },
+    "priority": {
+      "none": "Sem prioridade",
+      "urgent": "Urgente",
+      "high": "Alta",
+      "medium": "Média",
+      "low": "Baixa"
+    },
+    "resolution": {
+      "month": "Mês",
+      "quarter": "Trimestre",
+      "half_year": "Semestre",
+      "year": "Ano"
+    },
+    "relation": {
+      "title": "Relações",
+      "blocks": "Bloqueia",
+      "blocked_by": "Bloqueada por",
+      "related": "Relacionada a",
+      "add": "Adicionar relação",
+      "empty": "Ainda não há relações",
+      "searchPlaceholder": "Pesquisar solicitações",
+      "type": "Tipo de relação",
+      "remove": "Remover relação",
+      "removeNamed": "Remover a relação com {title}",
+      "removed": "Relação removida"
+    },
+    "metaEditor": {
+      "title": "Metadados",
+      "add": "Adicionar campo",
+      "empty": "Ainda não há metadados",
+      "key": "Chave",
+      "value": "Valor (texto ou JSON)",
+      "invalidKey": "Use até 64 letras, dígitos e _ . : -",
+      "remove": "Remover campo",
+      "removeNamed": "Remover {key}",
+      "removed": "“{key}” removido"
+    },
+    "submit": {
+      "button": "Enviar uma solicitação",
+      "hint": "Nossa equipe analisa cada solicitação antes que ela apareça no roteiro.",
+      "descriptionPlaceholder": "O que você está tentando fazer e o que atrapalha?",
+      "groupPlaceholder": "Escolha um {group}",
+      "confirm": "Enviar",
+      "created": "Obrigado! Vamos analisar sua solicitação em breve.",
+      "createdStaff": "Solicitação criada",
+      "descriptionLabel": "Descrição",
+      "groupRequired": "Escolha um {group}.",
+      "requiredHint": "* Obrigatório",
+      "browse": "navegar"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Novas atualizações lançadas",
+    "stateTabs": "Estado da solicitação",
+    "reward": {
+      "giftCard": "Vale-presente",
+      "amount": "${amount}",
+      "title": "Transforme sua ideia em um vale-presente",
+      "body": "Se a sua solicitação entrar no nosso roteiro, o vale-presente é seu. Envie quantas quiser.",
+      "action": "Sugerir um recurso"
+    },
+    "previousRequest": "Solicitação anterior",
+    "nextRequest": "Próxima solicitação",
+    "saved": "Alterações salvas",
+    "saveShortcut": "⌘/Ctrl + Enter para salvar · Esc para cancelar"
   }
 }

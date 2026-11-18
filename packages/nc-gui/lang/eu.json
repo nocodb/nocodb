@@ -4127,7 +4127,7 @@
     "selectFields": "Hautatu eremuak",
     "selectRecord": "- Hautatu erregistroa -",
     "sharedSource": "Partekatutako iturburua",
-    "selectDateFieldToAdd": "Hautatu gehitu beharreko data-eremua",
+    "selectDateFieldToAdd": "Hautatu data-tartea",
     "seeWhatsNewEachVersion": "Ikusi zer berri dagoen bertsio bakoitzean",
     "selectTable": "Hautatu taula bat",
     "showBookmarkColor": "Erakutsi laster-markaren kolorea",
@@ -8949,7 +8949,10 @@
       "customersSeeNothing": "Bezeroek hau ikusten dute: ezer ez (barnekoa)",
       "estimateInvalid": "Erabili zenbaki oso bat, 0 edo handiagoa.",
       "adjustmentPublic": "Bezeroek doitutako guztizkoa ikusten dute.",
-      "labels": "Etiketak"
+      "labels": "Etiketak",
+      "votes": "Botoak",
+      "unassigned": "Esleitu gabe",
+      "target": "Xede-data"
     },
     "links": {
       "urlPlaceholder": "Itsatsi GitHub, Slack edo dokumentu baten esteka",
@@ -8980,6 +8983,146 @@
       "settings": "Ezin izan dira zure roadmap-ezarpenak kargatu."
     },
     "loadFailed": "Ezin izan da eskaera hau kargatu",
-    "mergedFollowHint": "Botoek eta eguneratzeek han jarraitzen dute."
+    "mergedFollowHint": "Botoek eta eguneratzeek han jarraitzen dute.",
+    "mute": {
+      "pendingTitle": "Eskaera hau isilarazten",
+      "pending": "Une bat…",
+      "mutedTitle": "Eskaera isilarazita",
+      "muted": "Ez duzu gehiago “{title}” buruzko berririk jasoko, ez posta elektronikoz ez aplikazioan.",
+      "unmutedTitle": "Eguneraketak berriro aktibatuta daude",
+      "unmuted": "Berriro jasoko dituzu “{title}” buruzko berriak.",
+      "undo": "Desegin",
+      "muteAgain": "Isilarazi berriro",
+      "viewRequest": "Ikusi eskaera",
+      "emailSettings": "Ibilbide-orriaren posta elektronikoaren ezarpenak",
+      "goToRoadmap": "Joan ibilbide-orrira",
+      "invalidTitle": "Esteka honek ez du gehiago funtzionatzen",
+      "invalid": "Isilarazteko esteka baliogabea da edo iraungi da. Oraindik ere eskaera bere orritik isilaraz dezakezu.",
+      "failedTitle": "Ezin izan da eskaera hau isilarazi",
+      "failed": "Zerbait gaizki joan da. Saiatu berriro."
+    },
+    "shortTitle": "Ibilbide-orria",
+    "railTooltip": "Noco ibilbide-orria",
+    "searchPlaceholder": "Bilatu eskaerak",
+    "sortBy": "Ordena: {sort}",
+    "showMore": "Erakutsi {count} gehiago",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB taldea",
+    "requestsSection": "Eskaerak",
+    "notification": {
+      "approved": "Zure {title} eskaera ibilbide-orrian dago",
+      "declined": "Zure {title} eskaera baztertu da",
+      "statusChanged": "{title} orain {status} da",
+      "statusChangedStaff": "{actor} erabiltzaileak {title} hona eraman du: {status}",
+      "merged": "{title} {target} barruan bateratu da",
+      "assigned": "{actor} erabiltzaileak {title} esleitu dizu",
+      "staffReply": "NocoDB taldeko {actor} erabiltzaileak erantzun du hemen: {title}",
+      "comment": "{actor} erabiltzaileak {title} iruzkindu du",
+      "internalComment": "{actor} erabiltzaileak barne-ohar bat utzi du hemen: {title}",
+      "reply": "{actor} erabiltzaileak zure iruzkinari erantzun dio hemen: {title}",
+      "activity": "Jarduera berria hemen: {title}",
+      "someone": "Norbait"
+    },
+    "previewBanner": "Ibilbide-orria bezero batek ikusten duen moduan aurreikusten ari zara.",
+    "notFound": "Eskaera hau ez da existitzen edo ez duzu ikusteko baimenik.",
+    "positionOf": "{index} / {total}",
+    "resultsCount": "Eskaera {count} | {count} eskaera",
+    "state": {
+      "open": "Irekita",
+      "shipped": "Argitaratuta",
+      "closed": "Itxita"
+    },
+    "sort": {
+      "top": "Boto gehien",
+      "new": "Berrienak",
+      "revenue": "Diru-sarrerak",
+      "priority": "Lehentasuna",
+      "manual": "Eskuz",
+      "updated": "Eguneratuta",
+      "oldest": "Zaharrenak lehenik"
+    },
+    "publicStatus": {
+      "under_review": "Berrikuspenean",
+      "backlog": "Zain",
+      "planned": "Aurreikusita",
+      "in_progress": "Abian",
+      "shipped": "Argitaratuta",
+      "closed": "Itxita",
+      "declined": "Baztertuta",
+      "merged": "Bateratuta"
+    },
+    "status": {
+      "triage": "Sailkapena",
+      "backlog": "Zain",
+      "todo": "Egiteko",
+      "in_progress": "Abian",
+      "in_review": "Berrikusten",
+      "done": "Eginda",
+      "canceled": "Bertan behera utzita",
+      "duplicate": "Bikoiztua"
+    },
+    "priority": {
+      "none": "Lehentasunik ez",
+      "urgent": "Premiazkoa",
+      "high": "Altua",
+      "medium": "Ertaina",
+      "low": "Baxua"
+    },
+    "resolution": {
+      "month": "Hilabetea",
+      "quarter": "Hiruhilekoa",
+      "half_year": "Seihilekoa",
+      "year": "Urtea"
+    },
+    "relation": {
+      "title": "Erlazioak",
+      "blocks": "Blokeatzen du",
+      "blocked_by": "Honek blokeatuta",
+      "related": "Honekin lotuta",
+      "add": "Gehitu erlazioa",
+      "empty": "Oraindik ez dago erlaziorik",
+      "searchPlaceholder": "Bilatu eskaerak",
+      "type": "Erlazio mota",
+      "remove": "Kendu erlazioa",
+      "removeNamed": "Kendu {title} erlazioa",
+      "removed": "Erlazioa kenduta"
+    },
+    "metaEditor": {
+      "title": "Metadatuak",
+      "add": "Gehitu eremua",
+      "empty": "Oraindik ez dago metadaturik",
+      "key": "Gakoa",
+      "value": "Balioa (testua edo JSON)",
+      "invalidKey": "Erabili gehienez 64 letra, zenbaki eta _ . : -",
+      "remove": "Kendu eremua",
+      "removeNamed": "Kendu {key}",
+      "removed": "“{key}” kenduta"
+    },
+    "submit": {
+      "button": "Bidali eskaera bat",
+      "hint": "Gure taldeak eskaera bakoitza berrikusten du ibilbide-orrian agertu aurretik.",
+      "descriptionPlaceholder": "Zer egiten saiatzen ari zara, eta zerk oztopatzen zaitu?",
+      "groupPlaceholder": "Aukeratu {group} bat",
+      "confirm": "Bidali",
+      "created": "Eskerrik asko! Laster berrikusiko dugu zure eskaera.",
+      "createdStaff": "Eskaera sortuta",
+      "descriptionLabel": "Deskribapena",
+      "groupRequired": "Aukeratu {group} bat.",
+      "requiredHint": "* Beharrezkoa",
+      "browse": "arakatu"
+    },
+    "railTooltipUnseen": "Noco ibilbide-orria · Eguneraketa berriak argitaratuta",
+    "stateTabs": "Eskaeraren egoera",
+    "reward": {
+      "giftCard": "Opari-txartela",
+      "amount": "${amount}",
+      "title": "Bihurtu zure ideia opari-txartel",
+      "body": "Zure eskaera gure ibilbide-orrira iristen bada, opari-txartela zurea da. Bidali nahi adina.",
+      "action": "Proposatu funtzio bat"
+    },
+    "previousRequest": "Aurreko eskaera",
+    "nextRequest": "Hurrengo eskaera",
+    "saved": "Aldaketak gordeta",
+    "saveShortcut": "⌘/Ctrl + Enter gordetzeko · Esc uzteko"
   }
 }

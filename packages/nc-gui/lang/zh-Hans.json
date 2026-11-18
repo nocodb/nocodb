@@ -4128,7 +4128,7 @@
     "selectFields": "选择字段",
     "selectRecord": "- 选择记录 -",
     "sharedSource": "共享数据源",
-    "selectDateFieldToAdd": "选择要添加的日期字段",
+    "selectDateFieldToAdd": "选择日期范围",
     "seeWhatsNewEachVersion": "查看每个版本的新增内容",
     "selectTable": "选择一个数据表",
     "showBookmarkColor": "显示书签颜色",
@@ -8955,7 +8955,10 @@
       "customersSeeNothing": "客户看到：无（内部）",
       "estimateInvalid": "请使用 0 或更大的整数。",
       "adjustmentPublic": "客户看到的是调整后的总数。",
-      "labels": "标签"
+      "labels": "标签",
+      "votes": "投票数",
+      "unassigned": "未指派",
+      "target": "目标日期"
     },
     "links": {
       "urlPlaceholder": "粘贴 GitHub、Slack 或文档链接",
@@ -8986,6 +8989,146 @@
       "settings": "无法加载你的路线图设置。"
     },
     "loadFailed": "无法加载该需求",
-    "mergedFollowHint": "投票和更新会在那边继续。"
+    "mergedFollowHint": "投票和更新会在那边继续。",
+    "mute": {
+      "pendingTitle": "正在静音此请求",
+      "pending": "请稍候…",
+      "mutedTitle": "请求已静音",
+      "muted": "你将不再收到关于「{title}」的更新，邮件和应用内都不会再提醒。",
+      "unmutedTitle": "更新提醒已重新开启",
+      "unmuted": "你将再次收到关于「{title}」的更新。",
+      "undo": "撤销",
+      "muteAgain": "再次静音",
+      "viewRequest": "查看请求",
+      "emailSettings": "路线图邮件设置",
+      "goToRoadmap": "前往路线图",
+      "invalidTitle": "此链接已失效",
+      "invalid": "静音链接无效或已过期。你仍可以在该请求的页面上将其静音。",
+      "failedTitle": "无法静音此请求",
+      "failed": "出了点问题，请重试。"
+    },
+    "shortTitle": "路线图",
+    "railTooltip": "Noco 路线图",
+    "searchPlaceholder": "搜索请求",
+    "sortBy": "排序：{sort}",
+    "showMore": "再显示 {count} 个",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB 团队",
+    "requestsSection": "请求",
+    "notification": {
+      "approved": "你的请求 {title} 已进入路线图",
+      "declined": "你的请求 {title} 已被拒绝",
+      "statusChanged": "{title} 现在是{status}",
+      "statusChangedStaff": "{actor} 将 {title} 移动到了{status}",
+      "merged": "{title} 已合并到 {target}",
+      "assigned": "{actor} 将 {title} 指派给了你",
+      "staffReply": "NocoDB 团队的 {actor} 在 {title} 上作了回复",
+      "comment": "{actor} 评论了 {title}",
+      "internalComment": "{actor} 在 {title} 上留下了内部备注",
+      "reply": "{actor} 回复了你在 {title} 上的评论",
+      "activity": "{title} 有新动态",
+      "someone": "某人"
+    },
+    "previewBanner": "你正在以客户的视角预览路线图。",
+    "notFound": "该请求不存在，或你没有查看权限。",
+    "positionOf": "第 {index} 个，共 {total} 个",
+    "resultsCount": "{count} 个请求 | {count} 个请求",
+    "state": {
+      "open": "进行中",
+      "shipped": "已发布",
+      "closed": "已关闭"
+    },
+    "sort": {
+      "top": "得票最多",
+      "new": "最新",
+      "revenue": "营收",
+      "priority": "优先级",
+      "manual": "手动",
+      "updated": "最近更新",
+      "oldest": "最早优先"
+    },
+    "publicStatus": {
+      "under_review": "评估中",
+      "backlog": "待处理",
+      "planned": "已计划",
+      "in_progress": "进行中",
+      "shipped": "已发布",
+      "closed": "已关闭",
+      "declined": "已拒绝",
+      "merged": "已合并"
+    },
+    "status": {
+      "triage": "待分类",
+      "backlog": "待处理",
+      "todo": "待办",
+      "in_progress": "进行中",
+      "in_review": "审核中",
+      "done": "已完成",
+      "canceled": "已取消",
+      "duplicate": "重复"
+    },
+    "priority": {
+      "none": "无优先级",
+      "urgent": "紧急",
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "resolution": {
+      "month": "月",
+      "quarter": "季度",
+      "half_year": "半年",
+      "year": "年"
+    },
+    "relation": {
+      "title": "关联",
+      "blocks": "阻塞",
+      "blocked_by": "被阻塞于",
+      "related": "关联至",
+      "add": "添加关联",
+      "empty": "暂无关联",
+      "searchPlaceholder": "搜索请求",
+      "type": "关联类型",
+      "remove": "移除关联",
+      "removeNamed": "移除与 {title} 的关联",
+      "removed": "关联已移除"
+    },
+    "metaEditor": {
+      "title": "元数据",
+      "add": "添加字段",
+      "empty": "暂无元数据",
+      "key": "键",
+      "value": "值（文本或 JSON）",
+      "invalidKey": "最多使用 64 个字母、数字以及 _ . : -",
+      "remove": "移除字段",
+      "removeNamed": "移除 {key}",
+      "removed": "已移除「{key}」"
+    },
+    "submit": {
+      "button": "提交请求",
+      "hint": "每条请求都会先经我们团队审核，然后才会出现在路线图上。",
+      "descriptionPlaceholder": "你想做什么？遇到了什么阻碍？",
+      "groupPlaceholder": "选择一个{group}",
+      "confirm": "提交",
+      "created": "谢谢！我们会尽快查看你的请求。",
+      "createdStaff": "请求已创建",
+      "descriptionLabel": "描述",
+      "groupRequired": "请选择一个{group}。",
+      "requiredHint": "* 必填",
+      "browse": "浏览"
+    },
+    "railTooltipUnseen": "Noco 路线图 · 新版本已发布",
+    "stateTabs": "请求状态",
+    "reward": {
+      "giftCard": "礼品卡",
+      "amount": "${amount}",
+      "title": "把你的想法变成礼品卡",
+      "body": "如果你的请求进入我们的路线图，礼品卡就归你。想提多少都可以。",
+      "action": "提议一项功能"
+    },
+    "previousRequest": "上一个请求",
+    "nextRequest": "下一个请求",
+    "saved": "更改已保存",
+    "saveShortcut": "⌘/Ctrl + Enter 保存 · Esc 取消"
   }
 }

@@ -4128,7 +4128,7 @@
     "selectFields": "בחר שדות",
     "selectRecord": "- בחר רשומה -",
     "sharedSource": "מקור משותף",
-    "selectDateFieldToAdd": "בחר את שדה התאריך להוספה",
+    "selectDateFieldToAdd": "בחר טווח תאריכים",
     "seeWhatsNewEachVersion": "ראה מה חדש בכל גרסה",
     "selectTable": "בחר טבלה",
     "showBookmarkColor": "הצג צבע סימנייה",
@@ -8954,7 +8954,10 @@
       "customersSeeNothing": "לקוחות רואים: כלום (פנימי)",
       "estimateInvalid": "השתמשו במספר שלם, 0 או יותר.",
       "adjustmentPublic": "לקוחות רואים את הסך המותאם.",
-      "labels": "תוויות"
+      "labels": "תוויות",
+      "votes": "הצבעות",
+      "unassigned": "לא הוקצה",
+      "target": "תאריך יעד"
     },
     "links": {
       "urlPlaceholder": "הדביקו קישור של GitHub, Slack או מסמך",
@@ -8985,6 +8988,146 @@
       "settings": "לא ניתן היה לטעון את הגדרות מפת הדרכים שלכם."
     },
     "loadFailed": "לא ניתן היה לטעון את הבקשה הזו",
-    "mergedFollowHint": "ההצבעות והעדכונים ממשיכים שם."
+    "mergedFollowHint": "ההצבעות והעדכונים ממשיכים שם.",
+    "mute": {
+      "pendingTitle": "משתיק את הבקשה הזו",
+      "pending": "רגע אחד…",
+      "mutedTitle": "הבקשה הושתקה",
+      "muted": "לא תקבל יותר עדכונים על „{title}”, לא בדוא\"ל ולא באפליקציה.",
+      "unmutedTitle": "העדכונים הופעלו מחדש",
+      "unmuted": "תקבל שוב עדכונים על „{title}”.",
+      "undo": "בטל",
+      "muteAgain": "השתק שוב",
+      "viewRequest": "הצג בקשה",
+      "emailSettings": "הגדרות דוא\"ל של מפת הדרכים",
+      "goToRoadmap": "עבור למפת הדרכים",
+      "invalidTitle": "הקישור הזה כבר לא פעיל",
+      "invalid": "קישור ההשתקה אינו תקין או שפג תוקפו. עדיין אפשר להשתיק את הבקשה מהדף שלה.",
+      "failedTitle": "לא ניתן היה להשתיק בקשה זו",
+      "failed": "משהו השתבש. נסה שוב."
+    },
+    "shortTitle": "מפת דרכים",
+    "railTooltip": "מפת הדרכים של Noco",
+    "searchPlaceholder": "חפש בקשות",
+    "sortBy": "מיון: {sort}",
+    "showMore": "הצג עוד {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "צוות NocoDB",
+    "requestsSection": "בקשות",
+    "notification": {
+      "approved": "הבקשה שלך {title} נמצאת במפת הדרכים",
+      "declined": "הבקשה שלך {title} נדחתה",
+      "statusChanged": "{title} נמצאת כעת במצב {status}",
+      "statusChangedStaff": "{actor} העביר את {title} אל {status}",
+      "merged": "{title} מוזגה אל {target}",
+      "assigned": "{actor} הקצה לך את {title}",
+      "staffReply": "{actor} מצוות NocoDB הגיב על {title}",
+      "comment": "{actor} הגיב על {title}",
+      "internalComment": "{actor} השאיר הערה פנימית על {title}",
+      "reply": "{actor} הגיב לתגובה שלך על {title}",
+      "activity": "פעילות חדשה ב-{title}",
+      "someone": "מישהו"
+    },
+    "previewBanner": "אתה צופה במפת הדרכים כפי שלקוח רואה אותה.",
+    "notFound": "הבקשה הזו אינה קיימת או שאינה גלויה לך.",
+    "positionOf": "{index} מתוך {total}",
+    "resultsCount": "בקשה אחת ({count}) | {count} בקשות",
+    "state": {
+      "open": "פתוחה",
+      "shipped": "שוחררה",
+      "closed": "סגורה"
+    },
+    "sort": {
+      "top": "הכי מדורגות",
+      "new": "החדשות ביותר",
+      "revenue": "הכנסה",
+      "priority": "עדיפות",
+      "manual": "ידני",
+      "updated": "עודכנו",
+      "oldest": "הישנות תחילה"
+    },
+    "publicStatus": {
+      "under_review": "בבדיקה",
+      "backlog": "בתור",
+      "planned": "מתוכננת",
+      "in_progress": "בתהליך",
+      "shipped": "שוחררה",
+      "closed": "סגורה",
+      "declined": "נדחתה",
+      "merged": "מוזגה"
+    },
+    "status": {
+      "triage": "מיון ראשוני",
+      "backlog": "בתור",
+      "todo": "לביצוע",
+      "in_progress": "בתהליך",
+      "in_review": "בסקירה",
+      "done": "הושלמה",
+      "canceled": "בוטלה",
+      "duplicate": "כפילות"
+    },
+    "priority": {
+      "none": "ללא עדיפות",
+      "urgent": "דחופה",
+      "high": "גבוהה",
+      "medium": "בינונית",
+      "low": "נמוכה"
+    },
+    "resolution": {
+      "month": "חודש",
+      "quarter": "רבעון",
+      "half_year": "חצי שנה",
+      "year": "שנה"
+    },
+    "relation": {
+      "title": "קשרים",
+      "blocks": "חוסמת",
+      "blocked_by": "חסומה על ידי",
+      "related": "קשורה אל",
+      "add": "הוסף קשר",
+      "empty": "אין עדיין קשרים",
+      "searchPlaceholder": "חפש בקשות",
+      "type": "סוג הקשר",
+      "remove": "הסר קשר",
+      "removeNamed": "הסר את הקשר אל {title}",
+      "removed": "הקשר הוסר"
+    },
+    "metaEditor": {
+      "title": "מטא-נתונים",
+      "add": "הוסף שדה",
+      "empty": "אין עדיין מטא-נתונים",
+      "key": "מפתח",
+      "value": "ערך (טקסט או JSON)",
+      "invalidKey": "השתמש בעד 64 אותיות, ספרות ו-_ . : -",
+      "remove": "הסר שדה",
+      "removeNamed": "הסר את {key}",
+      "removed": "„{key}” הוסר"
+    },
+    "submit": {
+      "button": "שלח בקשה",
+      "hint": "הצוות שלנו בוחן כל בקשה לפני שהיא מופיעה במפת הדרכים.",
+      "descriptionPlaceholder": "מה אתה מנסה לעשות, ומה עומד בדרך?",
+      "groupPlaceholder": "בחר {group}",
+      "confirm": "שלח",
+      "created": "תודה! נבחן את הבקשה שלך בקרוב.",
+      "createdStaff": "הבקשה נוצרה",
+      "descriptionLabel": "תיאור",
+      "groupRequired": "בחר {group}.",
+      "requiredHint": "* חובה",
+      "browse": "עיין"
+    },
+    "railTooltipUnseen": "מפת הדרכים של Noco · שוחררו עדכונים חדשים",
+    "stateTabs": "מצב הבקשה",
+    "reward": {
+      "giftCard": "כרטיס מתנה",
+      "amount": "${amount}",
+      "title": "הפוך את הרעיון שלך לכרטיס מתנה",
+      "body": "אם הבקשה שלך תיכנס למפת הדרכים שלנו, כרטיס המתנה שלך. שלח כמה שתרצה.",
+      "action": "הצע תכונה"
+    },
+    "previousRequest": "הבקשה הקודמת",
+    "nextRequest": "הבקשה הבאה",
+    "saved": "השינויים נשמרו",
+    "saveShortcut": "⌘/Ctrl + Enter לשמירה · Esc לביטול"
   }
 }

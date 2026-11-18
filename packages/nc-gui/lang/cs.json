@@ -4124,7 +4124,7 @@
     "selectFields": "Vybrat pole",
     "selectRecord": "- Vybrat záznam -",
     "sharedSource": "Sdílený zdroj",
-    "selectDateFieldToAdd": "Vyberte pole s datem, které chcete přidat",
+    "selectDateFieldToAdd": "Vyberte rozsah dat",
     "seeWhatsNewEachVersion": "Podívejte se, co je nového v každé verzi",
     "selectTable": "Vyberte tabulku",
     "showBookmarkColor": "Zobrazit barvu záložky",
@@ -8940,7 +8940,10 @@
       "customersSeeNothing": "Zákazníci vidí: nic (interní)",
       "estimateInvalid": "Použijte celé číslo, 0 nebo vyšší.",
       "adjustmentPublic": "Zákazníci vidí upravený součet.",
-      "labels": "Štítky"
+      "labels": "Štítky",
+      "votes": "Hlasy",
+      "unassigned": "Nepřiřazeno",
+      "target": "Cílové datum"
     },
     "links": {
       "urlPlaceholder": "Vložte odkaz na GitHub, Slack nebo dokument",
@@ -8971,6 +8974,144 @@
       "settings": "Vaše nastavení roadmapy se nepodařilo načíst."
     },
     "loadFailed": "Tento požadavek se nepodařilo načíst",
-    "mergedFollowHint": "Hlasy a aktualizace pokračují tam."
+    "mergedFollowHint": "Hlasy a aktualizace pokračují tam.",
+    "mute": {
+      "pendingTitle": "Ztlumování tohoto požadavku",
+      "pending": "Okamžik…",
+      "mutedTitle": "Požadavek ztlumen",
+      "muted": "Už nebudete dostávat aktualizace o „{title}“ – ani e-mailem, ani v aplikaci.",
+      "unmutedTitle": "Aktualizace jsou opět zapnuté",
+      "unmuted": "Znovu budete dostávat aktualizace o „{title}“.",
+      "undo": "Zpět",
+      "muteAgain": "Ztlumit znovu",
+      "viewRequest": "Zobrazit požadavek",
+      "emailSettings": "Nastavení e-mailů plánu rozvoje",
+      "goToRoadmap": "Přejít na plán rozvoje",
+      "invalidTitle": "Tento odkaz už nefunguje",
+      "invalid": "Odkaz pro ztlumení je neplatný nebo vypršel. Požadavek můžete stále ztlumit na jeho stránce.",
+      "failedTitle": "Tento požadavek se nepodařilo ztlumit",
+      "failed": "Něco se pokazilo. Zkuste to znovu."
+    },
+    "shortTitle": "Plán rozvoje",
+    "searchPlaceholder": "Hledat požadavky",
+    "sortBy": "Řazení: {sort}",
+    "showMore": "Zobrazit o {count} více",
+    "staffBadge": "NocoDB",
+    "staffSection": "Tým NocoDB",
+    "requestsSection": "Požadavky",
+    "notification": {
+      "approved": "Váš požadavek {title} je v plánu rozvoje",
+      "declined": "Váš požadavek {title} byl zamítnut",
+      "statusChanged": "{title} je nyní {status}",
+      "statusChangedStaff": "{actor} přesunul(a) {title} do {status}",
+      "merged": "{title} byl sloučen do {target}",
+      "assigned": "{actor} vám přiřadil(a) {title}",
+      "staffReply": "{actor} z týmu NocoDB odpověděl(a) u {title}",
+      "comment": "{actor} okomentoval(a) {title}",
+      "internalComment": "{actor} zanechal(a) interní poznámku u {title}",
+      "reply": "{actor} odpověděl(a) na váš komentář u {title}",
+      "activity": "Nová aktivita u {title}",
+      "someone": "Někdo"
+    },
+    "previewBanner": "Prohlížíte si náhled plánu rozvoje tak, jak jej vidí zákazník.",
+    "notFound": "Tento požadavek neexistuje nebo pro vás není viditelný.",
+    "positionOf": "{index} z {total}",
+    "resultsCount": "{count} požadavek | {count} požadavků",
+    "state": {
+      "open": "Otevřeno",
+      "shipped": "Vydáno",
+      "closed": "Uzavřeno"
+    },
+    "sort": {
+      "top": "Nejvíce hlasů",
+      "new": "Nejnovější",
+      "revenue": "Tržby",
+      "priority": "Priorita",
+      "manual": "Ručně",
+      "updated": "Aktualizováno",
+      "oldest": "Nejstarší první"
+    },
+    "publicStatus": {
+      "under_review": "V posouzení",
+      "backlog": "Ve frontě",
+      "planned": "Naplánováno",
+      "in_progress": "Probíhá",
+      "shipped": "Vydáno",
+      "closed": "Uzavřeno",
+      "declined": "Zamítnuto",
+      "merged": "Sloučeno"
+    },
+    "status": {
+      "triage": "Třídění",
+      "backlog": "Ve frontě",
+      "todo": "K vyřízení",
+      "in_progress": "Probíhá",
+      "in_review": "V revizi",
+      "done": "Hotovo",
+      "canceled": "Zrušeno",
+      "duplicate": "Duplikát"
+    },
+    "priority": {
+      "none": "Bez priority",
+      "urgent": "Naléhavá",
+      "high": "Vysoká",
+      "medium": "Střední",
+      "low": "Nízká"
+    },
+    "resolution": {
+      "month": "Měsíc",
+      "quarter": "Čtvrtletí",
+      "half_year": "Pololetí",
+      "year": "Rok"
+    },
+    "relation": {
+      "title": "Vztahy",
+      "blocks": "Blokuje",
+      "blocked_by": "Blokováno čím",
+      "related": "Souvisí s",
+      "add": "Přidat vztah",
+      "empty": "Zatím žádné vztahy",
+      "searchPlaceholder": "Hledat požadavky",
+      "type": "Typ vztahu",
+      "remove": "Odebrat vztah",
+      "removeNamed": "Odebrat vztah k {title}",
+      "removed": "Vztah odebrán"
+    },
+    "metaEditor": {
+      "add": "Přidat pole",
+      "empty": "Zatím žádná metadata",
+      "key": "Klíč",
+      "value": "Hodnota (text nebo JSON)",
+      "invalidKey": "Použijte až 64 písmen, číslic a _ . : -",
+      "remove": "Odebrat pole",
+      "removeNamed": "Odebrat {key}",
+      "removed": "„{key}“ odebráno"
+    },
+    "submit": {
+      "button": "Odeslat požadavek",
+      "hint": "Náš tým posuzuje každý požadavek, než se objeví v plánu rozvoje.",
+      "descriptionPlaceholder": "Co se snažíte udělat a co vám v tom brání?",
+      "groupPlaceholder": "Vyberte {group}",
+      "confirm": "Odeslat",
+      "created": "Díky! Váš požadavek brzy posoudíme.",
+      "createdStaff": "Požadavek vytvořen",
+      "descriptionLabel": "Popis",
+      "groupRequired": "Vyberte {group}.",
+      "requiredHint": "* Povinné",
+      "browse": "procházet"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Vydány nové aktualizace",
+    "stateTabs": "Stav požadavku",
+    "reward": {
+      "giftCard": "Dárkový poukaz",
+      "amount": "${amount}",
+      "title": "Proměňte svůj nápad v dárkový poukaz",
+      "body": "Pokud se váš požadavek dostane do našeho plánu rozvoje, dárkový poukaz je váš. Posílejte jich, kolik chcete.",
+      "action": "Navrhnout funkci"
+    },
+    "previousRequest": "Předchozí požadavek",
+    "nextRequest": "Další požadavek",
+    "saved": "Změny uloženy",
+    "saveShortcut": "⌘/Ctrl + Enter uloží · Esc zruší"
   }
 }

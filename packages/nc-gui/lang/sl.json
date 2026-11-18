@@ -4126,7 +4126,7 @@
     "selectFields": "Izberi polja",
     "selectRecord": "- Izberi zapis -",
     "sharedSource": "Deljen vir",
-    "selectDateFieldToAdd": "Izberite polje z datumom, ki ga želite dodati",
+    "selectDateFieldToAdd": "Izberite obdobje datumov",
     "seeWhatsNewEachVersion": "Oglejte si, kaj je novega v posamezni različici",
     "selectTable": "Izberite tabelo",
     "showBookmarkColor": "Prikaži barvo zaznamka",
@@ -8943,7 +8943,10 @@
       "customersSeeNothing": "Stranke vidijo: nič (interno)",
       "estimateInvalid": "Uporabite celo število, 0 ali več.",
       "adjustmentPublic": "Stranke vidijo popravljeni skupni seštevek.",
-      "labels": "Oznake"
+      "labels": "Oznake",
+      "votes": "Glasovi",
+      "unassigned": "Nedodeljeno",
+      "target": "Ciljni datum"
     },
     "links": {
       "urlPlaceholder": "Prilepite povezavo na GitHub, Slack ali dokument",
@@ -8974,6 +8977,145 @@
       "settings": "Vaših nastavitev načrta razvoja ni bilo mogoče naložiti."
     },
     "loadFailed": "Te zahteve ni bilo mogoče naložiti",
-    "mergedFollowHint": "Glasovi in novosti se nadaljujejo tam."
+    "mergedFollowHint": "Glasovi in novosti se nadaljujejo tam.",
+    "mute": {
+      "pendingTitle": "Utišanje te zahteve",
+      "pending": "Trenutek…",
+      "mutedTitle": "Zahteva utišana",
+      "muted": "Posodobitev o »{title}« ne boste več prejemali – ne po e-pošti ne v aplikaciji.",
+      "unmutedTitle": "Posodobitve so spet vklopljene",
+      "unmuted": "Znova boste prejemali posodobitve o »{title}«.",
+      "undo": "Razveljavi",
+      "muteAgain": "Znova utišaj",
+      "viewRequest": "Prikaži zahtevo",
+      "emailSettings": "E-poštne nastavitve načrta razvoja",
+      "goToRoadmap": "Pojdi na načrt razvoja",
+      "invalidTitle": "Ta povezava ne deluje več",
+      "invalid": "Povezava za utišanje je neveljavna ali je potekla. Zahtevo lahko še vedno utišate na njeni strani.",
+      "failedTitle": "Te zahteve ni bilo mogoče utišati",
+      "failed": "Nekaj je šlo narobe. Poskusite znova."
+    },
+    "shortTitle": "Načrt razvoja",
+    "searchPlaceholder": "Iskanje zahtev",
+    "sortBy": "Razvrstitev: {sort}",
+    "showMore": "Prikaži še {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Ekipa NocoDB",
+    "requestsSection": "Zahteve",
+    "notification": {
+      "approved": "Vaša zahteva {title} je na načrtu razvoja",
+      "declined": "Vaša zahteva {title} je bila zavrnjena",
+      "statusChanged": "{title} je zdaj {status}",
+      "statusChangedStaff": "{actor} je premaknil(a) {title} v {status}",
+      "merged": "{title} je bila združena v {target}",
+      "assigned": "{actor} vam je dodelil(a) {title}",
+      "staffReply": "{actor} iz ekipe NocoDB je odgovoril(a) pri {title}",
+      "comment": "{actor} je komentiral(a) {title}",
+      "internalComment": "{actor} je pustil(a) interno opombo pri {title}",
+      "reply": "{actor} je odgovoril(a) na vaš komentar pri {title}",
+      "activity": "Nova dejavnost pri {title}",
+      "someone": "Nekdo"
+    },
+    "previewBanner": "Načrt razvoja si ogledujete tako, kot ga vidi stranka.",
+    "notFound": "Ta zahteva ne obstaja ali vam ni vidna.",
+    "positionOf": "{index} od {total}",
+    "resultsCount": "{count} zahteva | {count} zahtev",
+    "state": {
+      "open": "Odprto",
+      "shipped": "Izdano",
+      "closed": "Zaprto"
+    },
+    "sort": {
+      "top": "Največ glasov",
+      "new": "Najnovejše",
+      "revenue": "Prihodek",
+      "priority": "Prednost",
+      "manual": "Ročno",
+      "updated": "Posodobljeno",
+      "oldest": "Najstarejše najprej"
+    },
+    "publicStatus": {
+      "under_review": "V pregledu",
+      "backlog": "V čakalni vrsti",
+      "planned": "Načrtovano",
+      "in_progress": "V teku",
+      "shipped": "Izdano",
+      "closed": "Zaprto",
+      "declined": "Zavrnjeno",
+      "merged": "Združeno"
+    },
+    "status": {
+      "triage": "Razvrščanje",
+      "backlog": "V čakalni vrsti",
+      "todo": "Za opraviti",
+      "in_progress": "V teku",
+      "in_review": "V pregledu",
+      "done": "Končano",
+      "canceled": "Preklicano",
+      "duplicate": "Podvojeno"
+    },
+    "priority": {
+      "none": "Brez prednosti",
+      "urgent": "Nujna",
+      "high": "Visoka",
+      "medium": "Srednja",
+      "low": "Nizka"
+    },
+    "resolution": {
+      "month": "Mesec",
+      "quarter": "Četrtletje",
+      "half_year": "Polletje",
+      "year": "Leto"
+    },
+    "relation": {
+      "title": "Razmerja",
+      "blocks": "Blokira",
+      "blocked_by": "Blokira jo",
+      "related": "Povezano z",
+      "add": "Dodaj razmerje",
+      "empty": "Še ni razmerij",
+      "searchPlaceholder": "Iskanje zahtev",
+      "type": "Vrsta razmerja",
+      "remove": "Odstrani razmerje",
+      "removeNamed": "Odstrani razmerje z {title}",
+      "removed": "Razmerje odstranjeno"
+    },
+    "metaEditor": {
+      "title": "Metapodatki",
+      "add": "Dodaj polje",
+      "empty": "Še ni metapodatkov",
+      "key": "Ključ",
+      "value": "Vrednost (besedilo ali JSON)",
+      "invalidKey": "Uporabite največ 64 črk, števk in _ . : -",
+      "remove": "Odstrani polje",
+      "removeNamed": "Odstrani {key}",
+      "removed": "»{key}« odstranjeno"
+    },
+    "submit": {
+      "button": "Pošlji zahtevo",
+      "hint": "Naša ekipa pregleda vsako zahtevo, preden se pojavi na načrtu razvoja.",
+      "descriptionPlaceholder": "Kaj poskušate narediti in kaj vas pri tem ovira?",
+      "groupPlaceholder": "Izberite {group}",
+      "confirm": "Pošlji",
+      "created": "Hvala! Vašo zahtevo bomo kmalu pregledali.",
+      "createdStaff": "Zahteva ustvarjena",
+      "descriptionLabel": "Opis",
+      "groupRequired": "Izberite {group}.",
+      "requiredHint": "* Obvezno",
+      "browse": "prebrskajte"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Izdane nove posodobitve",
+    "stateTabs": "Stanje zahteve",
+    "reward": {
+      "giftCard": "Darilna kartica",
+      "amount": "${amount}",
+      "title": "Spremenite svojo zamisel v darilno kartico",
+      "body": "Če vaša zahteva pride na naš načrt razvoja, je darilna kartica vaša. Pošljite jih, kolikor želite.",
+      "action": "Predlagaj funkcijo"
+    },
+    "previousRequest": "Prejšnja zahteva",
+    "nextRequest": "Naslednja zahteva",
+    "saved": "Spremembe shranjene",
+    "saveShortcut": "⌘/Ctrl + Enter shrani · Esc prekliče"
   }
 }

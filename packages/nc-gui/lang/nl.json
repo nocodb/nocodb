@@ -4112,7 +4112,7 @@
     "selectFields": "Velden selecteren",
     "selectRecord": "- Record selecteren -",
     "sharedSource": "Gedeelde bron",
-    "selectDateFieldToAdd": "Selecteer het datumveld dat je wilt toevoegen",
+    "selectDateFieldToAdd": "Datumbereik selecteren",
     "seeWhatsNewEachVersion": "Bekijk wat er nieuw is in elke versie",
     "selectTable": "Selecteer een tabel",
     "showBookmarkColor": "Bladwijzerkleur tonen",
@@ -8901,7 +8901,10 @@
       "adjustmentNote": "Waarom? (optioneel)",
       "customersSeeNothing": "Klanten zien: niets (intern)",
       "estimateInvalid": "Gebruik een heel getal, 0 of hoger.",
-      "adjustmentPublic": "Klanten zien het gecorrigeerde totaal."
+      "adjustmentPublic": "Klanten zien het gecorrigeerde totaal.",
+      "votes": "Stemmen",
+      "unassigned": "Niet toegewezen",
+      "target": "Streefdatum"
     },
     "links": {
       "urlPlaceholder": "Plak een GitHub-, Slack- of documentlink",
@@ -8932,6 +8935,140 @@
       "settings": "Kon je roadmap-instellingen niet laden."
     },
     "loadFailed": "Kon dit verzoek niet laden",
-    "mergedFollowHint": "Stemmen en updates gaan daar verder."
+    "mergedFollowHint": "Stemmen en updates gaan daar verder.",
+    "mute": {
+      "pendingTitle": "Dit verzoek wordt gedempt",
+      "pending": "Een moment…",
+      "mutedTitle": "Verzoek gedempt",
+      "muted": "Je ontvangt geen updates meer over “{title}”, niet per e-mail en niet in de app.",
+      "unmutedTitle": "Updates staan weer aan",
+      "unmuted": "Je ontvangt weer updates over “{title}”.",
+      "undo": "Ongedaan maken",
+      "muteAgain": "Opnieuw dempen",
+      "viewRequest": "Verzoek bekijken",
+      "emailSettings": "E-mailinstellingen voor de roadmap",
+      "goToRoadmap": "Naar de roadmap",
+      "invalidTitle": "Deze koppeling werkt niet meer",
+      "invalid": "De dempkoppeling is ongeldig of verlopen. Je kunt het verzoek nog steeds dempen vanaf de pagina zelf.",
+      "failedTitle": "Kon dit verzoek niet dempen",
+      "failed": "Er is iets misgegaan. Probeer het opnieuw."
+    },
+    "searchPlaceholder": "Verzoeken zoeken",
+    "sortBy": "Sorteren: {sort}",
+    "showMore": "{count} meer tonen",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB-team",
+    "requestsSection": "Verzoeken",
+    "notification": {
+      "approved": "Je verzoek {title} staat op de roadmap",
+      "declined": "Je verzoek {title} is afgewezen",
+      "statusChanged": "{title} is nu {status}",
+      "statusChangedStaff": "{actor} heeft {title} verplaatst naar {status}",
+      "merged": "{title} is samengevoegd met {target}",
+      "assigned": "{actor} heeft {title} aan jou toegewezen",
+      "staffReply": "{actor} van het NocoDB-team heeft gereageerd op {title}",
+      "comment": "{actor} heeft gereageerd op {title}",
+      "internalComment": "{actor} heeft een interne notitie achtergelaten bij {title}",
+      "reply": "{actor} heeft gereageerd op jouw opmerking bij {title}",
+      "activity": "Nieuwe activiteit bij {title}",
+      "someone": "Iemand"
+    },
+    "previewBanner": "Je bekijkt een voorbeeld van de roadmap zoals een klant die ziet.",
+    "notFound": "Dit verzoek bestaat niet of is niet zichtbaar voor jou.",
+    "positionOf": "{index} van {total}",
+    "resultsCount": "{count} verzoek | {count} verzoeken",
+    "state": {
+      "shipped": "Uitgebracht",
+      "closed": "Gesloten"
+    },
+    "sort": {
+      "top": "Meeste stemmen",
+      "new": "Nieuwste",
+      "revenue": "Omzet",
+      "priority": "Prioriteit",
+      "manual": "Handmatig",
+      "updated": "Bijgewerkt",
+      "oldest": "Oudste eerst"
+    },
+    "publicStatus": {
+      "under_review": "In beoordeling",
+      "backlog": "Nog te doen",
+      "planned": "Gepland",
+      "in_progress": "In behandeling",
+      "shipped": "Uitgebracht",
+      "closed": "Gesloten",
+      "declined": "Afgewezen",
+      "merged": "Samengevoegd"
+    },
+    "status": {
+      "backlog": "Nog te doen",
+      "todo": "Te doen",
+      "in_progress": "In behandeling",
+      "in_review": "In beoordeling",
+      "done": "Klaar",
+      "canceled": "Geannuleerd",
+      "duplicate": "Duplicaat"
+    },
+    "priority": {
+      "none": "Geen prioriteit",
+      "high": "Hoog",
+      "medium": "Gemiddeld",
+      "low": "Laag"
+    },
+    "resolution": {
+      "month": "Maand",
+      "quarter": "Kwartaal",
+      "half_year": "Halfjaar",
+      "year": "Jaar"
+    },
+    "relation": {
+      "title": "Relaties",
+      "blocks": "Blokkeert",
+      "blocked_by": "Geblokkeerd door",
+      "related": "Gerelateerd aan",
+      "add": "Relatie toevoegen",
+      "empty": "Nog geen relaties",
+      "searchPlaceholder": "Verzoeken zoeken",
+      "type": "Relatietype",
+      "remove": "Relatie verwijderen",
+      "removeNamed": "Relatie met {title} verwijderen",
+      "removed": "Relatie verwijderd"
+    },
+    "metaEditor": {
+      "add": "Veld toevoegen",
+      "empty": "Nog geen metadata",
+      "key": "Sleutel",
+      "value": "Waarde (tekst of JSON)",
+      "invalidKey": "Gebruik maximaal 64 letters, cijfers en _ . : -",
+      "remove": "Veld verwijderen",
+      "removeNamed": "{key} verwijderen",
+      "removed": "“{key}” verwijderd"
+    },
+    "submit": {
+      "button": "Een verzoek indienen",
+      "hint": "Ons team beoordeelt elk verzoek voordat het op de roadmap verschijnt.",
+      "descriptionPlaceholder": "Wat probeer je te doen, en wat zit je in de weg?",
+      "groupPlaceholder": "Kies een {group}",
+      "confirm": "Indienen",
+      "created": "Bedankt! We bekijken je verzoek binnenkort.",
+      "createdStaff": "Verzoek aangemaakt",
+      "descriptionLabel": "Beschrijving",
+      "groupRequired": "Kies een {group}.",
+      "requiredHint": "* Verplicht",
+      "browse": "bladeren"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Nieuwe updates uitgebracht",
+    "stateTabs": "Status van het verzoek",
+    "reward": {
+      "giftCard": "Cadeaukaart",
+      "amount": "${amount}",
+      "title": "Maak van je idee een cadeaukaart",
+      "body": "Als jouw verzoek onze roadmap haalt, is de cadeaukaart voor jou. Dien er gerust zoveel in als je wilt.",
+      "action": "Een functie voorstellen"
+    },
+    "previousRequest": "Vorig verzoek",
+    "nextRequest": "Volgend verzoek",
+    "saved": "Wijzigingen opgeslagen",
+    "saveShortcut": "⌘/Ctrl + Enter om op te slaan · Esc om te annuleren"
   }
 }

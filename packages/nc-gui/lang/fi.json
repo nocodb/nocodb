@@ -4128,7 +4128,7 @@
     "selectFields": "Valitse kentät",
     "selectRecord": "- Valitse tietue -",
     "sharedSource": "Jaettu lähde",
-    "selectDateFieldToAdd": "Valitse lisättävä päivämääräkenttä",
+    "selectDateFieldToAdd": "Valitse päivämääräväli",
     "seeWhatsNewEachVersion": "Katso, mitä uutta kussakin versiossa on",
     "selectTable": "Valitse taulu",
     "showBookmarkColor": "Näytä kirjanmerkin väri",
@@ -8951,7 +8951,10 @@
       "customersSeeNothing": "Asiakkaat näkevät: ei mitään (sisäinen)",
       "estimateInvalid": "Käytä kokonaislukua, 0 tai suurempaa.",
       "adjustmentPublic": "Asiakkaat näkevät oikaistun kokonaismäärän.",
-      "labels": "Tunnisteet"
+      "labels": "Tunnisteet",
+      "votes": "Äänet",
+      "unassigned": "Ei määritetty",
+      "target": "Tavoitepäivä"
     },
     "links": {
       "urlPlaceholder": "Liitä GitHub-, Slack- tai dokumenttilinkki",
@@ -8982,6 +8985,145 @@
       "settings": "Roadmap-asetuksiasi ei voitu ladata."
     },
     "loadFailed": "Tätä pyyntöä ei voitu ladata",
-    "mergedFollowHint": "Äänet ja päivitykset jatkuvat siellä."
+    "mergedFollowHint": "Äänet ja päivitykset jatkuvat siellä.",
+    "mute": {
+      "pendingTitle": "Vaimennetaan tätä pyyntöä",
+      "pending": "Hetki…",
+      "mutedTitle": "Pyyntö vaimennettu",
+      "muted": "Et saa enää päivityksiä aiheesta ”{title}” – et sähköpostitse etkä sovelluksessa.",
+      "unmutedTitle": "Päivitykset ovat taas käytössä",
+      "unmuted": "Saat taas päivityksiä aiheesta ”{title}”.",
+      "undo": "Kumoa",
+      "muteAgain": "Vaimenna uudelleen",
+      "viewRequest": "Näytä pyyntö",
+      "emailSettings": "Tiekartan sähköpostiasetukset",
+      "goToRoadmap": "Siirry tiekarttaan",
+      "invalidTitle": "Tämä linkki ei toimi enää",
+      "invalid": "Vaimennuslinkki on virheellinen tai vanhentunut. Voit silti vaimentaa pyynnön sen omalta sivulta.",
+      "failedTitle": "Pyyntöä ei voitu vaimentaa",
+      "failed": "Jokin meni pieleen. Yritä uudelleen."
+    },
+    "shortTitle": "Tiekartta",
+    "searchPlaceholder": "Hae pyyntöjä",
+    "sortBy": "Järjestys: {sort}",
+    "showMore": "Näytä {count} lisää",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB-tiimi",
+    "requestsSection": "Pyynnöt",
+    "notification": {
+      "approved": "Pyyntösi {title} on tiekartalla",
+      "declined": "Pyyntösi {title} hylättiin",
+      "statusChanged": "{title} on nyt {status}",
+      "statusChangedStaff": "{actor} siirsi kohteen {title} tilaan {status}",
+      "merged": "{title} yhdistettiin kohteeseen {target}",
+      "assigned": "{actor} määritti sinulle kohteen {title}",
+      "staffReply": "{actor} NocoDB-tiimistä vastasi kohteeseen {title}",
+      "comment": "{actor} kommentoi kohdetta {title}",
+      "internalComment": "{actor} jätti sisäisen muistiinpanon kohteeseen {title}",
+      "reply": "{actor} vastasi kommenttiisi kohteessa {title}",
+      "activity": "Uutta toimintaa kohteessa {title}",
+      "someone": "Joku"
+    },
+    "previewBanner": "Esikatselet tiekarttaa sellaisena kuin asiakas sen näkee.",
+    "notFound": "Tätä pyyntöä ei ole olemassa tai se ei näy sinulle.",
+    "positionOf": "{index} / {total}",
+    "resultsCount": "{count} pyyntö | {count} pyyntöä",
+    "state": {
+      "open": "Avoin",
+      "shipped": "Julkaistu",
+      "closed": "Suljettu"
+    },
+    "sort": {
+      "top": "Eniten ääniä",
+      "new": "Uusimmat",
+      "revenue": "Liikevaihto",
+      "priority": "Prioriteetti",
+      "manual": "Manuaalinen",
+      "updated": "Päivitetty",
+      "oldest": "Vanhimmat ensin"
+    },
+    "publicStatus": {
+      "under_review": "Arvioitavana",
+      "backlog": "Jonossa",
+      "planned": "Suunniteltu",
+      "in_progress": "Käynnissä",
+      "shipped": "Julkaistu",
+      "closed": "Suljettu",
+      "declined": "Hylätty",
+      "merged": "Yhdistetty"
+    },
+    "status": {
+      "triage": "Lajittelu",
+      "backlog": "Jonossa",
+      "todo": "Tehtävä",
+      "in_progress": "Käynnissä",
+      "in_review": "Tarkistettavana",
+      "done": "Valmis",
+      "canceled": "Peruutettu",
+      "duplicate": "Kaksoiskappale"
+    },
+    "priority": {
+      "none": "Ei prioriteettia",
+      "urgent": "Kiireellinen",
+      "high": "Korkea",
+      "medium": "Keskitaso",
+      "low": "Matala"
+    },
+    "resolution": {
+      "month": "Kuukausi",
+      "quarter": "Neljännes",
+      "half_year": "Puoli vuotta",
+      "year": "Vuosi"
+    },
+    "relation": {
+      "title": "Suhteet",
+      "blocks": "Estää",
+      "blocked_by": "Estäjä",
+      "related": "Liittyy kohteeseen",
+      "add": "Lisää suhde",
+      "empty": "Ei vielä suhteita",
+      "searchPlaceholder": "Hae pyyntöjä",
+      "type": "Suhteen tyyppi",
+      "remove": "Poista suhde",
+      "removeNamed": "Poista suhde kohteeseen {title}",
+      "removed": "Suhde poistettu"
+    },
+    "metaEditor": {
+      "title": "Metatiedot",
+      "add": "Lisää kenttä",
+      "empty": "Ei vielä metatietoja",
+      "key": "Avain",
+      "value": "Arvo (teksti tai JSON)",
+      "invalidKey": "Käytä enintään 64 kirjainta, numeroa ja merkkejä _ . : -",
+      "remove": "Poista kenttä",
+      "removeNamed": "Poista {key}",
+      "removed": "”{key}” poistettiin"
+    },
+    "submit": {
+      "button": "Lähetä pyyntö",
+      "hint": "Tiimimme käy läpi jokaisen pyynnön ennen kuin se näkyy tiekartalla.",
+      "descriptionPlaceholder": "Mitä yrität tehdä ja mikä on esteenä?",
+      "groupPlaceholder": "Valitse {group}",
+      "confirm": "Lähetä",
+      "created": "Kiitos! Käsittelemme pyyntösi pian.",
+      "createdStaff": "Pyyntö luotu",
+      "descriptionLabel": "Kuvaus",
+      "groupRequired": "Valitse {group}.",
+      "requiredHint": "* Pakollinen",
+      "browse": "selaa"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Uusia päivityksiä julkaistu",
+    "stateTabs": "Pyynnön tila",
+    "reward": {
+      "giftCard": "Lahjakortti",
+      "amount": "${amount}",
+      "title": "Muuta ideasi lahjakortiksi",
+      "body": "Jos pyyntösi pääsee tiekartallemme, lahjakortti on sinun. Lähetä niitä niin monta kuin haluat.",
+      "action": "Ehdota ominaisuutta"
+    },
+    "previousRequest": "Edellinen pyyntö",
+    "nextRequest": "Seuraava pyyntö",
+    "saved": "Muutokset tallennettu",
+    "saveShortcut": "⌘/Ctrl + Enter tallentaa · Esc peruuttaa"
   }
 }

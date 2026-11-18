@@ -4124,7 +4124,7 @@
     "selectFields": "Selecionar campos",
     "selectRecord": "- Selecionar registo -",
     "sharedSource": "Origem partilhada",
-    "selectDateFieldToAdd": "Selecione o campo de data a adicionar",
+    "selectDateFieldToAdd": "Selecionar intervalo de datas",
     "seeWhatsNewEachVersion": "Veja as novidades de cada versão",
     "selectTable": "Selecione uma tabela",
     "showBookmarkColor": "Mostrar cor do marcador",
@@ -8944,7 +8944,10 @@
       "customersSeeNothing": "Os clientes veem: nada (interno)",
       "estimateInvalid": "Use um número inteiro, 0 ou superior.",
       "adjustmentPublic": "Os clientes veem o total ajustado.",
-      "labels": "Etiquetas"
+      "labels": "Etiquetas",
+      "votes": "Votos",
+      "unassigned": "Não atribuído",
+      "target": "Data-alvo"
     },
     "links": {
       "urlPlaceholder": "Cole uma ligação do GitHub, do Slack ou de um documento",
@@ -8975,6 +8978,144 @@
       "settings": "Não foi possível carregar as suas definições da roadmap."
     },
     "loadFailed": "Não foi possível carregar este pedido",
-    "mergedFollowHint": "Os votos e as atualizações continuam lá."
+    "mergedFollowHint": "Os votos e as atualizações continuam lá.",
+    "mute": {
+      "pendingTitle": "A silenciar este pedido",
+      "pending": "Um momento…",
+      "mutedTitle": "Pedido silenciado",
+      "muted": "Deixará de receber atualizações sobre «{title}», por e-mail ou na aplicação.",
+      "unmutedTitle": "As atualizações estão novamente ativas",
+      "unmuted": "Voltará a receber atualizações sobre «{title}».",
+      "undo": "Anular",
+      "muteAgain": "Silenciar novamente",
+      "viewRequest": "Ver pedido",
+      "emailSettings": "Definições de e-mail do roteiro",
+      "goToRoadmap": "Ir para o roteiro",
+      "invalidTitle": "Esta ligação já não funciona",
+      "invalid": "A ligação para silenciar é inválida ou expirou. Ainda pode silenciar o pedido na respetiva página.",
+      "failedTitle": "Não foi possível silenciar este pedido",
+      "failed": "Algo correu mal. Tente novamente."
+    },
+    "shortTitle": "Roteiro",
+    "searchPlaceholder": "Pesquisar pedidos",
+    "sortBy": "Ordenar: {sort}",
+    "showMore": "Mostrar mais {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Equipa NocoDB",
+    "requestsSection": "Pedidos",
+    "notification": {
+      "approved": "O seu pedido {title} está no roteiro",
+      "declined": "O seu pedido {title} foi recusado",
+      "statusChanged": "{title} está agora em {status}",
+      "statusChangedStaff": "{actor} moveu {title} para {status}",
+      "merged": "{title} foi unido a {target}",
+      "assigned": "{actor} atribuiu-lhe {title}",
+      "staffReply": "{actor} da equipa NocoDB respondeu em {title}",
+      "comment": "{actor} comentou {title}",
+      "internalComment": "{actor} deixou uma nota interna em {title}",
+      "reply": "{actor} respondeu ao seu comentário em {title}",
+      "activity": "Nova atividade em {title}",
+      "someone": "Alguém"
+    },
+    "previewBanner": "Está a pré-visualizar o roteiro tal como um cliente o vê.",
+    "notFound": "Este pedido não existe ou não está visível para si.",
+    "positionOf": "{index} de {total}",
+    "resultsCount": "{count} pedido | {count} pedidos",
+    "state": {
+      "open": "Aberto",
+      "shipped": "Lançado",
+      "closed": "Fechado"
+    },
+    "sort": {
+      "top": "Mais votados",
+      "new": "Mais recentes",
+      "revenue": "Receita",
+      "priority": "Prioridade",
+      "updated": "Atualizados",
+      "oldest": "Mais antigos primeiro"
+    },
+    "publicStatus": {
+      "under_review": "Em análise",
+      "backlog": "Pendentes",
+      "planned": "Planeado",
+      "in_progress": "Em curso",
+      "shipped": "Lançado",
+      "closed": "Fechado",
+      "declined": "Recusado",
+      "merged": "Unido"
+    },
+    "status": {
+      "triage": "Triagem",
+      "backlog": "Pendentes",
+      "todo": "A fazer",
+      "in_progress": "Em curso",
+      "in_review": "Em revisão",
+      "done": "Concluído",
+      "canceled": "Cancelado",
+      "duplicate": "Duplicado"
+    },
+    "priority": {
+      "none": "Sem prioridade",
+      "urgent": "Urgente",
+      "high": "Alta",
+      "medium": "Média",
+      "low": "Baixa"
+    },
+    "resolution": {
+      "month": "Mês",
+      "quarter": "Trimestre",
+      "half_year": "Semestre",
+      "year": "Ano"
+    },
+    "relation": {
+      "title": "Relações",
+      "blocks": "Bloqueia",
+      "blocked_by": "Bloqueado por",
+      "related": "Relacionado com",
+      "add": "Adicionar relação",
+      "empty": "Ainda sem relações",
+      "searchPlaceholder": "Pesquisar pedidos",
+      "type": "Tipo de relação",
+      "remove": "Remover relação",
+      "removeNamed": "Remover a relação com {title}",
+      "removed": "Relação removida"
+    },
+    "metaEditor": {
+      "title": "Metadados",
+      "add": "Adicionar campo",
+      "empty": "Ainda sem metadados",
+      "key": "Chave",
+      "value": "Valor (texto ou JSON)",
+      "invalidKey": "Utilize até 64 letras, dígitos e _ . : -",
+      "remove": "Remover campo",
+      "removeNamed": "Remover {key}",
+      "removed": "«{key}» removido"
+    },
+    "submit": {
+      "button": "Enviar um pedido",
+      "hint": "A nossa equipa analisa todos os pedidos antes de aparecerem no roteiro.",
+      "descriptionPlaceholder": "O que está a tentar fazer e o que o impede?",
+      "groupPlaceholder": "Escolha um {group}",
+      "confirm": "Enviar",
+      "created": "Obrigado! Vamos analisar o seu pedido em breve.",
+      "createdStaff": "Pedido criado",
+      "descriptionLabel": "Descrição",
+      "groupRequired": "Escolha um {group}.",
+      "requiredHint": "* Obrigatório",
+      "browse": "navegar"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Novas atualizações lançadas",
+    "stateTabs": "Estado do pedido",
+    "reward": {
+      "giftCard": "Cartão-presente",
+      "amount": "${amount}",
+      "title": "Transforme a sua ideia num cartão-presente",
+      "body": "Se o seu pedido entrar no nosso roteiro, o cartão-presente é seu. Envie tantos quantos quiser.",
+      "action": "Sugerir uma funcionalidade"
+    },
+    "previousRequest": "Pedido anterior",
+    "nextRequest": "Pedido seguinte",
+    "saved": "Alterações guardadas",
+    "saveShortcut": "⌘/Ctrl + Enter para guardar · Esc para cancelar"
   }
 }

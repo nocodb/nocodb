@@ -4095,7 +4095,7 @@
     "selectFields": "Sélectionner les champs",
     "selectRecord": "- Sélectionner un enregistrement -",
     "sharedSource": "Source partagée",
-    "selectDateFieldToAdd": "Sélectionnez le champ de date à ajouter",
+    "selectDateFieldToAdd": "Sélectionner une plage de dates",
     "seeWhatsNewEachVersion": "Voir les nouveautés de chaque version",
     "selectTable": "Sélectionnez une table",
     "showBookmarkColor": "Afficher la couleur du signet",
@@ -8883,7 +8883,9 @@
       "customersSeeNothing": "Les clients voient : rien (interne)",
       "estimateInvalid": "Utilisez un nombre entier, 0 ou plus.",
       "adjustmentPublic": "Les clients voient le total ajusté.",
-      "labels": "Étiquettes"
+      "labels": "Étiquettes",
+      "unassigned": "Non attribué",
+      "target": "Date cible"
     },
     "links": {
       "urlPlaceholder": "Collez un lien GitHub, Slack ou un lien de document",
@@ -8914,6 +8916,142 @@
       "settings": "Impossible de charger vos paramètres de roadmap."
     },
     "loadFailed": "Impossible de charger cette demande",
-    "mergedFollowHint": "Les votes et les mises à jour continuent là-bas."
+    "mergedFollowHint": "Les votes et les mises à jour continuent là-bas.",
+    "mute": {
+      "pendingTitle": "Mise en sourdine de la demande",
+      "pending": "Un instant…",
+      "mutedTitle": "Demande mise en sourdine",
+      "muted": "Vous ne recevrez plus de mises à jour concernant « {title} », ni par e-mail ni dans l'application.",
+      "unmutedTitle": "Les mises à jour sont réactivées",
+      "unmuted": "Vous recevrez à nouveau des mises à jour concernant « {title} ».",
+      "undo": "Annuler",
+      "muteAgain": "Remettre en sourdine",
+      "viewRequest": "Voir la demande",
+      "emailSettings": "Paramètres d'e-mail de la feuille de route",
+      "goToRoadmap": "Aller à la feuille de route",
+      "invalidTitle": "Ce lien ne fonctionne plus",
+      "invalid": "Le lien de mise en sourdine est invalide ou a expiré. Vous pouvez toujours mettre la demande en sourdine depuis sa page.",
+      "failedTitle": "Impossible de mettre cette demande en sourdine",
+      "failed": "Une erreur s'est produite. Veuillez réessayer."
+    },
+    "shortTitle": "Feuille de route",
+    "searchPlaceholder": "Rechercher des demandes",
+    "sortBy": "Tri : {sort}",
+    "showMore": "Afficher {count} de plus",
+    "staffBadge": "NocoDB",
+    "staffSection": "Équipe NocoDB",
+    "requestsSection": "Demandes",
+    "notification": {
+      "approved": "Votre demande {title} figure sur la feuille de route",
+      "declined": "Votre demande {title} a été refusée",
+      "statusChanged": "{title} est maintenant {status}",
+      "statusChangedStaff": "{actor} a déplacé {title} vers {status}",
+      "merged": "{title} a été fusionnée dans {target}",
+      "assigned": "{actor} vous a attribué {title}",
+      "staffReply": "{actor} de l'équipe NocoDB a répondu sur {title}",
+      "comment": "{actor} a commenté {title}",
+      "internalComment": "{actor} a laissé une note interne sur {title}",
+      "reply": "{actor} a répondu à votre commentaire sur {title}",
+      "activity": "Nouvelle activité sur {title}",
+      "someone": "Quelqu'un"
+    },
+    "previewBanner": "Vous prévisualisez la feuille de route telle qu'un client la voit.",
+    "notFound": "Cette demande n'existe pas ou ne vous est pas visible.",
+    "positionOf": "{index} sur {total}",
+    "resultsCount": "{count} demande | {count} demandes",
+    "state": {
+      "open": "Ouverte",
+      "shipped": "Livrée",
+      "closed": "Fermée"
+    },
+    "sort": {
+      "top": "Les plus votées",
+      "new": "Plus récentes",
+      "revenue": "Revenus",
+      "priority": "Priorité",
+      "manual": "Manuel",
+      "updated": "Mises à jour",
+      "oldest": "Plus anciennes d'abord"
+    },
+    "publicStatus": {
+      "under_review": "En cours d'examen",
+      "backlog": "À traiter",
+      "planned": "Planifiée",
+      "in_progress": "En cours",
+      "shipped": "Livrée",
+      "closed": "Fermée",
+      "declined": "Refusée",
+      "merged": "Fusionnée"
+    },
+    "status": {
+      "backlog": "À traiter",
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "in_review": "En relecture",
+      "done": "Terminée",
+      "canceled": "Annulée",
+      "duplicate": "Doublon"
+    },
+    "priority": {
+      "none": "Aucune priorité",
+      "urgent": "Urgente",
+      "high": "Élevée",
+      "medium": "Moyenne",
+      "low": "Faible"
+    },
+    "resolution": {
+      "month": "Mois",
+      "quarter": "Trimestre",
+      "half_year": "Semestre",
+      "year": "Année"
+    },
+    "relation": {
+      "blocks": "Bloque",
+      "blocked_by": "Bloquée par",
+      "related": "Liée à",
+      "add": "Ajouter une relation",
+      "empty": "Aucune relation pour le moment",
+      "searchPlaceholder": "Rechercher des demandes",
+      "type": "Type de relation",
+      "remove": "Supprimer la relation",
+      "removeNamed": "Supprimer la relation avec {title}",
+      "removed": "Relation supprimée"
+    },
+    "metaEditor": {
+      "title": "Métadonnées",
+      "add": "Ajouter un champ",
+      "empty": "Aucune métadonnée pour le moment",
+      "key": "Clé",
+      "value": "Valeur (texte ou JSON)",
+      "invalidKey": "Utilisez jusqu'à 64 lettres, chiffres et _ . : -",
+      "remove": "Supprimer le champ",
+      "removeNamed": "Supprimer {key}",
+      "removed": "« {key} » supprimé"
+    },
+    "submit": {
+      "button": "Envoyer une demande",
+      "hint": "Notre équipe examine chaque demande avant qu'elle n'apparaisse sur la feuille de route.",
+      "descriptionPlaceholder": "Qu'essayez-vous de faire, et qu'est-ce qui vous en empêche ?",
+      "groupPlaceholder": "Choisir un {group}",
+      "confirm": "Envoyer",
+      "created": "Merci ! Nous examinerons votre demande prochainement.",
+      "createdStaff": "Demande créée",
+      "groupRequired": "Choisissez un {group}.",
+      "requiredHint": "* Obligatoire",
+      "browse": "parcourir"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Nouvelles mises à jour livrées",
+    "stateTabs": "État de la demande",
+    "reward": {
+      "giftCard": "Carte cadeau",
+      "amount": "${amount}",
+      "title": "Transformez votre idée en carte cadeau",
+      "body": "Si votre demande est retenue sur notre feuille de route, la carte cadeau est pour vous. Envoyez-en autant que vous le souhaitez.",
+      "action": "Suggérer une fonctionnalité"
+    },
+    "previousRequest": "Demande précédente",
+    "nextRequest": "Demande suivante",
+    "saved": "Modifications enregistrées",
+    "saveShortcut": "⌘/Ctrl + Entrée pour enregistrer · Échap pour annuler"
   }
 }

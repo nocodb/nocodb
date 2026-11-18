@@ -4128,7 +4128,7 @@
     "selectFields": "Chọn trường dữ liệu",
     "selectRecord": "- Chọn bản ghi -",
     "sharedSource": "Nguồn dùng chung",
-    "selectDateFieldToAdd": "Chọn trường ngày để thêm",
+    "selectDateFieldToAdd": "Chọn khoảng thời gian",
     "seeWhatsNewEachVersion": "Xem có gì mới trong từng phiên bản",
     "selectTable": "Chọn một bảng",
     "showBookmarkColor": "Hiển thị màu dấu trang",
@@ -8949,7 +8949,10 @@
       "customersSeeNothing": "Khách hàng thấy: không có gì (nội bộ)",
       "estimateInvalid": "Hãy dùng số nguyên, từ 0 trở lên.",
       "adjustmentPublic": "Khách hàng thấy tổng số đã điều chỉnh.",
-      "labels": "Nhãn"
+      "labels": "Nhãn",
+      "votes": "Lượt bình chọn",
+      "unassigned": "Chưa phân công",
+      "target": "Ngày mục tiêu"
     },
     "links": {
       "urlPlaceholder": "Dán liên kết GitHub, Slack hoặc tài liệu",
@@ -8980,6 +8983,146 @@
       "settings": "Không tải được cài đặt lộ trình của bạn."
     },
     "loadFailed": "Không tải được yêu cầu này",
-    "mergedFollowHint": "Lượt bình chọn và cập nhật tiếp tục ở đó."
+    "mergedFollowHint": "Lượt bình chọn và cập nhật tiếp tục ở đó.",
+    "mute": {
+      "pendingTitle": "Đang tắt thông báo cho yêu cầu này",
+      "pending": "Chờ một chút…",
+      "mutedTitle": "Đã tắt thông báo cho yêu cầu",
+      "muted": "Bạn sẽ không còn nhận cập nhật về “{title}” nữa, qua email hay trong ứng dụng.",
+      "unmutedTitle": "Cập nhật đã được bật lại",
+      "unmuted": "Bạn sẽ nhận lại cập nhật về “{title}”.",
+      "undo": "Hoàn tác",
+      "muteAgain": "Tắt thông báo lại",
+      "viewRequest": "Xem yêu cầu",
+      "emailSettings": "Cài đặt email lộ trình",
+      "goToRoadmap": "Đi tới lộ trình",
+      "invalidTitle": "Liên kết này không còn hoạt động",
+      "invalid": "Liên kết tắt thông báo không hợp lệ hoặc đã hết hạn. Bạn vẫn có thể tắt thông báo ngay trên trang của yêu cầu.",
+      "failedTitle": "Không thể tắt thông báo cho yêu cầu này",
+      "failed": "Đã xảy ra lỗi. Vui lòng thử lại."
+    },
+    "shortTitle": "Lộ trình",
+    "railTooltip": "Lộ trình Noco",
+    "searchPlaceholder": "Tìm yêu cầu",
+    "sortBy": "Sắp xếp: {sort}",
+    "showMore": "Hiển thị thêm {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Đội ngũ NocoDB",
+    "requestsSection": "Yêu cầu",
+    "notification": {
+      "approved": "Yêu cầu {title} của bạn đã có trong lộ trình",
+      "declined": "Yêu cầu {title} của bạn đã bị từ chối",
+      "statusChanged": "{title} hiện là {status}",
+      "statusChangedStaff": "{actor} đã chuyển {title} sang {status}",
+      "merged": "{title} đã được gộp vào {target}",
+      "assigned": "{actor} đã giao {title} cho bạn",
+      "staffReply": "{actor} từ đội ngũ NocoDB đã trả lời trên {title}",
+      "comment": "{actor} đã bình luận về {title}",
+      "internalComment": "{actor} đã để lại ghi chú nội bộ trên {title}",
+      "reply": "{actor} đã trả lời bình luận của bạn trên {title}",
+      "activity": "Hoạt động mới trên {title}",
+      "someone": "Ai đó"
+    },
+    "previewBanner": "Bạn đang xem lộ trình theo góc nhìn của khách hàng.",
+    "notFound": "Yêu cầu này không tồn tại hoặc bạn không có quyền xem.",
+    "positionOf": "{index} trên {total}",
+    "resultsCount": "{count} yêu cầu | {count} yêu cầu",
+    "state": {
+      "open": "Đang mở",
+      "shipped": "Đã phát hành",
+      "closed": "Đã đóng"
+    },
+    "sort": {
+      "top": "Nhiều bình chọn nhất",
+      "new": "Mới nhất",
+      "revenue": "Doanh thu",
+      "priority": "Mức ưu tiên",
+      "manual": "Thủ công",
+      "updated": "Đã cập nhật",
+      "oldest": "Cũ nhất trước"
+    },
+    "publicStatus": {
+      "under_review": "Đang xem xét",
+      "backlog": "Chờ xử lý",
+      "planned": "Đã lên kế hoạch",
+      "in_progress": "Đang thực hiện",
+      "shipped": "Đã phát hành",
+      "closed": "Đã đóng",
+      "declined": "Đã từ chối",
+      "merged": "Đã gộp"
+    },
+    "status": {
+      "triage": "Phân loại",
+      "backlog": "Chờ xử lý",
+      "todo": "Cần làm",
+      "in_progress": "Đang thực hiện",
+      "in_review": "Đang duyệt",
+      "done": "Hoàn tất",
+      "canceled": "Đã hủy",
+      "duplicate": "Trùng lặp"
+    },
+    "priority": {
+      "none": "Không ưu tiên",
+      "urgent": "Khẩn cấp",
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp"
+    },
+    "resolution": {
+      "month": "Tháng",
+      "quarter": "Quý",
+      "half_year": "Nửa năm",
+      "year": "Năm"
+    },
+    "relation": {
+      "title": "Quan hệ",
+      "blocks": "Chặn",
+      "blocked_by": "Bị chặn bởi",
+      "related": "Liên quan đến",
+      "add": "Thêm quan hệ",
+      "empty": "Chưa có quan hệ nào",
+      "searchPlaceholder": "Tìm yêu cầu",
+      "type": "Loại quan hệ",
+      "remove": "Xóa quan hệ",
+      "removeNamed": "Xóa quan hệ với {title}",
+      "removed": "Đã xóa quan hệ"
+    },
+    "metaEditor": {
+      "title": "Siêu dữ liệu",
+      "add": "Thêm trường",
+      "empty": "Chưa có siêu dữ liệu",
+      "key": "Khóa",
+      "value": "Giá trị (văn bản hoặc JSON)",
+      "invalidKey": "Dùng tối đa 64 chữ cái, chữ số và _ . : -",
+      "remove": "Xóa trường",
+      "removeNamed": "Xóa {key}",
+      "removed": "Đã xóa “{key}”"
+    },
+    "submit": {
+      "button": "Gửi yêu cầu",
+      "hint": "Đội ngũ của chúng tôi xem xét mọi yêu cầu trước khi nó xuất hiện trên lộ trình.",
+      "descriptionPlaceholder": "Bạn đang muốn làm gì và điều gì đang cản trở bạn?",
+      "groupPlaceholder": "Chọn {group}",
+      "confirm": "Gửi",
+      "created": "Cảm ơn bạn! Chúng tôi sẽ xem xét yêu cầu của bạn sớm.",
+      "createdStaff": "Đã tạo yêu cầu",
+      "descriptionLabel": "Mô tả",
+      "groupRequired": "Hãy chọn {group}.",
+      "requiredHint": "* Bắt buộc",
+      "browse": "duyệt"
+    },
+    "railTooltipUnseen": "Lộ trình Noco · Đã phát hành bản cập nhật mới",
+    "stateTabs": "Trạng thái yêu cầu",
+    "reward": {
+      "giftCard": "Thẻ quà tặng",
+      "amount": "${amount}",
+      "title": "Biến ý tưởng của bạn thành thẻ quà tặng",
+      "body": "Nếu yêu cầu của bạn được đưa vào lộ trình, thẻ quà tặng là của bạn. Gửi bao nhiêu tùy thích.",
+      "action": "Đề xuất một tính năng"
+    },
+    "previousRequest": "Yêu cầu trước",
+    "nextRequest": "Yêu cầu tiếp theo",
+    "saved": "Đã lưu thay đổi",
+    "saveShortcut": "⌘/Ctrl + Enter để lưu · Esc để hủy"
   }
 }

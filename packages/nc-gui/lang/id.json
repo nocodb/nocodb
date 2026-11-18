@@ -4122,7 +4122,7 @@
     "selectFields": "Pilih bidang",
     "selectRecord": "- Pilih Catatan -",
     "sharedSource": "Sumber bersama",
-    "selectDateFieldToAdd": "Pilih bidang tanggal yang akan ditambahkan",
+    "selectDateFieldToAdd": "Pilih rentang tanggal",
     "seeWhatsNewEachVersion": "Lihat apa yang baru di setiap versi",
     "selectTable": "Pilih tabel",
     "showBookmarkColor": "Tampilkan warna markah",
@@ -8932,7 +8932,10 @@
       "customersSeeNothing": "Pelanggan melihat: tidak ada (internal)",
       "estimateInvalid": "Gunakan bilangan bulat, 0 atau lebih.",
       "adjustmentPublic": "Pelanggan melihat total yang disesuaikan.",
-      "labels": "Label"
+      "labels": "Label",
+      "votes": "Suara",
+      "unassigned": "Belum ditugaskan",
+      "target": "Tanggal target"
     },
     "links": {
       "urlPlaceholder": "Tempel tautan GitHub, Slack, atau dokumen",
@@ -8963,6 +8966,144 @@
       "settings": "Tidak dapat memuat pengaturan roadmap Anda."
     },
     "loadFailed": "Tidak dapat memuat permintaan ini",
-    "mergedFollowHint": "Suara dan pembaruan berlanjut di sana."
+    "mergedFollowHint": "Suara dan pembaruan berlanjut di sana.",
+    "mute": {
+      "pendingTitle": "Membisukan permintaan ini",
+      "pending": "Sebentar…",
+      "mutedTitle": "Permintaan dibisukan",
+      "muted": "Anda tidak akan lagi menerima pembaruan tentang “{title}”, baik lewat email maupun di aplikasi.",
+      "unmutedTitle": "Pembaruan aktif kembali",
+      "unmuted": "Anda akan kembali menerima pembaruan tentang “{title}”.",
+      "undo": "Urungkan",
+      "muteAgain": "Bisukan lagi",
+      "viewRequest": "Lihat permintaan",
+      "emailSettings": "Pengaturan email peta jalan",
+      "goToRoadmap": "Buka peta jalan",
+      "invalidTitle": "Tautan ini sudah tidak berfungsi",
+      "invalid": "Tautan pembisuan tidak valid atau sudah kedaluwarsa. Anda tetap dapat membisukan permintaan dari halamannya.",
+      "failedTitle": "Tidak dapat membisukan permintaan ini",
+      "failed": "Terjadi kesalahan. Coba lagi."
+    },
+    "shortTitle": "Peta jalan",
+    "railTooltip": "Peta Jalan Noco",
+    "searchPlaceholder": "Cari permintaan",
+    "sortBy": "Urutkan: {sort}",
+    "showMore": "Tampilkan {count} lagi",
+    "staffBadge": "NocoDB",
+    "staffSection": "Tim NocoDB",
+    "requestsSection": "Permintaan",
+    "notification": {
+      "approved": "Permintaan Anda {title} ada di peta jalan",
+      "declined": "Permintaan Anda {title} ditolak",
+      "statusChanged": "{title} kini {status}",
+      "statusChangedStaff": "{actor} memindahkan {title} ke {status}",
+      "merged": "{title} digabungkan ke {target}",
+      "assigned": "{actor} menugaskan {title} kepada Anda",
+      "staffReply": "{actor} dari tim NocoDB membalas di {title}",
+      "comment": "{actor} mengomentari {title}",
+      "internalComment": "{actor} meninggalkan catatan internal pada {title}",
+      "reply": "{actor} membalas komentar Anda pada {title}",
+      "activity": "Aktivitas baru pada {title}",
+      "someone": "Seseorang"
+    },
+    "previewBanner": "Anda sedang melihat pratinjau peta jalan seperti yang dilihat pelanggan.",
+    "notFound": "Permintaan ini tidak ada atau tidak terlihat oleh Anda.",
+    "positionOf": "{index} dari {total}",
+    "resultsCount": "{count} permintaan | {count} permintaan",
+    "state": {
+      "open": "Terbuka",
+      "shipped": "Dirilis",
+      "closed": "Ditutup"
+    },
+    "sort": {
+      "top": "Paling banyak dipilih",
+      "new": "Terbaru",
+      "revenue": "Pendapatan",
+      "priority": "Prioritas",
+      "updated": "Diperbarui",
+      "oldest": "Terlama dahulu"
+    },
+    "publicStatus": {
+      "under_review": "Sedang ditinjau",
+      "backlog": "Antrean",
+      "planned": "Direncanakan",
+      "in_progress": "Sedang berjalan",
+      "shipped": "Dirilis",
+      "closed": "Ditutup",
+      "declined": "Ditolak",
+      "merged": "Digabungkan"
+    },
+    "status": {
+      "triage": "Penyortiran",
+      "backlog": "Antrean",
+      "todo": "Akan dikerjakan",
+      "in_progress": "Sedang berjalan",
+      "in_review": "Dalam tinjauan",
+      "done": "Selesai",
+      "canceled": "Dibatalkan",
+      "duplicate": "Duplikat"
+    },
+    "priority": {
+      "none": "Tanpa prioritas",
+      "urgent": "Mendesak",
+      "high": "Tinggi",
+      "medium": "Sedang",
+      "low": "Rendah"
+    },
+    "resolution": {
+      "month": "Bulan",
+      "quarter": "Kuartal",
+      "half_year": "Setengah tahun",
+      "year": "Tahun"
+    },
+    "relation": {
+      "title": "Relasi",
+      "blocks": "Memblokir",
+      "blocked_by": "Diblokir oleh",
+      "related": "Terkait dengan",
+      "add": "Tambah relasi",
+      "empty": "Belum ada relasi",
+      "searchPlaceholder": "Cari permintaan",
+      "type": "Jenis relasi",
+      "remove": "Hapus relasi",
+      "removeNamed": "Hapus relasi ke {title}",
+      "removed": "Relasi dihapus"
+    },
+    "metaEditor": {
+      "add": "Tambah bidang",
+      "empty": "Belum ada metadata",
+      "key": "Kunci",
+      "value": "Nilai (teks atau JSON)",
+      "invalidKey": "Gunakan maksimal 64 huruf, angka, dan _ . : -",
+      "remove": "Hapus bidang",
+      "removeNamed": "Hapus {key}",
+      "removed": "“{key}” dihapus"
+    },
+    "submit": {
+      "button": "Kirim permintaan",
+      "hint": "Tim kami meninjau setiap permintaan sebelum muncul di peta jalan.",
+      "descriptionPlaceholder": "Apa yang ingin Anda lakukan, dan apa yang menghambatnya?",
+      "groupPlaceholder": "Pilih {group}",
+      "confirm": "Kirim",
+      "created": "Terima kasih! Kami akan meninjau permintaan Anda segera.",
+      "createdStaff": "Permintaan dibuat",
+      "descriptionLabel": "Deskripsi",
+      "groupRequired": "Pilih {group}.",
+      "requiredHint": "* Wajib",
+      "browse": "telusuri"
+    },
+    "railTooltipUnseen": "Peta Jalan Noco · Pembaruan baru dirilis",
+    "stateTabs": "Status permintaan",
+    "reward": {
+      "giftCard": "Kartu hadiah",
+      "amount": "${amount}",
+      "title": "Ubah ide Anda menjadi kartu hadiah",
+      "body": "Jika permintaan Anda masuk ke peta jalan kami, kartu hadiahnya milik Anda. Kirimkan sebanyak yang Anda mau.",
+      "action": "Sarankan fitur"
+    },
+    "previousRequest": "Permintaan sebelumnya",
+    "nextRequest": "Permintaan berikutnya",
+    "saved": "Perubahan disimpan",
+    "saveShortcut": "⌘/Ctrl + Enter untuk menyimpan · Esc untuk membatalkan"
   }
 }

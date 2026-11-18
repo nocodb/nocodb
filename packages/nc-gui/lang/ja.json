@@ -4128,7 +4128,7 @@
     "selectFields": "フィールドを選択",
     "selectRecord": "- レコードを選択 -",
     "sharedSource": "共有ソース",
-    "selectDateFieldToAdd": "追加する日付フィールドを選択",
+    "selectDateFieldToAdd": "日付範囲を選択",
     "seeWhatsNewEachVersion": "各バージョンの新機能を見る",
     "selectTable": "テーブルを選択",
     "showBookmarkColor": "ブックマークの色を表示",
@@ -8953,7 +8953,10 @@
       "customersSeeNothing": "顧客に表示される内容: なし（社内）",
       "estimateInvalid": "0 以上の整数を入力してください。",
       "adjustmentPublic": "顧客には調整後の合計が表示されます。",
-      "labels": "ラベル"
+      "labels": "ラベル",
+      "votes": "投票数",
+      "unassigned": "未割り当て",
+      "target": "目標日"
     },
     "links": {
       "urlPlaceholder": "GitHub、Slack、ドキュメントのリンクを貼り付けてください",
@@ -8984,6 +8987,146 @@
       "settings": "ロードマップの設定を読み込めませんでした。"
     },
     "loadFailed": "このリクエストを読み込めませんでした",
-    "mergedFollowHint": "投票と更新はそちらで続きます。"
+    "mergedFollowHint": "投票と更新はそちらで続きます。",
+    "mute": {
+      "pendingTitle": "このリクエストをミュートしています",
+      "pending": "少々お待ちください…",
+      "mutedTitle": "リクエストをミュートしました",
+      "muted": "「{title}」に関する更新は、メールでもアプリでも届かなくなります。",
+      "unmutedTitle": "更新通知を再開しました",
+      "unmuted": "「{title}」に関する更新が再び届きます。",
+      "undo": "元に戻す",
+      "muteAgain": "再度ミュート",
+      "viewRequest": "リクエストを表示",
+      "emailSettings": "ロードマップのメール設定",
+      "goToRoadmap": "ロードマップへ移動",
+      "invalidTitle": "このリンクはもう使用できません",
+      "invalid": "ミュート用リンクが無効か、有効期限が切れています。リクエストのページからミュートすることもできます。",
+      "failedTitle": "このリクエストをミュートできませんでした",
+      "failed": "問題が発生しました。もう一度お試しください。"
+    },
+    "shortTitle": "ロードマップ",
+    "railTooltip": "Noco ロードマップ",
+    "searchPlaceholder": "リクエストを検索",
+    "sortBy": "並び順: {sort}",
+    "showMore": "さらに {count} 件表示",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB チーム",
+    "requestsSection": "リクエスト",
+    "notification": {
+      "approved": "あなたのリクエスト {title} がロードマップに追加されました",
+      "declined": "あなたのリクエスト {title} は却下されました",
+      "statusChanged": "{title} は現在 {status} です",
+      "statusChangedStaff": "{actor} が {title} を {status} に移動しました",
+      "merged": "{title} は {target} に統合されました",
+      "assigned": "{actor} があなたに {title} を割り当てました",
+      "staffReply": "NocoDB チームの {actor} が {title} で返信しました",
+      "comment": "{actor} が {title} にコメントしました",
+      "internalComment": "{actor} が {title} に社内メモを残しました",
+      "reply": "{actor} が {title} のあなたのコメントに返信しました",
+      "activity": "{title} に新しい動きがあります",
+      "someone": "誰か"
+    },
+    "previewBanner": "顧客から見えるとおりのロードマップをプレビューしています。",
+    "notFound": "このリクエストは存在しないか、閲覧権限がありません。",
+    "positionOf": "{total} 件中 {index} 件目",
+    "resultsCount": "{count} 件のリクエスト | {count} 件のリクエスト",
+    "state": {
+      "open": "オープン",
+      "shipped": "リリース済み",
+      "closed": "クローズ"
+    },
+    "sort": {
+      "top": "投票数順",
+      "new": "新しい順",
+      "revenue": "売上",
+      "priority": "優先度",
+      "manual": "手動",
+      "updated": "更新順",
+      "oldest": "古い順"
+    },
+    "publicStatus": {
+      "under_review": "検討中",
+      "backlog": "未着手",
+      "planned": "予定",
+      "in_progress": "進行中",
+      "shipped": "リリース済み",
+      "closed": "クローズ",
+      "declined": "却下",
+      "merged": "統合済み"
+    },
+    "status": {
+      "triage": "仕分け",
+      "backlog": "未着手",
+      "todo": "未対応",
+      "in_progress": "進行中",
+      "in_review": "レビュー中",
+      "done": "完了",
+      "canceled": "中止",
+      "duplicate": "重複"
+    },
+    "priority": {
+      "none": "優先度なし",
+      "urgent": "緊急",
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "resolution": {
+      "month": "月",
+      "quarter": "四半期",
+      "half_year": "半期",
+      "year": "年"
+    },
+    "relation": {
+      "title": "関連",
+      "blocks": "ブロック先",
+      "blocked_by": "ブロック元",
+      "related": "関連先",
+      "add": "関連を追加",
+      "empty": "関連はまだありません",
+      "searchPlaceholder": "リクエストを検索",
+      "type": "関連の種類",
+      "remove": "関連を削除",
+      "removeNamed": "{title} との関連を削除",
+      "removed": "関連を削除しました"
+    },
+    "metaEditor": {
+      "title": "メタデータ",
+      "add": "フィールドを追加",
+      "empty": "メタデータはまだありません",
+      "key": "キー",
+      "value": "値（テキストまたは JSON）",
+      "invalidKey": "64 文字以内の英数字と _ . : - を使用してください",
+      "remove": "フィールドを削除",
+      "removeNamed": "{key} を削除",
+      "removed": "「{key}」を削除しました"
+    },
+    "submit": {
+      "button": "リクエストを送信",
+      "hint": "ロードマップに掲載される前に、チームがすべてのリクエストを確認します。",
+      "descriptionPlaceholder": "何をしようとしていて、何が妨げになっていますか？",
+      "groupPlaceholder": "{group} を選択",
+      "confirm": "送信",
+      "created": "ありがとうございます。まもなくリクエストを確認します。",
+      "createdStaff": "リクエストを作成しました",
+      "descriptionLabel": "説明",
+      "groupRequired": "{group} を選択してください。",
+      "requiredHint": "* 必須",
+      "browse": "見る"
+    },
+    "railTooltipUnseen": "Noco ロードマップ · 新しい更新がリリースされました",
+    "stateTabs": "リクエストの状態",
+    "reward": {
+      "giftCard": "ギフトカード",
+      "amount": "${amount}",
+      "title": "アイデアをギフトカードに変えよう",
+      "body": "あなたのリクエストがロードマップに採用されれば、ギフトカードを差し上げます。何件でもお寄せください。",
+      "action": "機能を提案する"
+    },
+    "previousRequest": "前のリクエスト",
+    "nextRequest": "次のリクエスト",
+    "saved": "変更を保存しました",
+    "saveShortcut": "⌘/Ctrl + Enter で保存 · Esc でキャンセル"
   }
 }

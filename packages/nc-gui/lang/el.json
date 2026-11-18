@@ -3662,7 +3662,7 @@
     "junction": "Ενδιάμεσος",
     "child": "Θυγατρικός",
     "allDay": "Ολοήμερο",
-    "selectDateFieldToAdd": "Επιλέξτε πεδίο ημερομηνίας για προσθήκη",
+    "selectDateFieldToAdd": "Επιλέξτε εύρος ημερομηνιών",
     "clearField": "Απαλοιφή {field}",
     "presenceDashboardLocation": "Πίνακας ελέγχου: {name}",
     "presenceADashboard": "Ένας πίνακας ελέγχου",

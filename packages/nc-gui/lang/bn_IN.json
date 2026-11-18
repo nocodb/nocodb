@@ -4128,7 +4128,7 @@
     "selectFields": "ক্ষেত্র নির্বাচন করুন",
     "selectRecord": "- রেকর্ড নির্বাচন করুন -",
     "sharedSource": "শেয়ার করা উৎস",
-    "selectDateFieldToAdd": "যোগ করার জন্য তারিখ ক্ষেত্র নির্বাচন করুন",
+    "selectDateFieldToAdd": "তারিখের পরিসর নির্বাচন করুন",
     "seeWhatsNewEachVersion": "প্রতিটি সংস্করণে নতুন কী আছে দেখুন",
     "selectTable": "একটি টেবিল নির্বাচন করুন",
     "showBookmarkColor": "বুকমার্কের রং দেখান",
@@ -8952,7 +8952,10 @@
       "customersSeeNothing": "গ্রাহকরা দেখেন: কিছুই নয় (অভ্যন্তরীণ)",
       "estimateInvalid": "একটি পূর্ণ সংখ্যা ব্যবহার করুন, 0 বা তার বেশি।",
       "adjustmentPublic": "গ্রাহকরা সমন্বয় করা মোট সংখ্যাটি দেখতে পান।",
-      "labels": "লেবেল"
+      "labels": "লেবেল",
+      "votes": "ভোট",
+      "unassigned": "বরাদ্দ করা হয়নি",
+      "target": "লক্ষ্য তারিখ"
     },
     "links": {
       "urlPlaceholder": "GitHub, Slack বা নথির লিঙ্ক পেস্ট করুন",
@@ -8983,6 +8986,146 @@
       "settings": "আপনার রোডম্যাপ সেটিংস লোড করা যায়নি।"
     },
     "loadFailed": "এই অনুরোধটি লোড করা যায়নি",
-    "mergedFollowHint": "ভোট ও আপডেট সেখানেই চলতে থাকে।"
+    "mergedFollowHint": "ভোট ও আপডেট সেখানেই চলতে থাকে।",
+    "mute": {
+      "pendingTitle": "এই অনুরোধটি নিঃশব্দ করা হচ্ছে",
+      "pending": "এক মুহূর্ত…",
+      "mutedTitle": "অনুরোধ নিঃশব্দ করা হয়েছে",
+      "muted": "আপনি “{title}” সম্পর্কে আর কোনও আপডেট পাবেন না, ইমেলেও নয়, অ্যাপেও নয়।",
+      "unmutedTitle": "আপডেট আবার চালু হয়েছে",
+      "unmuted": "আপনি “{title}” সম্পর্কে আবার আপডেট পাবেন।",
+      "undo": "পূর্বাবস্থায় ফেরান",
+      "muteAgain": "আবার নিঃশব্দ করুন",
+      "viewRequest": "অনুরোধ দেখুন",
+      "emailSettings": "রোডম্যাপ ইমেল সেটিংস",
+      "goToRoadmap": "রোডম্যাপে যান",
+      "invalidTitle": "এই লিঙ্কটি আর কাজ করে না",
+      "invalid": "নিঃশব্দ করার লিঙ্কটি অবৈধ বা মেয়াদ শেষ হয়ে গেছে। আপনি এখনও অনুরোধের পৃষ্ঠা থেকে সেটি নিঃশব্দ করতে পারেন।",
+      "failedTitle": "এই অনুরোধটি নিঃশব্দ করা যায়নি",
+      "failed": "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।"
+    },
+    "shortTitle": "রোডম্যাপ",
+    "railTooltip": "Noco রোডম্যাপ",
+    "searchPlaceholder": "অনুরোধ খুঁজুন",
+    "sortBy": "সাজানো: {sort}",
+    "showMore": "আরও {count}টি দেখান",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB দল",
+    "requestsSection": "অনুরোধ",
+    "notification": {
+      "approved": "আপনার অনুরোধ {title} রোডম্যাপে রয়েছে",
+      "declined": "আপনার অনুরোধ {title} প্রত্যাখ্যান করা হয়েছে",
+      "statusChanged": "{title} এখন {status}",
+      "statusChangedStaff": "{actor} {title}-কে {status}-এ সরিয়েছেন",
+      "merged": "{title} {target}-এ একীভূত করা হয়েছে",
+      "assigned": "{actor} আপনাকে {title} বরাদ্দ করেছেন",
+      "staffReply": "NocoDB দলের {actor} {title}-এ উত্তর দিয়েছেন",
+      "comment": "{actor} {title}-এ মন্তব্য করেছেন",
+      "internalComment": "{actor} {title}-এ একটি অভ্যন্তরীণ নোট রেখেছেন",
+      "reply": "{actor} {title}-এ আপনার মন্তব্যের উত্তর দিয়েছেন",
+      "activity": "{title}-এ নতুন কার্যকলাপ",
+      "someone": "কেউ একজন"
+    },
+    "previewBanner": "গ্রাহক যেমন দেখেন, আপনি রোডম্যাপটি সেভাবেই দেখছেন।",
+    "notFound": "এই অনুরোধটি নেই অথবা আপনার কাছে দৃশ্যমান নয়।",
+    "positionOf": "{total}-এর মধ্যে {index}",
+    "resultsCount": "{count}টি অনুরোধ | {count}টি অনুরোধ",
+    "state": {
+      "open": "খোলা",
+      "shipped": "প্রকাশিত",
+      "closed": "বন্ধ"
+    },
+    "sort": {
+      "top": "সর্বাধিক ভোট",
+      "new": "নতুনতম",
+      "revenue": "আয়",
+      "priority": "অগ্রাধিকার",
+      "manual": "ম্যানুয়াল",
+      "updated": "হালনাগাদ",
+      "oldest": "পুরনো আগে"
+    },
+    "publicStatus": {
+      "under_review": "পর্যালোচনাধীন",
+      "backlog": "অপেক্ষমাণ",
+      "planned": "পরিকল্পিত",
+      "in_progress": "চলমান",
+      "shipped": "প্রকাশিত",
+      "closed": "বন্ধ",
+      "declined": "প্রত্যাখ্যাত",
+      "merged": "একীভূত"
+    },
+    "status": {
+      "triage": "বাছাই",
+      "backlog": "অপেক্ষমাণ",
+      "todo": "করণীয়",
+      "in_progress": "চলমান",
+      "in_review": "পর্যালোচনায়",
+      "done": "সম্পন্ন",
+      "canceled": "বাতিল",
+      "duplicate": "অনুলিপি"
+    },
+    "priority": {
+      "none": "কোনও অগ্রাধিকার নেই",
+      "urgent": "জরুরি",
+      "high": "উচ্চ",
+      "medium": "মাঝারি",
+      "low": "নিম্ন"
+    },
+    "resolution": {
+      "month": "মাস",
+      "quarter": "ত্রৈমাসিক",
+      "half_year": "অর্ধবর্ষ",
+      "year": "বছর"
+    },
+    "relation": {
+      "title": "সম্পর্ক",
+      "blocks": "অবরুদ্ধ করে",
+      "blocked_by": "এর দ্বারা অবরুদ্ধ",
+      "related": "এর সঙ্গে সম্পর্কিত",
+      "add": "সম্পর্ক যোগ করুন",
+      "empty": "এখনও কোনও সম্পর্ক নেই",
+      "searchPlaceholder": "অনুরোধ খুঁজুন",
+      "type": "সম্পর্কের ধরন",
+      "remove": "সম্পর্ক সরান",
+      "removeNamed": "{title}-এর সঙ্গে সম্পর্ক সরান",
+      "removed": "সম্পর্ক সরানো হয়েছে"
+    },
+    "metaEditor": {
+      "title": "মেটাডেটা",
+      "add": "ক্ষেত্র যোগ করুন",
+      "empty": "এখনও কোনও মেটাডেটা নেই",
+      "key": "কী",
+      "value": "মান (টেক্সট বা JSON)",
+      "invalidKey": "সর্বাধিক 64টি অক্ষর, সংখ্যা এবং _ . : - ব্যবহার করুন",
+      "remove": "ক্ষেত্র সরান",
+      "removeNamed": "{key} সরান",
+      "removed": "“{key}” সরানো হয়েছে"
+    },
+    "submit": {
+      "button": "একটি অনুরোধ পাঠান",
+      "hint": "রোডম্যাপে দেখানোর আগে আমাদের দল প্রতিটি অনুরোধ পর্যালোচনা করে।",
+      "descriptionPlaceholder": "আপনি কী করতে চাইছেন, আর কীসে বাধা পাচ্ছেন?",
+      "groupPlaceholder": "একটি {group} বাছুন",
+      "confirm": "পাঠান",
+      "created": "ধন্যবাদ! আমরা শীঘ্রই আপনার অনুরোধ পর্যালোচনা করব।",
+      "createdStaff": "অনুরোধ তৈরি হয়েছে",
+      "descriptionLabel": "বিবরণ",
+      "groupRequired": "একটি {group} বাছুন।",
+      "requiredHint": "* আবশ্যক",
+      "browse": "ব্রাউজ করুন"
+    },
+    "railTooltipUnseen": "Noco রোডম্যাপ · নতুন আপডেট প্রকাশিত হয়েছে",
+    "stateTabs": "অনুরোধের অবস্থা",
+    "reward": {
+      "giftCard": "উপহার কার্ড",
+      "amount": "${amount}",
+      "title": "আপনার ভাবনাকে উপহার কার্ডে বদলে নিন",
+      "body": "আপনার অনুরোধ যদি আমাদের রোডম্যাপে জায়গা পায়, উপহার কার্ডটি আপনার। যত খুশি পাঠান।",
+      "action": "একটি বৈশিষ্ট্যের প্রস্তাব দিন"
+    },
+    "previousRequest": "আগের অনুরোধ",
+    "nextRequest": "পরবর্তী অনুরোধ",
+    "saved": "পরিবর্তন সংরক্ষিত হয়েছে",
+    "saveShortcut": "সংরক্ষণ করতে ⌘/Ctrl + Enter · বাতিল করতে Esc"
   }
 }

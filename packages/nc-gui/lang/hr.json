@@ -4127,7 +4127,7 @@
     "selectFields": "Odaberi polja",
     "selectRecord": "- Odaberi zapis -",
     "sharedSource": "Dijeljeni izvor",
-    "selectDateFieldToAdd": "Odaberi polje s datumom koje želiš dodati",
+    "selectDateFieldToAdd": "Odaberite raspon datuma",
     "seeWhatsNewEachVersion": "Pogledaj što je novo u svakoj verziji",
     "selectTable": "Odaberi tablicu",
     "showBookmarkColor": "Prikaži boju oznake",
@@ -8943,7 +8943,10 @@
       "customersSeeNothing": "Kupci vide: ništa (interno)",
       "estimateInvalid": "Upotrijebite cijeli broj, 0 ili veći.",
       "adjustmentPublic": "Kupci vide ispravljeni zbroj.",
-      "labels": "Oznake"
+      "labels": "Oznake",
+      "votes": "Glasovi",
+      "unassigned": "Nedodijeljeno",
+      "target": "Ciljni datum"
     },
     "links": {
       "urlPlaceholder": "Zalijepite poveznicu na GitHub, Slack ili dokument",
@@ -8974,6 +8977,145 @@
       "settings": "Vaše postavke plana razvoja nije bilo moguće učitati."
     },
     "loadFailed": "Ovaj zahtjev nije bilo moguće učitati",
-    "mergedFollowHint": "Glasovi i novosti nastavljaju se tamo."
+    "mergedFollowHint": "Glasovi i novosti nastavljaju se tamo.",
+    "mute": {
+      "pendingTitle": "Utišavanje ovog zahtjeva",
+      "pending": "Trenutak…",
+      "mutedTitle": "Zahtjev utišan",
+      "muted": "Više nećete primati novosti o „{title}” – ni e-poštom ni u aplikaciji.",
+      "unmutedTitle": "Novosti su ponovno uključene",
+      "unmuted": "Ponovno ćete primati novosti o „{title}”.",
+      "undo": "Poništi",
+      "muteAgain": "Utišaj ponovno",
+      "viewRequest": "Prikaži zahtjev",
+      "emailSettings": "Postavke e-pošte plana razvoja",
+      "goToRoadmap": "Idi na plan razvoja",
+      "invalidTitle": "Ova poveznica više ne radi",
+      "invalid": "Poveznica za utišavanje nije važeća ili je istekla. Zahtjev i dalje možete utišati na njegovoj stranici.",
+      "failedTitle": "Ovaj se zahtjev nije mogao utišati",
+      "failed": "Nešto je pošlo po zlu. Pokušajte ponovno."
+    },
+    "shortTitle": "Plan razvoja",
+    "searchPlaceholder": "Pretraži zahtjeve",
+    "sortBy": "Razvrstavanje: {sort}",
+    "showMore": "Prikaži još {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Tim NocoDB",
+    "requestsSection": "Zahtjevi",
+    "notification": {
+      "approved": "Vaš zahtjev {title} nalazi se u planu razvoja",
+      "declined": "Vaš zahtjev {title} je odbijen",
+      "statusChanged": "{title} je sada {status}",
+      "statusChangedStaff": "{actor} je premjestio/la {title} u {status}",
+      "merged": "{title} je spojen u {target}",
+      "assigned": "{actor} vam je dodijelio/la {title}",
+      "staffReply": "{actor} iz tima NocoDB odgovorio/la je na {title}",
+      "comment": "{actor} je komentirao/la {title}",
+      "internalComment": "{actor} je ostavio/la internu bilješku na {title}",
+      "reply": "{actor} je odgovorio/la na vaš komentar na {title}",
+      "activity": "Nova aktivnost na {title}",
+      "someone": "Netko"
+    },
+    "previewBanner": "Pregledavate plan razvoja onako kako ga vidi klijent.",
+    "notFound": "Ovaj zahtjev ne postoji ili vam nije vidljiv.",
+    "positionOf": "{index} od {total}",
+    "resultsCount": "{count} zahtjev | {count} zahtjeva",
+    "state": {
+      "open": "Otvoreno",
+      "shipped": "Objavljeno",
+      "closed": "Zatvoreno"
+    },
+    "sort": {
+      "top": "Najviše glasova",
+      "new": "Najnovije",
+      "revenue": "Prihod",
+      "priority": "Prioritet",
+      "manual": "Ručno",
+      "updated": "Ažurirano",
+      "oldest": "Najstarije prvo"
+    },
+    "publicStatus": {
+      "under_review": "U razmatranju",
+      "backlog": "Na čekanju",
+      "planned": "Planirano",
+      "in_progress": "U tijeku",
+      "shipped": "Objavljeno",
+      "closed": "Zatvoreno",
+      "declined": "Odbijeno",
+      "merged": "Spojeno"
+    },
+    "status": {
+      "triage": "Razvrstavanje",
+      "backlog": "Na čekanju",
+      "todo": "Za obaviti",
+      "in_progress": "U tijeku",
+      "in_review": "U pregledu",
+      "done": "Gotovo",
+      "canceled": "Otkazano",
+      "duplicate": "Duplikat"
+    },
+    "priority": {
+      "none": "Bez prioriteta",
+      "urgent": "Hitan",
+      "high": "Visok",
+      "medium": "Srednji",
+      "low": "Nizak"
+    },
+    "resolution": {
+      "month": "Mjesec",
+      "quarter": "Tromjesečje",
+      "half_year": "Polugodište",
+      "year": "Godina"
+    },
+    "relation": {
+      "title": "Odnosi",
+      "blocks": "Blokira",
+      "blocked_by": "Blokira ga",
+      "related": "Povezano s",
+      "add": "Dodaj odnos",
+      "empty": "Još nema odnosa",
+      "searchPlaceholder": "Pretraži zahtjeve",
+      "type": "Vrsta odnosa",
+      "remove": "Ukloni odnos",
+      "removeNamed": "Ukloni odnos s {title}",
+      "removed": "Odnos uklonjen"
+    },
+    "metaEditor": {
+      "title": "Metapodaci",
+      "add": "Dodaj polje",
+      "empty": "Još nema metapodataka",
+      "key": "Ključ",
+      "value": "Vrijednost (tekst ili JSON)",
+      "invalidKey": "Upotrijebite najviše 64 slova, znamenke i _ . : -",
+      "remove": "Ukloni polje",
+      "removeNamed": "Ukloni {key}",
+      "removed": "„{key}” uklonjeno"
+    },
+    "submit": {
+      "button": "Pošalji zahtjev",
+      "hint": "Naš tim razmatra svaki zahtjev prije nego što se pojavi u planu razvoja.",
+      "descriptionPlaceholder": "Što pokušavate učiniti i što vas u tome sprječava?",
+      "groupPlaceholder": "Odaberite {group}",
+      "confirm": "Pošalji",
+      "created": "Hvala! Uskoro ćemo razmotriti vaš zahtjev.",
+      "createdStaff": "Zahtjev stvoren",
+      "descriptionLabel": "Opis",
+      "groupRequired": "Odaberite {group}.",
+      "requiredHint": "* Obavezno",
+      "browse": "pregledajte"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Objavljene nove nadogradnje",
+    "stateTabs": "Stanje zahtjeva",
+    "reward": {
+      "giftCard": "Poklon-bon",
+      "amount": "${amount}",
+      "title": "Pretvorite svoju ideju u poklon-bon",
+      "body": "Ako vaš zahtjev dospije u naš plan razvoja, poklon-bon je vaš. Pošaljite ih koliko god želite.",
+      "action": "Predloži značajku"
+    },
+    "previousRequest": "Prethodni zahtjev",
+    "nextRequest": "Sljedeći zahtjev",
+    "saved": "Promjene spremljene",
+    "saveShortcut": "⌘/Ctrl + Enter za spremanje · Esc za odustajanje"
   }
 }

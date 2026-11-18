@@ -4106,7 +4106,7 @@
     "selectFields": "ជ្រើសវាល",
     "selectRecord": "- ជ្រើសកំណត់ត្រា -",
     "sharedSource": "ប្រភពរួម",
-    "selectDateFieldToAdd": "ជ្រើសវាលកាលបរិច្ឆេទដែលត្រូវបន្ថែម",
+    "selectDateFieldToAdd": "ជ្រើសរើសចន្លោះកាលបរិច្ឆេទ",
     "seeWhatsNewEachVersion": "មើលអ្វីថ្មីក្នុងកំណែនីមួយៗ",
     "selectTable": "ជ្រើសតារាងមួយ",
     "showBookmarkColor": "បង្ហាញពណ៌ចំណាំ",
@@ -8918,7 +8918,10 @@
       "customersSeeNothing": "អតិថិជនឃើញ៖ គ្មានអ្វីទេ (ផ្ទៃក្នុង)",
       "estimateInvalid": "សូមប្រើចំនួនគត់ 0 ឬច្រើនជាងនេះ។",
       "adjustmentPublic": "អតិថិជនឃើញចំនួនសរុបដែលបានកែតម្រូវ។",
-      "labels": "ស្លាកយោង"
+      "labels": "ស្លាកយោង",
+      "votes": "សំឡេងឆ្នោត",
+      "unassigned": "មិនទាន់ប្រគល់",
+      "target": "កាលបរិច្ឆេទគោលដៅ"
     },
     "links": {
       "urlPlaceholder": "បិទភ្ជាប់តំណ GitHub, Slack ឬតំណឯកសារ",
@@ -8949,6 +8952,146 @@
       "settings": "មិនអាចផ្ទុកការកំណត់ផែនទីបង្ហាញផ្លូវរបស់អ្នកបានទេ។"
     },
     "loadFailed": "មិនអាចផ្ទុកសំណើនេះបានទេ",
-    "mergedFollowHint": "ការបោះឆ្នោត និងការធ្វើបច្ចុប្បន្នភាពបន្តនៅទីនោះ។"
+    "mergedFollowHint": "ការបោះឆ្នោត និងការធ្វើបច្ចុប្បន្នភាពបន្តនៅទីនោះ។",
+    "mute": {
+      "pendingTitle": "កំពុងបិទសំឡេងសំណើនេះ",
+      "pending": "មួយភ្លែត…",
+      "mutedTitle": "បានបិទសំឡេងសំណើ",
+      "muted": "អ្នកនឹងលែងទទួលបានដំណឹងអំពី “{title}” ទៀតហើយ ទាំងតាមអ៊ីមែល និងក្នុងកម្មវិធី។",
+      "unmutedTitle": "ដំណឹងត្រូវបានបើកឡើងវិញ",
+      "unmuted": "អ្នកនឹងទទួលបានដំណឹងអំពី “{title}” ម្តងទៀត។",
+      "undo": "មិនធ្វើវិញ",
+      "muteAgain": "បិទសំឡេងម្តងទៀត",
+      "viewRequest": "មើលសំណើ",
+      "emailSettings": "ការកំណត់អ៊ីមែលផែនទីបង្ហាញផ្លូវ",
+      "goToRoadmap": "ទៅកាន់ផែនទីបង្ហាញផ្លូវ",
+      "invalidTitle": "តំណនេះលែងដំណើរការហើយ",
+      "invalid": "តំណបិទសំឡេងមិនត្រឹមត្រូវ ឬផុតកំណត់ហើយ។ អ្នកនៅតែអាចបិទសំឡេងសំណើពីទំព័ររបស់វាបាន។",
+      "failedTitle": "មិនអាចបិទសំឡេងសំណើនេះបានទេ",
+      "failed": "មានបញ្ហាកើតឡើង។ សូមព្យាយាមម្តងទៀត។"
+    },
+    "shortTitle": "ផែនទីបង្ហាញផ្លូវ",
+    "railTooltip": "ផែនទីបង្ហាញផ្លូវ Noco",
+    "searchPlaceholder": "ស្វែងរកសំណើ",
+    "sortBy": "តម្រៀប៖ {sort}",
+    "showMore": "បង្ហាញបន្ថែម {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "ក្រុម NocoDB",
+    "requestsSection": "សំណើ",
+    "notification": {
+      "approved": "សំណើរបស់អ្នក {title} មាននៅក្នុងផែនទីបង្ហាញផ្លូវ",
+      "declined": "សំណើរបស់អ្នក {title} ត្រូវបានបដិសេធ",
+      "statusChanged": "{title} ឥឡូវជា {status}",
+      "statusChangedStaff": "{actor} បានផ្លាស់ {title} ទៅ {status}",
+      "merged": "{title} ត្រូវបានបញ្ចូលទៅក្នុង {target}",
+      "assigned": "{actor} បានប្រគល់ {title} ឱ្យអ្នក",
+      "staffReply": "{actor} មកពីក្រុម NocoDB បានឆ្លើយតបលើ {title}",
+      "comment": "{actor} បានបញ្ចេញមតិលើ {title}",
+      "internalComment": "{actor} បានទុកកំណត់ចំណាំផ្ទៃក្នុងលើ {title}",
+      "reply": "{actor} បានឆ្លើយតបមតិរបស់អ្នកលើ {title}",
+      "activity": "សកម្មភាពថ្មីលើ {title}",
+      "someone": "នរណាម្នាក់"
+    },
+    "previewBanner": "អ្នកកំពុងមើលផែនទីបង្ហាញផ្លូវដូចអតិថិជនមើលឃើញ។",
+    "notFound": "សំណើនេះមិនមានទេ ឬអ្នកមិនអាចមើលឃើញវាទេ។",
+    "positionOf": "{index} ក្នុងចំណោម {total}",
+    "resultsCount": "សំណើ {count} | សំណើ {count}",
+    "state": {
+      "open": "បើក",
+      "shipped": "បានចេញផ្សាយ",
+      "closed": "បានបិទ"
+    },
+    "sort": {
+      "top": "បានឆ្នោតច្រើនបំផុត",
+      "new": "ថ្មីបំផុត",
+      "revenue": "ចំណូល",
+      "priority": "អាទិភាព",
+      "manual": "ដោយដៃ",
+      "updated": "បានធ្វើបច្ចុប្បន្នភាព",
+      "oldest": "ចាស់បំផុតមុន"
+    },
+    "publicStatus": {
+      "under_review": "កំពុងពិនិត្យ",
+      "backlog": "កំពុងរង់ចាំ",
+      "planned": "បានគ្រោងទុក",
+      "in_progress": "កំពុងដំណើរការ",
+      "shipped": "បានចេញផ្សាយ",
+      "closed": "បានបិទ",
+      "declined": "បានបដិសេធ",
+      "merged": "បានបញ្ចូលគ្នា"
+    },
+    "status": {
+      "triage": "ការបែងចែក",
+      "backlog": "កំពុងរង់ចាំ",
+      "todo": "ត្រូវធ្វើ",
+      "in_progress": "កំពុងដំណើរការ",
+      "in_review": "កំពុងត្រួតពិនិត្យ",
+      "done": "រួចរាល់",
+      "canceled": "បានបោះបង់",
+      "duplicate": "ស្ទួន"
+    },
+    "priority": {
+      "none": "គ្មានអាទិភាព",
+      "urgent": "បន្ទាន់",
+      "high": "ខ្ពស់",
+      "medium": "មធ្យម",
+      "low": "ទាប"
+    },
+    "resolution": {
+      "month": "ខែ",
+      "quarter": "ត្រីមាស",
+      "half_year": "កន្លះឆ្នាំ",
+      "year": "ឆ្នាំ"
+    },
+    "relation": {
+      "title": "ទំនាក់ទំនង",
+      "blocks": "រារាំង",
+      "blocked_by": "ត្រូវបានរារាំងដោយ",
+      "related": "ទាក់ទងនឹង",
+      "add": "បន្ថែមទំនាក់ទំនង",
+      "empty": "មិនទាន់មានទំនាក់ទំនងទេ",
+      "searchPlaceholder": "ស្វែងរកសំណើ",
+      "type": "ប្រភេទទំនាក់ទំនង",
+      "remove": "លុបទំនាក់ទំនង",
+      "removeNamed": "លុបទំនាក់ទំនងជាមួយ {title}",
+      "removed": "បានលុបទំនាក់ទំនង"
+    },
+    "metaEditor": {
+      "title": "ទិន្នន័យមេតា",
+      "add": "បន្ថែមវាល",
+      "empty": "មិនទាន់មានទិន្នន័យមេតាទេ",
+      "key": "កូនសោ",
+      "value": "តម្លៃ (អត្ថបទ ឬ JSON)",
+      "invalidKey": "ប្រើបានរហូតដល់ 64 តួអក្សរ លេខ និង _ . : -",
+      "remove": "លុបវាល",
+      "removeNamed": "លុប {key}",
+      "removed": "បានលុប “{key}”"
+    },
+    "submit": {
+      "button": "ដាក់ស្នើសំណើ",
+      "hint": "ក្រុមរបស់យើងពិនិត្យសំណើនីមួយៗ មុនពេលវាបង្ហាញនៅលើផែនទីបង្ហាញផ្លូវ។",
+      "descriptionPlaceholder": "តើអ្នកកំពុងព្យាយាមធ្វើអ្វី ហើយអ្វីដែលរារាំងអ្នក?",
+      "groupPlaceholder": "ជ្រើសរើស {group}",
+      "confirm": "ដាក់ស្នើ",
+      "created": "អរគុណ! យើងនឹងពិនិត្យសំណើរបស់អ្នកក្នុងពេលឆាប់ៗនេះ។",
+      "createdStaff": "បានបង្កើតសំណើ",
+      "descriptionLabel": "ការពិពណ៌នា",
+      "groupRequired": "ជ្រើសរើស {group}។",
+      "requiredHint": "* ចាំបាច់",
+      "browse": "រុករក"
+    },
+    "railTooltipUnseen": "ផែនទីបង្ហាញផ្លូវ Noco · មានការធ្វើបច្ចុប្បន្នភាពថ្មីចេញផ្សាយ",
+    "stateTabs": "ស្ថានភាពសំណើ",
+    "reward": {
+      "giftCard": "កាតអំណោយ",
+      "amount": "${amount}",
+      "title": "ប្រែគំនិតរបស់អ្នកទៅជាកាតអំណោយ",
+      "body": "ប្រសិនបើសំណើរបស់អ្នកចូលក្នុងផែនទីបង្ហាញផ្លូវរបស់យើង កាតអំណោយជារបស់អ្នក។ ផ្ញើបានតាមចំនួនដែលអ្នកចង់។",
+      "action": "ស្នើមុខងារមួយ"
+    },
+    "previousRequest": "សំណើមុន",
+    "nextRequest": "សំណើបន្ទាប់",
+    "saved": "បានរក្សាទុកការផ្លាស់ប្តូរ",
+    "saveShortcut": "⌘/Ctrl + Enter ដើម្បីរក្សាទុក · Esc ដើម្បីបោះបង់"
   }
 }

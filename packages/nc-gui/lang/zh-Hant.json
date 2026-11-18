@@ -4128,7 +4128,7 @@
     "selectFields": "選擇欄位",
     "selectRecord": "- 選擇記錄 -",
     "sharedSource": "共用資料來源",
-    "selectDateFieldToAdd": "選擇要新增的日期欄位",
+    "selectDateFieldToAdd": "選擇日期範圍",
     "seeWhatsNewEachVersion": "查看每個版本的新功能",
     "selectTable": "選擇一個資料表",
     "showBookmarkColor": "顯示書籤顏色",
@@ -8955,7 +8955,10 @@
       "customersSeeNothing": "客戶看到：無（內部）",
       "estimateInvalid": "請使用 0 或更大的整數。",
       "adjustmentPublic": "客戶看到的是調整後的總數。",
-      "labels": "標籤"
+      "labels": "標籤",
+      "votes": "投票數",
+      "unassigned": "未指派",
+      "target": "目標日期"
     },
     "links": {
       "urlPlaceholder": "貼上 GitHub、Slack 或文件連結",
@@ -8986,6 +8989,146 @@
       "settings": "無法載入你的路線圖設定。"
     },
     "loadFailed": "無法載入此需求",
-    "mergedFollowHint": "投票與更新會在那邊繼續。"
+    "mergedFollowHint": "投票與更新會在那邊繼續。",
+    "mute": {
+      "pendingTitle": "正在靜音此請求",
+      "pending": "請稍候…",
+      "mutedTitle": "請求已靜音",
+      "muted": "你將不再收到關於「{title}」的更新，電子郵件和應用程式內都不會再提醒。",
+      "unmutedTitle": "更新提醒已重新開啟",
+      "unmuted": "你將再次收到關於「{title}」的更新。",
+      "undo": "復原",
+      "muteAgain": "再次靜音",
+      "viewRequest": "檢視請求",
+      "emailSettings": "路線圖電子郵件設定",
+      "goToRoadmap": "前往路線圖",
+      "invalidTitle": "此連結已失效",
+      "invalid": "靜音連結無效或已過期。你仍可在該請求的頁面上將其靜音。",
+      "failedTitle": "無法靜音此請求",
+      "failed": "發生問題，請再試一次。"
+    },
+    "shortTitle": "路線圖",
+    "railTooltip": "Noco 路線圖",
+    "searchPlaceholder": "搜尋請求",
+    "sortBy": "排序：{sort}",
+    "showMore": "再顯示 {count} 個",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB 團隊",
+    "requestsSection": "請求",
+    "notification": {
+      "approved": "你的請求 {title} 已進入路線圖",
+      "declined": "你的請求 {title} 已被拒絕",
+      "statusChanged": "{title} 現在是{status}",
+      "statusChangedStaff": "{actor} 將 {title} 移動到了{status}",
+      "merged": "{title} 已合併至 {target}",
+      "assigned": "{actor} 將 {title} 指派給了你",
+      "staffReply": "NocoDB 團隊的 {actor} 在 {title} 作了回覆",
+      "comment": "{actor} 在 {title} 留言了",
+      "internalComment": "{actor} 在 {title} 留下了內部備註",
+      "reply": "{actor} 回覆了你在 {title} 的留言",
+      "activity": "{title} 有新動態",
+      "someone": "某人"
+    },
+    "previewBanner": "你正在以客戶的視角預覽路線圖。",
+    "notFound": "此請求不存在，或你沒有檢視權限。",
+    "positionOf": "第 {index} 個，共 {total} 個",
+    "resultsCount": "{count} 個請求 | {count} 個請求",
+    "state": {
+      "open": "進行中",
+      "shipped": "已發布",
+      "closed": "已關閉"
+    },
+    "sort": {
+      "top": "得票最多",
+      "new": "最新",
+      "revenue": "營收",
+      "priority": "優先順序",
+      "manual": "手動",
+      "updated": "最近更新",
+      "oldest": "最早優先"
+    },
+    "publicStatus": {
+      "under_review": "評估中",
+      "backlog": "待處理",
+      "planned": "已規劃",
+      "in_progress": "進行中",
+      "shipped": "已發布",
+      "closed": "已關閉",
+      "declined": "已拒絕",
+      "merged": "已合併"
+    },
+    "status": {
+      "triage": "待分類",
+      "backlog": "待處理",
+      "todo": "待辦",
+      "in_progress": "進行中",
+      "in_review": "審核中",
+      "done": "已完成",
+      "canceled": "已取消",
+      "duplicate": "重複"
+    },
+    "priority": {
+      "none": "無優先順序",
+      "urgent": "緊急",
+      "high": "高",
+      "medium": "中",
+      "low": "低"
+    },
+    "resolution": {
+      "month": "月",
+      "quarter": "季",
+      "half_year": "半年",
+      "year": "年"
+    },
+    "relation": {
+      "title": "關聯",
+      "blocks": "阻擋",
+      "blocked_by": "被阻擋於",
+      "related": "關聯至",
+      "add": "新增關聯",
+      "empty": "尚無關聯",
+      "searchPlaceholder": "搜尋請求",
+      "type": "關聯類型",
+      "remove": "移除關聯",
+      "removeNamed": "移除與 {title} 的關聯",
+      "removed": "關聯已移除"
+    },
+    "metaEditor": {
+      "title": "中繼資料",
+      "add": "新增欄位",
+      "empty": "尚無中繼資料",
+      "key": "鍵",
+      "value": "值（文字或 JSON）",
+      "invalidKey": "最多使用 64 個字母、數字以及 _ . : -",
+      "remove": "移除欄位",
+      "removeNamed": "移除 {key}",
+      "removed": "已移除「{key}」"
+    },
+    "submit": {
+      "button": "提交請求",
+      "hint": "每則請求都會先經我們團隊審核，然後才會出現在路線圖上。",
+      "descriptionPlaceholder": "你想做什麼？遇到了什麼阻礙？",
+      "groupPlaceholder": "選擇一個{group}",
+      "confirm": "提交",
+      "created": "謝謝！我們會盡快查看你的請求。",
+      "createdStaff": "請求已建立",
+      "descriptionLabel": "描述",
+      "groupRequired": "請選擇一個{group}。",
+      "requiredHint": "* 必填",
+      "browse": "瀏覽"
+    },
+    "railTooltipUnseen": "Noco 路線圖 · 新版本已發布",
+    "stateTabs": "請求狀態",
+    "reward": {
+      "giftCard": "禮品卡",
+      "amount": "${amount}",
+      "title": "把你的想法變成禮品卡",
+      "body": "如果你的請求進入我們的路線圖，禮品卡就歸你。想提多少都可以。",
+      "action": "提議一項功能"
+    },
+    "previousRequest": "上一個請求",
+    "nextRequest": "下一個請求",
+    "saved": "變更已儲存",
+    "saveShortcut": "⌘/Ctrl + Enter 儲存 · Esc 取消"
   }
 }

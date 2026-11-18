@@ -4126,7 +4126,7 @@
     "selectFields": "Wybierz pola",
     "selectRecord": "- Wybierz rekord -",
     "sharedSource": "Udostępnione źródło",
-    "selectDateFieldToAdd": "Wybierz pole daty do dodania",
+    "selectDateFieldToAdd": "Wybierz zakres dat",
     "seeWhatsNewEachVersion": "Zobacz, co nowego w każdej wersji",
     "selectTable": "Wybierz tabelę",
     "showBookmarkColor": "Pokaż kolor zakładki",
@@ -8942,7 +8942,10 @@
       "customersSeeNothing": "Klienci widzą: nic (wewnętrzne)",
       "estimateInvalid": "Użyj liczby całkowitej, 0 lub większej.",
       "adjustmentPublic": "Klienci widzą skorygowaną sumę.",
-      "labels": "Etykiety"
+      "labels": "Etykiety",
+      "votes": "Głosy",
+      "unassigned": "Nieprzypisane",
+      "target": "Data docelowa"
     },
     "links": {
       "urlPlaceholder": "Wklej link do GitHub, Slack lub dokumentu",
@@ -8973,6 +8976,145 @@
       "settings": "Nie udało się wczytać Twoich ustawień roadmapy."
     },
     "loadFailed": "Nie udało się wczytać tego zgłoszenia",
-    "mergedFollowHint": "Głosy i aktualizacje są kontynuowane tam."
+    "mergedFollowHint": "Głosy i aktualizacje są kontynuowane tam.",
+    "mute": {
+      "pendingTitle": "Wyciszanie tego zgłoszenia",
+      "pending": "Chwileczkę…",
+      "mutedTitle": "Zgłoszenie wyciszone",
+      "muted": "Nie będziesz już otrzymywać aktualizacji dotyczących „{title}” – ani e-mailem, ani w aplikacji.",
+      "unmutedTitle": "Aktualizacje są znów włączone",
+      "unmuted": "Będziesz ponownie otrzymywać aktualizacje dotyczące „{title}”.",
+      "undo": "Cofnij",
+      "muteAgain": "Wycisz ponownie",
+      "viewRequest": "Zobacz zgłoszenie",
+      "emailSettings": "Ustawienia e-mail planu rozwoju",
+      "goToRoadmap": "Przejdź do planu rozwoju",
+      "invalidTitle": "Ten link już nie działa",
+      "invalid": "Link wyciszenia jest nieprawidłowy lub wygasł. Nadal możesz wyciszyć zgłoszenie na jego stronie.",
+      "failedTitle": "Nie udało się wyciszyć tego zgłoszenia",
+      "failed": "Coś poszło nie tak. Spróbuj ponownie."
+    },
+    "shortTitle": "Plan rozwoju",
+    "searchPlaceholder": "Szukaj zgłoszeń",
+    "sortBy": "Sortowanie: {sort}",
+    "showMore": "Pokaż jeszcze {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "Zespół NocoDB",
+    "requestsSection": "Zgłoszenia",
+    "notification": {
+      "approved": "Twoje zgłoszenie {title} jest w planie rozwoju",
+      "declined": "Twoje zgłoszenie {title} zostało odrzucone",
+      "statusChanged": "{title} ma teraz status {status}",
+      "statusChangedStaff": "{actor} przeniósł(-osła) {title} do {status}",
+      "merged": "{title} zostało scalone z {target}",
+      "assigned": "{actor} przypisał(a) Ci {title}",
+      "staffReply": "{actor} z zespołu NocoDB odpowiedział(a) przy {title}",
+      "comment": "{actor} skomentował(a) {title}",
+      "internalComment": "{actor} zostawił(a) notatkę wewnętrzną przy {title}",
+      "reply": "{actor} odpowiedział(a) na Twój komentarz przy {title}",
+      "activity": "Nowa aktywność w {title}",
+      "someone": "Ktoś"
+    },
+    "previewBanner": "Podglądasz plan rozwoju tak, jak widzi go klient.",
+    "notFound": "To zgłoszenie nie istnieje lub nie jest dla Ciebie widoczne.",
+    "positionOf": "{index} z {total}",
+    "resultsCount": "{count} zgłoszenie | {count} zgłoszeń",
+    "state": {
+      "open": "Otwarte",
+      "shipped": "Wydane",
+      "closed": "Zamknięte"
+    },
+    "sort": {
+      "top": "Najwyżej oceniane",
+      "new": "Najnowsze",
+      "revenue": "Przychód",
+      "priority": "Priorytet",
+      "manual": "Ręcznie",
+      "updated": "Zaktualizowane",
+      "oldest": "Najstarsze najpierw"
+    },
+    "publicStatus": {
+      "under_review": "W trakcie przeglądu",
+      "backlog": "Oczekujące",
+      "planned": "Zaplanowane",
+      "in_progress": "W toku",
+      "shipped": "Wydane",
+      "closed": "Zamknięte",
+      "declined": "Odrzucone",
+      "merged": "Scalone"
+    },
+    "status": {
+      "triage": "Segregacja",
+      "backlog": "Oczekujące",
+      "todo": "Do zrobienia",
+      "in_progress": "W toku",
+      "in_review": "W przeglądzie",
+      "done": "Gotowe",
+      "canceled": "Anulowane",
+      "duplicate": "Duplikat"
+    },
+    "priority": {
+      "none": "Brak priorytetu",
+      "urgent": "Pilny",
+      "high": "Wysoki",
+      "medium": "Średni",
+      "low": "Niski"
+    },
+    "resolution": {
+      "month": "Miesiąc",
+      "quarter": "Kwartał",
+      "half_year": "Półrocze",
+      "year": "Rok"
+    },
+    "relation": {
+      "title": "Relacje",
+      "blocks": "Blokuje",
+      "blocked_by": "Zablokowane przez",
+      "related": "Powiązane z",
+      "add": "Dodaj relację",
+      "empty": "Brak relacji",
+      "searchPlaceholder": "Szukaj zgłoszeń",
+      "type": "Typ relacji",
+      "remove": "Usuń relację",
+      "removeNamed": "Usuń relację z {title}",
+      "removed": "Relacja usunięta"
+    },
+    "metaEditor": {
+      "title": "Metadane",
+      "add": "Dodaj pole",
+      "empty": "Brak metadanych",
+      "key": "Klucz",
+      "value": "Wartość (tekst lub JSON)",
+      "invalidKey": "Użyj maksymalnie 64 liter, cyfr oraz _ . : -",
+      "remove": "Usuń pole",
+      "removeNamed": "Usuń {key}",
+      "removed": "Usunięto „{key}”"
+    },
+    "submit": {
+      "button": "Wyślij zgłoszenie",
+      "hint": "Nasz zespół rozpatruje każde zgłoszenie, zanim pojawi się w planie rozwoju.",
+      "descriptionPlaceholder": "Co chcesz zrobić i co Ci w tym przeszkadza?",
+      "groupPlaceholder": "Wybierz {group}",
+      "confirm": "Wyślij",
+      "created": "Dziękujemy! Wkrótce rozpatrzymy Twoje zgłoszenie.",
+      "createdStaff": "Zgłoszenie utworzone",
+      "descriptionLabel": "Opis",
+      "groupRequired": "Wybierz {group}.",
+      "requiredHint": "* Wymagane",
+      "browse": "przeglądaj"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Wydano nowe aktualizacje",
+    "stateTabs": "Stan zgłoszenia",
+    "reward": {
+      "giftCard": "Karta podarunkowa",
+      "amount": "${amount}",
+      "title": "Zamień swój pomysł w kartę podarunkową",
+      "body": "Jeśli Twoje zgłoszenie trafi do naszego planu rozwoju, karta podarunkowa jest Twoja. Wysyłaj ich tyle, ile chcesz.",
+      "action": "Zaproponuj funkcję"
+    },
+    "previousRequest": "Poprzednie zgłoszenie",
+    "nextRequest": "Następne zgłoszenie",
+    "saved": "Zmiany zapisane",
+    "saveShortcut": "⌘/Ctrl + Enter zapisuje · Esc anuluje"
   }
 }

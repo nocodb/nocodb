@@ -4127,7 +4127,7 @@
     "selectFields": "Vybrať polia",
     "selectRecord": "- Vybrať záznam -",
     "sharedSource": "Zdieľaný zdroj",
-    "selectDateFieldToAdd": "Vyberte pole s dátumom, ktoré chcete pridať",
+    "selectDateFieldToAdd": "Vyberte rozsah dátumov",
     "seeWhatsNewEachVersion": "Pozrite si, čo je nové v každej verzii",
     "selectTable": "Vyberte tabuľku",
     "showBookmarkColor": "Zobraziť farbu záložky",
@@ -8944,7 +8944,10 @@
       "customersSeeNothing": "Zákazníci vidia: nič (interné)",
       "estimateInvalid": "Použite celé číslo, 0 alebo vyššie.",
       "adjustmentPublic": "Zákazníci vidia upravený súčet.",
-      "labels": "Štítky"
+      "labels": "Štítky",
+      "votes": "Hlasy",
+      "unassigned": "Nepriradené",
+      "target": "Cieľový dátum"
     },
     "links": {
       "urlPlaceholder": "Vložte odkaz na GitHub, Slack alebo dokument",
@@ -8975,6 +8978,145 @@
       "settings": "Vaše nastavenia roadmapy sa nepodarilo načítať."
     },
     "loadFailed": "Túto žiadosť sa nepodarilo načítať",
-    "mergedFollowHint": "Hlasy a aktualizácie pokračujú tam."
+    "mergedFollowHint": "Hlasy a aktualizácie pokračujú tam.",
+    "mute": {
+      "pendingTitle": "Stlmovanie tejto požiadavky",
+      "pending": "Moment…",
+      "mutedTitle": "Požiadavka stlmená",
+      "muted": "Už nebudete dostávať aktualizácie o „{title}“ – ani e-mailom, ani v aplikácii.",
+      "unmutedTitle": "Aktualizácie sú opäť zapnuté",
+      "unmuted": "Znova budete dostávať aktualizácie o „{title}“.",
+      "undo": "Späť",
+      "muteAgain": "Stlmiť znova",
+      "viewRequest": "Zobraziť požiadavku",
+      "emailSettings": "Nastavenia e-mailov plánu rozvoja",
+      "goToRoadmap": "Prejsť na plán rozvoja",
+      "invalidTitle": "Tento odkaz už nefunguje",
+      "invalid": "Odkaz na stlmenie je neplatný alebo vypršal. Požiadavku môžete stále stlmiť na jej stránke.",
+      "failedTitle": "Túto požiadavku sa nepodarilo stlmiť",
+      "failed": "Niečo sa pokazilo. Skúste to znova."
+    },
+    "shortTitle": "Plán rozvoja",
+    "searchPlaceholder": "Hľadať požiadavky",
+    "sortBy": "Zoradenie: {sort}",
+    "showMore": "Zobraziť o {count} viac",
+    "staffBadge": "NocoDB",
+    "staffSection": "Tím NocoDB",
+    "requestsSection": "Požiadavky",
+    "notification": {
+      "approved": "Vaša požiadavka {title} je v pláne rozvoja",
+      "declined": "Vaša požiadavka {title} bola zamietnutá",
+      "statusChanged": "{title} je teraz {status}",
+      "statusChangedStaff": "{actor} presunul(a) {title} do {status}",
+      "merged": "{title} bola zlúčená do {target}",
+      "assigned": "{actor} vám priradil(a) {title}",
+      "staffReply": "{actor} z tímu NocoDB odpovedal(a) pri {title}",
+      "comment": "{actor} okomentoval(a) {title}",
+      "internalComment": "{actor} zanechal(a) internú poznámku pri {title}",
+      "reply": "{actor} odpovedal(a) na váš komentár pri {title}",
+      "activity": "Nová aktivita pri {title}",
+      "someone": "Niekto"
+    },
+    "previewBanner": "Prezeráte si plán rozvoja tak, ako ho vidí zákazník.",
+    "notFound": "Táto požiadavka neexistuje alebo pre vás nie je viditeľná.",
+    "positionOf": "{index} z {total}",
+    "resultsCount": "{count} požiadavka | {count} požiadaviek",
+    "state": {
+      "open": "Otvorené",
+      "shipped": "Vydané",
+      "closed": "Uzavreté"
+    },
+    "sort": {
+      "top": "Najviac hlasov",
+      "new": "Najnovšie",
+      "revenue": "Tržby",
+      "priority": "Priorita",
+      "manual": "Ručne",
+      "updated": "Aktualizované",
+      "oldest": "Najstaršie prvé"
+    },
+    "publicStatus": {
+      "under_review": "V posudzovaní",
+      "backlog": "V poradí",
+      "planned": "Naplánované",
+      "in_progress": "Prebieha",
+      "shipped": "Vydané",
+      "closed": "Uzavreté",
+      "declined": "Zamietnuté",
+      "merged": "Zlúčené"
+    },
+    "status": {
+      "triage": "Triedenie",
+      "backlog": "V poradí",
+      "todo": "Na vybavenie",
+      "in_progress": "Prebieha",
+      "in_review": "V revízii",
+      "done": "Hotové",
+      "canceled": "Zrušené",
+      "duplicate": "Duplikát"
+    },
+    "priority": {
+      "none": "Bez priority",
+      "urgent": "Naliehavá",
+      "high": "Vysoká",
+      "medium": "Stredná",
+      "low": "Nízka"
+    },
+    "resolution": {
+      "month": "Mesiac",
+      "quarter": "Štvrťrok",
+      "half_year": "Polrok",
+      "year": "Rok"
+    },
+    "relation": {
+      "title": "Vzťahy",
+      "blocks": "Blokuje",
+      "blocked_by": "Blokované čím",
+      "related": "Súvisí s",
+      "add": "Pridať vzťah",
+      "empty": "Zatiaľ žiadne vzťahy",
+      "searchPlaceholder": "Hľadať požiadavky",
+      "type": "Typ vzťahu",
+      "remove": "Odstrániť vzťah",
+      "removeNamed": "Odstrániť vzťah k {title}",
+      "removed": "Vzťah odstránený"
+    },
+    "metaEditor": {
+      "title": "Metaúdaje",
+      "add": "Pridať pole",
+      "empty": "Zatiaľ žiadne metaúdaje",
+      "key": "Kľúč",
+      "value": "Hodnota (text alebo JSON)",
+      "invalidKey": "Použite najviac 64 písmen, číslic a _ . : -",
+      "remove": "Odstrániť pole",
+      "removeNamed": "Odstrániť {key}",
+      "removed": "„{key}“ odstránené"
+    },
+    "submit": {
+      "button": "Odoslať požiadavku",
+      "hint": "Náš tím posudzuje každú požiadavku, než sa objaví v pláne rozvoja.",
+      "descriptionPlaceholder": "Čo sa snažíte urobiť a čo vám v tom bráni?",
+      "groupPlaceholder": "Vyberte {group}",
+      "confirm": "Odoslať",
+      "created": "Ďakujeme! Vašu požiadavku čoskoro posúdime.",
+      "createdStaff": "Požiadavka vytvorená",
+      "descriptionLabel": "Popis",
+      "groupRequired": "Vyberte {group}.",
+      "requiredHint": "* Povinné",
+      "browse": "prehliadať"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Vydané nové aktualizácie",
+    "stateTabs": "Stav požiadavky",
+    "reward": {
+      "giftCard": "Darčekový poukaz",
+      "amount": "${amount}",
+      "title": "Premeňte svoj nápad na darčekový poukaz",
+      "body": "Ak sa vaša požiadavka dostane do nášho plánu rozvoja, darčekový poukaz je váš. Posielajte ich, koľko chcete.",
+      "action": "Navrhnúť funkciu"
+    },
+    "previousRequest": "Predchádzajúca požiadavka",
+    "nextRequest": "Ďalšia požiadavka",
+    "saved": "Zmeny uložené",
+    "saveShortcut": "⌘/Ctrl + Enter uloží · Esc zruší"
   }
 }

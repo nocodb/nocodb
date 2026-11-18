@@ -4119,7 +4119,7 @@
     "selectFields": "Vælg felter",
     "selectRecord": "- Vælg post -",
     "sharedSource": "Delt kilde",
-    "selectDateFieldToAdd": "Vælg det datofelt, der skal tilføjes",
+    "selectDateFieldToAdd": "Vælg datointerval",
     "seeWhatsNewEachVersion": "Se hvad der er nyt i hver version",
     "selectTable": "Vælg en tabel",
     "showBookmarkColor": "Vis bogmærkefarve",
@@ -8919,7 +8919,10 @@
       "adjustmentNote": "Hvorfor? (valgfrit)",
       "customersSeeNothing": "Kunder ser: ingenting (intern)",
       "estimateInvalid": "Brug et helt tal, 0 eller derover.",
-      "adjustmentPublic": "Kunder ser det justerede total."
+      "adjustmentPublic": "Kunder ser det justerede total.",
+      "votes": "Stemmer",
+      "unassigned": "Ikke tildelt",
+      "target": "Måldato"
     },
     "links": {
       "urlPlaceholder": "Indsæt et link til GitHub, Slack eller et dokument",
@@ -8950,6 +8953,144 @@
       "settings": "Dine roadmap-indstillinger kunne ikke indlæses."
     },
     "loadFailed": "Denne anmodning kunne ikke indlæses",
-    "mergedFollowHint": "Stemmer og opdateringer fortsætter der."
+    "mergedFollowHint": "Stemmer og opdateringer fortsætter der.",
+    "mute": {
+      "pendingTitle": "Slår denne anmodning fra",
+      "pending": "Et øjeblik…",
+      "mutedTitle": "Anmodning slået fra",
+      "muted": "Du får ikke længere opdateringer om “{title}” – hverken via e-mail eller i appen.",
+      "unmutedTitle": "Opdateringer er slået til igen",
+      "unmuted": "Du får opdateringer om “{title}” igen.",
+      "undo": "Fortryd",
+      "muteAgain": "Slå fra igen",
+      "viewRequest": "Se anmodning",
+      "emailSettings": "E-mailindstillinger for køreplanen",
+      "goToRoadmap": "Gå til køreplanen",
+      "invalidTitle": "Dette link virker ikke længere",
+      "invalid": "Linket til at slå fra er ugyldigt eller udløbet. Du kan stadig slå anmodningen fra på dens side.",
+      "failedTitle": "Denne anmodning kunne ikke slås fra",
+      "failed": "Noget gik galt. Prøv igen."
+    },
+    "shortTitle": "Køreplan",
+    "searchPlaceholder": "Søg anmodninger",
+    "sortBy": "Sortering: {sort}",
+    "showMore": "Vis {count} mere",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB-teamet",
+    "requestsSection": "Anmodninger",
+    "notification": {
+      "approved": "Din anmodning {title} er på køreplanen",
+      "declined": "Din anmodning {title} blev afvist",
+      "statusChanged": "{title} er nu {status}",
+      "statusChangedStaff": "{actor} flyttede {title} til {status}",
+      "merged": "{title} blev flettet ind i {target}",
+      "assigned": "{actor} tildelte dig {title}",
+      "staffReply": "{actor} fra NocoDB-teamet svarede på {title}",
+      "comment": "{actor} kommenterede på {title}",
+      "internalComment": "{actor} efterlod en intern note på {title}",
+      "reply": "{actor} svarede på din kommentar på {title}",
+      "activity": "Ny aktivitet på {title}",
+      "someone": "Nogen"
+    },
+    "previewBanner": "Du ser en forhåndsvisning af køreplanen, som en kunde ser den.",
+    "notFound": "Denne anmodning findes ikke eller er ikke synlig for dig.",
+    "positionOf": "{index} af {total}",
+    "resultsCount": "{count} anmodning | {count} anmodninger",
+    "state": {
+      "open": "Åben",
+      "shipped": "Udgivet",
+      "closed": "Lukket"
+    },
+    "sort": {
+      "top": "Flest stemmer",
+      "new": "Nyeste",
+      "revenue": "Omsætning",
+      "priority": "Prioritet",
+      "manual": "Manuel",
+      "updated": "Opdateret",
+      "oldest": "Ældste først"
+    },
+    "publicStatus": {
+      "under_review": "Under vurdering",
+      "backlog": "Afventer",
+      "planned": "Planlagt",
+      "in_progress": "I gang",
+      "shipped": "Udgivet",
+      "closed": "Lukket",
+      "declined": "Afvist",
+      "merged": "Flettet"
+    },
+    "status": {
+      "triage": "Visitering",
+      "backlog": "Afventer",
+      "todo": "Skal gøres",
+      "in_progress": "I gang",
+      "in_review": "Under gennemgang",
+      "done": "Færdig",
+      "canceled": "Annulleret",
+      "duplicate": "Dublet"
+    },
+    "priority": {
+      "none": "Ingen prioritet",
+      "urgent": "Haster",
+      "high": "Høj",
+      "medium": "Mellem",
+      "low": "Lav"
+    },
+    "resolution": {
+      "month": "Måned",
+      "quarter": "Kvartal",
+      "half_year": "Halvår",
+      "year": "År"
+    },
+    "relation": {
+      "title": "Relationer",
+      "blocks": "Blokerer",
+      "blocked_by": "Blokeret af",
+      "related": "Relateret til",
+      "add": "Tilføj relation",
+      "empty": "Ingen relationer endnu",
+      "searchPlaceholder": "Søg anmodninger",
+      "type": "Relationstype",
+      "remove": "Fjern relation",
+      "removeNamed": "Fjern relationen til {title}",
+      "removed": "Relation fjernet"
+    },
+    "metaEditor": {
+      "add": "Tilføj felt",
+      "empty": "Ingen metadata endnu",
+      "key": "Nøgle",
+      "value": "Værdi (tekst eller JSON)",
+      "invalidKey": "Brug op til 64 bogstaver, tal og _ . : -",
+      "remove": "Fjern felt",
+      "removeNamed": "Fjern {key}",
+      "removed": "“{key}” blev fjernet"
+    },
+    "submit": {
+      "button": "Send en anmodning",
+      "hint": "Vores team gennemgår hver anmodning, før den vises på køreplanen.",
+      "descriptionPlaceholder": "Hvad prøver du at gøre, og hvad står i vejen?",
+      "groupPlaceholder": "Vælg en {group}",
+      "confirm": "Send",
+      "created": "Tak! Vi gennemgår din anmodning snarest.",
+      "createdStaff": "Anmodning oprettet",
+      "descriptionLabel": "Beskrivelse",
+      "groupRequired": "Vælg en {group}.",
+      "requiredHint": "* Påkrævet",
+      "browse": "gennemse"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Nye opdateringer udgivet",
+    "stateTabs": "Anmodningens tilstand",
+    "reward": {
+      "giftCard": "Gavekort",
+      "amount": "${amount}",
+      "title": "Gør din idé til et gavekort",
+      "body": "Hvis din anmodning kommer på vores køreplan, er gavekortet dit. Send lige så mange, du vil.",
+      "action": "Foreslå en funktion"
+    },
+    "previousRequest": "Forrige anmodning",
+    "nextRequest": "Næste anmodning",
+    "saved": "Ændringer gemt",
+    "saveShortcut": "⌘/Ctrl + Enter for at gemme · Esc for at annullere"
   }
 }

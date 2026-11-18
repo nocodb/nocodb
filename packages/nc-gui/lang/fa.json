@@ -4128,7 +4128,7 @@
     "selectFields": "انتخاب فیلدها",
     "selectRecord": "- انتخاب رکورد -",
     "sharedSource": "منبع مشترک",
-    "selectDateFieldToAdd": "فیلد تاریخ موردنظر برای افزودن را انتخاب کنید",
+    "selectDateFieldToAdd": "بازه تاریخ را انتخاب کنید",
     "seeWhatsNewEachVersion": "ببینید در هر نسخه چه چیزی تازه است",
     "selectTable": "یک جدول انتخاب کنید",
     "showBookmarkColor": "نمایش رنگ نشانک",
@@ -8954,7 +8954,10 @@
       "customersSeeNothing": "مشتریان می‌بینند: هیچ‌چیز (داخلی)",
       "estimateInvalid": "یک عدد صحیح، ۰ یا بیشتر وارد کنید.",
       "adjustmentPublic": "مشتریان مجموع تعدیل‌شده را می‌بینند.",
-      "labels": "برچسب‌ها"
+      "labels": "برچسب‌ها",
+      "votes": "رأی‌ها",
+      "unassigned": "واگذارنشده",
+      "target": "تاریخ هدف"
     },
     "links": {
       "urlPlaceholder": "یک پیوند GitHub، Slack یا سند را بچسبانید",
@@ -8985,6 +8988,146 @@
       "settings": "بارگذاری تنظیمات نقشهٔ راه شما ممکن نشد."
     },
     "loadFailed": "بارگذاری این درخواست ممکن نشد",
-    "mergedFollowHint": "رأی‌ها و به‌روزرسانی‌ها آنجا ادامه می‌یابد."
+    "mergedFollowHint": "رأی‌ها و به‌روزرسانی‌ها آنجا ادامه می‌یابد.",
+    "mute": {
+      "pendingTitle": "در حال بی‌صدا کردن این درخواست",
+      "pending": "یک لحظه…",
+      "mutedTitle": "درخواست بی‌صدا شد",
+      "muted": "دیگر درباره «{title}» به‌روزرسانی دریافت نمی‌کنید، نه از طریق ایمیل و نه در برنامه.",
+      "unmutedTitle": "به‌روزرسانی‌ها دوباره فعال شدند",
+      "unmuted": "دوباره درباره «{title}» به‌روزرسانی دریافت می‌کنید.",
+      "undo": "واگرد",
+      "muteAgain": "دوباره بی‌صدا کن",
+      "viewRequest": "مشاهده درخواست",
+      "emailSettings": "تنظیمات ایمیل نقشه راه",
+      "goToRoadmap": "رفتن به نقشه راه",
+      "invalidTitle": "این پیوند دیگر کار نمی‌کند",
+      "invalid": "پیوند بی‌صدا کردن نامعتبر است یا منقضی شده. همچنان می‌توانید درخواست را از صفحه خودش بی‌صدا کنید.",
+      "failedTitle": "بی‌صدا کردن این درخواست ممکن نشد",
+      "failed": "مشکلی پیش آمد. دوباره تلاش کنید."
+    },
+    "shortTitle": "نقشه راه",
+    "railTooltip": "نقشه راه Noco",
+    "searchPlaceholder": "جستجوی درخواست‌ها",
+    "sortBy": "مرتب‌سازی: {sort}",
+    "showMore": "نمایش {count} مورد دیگر",
+    "staffBadge": "NocoDB",
+    "staffSection": "تیم NocoDB",
+    "requestsSection": "درخواست‌ها",
+    "notification": {
+      "approved": "درخواست شما {title} در نقشه راه قرار گرفت",
+      "declined": "درخواست شما {title} رد شد",
+      "statusChanged": "{title} اکنون {status} است",
+      "statusChangedStaff": "{actor} درخواست {title} را به {status} منتقل کرد",
+      "merged": "{title} در {target} ادغام شد",
+      "assigned": "{actor} درخواست {title} را به شما واگذار کرد",
+      "staffReply": "{actor} از تیم NocoDB در {title} پاسخ داد",
+      "comment": "{actor} روی {title} نظر داد",
+      "internalComment": "{actor} یادداشت داخلی روی {title} گذاشت",
+      "reply": "{actor} به نظر شما در {title} پاسخ داد",
+      "activity": "فعالیت جدید در {title}",
+      "someone": "کسی"
+    },
+    "previewBanner": "شما نقشه راه را همان‌طور که مشتری می‌بیند پیش‌نمایش می‌کنید.",
+    "notFound": "این درخواست وجود ندارد یا برای شما قابل مشاهده نیست.",
+    "positionOf": "{index} از {total}",
+    "resultsCount": "{count} درخواست | {count} درخواست",
+    "state": {
+      "open": "باز",
+      "shipped": "منتشر شده",
+      "closed": "بسته"
+    },
+    "sort": {
+      "top": "بیشترین رأی",
+      "new": "جدیدترین",
+      "revenue": "درآمد",
+      "priority": "اولویت",
+      "manual": "دستی",
+      "updated": "به‌روزرسانی",
+      "oldest": "قدیمی‌ترین اول"
+    },
+    "publicStatus": {
+      "under_review": "در حال بررسی",
+      "backlog": "در صف",
+      "planned": "برنامه‌ریزی شده",
+      "in_progress": "در حال انجام",
+      "shipped": "منتشر شده",
+      "closed": "بسته",
+      "declined": "رد شده",
+      "merged": "ادغام شده"
+    },
+    "status": {
+      "triage": "دسته‌بندی اولیه",
+      "backlog": "در صف",
+      "todo": "برای انجام",
+      "in_progress": "در حال انجام",
+      "in_review": "در حال بازبینی",
+      "done": "انجام شده",
+      "canceled": "لغو شده",
+      "duplicate": "تکراری"
+    },
+    "priority": {
+      "none": "بدون اولویت",
+      "urgent": "فوری",
+      "high": "بالا",
+      "medium": "متوسط",
+      "low": "پایین"
+    },
+    "resolution": {
+      "month": "ماه",
+      "quarter": "فصل",
+      "half_year": "نیم‌سال",
+      "year": "سال"
+    },
+    "relation": {
+      "title": "روابط",
+      "blocks": "مسدود می‌کند",
+      "blocked_by": "مسدود شده توسط",
+      "related": "مرتبط با",
+      "add": "افزودن رابطه",
+      "empty": "هنوز رابطه‌ای وجود ندارد",
+      "searchPlaceholder": "جستجوی درخواست‌ها",
+      "type": "نوع رابطه",
+      "remove": "حذف رابطه",
+      "removeNamed": "حذف رابطه با {title}",
+      "removed": "رابطه حذف شد"
+    },
+    "metaEditor": {
+      "title": "فراداده",
+      "add": "افزودن فیلد",
+      "empty": "هنوز فراداده‌ای وجود ندارد",
+      "key": "کلید",
+      "value": "مقدار (متن یا JSON)",
+      "invalidKey": "حداکثر از ۶۴ حرف، رقم و _ . : - استفاده کنید",
+      "remove": "حذف فیلد",
+      "removeNamed": "حذف {key}",
+      "removed": "«{key}» حذف شد"
+    },
+    "submit": {
+      "button": "ارسال درخواست",
+      "hint": "تیم ما هر درخواست را پیش از نمایش در نقشه راه بررسی می‌کند.",
+      "descriptionPlaceholder": "می‌خواهید چه کاری انجام دهید و چه چیزی مانع شماست؟",
+      "groupPlaceholder": "یک {group} انتخاب کنید",
+      "confirm": "ارسال",
+      "created": "ممنون! به‌زودی درخواست شما را بررسی می‌کنیم.",
+      "createdStaff": "درخواست ایجاد شد",
+      "descriptionLabel": "توضیحات",
+      "groupRequired": "یک {group} انتخاب کنید.",
+      "requiredHint": "* الزامی",
+      "browse": "مرور"
+    },
+    "railTooltipUnseen": "نقشه راه Noco · به‌روزرسانی‌های جدید منتشر شد",
+    "stateTabs": "وضعیت درخواست",
+    "reward": {
+      "giftCard": "کارت هدیه",
+      "amount": "${amount}",
+      "title": "ایده خود را به کارت هدیه تبدیل کنید",
+      "body": "اگر درخواست شما به نقشه راه ما راه پیدا کند، کارت هدیه مال شماست. هر چقدر که می‌خواهید ارسال کنید.",
+      "action": "پیشنهاد یک قابلیت"
+    },
+    "previousRequest": "درخواست قبلی",
+    "nextRequest": "درخواست بعدی",
+    "saved": "تغییرات ذخیره شد",
+    "saveShortcut": "⌘/Ctrl + Enter برای ذخیره · Esc برای لغو"
   }
 }

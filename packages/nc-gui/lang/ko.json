@@ -4128,7 +4128,7 @@
     "selectFields": "필드 선택",
     "selectRecord": "- 항목 선택 -",
     "sharedSource": "공유 소스",
-    "selectDateFieldToAdd": "추가할 날짜 필드 선택",
+    "selectDateFieldToAdd": "날짜 범위 선택",
     "seeWhatsNewEachVersion": "각 버전의 새로운 기능 보기",
     "selectTable": "테이블을 선택하세요",
     "showBookmarkColor": "북마크 색상 표시",
@@ -8951,7 +8951,10 @@
       "customersSeeNothing": "고객에게 표시: 없음(내부)",
       "estimateInvalid": "0 이상의 정수를 입력하세요.",
       "adjustmentPublic": "고객에게는 조정된 합계가 표시됩니다.",
-      "labels": "라벨"
+      "labels": "라벨",
+      "votes": "투표 수",
+      "unassigned": "미지정",
+      "target": "목표 날짜"
     },
     "links": {
       "urlPlaceholder": "GitHub, Slack 또는 문서 링크를 붙여넣으세요",
@@ -8982,6 +8985,146 @@
       "settings": "로드맵 설정을 불러오지 못했습니다."
     },
     "loadFailed": "이 요청을 불러오지 못했습니다",
-    "mergedFollowHint": "투표와 업데이트는 그곳에서 이어집니다."
+    "mergedFollowHint": "투표와 업데이트는 그곳에서 이어집니다.",
+    "mute": {
+      "pendingTitle": "이 요청을 음소거하는 중",
+      "pending": "잠시만 기다려 주세요…",
+      "mutedTitle": "요청을 음소거했습니다",
+      "muted": "“{title}”에 대한 업데이트를 이메일로도 앱에서도 더 이상 받지 않습니다.",
+      "unmutedTitle": "업데이트가 다시 켜졌습니다",
+      "unmuted": "“{title}”에 대한 업데이트를 다시 받습니다.",
+      "undo": "실행 취소",
+      "muteAgain": "다시 음소거",
+      "viewRequest": "요청 보기",
+      "emailSettings": "로드맵 이메일 설정",
+      "goToRoadmap": "로드맵으로 이동",
+      "invalidTitle": "이 링크는 더 이상 작동하지 않습니다",
+      "invalid": "음소거 링크가 유효하지 않거나 만료되었습니다. 요청 페이지에서 직접 음소거할 수 있습니다.",
+      "failedTitle": "이 요청을 음소거할 수 없습니다",
+      "failed": "문제가 발생했습니다. 다시 시도하세요."
+    },
+    "shortTitle": "로드맵",
+    "railTooltip": "Noco 로드맵",
+    "searchPlaceholder": "요청 검색",
+    "sortBy": "정렬: {sort}",
+    "showMore": "{count}개 더 보기",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB 팀",
+    "requestsSection": "요청",
+    "notification": {
+      "approved": "요청하신 {title}이(가) 로드맵에 올랐습니다",
+      "declined": "요청하신 {title}이(가) 거절되었습니다",
+      "statusChanged": "{title}이(가) 이제 {status}입니다",
+      "statusChangedStaff": "{actor}님이 {title}을(를) {status}(으)로 옮겼습니다",
+      "merged": "{title}이(가) {target}에 병합되었습니다",
+      "assigned": "{actor}님이 {title}을(를) 회원님에게 지정했습니다",
+      "staffReply": "NocoDB 팀의 {actor}님이 {title}에 답글을 남겼습니다",
+      "comment": "{actor}님이 {title}에 댓글을 남겼습니다",
+      "internalComment": "{actor}님이 {title}에 내부 메모를 남겼습니다",
+      "reply": "{actor}님이 {title}의 회원님 댓글에 답글을 남겼습니다",
+      "activity": "{title}에 새로운 활동이 있습니다",
+      "someone": "누군가"
+    },
+    "previewBanner": "고객에게 보이는 그대로 로드맵을 미리 보고 있습니다.",
+    "notFound": "이 요청이 존재하지 않거나 볼 수 있는 권한이 없습니다.",
+    "positionOf": "{total}개 중 {index}번째",
+    "resultsCount": "요청 {count}건 | 요청 {count}건",
+    "state": {
+      "open": "열림",
+      "shipped": "출시됨",
+      "closed": "종료됨"
+    },
+    "sort": {
+      "top": "투표순",
+      "new": "최신순",
+      "revenue": "매출",
+      "priority": "우선순위",
+      "manual": "수동",
+      "updated": "업데이트순",
+      "oldest": "오래된순"
+    },
+    "publicStatus": {
+      "under_review": "검토 중",
+      "backlog": "대기 중",
+      "planned": "예정됨",
+      "in_progress": "진행 중",
+      "shipped": "출시됨",
+      "closed": "종료됨",
+      "declined": "거절됨",
+      "merged": "병합됨"
+    },
+    "status": {
+      "triage": "분류",
+      "backlog": "대기 중",
+      "todo": "할 일",
+      "in_progress": "진행 중",
+      "in_review": "검토 중",
+      "done": "완료",
+      "canceled": "취소됨",
+      "duplicate": "중복"
+    },
+    "priority": {
+      "none": "우선순위 없음",
+      "urgent": "긴급",
+      "high": "높음",
+      "medium": "보통",
+      "low": "낮음"
+    },
+    "resolution": {
+      "month": "월",
+      "quarter": "분기",
+      "half_year": "반기",
+      "year": "연도"
+    },
+    "relation": {
+      "title": "관계",
+      "blocks": "차단하는 항목",
+      "blocked_by": "차단한 항목",
+      "related": "관련 항목",
+      "add": "관계 추가",
+      "empty": "아직 관계가 없습니다",
+      "searchPlaceholder": "요청 검색",
+      "type": "관계 유형",
+      "remove": "관계 제거",
+      "removeNamed": "{title}과(와)의 관계 제거",
+      "removed": "관계를 제거했습니다"
+    },
+    "metaEditor": {
+      "title": "메타데이터",
+      "add": "필드 추가",
+      "empty": "아직 메타데이터가 없습니다",
+      "key": "키",
+      "value": "값 (텍스트 또는 JSON)",
+      "invalidKey": "최대 64자의 문자, 숫자와 _ . : - 를 사용하세요",
+      "remove": "필드 제거",
+      "removeNamed": "{key} 제거",
+      "removed": "“{key}”이(가) 제거되었습니다"
+    },
+    "submit": {
+      "button": "요청 보내기",
+      "hint": "저희 팀은 로드맵에 올라가기 전에 모든 요청을 검토합니다.",
+      "descriptionPlaceholder": "무엇을 하려고 하시며, 무엇이 걸림돌인가요?",
+      "groupPlaceholder": "{group} 선택",
+      "confirm": "보내기",
+      "created": "감사합니다! 곧 요청을 검토하겠습니다.",
+      "createdStaff": "요청을 만들었습니다",
+      "descriptionLabel": "설명",
+      "groupRequired": "{group}을(를) 선택하세요.",
+      "requiredHint": "* 필수",
+      "browse": "둘러보기"
+    },
+    "railTooltipUnseen": "Noco 로드맵 · 새로운 업데이트 출시",
+    "stateTabs": "요청 상태",
+    "reward": {
+      "giftCard": "기프트 카드",
+      "amount": "${amount}",
+      "title": "아이디어를 기프트 카드로 바꿔 보세요",
+      "body": "요청이 로드맵에 채택되면 기프트 카드를 드립니다. 원하는 만큼 보내 주세요.",
+      "action": "기능 제안하기"
+    },
+    "previousRequest": "이전 요청",
+    "nextRequest": "다음 요청",
+    "saved": "변경 사항을 저장했습니다",
+    "saveShortcut": "저장하려면 ⌘/Ctrl + Enter · 취소하려면 Esc"
   }
 }

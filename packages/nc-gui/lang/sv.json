@@ -4122,7 +4122,7 @@
     "selectFields": "Välj fält",
     "selectRecord": "- Välj post -",
     "sharedSource": "Delad källa",
-    "selectDateFieldToAdd": "Välj datumfältet som ska läggas till",
+    "selectDateFieldToAdd": "Välj datumintervall",
     "seeWhatsNewEachVersion": "Se vad som är nytt i varje version",
     "selectTable": "Välj en tabell",
     "showBookmarkColor": "Visa bokmärkesfärg",
@@ -8937,7 +8937,10 @@
       "customersSeeNothing": "Kunder ser: ingenting (internt)",
       "estimateInvalid": "Använd ett heltal, 0 eller mer.",
       "adjustmentPublic": "Kunder ser den justerade summan.",
-      "labels": "Etiketter"
+      "labels": "Etiketter",
+      "votes": "Röster",
+      "unassigned": "Ej tilldelad",
+      "target": "Måldatum"
     },
     "links": {
       "urlPlaceholder": "Klistra in en länk till GitHub, Slack eller ett dokument",
@@ -8968,6 +8971,144 @@
       "settings": "Det gick inte att läsa in dina roadmap-inställningar."
     },
     "loadFailed": "Det gick inte att läsa in den här förfrågan",
-    "mergedFollowHint": "Röster och uppdateringar fortsätter där."
+    "mergedFollowHint": "Röster och uppdateringar fortsätter där.",
+    "mute": {
+      "pendingTitle": "Tystar den här begäran",
+      "pending": "Ett ögonblick…",
+      "mutedTitle": "Begäran tystad",
+      "muted": "Du får inte längre uppdateringar om ”{title}” – varken via e-post eller i appen.",
+      "unmutedTitle": "Uppdateringar är på igen",
+      "unmuted": "Du får uppdateringar om ”{title}” igen.",
+      "undo": "Ångra",
+      "muteAgain": "Tysta igen",
+      "viewRequest": "Visa begäran",
+      "emailSettings": "E-postinställningar för färdplanen",
+      "goToRoadmap": "Gå till färdplanen",
+      "invalidTitle": "Den här länken fungerar inte längre",
+      "invalid": "Tystningslänken är ogiltig eller har gått ut. Du kan fortfarande tysta begäran från dess sida.",
+      "failedTitle": "Det gick inte att tysta den här begäran",
+      "failed": "Något gick fel. Försök igen."
+    },
+    "shortTitle": "Färdplan",
+    "searchPlaceholder": "Sök begäranden",
+    "sortBy": "Sortering: {sort}",
+    "showMore": "Visa {count} till",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB-teamet",
+    "requestsSection": "Begäranden",
+    "notification": {
+      "approved": "Din begäran {title} finns på färdplanen",
+      "declined": "Din begäran {title} avslogs",
+      "statusChanged": "{title} är nu {status}",
+      "statusChangedStaff": "{actor} flyttade {title} till {status}",
+      "merged": "{title} slogs samman med {target}",
+      "assigned": "{actor} tilldelade dig {title}",
+      "staffReply": "{actor} från NocoDB-teamet svarade på {title}",
+      "comment": "{actor} kommenterade {title}",
+      "internalComment": "{actor} lämnade en intern anteckning på {title}",
+      "reply": "{actor} svarade på din kommentar på {title}",
+      "activity": "Ny aktivitet på {title}",
+      "someone": "Någon"
+    },
+    "previewBanner": "Du förhandsgranskar färdplanen så som en kund ser den.",
+    "notFound": "Den här begäran finns inte eller är inte synlig för dig.",
+    "positionOf": "{index} av {total}",
+    "resultsCount": "{count} begäran | {count} begäranden",
+    "state": {
+      "open": "Öppen",
+      "shipped": "Levererad",
+      "closed": "Stängd"
+    },
+    "sort": {
+      "top": "Flest röster",
+      "new": "Senaste",
+      "revenue": "Intäkt",
+      "priority": "Prioritet",
+      "manual": "Manuell",
+      "updated": "Uppdaterad",
+      "oldest": "Äldsta först"
+    },
+    "publicStatus": {
+      "under_review": "Under granskning",
+      "backlog": "I kö",
+      "planned": "Planerad",
+      "in_progress": "Pågår",
+      "shipped": "Levererad",
+      "closed": "Stängd",
+      "declined": "Avslagen",
+      "merged": "Sammanslagen"
+    },
+    "status": {
+      "triage": "Sortering",
+      "backlog": "I kö",
+      "todo": "Att göra",
+      "in_progress": "Pågår",
+      "in_review": "Under granskning",
+      "done": "Klar",
+      "canceled": "Avbruten",
+      "duplicate": "Dubblett"
+    },
+    "priority": {
+      "none": "Ingen prioritet",
+      "urgent": "Brådskande",
+      "high": "Hög",
+      "medium": "Medel",
+      "low": "Låg"
+    },
+    "resolution": {
+      "month": "Månad",
+      "quarter": "Kvartal",
+      "half_year": "Halvår",
+      "year": "År"
+    },
+    "relation": {
+      "title": "Relationer",
+      "blocks": "Blockerar",
+      "blocked_by": "Blockerad av",
+      "related": "Relaterad till",
+      "add": "Lägg till relation",
+      "empty": "Inga relationer ännu",
+      "searchPlaceholder": "Sök begäranden",
+      "type": "Relationstyp",
+      "remove": "Ta bort relation",
+      "removeNamed": "Ta bort relationen till {title}",
+      "removed": "Relation borttagen"
+    },
+    "metaEditor": {
+      "add": "Lägg till fält",
+      "empty": "Inga metadata ännu",
+      "key": "Nyckel",
+      "value": "Värde (text eller JSON)",
+      "invalidKey": "Använd upp till 64 bokstäver, siffror och _ . : -",
+      "remove": "Ta bort fält",
+      "removeNamed": "Ta bort {key}",
+      "removed": "”{key}” togs bort"
+    },
+    "submit": {
+      "button": "Skicka in en begäran",
+      "hint": "Vårt team går igenom varje begäran innan den visas på färdplanen.",
+      "descriptionPlaceholder": "Vad försöker du göra, och vad står i vägen?",
+      "groupPlaceholder": "Välj en {group}",
+      "confirm": "Skicka in",
+      "created": "Tack! Vi går igenom din begäran snart.",
+      "createdStaff": "Begäran skapad",
+      "descriptionLabel": "Beskrivning",
+      "groupRequired": "Välj en {group}.",
+      "requiredHint": "* Obligatoriskt",
+      "browse": "bläddra"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Nya uppdateringar levererade",
+    "stateTabs": "Begärans tillstånd",
+    "reward": {
+      "giftCard": "Presentkort",
+      "amount": "${amount}",
+      "title": "Gör din idé till ett presentkort",
+      "body": "Om din begäran kommer med på vår färdplan är presentkortet ditt. Skicka in hur många du vill.",
+      "action": "Föreslå en funktion"
+    },
+    "previousRequest": "Föregående begäran",
+    "nextRequest": "Nästa begäran",
+    "saved": "Ändringar sparade",
+    "saveShortcut": "⌘/Ctrl + Enter för att spara · Esc för att avbryta"
   }
 }

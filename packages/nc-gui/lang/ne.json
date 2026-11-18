@@ -4128,7 +4128,7 @@
     "selectFields": "क्षेत्रहरू छान्नुहोस्",
     "selectRecord": "- रेकर्ड छान्नुहोस् -",
     "sharedSource": "साझा स्रोत",
-    "selectDateFieldToAdd": "थप्नका लागि मिति क्षेत्र छान्नुहोस्",
+    "selectDateFieldToAdd": "मिति दायरा छान्नुहोस्",
     "seeWhatsNewEachVersion": "प्रत्येक संस्करणमा के नयाँ छ हेर्नुहोस्",
     "selectTable": "एउटा तालिका छान्नुहोस्",
     "showBookmarkColor": "बुकमार्कको रङ देखाउनुहोस्",
@@ -8952,7 +8952,10 @@
       "customersSeeNothing": "ग्राहकहरूले देख्छन्: केही पनि होइन (आन्तरिक)",
       "estimateInvalid": "पूर्ण सङ्ख्या प्रयोग गर्नुहोस्, ० वा सोभन्दा माथि।",
       "adjustmentPublic": "ग्राहकहरूले समायोजित जम्मा देख्छन्।",
-      "labels": "लेबलहरू"
+      "labels": "लेबलहरू",
+      "votes": "मतहरू",
+      "unassigned": "असाइन गरिएको छैन",
+      "target": "लक्ष्य मिति"
     },
     "links": {
       "urlPlaceholder": "GitHub, Slack वा कागजातको लिङ्क टाँस्नुहोस्",
@@ -8983,6 +8986,146 @@
       "settings": "तपाईंको रोडम्याप सेटिङ लोड गर्न सकिएन।"
     },
     "loadFailed": "यो अनुरोध लोड गर्न सकिएन",
-    "mergedFollowHint": "मत र अद्यावधिकहरू त्यहीँ जारी रहन्छन्।"
+    "mergedFollowHint": "मत र अद्यावधिकहरू त्यहीँ जारी रहन्छन्।",
+    "mute": {
+      "pendingTitle": "यो अनुरोध म्युट गर्दै",
+      "pending": "एक छिन…",
+      "mutedTitle": "अनुरोध म्युट गरियो",
+      "muted": "तपाईंले “{title}” बारे अब इमेलमा वा एपमा कुनै अपडेट पाउनुहुने छैन।",
+      "unmutedTitle": "अपडेट फेरि सक्रिय छन्",
+      "unmuted": "तपाईंले “{title}” बारे फेरि अपडेट पाउनुहुनेछ।",
+      "undo": "पूर्ववत गर्नुहोस्",
+      "muteAgain": "फेरि म्युट गर्नुहोस्",
+      "viewRequest": "अनुरोध हेर्नुहोस्",
+      "emailSettings": "रोडम्याप इमेल सेटिङ",
+      "goToRoadmap": "रोडम्यापमा जानुहोस्",
+      "invalidTitle": "यो लिङ्क अब काम गर्दैन",
+      "invalid": "म्युट लिङ्क अमान्य छ वा म्याद सकिएको छ। तपाईं अझै पनि अनुरोधको पृष्ठबाट म्युट गर्न सक्नुहुन्छ।",
+      "failedTitle": "यो अनुरोध म्युट गर्न सकिएन",
+      "failed": "केही गडबड भयो। फेरि प्रयास गर्नुहोस्।"
+    },
+    "shortTitle": "रोडम्याप",
+    "railTooltip": "Noco रोडम्याप",
+    "searchPlaceholder": "अनुरोधहरू खोज्नुहोस्",
+    "sortBy": "क्रम: {sort}",
+    "showMore": "थप {count} देखाउनुहोस्",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB टोली",
+    "requestsSection": "अनुरोधहरू",
+    "notification": {
+      "approved": "तपाईंको अनुरोध {title} रोडम्यापमा छ",
+      "declined": "तपाईंको अनुरोध {title} अस्वीकृत भयो",
+      "statusChanged": "{title} अब {status} छ",
+      "statusChangedStaff": "{actor} ले {title} लाई {status} मा सार्नुभयो",
+      "merged": "{title} लाई {target} मा गाभियो",
+      "assigned": "{actor} ले तपाईंलाई {title} सुम्पनुभयो",
+      "staffReply": "NocoDB टोलीका {actor} ले {title} मा जवाफ दिनुभयो",
+      "comment": "{actor} ले {title} मा टिप्पणी गर्नुभयो",
+      "internalComment": "{actor} ले {title} मा आन्तरिक टिप्पणी छोड्नुभयो",
+      "reply": "{actor} ले {title} मा तपाईंको टिप्पणीको जवाफ दिनुभयो",
+      "activity": "{title} मा नयाँ गतिविधि",
+      "someone": "कसैले"
+    },
+    "previewBanner": "ग्राहकले देखेजस्तै तपाईं रोडम्याप हेर्दै हुनुहुन्छ।",
+    "notFound": "यो अनुरोध अवस्थित छैन वा तपाईंलाई देखिँदैन।",
+    "positionOf": "{total} मध्ये {index}",
+    "resultsCount": "{count} अनुरोध | {count} अनुरोधहरू",
+    "state": {
+      "open": "खुला",
+      "shipped": "जारी गरिएको",
+      "closed": "बन्द"
+    },
+    "sort": {
+      "top": "सबैभन्दा धेरै मत",
+      "new": "नवीनतम",
+      "revenue": "राजस्व",
+      "priority": "प्राथमिकता",
+      "manual": "म्यानुअल",
+      "updated": "अद्यावधिक",
+      "oldest": "पुरानो पहिले"
+    },
+    "publicStatus": {
+      "under_review": "समीक्षामा",
+      "backlog": "पर्खाइमा",
+      "planned": "योजनाबद्ध",
+      "in_progress": "प्रगतिमा",
+      "shipped": "जारी गरिएको",
+      "closed": "बन्द",
+      "declined": "अस्वीकृत",
+      "merged": "गाभिएको"
+    },
+    "status": {
+      "triage": "छनोट",
+      "backlog": "पर्खाइमा",
+      "todo": "गर्नुपर्ने",
+      "in_progress": "प्रगतिमा",
+      "in_review": "समीक्षामा",
+      "done": "सम्पन्न",
+      "canceled": "रद्द",
+      "duplicate": "नक्कल"
+    },
+    "priority": {
+      "none": "कुनै प्राथमिकता छैन",
+      "urgent": "अत्यावश्यक",
+      "high": "उच्च",
+      "medium": "मध्यम",
+      "low": "न्यून"
+    },
+    "resolution": {
+      "month": "महिना",
+      "quarter": "त्रैमासिक",
+      "half_year": "अर्धवर्ष",
+      "year": "वर्ष"
+    },
+    "relation": {
+      "title": "सम्बन्धहरू",
+      "blocks": "अवरुद्ध गर्छ",
+      "blocked_by": "यसबाट अवरुद्ध",
+      "related": "यससँग सम्बन्धित",
+      "add": "सम्बन्ध थप्नुहोस्",
+      "empty": "अहिलेसम्म कुनै सम्बन्ध छैन",
+      "searchPlaceholder": "अनुरोधहरू खोज्नुहोस्",
+      "type": "सम्बन्धको प्रकार",
+      "remove": "सम्बन्ध हटाउनुहोस्",
+      "removeNamed": "{title} सँगको सम्बन्ध हटाउनुहोस्",
+      "removed": "सम्बन्ध हटाइयो"
+    },
+    "metaEditor": {
+      "title": "मेटाडेटा",
+      "add": "फिल्ड थप्नुहोस्",
+      "empty": "अहिलेसम्म कुनै मेटाडेटा छैन",
+      "key": "कुञ्जी",
+      "value": "मान (पाठ वा JSON)",
+      "invalidKey": "बढीमा ६४ अक्षर, अंक र _ . : - प्रयोग गर्नुहोस्",
+      "remove": "फिल्ड हटाउनुहोस्",
+      "removeNamed": "{key} हटाउनुहोस्",
+      "removed": "“{key}” हटाइयो"
+    },
+    "submit": {
+      "button": "अनुरोध पठाउनुहोस्",
+      "hint": "रोडम्यापमा देखिनुअघि हाम्रो टोलीले हरेक अनुरोध समीक्षा गर्छ।",
+      "descriptionPlaceholder": "तपाईं के गर्न खोज्दै हुनुहुन्छ, र केले बाधा दिइरहेको छ?",
+      "groupPlaceholder": "एउटा {group} छान्नुहोस्",
+      "confirm": "पठाउनुहोस्",
+      "created": "धन्यवाद! हामी चाँडै तपाईंको अनुरोध समीक्षा गर्नेछौं।",
+      "createdStaff": "अनुरोध सिर्जना गरियो",
+      "descriptionLabel": "विवरण",
+      "groupRequired": "एउटा {group} छान्नुहोस्।",
+      "requiredHint": "* अनिवार्य",
+      "browse": "ब्राउज गर्नुहोस्"
+    },
+    "railTooltipUnseen": "Noco रोडम्याप · नयाँ अपडेट जारी भए",
+    "stateTabs": "अनुरोधको अवस्था",
+    "reward": {
+      "giftCard": "उपहार कार्ड",
+      "amount": "${amount}",
+      "title": "आफ्नो विचारलाई उपहार कार्डमा बदल्नुहोस्",
+      "body": "तपाईंको अनुरोध हाम्रो रोडम्यापमा पर्‍यो भने उपहार कार्ड तपाईंकै हो। जति चाहनुहुन्छ पठाउनुहोस्।",
+      "action": "कुनै सुविधा सुझाव दिनुहोस्"
+    },
+    "previousRequest": "अघिल्लो अनुरोध",
+    "nextRequest": "अर्को अनुरोध",
+    "saved": "परिवर्तनहरू सुरक्षित गरियो",
+    "saveShortcut": "सुरक्षित गर्न ⌘/Ctrl + Enter · रद्द गर्न Esc"
   }
 }

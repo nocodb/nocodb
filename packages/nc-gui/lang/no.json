@@ -4123,7 +4123,7 @@
     "selectFields": "Velg felter",
     "selectRecord": "- Velg post -",
     "sharedSource": "Delt kilde",
-    "selectDateFieldToAdd": "Velg datofeltet som skal legges til",
+    "selectDateFieldToAdd": "Velg datoperiode",
     "seeWhatsNewEachVersion": "Se hva som er nytt i hver versjon",
     "selectTable": "Velg en tabell",
     "showBookmarkColor": "Vis bokmerkefarge",
@@ -8937,7 +8937,10 @@
       "customersSeeNothing": "Kunder ser: ingenting (intern)",
       "estimateInvalid": "Bruk et helt tall, 0 eller mer.",
       "adjustmentPublic": "Kunder ser den justerte summen.",
-      "labels": "Etiketter"
+      "labels": "Etiketter",
+      "votes": "Stemmer",
+      "unassigned": "Ikke tildelt",
+      "target": "Måldato"
     },
     "links": {
       "urlPlaceholder": "Lim inn en lenke til GitHub, Slack eller et dokument",
@@ -8968,6 +8971,144 @@
       "settings": "Kunne ikke laste roadmap-innstillingene dine."
     },
     "loadFailed": "Kunne ikke laste denne forespørselen",
-    "mergedFollowHint": "Stemmer og oppdateringer fortsetter der."
+    "mergedFollowHint": "Stemmer og oppdateringer fortsetter der.",
+    "mute": {
+      "pendingTitle": "Demper denne forespørselen",
+      "pending": "Et øyeblikk…",
+      "mutedTitle": "Forespørsel dempet",
+      "muted": "Du får ikke lenger oppdateringer om “{title}” – verken på e-post eller i appen.",
+      "unmutedTitle": "Oppdateringer er på igjen",
+      "unmuted": "Du får oppdateringer om “{title}” igjen.",
+      "undo": "Angre",
+      "muteAgain": "Demp igjen",
+      "viewRequest": "Vis forespørsel",
+      "emailSettings": "E-postinnstillinger for veikartet",
+      "goToRoadmap": "Gå til veikartet",
+      "invalidTitle": "Denne lenken fungerer ikke lenger",
+      "invalid": "Dempelenken er ugyldig eller utløpt. Du kan fortsatt dempe forespørselen fra siden dens.",
+      "failedTitle": "Kunne ikke dempe denne forespørselen",
+      "failed": "Noe gikk galt. Prøv igjen."
+    },
+    "shortTitle": "Veikart",
+    "searchPlaceholder": "Søk i forespørsler",
+    "sortBy": "Sortering: {sort}",
+    "showMore": "Vis {count} til",
+    "staffBadge": "NocoDB",
+    "staffSection": "NocoDB-teamet",
+    "requestsSection": "Forespørsler",
+    "notification": {
+      "approved": "Forespørselen din {title} er på veikartet",
+      "declined": "Forespørselen din {title} ble avslått",
+      "statusChanged": "{title} er nå {status}",
+      "statusChangedStaff": "{actor} flyttet {title} til {status}",
+      "merged": "{title} ble slått sammen med {target}",
+      "assigned": "{actor} tildelte deg {title}",
+      "staffReply": "{actor} fra NocoDB-teamet svarte på {title}",
+      "comment": "{actor} kommenterte på {title}",
+      "internalComment": "{actor} la igjen et internt notat på {title}",
+      "reply": "{actor} svarte på kommentaren din på {title}",
+      "activity": "Ny aktivitet på {title}",
+      "someone": "Noen"
+    },
+    "previewBanner": "Du forhåndsviser veikartet slik en kunde ser det.",
+    "notFound": "Denne forespørselen finnes ikke eller er ikke synlig for deg.",
+    "positionOf": "{index} av {total}",
+    "resultsCount": "{count} forespørsel | {count} forespørsler",
+    "state": {
+      "open": "Åpen",
+      "shipped": "Lansert",
+      "closed": "Lukket"
+    },
+    "sort": {
+      "top": "Flest stemmer",
+      "new": "Nyeste",
+      "revenue": "Omsetning",
+      "priority": "Prioritet",
+      "manual": "Manuell",
+      "updated": "Oppdatert",
+      "oldest": "Eldste først"
+    },
+    "publicStatus": {
+      "under_review": "Til vurdering",
+      "backlog": "På vent",
+      "planned": "Planlagt",
+      "in_progress": "Pågår",
+      "shipped": "Lansert",
+      "closed": "Lukket",
+      "declined": "Avslått",
+      "merged": "Sammenslått"
+    },
+    "status": {
+      "triage": "Sortering",
+      "backlog": "På vent",
+      "todo": "Å gjøre",
+      "in_progress": "Pågår",
+      "in_review": "Til gjennomgang",
+      "done": "Ferdig",
+      "canceled": "Avbrutt",
+      "duplicate": "Duplikat"
+    },
+    "priority": {
+      "none": "Ingen prioritet",
+      "urgent": "Haster",
+      "high": "Høy",
+      "medium": "Middels",
+      "low": "Lav"
+    },
+    "resolution": {
+      "month": "Måned",
+      "quarter": "Kvartal",
+      "half_year": "Halvår",
+      "year": "År"
+    },
+    "relation": {
+      "title": "Relasjoner",
+      "blocks": "Blokkerer",
+      "blocked_by": "Blokkert av",
+      "related": "Relatert til",
+      "add": "Legg til relasjon",
+      "empty": "Ingen relasjoner ennå",
+      "searchPlaceholder": "Søk i forespørsler",
+      "type": "Relasjonstype",
+      "remove": "Fjern relasjon",
+      "removeNamed": "Fjern relasjonen til {title}",
+      "removed": "Relasjon fjernet"
+    },
+    "metaEditor": {
+      "add": "Legg til felt",
+      "empty": "Ingen metadata ennå",
+      "key": "Nøkkel",
+      "value": "Verdi (tekst eller JSON)",
+      "invalidKey": "Bruk opptil 64 bokstaver, siffer og _ . : -",
+      "remove": "Fjern felt",
+      "removeNamed": "Fjern {key}",
+      "removed": "“{key}” ble fjernet"
+    },
+    "submit": {
+      "button": "Send inn en forespørsel",
+      "hint": "Teamet vårt går gjennom hver forespørsel før den vises på veikartet.",
+      "descriptionPlaceholder": "Hva prøver du å gjøre, og hva står i veien?",
+      "groupPlaceholder": "Velg en {group}",
+      "confirm": "Send inn",
+      "created": "Takk! Vi ser på forespørselen din snart.",
+      "createdStaff": "Forespørsel opprettet",
+      "descriptionLabel": "Beskrivelse",
+      "groupRequired": "Velg en {group}.",
+      "requiredHint": "* Obligatorisk",
+      "browse": "bla gjennom"
+    },
+    "railTooltipUnseen": "Noco Roadmap · Nye oppdateringer lansert",
+    "stateTabs": "Forespørselens tilstand",
+    "reward": {
+      "giftCard": "Gavekort",
+      "amount": "${amount}",
+      "title": "Gjør idéen din om til et gavekort",
+      "body": "Hvis forespørselen din kommer på veikartet vårt, er gavekortet ditt. Send inn så mange du vil.",
+      "action": "Foreslå en funksjon"
+    },
+    "previousRequest": "Forrige forespørsel",
+    "nextRequest": "Neste forespørsel",
+    "saved": "Endringer lagret",
+    "saveShortcut": "⌘/Ctrl + Enter for å lagre · Esc for å avbryte"
   }
 }

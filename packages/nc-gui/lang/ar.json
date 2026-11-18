@@ -4128,7 +4128,7 @@
     "selectFields": "اختيار الحقول",
     "selectRecord": "- اختر سجلاً -",
     "sharedSource": "مصدر مشترك",
-    "selectDateFieldToAdd": "اختر حقل التاريخ المراد إضافته",
+    "selectDateFieldToAdd": "حدد نطاق التواريخ",
     "seeWhatsNewEachVersion": "اطّلع على الجديد في كل إصدار",
     "selectTable": "اختر جدولاً",
     "showBookmarkColor": "إظهار لون الإشارة المرجعية",
@@ -8955,7 +8955,10 @@
       "customersSeeNothing": "يرى العملاء: لا شيء (داخلي)",
       "estimateInvalid": "استخدم عددًا صحيحًا، 0 أو أكثر.",
       "adjustmentPublic": "يرى العملاء الإجمالي بعد التعديل.",
-      "labels": "التسميات"
+      "labels": "التسميات",
+      "votes": "الأصوات",
+      "unassigned": "غير مُسند",
+      "target": "التاريخ المستهدف"
     },
     "links": {
       "urlPlaceholder": "ألصق رابط GitHub أو Slack أو رابط مستند",
@@ -8986,6 +8989,146 @@
       "settings": "تعذّر تحميل إعدادات خارطة الطريق الخاصة بك."
     },
     "loadFailed": "تعذّر تحميل هذا الطلب",
-    "mergedFollowHint": "تستمر الأصوات والتحديثات هناك."
+    "mergedFollowHint": "تستمر الأصوات والتحديثات هناك.",
+    "mute": {
+      "pendingTitle": "جارٍ كتم هذا الطلب",
+      "pending": "لحظة من فضلك…",
+      "mutedTitle": "تم كتم الطلب",
+      "muted": "لن تتلقى بعد الآن تحديثات عن «{title}»، لا عبر البريد الإلكتروني ولا في التطبيق.",
+      "unmutedTitle": "تم تفعيل التحديثات من جديد",
+      "unmuted": "ستتلقى تحديثات عن «{title}» مرة أخرى.",
+      "undo": "تراجع",
+      "muteAgain": "الكتم مرة أخرى",
+      "viewRequest": "عرض الطلب",
+      "emailSettings": "إعدادات البريد الإلكتروني لخارطة الطريق",
+      "goToRoadmap": "الانتقال إلى خارطة الطريق",
+      "invalidTitle": "لم يعد هذا الرابط يعمل",
+      "invalid": "رابط الكتم غير صالح أو انتهت صلاحيته. لا يزال بإمكانك كتم الطلب من صفحته.",
+      "failedTitle": "تعذّر كتم هذا الطلب",
+      "failed": "حدث خطأ ما. حاول مرة أخرى."
+    },
+    "shortTitle": "خارطة الطريق",
+    "railTooltip": "خارطة طريق Noco",
+    "searchPlaceholder": "البحث في الطلبات",
+    "sortBy": "الترتيب: {sort}",
+    "showMore": "عرض {count} إضافية",
+    "staffBadge": "NocoDB",
+    "staffSection": "فريق NocoDB",
+    "requestsSection": "الطلبات",
+    "notification": {
+      "approved": "طلبك {title} مُدرج في خارطة الطريق",
+      "declined": "تم رفض طلبك {title}",
+      "statusChanged": "أصبح {title} الآن {status}",
+      "statusChangedStaff": "نقل {actor} الطلب {title} إلى {status}",
+      "merged": "تم دمج {title} في {target}",
+      "assigned": "أسند إليك {actor} الطلب {title}",
+      "staffReply": "ردّ {actor} من فريق NocoDB على {title}",
+      "comment": "علّق {actor} على {title}",
+      "internalComment": "ترك {actor} ملاحظة داخلية على {title}",
+      "reply": "ردّ {actor} على تعليقك في {title}",
+      "activity": "نشاط جديد على {title}",
+      "someone": "شخص ما"
+    },
+    "previewBanner": "أنت تعاين خارطة الطريق كما يراها العميل.",
+    "notFound": "هذا الطلب غير موجود أو غير مرئي لك.",
+    "positionOf": "{index} من {total}",
+    "resultsCount": "{count} طلب | {count} طلبات",
+    "state": {
+      "open": "مفتوح",
+      "shipped": "تم إصداره",
+      "closed": "مغلق"
+    },
+    "sort": {
+      "top": "الأكثر تصويتًا",
+      "new": "الأحدث",
+      "revenue": "الإيرادات",
+      "priority": "الأولوية",
+      "manual": "يدوي",
+      "updated": "آخر تحديث",
+      "oldest": "الأقدم أولاً"
+    },
+    "publicStatus": {
+      "under_review": "قيد المراجعة",
+      "backlog": "في قائمة الانتظار",
+      "planned": "مخطط له",
+      "in_progress": "قيد التنفيذ",
+      "shipped": "تم إصداره",
+      "closed": "مغلق",
+      "declined": "مرفوض",
+      "merged": "مدمج"
+    },
+    "status": {
+      "triage": "الفرز",
+      "backlog": "في قائمة الانتظار",
+      "todo": "للتنفيذ",
+      "in_progress": "قيد التنفيذ",
+      "in_review": "قيد المراجعة",
+      "done": "منجز",
+      "canceled": "ملغى",
+      "duplicate": "مكرر"
+    },
+    "priority": {
+      "none": "بدون أولوية",
+      "urgent": "عاجلة",
+      "high": "مرتفعة",
+      "medium": "متوسطة",
+      "low": "منخفضة"
+    },
+    "resolution": {
+      "month": "شهر",
+      "quarter": "ربع سنة",
+      "half_year": "نصف سنة",
+      "year": "سنة"
+    },
+    "relation": {
+      "title": "العلاقات",
+      "blocks": "يحجب",
+      "blocked_by": "محجوب بواسطة",
+      "related": "مرتبط بـ",
+      "add": "إضافة علاقة",
+      "empty": "لا توجد علاقات بعد",
+      "searchPlaceholder": "البحث في الطلبات",
+      "type": "نوع العلاقة",
+      "remove": "إزالة العلاقة",
+      "removeNamed": "إزالة العلاقة بـ {title}",
+      "removed": "تمت إزالة العلاقة"
+    },
+    "metaEditor": {
+      "title": "البيانات الوصفية",
+      "add": "إضافة حقل",
+      "empty": "لا توجد بيانات وصفية بعد",
+      "key": "المفتاح",
+      "value": "القيمة (نص أو JSON)",
+      "invalidKey": "استخدم ما يصل إلى 64 حرفًا ورقمًا و _ . : -",
+      "remove": "إزالة الحقل",
+      "removeNamed": "إزالة {key}",
+      "removed": "تمت إزالة «{key}»"
+    },
+    "submit": {
+      "button": "إرسال طلب",
+      "hint": "يراجع فريقنا كل طلب قبل ظهوره على خارطة الطريق.",
+      "descriptionPlaceholder": "ما الذي تحاول فعله، وما الذي يعترض طريقك؟",
+      "groupPlaceholder": "اختر {group}",
+      "confirm": "إرسال",
+      "created": "شكرًا لك! سنراجع طلبك قريبًا.",
+      "createdStaff": "تم إنشاء الطلب",
+      "descriptionLabel": "الوصف",
+      "groupRequired": "اختر {group}.",
+      "requiredHint": "* مطلوب",
+      "browse": "تصفح"
+    },
+    "railTooltipUnseen": "خارطة طريق Noco · صدرت تحديثات جديدة",
+    "stateTabs": "حالة الطلب",
+    "reward": {
+      "giftCard": "بطاقة هدية",
+      "amount": "${amount}",
+      "title": "حوّل فكرتك إلى بطاقة هدية",
+      "body": "إذا وصل طلبك إلى خارطة طريقنا، فبطاقة الهدية من نصيبك. أرسل ما تشاء من الطلبات.",
+      "action": "اقترح ميزة"
+    },
+    "previousRequest": "الطلب السابق",
+    "nextRequest": "الطلب التالي",
+    "saved": "تم حفظ التغييرات",
+    "saveShortcut": "⌘/Ctrl + Enter للحفظ · Esc للإلغاء"
   }
 }

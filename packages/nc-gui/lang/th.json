@@ -4128,7 +4128,7 @@
     "selectFields": "เลือกฟิลด์",
     "selectRecord": "- เลือกบันทึก -",
     "sharedSource": "แหล่งที่มาที่แชร์",
-    "selectDateFieldToAdd": "เลือกฟิลด์วันที่ที่จะเพิ่ม",
+    "selectDateFieldToAdd": "เลือกช่วงวันที่",
     "seeWhatsNewEachVersion": "ดูว่ามีอะไรใหม่ในแต่ละเวอร์ชัน",
     "selectTable": "เลือกตาราง",
     "showBookmarkColor": "แสดงสีบุ๊กมาร์ก",
@@ -8953,7 +8953,10 @@
       "customersSeeNothing": "ลูกค้าเห็น: ไม่มีอะไร (ภายใน)",
       "estimateInvalid": "ใช้จำนวนเต็มตั้งแต่ 0 ขึ้นไป",
       "adjustmentPublic": "ลูกค้าเห็นยอดรวมหลังปรับ",
-      "labels": "ป้ายกำกับ"
+      "labels": "ป้ายกำกับ",
+      "votes": "คะแนนโหวต",
+      "unassigned": "ยังไม่ได้มอบหมาย",
+      "target": "วันที่เป้าหมาย"
     },
     "links": {
       "urlPlaceholder": "วางลิงก์ GitHub, Slack หรือเอกสาร",
@@ -8984,6 +8987,146 @@
       "settings": "โหลดการตั้งค่าโรดแมปของคุณไม่สำเร็จ"
     },
     "loadFailed": "โหลดคำขอนี้ไม่สำเร็จ",
-    "mergedFollowHint": "คะแนนโหวตและการอัปเดตจะดำเนินต่อที่นั่น"
+    "mergedFollowHint": "คะแนนโหวตและการอัปเดตจะดำเนินต่อที่นั่น",
+    "mute": {
+      "pendingTitle": "กำลังปิดการแจ้งเตือนคำขอนี้",
+      "pending": "สักครู่…",
+      "mutedTitle": "ปิดการแจ้งเตือนคำขอแล้ว",
+      "muted": "คุณจะไม่ได้รับอัปเดตเกี่ยวกับ “{title}” อีกต่อไป ทั้งทางอีเมลและในแอป",
+      "unmutedTitle": "เปิดการแจ้งเตือนอีกครั้งแล้ว",
+      "unmuted": "คุณจะได้รับอัปเดตเกี่ยวกับ “{title}” อีกครั้ง",
+      "undo": "เลิกทำ",
+      "muteAgain": "ปิดการแจ้งเตือนอีกครั้ง",
+      "viewRequest": "ดูคำขอ",
+      "emailSettings": "การตั้งค่าอีเมลของแผนงาน",
+      "goToRoadmap": "ไปที่แผนงาน",
+      "invalidTitle": "ลิงก์นี้ใช้งานไม่ได้อีกต่อไป",
+      "invalid": "ลิงก์ปิดการแจ้งเตือนไม่ถูกต้องหรือหมดอายุแล้ว คุณยังปิดการแจ้งเตือนได้จากหน้าของคำขอนั้น",
+      "failedTitle": "ปิดการแจ้งเตือนคำขอนี้ไม่สำเร็จ",
+      "failed": "เกิดข้อผิดพลาด โปรดลองอีกครั้ง"
+    },
+    "shortTitle": "แผนงาน",
+    "railTooltip": "แผนงาน Noco",
+    "searchPlaceholder": "ค้นหาคำขอ",
+    "sortBy": "เรียง: {sort}",
+    "showMore": "แสดงเพิ่มอีก {count}",
+    "staffBadge": "NocoDB",
+    "staffSection": "ทีม NocoDB",
+    "requestsSection": "คำขอ",
+    "notification": {
+      "approved": "คำขอ {title} ของคุณอยู่ในแผนงานแล้ว",
+      "declined": "คำขอ {title} ของคุณถูกปฏิเสธ",
+      "statusChanged": "{title} เป็น {status} แล้ว",
+      "statusChangedStaff": "{actor} ย้าย {title} ไปยัง {status}",
+      "merged": "{title} ถูกรวมเข้ากับ {target}",
+      "assigned": "{actor} มอบหมาย {title} ให้คุณ",
+      "staffReply": "{actor} จากทีม NocoDB ตอบกลับใน {title}",
+      "comment": "{actor} แสดงความคิดเห็นใน {title}",
+      "internalComment": "{actor} ฝากบันทึกภายในไว้ที่ {title}",
+      "reply": "{actor} ตอบกลับความคิดเห็นของคุณใน {title}",
+      "activity": "มีความเคลื่อนไหวใหม่ใน {title}",
+      "someone": "บางคน"
+    },
+    "previewBanner": "คุณกำลังดูตัวอย่างแผนงานแบบที่ลูกค้าเห็น",
+    "notFound": "ไม่มีคำขอนี้ หรือคุณไม่มีสิทธิ์ดู",
+    "positionOf": "{index} จาก {total}",
+    "resultsCount": "{count} คำขอ | {count} คำขอ",
+    "state": {
+      "open": "เปิดอยู่",
+      "shipped": "เผยแพร่แล้ว",
+      "closed": "ปิดแล้ว"
+    },
+    "sort": {
+      "top": "โหวตสูงสุด",
+      "new": "ใหม่ที่สุด",
+      "revenue": "รายได้",
+      "priority": "ลำดับความสำคัญ",
+      "manual": "กำหนดเอง",
+      "updated": "อัปเดตล่าสุด",
+      "oldest": "เก่าที่สุดก่อน"
+    },
+    "publicStatus": {
+      "under_review": "อยู่ระหว่างพิจารณา",
+      "backlog": "รอดำเนินการ",
+      "planned": "วางแผนไว้",
+      "in_progress": "กำลังดำเนินการ",
+      "shipped": "เผยแพร่แล้ว",
+      "closed": "ปิดแล้ว",
+      "declined": "ปฏิเสธแล้ว",
+      "merged": "รวมแล้ว"
+    },
+    "status": {
+      "triage": "คัดแยก",
+      "backlog": "รอดำเนินการ",
+      "todo": "ที่ต้องทำ",
+      "in_progress": "กำลังดำเนินการ",
+      "in_review": "อยู่ระหว่างตรวจทาน",
+      "done": "เสร็จสิ้น",
+      "canceled": "ยกเลิกแล้ว",
+      "duplicate": "ซ้ำ"
+    },
+    "priority": {
+      "none": "ไม่มีลำดับความสำคัญ",
+      "urgent": "ด่วน",
+      "high": "สูง",
+      "medium": "ปานกลาง",
+      "low": "ต่ำ"
+    },
+    "resolution": {
+      "month": "เดือน",
+      "quarter": "ไตรมาส",
+      "half_year": "ครึ่งปี",
+      "year": "ปี"
+    },
+    "relation": {
+      "title": "ความสัมพันธ์",
+      "blocks": "บล็อก",
+      "blocked_by": "ถูกบล็อกโดย",
+      "related": "เกี่ยวข้องกับ",
+      "add": "เพิ่มความสัมพันธ์",
+      "empty": "ยังไม่มีความสัมพันธ์",
+      "searchPlaceholder": "ค้นหาคำขอ",
+      "type": "ประเภทความสัมพันธ์",
+      "remove": "ลบความสัมพันธ์",
+      "removeNamed": "ลบความสัมพันธ์กับ {title}",
+      "removed": "ลบความสัมพันธ์แล้ว"
+    },
+    "metaEditor": {
+      "title": "ข้อมูลเมตา",
+      "add": "เพิ่มฟิลด์",
+      "empty": "ยังไม่มีข้อมูลเมตา",
+      "key": "คีย์",
+      "value": "ค่า (ข้อความหรือ JSON)",
+      "invalidKey": "ใช้ได้ไม่เกิน 64 ตัวอักษร ตัวเลข และ _ . : -",
+      "remove": "ลบฟิลด์",
+      "removeNamed": "ลบ {key}",
+      "removed": "ลบ “{key}” แล้ว"
+    },
+    "submit": {
+      "button": "ส่งคำขอ",
+      "hint": "ทีมของเราตรวจสอบทุกคำขอก่อนที่จะปรากฏบนแผนงาน",
+      "descriptionPlaceholder": "คุณกำลังพยายามทำอะไร และอะไรเป็นอุปสรรค",
+      "groupPlaceholder": "เลือก {group}",
+      "confirm": "ส่ง",
+      "created": "ขอบคุณ! เราจะตรวจสอบคำขอของคุณเร็ว ๆ นี้",
+      "createdStaff": "สร้างคำขอแล้ว",
+      "descriptionLabel": "คำอธิบาย",
+      "groupRequired": "เลือก {group}",
+      "requiredHint": "* จำเป็น",
+      "browse": "เรียกดู"
+    },
+    "railTooltipUnseen": "แผนงาน Noco · มีอัปเดตใหม่เผยแพร่แล้ว",
+    "stateTabs": "สถานะคำขอ",
+    "reward": {
+      "giftCard": "บัตรของขวัญ",
+      "amount": "${amount}",
+      "title": "เปลี่ยนไอเดียของคุณให้เป็นบัตรของขวัญ",
+      "body": "ถ้าคำขอของคุณได้เข้าสู่แผนงานของเรา บัตรของขวัญเป็นของคุณ ส่งมาได้มากเท่าที่ต้องการ",
+      "action": "เสนอฟีเจอร์"
+    },
+    "previousRequest": "คำขอก่อนหน้า",
+    "nextRequest": "คำขอถัดไป",
+    "saved": "บันทึกการเปลี่ยนแปลงแล้ว",
+    "saveShortcut": "⌘/Ctrl + Enter เพื่อบันทึก · Esc เพื่อยกเลิก"
   }
 }

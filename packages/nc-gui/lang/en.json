@@ -9186,7 +9186,7 @@
       "sharedLinkGroupHidden": "The shared link shows the rows ungrouped while {fields} is hidden."
     },
     "error": {
-      "linkedRecordsNotCreated": "The record was saved, but these linked records could not be created: {details}. They are kept on this record; Save again to retry.",
+      "linkedRecordsNotCreated": "The record was saved, but these linked records could not be created: {details}. Those still shown in the link field are kept; Save again to retry them.",
       "fileExceedsSizeLimit": "Exceeds {size}",
       "attachmentInvalidUrl": "Enter a URL starting with http:// or https://, or a template using variables",
       "attachmentAlreadyAttached": "This file is already attached.",

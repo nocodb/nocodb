@@ -576,6 +576,11 @@ export const getDecimalValue = (
     return ''
   }
 
+  // Raw value for templates: '.' decimal point whatever the field's separator
+  if (options?.skipThousandSeparator) {
+    return Number(modelValue).toFixed(parseProp(col.meta)?.precision ?? 1)
+  }
+
   return `${parseDecimalValue(modelValue, col, options) ?? ''}`
 }
 

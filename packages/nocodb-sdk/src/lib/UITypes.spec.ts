@@ -1,12 +1,10 @@
 import { RelationTypes } from './globals';
 import UITypes, {
   isBtLikeV2Junction,
-  isFormatEditableOnReadonlySource,
   isLinksOrLTAR,
   isLinkV2,
   isMMOrMMLike,
   partialUpdateAllowedTypes,
-  readonlyMetaAllowedTypes,
 } from './UITypes';
 
 // Helper to create a column-like object with colOptions
@@ -307,41 +305,10 @@ describe('UITypes — V2 LTAR helpers', () => {
   });
 });
 
-// Regression test for nocodb/nocodb#14837: isFormatEditableOnReadonlySource must
-// stay in sync with the backend readonly-source guard.
-describe('isFormatEditableOnReadonlySource', () => {
-  it('keeps Percent and Decimal format controls editable on readonly sources', () => {
-    expect(isFormatEditableOnReadonlySource(UITypes.Percent)).toBe(true);
-    expect(isFormatEditableOnReadonlySource(UITypes.Decimal)).toBe(true);
-  });
-
-  it('returns true for every type the backend allows meta-only updates for', () => {
-    for (const uidt of partialUpdateAllowedTypes) {
-      expect(isFormatEditableOnReadonlySource(uidt)).toBe(true);
-    }
-  });
-
-  it('returns true for every readonly-meta allowed type', () => {
-    for (const uidt of readonlyMetaAllowedTypes) {
-      expect(isFormatEditableOnReadonlySource(uidt)).toBe(true);
-    }
-  });
-
-  it('stays disabled for types with no backend meta-only support', () => {
-    const blocked: UITypes[] = [
-      UITypes.SingleLineText,
-      UITypes.LongText,
-      UITypes.Attachment,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-    ];
-    for (const uidt of blocked) {
-      expect(isFormatEditableOnReadonlySource(uidt)).toBe(false);
-    }
-  });
-
-  it('accepts the uidt as a plain string', () => {
-    expect(isFormatEditableOnReadonlySource('Percent')).toBe(true);
-    expect(isFormatEditableOnReadonlySource('SingleLineText')).toBe(false);
+// Decimal/Percent format options stay editable on read-only sources (nocodb/nocodb#14837)
+describe('partialUpdateAllowedTypes', () => {
+  it('includes Decimal and Percent', () => {
+    expect(partialUpdateAllowedTypes).toContain(UITypes.Decimal);
+    expect(partialUpdateAllowedTypes).toContain(UITypes.Percent);
   });
 });

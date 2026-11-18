@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, type ProgressBarShape, UITypes, progressBarShapes, isFormatEditableOnReadonlySource } from 'nocodb-sdk'
+import { ColumnHelper, type ProgressBarShape, UITypes, partialUpdateAllowedTypes, progressBarShapes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -33,19 +33,21 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
+const { isMetaReadOnly } = useRoles()
+
 // update datatype precision when precision is less than the new value
 // avoid downgrading precision if the new value is less than the current precision
 // to avoid fractional part data loss(eg. 1.2345 -> 1.23)
+// skipped on a read-only schema: dtxs is only saved to meta there and would drift from the real column
 const onPrecisionChange = (value: number) => {
+  if (isMetaReadOnly.value) return
   vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
 }
-
-const { isMetaReadOnly } = useRoles()
 
 const { formState } = useColumnCreateStoreOrThrow()
 
 const disableConfiguration = computed(
-  () => Boolean(isMetaReadOnly.value) && !isFormatEditableOnReadonlySource(formState.value.uidt),
+  () => Boolean(isMetaReadOnly.value) && !partialUpdateAllowedTypes.includes(formState.value.uidt),
 )
 </script>
 

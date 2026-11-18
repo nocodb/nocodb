@@ -221,7 +221,7 @@ async function prepareBlueprint(
   blueprint: Record<string, any>,
   getMeta: (params: GetMetaParams) => Promise<TableType | null>,
 ) {
-  const { _isBlueprint, _ltarState, _createdRecord, ...row } = blueprint
+  const { _isBlueprint, _ltarState, ...row } = blueprint
   const nested = splitLtarBlueprints(_ltarState)
   const linkState = { ...nested.links, ...computeLtarNewRowState(column, relatedMeta, meta.id, record, false) }
   const { insertObj, missingRequiredColumns } = await populateInsertObject({
@@ -265,11 +265,6 @@ export async function validateLtarBlueprints({
       }
 
       for (const blueprint of items) {
-        // Already created by an earlier save; only the records nested in it are left.
-        if (blueprint._createdRecord) {
-          await visit(target.relatedMeta, splitLtarBlueprints(blueprint._ltarState).blueprints)
-          continue
-        }
         const { missingRequiredColumns, nestedBlueprints } = await prepareBlueprint(
           target,
           parentMeta,
@@ -308,9 +303,9 @@ function blueprintLabel(relatedMeta: TableType | null, blueprint: Record<string,
 
 /**
  * Create the blueprints buffered on a row, each linked back to the now saved `record`.
- * Returns every error, and the blueprints left to create so they can be kept for a retry: one
- * that failed keeps its data; one created whose nested blueprints failed is kept as
- * `_createdRecord` with only those left in its `_ltarState`.
+ * Returns every error, and the top-level blueprints that failed, with their data, so they can be
+ * kept on the row for a retry. A nested blueprint that fails is only reported: the record it
+ * belongs to now exists, so it can be added from that record.
  */
 export async function createLtarBlueprints({
   meta,
@@ -341,18 +336,16 @@ export async function createLtarBlueprints({
     const table = target.relatedMeta.title || title
 
     for (const blueprint of items) {
-      let created = blueprint._createdRecord
-      let nestedBlueprints: LtarBlueprints = splitLtarBlueprints(blueprint._ltarState).blueprints
-      if (!created) {
-        try {
-          const prepared = await prepareBlueprint(target, meta, record, blueprint, getMeta)
-          nestedBlueprints = prepared.nestedBlueprints
-          created = await createRecord(target.relatedMeta, prepared.payload)
-        } catch (error) {
-          errors.push({ table, record: blueprintLabel(target.relatedMeta, blueprint), error })
-          ;(failed[title] ??= []).push(blueprint)
-          continue
-        }
+      let created
+      let nestedBlueprints: LtarBlueprints
+      try {
+        const prepared = await prepareBlueprint(target, meta, record, blueprint, getMeta)
+        nestedBlueprints = prepared.nestedBlueprints
+        created = await createRecord(target.relatedMeta, prepared.payload)
+      } catch (error) {
+        errors.push({ table, record: blueprintLabel(target.relatedMeta, blueprint), error })
+        ;(failed[title] ??= []).push(blueprint)
+        continue
       }
 
       const nested = await createLtarBlueprints({
@@ -363,9 +356,6 @@ export async function createLtarBlueprints({
         createRecord,
       })
       errors.push(...nested.errors)
-      if (Object.keys(nested.failed).length) {
-        ;(failed[title] ??= []).push({ ...blueprint, _createdRecord: created, _ltarState: nested.failed })
-      }
     }
   }
 

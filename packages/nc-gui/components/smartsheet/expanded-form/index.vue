@@ -730,6 +730,8 @@ useActiveKeydownListener(
             try {
               await _save(rowState.value)
               reloadHook?.trigger(null)
+              // Linked records that failed to create are held: stay on this record
+              if (hasLtarChanges.value) return
               addNewRow()
             } catch (e: any) {
               message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)

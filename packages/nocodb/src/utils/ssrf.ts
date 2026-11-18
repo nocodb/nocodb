@@ -15,6 +15,15 @@ export type FilteredAgents = {
   httpsAgent?: RequestFilteringHttpAgent | RequestFilteringHttpsAgent;
 };
 
+export const INTERNAL_DB_HOST_BLOCKED =
+  'Connection to internal hosts is not allowed';
+
+// Self-hosted can opt out, so name the env var; cloud cannot.
+export function internalDbHostBlockedMessage(): string {
+  if (isCloud) return INTERNAL_DB_HOST_BLOCKED;
+  return `${INTERNAL_DB_HOST_BLOCKED}. To connect to a database on a private network, set NC_ALLOW_LOCAL_EXTERNAL_DBS=true on the NocoDB server.`;
+}
+
 /**
  * Single source of truth for whether SSRF protection is active for a given
  * outbound source. Cloud always enforces; self-hosted honors env-var bypasses.

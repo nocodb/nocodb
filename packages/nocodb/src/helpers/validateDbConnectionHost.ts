@@ -3,7 +3,10 @@ import { isIP } from 'net';
 import { URL } from 'url';
 import { OperationSource } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
-import { isSsrfProtectionEnabled } from '~/utils/ssrf';
+import {
+  internalDbHostBlockedMessage,
+  isSsrfProtectionEnabled,
+} from '~/utils/ssrf';
 import { isBlockedIp } from '~/helpers/dbSsrfLookup';
 import { isCloud } from '~/utils';
 
@@ -380,7 +383,7 @@ export async function validateDbConnectionTargets(
     NcError.badRequest('Invalid database connection configuration');
   }
   if (targets.sockets.length) {
-    NcError.badRequest('Connection to internal hosts is not allowed');
+    NcError.badRequest(internalDbHostBlockedMessage());
   }
   for (const host of targets.hosts) {
     await validateDbConnectionHost(host);
@@ -423,7 +426,7 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
     trimmed === '::' ||
     /^localhost$/i.test(trimmed)
   ) {
-    NcError.badRequest('Connection to internal hosts is not allowed');
+    NcError.badRequest(internalDbHostBlockedMessage());
   }
 
   // Save-time fail-fast for better UX. The authoritative, TOCTOU-free check runs
@@ -448,7 +451,7 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
 
   for (const addr of resolvedIps) {
     if (isBlockedIp(addr)) {
-      NcError.badRequest('Connection to internal hosts is not allowed');
+      NcError.badRequest(internalDbHostBlockedMessage());
     }
   }
 }

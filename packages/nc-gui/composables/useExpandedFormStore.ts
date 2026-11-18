@@ -26,6 +26,7 @@ import dayjs from 'dayjs'
 import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 import { dropNoopRecordAuditFields, mergeRecordUpdateAuditDetails } from '~/utils/recordAuditUtils'
 import { ltarCellShapeOf, resolveDeferredCellValue } from '~/utils/ltarDeferredOps'
+import { createLtarBlueprints, splitLtarBlueprints } from '~/utils/dataUtils'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -441,9 +442,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       if (isNewRow) {
         const { getMeta } = useMetas()
 
+        // Records created from a link field wait for this row to exist (blueprints).
+        const { links, blueprints } = splitLtarBlueprints(ltarState)
+
         const { missingRequiredColumns, insertObj } = await populateInsertObject({
           meta: meta.value,
-          ltarState,
+          ltarState: links,
           getMeta,
           row: row.value.row,
           throwError: true,
@@ -461,7 +465,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         data = await $api.dbTableRow.create('noco', meta.value.base_id, meta.value.id, {
           ...insertObj,
-          ...(ltarState || {}),
+          ...links,
         })
 
         // Persist any SmartText (LongText + smartMode) drafts that were staged while
@@ -492,6 +496,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           },
           oldRow: { ...data },
         })
+
+        const blueprintErrors = await createLtarBlueprints({
+          meta: meta.value,
+          record: data,
+          blueprints,
+          getMeta,
+          createRecord: (relatedMeta, record) => $api.dbTableRow.create('noco', relatedMeta.base_id!, relatedMeta.id!, record),
+        })
+        if (blueprintErrors.length) message.error(await extractSdkResponseErrorMsg(blueprintErrors[0] as any))
       } else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
           obj[col] = row.value.row[col]

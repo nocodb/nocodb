@@ -25,6 +25,7 @@ import {
   ncIsNumber,
   parseDecimalValue,
   parseIntValue,
+  parseProp,
   resolveCurrentUserToken,
   restoreEarlyYear,
   getLookupColumnType as sdkGetLookupColumnType,
@@ -161,6 +162,93 @@ export function computeLtarNewRowState(
   return {
     [colInRelatedTable.title as string]: isSingleRecord ? rowData : rowData && [rowData],
   }
+}
+
+/** The link's foreign key is on the row itself, so the linked record has to exist before the row. */
+export function isLtarFkOnRow(column: ColumnType | null | undefined): boolean {
+  if (!column || isLinkV2(column)) return false
+  const type = (column.colOptions as LinkToAnotherRecordType | undefined)?.type
+  return type === RelationTypes.BELONGS_TO || (type === RelationTypes.ONE_TO_ONE && !!parseProp(column.meta)?.bt)
+}
+
+/**
+ * Split a new row's buffered links into links to existing records and blueprints (records
+ * to create once the row exists). A column holding blueprints maps to the remaining links,
+ * or `undefined`, so spreading `links` over the row payload drops them.
+ */
+export function splitLtarBlueprints(ltarState: Record<string, any> | null | undefined) {
+  const links: Record<string, any> = {}
+  const blueprints: Record<string, Record<string, any>[]> = {}
+
+  for (const [title, value] of Object.entries(ltarState ?? {})) {
+    const items = Array.isArray(value) ? value : [value]
+    const pending = items.filter((item) => item?._isBlueprint)
+    if (!pending.length) {
+      links[title] = value
+      continue
+    }
+    blueprints[title] = pending
+    links[title] = Array.isArray(value) ? value.filter((item) => !item?._isBlueprint) : undefined
+  }
+
+  return { links, blueprints }
+}
+
+/**
+ * Create the blueprints buffered on a new row, each linked back to the now saved `record`.
+ * Returns the errors of the ones that could not be created.
+ */
+export async function createLtarBlueprints({
+  meta,
+  record,
+  blueprints,
+  getMeta,
+  createRecord,
+}: {
+  meta: TableType
+  record: Record<string, any>
+  blueprints: Record<string, Record<string, any>[]>
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>
+  createRecord: (meta: TableType, data: Record<string, any>) => Promise<Record<string, any>>
+}): Promise<unknown[]> {
+  const errors: unknown[] = []
+
+  for (const [title, items] of Object.entries(blueprints)) {
+    const column = meta.columns?.find((c) => c.title === title)
+    const colOptions = column?.colOptions as LinkToAnotherRecordType | undefined
+    if (!column || !colOptions?.fk_related_model_id) continue
+
+    const relatedMeta = await getMeta({
+      baseId: colOptions.fk_related_base_id || meta.base_id!,
+      tableIdOrTitle: colOptions.fk_related_model_id,
+    })
+    if (!relatedMeta) continue
+
+    for (const { _isBlueprint, _ltarState, ...row } of items) {
+      try {
+        const nested = splitLtarBlueprints(_ltarState)
+        const linkState = { ...nested.links, ...computeLtarNewRowState(column, relatedMeta, meta.id, record, false) }
+        const { insertObj } = await populateInsertObject({ meta: relatedMeta, ltarState: linkState, getMeta, row })
+        // Link values copied from the row are display mirrors; the buffered state is what links.
+        for (const col of relatedMeta.columns ?? []) if (isLinksOrLTAR(col)) delete insertObj[col.title!]
+
+        const created = await createRecord(relatedMeta, { ...insertObj, ...linkState })
+        errors.push(
+          ...(await createLtarBlueprints({
+            meta: relatedMeta,
+            record: created,
+            blueprints: nested.blueprints,
+            getMeta,
+            createRecord,
+          })),
+        )
+      } catch (e) {
+        errors.push(e)
+      }
+    }
+  }
+
+  return errors
 }
 
 // a function to populate insert object and verify if all required fields are present

@@ -43,6 +43,8 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isTemplateMode = inject(IsTemplateModeInj, ref(false))
+
 const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
@@ -108,6 +110,7 @@ function openBlueprintEditor() {
     useMetaFields: true,
     blueprintMode: true,
     blueprintParentTableId: parentTableMeta.value?.id,
+    linkOnParentSave: !isTemplateMode.value,
     breadcrumbs,
     newRecordSubmitBtnText: 'Save Record',
     newRecordHeader: `Edit ${relatedTableMeta.value?.title} Record`,

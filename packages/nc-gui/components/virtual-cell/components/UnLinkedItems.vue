@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, isBtLikeV2Junction, isDateOrDateTimeCol } from 'nocodb-sdk'
-import { computeLtarNewRowState } from '~/utils/dataUtils'
+import { computeLtarNewRowState, isLtarFkOnRow } from '~/utils/dataUtils'
 import { ltarCellShapeOf } from '~/utils/ltarDeferredOps'
 import InboxIcon from '~icons/nc-icons/inbox'
 
@@ -105,6 +105,8 @@ const isBlueprintMode = ref(false)
 isChildrenExcludedLoading.value = true
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const saveRow = inject(SaveRowInj, () => {})
 
@@ -303,7 +305,8 @@ const addNewRecord = () => {
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
   isNewRecord.value = true
-  isBlueprintMode.value = false
+  // A new record saved from its form can't be linked to yet: buffer the child and create it on that Save.
+  isBlueprintMode.value = isNew.value && isExpandedFormOpen.value && !isLtarFkOnRow(injectedColumn?.value)
 }
 
 function expandExistingRecord(record: Record<string, any>) {
@@ -777,6 +780,8 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="isNewRecord ? newRowState : {}"
         :blueprint-mode="isBlueprintMode"
+        :blueprint-parent-table-id="isBlueprintMode ? meta?.id : undefined"
+        :link-on-parent-save="isBlueprintMode"
         :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         use-meta-fields
         maintain-default-view-order

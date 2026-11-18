@@ -8795,6 +8795,7 @@
       "recordSavedButHidden": "Record saved successfully but is hidden due to your access permissions.",
       "editingRecordTemplate": "You are editing a record template. Changes here define default values for new records.",
       "editingSubRecord": "You are editing a sub-record. A new record will be created and linked each time the template is used.",
+      "editingLinkedNewRecord": "This record will be created and linked when you save the record it is linked from.",
       "seeChangesToRecord": "See changes to this record",
       "planRevisionHistory": "Your current plan provides {limit} of revision history.",
       "revisionHistoryUpgrade": "You have {limit} of revision history. Upgrade to view the full history.",

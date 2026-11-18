@@ -2,7 +2,7 @@
 import Draggable from 'vuedraggable'
 import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
-import { computeLtarNewRowState } from '~/utils/dataUtils'
+import { computeLtarNewRowState, isLtarFkOnRow } from '~/utils/dataUtils'
 
 interface Prop {
   modelValue?: boolean
@@ -33,6 +33,8 @@ const { isUIAllowed } = useRoles()
 const { t } = useI18n()
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -275,7 +277,8 @@ const addNewRecord = () => {
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
   isNewRecord.value = true
-  isBlueprintMode.value = false
+  // A new record saved from its form can't be linked to yet: buffer the child and create it on that Save.
+  isBlueprintMode.value = isNew.value && isExpandedFormOpen.value && !isLtarFkOnRow(injectedColumn?.value)
 }
 
 const reloadViewDataListener = withLoading((params) => {
@@ -858,6 +861,8 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         skip-reload
         maintain-default-view-order
         :blueprint-mode="isBlueprintMode"
+        :blueprint-parent-table-id="isBlueprintMode ? meta?.id : undefined"
+        :link-on-parent-save="isBlueprintMode"
         :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Record' : 'Create & Link'"
         :new-record-header="

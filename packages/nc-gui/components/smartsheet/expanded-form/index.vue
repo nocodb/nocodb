@@ -26,6 +26,8 @@ interface Props {
   existingTemplateNames?: string[]
   editingTemplateId?: string
   blueprintParentTableId?: string
+  /** Blueprint of a record linked from an unsaved one, created when that one is saved (not a template's) */
+  linkOnParentSave?: boolean
   /** Breadcrumb trail showing the parent chain (e.g., ['Project Template', 'Tasks']) */
   breadcrumbs?: string[]
   expandForm?: (row: Row) => void
@@ -1197,6 +1199,7 @@ export default {
       >
         <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5" />
         <span v-if="templateMode">{{ $t('msg.info.editingRecordTemplate') }}</span>
+        <span v-else-if="linkOnParentSave">{{ $t('msg.info.editingLinkedNewRecord') }}</span>
         <span v-else>{{ $t('msg.info.editingSubRecord') }}</span>
       </div>
     </div>

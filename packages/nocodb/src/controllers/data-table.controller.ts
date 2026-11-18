@@ -218,7 +218,8 @@ export class DataTableController {
     @Param('rowId') rowId: string,
   ) {
     context.cache = true;
-    const data = await this.dataTableService.nestedDataList(context, {
+    // Keeps the sentinel: interface record forms read this list and render it as ERR!
+    return await this.dataTableService.nestedDataList(context, {
       modelId,
       rowId: rowId,
       query: req.query,
@@ -226,10 +227,6 @@ export class DataTableController {
       columnId,
       user: req.user,
     });
-    // bt returns the bare record, the rest a paged list
-    return data && 'list' in data
-      ? { ...data, list: nullErrorSentinels(data.list) }
-      : nullErrorSentinels(data);
   }
 
   @Post(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])

@@ -16,6 +16,7 @@ import { Response } from 'express';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataTableService } from '~/services/data-table.service';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
+import { nullErrorSentinels } from '~/helpers/errorSentinel';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -49,7 +50,7 @@ export class DataTableController {
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
-    res.json(responseData);
+    res.json({ ...responseData, list: nullErrorSentinels(responseData.list) });
   }
 
   @Get(['/api/v2/tables/:modelId/records/count'])
@@ -177,13 +178,15 @@ export class DataTableController {
     @Param('rowId') rowId: string,
   ) {
     context.cache = true;
-    return await this.dataTableService.dataRead(context, {
-      modelId,
-      rowId: rowId,
-      query: req.query,
-      viewId,
-      user: req.user,
-    });
+    return nullErrorSentinels(
+      await this.dataTableService.dataRead(context, {
+        modelId,
+        rowId: rowId,
+        query: req.query,
+        viewId,
+        user: req.user,
+      }),
+    );
   }
 
   @Post(['/api/v2/tables/:modelId/records/:rowId/move'])
@@ -215,7 +218,7 @@ export class DataTableController {
     @Param('rowId') rowId: string,
   ) {
     context.cache = true;
-    return await this.dataTableService.nestedDataList(context, {
+    const data = await this.dataTableService.nestedDataList(context, {
       modelId,
       rowId: rowId,
       query: req.query,
@@ -223,6 +226,10 @@ export class DataTableController {
       columnId,
       user: req.user,
     });
+    // bt returns the bare record, the rest a paged list
+    return data && 'list' in data
+      ? { ...data, list: nullErrorSentinels(data.list) }
+      : nullErrorSentinels(data);
   }
 
   @Post(['/api/v2/tables/:modelId/links/:columnId/records/:rowId'])

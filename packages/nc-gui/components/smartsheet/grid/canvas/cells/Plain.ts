@@ -20,6 +20,7 @@ export const PlainCellRenderer: CellRenderer = {
       isXcdbBase,
       t,
       isUnderLookup,
+      isGroupHeader,
     } = props
 
     if (!meta || !metas) return
@@ -35,6 +36,8 @@ export const PlainCellRenderer: CellRenderer = {
       isXcdbBase,
       t,
       isUnderLookup,
+      // Abbreviation would merge distinct group keys (1210 and 1240 both read 1.2K)
+      numberFormat: isGroupHeader ? { skipAbbreviation: true } : undefined,
     })
 
     if (props.tag?.renderAsTag) {

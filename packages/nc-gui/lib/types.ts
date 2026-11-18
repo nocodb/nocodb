@@ -992,6 +992,7 @@ interface ParsePlainCellValueProps {
     isXcdbBase: (sourceId?: string) => boolean
     t: Composer['t']
     isUnderLookup?: boolean
+    numberFormat?: { skipThousandSeparator?: boolean; skipAbbreviation?: boolean }
   }
 }
 

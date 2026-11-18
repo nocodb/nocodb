@@ -567,19 +567,27 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
   }
 }
 
-export const getDecimalValue = (modelValue: string | null | number, col: ColumnType) => {
+export const getDecimalValue = (
+  modelValue: string | null | number,
+  col: ColumnType,
+  options?: ParsePlainCellValueProps['params']['numberFormat'],
+) => {
   if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
 
-  return `${parseDecimalValue(modelValue, col) ?? ''}`
+  return `${parseDecimalValue(modelValue, col, options) ?? ''}`
 }
 
-export const getIntValue = (modelValue: string | null | number, col?: ColumnType) => {
+export const getIntValue = (
+  modelValue: string | null | number,
+  col?: ColumnType,
+  options?: ParsePlainCellValueProps['params']['numberFormat'],
+) => {
   if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
-  return `${parseIntValue(modelValue, col) ?? ''}`
+  return `${parseIntValue(modelValue, col, options) ?? ''}`
 }
 
 export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
@@ -760,7 +768,7 @@ export const parsePlainCellValue = (
   value: ParsePlainCellValueProps['value'],
   params: ParsePlainCellValueProps['params'],
 ): string => {
-  const { col, abstractType, isUnderLookup } = params
+  const { col, abstractType, isUnderLookup, numberFormat } = params
 
   if (!col) {
     return ''
@@ -808,14 +816,14 @@ export const parsePlainCellValue = (
     return getUserValue(value, params)
   }
   if (isDecimal(col)) {
-    return getDecimalValue(value, col)
+    return getDecimalValue(value, col, numberFormat)
   }
   if (isRating(col)) {
     return value ? `${value}` : '0'
   }
 
   if (col.uidt === UITypes.Number || isInt(col, abstractType)) {
-    return getIntValue(value, col)
+    return getIntValue(value, col, numberFormat)
   }
   if (isJSON(col)) {
     try {

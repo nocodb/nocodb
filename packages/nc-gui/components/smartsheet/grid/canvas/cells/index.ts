@@ -440,6 +440,7 @@ export function useGridCellHandler(params: {
         isRowChecked,
         rowMeta,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
+        isGroupHeader,
       })
 
       if (

@@ -450,7 +450,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           if (!target) continue
           const value = target[title]
           target[title] =
-            shape === 'count'
+            // A has-many cell can hold a bare count instead of records
+            shape === 'count' || typeof value === 'number'
               ? ltarCellCount(value) + records.length
               : shape === 'records'
               ? [...(Array.isArray(value) ? value : []), ...records]

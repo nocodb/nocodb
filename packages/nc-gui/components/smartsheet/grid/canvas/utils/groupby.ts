@@ -156,6 +156,22 @@ export function calculateGroupRange(
   return { startIndex, endIndex, startGroupYOffset: partialGroupHeight }
 }
 
+/**
+ * Rows of an expanded leaf group that intersect the viewport. `contentTop` is the canvas y of the
+ * group's first row; it goes negative once the group is scrolled past the top.
+ */
+export function calculateGroupRowSlice(
+  contentTop: number,
+  count: number,
+  rowHeight: number,
+  headerRowHeight: number,
+  viewportHeight: number,
+) {
+  const start = Math.min(count, Math.max(0, Math.floor(-(contentTop - headerRowHeight) / rowHeight)))
+  const end = Math.min(Math.ceil((viewportHeight - contentTop) / rowHeight), count - 1)
+  return { start, end }
+}
+
 export function generateGroupPath(data?: CanvasGroup) {
   if (!data) return []
   const path: Array<number> = []

@@ -38,6 +38,7 @@ import { getColumnDropTargetIndex, getDisplayValueDropSlot } from '../utils/head
 import {
   calculateGroupHeight,
   calculateGroupRange,
+  calculateGroupRowSlice,
   calculateGroupRowTop,
   comparePath,
   generateGroupPath,
@@ -3834,20 +3835,13 @@ export function useCanvasRender({
           )
 
           if (group.path) {
-            // Calculate visible viewport height from current offset to container bottom
-            const viewportHeight = height.value - tempCurrentOffset
-            const itemHeight = rowHeight.value
-            // Calculate first visible item index, accounting for header height
-            // Math.max ensures no negative indices
-            const nestedStart = Math.min(
+            const { start: nestedStart, end: nestedEnd } = calculateGroupRowSlice(
+              tempCurrentOffset,
               group.count,
-              // Use the negative offset to calculate the start index, as it helps determine how many rows are hidden
-              Math.max(0, Math.floor(-(groupHeaderY + GROUP_HEADER_HEIGHT - _headerRowHeight) / itemHeight)),
+              rowHeight.value,
+              _headerRowHeight,
+              height.value,
             )
-            // Calculate number of visible rows based on viewport height
-            const visibleRowCount = Math.ceil(viewportHeight / itemHeight)
-            // Calculate last visible item index, bounded by total count
-            const nestedEnd = Math.min(nestedStart + visibleRowCount, group.count - 1)
 
             const { yOffset: _tempCurrentOffset, postRenderCbk } = renderGroupRows(
               ctx,

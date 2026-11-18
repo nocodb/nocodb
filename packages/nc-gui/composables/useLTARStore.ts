@@ -1115,6 +1115,19 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       blueprint: Record<string, any>,
       { breadcrumbs = [], linkOnParentSave = true }: { breadcrumbs?: string[]; linkOnParentSave?: boolean } = {},
     ) => {
+      // Created already (only records nested in it are left): edit the record itself.
+      if (blueprint._createdRecord) {
+        openExpandedFormDetached({
+          isOpen: true,
+          row: { row: blueprint._createdRecord, oldRow: { ...blueprint._createdRecord }, rowMeta: {} },
+          meta: relatedTableMeta.value,
+          rowId: getRelatedTableRowId(blueprint._createdRecord),
+          loadRow: true,
+          useMetaFields: true,
+        })
+        return
+      }
+
       const { _isBlueprint, _ltarState, ...blueprintData } = blueprint
       const nestedLtarState = _ltarState && Object.keys(_ltarState).length ? _ltarState : undefined
 

@@ -47,6 +47,12 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     // title, kept for the next Save. Held here, not on the row, as a view reload replaces rowMeta.
     const heldLtarBlueprints = ref<Record<string, Record<string, any>[]>>({})
 
+    // They belong to the record they were held on: drop them when the form moves to another
+    // (a new row gaining its id on save is the same record).
+    watch(pk, (next, prev) => {
+      if (prev && next !== prev) heldLtarBlueprints.value = {}
+    })
+
     const hasLtarChanges = computed(() => {
       const ltarState = currentRow.value?.rowMeta?.ltarState ?? {}
       const hasEntries = (s: Record<string, any>) => Object.values(s).some((v) => (Array.isArray(v) ? v.length > 0 : !!v))

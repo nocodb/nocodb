@@ -123,6 +123,7 @@ const {
   changedColumns,
   hasLtarChanges,
   pendingLtarOps,
+  heldLtarBlueprints,
   displayValue,
   state: rowState,
   isNew,
@@ -370,6 +371,7 @@ useRecordNavCommands({
     clearColumns()
     if (_row.value?.rowMeta) _row.value.rowMeta.ltarState = {}
     pendingLtarOps.value = []
+    heldLtarBlueprints.value = {}
     await _loadRow(activeRowId.value ?? undefined)
   },
   close: onClose,
@@ -402,6 +404,7 @@ const discardAndNavigate = () => {
     _row.value.rowMeta.ltarState = {}
   }
   pendingLtarOps.value = []
+  heldLtarBlueprints.value = {}
   showDiscardModal.value = false
   runPending()
 }

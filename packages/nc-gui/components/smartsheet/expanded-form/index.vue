@@ -513,6 +513,12 @@ const saveChanges = async () => {
       isPreventChangeModalOpen.value = false
       return
     }
+    // Linked records that failed to create are still held: stay on this record
+    if (hasLtarChanges.value) {
+      isPreventChangeModalOpen.value = false
+      interruptedDirectionToGo.value = undefined
+      return
+    }
     if (interruptedDirectionToGo.value) {
       loadingEmit(interruptedDirectionToGo.value)
     } else {
@@ -524,7 +530,7 @@ const saveChanges = async () => {
   if (isCloseModalOpen.value) {
     isCloseModalOpen.value = false
     if ((await save()) === false) return
-    isExpanded.value = false
+    if (!hasLtarChanges.value) isExpanded.value = false
   }
 }
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())

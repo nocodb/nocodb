@@ -303,8 +303,8 @@ function blueprintLabel(relatedMeta: TableType | null, blueprint: Record<string,
 
 /**
  * Create the blueprints buffered on a row, each linked back to the now saved `record`.
- * Returns every error, and the top-level blueprints that failed, with their data, so they can be
- * kept on the row for a retry. A nested blueprint that fails is only reported: the record it
+ * Returns the records created per link column, every error, and the top-level blueprints that
+ * failed, with their data, so they can be kept on the row for a retry. A nested blueprint that fails is only reported: the record it
  * belongs to now exists, so it can be added from that record.
  */
 export async function createLtarBlueprints({
@@ -319,7 +319,8 @@ export async function createLtarBlueprints({
   blueprints: LtarBlueprints
   getMeta: (params: GetMetaParams) => Promise<TableType | null>
   createRecord: (meta: TableType, data: Record<string, any>) => Promise<Record<string, any>>
-}): Promise<{ errors: LtarBlueprintError[]; failed: LtarBlueprints }> {
+}): Promise<{ created: LtarBlueprints; errors: LtarBlueprintError[]; failed: LtarBlueprints }> {
+  const created: LtarBlueprints = {}
   const errors: LtarBlueprintError[] = []
   const failed: LtarBlueprints = {}
 
@@ -336,12 +337,13 @@ export async function createLtarBlueprints({
     const table = target.relatedMeta.title || title
 
     for (const blueprint of items) {
-      let created
+      let createdRecord
       let nestedBlueprints: LtarBlueprints
       try {
         const prepared = await prepareBlueprint(target, meta, record, blueprint, getMeta)
         nestedBlueprints = prepared.nestedBlueprints
-        created = await createRecord(target.relatedMeta, prepared.payload)
+        createdRecord = await createRecord(target.relatedMeta, prepared.payload)
+        ;(created[title] ??= []).push(createdRecord)
       } catch (error) {
         errors.push({ table, record: blueprintLabel(target.relatedMeta, blueprint), error })
         ;(failed[title] ??= []).push(blueprint)
@@ -350,7 +352,7 @@ export async function createLtarBlueprints({
 
       const nested = await createLtarBlueprints({
         meta: target.relatedMeta,
-        record: created,
+        record: createdRecord,
         blueprints: nestedBlueprints,
         getMeta,
         createRecord,
@@ -359,7 +361,7 @@ export async function createLtarBlueprints({
     }
   }
 
-  return { errors, failed }
+  return { created, errors, failed }
 }
 
 // a function to populate insert object and verify if all required fields are present
@@ -397,15 +399,14 @@ export async function populateInsertObject({
   const linkedFkTitles = new Set<string>()
 
   for (const col of meta.columns) {
-    if (
-      !ltarState ||
-      col.uidt !== UITypes.LinkToAnotherRecord ||
-      (<LinkToAnotherRecordType>col.colOptions)?.type !== RelationTypes.BELONGS_TO
-    ) {
+    // Belongs-to, and the one-to-one side that holds the foreign key
+    if (!ltarState || col.uidt !== UITypes.LinkToAnotherRecord || !isLtarFkOnRow(col)) {
       continue
     }
 
-    const ltarVal = ltarState[col.title!] || row?.[col.title!]
+    const linked = ltarState[col.title!] || row?.[col.title!]
+    // A one-to-one link can arrive as a one-record list
+    const ltarVal = Array.isArray(linked) ? linked[0] : linked
     if (!ltarVal) continue
 
     const colOpt = <LinkToAnotherRecordType>col.colOptions

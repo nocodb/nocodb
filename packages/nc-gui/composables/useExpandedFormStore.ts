@@ -25,7 +25,7 @@ import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 import { dropNoopRecordAuditFields, mergeRecordUpdateAuditDetails } from '~/utils/recordAuditUtils'
-import { ltarCellShapeOf, resolveDeferredCellValue } from '~/utils/ltarDeferredOps'
+import { ltarCellCount, ltarCellShapeOf, resolveDeferredCellValue } from '~/utils/ltarDeferredOps'
 import { createLtarBlueprints, splitLtarBlueprints, validateLtarBlueprints } from '~/utils/dataUtils'
 
 interface AuditTypeExtended extends AuditType {
@@ -432,13 +432,31 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       if (!Object.keys(blueprints).length) return
 
       const { getMeta } = useMetas()
-      const { errors, failed } = await createLtarBlueprints({
+      const { created, errors, failed } = await createLtarBlueprints({
         meta: meta.value,
         record,
         blueprints,
         getMeta,
         createRecord: (relatedMeta, data) => $api.dbTableRow.create('noco', relatedMeta.base_id!, relatedMeta.id!, data),
       })
+
+      // Count the created records in until the view reload brings them, so the link cell
+      // doesn't drop back to its old value when they stop being held.
+      for (const [title, records] of Object.entries(created)) {
+        const column = (meta.value.columns as ColumnType[] | undefined)?.find((c) => c.title === title)
+        if (!column) continue
+        const shape = ltarCellShapeOf(column)
+        for (const target of [row.value.row, row.value.oldRow]) {
+          if (!target) continue
+          const value = target[title]
+          target[title] =
+            shape === 'count'
+              ? ltarCellCount(value) + records.length
+              : shape === 'records'
+              ? [...(Array.isArray(value) ? value : []), ...records]
+              : records[0]
+        }
+      }
 
       heldLtarBlueprints.value = failed
       if (!errors.length) return

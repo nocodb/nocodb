@@ -1096,7 +1096,7 @@ export default {
           </NcButton>
           <NcTooltip v-if="conflictingColumns.length" placement="bottom">
             <template #title>{{
-              $t(hasLtarChanges ? 'tooltip.fieldChangedByOthersDropLinks' : 'tooltip.fieldChangedByOthers', {
+              $t(pendingLtarOps.length ? 'tooltip.fieldChangedByOthersDropLinks' : 'tooltip.fieldChangedByOthers', {
                 fields: conflictingColumns.join(', '),
               })
             }}</template>

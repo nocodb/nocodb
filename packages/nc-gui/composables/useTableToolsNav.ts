@@ -11,7 +11,8 @@ export const useTableToolsNav = () => {
 
   const { isSqlView } = useSmartsheetStoreOrThrow()
 
-  const showFieldsAction = computed(() => isUIAllowed('fieldAdd') && !isSqlView.value)
+  // SQL views get the Fields tool read-only (schema edits are blocked inside it).
+  const showFieldsAction = computed(() => isUIAllowed('fieldAdd'))
 
   const showWebhooksAction = computed(() => isUIAllowed('hookList') && !isSqlView.value)
 

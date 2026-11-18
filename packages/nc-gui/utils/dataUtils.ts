@@ -194,9 +194,103 @@ export function splitLtarBlueprints(ltarState: Record<string, any> | null | unde
   return { links, blueprints }
 }
 
+type LtarBlueprints = Record<string, Record<string, any>[]>
+
+/** The link column and related table a blueprint is created in; throws when either is missing. */
+async function resolveBlueprintTarget(
+  meta: TableType,
+  title: string,
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>,
+) {
+  const column = meta.columns?.find((c) => c.title === title)
+  const colOptions = column?.colOptions as LinkToAnotherRecordType | undefined
+  const relatedMeta =
+    column && colOptions?.fk_related_model_id
+      ? await getMeta({ baseId: colOptions.fk_related_base_id || meta.base_id!, tableIdOrTitle: colOptions.fk_related_model_id })
+      : null
+  if (!column || !relatedMeta)
+    throw new Error(`Records linked in "${title}" could not be created: the linked table is unavailable`)
+  return { column, relatedMeta }
+}
+
+/** Insert payload for one blueprint, linked back to `record`, and the blueprints nested in it. */
+async function prepareBlueprint(
+  { column, relatedMeta }: { column: ColumnType; relatedMeta: TableType },
+  meta: TableType,
+  record: Record<string, any>,
+  blueprint: Record<string, any>,
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>,
+) {
+  const { _isBlueprint, _ltarState, ...row } = blueprint
+  const nested = splitLtarBlueprints(_ltarState)
+  const linkState = { ...nested.links, ...computeLtarNewRowState(column, relatedMeta, meta.id, record, false) }
+  const { insertObj, missingRequiredColumns } = await populateInsertObject({
+    meta: relatedMeta,
+    ltarState: linkState,
+    getMeta,
+    row,
+  })
+  // Link values copied from the row are display mirrors; the buffered state is what links.
+  for (const col of relatedMeta.columns ?? []) if (isLinksOrLTAR(col)) delete insertObj[col.title!]
+
+  return { payload: { ...insertObj, ...linkState }, missingRequiredColumns, nestedBlueprints: nested.blueprints }
+}
+
 /**
- * Create the blueprints buffered on a new row, each linked back to the now saved `record`.
- * Returns the errors of the ones that could not be created.
+ * Check the blueprints buffered on a new row before the row is saved: each linked table must be
+ * available and each record must have its required fields. Throws with every problem found.
+ */
+export async function validateLtarBlueprints({
+  meta,
+  blueprints,
+  getMeta,
+}: {
+  meta: TableType
+  blueprints: LtarBlueprints
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>
+}): Promise<void> {
+  const problems: string[] = []
+
+  const visit = async (parentMeta: TableType, parentBlueprints: LtarBlueprints) => {
+    // Stands in for the unsaved row, so a foreign key derived from it isn't reported missing.
+    const placeholder = Object.fromEntries((parentMeta.columns ?? []).map((c) => [c.title!, '__nc_pending__']))
+
+    for (const [title, items] of Object.entries(parentBlueprints)) {
+      let target
+      try {
+        target = await resolveBlueprintTarget(parentMeta, title, getMeta)
+      } catch (e: any) {
+        problems.push(e.message)
+        continue
+      }
+
+      for (const blueprint of items) {
+        const { missingRequiredColumns, nestedBlueprints } = await prepareBlueprint(
+          target,
+          parentMeta,
+          placeholder,
+          blueprint,
+          getMeta,
+        )
+        if (missingRequiredColumns.size) {
+          problems.push(
+            `${target.relatedMeta.title || title}: missing required field(s) ${[...missingRequiredColumns].join(', ')}`,
+          )
+        }
+        await visit(target.relatedMeta, nestedBlueprints)
+      }
+    }
+  }
+
+  await visit(meta, blueprints)
+
+  if (problems.length) throw new Error(problems.join('; '))
+}
+
+/**
+ * Create the blueprints buffered on a row, each linked back to the now saved `record`.
+ * Returns every error, and the top-level blueprints that were not created so they can be kept
+ * for a retry. A blueprint whose own record was created is not kept, even if one nested in it failed.
  */
 export async function createLtarBlueprints({
   meta,
@@ -207,48 +301,48 @@ export async function createLtarBlueprints({
 }: {
   meta: TableType
   record: Record<string, any>
-  blueprints: Record<string, Record<string, any>[]>
+  blueprints: LtarBlueprints
   getMeta: (params: GetMetaParams) => Promise<TableType | null>
   createRecord: (meta: TableType, data: Record<string, any>) => Promise<Record<string, any>>
-}): Promise<unknown[]> {
+}): Promise<{ errors: unknown[]; failed: LtarBlueprints }> {
   const errors: unknown[] = []
+  const failed: LtarBlueprints = {}
 
   for (const [title, items] of Object.entries(blueprints)) {
-    const column = meta.columns?.find((c) => c.title === title)
-    const colOptions = column?.colOptions as LinkToAnotherRecordType | undefined
-    if (!column || !colOptions?.fk_related_model_id) continue
+    let target
+    try {
+      target = await resolveBlueprintTarget(meta, title, getMeta)
+    } catch (e) {
+      errors.push(e)
+      failed[title] = [...items]
+      continue
+    }
 
-    const relatedMeta = await getMeta({
-      baseId: colOptions.fk_related_base_id || meta.base_id!,
-      tableIdOrTitle: colOptions.fk_related_model_id,
-    })
-    if (!relatedMeta) continue
-
-    for (const { _isBlueprint, _ltarState, ...row } of items) {
+    for (const blueprint of items) {
+      let created
+      let nestedBlueprints: LtarBlueprints = {}
       try {
-        const nested = splitLtarBlueprints(_ltarState)
-        const linkState = { ...nested.links, ...computeLtarNewRowState(column, relatedMeta, meta.id, record, false) }
-        const { insertObj } = await populateInsertObject({ meta: relatedMeta, ltarState: linkState, getMeta, row })
-        // Link values copied from the row are display mirrors; the buffered state is what links.
-        for (const col of relatedMeta.columns ?? []) if (isLinksOrLTAR(col)) delete insertObj[col.title!]
-
-        const created = await createRecord(relatedMeta, { ...insertObj, ...linkState })
-        errors.push(
-          ...(await createLtarBlueprints({
-            meta: relatedMeta,
-            record: created,
-            blueprints: nested.blueprints,
-            getMeta,
-            createRecord,
-          })),
-        )
+        const prepared = await prepareBlueprint(target, meta, record, blueprint, getMeta)
+        nestedBlueprints = prepared.nestedBlueprints
+        created = await createRecord(target.relatedMeta, prepared.payload)
       } catch (e) {
         errors.push(e)
+        ;(failed[title] ??= []).push(blueprint)
+        continue
       }
+
+      const nested = await createLtarBlueprints({
+        meta: target.relatedMeta,
+        record: created,
+        blueprints: nestedBlueprints,
+        getMeta,
+        createRecord,
+      })
+      errors.push(...nested.errors)
     }
   }
 
-  return errors
+  return { errors, failed }
 }
 
 // a function to populate insert object and verify if all required fields are present

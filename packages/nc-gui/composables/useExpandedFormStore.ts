@@ -26,7 +26,7 @@ import dayjs from 'dayjs'
 import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 import { dropNoopRecordAuditFields, mergeRecordUpdateAuditDetails } from '~/utils/recordAuditUtils'
 import { ltarCellShapeOf, resolveDeferredCellValue } from '~/utils/ltarDeferredOps'
-import { createLtarBlueprints, splitLtarBlueprints } from '~/utils/dataUtils'
+import { createLtarBlueprints, splitLtarBlueprints, validateLtarBlueprints } from '~/utils/dataUtils'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -424,6 +424,27 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     }
 
+    // Create records held on this row (blueprints) once it is saved. Ones that fail stay held so the
+    // next Save retries them, and the save fails with every error.
+    const createHeldLtarBlueprints = async (record: Record<string, any>, blueprints: Record<string, Record<string, any>[]>) => {
+      if (!Object.keys(blueprints).length) return
+
+      const { getMeta } = useMetas()
+      const { errors, failed } = await createLtarBlueprints({
+        meta: meta.value,
+        record,
+        blueprints,
+        getMeta,
+        createRecord: (relatedMeta, data) => $api.dbTableRow.create('noco', relatedMeta.base_id!, relatedMeta.id!, data),
+      })
+
+      if (row.value.rowMeta) row.value.rowMeta.ltarState = failed
+      if (!errors.length) return
+
+      const details = await Promise.all(errors.map((e) => extractSdkResponseErrorMsg(e as Error)))
+      throw new Error(t('msg.error.linkedRecordsNotCreated', { details: details.join('; ') }))
+    }
+
     const save = async (
       ltarState: Record<string, any> = {},
       // TODO: Hack. Remove this when kanban injection store issue is resolved
@@ -444,6 +465,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         // Records created from a link field wait for this row to exist (blueprints).
         const { links, blueprints } = splitLtarBlueprints(ltarState)
+        await validateLtarBlueprints({ meta: meta.value, blueprints, getMeta })
 
         const { missingRequiredColumns, insertObj } = await populateInsertObject({
           meta: meta.value,
@@ -497,14 +519,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           oldRow: { ...data },
         })
 
-        const blueprintErrors = await createLtarBlueprints({
-          meta: meta.value,
-          record: data,
-          blueprints,
-          getMeta,
-          createRecord: (relatedMeta, record) => $api.dbTableRow.create('noco', relatedMeta.base_id!, relatedMeta.id!, record),
-        })
-        if (blueprintErrors.length) message.error(await extractSdkResponseErrorMsg(blueprintErrors[0] as any))
+        await createHeldLtarBlueprints(data, blueprints)
       } else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
           obj[col] = row.value.row[col]
@@ -525,6 +540,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         // Relational fields queue their changes (#14013/#14058) and are persisted here on
         // save, not on each link/unlink. A record can be "modified" via links alone.
         const hasLtarChanges = rowStore.hasLtarChanges.value
+
+        // Records left held by a save whose linked-record creation failed.
+        const { blueprints: heldBlueprints } = splitLtarBlueprints(row.value.rowMeta?.ltarState)
+        if (Object.keys(heldBlueprints).length) {
+          const { getMeta } = useMetas()
+          await validateLtarBlueprints({ meta: meta.value, blueprints: heldBlueprints, getMeta })
+        }
 
         if (Object.keys(updateOrInsertObj).length || hasLtarChanges || hasSmartTextDrafts) {
           const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
@@ -558,6 +580,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           // Persist queued link/unlink changes after the row update.
           if (hasLtarChanges) {
             await applyPendingLtarOps()
+            await createHeldLtarBlueprints(row.value.row, heldBlueprints)
           }
 
           if (commentsDrawer.value) {

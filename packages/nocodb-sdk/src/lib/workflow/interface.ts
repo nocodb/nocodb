@@ -361,6 +361,8 @@ interface WorkflowGeneralNode {
     outputVariables?: VariableDefinition[];
     // "On failure" setting; absent = the default for the node's retrySafe.
     retry?: WorkflowNodeRetryPolicy;
+    // Webhook triggers: routes the public webhook URL.
+    triggerId?: string;
   };
   targetPosition: 'top' | 'bottom' | 'left' | 'right';
   sourcePosition: 'top' | 'bottom' | 'left' | 'right';

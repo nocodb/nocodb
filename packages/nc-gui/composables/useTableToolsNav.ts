@@ -26,8 +26,10 @@ export const useTableToolsNav = () => {
     () => isEeUI && isUIAllowed('dateDependencyManage') && !isSqlView.value && showEEFeatures.value,
   )
 
-  // Base-level, so reachable from any view; EDITOR+ ACL.
-  const showRecordTemplatesAction = computed(() => isEeUI && isUIAllowed('viewOperations') && showEEFeatures.value)
+  // Base-level list, but new templates target the current table, which a SQL view can't insert into.
+  const showRecordTemplatesAction = computed(
+    () => isEeUI && isUIAllowed('viewOperations') && !isSqlView.value && showEEFeatures.value,
+  )
 
   // Relations / API are always available.
   const tabAvailability = computed<Partial<Record<ViewPageType, boolean>>>(() => ({

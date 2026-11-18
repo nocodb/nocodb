@@ -344,7 +344,12 @@ const isColumnUpdateAllowed = (column: ColumnType) => {
 
 const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
   if (field?.id && field?.uidt && !isColumnUpdateAllowed(field)) {
-    return message.info(isSqlView.value ? t('tooltip.schemaChangeDisabledFormSqlView') : t('msg.info.schemaReadOnly'))
+    // Arrow-key navigation passes no event; don't toast on every keypress.
+    if (isSqlView.value) {
+      if (event) message.info(t('tooltip.schemaChangeDisabledFormSqlView'))
+      return
+    }
+    return message.info(t('msg.info.schemaReadOnly'))
   }
 
   if (field && field?.pk) {

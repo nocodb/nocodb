@@ -104,6 +104,7 @@ const {
   isSingleTargetRelation,
   pendingLinkRows,
   removePendingLink,
+  openBlueprintEditor,
   isPendingUnlink,
   canReorder,
   reorderLink,
@@ -259,6 +260,14 @@ const colTitle = computed(() => injectedColumn.value?.title || '')
 
 const onClick = (row: Row) => {
   if (isPublic.value || isForm.value) return
+  // A linked record not created yet opens in its own editor
+  if ((row as Record<string, any>)?._isBlueprint) {
+    openBlueprintEditor(row as Record<string, any>, {
+      breadcrumbs: parentBreadcrumbs.value,
+      linkOnParentSave: !isTemplateMode.value,
+    })
+    return
+  }
   // Don't allow expanding if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
   // A New record form closed without saving leaves these set; reset them so this row opens as itself.

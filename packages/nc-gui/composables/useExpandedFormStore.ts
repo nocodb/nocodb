@@ -424,9 +424,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     }
 
-    // Linked records (blueprints) that failed to create once this row was saved, kept for the next
-    // Save. Held here, not on the row, since a view reload may replace the row's rowMeta.
-    const heldLtarBlueprints = ref<Record<string, Record<string, any>[]>>({})
+    const heldLtarBlueprints = rowStore.heldLtarBlueprints
 
     // Create records held on this row (blueprints) once it is saved. Ones that fail stay held so the
     // next Save retries them. The row itself is saved, so failures are reported, not thrown.
@@ -451,7 +449,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             `${name ? `${table} "${name}"` : table}: ${await extractSdkResponseErrorMsg(error as Error)}`,
         ),
       )
-      message.error(t('msg.error.linkedRecordsNotCreated', { details: details.join('; ') }))
+      message.warning(t('msg.error.linkedRecordsNotCreated', { details: details.join('; ') }))
     }
 
     const save = async (
@@ -1148,8 +1146,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       isSaving,
       formatSaveError,
       changedColumns,
-      // Held linked records also leave the record with something to save.
-      hasLtarChanges: computed(() => rowStore.hasLtarChanges.value || Object.keys(heldLtarBlueprints.value).length > 0),
+      hasLtarChanges: rowStore.hasLtarChanges,
       heldLtarBlueprints,
       pendingLtarOps: rowStore.pendingLtarOps,
       localOnlyChanges,

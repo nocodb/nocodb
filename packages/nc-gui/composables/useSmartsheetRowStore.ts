@@ -43,11 +43,28 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
 
     // True when the row has buffered link/unlink changes not yet persisted.
     // Drives the expanded form's "modified" state for relational fields.
+    // Linked records (blueprints) that failed to create after this row was saved, by link column
+    // title, kept for the next Save. Held here, not on the row, as a view reload replaces rowMeta.
+    const heldLtarBlueprints = ref<Record<string, Record<string, any>[]>>({})
+
     const hasLtarChanges = computed(() => {
       const ltarState = currentRow.value?.rowMeta?.ltarState ?? {}
       const hasEntries = (s: Record<string, any>) => Object.values(s).some((v) => (Array.isArray(v) ? v.length > 0 : !!v))
-      return pendingLtarOps.value.length > 0 || hasEntries(ltarState)
+      return pendingLtarOps.value.length > 0 || hasEntries(ltarState) || hasEntries(heldLtarBlueprints.value)
     })
+
+    // Replace (or with `next` null, drop) a blueprint: buffered on a new row, held on a saved one.
+    const replaceLtarBlueprint = (title: string, blueprint: Record<string, any>, next: Record<string, any> | null) => {
+      const target = currentRow.value?.rowMeta?.new ? currentRow.value.rowMeta.ltarState : heldLtarBlueprints.value
+      const value = target?.[title]
+      if (Array.isArray(value)) {
+        const index = value.indexOf(blueprint)
+        if (index !== -1) next ? value.splice(index, 1, next) : value.splice(index, 1)
+        if (!value.length && target === heldLtarBlueprints.value) delete heldLtarBlueprints.value[title]
+      } else if (target && value?._isBlueprint) {
+        target[title] = next
+      }
+    }
 
     return {
       pk,
@@ -57,6 +74,8 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       isNew,
       hasLtarChanges,
       pendingLtarOps,
+      heldLtarBlueprints,
+      replaceLtarBlueprint,
       displayValue,
       // todo: use better name
       addLTARRef: async (...args: any) => {

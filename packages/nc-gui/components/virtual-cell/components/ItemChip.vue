@@ -21,11 +21,9 @@ const emit = defineEmits(['unlink'])
 
 const { item, value, column, readonly: readonlyProp } = toRefs(props)
 
-const { relatedTableMeta, externalBaseUserRoles, row: parentRow } = useLTARStoreOrThrow()!
+const { relatedTableMeta, externalBaseUserRoles, openBlueprintEditor: openLtarBlueprintEditor } = useLTARStoreOrThrow()!
 
 const injectedColumn = inject(ColumnInj, ref())
-
-const parentTableMeta = inject(MetaInj, ref())
 
 const { isUIAllowed } = useRoles()
 
@@ -86,52 +84,10 @@ const isClickDisabled = computed(() => {
 
 const { open } = useExpandedFormDetached()
 
-/**
- * Open the blueprint editor for this chip's blueprint data.
- * Strips internal flags (_isBlueprint, _ltarState) before populating the form,
- * and passes nested ltarState so sub-blueprints are preserved for editing.
- * On save, the updated blueprint replaces the original in the parent's ltarState.
- */
+/** Edit this chip's blueprint (a linked record not created yet); Save replaces it. */
 function openBlueprintEditor() {
   if (isClickDisabled.value) return
-
-  const { _isBlueprint, _ltarState, ...blueprintData } = item.value
-  const nestedLtarState = _ltarState && Object.keys(_ltarState).length ? _ltarState : undefined
-
-  // Build breadcrumb trail: append current (parent) table name
-  const breadcrumbs = [...parentBreadcrumbs.value, parentTableMeta.value?.title || '']
-
-  open({
-    isOpen: true,
-    row: { row: { ...blueprintData }, oldRow: {}, rowMeta: { new: true, ltarState: nestedLtarState } },
-    state: nestedLtarState,
-    meta: relatedTableMeta.value,
-    loadRow: false,
-    useMetaFields: true,
-    blueprintMode: true,
-    blueprintParentTableId: parentTableMeta.value?.id,
-    linkOnParentSave: !isTemplateMode.value,
-    breadcrumbs,
-    newRecordSubmitBtnText: 'Save Record',
-    newRecordHeader: `Edit ${relatedTableMeta.value?.title} Record`,
-    createdRecord: (record: Record<string, any>) => {
-      const updatedBlueprint = { ...record, _isBlueprint: true }
-      const colTitle = injectedColumn.value?.title
-      if (!colTitle || !parentRow.value?.rowMeta?.ltarState) return
-
-      const ltarState = parentRow.value.rowMeta.ltarState
-      if (Array.isArray(ltarState[colTitle])) {
-        // Find and replace the old blueprint in the array
-        const idx = ltarState[colTitle].indexOf(item.value)
-        if (idx !== -1) {
-          ltarState[colTitle].splice(idx, 1, updatedBlueprint)
-        }
-      } else {
-        // BT/OO — single value, just replace
-        ltarState[colTitle] = updatedBlueprint
-      }
-    },
-  })
+  openLtarBlueprintEditor(item.value, { breadcrumbs: parentBreadcrumbs.value, linkOnParentSave: !isTemplateMode.value })
 }
 
 function openExpandedForm() {

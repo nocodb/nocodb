@@ -2,7 +2,6 @@ import { customAlphabet } from 'nanoid';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
   isNumericCol,
@@ -724,26 +723,13 @@ export async function hasFlaggedFormulaColumn(
  * using an alias-qualified column name. For use in subqueries where the
  * table is aliased (e.g. lookups, rollups, CTEs).
  *
- * Returns null if the table has no __nc_deleted column or the source is not meta.
+ * Same gating as `getSoftDeleteFilter` (meta source, trash enabled).
  */
 export async function getAliasedSoftDeleteFilter(
   baseModel: IBaseModelSqlV2,
   tableAlias: string,
 ): Promise<Knex.QueryCallback | null> {
-  const columns = await baseModel.model.getColumns();
-  const deletedColumn = columns.find((c) => isDeletedCol(c));
-  if (!deletedColumn) return null;
-
-  const source = await baseModel.getSource();
-  if (!source.isMeta()) return null;
-
-  const qualifiedName = `${tableAlias}.${deletedColumn.column_name}`;
-  const notDeletedSql = boolSqlLiteral(baseModel, false);
-  return function () {
-    this.whereNull(qualifiedName).orWhereRaw(`?? = ${notDeletedSql}`, [
-      qualifiedName,
-    ]);
-  };
+  return baseModel.getSoftDeleteFilter(tableAlias);
 }
 
 export function shouldSkipField(

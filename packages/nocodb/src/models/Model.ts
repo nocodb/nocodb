@@ -1470,6 +1470,12 @@ export default class Model implements TableType {
       `${CacheScope.MODEL}:${modelId}`,
       updateObj,
     );
+
+    // Cached single-query SQL embeds this table's soft-delete filter
+    if ('trash_disabled' in updateObj) {
+      await View.clearSingleQueryCache(context, modelId, null, ncMeta);
+      await clearSingleQueryCacheForReferencingModels(context, modelId, ncMeta);
+    }
   }
 
   // For updating table meta

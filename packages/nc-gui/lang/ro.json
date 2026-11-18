@@ -1538,7 +1538,7 @@
     "creatingAgent": "Se creează agentul",
     "agentToolsAndAccess": "Instrumente și acces",
     "agentSkills": "Competențe",
-    "agentSettings": "Setări",
+    "agentSettings": "Setările agentului",
     "updateRecordsCount": "Actualizează {n} înregistrare | Actualizează {n} înregistrări",
     "turnOffEditing": "Dezactivezi editarea?",
     "turnOnInlineEditing": "Activezi editarea în linie?",
@@ -1552,8 +1552,23 @@
     "tooNarrowToAdjustFrozenFields": "Fereastra este prea îngustă pentru a ajusta câmpurile fixate",
     "themeSettings": "Setările temei",
     "nFields": "{count} câmp | {count} câmpuri",
-    "noInterfaceMembersYet": "Încă nu există membri ai interfeței",
-    "headJoin": "Alătură-te | NocoDB"
+    "noInterfaceMembersYet": "Încă nu există membri ai aplicației",
+    "headJoin": "Alătură-te | NocoDB",
+    "abuseReports": "Raportări de abuz",
+    "disablePublicLink": "Dezactivezi linkul public?",
+    "blockUser": "Blochezi utilizatorul?",
+    "vaultBanner": "Păstrează-ți datele de autentificare în propriul seif",
+    "connectSecretsProvider": "Conectează un furnizor de secrete",
+    "vaultConnected": "Datele de autentificare vin din seiful tău",
+    "vaults": "Seifuri",
+    "vaultDisconnect": "Deconectează seiful",
+    "vaultEdit": "Editează seiful",
+    "pickBaseForApp": "Alege un proiect pentru aplicația ta",
+    "baseTypeDefaultSubtext": "Membrii spațiului de lucru pot colabora în funcție de rolul lor.",
+    "baseTypePrivateSubtext": "Proiect doar pe bază de invitație. Doar tu îi poți vedea și gestiona membrii.",
+    "auditDetails": "Detaliile auditului",
+    "markdownEditor": "Editor Markdown",
+    "loyaltyBadgeTitle": "Reducere de fidelitate deblocată! Economisește până la 55%!"
   },
   "labels": {
     "syncing": "Sincronizare",
@@ -6271,7 +6286,7 @@
     "hideFieldInView": "Ascunde acest câmp în vizualizarea curentă.",
     "viewAllEventsInDayView": "Vezi {count} eveniment în vizualizarea pe zi | Vezi toate cele {count} evenimente în vizualizarea pe zi",
     "linkValueDelimiter": "Caracterul care separă mai multe valori legate în aceeași celulă (implicit ,)",
-    "interfaceMixedRoles": "Rolurile diferă între interfețe sau pagini. Extindeți pentru a le vedea",
+    "interfaceMixedRoles": "Rolurile diferă între aplicații sau pagini. Extinde pentru a le vedea",
     "chatQueueAttachmentUnavailable": "Acest atașament nu va fi trimis dacă puneți mesajul la coadă. Eliminați-l mai întâi",
     "lockedViewDisabledOnProduction": "Vizualizările blocate pot fi create doar în copia de mediu",
     "personalViewDisabledOnEnvironment": "Vizualizările personale pot fi create doar în proiectul de producție",
@@ -6351,7 +6366,36 @@
     "inviteLinkCannotGrantOwner": "Un link de invitație nu poate acorda rolul de Proprietar",
     "inviteLinkRoleAboveYours": "Poți oferi doar roluri până la nivelul tău",
     "noDefaultSourceForFolders": "Acest proiect nu are o sursă implicită. Creează folderele din meniul propriu al unei surse",
-    "noDefaultSourceForSync": "Acest proiect nu are o sursă implicită. O sincronizare are nevoie de una pentru a-și stoca tabelele"
+    "noDefaultSourceForSync": "Acest proiect nu are o sursă implicită. O sincronizare are nevoie de una pentru a-și stoca tabelele",
+    "factoryGitApplyTruncated": "Acest patch a fost trunchiat și se poate opri la mijlocul unei modificări, deci nu s-ar aplica corect.",
+    "factoryGitApplyWhitespace": "Modificările de spații sunt ascunse, așa că acest patch nu le include. Afișează-le ca să copiezi un patch care se aplică.",
+    "factoryGitApplyBinary": "Acest patch modifică fișiere binare, pe care git apply nu le poate recrea din el.",
+    "vaultComingSoon": "În curând.",
+    "workflowButtonTriggerFieldReadOnly": "Câmpul Buton conectat la acest declanșator poate fi modificat doar din setările câmpului",
+    "linkUnlinkDisabledEditFieldsForm": "Această opțiune este dezactivată când câmpurile sunt editate printr-un formular",
+    "linkUnlinkDisabledEditFieldsOff": "Această opțiune este dezactivată când editarea câmpurilor este oprită",
+    "addRecordFormDisabledColumnNotInline": "Această opțiune este dezactivată când coloana nu poate fi editată direct în tabel",
+    "readOnlyFieldCannotBeRequired": "Câmpurile doar pentru citire nu pot fi obligatorii",
+    "verifyEmailBeforeReset": "Dacă e-mailul tău nu a fost verificat la înregistrare, verifică-l acum înainte de a continua resetarea; altfel nu vei primi codul.",
+    "vaultPromoteToOrg": "Pune la dispoziția întregii organizații",
+    "testWebhookDisabledForScripts": "Webhookul de test este dezactivat pentru scripturi",
+    "aiIntegrationNotAvailableOnMobile": "Integrarea AI nu este disponibilă în modul mobil.",
+    "categoryLimit": "Numărul de categorii principale afișate (min.: 10, max.: 50)",
+    "copyImageUrl": "Copiază URL-ul imaginii",
+    "editImage": "Editează imaginea",
+    "removeImage": "Elimină imaginea",
+    "panMode": "Mod de deplasare",
+    "selectionMode": "Mod de selecție",
+    "addNote": "Adaugă o notiță",
+    "aiIntegrationForOperation": "Integrarea folosită pentru această operațiune",
+    "aiModelForOperation": "Modelul folosit pentru această operațiune",
+    "setupScriptSettingsFirstToExecute": "Configurează mai întâi setările scriptului pentru a-l executa",
+    "selectTable": "Selectează tabelul",
+    "copyViewId": "Copiază ID-ul vizualizării",
+    "dataSourceReadOnly": "Această sursă de date este doar pentru citire.",
+    "mentionFields": "Menționează câmpuri",
+    "skipEnabledAfterDelay": "Va fi activat după 2 secunde",
+    "clickToCopyDocumentId": "Dă clic pentru a copia ID-ul documentului"
   },
   "placeholder": {
     "enterVerificationCode": "Introdu codul din 6 cifre",
@@ -8224,7 +8268,7 @@
     "deletedItemsWillAppearHere": "Tabele șterse, vizualizări, câmpuri și altele vor apărea aici",
     "confirmEmpty": "Toate elementele din gunoi vor fi șterse definitiv. Această acțiune nu poate fi anulată.",
     "restoreRequiresCreator": "Restaurarea acestui articol necesită Rolul Creatorului sau al Proprietarului",
-    "secondsAgo": "{count} secunde în urmă",
+    "secondsAgo": "acum {count} s",
     "youDeleted": "Ați șters un {type} din {parent}: {name}",
     "userDeleted": "{user} a șters un {type} de la {parent}: {name}",
     "youDeletedNoParent": "Ați șters un {type}: {name}",
@@ -9084,7 +9128,14 @@
       "descriptionLabel": "Descriere",
       "groupRequired": "Alegeți un {group}.",
       "requiredHint": "* Obligatoriu",
-      "browse": "răsfoiți"
+      "browse": "răsfoiți",
+      "title": "Trimite o solicitare",
+      "staffHint": "Elementele echipei sar peste verificare și primesc direct starea aleasă.",
+      "titlePlaceholder": "Un titlu scurt",
+      "similar": "Deja solicitat? Votează în schimb:",
+      "staffTitle": "Solicitare nouă",
+      "titleLabel": "Titlu",
+      "titleTooShort": "Folosește cel puțin {min} caractere."
     },
     "railTooltipUnseen": "Noco Roadmap · Actualizări noi lansate",
     "stateTabs": "Starea solicitării",
@@ -9098,6 +9149,89 @@
     "previousRequest": "Solicitarea anterioară",
     "nextRequest": "Solicitarea următoare",
     "saved": "Modificări salvate",
-    "saveShortcut": "⌘/Ctrl + Enter pentru salvare · Esc pentru anulare"
+    "saveShortcut": "⌘/Ctrl + Enter pentru salvare · Esc pentru anulare",
+    "title": "Foaia de parcurs Noco",
+    "you": "tu",
+    "youAppearAs": "Ceilalți te văd ca",
+    "viewingAs": "Vizualizezi ca",
+    "votesCount": "{count} vot | {count} voturi",
+    "tab": {
+      "requests": "Solicitări",
+      "board": "Panou"
+    },
+    "tabs": {
+      "comments": "Comentarii · {count}",
+      "internal": "Interne · {count}",
+      "voters": "Votanți · {count}",
+      "links": "Linkuri · {count}",
+      "activity": "Activitate",
+      "label": "Secțiunile solicitării"
+    },
+    "view": {
+      "all": "Toate solicitările",
+      "mine": "Solicitările mele",
+      "team": "Solicitările spațiului de lucru",
+      "voted": "Voturile mele",
+      "triage": "Triere",
+      "assigned": "Atribuite mie",
+      "internal": "Interne"
+    },
+    "teamScope": {
+      "workspace": "Acest spațiu de lucru",
+      "org": "Toată organizația",
+      "label": "Domeniul echipei"
+    },
+    "visibility": {
+      "internal": "Intern"
+    },
+    "underReview": {
+      "title": "În verificare",
+      "hint": "Doar tu și echipa NocoDB puteți vedea asta până la aprobare.",
+      "next": "Îți trimitem un e-mail când este aprobată sau respinsă ori când răspunde echipa.",
+      "nextInApp": "Vei fi notificat aici când este aprobată sau respinsă ori când răspunde echipa."
+    },
+    "subscribe": {
+      "subscribedTitle": "Vei afla când se schimbă ceva",
+      "subscribedHint": "Îți trimitem un e-mail când starea se schimbă sau când răspunde echipa.",
+      "unsubscribedTitle": "Primește actualizări despre această solicitare",
+      "unsubscribedHint": "Urmărește-o ca să afli când avansează.",
+      "mutedTitle": "Notificări dezactivate",
+      "mutedHint": "Nu vei primi actualizări despre această solicitare.",
+      "subscribe": "Urmărește",
+      "mute": "Dezactivează notificările",
+      "unmute": "Activează notificările",
+      "staffHint": "Primești notificări în aplicație pentru schimbările de stare și comentarii.",
+      "emailOffHint": "Actualizările prin e-mail sunt dezactivate, așa că apar doar în aplicație.",
+      "turnOnEmail": "Activează e-mailul",
+      "emailOn": "Actualizările prin e-mail sunt activate"
+    },
+    "voters": {
+      "summary": "{real} vot real · {adjustment} ajustare | {real} voturi reale · {adjustment} ajustare",
+      "person": "Persoană",
+      "account": "Spațiu de lucru / organizație",
+      "plan": "Plan",
+      "voted": "A votat",
+      "empty": "Încă nu există voturi."
+    },
+    "triage": {
+      "title": "Așteaptă trierea",
+      "merge": "Îmbină",
+      "mergeHint": "Îmbină cu o solicitare existentă",
+      "decline": "Respinge",
+      "declineHint": "Respinge cu un motiv pe care îl vede autorul solicitării",
+      "approveInto": "Aprobă în {status}",
+      "chooseStatus": "Alege starea în care se aprobă",
+      "approved": "Aprobată și mutată în {status}",
+      "clear": "Nu e nimic de triat"
+    },
+    "viewsNav": "Vizualizări ale foii de parcurs",
+    "toggleSidebar": "Vizualizări și categorii",
+    "vote": {
+      "ariaUpvote": "Votează, {count} vot | Votează, {count} voturi",
+      "ariaRemove": "Retrage-ți votul, {count} vot | Retrage-ți votul, {count} voturi",
+      "closed": "Votarea pentru această solicitare este închisă",
+      "closedMerged": "Votează solicitarea în care a fost îmbinată aceasta"
+    },
+    "submittedBy": "trimisă de {name}"
   }
 }

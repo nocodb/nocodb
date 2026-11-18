@@ -1540,7 +1540,7 @@
     "creatingAgent": "エージェントを作成中",
     "agentToolsAndAccess": "ツールとアクセス",
     "agentSkills": "スキル",
-    "agentSettings": "設定",
+    "agentSettings": "Agent の設定",
     "updateRecordsCount": "{n} 件のレコードを更新 | {n} 件のレコードを更新",
     "turnOffEditing": "編集を無効にしますか？",
     "turnOnInlineEditing": "インライン編集を有効にしますか？",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "ウィンドウが狭すぎて固定フィールドを調整できません",
     "themeSettings": "テーマ設定",
     "nFields": "{count} フィールド | {count} フィールド",
-    "noInterfaceMembersYet": "インターフェースのメンバーはまだいません",
-    "headJoin": "参加 | NocoDB"
+    "noInterfaceMembersYet": "アプリのメンバーはまだいません",
+    "headJoin": "参加 | NocoDB",
+    "abuseReports": "不正使用の報告",
+    "disablePublicLink": "公開リンクを無効にしますか？",
+    "blockUser": "ユーザーをブロックしますか？",
+    "vaultBanner": "認証情報は自分のボールトに保管",
+    "connectSecretsProvider": "シークレットプロバイダーを接続",
+    "vaultConnected": "認証情報はボールトから取得されます",
+    "vaults": "ボールト",
+    "vaultDisconnect": "ボールトの接続を解除",
+    "vaultEdit": "ボールトを編集",
+    "pickBaseForApp": "アプリに使うプロジェクトを選択",
+    "baseTypeDefaultSubtext": "ワークスペースのメンバーは役割に応じて共同作業できます。",
+    "baseTypePrivateSubtext": "招待制のプロジェクトです。メンバーの表示と管理ができるのはあなただけです。",
+    "auditDetails": "監査の詳細",
+    "markdownEditor": "Markdown エディター",
+    "loyaltyBadgeTitle": "継続利用割引が解除されました！最大 55% お得！"
   },
   "labels": {
     "syncing": "同期中",
@@ -6297,7 +6312,7 @@
     "hideFieldInView": "現在のビューでこのフィールドを非表示にします。",
     "viewAllEventsInDayView": "日ビューで {count} 件のイベントをすべて表示 | 日ビューで {count} 件のイベントをすべて表示",
     "linkValueDelimiter": "1 つのセル内で複数のリンク値を区切る文字 (既定は ,)",
-    "interfaceMixedRoles": "インターフェースやページによってロールが異なります。展開して確認してください",
+    "interfaceMixedRoles": "アプリやページによってロールが異なります。展開して確認してください",
     "chatQueueAttachmentUnavailable": "メッセージをキューに入れると、この添付ファイルは送信されません。先に削除してください",
     "lockedViewDisabledOnProduction": "ロックされたビューは環境のコピーでのみ作成できます",
     "personalViewDisabledOnEnvironment": "パーソナルビューは本番プロジェクトでのみ作成できます",
@@ -6377,7 +6392,36 @@
     "inviteLinkCannotGrantOwner": "招待リンクでは所有者権限を付与できません",
     "inviteLinkRoleAboveYours": "付与できるのは自分と同じかそれ以下のロールのみです",
     "noDefaultSourceForFolders": "このプロジェクトにはデフォルトのソースがありません。フォルダーは各ソースのメニューから作成してください",
-    "noDefaultSourceForSync": "このプロジェクトにはデフォルトのソースがありません。同期にはテーブルを保存するためのソースが必要です"
+    "noDefaultSourceForSync": "このプロジェクトにはデフォルトのソースがありません。同期にはテーブルを保存するためのソースが必要です",
+    "factoryGitApplyTruncated": "このパッチは途中で切れており、変更の途中で終わっている可能性があるため、きれいに適用できません。",
+    "factoryGitApplyWhitespace": "空白の変更は非表示のため、このパッチには含まれません。表示すると適用できるパッチをコピーできます。",
+    "factoryGitApplyBinary": "このパッチはバイナリファイルを変更しますが、git apply はそこから復元できません。",
+    "vaultComingSoon": "近日公開。",
+    "workflowButtonTriggerFieldReadOnly": "このトリガーに接続されたボタンフィールドは、フィールドの設定からのみ変更できます",
+    "linkUnlinkDisabledEditFieldsForm": "フォームからフィールドを編集する場合、このオプションは無効です",
+    "linkUnlinkDisabledEditFieldsOff": "フィールドの編集がオフの場合、このオプションは無効です",
+    "addRecordFormDisabledColumnNotInline": "この列をインラインで編集できない場合、このオプションは無効です",
+    "readOnlyFieldCannotBeRequired": "読み取り専用フィールドは必須にできません",
+    "verifyEmailBeforeReset": "登録時にメールアドレスが確認されていない場合は、リセットを続ける前に今すぐ確認してください。確認しないとリセットコードが届きません。",
+    "vaultPromoteToOrg": "組織全体で利用できるようにする",
+    "testWebhookDisabledForScripts": "スクリプトではテスト用 Webhook は無効です",
+    "aiIntegrationNotAvailableOnMobile": "AI 連携はモバイルモードでは利用できません。",
+    "categoryLimit": "表示する上位カテゴリ数（最小: 10、最大: 50）",
+    "copyImageUrl": "画像の URL をコピー",
+    "editImage": "画像を編集",
+    "removeImage": "画像を削除",
+    "panMode": "パンモード",
+    "selectionMode": "選択モード",
+    "addNote": "メモを追加",
+    "aiIntegrationForOperation": "この操作に使用する連携",
+    "aiModelForOperation": "この操作に使用するモデル",
+    "setupScriptSettingsFirstToExecute": "実行するにはまずスクリプトの設定を行ってください",
+    "selectTable": "テーブルを選択",
+    "copyViewId": "ビュー ID をコピー",
+    "dataSourceReadOnly": "このデータソースは読み取り専用です。",
+    "mentionFields": "フィールドをメンション",
+    "skipEnabledAfterDelay": "2 秒後に有効になります",
+    "clickToCopyDocumentId": "クリックしてドキュメント ID をコピー"
   },
   "placeholder": {
     "enterVerificationCode": "6桁のコードを入力してください",
@@ -8250,7 +8294,7 @@
     "deletedItemsWillAppearHere": "削除されたテーブル、ビュー、フィールドなどはここに表示されます",
     "confirmEmpty": "ゴミ箱にあるすべてのアイテムは完全に削除されます。元に戻すことはできません。",
     "restoreRequiresCreator": "このアイテムを復元するには作成者または所有者のロールが必要です",
-    "secondsAgo": "{count} 秒前",
+    "secondsAgo": "{count}秒前",
     "youDeleted": "{type} から {parent}を削除しました: {name}",
     "userDeleted": "{user} が {type} から {parent}を削除しました: {name}",
     "youDeletedNoParent": "{type}を削除しました : {name}",
@@ -9113,7 +9157,14 @@
       "descriptionLabel": "説明",
       "groupRequired": "{group} を選択してください。",
       "requiredHint": "* 必須",
-      "browse": "見る"
+      "browse": "見る",
+      "title": "リクエストを送信",
+      "staffHint": "スタッフの項目は確認をスキップし、選択したステータスに直接移動します。",
+      "titlePlaceholder": "短いタイトル",
+      "similar": "すでにリクエストされていますか？代わりに投票してください:",
+      "staffTitle": "新しいリクエスト",
+      "titleLabel": "タイトル",
+      "titleTooShort": "{min}文字以上で入力してください。"
     },
     "railTooltipUnseen": "Noco ロードマップ · 新しい更新がリリースされました",
     "stateTabs": "リクエストの状態",
@@ -9127,6 +9178,90 @@
     "previousRequest": "前のリクエスト",
     "nextRequest": "次のリクエスト",
     "saved": "変更を保存しました",
-    "saveShortcut": "⌘/Ctrl + Enter で保存 · Esc でキャンセル"
+    "saveShortcut": "⌘/Ctrl + Enter で保存 · Esc でキャンセル",
+    "title": "Noco ロードマップ",
+    "you": "あなた",
+    "youAppearAs": "他のユーザーからの見え方",
+    "viewingAs": "表示中のユーザー",
+    "votesCount": "{count} 票 | {count} 票",
+    "tab": {
+      "requests": "リクエスト",
+      "board": "ボード"
+    },
+    "tabs": {
+      "comments": "コメント · {count}",
+      "internal": "社内 · {count}",
+      "voters": "投票者 · {count}",
+      "links": "リンク · {count}",
+      "activity": "アクティビティ",
+      "label": "リクエストのセクション"
+    },
+    "view": {
+      "all": "すべてのリクエスト",
+      "mine": "自分のリクエスト",
+      "team": "ワークスペースのリクエスト",
+      "voted": "自分の投票",
+      "triage": "仕分け",
+      "assigned": "自分に割り当て済み",
+      "internal": "社内"
+    },
+    "teamScope": {
+      "workspace": "このワークスペース",
+      "org": "組織全体",
+      "label": "チームの範囲"
+    },
+    "visibility": {
+      "public": "公開",
+      "internal": "社内"
+    },
+    "underReview": {
+      "title": "確認中",
+      "hint": "承認されるまで、これを見られるのはあなたと NocoDB チームだけです。",
+      "next": "承認または却下されたとき、チームが返信したときにメールでお知らせします。",
+      "nextInApp": "承認または却下されたとき、チームが返信したときにここで通知します。"
+    },
+    "subscribe": {
+      "subscribedTitle": "変更があればお知らせします",
+      "subscribedHint": "ステータスが変わったときやチームが返信したときにメールでお知らせします。",
+      "unsubscribedTitle": "このリクエストの更新を受け取る",
+      "unsubscribedHint": "フォローすると、進展があったときにわかります。",
+      "mutedTitle": "通知をミュートしました",
+      "mutedHint": "このリクエストの更新は届きません。",
+      "subscribe": "フォロー",
+      "mute": "ミュート",
+      "unmute": "ミュート解除",
+      "staffHint": "ステータスの変更やコメントについてアプリ内通知が届きます。",
+      "emailOffHint": "メール更新はオフのため、更新はアプリ内にのみ表示されます。",
+      "turnOnEmail": "メールをオンにする",
+      "emailOn": "メール更新はオンです"
+    },
+    "voters": {
+      "summary": "実票 {real} 件 · 調整 {adjustment} 件 | 実票 {real} 件 · 調整 {adjustment} 件",
+      "person": "個人",
+      "account": "ワークスペース / 組織",
+      "plan": "プラン",
+      "voted": "投票済み",
+      "empty": "まだ投票がありません。"
+    },
+    "triage": {
+      "title": "仕分け待ち",
+      "merge": "統合",
+      "mergeHint": "既存のリクエストに統合",
+      "decline": "却下",
+      "declineHint": "申請者に見える理由を添えて却下",
+      "approveInto": "{status} として承認",
+      "chooseStatus": "承認先のステータスを選択",
+      "approved": "承認して {status} に移動しました",
+      "clear": "対応待ちはありません"
+    },
+    "viewsNav": "ロードマップのビュー",
+    "toggleSidebar": "ビューとカテゴリ",
+    "vote": {
+      "ariaUpvote": "投票する、{count} 票 | 投票する、{count} 票",
+      "ariaRemove": "投票を取り消す、{count} 票 | 投票を取り消す、{count} 票",
+      "closed": "このリクエストの投票は締め切られました",
+      "closedMerged": "統合先のリクエストに投票してください"
+    },
+    "submittedBy": "{name} が送信"
   }
 }

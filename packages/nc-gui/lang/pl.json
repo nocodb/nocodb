@@ -1539,7 +1539,7 @@
     "creatingAgent": "Tworzenie agenta",
     "agentToolsAndAccess": "Narzędzia i dostęp",
     "agentSkills": "Umiejętności",
-    "agentSettings": "Ustawienia",
+    "agentSettings": "Ustawienia agenta",
     "updateRecordsCount": "Zaktualizuj {n} rekord | Zaktualizuj {n} rekordów",
     "turnOffEditing": "Wyłączyć edycję?",
     "turnOnInlineEditing": "Włączyć edycję w miejscu?",
@@ -1553,8 +1553,23 @@
     "tooNarrowToAdjustFrozenFields": "Okno jest zbyt wąskie, aby dostosować przypięte pola",
     "themeSettings": "Ustawienia motywu",
     "nFields": "{count} pole | {count} pól",
-    "noInterfaceMembersYet": "Brak członków interfejsu",
-    "headJoin": "Dołącz | NocoDB"
+    "noInterfaceMembersYet": "Brak członków aplikacji",
+    "headJoin": "Dołącz | NocoDB",
+    "abuseReports": "Zgłoszenia nadużyć",
+    "disablePublicLink": "Wyłączyć link publiczny?",
+    "blockUser": "Zablokować użytkownika?",
+    "vaultBanner": "Przechowuj dane logowania we własnym sejfie",
+    "connectSecretsProvider": "Połącz dostawcę sekretów",
+    "vaultConnected": "Dane logowania pochodzą z Twojego sejfu",
+    "vaults": "Sejfy",
+    "vaultDisconnect": "Odłącz sejf",
+    "vaultEdit": "Edytuj sejf",
+    "pickBaseForApp": "Wybierz projekt dla swojej aplikacji",
+    "baseTypeDefaultSubtext": "Członkowie obszaru roboczego mogą współpracować zgodnie ze swoją rolą.",
+    "baseTypePrivateSubtext": "Projekt tylko na zaproszenie. Tylko Ty możesz wyświetlać jego członków i nimi zarządzać.",
+    "auditDetails": "Szczegóły audytu",
+    "markdownEditor": "Edytor Markdown",
+    "loyaltyBadgeTitle": "Zniżka lojalnościowa odblokowana! Oszczędź do 55%!"
   },
   "labels": {
     "syncing": "Synchronizowanie",
@@ -6287,7 +6302,7 @@
     "hideFieldInView": "Ukryj to pole w bieżącym widoku.",
     "viewAllEventsInDayView": "Zobacz {count} wydarzenie w widoku dnia | Zobacz wszystkie {count} wydarzeń w widoku dnia",
     "linkValueDelimiter": "Znak rozdzielający wiele powiązanych wartości w jednej komórce (domyślnie ,)",
-    "interfaceMixedRoles": "Role różnią się między interfejsami lub stronami. Rozwiń, aby je zobaczyć",
+    "interfaceMixedRoles": "Role różnią się między aplikacjami lub stronami. Rozwiń, aby je zobaczyć",
     "chatQueueAttachmentUnavailable": "Ten załącznik nie zostanie wysłany, jeśli ustawisz wiadomość w kolejce. Najpierw go usuń",
     "lockedViewDisabledOnProduction": "Zablokowane widoki można tworzyć tylko w kopii środowiska",
     "personalViewDisabledOnEnvironment": "Widoki osobiste można tworzyć tylko w projekcie produkcyjnym",
@@ -6367,7 +6382,36 @@
     "inviteLinkCannotGrantOwner": "Link zapraszający nie może przyznać roli właściciela",
     "inviteLinkRoleAboveYours": "Możesz oferować tylko role do poziomu swojej własnej",
     "noDefaultSourceForFolders": "Ten projekt nie ma domyślnego źródła. Twórz foldery z menu samego źródła",
-    "noDefaultSourceForSync": "Ten projekt nie ma domyślnego źródła. Synchronizacja potrzebuje go do przechowywania swoich tabel"
+    "noDefaultSourceForSync": "Ten projekt nie ma domyślnego źródła. Synchronizacja potrzebuje go do przechowywania swoich tabel",
+    "factoryGitApplyTruncated": "Ta łatka została ucięta i może kończyć się w połowie zmiany, więc nie zostałaby zastosowana poprawnie.",
+    "factoryGitApplyWhitespace": "Zmiany białych znaków są ukryte, więc ta łatka ich nie zawiera. Pokaż je, aby skopiować łatkę, którą da się zastosować.",
+    "factoryGitApplyBinary": "Ta łatka zmienia pliki binarne, których git apply nie potrafi z niej odtworzyć.",
+    "vaultComingSoon": "Już wkrótce.",
+    "workflowButtonTriggerFieldReadOnly": "Pole Przycisk połączone z tym wyzwalaczem można zmienić tylko w ustawieniach pola",
+    "linkUnlinkDisabledEditFieldsForm": "Ta opcja jest wyłączona, gdy pola są edytowane przez formularz",
+    "linkUnlinkDisabledEditFieldsOff": "Ta opcja jest wyłączona, gdy edycja pól jest wyłączona",
+    "addRecordFormDisabledColumnNotInline": "Ta opcja jest wyłączona, gdy tej kolumny nie można edytować w widoku",
+    "readOnlyFieldCannotBeRequired": "Pola tylko do odczytu nie mogą być wymagane",
+    "verifyEmailBeforeReset": "Jeśli Twój adres e-mail nie został zweryfikowany podczas rejestracji, zweryfikuj go teraz przed resetowaniem; w przeciwnym razie nie otrzymasz kodu.",
+    "vaultPromoteToOrg": "Udostępnij całej organizacji",
+    "testWebhookDisabledForScripts": "Testowy webhook jest wyłączony dla skryptów",
+    "aiIntegrationNotAvailableOnMobile": "Integracja AI nie jest dostępna w trybie mobilnym.",
+    "categoryLimit": "Liczba wyświetlanych najpopularniejszych kategorii (min: 10, maks: 50)",
+    "copyImageUrl": "Kopiuj URL obrazu",
+    "editImage": "Edytuj obraz",
+    "removeImage": "Usuń obraz",
+    "panMode": "Tryb przesuwania",
+    "selectionMode": "Tryb zaznaczania",
+    "addNote": "Dodaj notatkę",
+    "aiIntegrationForOperation": "Integracja używana do tej operacji",
+    "aiModelForOperation": "Model używany do tej operacji",
+    "setupScriptSettingsFirstToExecute": "Najpierw skonfiguruj ustawienia skryptu, aby go uruchomić",
+    "selectTable": "Wybierz tabelę",
+    "copyViewId": "Kopiuj identyfikator widoku",
+    "dataSourceReadOnly": "To źródło danych jest tylko do odczytu.",
+    "mentionFields": "Wspomnij pola",
+    "skipEnabledAfterDelay": "Zostanie włączone po 2 sekundach",
+    "clickToCopyDocumentId": "Kliknij, aby skopiować identyfikator dokumentu"
   },
   "placeholder": {
     "enterVerificationCode": "Wprowadź 6-cyfrowy kod",
@@ -8240,7 +8284,7 @@
     "deletedItemsWillAppearHere": "Tutaj pojawią się usunięte tabele, widoki, pola i inne",
     "confirmEmpty": "Wszystkie elementy w koszu zostaną trwale usunięte. Tej operacji nie można cofnąć.",
     "restoreRequiresCreator": "Przywracanie tego elementu wymaga roli autora lub właściciela",
-    "secondsAgo": "{count} sekund temu",
+    "secondsAgo": "{count} s temu",
     "youDeleted": "Usunąłeś {type} z {parent}: {name}",
     "userDeleted": "{user} usunął {type} z {parent}: {name}",
     "youDeletedNoParent": "Usunąłeś {type}: {name}",
@@ -9101,7 +9145,14 @@
       "descriptionLabel": "Opis",
       "groupRequired": "Wybierz {group}.",
       "requiredHint": "* Wymagane",
-      "browse": "przeglądaj"
+      "browse": "przeglądaj",
+      "title": "Wyślij zgłoszenie",
+      "staffHint": "Zgłoszenia zespołu pomijają weryfikację i od razu otrzymują wybrany status.",
+      "titlePlaceholder": "Krótki tytuł",
+      "similar": "Już zgłoszone? Zagłosuj zamiast tego:",
+      "staffTitle": "Nowe zgłoszenie",
+      "titleLabel": "Tytuł",
+      "titleTooShort": "Użyj co najmniej {min} znaków."
     },
     "railTooltipUnseen": "Noco Roadmap · Wydano nowe aktualizacje",
     "stateTabs": "Stan zgłoszenia",
@@ -9115,6 +9166,90 @@
     "previousRequest": "Poprzednie zgłoszenie",
     "nextRequest": "Następne zgłoszenie",
     "saved": "Zmiany zapisane",
-    "saveShortcut": "⌘/Ctrl + Enter zapisuje · Esc anuluje"
+    "saveShortcut": "⌘/Ctrl + Enter zapisuje · Esc anuluje",
+    "title": "Plan rozwoju Noco",
+    "you": "Ty",
+    "youAppearAs": "Inni widzą Cię jako",
+    "viewingAs": "Widok jako",
+    "votesCount": "{count} głos | {count} głosów",
+    "tab": {
+      "requests": "Zgłoszenia",
+      "board": "Tablica"
+    },
+    "tabs": {
+      "comments": "Komentarze · {count}",
+      "internal": "Wewnętrzne · {count}",
+      "voters": "Głosujący · {count}",
+      "links": "Odnośniki · {count}",
+      "activity": "Aktywność",
+      "label": "Sekcje zgłoszenia"
+    },
+    "view": {
+      "all": "Wszystkie zgłoszenia",
+      "mine": "Moje zgłoszenia",
+      "team": "Zgłoszenia obszaru roboczego",
+      "voted": "Moje głosy",
+      "triage": "Przegląd",
+      "assigned": "Przypisane do mnie",
+      "internal": "Wewnętrzne"
+    },
+    "teamScope": {
+      "workspace": "Ten obszar roboczy",
+      "org": "Cała organizacja",
+      "label": "Zakres zespołu"
+    },
+    "visibility": {
+      "public": "Publiczne",
+      "internal": "Wewnętrzne"
+    },
+    "underReview": {
+      "title": "W trakcie przeglądu",
+      "hint": "Tylko Ty i zespół NocoDB widzicie to do czasu zatwierdzenia.",
+      "next": "Wyślemy Ci e-mail, gdy zostanie zatwierdzone lub odrzucone albo gdy odpowie zespół.",
+      "nextInApp": "Powiadomimy Cię tutaj, gdy zostanie zatwierdzone lub odrzucone albo gdy odpowie zespół."
+    },
+    "subscribe": {
+      "subscribedTitle": "Damy znać, gdy coś się zmieni",
+      "subscribedHint": "Wyślemy Ci e-mail, gdy zmieni się status lub gdy odpowie zespół.",
+      "unsubscribedTitle": "Otrzymuj aktualizacje o tym zgłoszeniu",
+      "unsubscribedHint": "Obserwuj je, aby wiedzieć, kiedy posunie się naprzód.",
+      "mutedTitle": "Powiadomienia wyciszone",
+      "mutedHint": "Nie będziesz otrzymywać aktualizacji o tym zgłoszeniu.",
+      "subscribe": "Obserwuj",
+      "mute": "Wycisz",
+      "unmute": "Wyłącz wyciszenie",
+      "staffHint": "Otrzymujesz powiadomienia w aplikacji o zmianach statusu i komentarzach.",
+      "emailOffHint": "Powiadomienia e-mail są wyłączone, więc aktualizacje pojawiają się tylko w aplikacji.",
+      "turnOnEmail": "Włącz e-mail",
+      "emailOn": "Powiadomienia e-mail są włączone"
+    },
+    "voters": {
+      "summary": "{real} prawdziwy głos · {adjustment} korekta | {real} prawdziwych głosów · {adjustment} korekta",
+      "person": "Osoba",
+      "account": "Obszar roboczy / organizacja",
+      "plan": "Plan",
+      "voted": "Zagłosowano",
+      "empty": "Brak głosów."
+    },
+    "triage": {
+      "title": "Oczekuje na przegląd",
+      "merge": "Scal",
+      "mergeHint": "Scal z istniejącym zgłoszeniem",
+      "decline": "Odrzuć",
+      "declineHint": "Odrzuć z uzasadnieniem widocznym dla zgłaszającego",
+      "approveInto": "Zatwierdź do {status}",
+      "chooseStatus": "Wybierz status, do którego zatwierdzić",
+      "approved": "Zatwierdzono i przeniesiono do {status}",
+      "clear": "Nie ma nic do przejrzenia"
+    },
+    "viewsNav": "Widoki planu rozwoju",
+    "toggleSidebar": "Widoki i kategorie",
+    "vote": {
+      "ariaUpvote": "Zagłosuj, {count} głos | Zagłosuj, {count} głosów",
+      "ariaRemove": "Usuń swój głos, {count} głos | Usuń swój głos, {count} głosów",
+      "closed": "Głosowanie nad tym zgłoszeniem jest zamknięte",
+      "closedMerged": "Zagłosuj na zgłoszenie, z którym je scalono"
+    },
+    "submittedBy": "zgłoszone przez {name}"
   }
 }

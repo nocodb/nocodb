@@ -1551,11 +1551,26 @@
     "creatingAgent": "Agent wird erstellt",
     "agentToolsAndAccess": "Tools & Zugriff",
     "agentSkills": "Skills",
-    "agentSettings": "Einstellungen",
+    "agentSettings": "Agent-Einstellungen",
     "updateRecordsCount": "{n} Eintrag aktualisieren | {n} Einträge aktualisieren",
     "nFields": "{count} Feld | {count} Felder",
-    "noInterfaceMembersYet": "Noch keine Interface-Mitglieder",
-    "headJoin": "Beitreten | NocoDB"
+    "noInterfaceMembersYet": "Noch keine App-Mitglieder",
+    "headJoin": "Beitreten | NocoDB",
+    "abuseReports": "Missbrauchsmeldungen",
+    "disablePublicLink": "Öffentlichen Link deaktivieren?",
+    "blockUser": "Nutzer blockieren?",
+    "vaultBanner": "Zugangsdaten im eigenen Tresor aufbewahren",
+    "connectSecretsProvider": "Secrets-Anbieter verbinden",
+    "vaultConnected": "Zugangsdaten stammen aus deinem Tresor",
+    "vaults": "Tresore",
+    "vaultDisconnect": "Tresor trennen",
+    "vaultEdit": "Tresor bearbeiten",
+    "pickBaseForApp": "Wähle ein Projekt für deine App",
+    "baseTypeDefaultSubtext": "Mitglieder des Arbeitsbereichs können entsprechend ihrer Rolle zusammenarbeiten.",
+    "baseTypePrivateSubtext": "Projekt nur mit Einladung. Nur du kannst die Mitglieder sehen und verwalten.",
+    "auditDetails": "Audit-Details",
+    "markdownEditor": "Markdown-Editor",
+    "loyaltyBadgeTitle": "Treuerabatt freigeschaltet! Spare bis zu 55 %!"
   },
   "labels": {
     "syncing": "Synchronisieren",
@@ -6292,7 +6307,7 @@
     "hideFieldInView": "Dieses Feld in der aktuellen Ansicht ausblenden.",
     "viewAllEventsInDayView": "Alle {count} Ereignis in der Tagesansicht anzeigen | Alle {count} Ereignisse in der Tagesansicht anzeigen",
     "linkValueDelimiter": "Zeichen, das mehrere verknüpfte Werte innerhalb einer Zelle trennt (Standard ,)",
-    "interfaceMixedRoles": "Die Rollen unterscheiden sich zwischen Interfaces oder Seiten. Erweitern, um sie anzuzeigen",
+    "interfaceMixedRoles": "Die Rollen unterscheiden sich zwischen Apps oder Seiten. Erweitern, um sie anzuzeigen",
     "chatQueueAttachmentUnavailable": "Dieser Anhang wird nicht gesendet, wenn Sie Ihre Nachricht in die Warteschlange stellen. Entfernen Sie ihn zuerst",
     "lockedViewDisabledOnProduction": "Gesperrte Ansichten können nur in der Umgebungskopie erstellt werden",
     "personalViewDisabledOnEnvironment": "Persönliche Ansichten können nur im Produktionsprojekt erstellt werden",
@@ -6365,7 +6380,36 @@
     "inviteLinkCannotGrantOwner": "Ein Einladungslink kann die Rolle Eigentümer nicht vergeben",
     "inviteLinkRoleAboveYours": "Sie können nur Rollen bis zu Ihrer eigenen vergeben",
     "noDefaultSourceForFolders": "Dieses Projekt hat keine Standardquelle. Erstellen Sie Ordner stattdessen über das Menü der jeweiligen Quelle",
-    "noDefaultSourceForSync": "Dieses Projekt hat keine Standardquelle. Eine Synchronisierung benötigt eine, um ihre Tabellen zu speichern"
+    "noDefaultSourceForSync": "Dieses Projekt hat keine Standardquelle. Eine Synchronisierung benötigt eine, um ihre Tabellen zu speichern",
+    "factoryGitApplyTruncated": "Dieser Patch wurde abgeschnitten und endet womöglich mitten in einer Änderung, daher ließe er sich nicht sauber anwenden.",
+    "factoryGitApplyWhitespace": "Whitespace-Änderungen sind ausgeblendet und fehlen daher in diesem Patch. Blende sie ein, um einen anwendbaren Patch zu kopieren.",
+    "factoryGitApplyBinary": "Dieser Patch ändert Binärdateien, die git apply daraus nicht wiederherstellen kann.",
+    "vaultComingSoon": "Demnächst verfügbar.",
+    "workflowButtonTriggerFieldReadOnly": "Das mit diesem Trigger verbundene Button-Feld kann nur in den Einstellungen des Feldes geändert werden",
+    "linkUnlinkDisabledEditFieldsForm": "Diese Option ist deaktiviert, wenn Felder über ein Formular bearbeitet werden",
+    "linkUnlinkDisabledEditFieldsOff": "Diese Option ist deaktiviert, wenn die Feldbearbeitung aus ist",
+    "addRecordFormDisabledColumnNotInline": "Diese Option ist deaktiviert, wenn diese Spalte nicht inline bearbeitbar ist",
+    "readOnlyFieldCannotBeRequired": "Schreibgeschützte Felder können nicht erforderlich sein",
+    "verifyEmailBeforeReset": "Falls deine E-Mail-Adresse bei der Registrierung nicht bestätigt wurde, bestätige sie jetzt, bevor du mit dem Zurücksetzen fortfährst; andernfalls erhältst du den Code nicht.",
+    "vaultPromoteToOrg": "Für die gesamte Organisation verfügbar machen",
+    "testWebhookDisabledForScripts": "Test-Webhook ist für Skripte deaktiviert",
+    "aiIntegrationNotAvailableOnMobile": "Die KI-Integration ist im mobilen Modus nicht verfügbar.",
+    "categoryLimit": "Anzahl der angezeigten Top-Kategorien (min.: 10, max.: 50)",
+    "copyImageUrl": "Bild-URL kopieren",
+    "editImage": "Bild bearbeiten",
+    "removeImage": "Bild entfernen",
+    "panMode": "Schwenkmodus",
+    "selectionMode": "Auswahlmodus",
+    "addNote": "Notiz hinzufügen",
+    "aiIntegrationForOperation": "Integration für diesen Vorgang",
+    "aiModelForOperation": "Modell für diesen Vorgang",
+    "setupScriptSettingsFirstToExecute": "Zuerst die Skripteinstellungen einrichten, um es auszuführen",
+    "selectTable": "Tabelle auswählen",
+    "copyViewId": "Ansichts-ID kopieren",
+    "dataSourceReadOnly": "Diese Datenquelle ist schreibgeschützt.",
+    "mentionFields": "Felder erwähnen",
+    "skipEnabledAfterDelay": "Wird nach 2 Sekunden aktiviert",
+    "clickToCopyDocumentId": "Zum Kopieren der Dokument-ID klicken"
   },
   "placeholder": {
     "enterVerificationCode": "6-stelligen Code eingeben",
@@ -8237,7 +8281,7 @@
     "deletedItemsWillAppearHere": "Gelöschte Tabellen, Ansichten, Felder und mehr werden hier angezeigt",
     "confirmEmpty": "Alle Einträge im Papierkorb werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
     "restoreRequiresCreator": "Wiederherstellen dieses Elements erfordert Ersteller oder Eigentümerrolle",
-    "secondsAgo": "{count} Sekunden her",
+    "secondsAgo": "vor {count} Sek.",
     "youDeleted": "Sie haben einen {type} von {parent}gelöscht: {name}",
     "userDeleted": "{user} hat eine {type} von {parent}gelöscht: {name}",
     "youDeletedNoParent": "Sie haben einen {type}: {name} gelöscht",
@@ -9094,7 +9138,14 @@
       "descriptionLabel": "Beschreibung",
       "groupRequired": "Bitte {group} auswählen.",
       "requiredHint": "* Erforderlich",
-      "browse": "durchsuchen"
+      "browse": "durchsuchen",
+      "title": "Anfrage einreichen",
+      "staffHint": "Einträge des Teams überspringen die Prüfung und erhalten direkt den gewählten Status.",
+      "titlePlaceholder": "Ein kurzer Titel",
+      "similar": "Schon angefragt? Stimme stattdessen dafür:",
+      "staffTitle": "Neue Anfrage",
+      "titleLabel": "Titel",
+      "titleTooShort": "Bitte mindestens {min} Zeichen verwenden."
     },
     "railTooltipUnseen": "Noco Roadmap · Neue Updates veröffentlicht",
     "stateTabs": "Status der Anfrage",
@@ -9108,6 +9159,89 @@
     "previousRequest": "Vorherige Anfrage",
     "nextRequest": "Nächste Anfrage",
     "saved": "Änderungen gespeichert",
-    "saveShortcut": "⌘/Strg + Enter zum Speichern · Esc zum Abbrechen"
+    "saveShortcut": "⌘/Strg + Enter zum Speichern · Esc zum Abbrechen",
+    "title": "Noco-Roadmap",
+    "you": "du",
+    "youAppearAs": "Andere sehen dich als",
+    "viewingAs": "Ansicht als",
+    "votesCount": "{count} Stimme | {count} Stimmen",
+    "tab": {
+      "requests": "Anfragen",
+      "board": "Board"
+    },
+    "tabs": {
+      "comments": "Kommentare · {count}",
+      "internal": "Intern · {count}",
+      "voters": "Abstimmende · {count}",
+      "links": "Verknüpfungen · {count}",
+      "activity": "Aktivität",
+      "label": "Bereiche der Anfrage"
+    },
+    "view": {
+      "all": "Alle Anfragen",
+      "mine": "Meine Anfragen",
+      "team": "Anfragen des Arbeitsbereichs",
+      "voted": "Meine Stimmen",
+      "triage": "Sichtung",
+      "assigned": "Mir zugewiesen",
+      "internal": "Intern"
+    },
+    "teamScope": {
+      "workspace": "Dieser Arbeitsbereich",
+      "org": "Gesamte Organisation",
+      "label": "Team-Bereich"
+    },
+    "visibility": {
+      "public": "Öffentlich",
+      "internal": "Intern"
+    },
+    "underReview": {
+      "title": "In Prüfung",
+      "hint": "Nur du und das NocoDB-Team sehen dies, bis es genehmigt ist.",
+      "next": "Wir senden dir eine E-Mail, wenn sie genehmigt oder abgelehnt wird oder das Team antwortet.",
+      "nextInApp": "Du wirst hier benachrichtigt, wenn sie genehmigt oder abgelehnt wird oder das Team antwortet."
+    },
+    "subscribe": {
+      "subscribedTitle": "Du wirst benachrichtigt, wenn sich etwas ändert",
+      "subscribedHint": "Wir senden dir eine E-Mail, wenn sich der Status ändert oder das Team antwortet.",
+      "unsubscribedTitle": "Updates zu dieser Anfrage erhalten",
+      "unsubscribedHint": "Folge ihr, um zu erfahren, wenn es weitergeht.",
+      "mutedTitle": "Benachrichtigungen stummgeschaltet",
+      "mutedHint": "Du erhältst keine Updates zu dieser Anfrage.",
+      "subscribe": "Folgen",
+      "mute": "Stummschalten",
+      "unmute": "Stummschaltung aufheben",
+      "staffHint": "Du erhältst In-App-Benachrichtigungen zu Statusänderungen und Kommentaren.",
+      "emailOffHint": "E-Mail-Updates sind deaktiviert, Updates erscheinen nur in der App.",
+      "turnOnEmail": "E-Mail aktivieren",
+      "emailOn": "E-Mail-Updates sind aktiviert"
+    },
+    "voters": {
+      "summary": "{real} echte Stimme · {adjustment} Korrektur | {real} echte Stimmen · {adjustment} Korrektur",
+      "account": "Arbeitsbereich / Organisation",
+      "plan": "Plan",
+      "voted": "Abgestimmt",
+      "empty": "Noch keine Stimmen."
+    },
+    "triage": {
+      "title": "Wartet auf Sichtung",
+      "merge": "Zusammenführen",
+      "mergeHint": "In eine bestehende Anfrage zusammenführen",
+      "decline": "Ablehnen",
+      "declineHint": "Mit einer Begründung ablehnen, die der Anfragende sieht",
+      "approveInto": "In {status} genehmigen",
+      "chooseStatus": "Wähle, wohin genehmigt werden soll",
+      "approved": "Genehmigt und zu {status} verschoben",
+      "clear": "Keine Anfragen zur Sichtung"
+    },
+    "viewsNav": "Roadmap-Ansichten",
+    "toggleSidebar": "Ansichten und Kategorien",
+    "vote": {
+      "ariaUpvote": "Dafür stimmen, {count} Stimme | Dafür stimmen, {count} Stimmen",
+      "ariaRemove": "Deine Stimme entfernen, {count} Stimme | Deine Stimme entfernen, {count} Stimmen",
+      "closed": "Die Abstimmung zu dieser Anfrage ist beendet",
+      "closedMerged": "Stimme für die Anfrage ab, in die diese zusammengeführt wurde"
+    },
+    "submittedBy": "eingereicht von {name}"
   }
 }

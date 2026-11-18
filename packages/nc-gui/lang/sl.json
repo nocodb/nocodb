@@ -1539,7 +1539,7 @@
     "creatingAgent": "Ustvarjanje agenta",
     "agentToolsAndAccess": "Orodja in dostop",
     "agentSkills": "Veščine",
-    "agentSettings": "Nastavitve",
+    "agentSettings": "Nastavitve agenta",
     "updateRecordsCount": "Posodobi {n} zapis | Posodobi {n} zapisov",
     "turnOffEditing": "Izklopim urejanje?",
     "turnOnInlineEditing": "Vklopim urejanje kar v tabeli?",
@@ -1553,8 +1553,23 @@
     "tooNarrowToAdjustFrozenFields": "Okno je preozko za prilagajanje zamrznjenih polj",
     "themeSettings": "Nastavitve teme",
     "nFields": "{count} polje | {count} polj",
-    "noInterfaceMembersYet": "Še ni članov vmesnika",
-    "headJoin": "Pridruži se | NocoDB"
+    "noInterfaceMembersYet": "Še ni članov aplikacije",
+    "headJoin": "Pridruži se | NocoDB",
+    "abuseReports": "Prijave zlorab",
+    "disablePublicLink": "Onemogočiti javno povezavo?",
+    "blockUser": "Blokirati uporabnika?",
+    "vaultBanner": "Poverilnice hranite v lastnem trezorju",
+    "connectSecretsProvider": "Poveži ponudnika skrivnosti",
+    "vaultConnected": "Poverilnice prihajajo iz vašega trezorja",
+    "vaults": "Trezorji",
+    "vaultDisconnect": "Odklopi trezor",
+    "vaultEdit": "Uredi trezor",
+    "pickBaseForApp": "Izberite projekt za svojo aplikacijo",
+    "baseTypeDefaultSubtext": "Člani delovnega prostora lahko sodelujejo glede na svojo vlogo.",
+    "baseTypePrivateSubtext": "Projekt samo z vabilom. Samo vi lahko vidite njegove člane in jih upravljate.",
+    "auditDetails": "Podrobnosti revizije",
+    "markdownEditor": "Markdown urejevalnik",
+    "loyaltyBadgeTitle": "Odklenjen popust za zvestobo! Prihranite do 55 %!"
   },
   "labels": {
     "syncing": "Syncing",
@@ -6288,7 +6303,7 @@
     "hideFieldInView": "Skrij to polje v trenutnem pogledu.",
     "viewAllEventsInDayView": "Poglej {count} dogodek v dnevnem pogledu | Poglej vseh {count} dogodkov v dnevnem pogledu",
     "linkValueDelimiter": "Znak, ki ločuje več povezanih vrednosti v isti celici (privzeto ,)",
-    "interfaceMixedRoles": "Vloge se med vmesniki ali stranmi razlikujejo. Razširite za ogled",
+    "interfaceMixedRoles": "Vloge se med aplikacijami ali stranmi razlikujejo. Razširite za ogled",
     "chatQueueAttachmentUnavailable": "Ta priloga ne bo poslana, če sporočilo postavite v vrsto. Najprej jo odstranite",
     "lockedViewDisabledOnProduction": "Zaklenjene poglede je mogoče ustvariti le v kopiji okolja",
     "personalViewDisabledOnEnvironment": "Osebne poglede je mogoče ustvariti samo v produkcijskem projektu",
@@ -6368,7 +6383,36 @@
     "inviteLinkCannotGrantOwner": "Povezava za povabilo ne more dodeliti vloge lastnika",
     "inviteLinkRoleAboveYours": "Ponudite lahko samo vloge do svoje lastne",
     "noDefaultSourceForFolders": "Ta projekt nima privzetega vira. Mape ustvarite iz menija posameznega vira",
-    "noDefaultSourceForSync": "Ta projekt nima privzetega vira. Sinhronizacija ga potrebuje za shranjevanje svojih tabel"
+    "noDefaultSourceForSync": "Ta projekt nima privzetega vira. Sinhronizacija ga potrebuje za shranjevanje svojih tabel",
+    "factoryGitApplyTruncated": "Ta popravek je bil skrajšan in se lahko konča sredi spremembe, zato se ne bi uporabil čisto.",
+    "factoryGitApplyWhitespace": "Spremembe presledkov so skrite, zato jih ta popravek ne vsebuje. Prikažite jih, da kopirate popravek, ki ga je mogoče uporabiti.",
+    "factoryGitApplyBinary": "Ta popravek spreminja binarne datoteke, ki jih git apply iz njega ne more poustvariti.",
+    "vaultComingSoon": "Kmalu.",
+    "workflowButtonTriggerFieldReadOnly": "Polje Gumb, povezano s tem sprožilcem, je mogoče spremeniti samo v nastavitvah polja",
+    "linkUnlinkDisabledEditFieldsForm": "Ta možnost je izklopljena, ko se polja urejajo prek obrazca",
+    "linkUnlinkDisabledEditFieldsOff": "Ta možnost je izklopljena, ko je urejanje polj izklopljeno",
+    "addRecordFormDisabledColumnNotInline": "Ta možnost je izklopljena, ko tega stolpca ni mogoče urejati neposredno v tabeli",
+    "readOnlyFieldCannotBeRequired": "Polja samo za branje ne morejo biti obvezna",
+    "verifyEmailBeforeReset": "Če vaša e-pošta ob registraciji ni bila potrjena, jo potrdite zdaj, preden nadaljujete s ponastavitvijo; sicer kode ne boste prejeli.",
+    "vaultPromoteToOrg": "Omogoči za celotno organizacijo",
+    "testWebhookDisabledForScripts": "Testni webhook je izklopljen za skripte",
+    "aiIntegrationNotAvailableOnMobile": "Integracija umetne inteligence ni na voljo v mobilnem načinu.",
+    "categoryLimit": "Število prikazanih glavnih kategorij (najmanj: 10, največ: 50)",
+    "copyImageUrl": "Kopiraj URL slike",
+    "editImage": "Uredi sliko",
+    "removeImage": "Odstrani sliko",
+    "panMode": "Način premikanja",
+    "selectionMode": "Način izbire",
+    "addNote": "Dodaj zapisek",
+    "aiIntegrationForOperation": "Integracija za to operacijo",
+    "aiModelForOperation": "Model za to operacijo",
+    "setupScriptSettingsFirstToExecute": "Najprej nastavite nastavitve skripte, da jo zaženete",
+    "selectTable": "Izberi tabelo",
+    "copyViewId": "Kopiraj ID pogleda",
+    "dataSourceReadOnly": "Ta vir podatkov je samo za branje.",
+    "mentionFields": "Omeni polja",
+    "skipEnabledAfterDelay": "Omogočeno bo čez 2 sekundi",
+    "clickToCopyDocumentId": "Kliknite za kopiranje ID-ja dokumenta"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8241,7 +8285,7 @@
     "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
-    "secondsAgo": "{count} seconds ago",
+    "secondsAgo": "pred {count} s",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
@@ -9102,7 +9146,14 @@
       "descriptionLabel": "Opis",
       "groupRequired": "Izberite {group}.",
       "requiredHint": "* Obvezno",
-      "browse": "prebrskajte"
+      "browse": "prebrskajte",
+      "title": "Pošlji zahtevo",
+      "staffHint": "Elementi ekipe preskočijo pregled in takoj dobijo izbrani status.",
+      "titlePlaceholder": "Kratek naslov",
+      "similar": "Že zahtevano? Raje glasujte:",
+      "staffTitle": "Nova zahteva",
+      "titleLabel": "Naslov",
+      "titleTooShort": "Uporabite vsaj {min} znakov."
     },
     "railTooltipUnseen": "Noco Roadmap · Izdane nove posodobitve",
     "stateTabs": "Stanje zahteve",
@@ -9116,6 +9167,90 @@
     "previousRequest": "Prejšnja zahteva",
     "nextRequest": "Naslednja zahteva",
     "saved": "Spremembe shranjene",
-    "saveShortcut": "⌘/Ctrl + Enter shrani · Esc prekliče"
+    "saveShortcut": "⌘/Ctrl + Enter shrani · Esc prekliče",
+    "title": "Noco načrt razvoja",
+    "you": "vi",
+    "youAppearAs": "Drugi vas vidijo kot",
+    "viewingAs": "Ogled kot",
+    "votesCount": "{count} glas | {count} glasov",
+    "tab": {
+      "requests": "Zahteve",
+      "board": "Tabla"
+    },
+    "tabs": {
+      "comments": "Komentarji · {count}",
+      "internal": "Interno · {count}",
+      "voters": "Glasovalci · {count}",
+      "links": "Povezave · {count}",
+      "activity": "Aktivnost",
+      "label": "Deli zahteve"
+    },
+    "view": {
+      "all": "Vse zahteve",
+      "mine": "Moje zahteve",
+      "team": "Zahteve delovnega prostora",
+      "voted": "Moji glasovi",
+      "triage": "Razvrščanje",
+      "assigned": "Dodeljene meni",
+      "internal": "Interno"
+    },
+    "teamScope": {
+      "workspace": "Ta delovni prostor",
+      "org": "Celotna organizacija",
+      "label": "Obseg ekipe"
+    },
+    "visibility": {
+      "public": "Javno",
+      "internal": "Interno"
+    },
+    "underReview": {
+      "title": "V pregledu",
+      "hint": "Dokler ni odobreno, to vidite samo vi in ekipa NocoDB.",
+      "next": "Poslali vam bomo e-pošto, ko bo odobrena ali zavrnjena ali ko ekipa odgovori.",
+      "nextInApp": "Tu vas bomo obvestili, ko bo odobrena ali zavrnjena ali ko ekipa odgovori."
+    },
+    "subscribe": {
+      "subscribedTitle": "Sporočili vam bomo, ko se to spremeni",
+      "subscribedHint": "Poslali vam bomo e-pošto, ko se status spremeni ali ko ekipa odgovori.",
+      "unsubscribedTitle": "Prejemaj posodobitve o tej zahtevi",
+      "unsubscribedHint": "Spremljajte jo, da izveste, ko se premakne naprej.",
+      "mutedTitle": "Obvestila utišana",
+      "mutedHint": "O tej zahtevi ne boste prejemali posodobitev.",
+      "subscribe": "Spremljaj",
+      "mute": "Utišaj",
+      "unmute": "Prekliči utišanje",
+      "staffHint": "V aplikaciji prejemate obvestila o spremembah statusa in komentarjih.",
+      "emailOffHint": "Obvestila po e-pošti so izklopljena, zato so posodobitve vidne samo v aplikaciji.",
+      "turnOnEmail": "Vklopi e-pošto",
+      "emailOn": "Obvestila po e-pošti so vklopljena"
+    },
+    "voters": {
+      "summary": "{real} pravi glas · {adjustment} popravek | {real} pravih glasov · {adjustment} popravek",
+      "person": "Oseba",
+      "account": "Delovni prostor / organizacija",
+      "plan": "Paket",
+      "voted": "Glasoval",
+      "empty": "Še ni glasov."
+    },
+    "triage": {
+      "title": "Čaka na razvrstitev",
+      "merge": "Združi",
+      "mergeHint": "Združi z obstoječo zahtevo",
+      "decline": "Zavrni",
+      "declineHint": "Zavrni z razlogom, ki ga vidi vlagatelj",
+      "approveInto": "Odobri v {status}",
+      "chooseStatus": "Izberite status, v katerega se odobri",
+      "approved": "Odobreno in premaknjeno v {status}",
+      "clear": "Nič ni za razvrščanje"
+    },
+    "viewsNav": "Pogledi načrta razvoja",
+    "toggleSidebar": "Pogledi in kategorije",
+    "vote": {
+      "ariaUpvote": "Glasuj, {count} glas | Glasuj, {count} glasov",
+      "ariaRemove": "Odstrani svoj glas, {count} glas | Odstrani svoj glas, {count} glasov",
+      "closed": "Glasovanje o tej zahtevi je zaprto",
+      "closedMerged": "Glasujte za zahtevo, s katero je bila ta združena"
+    },
+    "submittedBy": "poslal {name}"
   }
 }

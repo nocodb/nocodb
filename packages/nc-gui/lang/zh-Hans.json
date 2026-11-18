@@ -1540,7 +1540,7 @@
     "creatingAgent": "正在创建智能体",
     "agentToolsAndAccess": "工具与访问权限",
     "agentSkills": "技能",
-    "agentSettings": "设置",
+    "agentSettings": "Agent 设置",
     "updateRecordsCount": "更新 {n} 条记录 | 更新 {n} 条记录",
     "turnOffEditing": "要关闭编辑吗？",
     "turnOnInlineEditing": "要开启行内编辑吗？",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "窗口太窄，无法调整冻结字段",
     "themeSettings": "主题设置",
     "nFields": "{count} 个字段 | {count} 个字段",
-    "noInterfaceMembersYet": "尚无界面成员",
-    "headJoin": "加入 | NocoDB"
+    "noInterfaceMembersYet": "还没有应用成员",
+    "headJoin": "加入 | NocoDB",
+    "abuseReports": "滥用举报",
+    "disablePublicLink": "要停用公开链接吗？",
+    "blockUser": "要屏蔽该用户吗？",
+    "vaultBanner": "将凭据保存在你自己的保险库中",
+    "connectSecretsProvider": "连接密钥提供方",
+    "vaultConnected": "凭据来自你的保险库",
+    "vaults": "保险库",
+    "vaultDisconnect": "断开保险库",
+    "vaultEdit": "编辑保险库",
+    "pickBaseForApp": "为你的应用选择一个项目",
+    "baseTypeDefaultSubtext": "工作区成员可以按各自的角色协作。",
+    "baseTypePrivateSubtext": "仅限邀请的项目。只有你可以查看和管理其成员。",
+    "auditDetails": "审计详情",
+    "markdownEditor": "Markdown 编辑器",
+    "loyaltyBadgeTitle": "已解锁忠诚折扣！最高可省 55%！"
   },
   "labels": {
     "syncing": "正在同步",
@@ -6299,7 +6314,7 @@
     "hideFieldInView": "在当前视图中隐藏此字段。",
     "viewAllEventsInDayView": "在日视图中查看全部 {count} 个事件 | 在日视图中查看全部 {count} 个事件",
     "linkValueDelimiter": "在单个单元格内分隔多个链接值的字符（默认为 ,）",
-    "interfaceMixedRoles": "不同界面或页面的角色各不相同。展开即可查看",
+    "interfaceMixedRoles": "不同应用或页面的角色各不相同。展开即可查看",
     "chatQueueAttachmentUnavailable": "如果你将消息加入队列，此附件将不会发送。请先移除它",
     "lockedViewDisabledOnProduction": "锁定视图只能在环境副本中创建",
     "personalViewDisabledOnEnvironment": "个人视图只能在生产项目中创建",
@@ -6379,7 +6394,36 @@
     "inviteLinkCannotGrantOwner": "邀请链接无法授予所有者角色",
     "inviteLinkRoleAboveYours": "你只能授予不高于自己的角色",
     "noDefaultSourceForFolders": "此项目没有默认数据源。请从各数据源自己的菜单中创建文件夹",
-    "noDefaultSourceForSync": "此项目没有默认数据源。同步需要一个数据源来存放其数据表"
+    "noDefaultSourceForSync": "此项目没有默认数据源。同步需要一个数据源来存放其数据表",
+    "factoryGitApplyTruncated": "此补丁被截断，可能在修改中途结束，因此无法干净地应用。",
+    "factoryGitApplyWhitespace": "空白字符的改动已隐藏，因此此补丁不包含它们。显示后可复制能够应用的补丁。",
+    "factoryGitApplyBinary": "此补丁更改了二进制文件，git apply 无法据此还原。",
+    "vaultComingSoon": "敬请期待。",
+    "workflowButtonTriggerFieldReadOnly": "与此触发器关联的按钮字段只能在该字段的设置中更改",
+    "linkUnlinkDisabledEditFieldsForm": "当字段通过表单编辑时，该选项不可用",
+    "linkUnlinkDisabledEditFieldsOff": "当字段编辑关闭时，该选项不可用",
+    "addRecordFormDisabledColumnNotInline": "当此列无法行内编辑时，该选项不可用",
+    "readOnlyFieldCannotBeRequired": "只读字段不能设为必填",
+    "verifyEmailBeforeReset": "如果注册时未验证邮箱，请先完成验证再继续重置；否则你将收不到重置验证码。",
+    "vaultPromoteToOrg": "面向整个组织开放",
+    "testWebhookDisabledForScripts": "脚本不支持测试 Webhook",
+    "aiIntegrationNotAvailableOnMobile": "移动模式下无法使用 AI 集成。",
+    "categoryLimit": "显示的热门分类数量（最小：10，最大：50）",
+    "copyImageUrl": "复制图片 URL",
+    "editImage": "编辑图片",
+    "removeImage": "移除图片",
+    "panMode": "平移模式",
+    "selectionMode": "选择模式",
+    "addNote": "添加备注",
+    "aiIntegrationForOperation": "此操作使用的集成",
+    "aiModelForOperation": "此操作使用的模型",
+    "setupScriptSettingsFirstToExecute": "需先完成脚本设置才能执行",
+    "selectTable": "选择表格",
+    "copyViewId": "复制视图 ID",
+    "dataSourceReadOnly": "此数据源为只读。",
+    "mentionFields": "提及字段",
+    "skipEnabledAfterDelay": "2 秒后启用",
+    "clickToCopyDocumentId": "点击复制文档 ID"
   },
   "placeholder": {
     "enterVerificationCode": "输入 6 位数字代码",
@@ -9115,7 +9159,14 @@
       "descriptionLabel": "描述",
       "groupRequired": "请选择一个{group}。",
       "requiredHint": "* 必填",
-      "browse": "浏览"
+      "browse": "浏览",
+      "title": "提交请求",
+      "staffHint": "团队条目会跳过审核，直接进入你选择的状态。",
+      "titlePlaceholder": "简短的标题",
+      "similar": "已经有人提过了？改为投票：",
+      "staffTitle": "新建请求",
+      "titleLabel": "标题",
+      "titleTooShort": "请至少输入 {min} 个字符。"
     },
     "railTooltipUnseen": "Noco 路线图 · 新版本已发布",
     "stateTabs": "请求状态",
@@ -9129,6 +9180,90 @@
     "previousRequest": "上一个请求",
     "nextRequest": "下一个请求",
     "saved": "更改已保存",
-    "saveShortcut": "⌘/Ctrl + Enter 保存 · Esc 取消"
+    "saveShortcut": "⌘/Ctrl + Enter 保存 · Esc 取消",
+    "title": "Noco 路线图",
+    "you": "你",
+    "youAppearAs": "其他人看到的你",
+    "viewingAs": "当前查看身份",
+    "votesCount": "{count} 票 | {count} 票",
+    "tab": {
+      "requests": "请求",
+      "board": "看板"
+    },
+    "tabs": {
+      "comments": "评论 · {count}",
+      "internal": "内部 · {count}",
+      "voters": "投票人 · {count}",
+      "links": "链接 · {count}",
+      "activity": "活动",
+      "label": "请求板块"
+    },
+    "view": {
+      "all": "所有请求",
+      "mine": "我的请求",
+      "team": "工作区的请求",
+      "voted": "我的投票",
+      "triage": "整理",
+      "assigned": "分配给我的",
+      "internal": "内部"
+    },
+    "teamScope": {
+      "workspace": "当前工作区",
+      "org": "整个组织",
+      "label": "团队范围"
+    },
+    "visibility": {
+      "public": "公开",
+      "internal": "内部"
+    },
+    "underReview": {
+      "title": "审核中",
+      "hint": "在获得批准之前，只有你和 NocoDB 团队可以看到。",
+      "next": "批准、拒绝或团队回复时，我们会给你发邮件。",
+      "nextInApp": "批准、拒绝或团队回复时，会在这里通知你。"
+    },
+    "subscribe": {
+      "subscribedTitle": "有变化时会通知你",
+      "subscribedHint": "状态变更或团队回复时，我们会给你发邮件。",
+      "unsubscribedTitle": "接收此请求的更新",
+      "unsubscribedHint": "关注它，有进展时你会收到通知。",
+      "mutedTitle": "通知已静音",
+      "mutedHint": "你不会收到关于此请求的更新。",
+      "subscribe": "关注",
+      "mute": "静音",
+      "unmute": "取消静音",
+      "staffHint": "你会在应用内收到状态变更和评论的通知。",
+      "emailOffHint": "邮件更新已关闭，更新只会显示在应用内。",
+      "turnOnEmail": "开启邮件",
+      "emailOn": "邮件更新已开启"
+    },
+    "voters": {
+      "summary": "真实投票 {real} 票 · 调整 {adjustment} | 真实投票 {real} 票 · 调整 {adjustment}",
+      "person": "个人",
+      "account": "工作区 / 组织",
+      "plan": "套餐",
+      "voted": "已投票",
+      "empty": "还没有投票。"
+    },
+    "triage": {
+      "title": "等待整理",
+      "merge": "合并",
+      "mergeHint": "合并到已有请求",
+      "decline": "拒绝",
+      "declineHint": "拒绝并附上提交者可见的原因",
+      "approveInto": "批准为 {status}",
+      "chooseStatus": "选择批准到哪个状态",
+      "approved": "已批准并移至 {status}",
+      "clear": "没有待整理的请求"
+    },
+    "viewsNav": "路线图视图",
+    "toggleSidebar": "视图与分类",
+    "vote": {
+      "ariaUpvote": "投票，{count} 票 | 投票，{count} 票",
+      "ariaRemove": "取消你的投票，{count} 票 | 取消你的投票，{count} 票",
+      "closed": "此请求已停止投票",
+      "closedMerged": "请为合并后的请求投票"
+    },
+    "submittedBy": "由 {name} 提交"
   }
 }

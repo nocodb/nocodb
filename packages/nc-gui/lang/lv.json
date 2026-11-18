@@ -1538,7 +1538,7 @@
     "creatingAgent": "Notiek aģenta izveide",
     "agentToolsAndAccess": "Rīki un piekļuve",
     "agentSkills": "Prasmes",
-    "agentSettings": "Iestatījumi",
+    "agentSettings": "Aģenta iestatījumi",
     "updateRecordsCount": "Atjaunināt {n} ierakstu | Atjaunināt {n} ierakstus",
     "turnOffEditing": "Izslēgt rediģēšanu?",
     "turnOnInlineEditing": "Ieslēgt rediģēšanu tieši tabulā?",
@@ -1552,8 +1552,23 @@
     "tooNarrowToAdjustFrozenFields": "Logs ir pārāk šaurs, lai pielāgotu iesaldētos laukus",
     "themeSettings": "Motīva iestatījumi",
     "nFields": "{count} lauks | {count} lauki",
-    "noInterfaceMembersYet": "Vēl nav saskarnes dalībnieku",
-    "headJoin": "Pievienoties | NocoDB"
+    "noInterfaceMembersYet": "Vēl nav lietotnes dalībnieku",
+    "headJoin": "Pievienoties | NocoDB",
+    "abuseReports": "Ziņojumi par ļaunprātīgu izmantošanu",
+    "disablePublicLink": "Atspējot publisko saiti?",
+    "blockUser": "Bloķēt lietotāju?",
+    "vaultBanner": "Glabājiet akreditācijas datus savā glabātavā",
+    "connectSecretsProvider": "Pievienot noslēpumu pakalpojumu sniedzēju",
+    "vaultConnected": "Akreditācijas dati nāk no jūsu glabātavas",
+    "vaults": "Glabātavas",
+    "vaultDisconnect": "Atvienot glabātavu",
+    "vaultEdit": "Rediģēt glabātavu",
+    "pickBaseForApp": "Izvēlieties projektu savai lietotnei",
+    "baseTypeDefaultSubtext": "Darbtelpas dalībnieki var sadarboties atbilstoši savai lomai.",
+    "baseTypePrivateSubtext": "Projekts tikai ar ielūgumu. Tikai jūs varat redzēt un pārvaldīt tā dalībniekus.",
+    "auditDetails": "Audita detaļas",
+    "markdownEditor": "Markdown redaktors",
+    "loyaltyBadgeTitle": "Lojalitātes atlaide atbloķēta! Ietaupiet līdz 55 %!"
   },
   "labels": {
     "syncing": "Syncing",
@@ -6291,7 +6306,7 @@
     "hideFieldInView": "Paslēpt šo lauku pašreizējā skatījumā.",
     "viewAllEventsInDayView": "Skatīt {count} notikumu dienas skatījumā | Skatīt visus {count} notikumus dienas skatījumā",
     "linkValueDelimiter": "Rakstzīme, kas atdala vairākas saistītās vērtības vienā šūnā (noklusējums ,)",
-    "interfaceMixedRoles": "Lomas atšķiras dažādās saskarnēs vai lapās. Izvērsiet, lai tās apskatītu",
+    "interfaceMixedRoles": "Lomas atšķiras dažādās lietotnēs vai lapās. Izvērsiet, lai tās apskatītu",
     "chatQueueAttachmentUnavailable": "Šis pielikums netiks nosūtīts, ja ievietosiet ziņojumu rindā. Vispirms noņemiet to",
     "lockedViewDisabledOnProduction": "Slēgtus skatījumus var izveidot tikai vides kopijā",
     "personalViewDisabledOnEnvironment": "Personīgos skatījumus var izveidot tikai ražošanas projektā",
@@ -6371,7 +6386,36 @@
     "inviteLinkCannotGrantOwner": "Ielūguma saite nevar piešķirt īpašnieka lomu",
     "inviteLinkRoleAboveYours": "Varat piedāvāt tikai lomas līdz savai",
     "noDefaultSourceForFolders": "Šim projektam nav noklusējuma avota. Mapes veidojiet no paša avota izvēlnes",
-    "noDefaultSourceForSync": "Šim projektam nav noklusējuma avota. Sinhronizācijai tas nepieciešams savu tabulu glabāšanai"
+    "noDefaultSourceForSync": "Šim projektam nav noklusējuma avota. Sinhronizācijai tas nepieciešams savu tabulu glabāšanai",
+    "factoryGitApplyTruncated": "Šis ielāps ir nogriezts un var beigties izmaiņu vidū, tāpēc tas netiktu pielietots tīri.",
+    "factoryGitApplyWhitespace": "Atstarpju izmaiņas ir paslēptas, tāpēc šis ielāps tās neietver. Parādiet tās, lai kopētu ielāpu, ko var pielietot.",
+    "factoryGitApplyBinary": "Šis ielāps maina binārus failus, ko git apply no tā nevar atjaunot.",
+    "vaultComingSoon": "Drīzumā.",
+    "workflowButtonTriggerFieldReadOnly": "Pogas lauku, kas saistīts ar šo trigeri, var mainīt tikai lauka iestatījumos",
+    "linkUnlinkDisabledEditFieldsForm": "Šī opcija ir atspējota, kad laukus rediģē ar veidlapu",
+    "linkUnlinkDisabledEditFieldsOff": "Šī opcija ir atspējota, kad lauku rediģēšana ir izslēgta",
+    "addRecordFormDisabledColumnNotInline": "Šī opcija ir atspējota, kad šo kolonnu nevar rediģēt tieši tabulā",
+    "readOnlyFieldCannotBeRequired": "Tikai lasāmi lauki nevar būt obligāti",
+    "verifyEmailBeforeReset": "Ja jūsu e-pasts reģistrējoties netika apstiprināts, apstipriniet to tagad pirms atiestatīšanas turpināšanas; pretējā gadījumā nesaņemsiet kodu.",
+    "vaultPromoteToOrg": "Padarīt pieejamu visai organizācijai",
+    "testWebhookDisabledForScripts": "Testa webhook ir atspējots skriptiem",
+    "aiIntegrationNotAvailableOnMobile": "MI integrācija nav pieejama mobilajā režīmā.",
+    "categoryLimit": "Rādāmo populārāko kategoriju skaits (min.: 10, maks.: 50)",
+    "copyImageUrl": "Kopēt attēla URL",
+    "editImage": "Rediģēt attēlu",
+    "removeImage": "Noņemt attēlu",
+    "panMode": "Pārvietošanas režīms",
+    "selectionMode": "Atlases režīms",
+    "addNote": "Pievienot piezīmi",
+    "aiIntegrationForOperation": "Integrācija, ko izmantot šai darbībai",
+    "aiModelForOperation": "Modelis, ko izmantot šai darbībai",
+    "setupScriptSettingsFirstToExecute": "Vispirms iestatiet skripta iestatījumus, lai to palaistu",
+    "selectTable": "Atlasīt tabulu",
+    "copyViewId": "Kopēt skata ID",
+    "dataSourceReadOnly": "Šis datu avots ir tikai lasāms.",
+    "mentionFields": "Pieminēt laukus",
+    "skipEnabledAfterDelay": "Tiks iespējots pēc 2 sekundēm",
+    "clickToCopyDocumentId": "Noklikšķiniet, lai kopētu dokumenta ID"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8244,7 +8288,7 @@
     "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
-    "secondsAgo": "{count} seconds ago",
+    "secondsAgo": "pirms {count} s",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
@@ -9107,7 +9151,14 @@
       "descriptionLabel": "Apraksts",
       "groupRequired": "Izvēlieties {group}.",
       "requiredHint": "* Obligāts",
-      "browse": "pārlūkot"
+      "browse": "pārlūkot",
+      "title": "Nosūtīt pieprasījumu",
+      "staffHint": "Komandas ieraksti izlaiž pārbaudi un uzreiz nonāk jūsu izvēlētajā statusā.",
+      "titlePlaceholder": "Īss nosaukums",
+      "similar": "Jau pieprasīts? Labāk nobalsojiet:",
+      "staffTitle": "Jauns pieprasījums",
+      "titleLabel": "Nosaukums",
+      "titleTooShort": "Izmantojiet vismaz {min} rakstzīmes."
     },
     "railTooltipUnseen": "Noco attīstības plāns · Izlaisti jauni atjauninājumi",
     "stateTabs": "Pieprasījuma stāvoklis",
@@ -9121,6 +9172,90 @@
     "previousRequest": "Iepriekšējais pieprasījums",
     "nextRequest": "Nākamais pieprasījums",
     "saved": "Izmaiņas saglabātas",
-    "saveShortcut": "⌘/Ctrl + Enter, lai saglabātu · Esc, lai atceltu"
+    "saveShortcut": "⌘/Ctrl + Enter, lai saglabātu · Esc, lai atceltu",
+    "title": "Noco ceļvedis",
+    "you": "jūs",
+    "youAppearAs": "Citi jūs redz kā",
+    "viewingAs": "Skatāt kā",
+    "votesCount": "{count} balss | {count} balsis",
+    "tab": {
+      "requests": "Pieprasījumi",
+      "board": "Tāfele"
+    },
+    "tabs": {
+      "comments": "Komentāri · {count}",
+      "internal": "Iekšējie · {count}",
+      "voters": "Balsotāji · {count}",
+      "links": "Saites · {count}",
+      "activity": "Aktivitāte",
+      "label": "Pieprasījuma sadaļas"
+    },
+    "view": {
+      "all": "Visi pieprasījumi",
+      "mine": "Mani pieprasījumi",
+      "team": "Darbtelpas pieprasījumi",
+      "voted": "Mani balsojumi",
+      "triage": "Šķirošana",
+      "assigned": "Piešķirti man",
+      "internal": "Iekšējie"
+    },
+    "teamScope": {
+      "workspace": "Šī darbtelpa",
+      "org": "Visa organizācija",
+      "label": "Komandas tvērums"
+    },
+    "visibility": {
+      "public": "Publisks",
+      "internal": "Iekšējs"
+    },
+    "underReview": {
+      "title": "Tiek izskatīts",
+      "hint": "Līdz apstiprināšanai to redzat tikai jūs un NocoDB komanda.",
+      "next": "Nosūtīsim e-pastu, kad tas tiks apstiprināts vai noraidīts vai kad atbildēs komanda.",
+      "nextInApp": "Paziņosim šeit, kad tas tiks apstiprināts vai noraidīts vai kad atbildēs komanda."
+    },
+    "subscribe": {
+      "subscribedTitle": "Paziņosim, kad tas mainīsies",
+      "subscribedHint": "Nosūtīsim e-pastu, kad mainīsies statuss vai kad atbildēs komanda.",
+      "unsubscribedTitle": "Saņemt atjauninājumus par šo pieprasījumu",
+      "unsubscribedHint": "Sekojiet tam, lai uzzinātu, kad tas virzās uz priekšu.",
+      "mutedTitle": "Paziņojumi izslēgti",
+      "mutedHint": "Jūs nesaņemsiet atjauninājumus par šo pieprasījumu.",
+      "subscribe": "Sekot",
+      "mute": "Izslēgt skaņu",
+      "unmute": "Ieslēgt skaņu",
+      "staffHint": "Lietotnē saņemat paziņojumus par statusa izmaiņām un komentāriem.",
+      "emailOffHint": "E-pasta paziņojumi ir izslēgti, tāpēc atjauninājumi redzami tikai lietotnē.",
+      "turnOnEmail": "Ieslēgt e-pastu",
+      "emailOn": "E-pasta paziņojumi ir ieslēgti"
+    },
+    "voters": {
+      "summary": "{real} īsta balss · {adjustment} korekcija | {real} īstas balsis · {adjustment} korekcija",
+      "person": "Persona",
+      "account": "Darbtelpa / organizācija",
+      "plan": "Plāns",
+      "voted": "Nobalsoja",
+      "empty": "Vēl nav balsu."
+    },
+    "triage": {
+      "title": "Gaida šķirošanu",
+      "merge": "Apvienot",
+      "mergeHint": "Apvienot ar esošu pieprasījumu",
+      "decline": "Noraidīt",
+      "declineHint": "Noraidīt ar pamatojumu, ko redz pieprasītājs",
+      "approveInto": "Apstiprināt uz {status}",
+      "chooseStatus": "Izvēlieties statusu, uz kuru apstiprināt",
+      "approved": "Apstiprināts un pārvietots uz {status}",
+      "clear": "Nav ko šķirot"
+    },
+    "viewsNav": "Ceļveža skati",
+    "toggleSidebar": "Skati un kategorijas",
+    "vote": {
+      "ariaUpvote": "Balsot, {count} balss | Balsot, {count} balsis",
+      "ariaRemove": "Noņemt savu balsi, {count} balss | Noņemt savu balsi, {count} balsis",
+      "closed": "Balsošana par šo pieprasījumu ir slēgta",
+      "closedMerged": "Balsojiet par pieprasījumu, ar kuru šis tika apvienots"
+    },
+    "submittedBy": "nosūtīja {name}"
   }
 }

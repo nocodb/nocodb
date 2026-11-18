@@ -1540,7 +1540,7 @@
     "creatingAgent": "Criando o agente",
     "agentToolsAndAccess": "Ferramentas e acesso",
     "agentSkills": "Habilidades",
-    "agentSettings": "Configurações",
+    "agentSettings": "Configurações do agente",
     "updateRecordsCount": "Atualizar {n} registro | Atualizar {n} registros",
     "turnOffEditing": "Desativar a edição?",
     "turnOnInlineEditing": "Ativar a edição em linha?",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "A janela é estreita demais para ajustar os campos congelados",
     "themeSettings": "Configurações de tema",
     "nFields": "{count} campo | {count} campos",
-    "noInterfaceMembersYet": "Ainda não há membros da interface",
-    "headJoin": "Entrar | NocoDB"
+    "noInterfaceMembersYet": "Ainda não há membros do app",
+    "headJoin": "Entrar | NocoDB",
+    "abuseReports": "Denúncias de abuso",
+    "disablePublicLink": "Desativar o link público?",
+    "blockUser": "Bloquear usuário?",
+    "vaultBanner": "Mantenha as credenciais no seu próprio cofre",
+    "connectSecretsProvider": "Conectar um provedor de segredos",
+    "vaultConnected": "As credenciais vêm do seu cofre",
+    "vaults": "Cofres",
+    "vaultDisconnect": "Desconectar cofre",
+    "vaultEdit": "Editar cofre",
+    "pickBaseForApp": "Escolha um projeto para o seu app",
+    "baseTypeDefaultSubtext": "Os membros do espaço de trabalho podem colaborar de acordo com sua função.",
+    "baseTypePrivateSubtext": "Projeto somente por convite. Só você pode ver e gerenciar seus membros.",
+    "auditDetails": "Detalhes da auditoria",
+    "markdownEditor": "Editor de Markdown",
+    "loyaltyBadgeTitle": "Desconto de fidelidade desbloqueado! Economize até 55%!"
   },
   "labels": {
     "syncing": "Sincronizando",
@@ -6285,7 +6300,7 @@
     "hideFieldInView": "Ocultar este campo na visualização atual.",
     "viewAllEventsInDayView": "Ver {count} evento na visualização de dia | Ver todos os {count} eventos na visualização de dia",
     "linkValueDelimiter": "Caractere que separa vários valores vinculados dentro de uma mesma célula (padrão ,)",
-    "interfaceMixedRoles": "Os papéis diferem entre interfaces ou páginas. Expanda para visualizá-los",
+    "interfaceMixedRoles": "As funções diferem entre apps ou páginas. Expanda para visualizá-las",
     "chatQueueAttachmentUnavailable": "Este anexo não será enviado se você colocar sua mensagem na fila. Remova-o primeiro",
     "lockedViewDisabledOnProduction": "Visualizações bloqueadas só podem ser criadas na cópia de ambiente",
     "personalViewDisabledOnEnvironment": "Visualizações pessoais só podem ser criadas no projeto de produção",
@@ -6365,7 +6380,36 @@
     "inviteLinkCannotGrantOwner": "Um link de convite não pode conceder a função Proprietário",
     "inviteLinkRoleAboveYours": "Você só pode oferecer funções até a sua própria",
     "noDefaultSourceForFolders": "Este projeto não tem uma origem padrão. Crie as pastas pelo menu da própria origem",
-    "noDefaultSourceForSync": "Este projeto não tem uma origem padrão. Uma sincronização precisa de uma para armazenar suas tabelas"
+    "noDefaultSourceForSync": "Este projeto não tem uma origem padrão. Uma sincronização precisa de uma para armazenar suas tabelas",
+    "factoryGitApplyTruncated": "Este patch foi cortado e pode terminar no meio de uma alteração, então não seria aplicado corretamente.",
+    "factoryGitApplyWhitespace": "As alterações de espaços estão ocultas, então este patch não as inclui. Exiba-as para copiar um patch aplicável.",
+    "factoryGitApplyBinary": "Este patch altera arquivos binários, que o git apply não consegue recriar a partir dele.",
+    "vaultComingSoon": "Em breve.",
+    "workflowButtonTriggerFieldReadOnly": "O campo Botão conectado a este gatilho só pode ser alterado nas configurações do campo",
+    "linkUnlinkDisabledEditFieldsForm": "Esta opção fica desativada quando os campos são editados por um formulário",
+    "linkUnlinkDisabledEditFieldsOff": "Esta opção fica desativada quando a edição de campos está desligada",
+    "addRecordFormDisabledColumnNotInline": "Esta opção fica desativada quando esta coluna não pode ser editada em linha",
+    "readOnlyFieldCannotBeRequired": "Campos somente leitura não podem ser obrigatórios",
+    "verifyEmailBeforeReset": "Se o seu e-mail não foi verificado durante o cadastro, verifique-o agora antes de prosseguir com a redefinição; caso contrário, você não receberá o código.",
+    "vaultPromoteToOrg": "Disponibilizar para toda a organização",
+    "testWebhookDisabledForScripts": "O webhook de teste está desativado para scripts",
+    "aiIntegrationNotAvailableOnMobile": "A integração de IA não está disponível no modo móvel.",
+    "categoryLimit": "Número de categorias principais a exibir (mín.: 10, máx.: 50)",
+    "copyImageUrl": "Copiar a URL da imagem",
+    "editImage": "Editar imagem",
+    "removeImage": "Remover imagem",
+    "panMode": "Modo de deslocamento",
+    "selectionMode": "Modo de seleção",
+    "addNote": "Adicionar nota",
+    "aiIntegrationForOperation": "Integração a ser usada nesta operação",
+    "aiModelForOperation": "Modelo a ser usado nesta operação",
+    "setupScriptSettingsFirstToExecute": "Configure primeiro as definições do script para executá-lo",
+    "selectTable": "Selecionar tabela",
+    "copyViewId": "Copiar o ID da visualização",
+    "dataSourceReadOnly": "Esta fonte de dados é somente leitura.",
+    "mentionFields": "Mencionar campos",
+    "skipEnabledAfterDelay": "Será ativado após 2 segundos",
+    "clickToCopyDocumentId": "Clique para copiar o ID do documento"
   },
   "placeholder": {
     "enterVerificationCode": "Insira o código de 6 dígitos",
@@ -8238,7 +8282,7 @@
     "deletedItemsWillAppearHere": "Tabelas, visualizações, campos e mais excluídos aparecerão aqui",
     "confirmEmpty": "Todos os itens na lixeira serão excluídos permanentemente. Isso não pode ser desfeito.",
     "restoreRequiresCreator": "Restaurar este item requer o criador ou a função proprietária",
-    "secondsAgo": "{count} seconds ago",
+    "secondsAgo": "há {count} s",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} excluiu um {type} do {parent}: {name}",
     "youDeletedNoParent": "Você excluiu um {type}: {name}",
@@ -9098,7 +9142,14 @@
       "descriptionLabel": "Descrição",
       "groupRequired": "Escolha um {group}.",
       "requiredHint": "* Obrigatório",
-      "browse": "navegar"
+      "browse": "navegar",
+      "title": "Enviar uma solicitação",
+      "staffHint": "Os itens da equipe pulam a revisão e vão direto para o status escolhido.",
+      "titlePlaceholder": "Um título curto",
+      "similar": "Já foi solicitado? Vote nele:",
+      "staffTitle": "Nova solicitação",
+      "titleLabel": "Título",
+      "titleTooShort": "Use pelo menos {min} caracteres."
     },
     "railTooltipUnseen": "Noco Roadmap · Novas atualizações lançadas",
     "stateTabs": "Estado da solicitação",
@@ -9112,6 +9163,90 @@
     "previousRequest": "Solicitação anterior",
     "nextRequest": "Próxima solicitação",
     "saved": "Alterações salvas",
-    "saveShortcut": "⌘/Ctrl + Enter para salvar · Esc para cancelar"
+    "saveShortcut": "⌘/Ctrl + Enter para salvar · Esc para cancelar",
+    "title": "Roadmap da Noco",
+    "you": "você",
+    "youAppearAs": "Os outros veem você como",
+    "viewingAs": "Visualizando como",
+    "votesCount": "{count} voto | {count} votos",
+    "tab": {
+      "requests": "Solicitações",
+      "board": "Quadro"
+    },
+    "tabs": {
+      "comments": "Comentários · {count}",
+      "internal": "Interno · {count}",
+      "voters": "Votantes · {count}",
+      "links": "Vínculos · {count}",
+      "activity": "Atividade",
+      "label": "Seções da solicitação"
+    },
+    "view": {
+      "all": "Todas as solicitações",
+      "mine": "Minhas solicitações",
+      "team": "Solicitações do espaço de trabalho",
+      "voted": "Meus votos",
+      "triage": "Triagem",
+      "assigned": "Atribuídas a mim",
+      "internal": "Interno"
+    },
+    "teamScope": {
+      "workspace": "Este espaço de trabalho",
+      "org": "Toda a organização",
+      "label": "Escopo da equipe"
+    },
+    "visibility": {
+      "public": "Público",
+      "internal": "Interno"
+    },
+    "underReview": {
+      "title": "Em análise",
+      "hint": "Somente você e a equipe NocoDB podem ver isto até ser aprovado.",
+      "next": "Enviaremos um e-mail quando ela for aprovada ou recusada, ou quando a equipe responder.",
+      "nextInApp": "Você será notificado aqui quando ela for aprovada ou recusada, ou quando a equipe responder."
+    },
+    "subscribe": {
+      "subscribedTitle": "Avisaremos você quando isso mudar",
+      "subscribedHint": "Enviaremos um e-mail quando o status mudar ou quando a equipe responder.",
+      "unsubscribedTitle": "Receber atualizações sobre esta solicitação",
+      "unsubscribedHint": "Siga-a para saber quando ela avançar.",
+      "mutedTitle": "Notificações silenciadas",
+      "mutedHint": "Você não receberá atualizações sobre esta solicitação.",
+      "subscribe": "Seguir",
+      "mute": "Silenciar",
+      "unmute": "Reativar notificações",
+      "staffHint": "Você recebe notificações no app sobre mudanças de status e comentários.",
+      "emailOffHint": "As atualizações por e-mail estão desativadas, então elas só aparecem no app.",
+      "turnOnEmail": "Ativar e-mail",
+      "emailOn": "As atualizações por e-mail estão ativadas"
+    },
+    "voters": {
+      "summary": "{real} voto real · {adjustment} ajuste | {real} votos reais · {adjustment} ajuste",
+      "person": "Pessoa",
+      "account": "Espaço de trabalho / organização",
+      "plan": "Plano",
+      "voted": "Votou",
+      "empty": "Ainda não há votos."
+    },
+    "triage": {
+      "title": "Aguardando triagem",
+      "merge": "Mesclar",
+      "mergeHint": "Mesclar em uma solicitação existente",
+      "decline": "Recusar",
+      "declineHint": "Recusar com um motivo visível para quem solicitou",
+      "approveInto": "Aprovar para {status}",
+      "chooseStatus": "Escolha o status para onde aprovar",
+      "approved": "Aprovada e movida para {status}",
+      "clear": "Não há nada para triar"
+    },
+    "viewsNav": "Visualizações do roadmap",
+    "toggleSidebar": "Visualizações e categorias",
+    "vote": {
+      "ariaUpvote": "Votar, {count} voto | Votar, {count} votos",
+      "ariaRemove": "Remover seu voto, {count} voto | Remover seu voto, {count} votos",
+      "closed": "A votação nesta solicitação está encerrada",
+      "closedMerged": "Vote na solicitação em que esta foi mesclada"
+    },
+    "submittedBy": "enviada por {name}"
   }
 }

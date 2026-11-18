@@ -1540,7 +1540,7 @@
     "creatingAgent": "ಏಜೆಂಟ್ ರಚಿಸಲಾಗುತ್ತಿದೆ",
     "agentToolsAndAccess": "ಸಾಧನಗಳು ಮತ್ತು ಪ್ರವೇಶ",
     "agentSkills": "ಕೌಶಲಗಳು",
-    "agentSettings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    "agentSettings": "ಏಜೆಂಟ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
     "updateRecordsCount": "{n} ದಾಖಲೆ ನವೀಕರಿಸಿ | {n} ದಾಖಲೆಗಳನ್ನು ನವೀಕರಿಸಿ",
     "turnOffEditing": "ಸಂಪಾದನೆಯನ್ನು ಆಫ್ ಮಾಡಬೇಕೇ?",
     "turnOnInlineEditing": "ಸಾಲಿನಲ್ಲೇ ಸಂಪಾದನೆಯನ್ನು ಆನ್ ಮಾಡಬೇಕೇ?",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "ಸ್ಥಗಿತಗೊಳಿಸಿದ ಕ್ಷೇತ್ರಗಳನ್ನು ಹೊಂದಿಸಲು ವಿಂಡೋ ತುಂಬಾ ಕಿರಿದಾಗಿದೆ",
     "themeSettings": "ಥೀಮ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
     "nFields": "{count} ಕ್ಷೇತ್ರ | {count} ಕ್ಷೇತ್ರಗಳು",
-    "noInterfaceMembersYet": "ಇನ್ನೂ ಇಂಟರ್ಫೇಸ್ ಸದಸ್ಯರಿಲ್ಲ",
-    "headJoin": "ಸೇರಿ | NocoDB"
+    "noInterfaceMembersYet": "ಇನ್ನೂ ಆ್ಯಪ್ ಸದಸ್ಯರಿಲ್ಲ",
+    "headJoin": "ಸೇರಿ | NocoDB",
+    "abuseReports": "ದುರುಪಯೋಗದ ವರದಿಗಳು",
+    "disablePublicLink": "ಸಾರ್ವಜನಿಕ ಲಿಂಕ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಬೇಕೆ?",
+    "blockUser": "ಬಳಕೆದಾರರನ್ನು ನಿರ್ಬಂಧಿಸಬೇಕೆ?",
+    "vaultBanner": "ರುಜುವಾತುಗಳನ್ನು ನಿಮ್ಮದೇ ವಾಲ್ಟ್‌ನಲ್ಲಿ ಇಡಿ",
+    "connectSecretsProvider": "ಸೀಕ್ರೆಟ್ಸ್ ಪೂರೈಕೆದಾರರನ್ನು ಸಂಪರ್ಕಿಸಿ",
+    "vaultConnected": "ರುಜುವಾತುಗಳು ನಿಮ್ಮ ವಾಲ್ಟ್‌ನಿಂದ ಬರುತ್ತವೆ",
+    "vaults": "ವಾಲ್ಟ್‌ಗಳು",
+    "vaultDisconnect": "ವಾಲ್ಟ್ ಸಂಪರ್ಕ ಕಡಿತಗೊಳಿಸಿ",
+    "vaultEdit": "ವಾಲ್ಟ್ ಸಂಪಾದಿಸಿ",
+    "pickBaseForApp": "ನಿಮ್ಮ ಆ್ಯಪ್‌ಗೆ ಒಂದು ಯೋಜನೆ ಆಯ್ಕೆಮಾಡಿ",
+    "baseTypeDefaultSubtext": "ಕಾರ್ಯದ್ವಾರದ ಸದಸ್ಯರು ತಮ್ಮ ಪಾತ್ರದ ಪ್ರಕಾರ ಒಟ್ಟಿಗೆ ಕೆಲಸ ಮಾಡಬಹುದು.",
+    "baseTypePrivateSubtext": "ಆಹ್ವಾನದ ಮೂಲಕ ಮಾತ್ರ ಸೇರುವ ಯೋಜನೆ. ಇದರ ಸದಸ್ಯರನ್ನು ನೀವು ಮಾತ್ರ ನೋಡಬಹುದು ಮತ್ತು ನಿರ್ವಹಿಸಬಹುದು.",
+    "auditDetails": "ಆಡಿಟ್ ವಿವರಗಳು",
+    "markdownEditor": "Markdown ಸಂಪಾದಕ",
+    "loyaltyBadgeTitle": "ನಿಷ್ಠೆ ರಿಯಾಯಿತಿ ಅನ್‌ಲಾಕ್ ಆಗಿದೆ! 55% ವರೆಗೆ ಉಳಿಸಿ!"
   },
   "labels": {
     "syncing": "Syncing",
@@ -6296,7 +6311,7 @@
     "hideFieldInView": "ಪ್ರಸ್ತುತ ವೀಕ್ಷಣೆಯಲ್ಲಿ ಈ ಕ್ಷೇತ್ರವನ್ನು ಮರೆಮಾಡಿ.",
     "viewAllEventsInDayView": "ದಿನದ ವೀಕ್ಷಣೆಯಲ್ಲಿ {count} ಕಾರ್ಯಕ್ರಮ ನೋಡಿ | ದಿನದ ವೀಕ್ಷಣೆಯಲ್ಲಿ ಎಲ್ಲಾ {count} ಕಾರ್ಯಕ್ರಮಗಳನ್ನು ನೋಡಿ",
     "linkValueDelimiter": "ಒಂದೇ ಕೋಶದಲ್ಲಿ ಹಲವು ಲಿಂಕ್ ಮೌಲ್ಯಗಳನ್ನು ಬೇರ್ಪಡಿಸುವ ಅಕ್ಷರ (ಪೂರ್ವನಿಯೋಜಿತ ,)",
-    "interfaceMixedRoles": "ಇಂಟರ್ಫೇಸ್ ಅಥವಾ ಪುಟಗಳ ನಡುವೆ ಪಾತ್ರಗಳು ಭಿನ್ನವಾಗಿವೆ. ನೋಡಲು ವಿಸ್ತರಿಸಿ",
+    "interfaceMixedRoles": "ಆ್ಯಪ್ ಅಥವಾ ಪುಟಗಳ ನಡುವೆ ಪಾತ್ರಗಳು ಭಿನ್ನವಾಗಿವೆ. ನೋಡಲು ವಿಸ್ತರಿಸಿ",
     "chatQueueAttachmentUnavailable": "ನೀವು ಸಂದೇಶವನ್ನು ಸರತಿಯಲ್ಲಿ ಇಟ್ಟರೆ ಈ ಲಗತ್ತು ಕಳುಹಿಸಲಾಗುವುದಿಲ್ಲ. ಮೊದಲು ಅದನ್ನು ತೆಗೆದುಹಾಕಿ",
     "lockedViewDisabledOnProduction": "ಲಾಕ್ ಆದ ವೀಕ್ಷಣೆಗಳನ್ನು ಪರಿಸರದ ಪ್ರತಿಯಲ್ಲಿ ಮಾತ್ರ ರಚಿಸಬಹುದು",
     "personalViewDisabledOnEnvironment": "ವೈಯಕ್ತಿಕ ವೀಕ್ಷಣೆಗಳನ್ನು ಪ್ರೊಡಕ್ಷನ್ ಪ್ರಾಜೆಕ್ಟ್‌ನಲ್ಲಿ ಮಾತ್ರ ರಚಿಸಬಹುದು",
@@ -6376,7 +6391,36 @@
     "inviteLinkCannotGrantOwner": "ಆಹ್ವಾನ ಲಿಂಕ್ ಮಾಲೀಕರ ಪಾತ್ರವನ್ನು ನೀಡಲಾಗದು",
     "inviteLinkRoleAboveYours": "ನಿಮ್ಮ ಪಾತ್ರದವರೆಗಿನ ಪಾತ್ರಗಳನ್ನು ಮಾತ್ರ ನೀವು ನೀಡಬಹುದು",
     "noDefaultSourceForFolders": "ಈ ಪ್ರಾಜೆಕ್ಟ್‌ಗೆ ಡೀಫಾಲ್ಟ್ ಮೂಲ ಇಲ್ಲ. ಬದಲಾಗಿ ಆಯಾ ಮೂಲದ ಸ್ವಂತ ಮೆನುವಿನಿಂದ ಫೋಲ್ಡರ್‌ಗಳನ್ನು ರಚಿಸಿ",
-    "noDefaultSourceForSync": "ಈ ಪ್ರಾಜೆಕ್ಟ್‌ಗೆ ಡೀಫಾಲ್ಟ್ ಮೂಲ ಇಲ್ಲ. ಸಿಂಕ್‌ಗೆ ತನ್ನ ಕೋಷ್ಟಕಗಳನ್ನು ಸಂಗ್ರಹಿಸಲು ಒಂದು ಮೂಲ ಬೇಕು"
+    "noDefaultSourceForSync": "ಈ ಪ್ರಾಜೆಕ್ಟ್‌ಗೆ ಡೀಫಾಲ್ಟ್ ಮೂಲ ಇಲ್ಲ. ಸಿಂಕ್‌ಗೆ ತನ್ನ ಕೋಷ್ಟಕಗಳನ್ನು ಸಂಗ್ರಹಿಸಲು ಒಂದು ಮೂಲ ಬೇಕು",
+    "factoryGitApplyTruncated": "ಈ ಪ್ಯಾಚ್ ಅರ್ಧಕ್ಕೆ ಕತ್ತರಿಸಲ್ಪಟ್ಟಿದೆ ಮತ್ತು ಬದಲಾವಣೆಯ ಮಧ್ಯದಲ್ಲಿ ಮುಗಿಯಬಹುದು, ಹಾಗಾಗಿ ಇದು ಸರಿಯಾಗಿ ಅನ್ವಯವಾಗುವುದಿಲ್ಲ.",
+    "factoryGitApplyWhitespace": "ಖಾಲಿ ಜಾಗದ ಬದಲಾವಣೆಗಳು ಮರೆಯಾಗಿವೆ, ಹಾಗಾಗಿ ಈ ಪ್ಯಾಚ್‌ನಲ್ಲಿ ಅವು ಇಲ್ಲ. ಅನ್ವಯವಾಗುವ ಪ್ಯಾಚ್ ನಕಲಿಸಲು ಅವುಗಳನ್ನು ತೋರಿಸಿ.",
+    "factoryGitApplyBinary": "ಈ ಪ್ಯಾಚ್ ಬೈನರಿ ಫೈಲ್‌ಗಳನ್ನು ಬದಲಾಯಿಸುತ್ತದೆ, ಅವುಗಳನ್ನು git apply ಇದರಿಂದ ಮತ್ತೆ ರಚಿಸಲಾಗದು.",
+    "vaultComingSoon": "ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿದೆ.",
+    "workflowButtonTriggerFieldReadOnly": "ಈ ಟ್ರಿಗರ್‌ಗೆ ಜೋಡಿಸಿದ ಬಟನ್ ಕ್ಷೇತ್ರವನ್ನು ಆ ಕ್ಷೇತ್ರದ ಸೆಟ್ಟಿಂಗ್‌ಗಳಿಂದ ಮಾತ್ರ ಬದಲಾಯಿಸಬಹುದು",
+    "linkUnlinkDisabledEditFieldsForm": "ಫಾರ್ಮ್ ಮೂಲಕ ಕ್ಷೇತ್ರಗಳನ್ನು ಸಂಪಾದಿಸಿದಾಗ ಈ ಆಯ್ಕೆ ನಿಷ್ಕ್ರಿಯವಾಗಿರುತ್ತದೆ",
+    "linkUnlinkDisabledEditFieldsOff": "ಕ್ಷೇತ್ರ ಸಂಪಾದನೆ ಆಫ್ ಆಗಿದ್ದಾಗ ಈ ಆಯ್ಕೆ ನಿಷ್ಕ್ರಿಯವಾಗಿರುತ್ತದೆ",
+    "addRecordFormDisabledColumnNotInline": "ಈ ಕಾಲಮ್ ಅನ್ನು ಅಲ್ಲಿಯೇ ಸಂಪಾದಿಸಲು ಆಗದಿದ್ದಾಗ ಈ ಆಯ್ಕೆ ನಿಷ್ಕ್ರಿಯವಾಗಿರುತ್ತದೆ",
+    "readOnlyFieldCannotBeRequired": "ಓದಲು ಮಾತ್ರದ ಕ್ಷೇತ್ರಗಳನ್ನು ಕಡ್ಡಾಯ ಮಾಡಲಾಗದು",
+    "verifyEmailBeforeReset": "ಸೈನ್-ಅಪ್ ಸಮಯದಲ್ಲಿ ನಿಮ್ಮ ಇಮೇಲ್ ಪರಿಶೀಲನೆಯಾಗದಿದ್ದರೆ, ಮರುಹೊಂದಿಸುವ ಮೊದಲು ಈಗಲೇ ಪರಿಶೀಲಿಸಿ; ಇಲ್ಲದಿದ್ದರೆ ಕೋಡ್ ಬರುವುದಿಲ್ಲ.",
+    "vaultPromoteToOrg": "ಇಡೀ ಸಂಸ್ಥೆಗೆ ಲಭ್ಯವಾಗಿಸಿ",
+    "testWebhookDisabledForScripts": "ಸ್ಕ್ರಿಪ್ಟ್‌ಗಳಿಗೆ ಪರೀಕ್ಷಾ ವೆಬ್‌ಹುಕ್ ನಿಷ್ಕ್ರಿಯವಾಗಿದೆ",
+    "aiIntegrationNotAvailableOnMobile": "ಮೊಬೈಲ್ ಮೋಡ್‌ನಲ್ಲಿ AI ಇಂಟಿಗ್ರೇಷನ್ ಲಭ್ಯವಿಲ್ಲ.",
+    "categoryLimit": "ತೋರಿಸಬೇಕಾದ ಪ್ರಮುಖ ವರ್ಗಗಳ ಸಂಖ್ಯೆ (ಕನಿಷ್ಠ: 10, ಗರಿಷ್ಠ: 50)",
+    "copyImageUrl": "ಚಿತ್ರದ URL ನಕಲಿಸಿ",
+    "editImage": "ಚಿತ್ರ ಸಂಪಾದಿಸಿ",
+    "removeImage": "ಚಿತ್ರ ತೆಗೆದುಹಾಕಿ",
+    "panMode": "ಸರಿಸುವ ಮೋಡ್",
+    "selectionMode": "ಆಯ್ಕೆ ಮೋಡ್",
+    "addNote": "ಟಿಪ್ಪಣಿ ಸೇರಿಸಿ",
+    "aiIntegrationForOperation": "ಈ ಕಾರ್ಯಾಚರಣೆಗೆ ಬಳಸುವ ಇಂಟಿಗ್ರೇಷನ್",
+    "aiModelForOperation": "ಈ ಕಾರ್ಯಾಚರಣೆಗೆ ಬಳಸುವ ಮಾದರಿ",
+    "setupScriptSettingsFirstToExecute": "ಚಲಾಯಿಸಲು ಮೊದಲು ಸ್ಕ್ರಿಪ್ಟ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಹೊಂದಿಸಿ",
+    "selectTable": "ಟೇಬಲ್ ಆಯ್ಕೆಮಾಡಿ",
+    "copyViewId": "ನೋಟದ ID ನಕಲಿಸಿ",
+    "dataSourceReadOnly": "ಈ ಡೇಟಾ ಮೂಲ ಓದಲು ಮಾತ್ರ.",
+    "mentionFields": "ಕ್ಷೇತ್ರಗಳನ್ನು ಉಲ್ಲೇಖಿಸಿ",
+    "skipEnabledAfterDelay": "2 ಸೆಕೆಂಡ್‌ಗಳ ನಂತರ ಸಕ್ರಿಯವಾಗುತ್ತದೆ",
+    "clickToCopyDocumentId": "ದಾಖಲೆಯ ID ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8249,7 +8293,7 @@
     "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
-    "secondsAgo": "{count} seconds ago",
+    "secondsAgo": "{count} ಸೆಕೆಂಡ್ ಹಿಂದೆ",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
@@ -9112,7 +9156,14 @@
       "descriptionLabel": "ವಿವರಣೆ",
       "groupRequired": "ಒಂದು {group} ಆಯ್ಕೆಮಾಡಿ.",
       "requiredHint": "* ಕಡ್ಡಾಯ",
-      "browse": "ಜಾಲಾಡಿ"
+      "browse": "ಜಾಲಾಡಿ",
+      "title": "ವಿನಂತಿ ಸಲ್ಲಿಸಿ",
+      "staffHint": "ತಂಡದ ಐಟಂಗಳು ಪರಿಶೀಲನೆಯನ್ನು ಬಿಟ್ಟು ನೇರವಾಗಿ ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ಸ್ಥಿತಿಗೆ ಹೋಗುತ್ತವೆ.",
+      "titlePlaceholder": "ಚಿಕ್ಕ ಶೀರ್ಷಿಕೆ",
+      "similar": "ಈಗಾಗಲೇ ವಿನಂತಿಸಲಾಗಿದೆಯೇ? ಬದಲಿಗೆ ಮತ ಹಾಕಿ:",
+      "staffTitle": "ಹೊಸ ವಿನಂತಿ",
+      "titleLabel": "ಶೀರ್ಷಿಕೆ",
+      "titleTooShort": "ಕನಿಷ್ಠ {min} ಅಕ್ಷರಗಳನ್ನು ಬಳಸಿ."
     },
     "railTooltipUnseen": "Noco ರೋಡ್‌ಮ್ಯಾಪ್ · ಹೊಸ ಅಪ್‌ಡೇಟ್‌ಗಳು ಬಿಡುಗಡೆಯಾಗಿವೆ",
     "stateTabs": "ವಿನಂತಿಯ ಸ್ಥಿತಿ",
@@ -9126,6 +9177,90 @@
     "previousRequest": "ಹಿಂದಿನ ವಿನಂತಿ",
     "nextRequest": "ಮುಂದಿನ ವಿನಂತಿ",
     "saved": "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ",
-    "saveShortcut": "ಉಳಿಸಲು ⌘/Ctrl + Enter · ರದ್ದುಗೊಳಿಸಲು Esc"
+    "saveShortcut": "ಉಳಿಸಲು ⌘/Ctrl + Enter · ರದ್ದುಗೊಳಿಸಲು Esc",
+    "title": "Noco ರೋಡ್‌ಮ್ಯಾಪ್",
+    "you": "ನೀವು",
+    "youAppearAs": "ಇತರರು ನಿಮ್ಮನ್ನು ಹೀಗೆ ನೋಡುತ್ತಾರೆ",
+    "viewingAs": "ಈ ರೀತಿ ನೋಡುತ್ತಿದ್ದೀರಿ",
+    "votesCount": "{count} ಮತ | {count} ಮತಗಳು",
+    "tab": {
+      "requests": "ವಿನಂತಿಗಳು",
+      "board": "ಬೋರ್ಡ್"
+    },
+    "tabs": {
+      "comments": "ಕಾಮೆಂಟ್‌ಗಳು · {count}",
+      "internal": "ಆಂತರಿಕ · {count}",
+      "voters": "ಮತ ಹಾಕಿದವರು · {count}",
+      "links": "ಲಿಂಕ್‌ಗಳು · {count}",
+      "activity": "ಚಟುವಟಿಕೆ",
+      "label": "ವಿನಂತಿಯ ವಿಭಾಗಗಳು"
+    },
+    "view": {
+      "all": "ಎಲ್ಲಾ ವಿನಂತಿಗಳು",
+      "mine": "ನನ್ನ ವಿನಂತಿಗಳು",
+      "team": "ಕಾರ್ಯದ್ವಾರದ ವಿನಂತಿಗಳು",
+      "voted": "ನನ್ನ ಮತಗಳು",
+      "triage": "ವಿಂಗಡಣೆ",
+      "assigned": "ನನಗೆ ನಿಯೋಜಿಸಿದವು",
+      "internal": "ಆಂತರಿಕ"
+    },
+    "teamScope": {
+      "workspace": "ಈ ಕಾರ್ಯದ್ವಾರ",
+      "org": "ಇಡೀ ಸಂಸ್ಥೆ",
+      "label": "ತಂಡದ ವ್ಯಾಪ್ತಿ"
+    },
+    "visibility": {
+      "public": "ಸಾರ್ವಜನಿಕ",
+      "internal": "ಆಂತರಿಕ"
+    },
+    "underReview": {
+      "title": "ಪರಿಶೀಲನೆಯಲ್ಲಿದೆ",
+      "hint": "ಅನುಮೋದನೆ ಸಿಗುವವರೆಗೆ ಇದನ್ನು ನೀವು ಮತ್ತು NocoDB ತಂಡ ಮಾತ್ರ ನೋಡಬಹುದು.",
+      "next": "ಅನುಮೋದನೆ ಅಥವಾ ತಿರಸ್ಕಾರವಾದಾಗ, ಅಥವಾ ತಂಡ ಉತ್ತರಿಸಿದಾಗ ನಾವು ಇಮೇಲ್ ಕಳುಹಿಸುತ್ತೇವೆ.",
+      "nextInApp": "ಅನುಮೋದನೆ ಅಥವಾ ತಿರಸ್ಕಾರವಾದಾಗ, ಅಥವಾ ತಂಡ ಉತ್ತರಿಸಿದಾಗ ಇಲ್ಲಿ ತಿಳಿಸಲಾಗುತ್ತದೆ."
+    },
+    "subscribe": {
+      "subscribedTitle": "ಬದಲಾವಣೆಯಾದಾಗ ನಿಮಗೆ ತಿಳಿಸುತ್ತೇವೆ",
+      "subscribedHint": "ಸ್ಥಿತಿ ಬದಲಾದಾಗ ಅಥವಾ ತಂಡ ಉತ್ತರಿಸಿದಾಗ ನಾವು ಇಮೇಲ್ ಕಳುಹಿಸುತ್ತೇವೆ.",
+      "unsubscribedTitle": "ಈ ವಿನಂತಿಯ ಅಪ್‌ಡೇಟ್‌ಗಳನ್ನು ಪಡೆಯಿರಿ",
+      "unsubscribedHint": "ಮುಂದುವರಿದಾಗ ತಿಳಿಯಲು ಇದನ್ನು ಅನುಸರಿಸಿ.",
+      "mutedTitle": "ಅಧಿಸೂಚನೆಗಳನ್ನು ಮ್ಯೂಟ್ ಮಾಡಲಾಗಿದೆ",
+      "mutedHint": "ಈ ವಿನಂತಿಯ ಅಪ್‌ಡೇಟ್‌ಗಳು ನಿಮಗೆ ಬರುವುದಿಲ್ಲ.",
+      "subscribe": "ಅನುಸರಿಸಿ",
+      "mute": "ಮ್ಯೂಟ್ ಮಾಡಿ",
+      "unmute": "ಮ್ಯೂಟ್ ತೆಗೆದುಹಾಕಿ",
+      "staffHint": "ಸ್ಥಿತಿ ಬದಲಾವಣೆ ಮತ್ತು ಕಾಮೆಂಟ್‌ಗಳಿಗೆ ಆ್ಯಪ್‌ನಲ್ಲಿ ಅಧಿಸೂಚನೆ ಬರುತ್ತದೆ.",
+      "emailOffHint": "ಇಮೇಲ್ ಅಪ್‌ಡೇಟ್‌ಗಳು ಆಫ್ ಆಗಿವೆ, ಹಾಗಾಗಿ ಅಪ್‌ಡೇಟ್‌ಗಳು ಆ್ಯಪ್‌ನಲ್ಲಿ ಮಾತ್ರ ಕಾಣಿಸುತ್ತವೆ.",
+      "turnOnEmail": "ಇಮೇಲ್ ಆನ್ ಮಾಡಿ",
+      "emailOn": "ಇಮೇಲ್ ಅಪ್‌ಡೇಟ್‌ಗಳು ಆನ್ ಆಗಿವೆ"
+    },
+    "voters": {
+      "summary": "{real} ನಿಜವಾದ ಮತ · {adjustment} ಹೊಂದಾಣಿಕೆ | {real} ನಿಜವಾದ ಮತಗಳು · {adjustment} ಹೊಂದಾಣಿಕೆ",
+      "person": "ವ್ಯಕ್ತಿ",
+      "account": "ಕಾರ್ಯದ್ವಾರ / ಸಂಸ್ಥೆ",
+      "plan": "ಪ್ಲಾನ್",
+      "voted": "ಮತ ಹಾಕಿದ್ದಾರೆ",
+      "empty": "ಇನ್ನೂ ಮತಗಳಿಲ್ಲ."
+    },
+    "triage": {
+      "title": "ವಿಂಗಡಣೆಗಾಗಿ ಕಾಯುತ್ತಿದೆ",
+      "merge": "ವಿಲೀನಗೊಳಿಸಿ",
+      "mergeHint": "ಇರುವ ವಿನಂತಿಯೊಂದಿಗೆ ವಿಲೀನಗೊಳಿಸಿ",
+      "decline": "ತಿರಸ್ಕರಿಸಿ",
+      "declineHint": "ವಿನಂತಿಸಿದವರಿಗೆ ಕಾಣುವ ಕಾರಣದೊಂದಿಗೆ ತಿರಸ್ಕರಿಸಿ",
+      "approveInto": "{status} ಗೆ ಅನುಮೋದಿಸಿ",
+      "chooseStatus": "ಯಾವ ಸ್ಥಿತಿಗೆ ಅನುಮೋದಿಸಬೇಕೆಂದು ಆಯ್ಕೆಮಾಡಿ",
+      "approved": "ಅನುಮೋದಿಸಿ {status} ಗೆ ಸರಿಸಲಾಗಿದೆ",
+      "clear": "ವಿಂಗಡಿಸಲು ಏನೂ ಇಲ್ಲ"
+    },
+    "viewsNav": "ರೋಡ್‌ಮ್ಯಾಪ್ ನೋಟಗಳು",
+    "toggleSidebar": "ನೋಟಗಳು ಮತ್ತು ವರ್ಗಗಳು",
+    "vote": {
+      "ariaUpvote": "ಮತ ಹಾಕಿ, {count} ಮತ | ಮತ ಹಾಕಿ, {count} ಮತಗಳು",
+      "ariaRemove": "ನಿಮ್ಮ ಮತ ತೆಗೆದುಹಾಕಿ, {count} ಮತ | ನಿಮ್ಮ ಮತ ತೆಗೆದುಹಾಕಿ, {count} ಮತಗಳು",
+      "closed": "ಈ ವಿನಂತಿಗೆ ಮತದಾನ ಮುಗಿದಿದೆ",
+      "closedMerged": "ಇದು ವಿಲೀನಗೊಂಡ ವಿನಂತಿಗೆ ಮತ ಹಾಕಿ"
+    },
+    "submittedBy": "{name} ಸಲ್ಲಿಸಿದ್ದಾರೆ"
   }
 }

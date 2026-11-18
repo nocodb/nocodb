@@ -1540,7 +1540,7 @@
     "creatingAgent": "正在建立代理程式",
     "agentToolsAndAccess": "工具與存取權",
     "agentSkills": "技能",
-    "agentSettings": "設定",
+    "agentSettings": "Agent 設定",
     "updateRecordsCount": "更新 {n} 筆記錄 | 更新 {n} 筆記錄",
     "turnOffEditing": "要關閉編輯嗎？",
     "turnOnInlineEditing": "要開啟行內編輯嗎？",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "視窗太窄，無法調整凍結欄位",
     "themeSettings": "主題設定",
     "nFields": "{count} 個欄位 | {count} 個欄位",
-    "noInterfaceMembersYet": "尚無介面成員",
-    "headJoin": "加入 | NocoDB"
+    "noInterfaceMembersYet": "還沒有應用程式成員",
+    "headJoin": "加入 | NocoDB",
+    "abuseReports": "濫用檢舉",
+    "disablePublicLink": "要停用公開連結嗎？",
+    "blockUser": "要封鎖該使用者嗎？",
+    "vaultBanner": "將憑證保存在你自己的保險庫中",
+    "connectSecretsProvider": "連接密鑰提供者",
+    "vaultConnected": "憑證來自你的保險庫",
+    "vaults": "保險庫",
+    "vaultDisconnect": "中斷保險庫連線",
+    "vaultEdit": "編輯保險庫",
+    "pickBaseForApp": "為你的應用程式選擇一個專案",
+    "baseTypeDefaultSubtext": "工作區成員可依各自的角色協作。",
+    "baseTypePrivateSubtext": "僅限邀請的專案。只有你可以檢視與管理其成員。",
+    "auditDetails": "稽核詳細資料",
+    "markdownEditor": "Markdown 編輯器",
+    "loyaltyBadgeTitle": "已解鎖忠誠折扣！最高可省 55%！"
   },
   "labels": {
     "syncing": "同步",
@@ -6299,7 +6314,7 @@
     "hideFieldInView": "在目前檢視中隱藏這個欄位。",
     "viewAllEventsInDayView": "在日檢視中查看全部 {count} 個活動 | 在日檢視中查看全部 {count} 個活動",
     "linkValueDelimiter": "在單一儲存格內分隔多個連結值的字元（預設為 ,）",
-    "interfaceMixedRoles": "不同介面或頁面的角色各不相同。展開即可查看",
+    "interfaceMixedRoles": "不同應用程式或頁面的角色各不相同。展開即可查看",
     "chatQueueAttachmentUnavailable": "如果你將訊息加入佇列，此附件將不會傳送。請先移除它",
     "lockedViewDisabledOnProduction": "鎖定檢視只能在環境副本中建立",
     "personalViewDisabledOnEnvironment": "個人檢視只能在正式環境專案中建立",
@@ -6379,7 +6394,36 @@
     "inviteLinkCannotGrantOwner": "邀請連結無法授予擁有者角色",
     "inviteLinkRoleAboveYours": "你只能授予不高於自己的角色",
     "noDefaultSourceForFolders": "此專案沒有預設資料來源。請改從各資料來源自己的選單建立資料夾",
-    "noDefaultSourceForSync": "此專案沒有預設資料來源。同步需要一個資料來源來存放其資料表"
+    "noDefaultSourceForSync": "此專案沒有預設資料來源。同步需要一個資料來源來存放其資料表",
+    "factoryGitApplyTruncated": "此修補檔遭到截斷，可能在修改中途結束，因此無法乾淨地套用。",
+    "factoryGitApplyWhitespace": "空白字元的變更已隱藏，因此此修補檔不含這些變更。顯示後即可複製可套用的修補檔。",
+    "factoryGitApplyBinary": "此修補檔變更了二進位檔案，git apply 無法據此還原。",
+    "vaultComingSoon": "敬請期待。",
+    "workflowButtonTriggerFieldReadOnly": "與此觸發器關聯的按鈕欄位只能在該欄位的設定中變更",
+    "linkUnlinkDisabledEditFieldsForm": "當欄位透過表單編輯時，此選項無法使用",
+    "linkUnlinkDisabledEditFieldsOff": "當欄位編輯關閉時，此選項無法使用",
+    "addRecordFormDisabledColumnNotInline": "當此欄無法行內編輯時，此選項無法使用",
+    "readOnlyFieldCannotBeRequired": "唯讀欄位不能設為必填",
+    "verifyEmailBeforeReset": "如果註冊時未驗證電子郵件，請先完成驗證再繼續重設；否則你將收不到重設驗證碼。",
+    "vaultPromoteToOrg": "開放給整個組織",
+    "testWebhookDisabledForScripts": "腳本不支援測試 Webhook",
+    "aiIntegrationNotAvailableOnMobile": "行動模式下無法使用 AI 整合。",
+    "categoryLimit": "要顯示的熱門分類數量（最小：10，最大：50）",
+    "copyImageUrl": "複製圖片 URL",
+    "editImage": "編輯圖片",
+    "removeImage": "移除圖片",
+    "panMode": "平移模式",
+    "selectionMode": "選取模式",
+    "addNote": "新增備註",
+    "aiIntegrationForOperation": "此操作使用的整合",
+    "aiModelForOperation": "此操作使用的模型",
+    "setupScriptSettingsFirstToExecute": "需先完成腳本設定才能執行",
+    "selectTable": "選擇表格",
+    "copyViewId": "複製檢視 ID",
+    "dataSourceReadOnly": "此資料來源為唯讀。",
+    "mentionFields": "提及欄位",
+    "skipEnabledAfterDelay": "2 秒後啟用",
+    "clickToCopyDocumentId": "點擊以複製文件 ID"
   },
   "placeholder": {
     "enterVerificationCode": "輸入 6 位數碼",
@@ -8252,7 +8296,7 @@
     "deletedItemsWillAppearHere": "已刪除的資料表、檢視、欄位等會顯示在此",
     "confirmEmpty": "垃圾桶中的所有項目將被永久刪除。此操作無法撤銷。",
     "restoreRequiresCreator": "還原此項目需要 Creator 或 Owner 角色",
-    "secondsAgo": "{count} 數秒前",
+    "secondsAgo": "{count} 秒前",
     "youDeleted": "您從 {parent}刪除了 {type} : {name}",
     "userDeleted": "{user} 從 {parent}刪除 {type} : {name}",
     "youDeletedNoParent": "您刪除了 {type}: {name}",
@@ -9115,7 +9159,14 @@
       "descriptionLabel": "描述",
       "groupRequired": "請選擇一個{group}。",
       "requiredHint": "* 必填",
-      "browse": "瀏覽"
+      "browse": "瀏覽",
+      "title": "提交請求",
+      "staffHint": "團隊項目會略過審核，直接進入你選擇的狀態。",
+      "titlePlaceholder": "簡短的標題",
+      "similar": "已經有人提過了嗎？改為投票：",
+      "staffTitle": "新增請求",
+      "titleLabel": "標題",
+      "titleTooShort": "請至少輸入 {min} 個字元。"
     },
     "railTooltipUnseen": "Noco 路線圖 · 新版本已發布",
     "stateTabs": "請求狀態",
@@ -9129,6 +9180,90 @@
     "previousRequest": "上一個請求",
     "nextRequest": "下一個請求",
     "saved": "變更已儲存",
-    "saveShortcut": "⌘/Ctrl + Enter 儲存 · Esc 取消"
+    "saveShortcut": "⌘/Ctrl + Enter 儲存 · Esc 取消",
+    "title": "Noco 路線圖",
+    "you": "你",
+    "youAppearAs": "其他人看到的你",
+    "viewingAs": "目前檢視身分",
+    "votesCount": "{count} 票 | {count} 票",
+    "tab": {
+      "requests": "請求",
+      "board": "看板"
+    },
+    "tabs": {
+      "comments": "評論 · {count}",
+      "internal": "內部 · {count}",
+      "voters": "投票者 · {count}",
+      "links": "連結 · {count}",
+      "activity": "活動",
+      "label": "請求區塊"
+    },
+    "view": {
+      "all": "所有請求",
+      "mine": "我的請求",
+      "team": "工作區的請求",
+      "voted": "我的投票",
+      "triage": "整理",
+      "assigned": "指派給我的",
+      "internal": "內部"
+    },
+    "teamScope": {
+      "workspace": "目前的工作區",
+      "org": "整個組織",
+      "label": "團隊範圍"
+    },
+    "visibility": {
+      "public": "公開",
+      "internal": "內部"
+    },
+    "underReview": {
+      "title": "審核中",
+      "hint": "在獲得核准之前，只有你和 NocoDB 團隊看得到。",
+      "next": "核准、拒絕或團隊回覆時，我們會寄電子郵件給你。",
+      "nextInApp": "核准、拒絕或團隊回覆時，會在這裡通知你。"
+    },
+    "subscribe": {
+      "subscribedTitle": "有變動時會通知你",
+      "subscribedHint": "狀態變更或團隊回覆時，我們會寄電子郵件給你。",
+      "unsubscribedTitle": "接收此請求的更新",
+      "unsubscribedHint": "追蹤它，有進展時你會收到通知。",
+      "mutedTitle": "通知已靜音",
+      "mutedHint": "你不會收到關於此請求的更新。",
+      "subscribe": "追蹤",
+      "mute": "靜音",
+      "unmute": "取消靜音",
+      "staffHint": "你會在應用程式內收到狀態變更與評論的通知。",
+      "emailOffHint": "電子郵件更新已關閉，更新只會顯示在應用程式內。",
+      "turnOnEmail": "開啟電子郵件",
+      "emailOn": "電子郵件更新已開啟"
+    },
+    "voters": {
+      "summary": "真實投票 {real} 票 · 調整 {adjustment} | 真實投票 {real} 票 · 調整 {adjustment}",
+      "person": "個人",
+      "account": "工作區 / 組織",
+      "plan": "方案",
+      "voted": "已投票",
+      "empty": "還沒有投票。"
+    },
+    "triage": {
+      "title": "等待整理",
+      "merge": "合併",
+      "mergeHint": "合併到現有請求",
+      "decline": "拒絕",
+      "declineHint": "拒絕並附上提交者看得到的原因",
+      "approveInto": "核准為 {status}",
+      "chooseStatus": "選擇要核准到哪個狀態",
+      "approved": "已核准並移至 {status}",
+      "clear": "沒有待整理的請求"
+    },
+    "viewsNav": "路線圖檢視",
+    "toggleSidebar": "檢視與分類",
+    "vote": {
+      "ariaUpvote": "投票，{count} 票 | 投票，{count} 票",
+      "ariaRemove": "取消你的投票，{count} 票 | 取消你的投票，{count} 票",
+      "closed": "此請求已停止投票",
+      "closedMerged": "請為合併後的請求投票"
+    },
+    "submittedBy": "由 {name} 提交"
   }
 }

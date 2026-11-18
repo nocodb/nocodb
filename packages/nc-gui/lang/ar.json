@@ -1540,7 +1540,7 @@
     "creatingAgent": "جارٍ إنشاء الوكيل",
     "agentToolsAndAccess": "الأدوات والوصول",
     "agentSkills": "المهارات",
-    "agentSettings": "الإعدادات",
+    "agentSettings": "إعدادات الوكيل",
     "updateRecordsCount": "تحديث سجل {n} | تحديث {n} سجلات",
     "turnOffEditing": "إيقاف التحرير؟",
     "turnOnInlineEditing": "تفعيل التحرير داخل الجدول؟",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "النافذة ضيقة جدًا لتعديل الحقول المثبَّتة",
     "themeSettings": "إعدادات السمة",
     "nFields": "{count} حقل | {count} حقول",
-    "noInterfaceMembersYet": "لا يوجد أعضاء في الواجهة بعد",
-    "headJoin": "انضمام | NocoDB"
+    "noInterfaceMembersYet": "لا يوجد أعضاء في التطبيق بعد",
+    "headJoin": "انضمام | NocoDB",
+    "abuseReports": "بلاغات إساءة الاستخدام",
+    "disablePublicLink": "تعطيل الرابط العام؟",
+    "blockUser": "حظر المستخدم؟",
+    "vaultBanner": "احتفظ ببيانات الاعتماد في خزنتك الخاصة",
+    "connectSecretsProvider": "ربط مزوّد أسرار",
+    "vaultConnected": "بيانات الاعتماد تأتي من خزنتك",
+    "vaults": "الخزائن",
+    "vaultDisconnect": "فصل الخزنة",
+    "vaultEdit": "تعديل الخزنة",
+    "pickBaseForApp": "اختر مشروعًا لتطبيقك",
+    "baseTypeDefaultSubtext": "يمكن لأعضاء مساحة العمل التعاون حسب أدوارهم.",
+    "baseTypePrivateSubtext": "مشروع بدعوة فقط. أنت وحدك من يمكنه عرض أعضائه وإدارتهم.",
+    "auditDetails": "تفاصيل التدقيق",
+    "markdownEditor": "محرر Markdown",
+    "loyaltyBadgeTitle": "تم فتح خصم الولاء! وفّر حتى 55%!"
   },
   "labels": {
     "syncing": "مزامنة",
@@ -6299,7 +6314,7 @@
     "hideFieldInView": "إخفاء هذا الحقل في المشاهدة الحالية.",
     "viewAllEventsInDayView": "عرض {count} حدث في عرض اليوم | عرض كل الأحداث الـ {count} في عرض اليوم",
     "linkValueDelimiter": "الحرف الفاصل بين عدة قيم مرتبطة داخل الخلية نفسها (الافتراضي ,)",
-    "interfaceMixedRoles": "تختلف الأدوار بين الواجهات أو الصفحات. وسّع لعرضها",
+    "interfaceMixedRoles": "تختلف الأدوار بين التطبيقات أو الصفحات. وسّع لعرضها",
     "chatQueueAttachmentUnavailable": "لن يُرسل هذا المرفق إذا وضعت رسالتك في قائمة الانتظار. أزله أولًا",
     "lockedViewDisabledOnProduction": "لا يمكن إنشاء المشاهدات المقفلة إلا في نسخة البيئة",
     "personalViewDisabledOnEnvironment": "لا يمكن إنشاء طرق العرض الشخصية إلا في مشروع الإنتاج",
@@ -6379,7 +6394,36 @@
     "inviteLinkCannotGrantOwner": "لا يمكن لرابط الدعوة منح دور المالك",
     "inviteLinkRoleAboveYours": "يمكنك منح الأدوار حتى مستوى دورك فقط",
     "noDefaultSourceForFolders": "لا يوجد لهذا المشروع مصدر افتراضي. أنشئ المجلدات من قائمة المصدر نفسه بدلًا من ذلك",
-    "noDefaultSourceForSync": "لا يوجد لهذا المشروع مصدر افتراضي. تحتاج المزامنة إلى مصدر لتخزين جداولها"
+    "noDefaultSourceForSync": "لا يوجد لهذا المشروع مصدر افتراضي. تحتاج المزامنة إلى مصدر لتخزين جداولها",
+    "factoryGitApplyTruncated": "تم اقتطاع هذا التصحيح وقد ينتهي في منتصف تغيير، لذا لن يُطبَّق بشكل سليم.",
+    "factoryGitApplyWhitespace": "تغييرات المسافات مخفية، لذا لا يتضمنها هذا التصحيح. أظهرها لنسخ تصحيح قابل للتطبيق.",
+    "factoryGitApplyBinary": "يغيّر هذا التصحيح ملفات ثنائية لا يستطيع git apply إعادة إنشائها منه.",
+    "vaultComingSoon": "قريبًا.",
+    "workflowButtonTriggerFieldReadOnly": "لا يمكن تغيير حقل الزر المرتبط بهذا المشغّل إلا من إعدادات الحقل",
+    "linkUnlinkDisabledEditFieldsForm": "يتم تعطيل هذا الخيار عند تحرير الحقول من خلال نموذج",
+    "linkUnlinkDisabledEditFieldsOff": "يتم تعطيل هذا الخيار عند إيقاف تحرير الحقول",
+    "addRecordFormDisabledColumnNotInline": "يتم تعطيل هذا الخيار عندما يتعذّر تحرير هذا العمود مباشرة",
+    "readOnlyFieldCannotBeRequired": "لا يمكن جعل حقول القراءة فقط مطلوبة",
+    "verifyEmailBeforeReset": "إذا لم يتم التحقق من بريدك الإلكتروني أثناء التسجيل، فيرجى التحقق منه الآن قبل متابعة إعادة التعيين؛ وإلا فلن تتلقى رمز إعادة التعيين.",
+    "vaultPromoteToOrg": "إتاحته للمؤسسة بأكملها",
+    "testWebhookDisabledForScripts": "اختبار Webhook معطّل للنصوص البرمجية",
+    "aiIntegrationNotAvailableOnMobile": "تكامل الذكاء الاصطناعي غير متاح في وضع الجوال.",
+    "categoryLimit": "عدد الفئات الأعلى المعروضة (الحد الأدنى: 10، الحد الأقصى: 50)",
+    "copyImageUrl": "نسخ عنوان URL للصورة",
+    "editImage": "تعديل الصورة",
+    "removeImage": "إزالة الصورة",
+    "panMode": "وضع التحريك",
+    "selectionMode": "وضع التحديد",
+    "addNote": "إضافة ملاحظة",
+    "aiIntegrationForOperation": "التكامل المستخدم في هذه العملية",
+    "aiModelForOperation": "النموذج المستخدم في هذه العملية",
+    "setupScriptSettingsFirstToExecute": "اضبط إعدادات النص البرمجي أولًا لتشغيله",
+    "selectTable": "اختيار الجدول",
+    "copyViewId": "نسخ معرّف طريقة العرض",
+    "dataSourceReadOnly": "مصدر البيانات هذا للقراءة فقط.",
+    "mentionFields": "ذكر الحقول",
+    "skipEnabledAfterDelay": "سيتم التفعيل بعد ثانيتين",
+    "clickToCopyDocumentId": "انقر لنسخ معرّف المستند"
   },
   "placeholder": {
     "enterVerificationCode": "أدخل الرمز المكون من 6 أرقام",
@@ -8252,7 +8296,7 @@
     "deletedItemsWillAppearHere": "الجداول المحذوفة ووجهات النظر والحقول والمزيد ستظهر هنا",
     "confirmEmpty": "سيتم حذف جميع العناصر في سلة المهملات بشكل دائم. لا يمكن التراجع عن ذلك.",
     "restoreRequiresCreator": "تتطلب استعادة هذا العنصر دور المنشئ أو المالك",
-    "secondsAgo": "{count} منذ ثوانٍ",
+    "secondsAgo": "قبل {count} ث",
     "youDeleted": "لقد حذفت {type} من {parent}: {name}",
     "userDeleted": "{user} حذف {type} من {parent}: {name}",
     "youDeletedNoParent": "لقد حذفت {type}: {name}",
@@ -9115,7 +9159,14 @@
       "descriptionLabel": "الوصف",
       "groupRequired": "اختر {group}.",
       "requiredHint": "* مطلوب",
-      "browse": "تصفح"
+      "browse": "تصفح",
+      "title": "إرسال طلب",
+      "staffHint": "عناصر الفريق تتخطى المراجعة وتنتقل مباشرة إلى الحالة التي تختارها.",
+      "titlePlaceholder": "عنوان قصير",
+      "similar": "تم طلبه من قبل؟ صوّت له بدلاً من ذلك:",
+      "staffTitle": "طلب جديد",
+      "titleLabel": "العنوان",
+      "titleTooShort": "استخدم {min} حرفًا على الأقل."
     },
     "railTooltipUnseen": "خارطة طريق Noco · صدرت تحديثات جديدة",
     "stateTabs": "حالة الطلب",
@@ -9129,6 +9180,90 @@
     "previousRequest": "الطلب السابق",
     "nextRequest": "الطلب التالي",
     "saved": "تم حفظ التغييرات",
-    "saveShortcut": "⌘/Ctrl + Enter للحفظ · Esc للإلغاء"
+    "saveShortcut": "⌘/Ctrl + Enter للحفظ · Esc للإلغاء",
+    "title": "خارطة طريق Noco",
+    "you": "أنت",
+    "youAppearAs": "يراك الآخرون باسم",
+    "viewingAs": "العرض بصفة",
+    "votesCount": "{count} صوت | {count} صوت",
+    "tab": {
+      "requests": "الطلبات",
+      "board": "لوحة"
+    },
+    "tabs": {
+      "comments": "التعليقات · {count}",
+      "internal": "داخلي · {count}",
+      "voters": "المصوّتون · {count}",
+      "links": "الروابط · {count}",
+      "activity": "النشاط",
+      "label": "أقسام الطلب"
+    },
+    "view": {
+      "all": "كل الطلبات",
+      "mine": "طلباتي",
+      "team": "طلبات مساحة العمل",
+      "voted": "تصويتاتي",
+      "triage": "الفرز",
+      "assigned": "المسندة إليّ",
+      "internal": "داخلي"
+    },
+    "teamScope": {
+      "workspace": "مساحة العمل هذه",
+      "org": "المؤسسة بأكملها",
+      "label": "نطاق الفريق"
+    },
+    "visibility": {
+      "public": "عام",
+      "internal": "داخلي"
+    },
+    "underReview": {
+      "title": "قيد المراجعة",
+      "hint": "لا يرى هذا سواك وفريق NocoDB حتى تتم الموافقة عليه.",
+      "next": "سنرسل إليك بريدًا إلكترونيًا عند الموافقة عليه أو رفضه أو عند رد الفريق.",
+      "nextInApp": "سنخبرك هنا عند الموافقة عليه أو رفضه أو عند رد الفريق."
+    },
+    "subscribe": {
+      "subscribedTitle": "سنخبرك عند حدوث تغيير",
+      "subscribedHint": "سنرسل إليك بريدًا إلكترونيًا عند تغيّر الحالة أو عند رد الفريق.",
+      "unsubscribedTitle": "تلقّي تحديثات عن هذا الطلب",
+      "unsubscribedHint": "تابعه لتعرف متى يتقدم.",
+      "mutedTitle": "تم كتم الإشعارات",
+      "mutedHint": "لن تصلك تحديثات عن هذا الطلب.",
+      "subscribe": "متابعة",
+      "mute": "كتم",
+      "unmute": "إلغاء الكتم",
+      "staffHint": "تصلك إشعارات داخل التطبيق عند تغيّر الحالة وعند التعليقات.",
+      "emailOffHint": "تحديثات البريد الإلكتروني متوقفة، لذا تظهر التحديثات داخل التطبيق فقط.",
+      "turnOnEmail": "تفعيل البريد الإلكتروني",
+      "emailOn": "تحديثات البريد الإلكتروني مفعّلة"
+    },
+    "voters": {
+      "summary": "{real} صوت حقيقي · {adjustment} تعديل | {real} صوت حقيقي · {adjustment} تعديل",
+      "person": "شخص",
+      "account": "مساحة العمل / المؤسسة",
+      "plan": "الخطة",
+      "voted": "صوّت",
+      "empty": "لا توجد تصويتات بعد."
+    },
+    "triage": {
+      "title": "في انتظار الفرز",
+      "merge": "دمج",
+      "mergeHint": "دمج مع طلب موجود",
+      "decline": "رفض",
+      "declineHint": "ارفضه مع سبب يراه مقدّم الطلب",
+      "approveInto": "الموافقة إلى {status}",
+      "chooseStatus": "اختر الحالة التي تتم الموافقة إليها",
+      "approved": "تمت الموافقة والنقل إلى {status}",
+      "clear": "لا يوجد شيء للفرز"
+    },
+    "viewsNav": "طرق عرض خارطة الطريق",
+    "toggleSidebar": "طرق العرض والفئات",
+    "vote": {
+      "ariaUpvote": "تصويت، {count} صوت | تصويت، {count} صوت",
+      "ariaRemove": "إزالة تصويتك، {count} صوت | إزالة تصويتك، {count} صوت",
+      "closed": "التصويت على هذا الطلب مغلق",
+      "closedMerged": "صوّت على الطلب الذي تم الدمج معه"
+    },
+    "submittedBy": "أرسله {name}"
   }
 }

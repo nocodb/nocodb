@@ -1539,7 +1539,7 @@
     "creatingAgent": "Skapar agent",
     "agentToolsAndAccess": "Verktyg och åtkomst",
     "agentSkills": "Skills",
-    "agentSettings": "Inställningar",
+    "agentSettings": "Agentinställningar",
     "updateRecordsCount": "Uppdatera {n} post | Uppdatera {n} poster",
     "turnOffEditing": "Stänga av redigering?",
     "turnOnInlineEditing": "Slå på redigering direkt i tabellen?",
@@ -1553,8 +1553,23 @@
     "tooNarrowToAdjustFrozenFields": "Fönstret är för smalt för att justera de frysta fälten",
     "themeSettings": "Temainställningar",
     "nFields": "{count} fält | {count} fält",
-    "noInterfaceMembersYet": "Inga gränssnittsmedlemmar ännu",
-    "headJoin": "Gå med | NocoDB"
+    "noInterfaceMembersYet": "Inga appmedlemmar än",
+    "headJoin": "Gå med | NocoDB",
+    "abuseReports": "Anmälningar om missbruk",
+    "disablePublicLink": "Inaktivera den offentliga länken?",
+    "blockUser": "Blockera användaren?",
+    "vaultBanner": "Förvara inloggningsuppgifter i ditt eget valv",
+    "connectSecretsProvider": "Anslut en leverantör av hemligheter",
+    "vaultConnected": "Inloggningsuppgifterna kommer från ditt valv",
+    "vaults": "Valv",
+    "vaultDisconnect": "Koppla från valvet",
+    "vaultEdit": "Redigera valvet",
+    "pickBaseForApp": "Välj ett projekt för din app",
+    "baseTypeDefaultSubtext": "Medlemmar i arbetsytan kan samarbeta utifrån sin roll.",
+    "baseTypePrivateSubtext": "Projekt endast via inbjudan. Bara du kan se och hantera dess medlemmar.",
+    "auditDetails": "Granskningsdetaljer",
+    "markdownEditor": "Markdown-redigerare",
+    "loyaltyBadgeTitle": "Lojalitetsrabatt upplåst! Spara upp till 55 %!"
   },
   "labels": {
     "syncing": "Synkroniserar",
@@ -6282,7 +6297,7 @@
     "hideFieldInView": "Dölj det här fältet i den aktuella vyn.",
     "viewAllEventsInDayView": "Se {count} händelse i dagsvyn | Se alla {count} händelser i dagsvyn",
     "linkValueDelimiter": "Tecken som skiljer flera länkade värden åt i samma cell (standard ,)",
-    "interfaceMixedRoles": "Rollerna skiljer sig mellan gränssnitt eller sidor. Expandera för att se dem",
+    "interfaceMixedRoles": "Rollerna skiljer sig mellan appar eller sidor. Expandera för att se dem",
     "chatQueueAttachmentUnavailable": "Den här bilagan skickas inte om du köar ditt meddelande. Ta bort den först",
     "lockedViewDisabledOnProduction": "Låsta vyer kan bara skapas i miljökopian",
     "personalViewDisabledOnEnvironment": "Personliga vyer kan bara skapas i produktionsprojektet",
@@ -6362,7 +6377,36 @@
     "inviteLinkCannotGrantOwner": "En inbjudningslänk kan inte ge rollen Ägare",
     "inviteLinkRoleAboveYours": "Du kan bara erbjuda roller upp till din egen",
     "noDefaultSourceForFolders": "Det här projektet har ingen standardkälla. Skapa mappar från källans egen meny i stället",
-    "noDefaultSourceForSync": "Det här projektet har ingen standardkälla. En synkronisering behöver en för att lagra sina tabeller"
+    "noDefaultSourceForSync": "Det här projektet har ingen standardkälla. En synkronisering behöver en för att lagra sina tabeller",
+    "factoryGitApplyTruncated": "Den här patchen är avkortad och kan sluta mitt i en ändring, så den skulle inte gå att tillämpa rent.",
+    "factoryGitApplyWhitespace": "Blankstegsändringar är dolda och saknas därför i patchen. Visa dem för att kopiera en patch som fungerar.",
+    "factoryGitApplyBinary": "Den här patchen ändrar binära filer, som git apply inte kan återskapa från den.",
+    "vaultComingSoon": "Kommer snart.",
+    "workflowButtonTriggerFieldReadOnly": "Knappfältet som är kopplat till den här utlösaren kan bara ändras i fältets inställningar",
+    "linkUnlinkDisabledEditFieldsForm": "Det här alternativet är inaktiverat när fält redigeras via ett formulär",
+    "linkUnlinkDisabledEditFieldsOff": "Det här alternativet är inaktiverat när fältredigering är av",
+    "addRecordFormDisabledColumnNotInline": "Det här alternativet är inaktiverat när kolumnen inte går att redigera direkt i tabellen",
+    "readOnlyFieldCannotBeRequired": "Skrivskyddade fält kan inte vara obligatoriska",
+    "verifyEmailBeforeReset": "Om din e-post inte verifierades vid registreringen, verifiera den nu innan du fortsätter med återställningen; annars får du ingen återställningskod.",
+    "vaultPromoteToOrg": "Gör tillgängligt för hela organisationen",
+    "testWebhookDisabledForScripts": "Testwebhook är inaktiverat för skript",
+    "aiIntegrationNotAvailableOnMobile": "AI-integration är inte tillgänglig i mobilläge.",
+    "categoryLimit": "Antal toppkategorier som visas (min: 10, max: 50)",
+    "copyImageUrl": "Kopiera bildens URL",
+    "editImage": "Redigera bild",
+    "removeImage": "Ta bort bild",
+    "panMode": "Panoreringsläge",
+    "selectionMode": "Markeringsläge",
+    "addNote": "Lägg till anteckning",
+    "aiIntegrationForOperation": "Integration som ska användas för den här åtgärden",
+    "aiModelForOperation": "Modell som ska användas för den här åtgärden",
+    "setupScriptSettingsFirstToExecute": "Ställ in skriptinställningarna först för att köra det",
+    "selectTable": "Välj tabell",
+    "copyViewId": "Kopiera vy-ID",
+    "dataSourceReadOnly": "Den här datakällan är skrivskyddad.",
+    "mentionFields": "Nämn fält",
+    "skipEnabledAfterDelay": "Aktiveras efter 2 sekunder",
+    "clickToCopyDocumentId": "Klicka för att kopiera dokument-ID"
   },
   "placeholder": {
     "enterVerificationCode": "Ange 6-siffrig kod",
@@ -8235,7 +8279,7 @@
     "deletedItemsWillAppearHere": "Borttagna tabeller, vyer, fält och mer kommer att visas här",
     "confirmEmpty": "Alla objekt i papperskorgen tas bort permanent. Detta kan inte ångras.",
     "restoreRequiresCreator": "För att återställa detta objekt krävs Skapar- eller Ägarroll",
-    "secondsAgo": "{count} sekunder sedan",
+    "secondsAgo": "{count} s sedan",
     "youDeleted": "Du tog bort en {type} från {parent}: {name}",
     "userDeleted": "{user} tog bort en {type} från {parent}: {name}",
     "youDeletedNoParent": "Du tog bort en {type}: {name}",
@@ -9095,7 +9139,14 @@
       "descriptionLabel": "Beskrivning",
       "groupRequired": "Välj en {group}.",
       "requiredHint": "* Obligatoriskt",
-      "browse": "bläddra"
+      "browse": "bläddra",
+      "title": "Skicka in en förfrågan",
+      "staffHint": "Teamets ärenden hoppar över granskningen och får direkt den status du väljer.",
+      "titlePlaceholder": "En kort titel",
+      "similar": "Redan önskat? Rösta i stället:",
+      "staffTitle": "Ny förfrågan",
+      "titleLabel": "Titel",
+      "titleTooShort": "Använd minst {min} tecken."
     },
     "railTooltipUnseen": "Noco Roadmap · Nya uppdateringar levererade",
     "stateTabs": "Begärans tillstånd",
@@ -9109,6 +9160,89 @@
     "previousRequest": "Föregående begäran",
     "nextRequest": "Nästa begäran",
     "saved": "Ändringar sparade",
-    "saveShortcut": "⌘/Ctrl + Enter för att spara · Esc för att avbryta"
+    "saveShortcut": "⌘/Ctrl + Enter för att spara · Esc för att avbryta",
+    "title": "Noco-färdplan",
+    "you": "du",
+    "youAppearAs": "Andra ser dig som",
+    "viewingAs": "Visar som",
+    "votesCount": "{count} röst | {count} röster",
+    "tab": {
+      "requests": "Förfrågningar",
+      "board": "Tavla"
+    },
+    "tabs": {
+      "comments": "Kommentarer · {count}",
+      "internal": "Internt · {count}",
+      "voters": "Röstande · {count}",
+      "links": "Länkar · {count}",
+      "activity": "Aktivitet",
+      "label": "Avsnitt i förfrågan"
+    },
+    "view": {
+      "all": "Alla förfrågningar",
+      "mine": "Mina förfrågningar",
+      "team": "Arbetsytans förfrågningar",
+      "voted": "Mina röster",
+      "triage": "Sortering",
+      "assigned": "Tilldelade mig",
+      "internal": "Internt"
+    },
+    "teamScope": {
+      "workspace": "Den här arbetsytan",
+      "org": "Hela organisationen",
+      "label": "Teamets omfattning"
+    },
+    "visibility": {
+      "public": "Offentlig",
+      "internal": "Internt"
+    },
+    "underReview": {
+      "title": "Under granskning",
+      "hint": "Bara du och NocoDB-teamet ser det här tills det är godkänt.",
+      "next": "Vi mejlar dig när den godkänns eller avslås, eller när teamet svarar.",
+      "nextInApp": "Du får en avisering här när den godkänns eller avslås, eller när teamet svarar."
+    },
+    "subscribe": {
+      "subscribedTitle": "Du får veta när något ändras",
+      "subscribedHint": "Vi mejlar dig när statusen ändras eller när teamet svarar.",
+      "unsubscribedTitle": "Få uppdateringar om den här förfrågan",
+      "unsubscribedHint": "Följ den för att få veta när den går framåt.",
+      "mutedTitle": "Aviseringar tystade",
+      "mutedHint": "Du får inga uppdateringar om den här förfrågan.",
+      "subscribe": "Följ",
+      "mute": "Tysta",
+      "unmute": "Sluta tysta",
+      "staffHint": "Du får aviseringar i appen vid statusändringar och kommentarer.",
+      "emailOffHint": "E-postuppdateringar är av, så uppdateringar visas bara i appen.",
+      "turnOnEmail": "Slå på e-post",
+      "emailOn": "E-postuppdateringar är på"
+    },
+    "voters": {
+      "summary": "{real} riktig röst · {adjustment} justering | {real} riktiga röster · {adjustment} justering",
+      "account": "Arbetsyta / organisation",
+      "plan": "Plan",
+      "voted": "Röstat",
+      "empty": "Inga röster än."
+    },
+    "triage": {
+      "title": "Väntar på sortering",
+      "merge": "Slå samman",
+      "mergeHint": "Slå samman med en befintlig förfrågan",
+      "decline": "Avslå",
+      "declineHint": "Avslå med en motivering som den som skickat in ser",
+      "approveInto": "Godkänn till {status}",
+      "chooseStatus": "Välj vilken status den ska godkännas till",
+      "approved": "Godkänd och flyttad till {status}",
+      "clear": "Inget kvar att sortera"
+    },
+    "viewsNav": "Färdplansvyer",
+    "toggleSidebar": "Vyer och kategorier",
+    "vote": {
+      "ariaUpvote": "Rösta, {count} röst | Rösta, {count} röster",
+      "ariaRemove": "Ta bort din röst, {count} röst | Ta bort din röst, {count} röster",
+      "closed": "Omröstningen för den här förfrågan är stängd",
+      "closedMerged": "Rösta på förfrågan som den här slogs samman med"
+    },
+    "submittedBy": "inskickad av {name}"
   }
 }

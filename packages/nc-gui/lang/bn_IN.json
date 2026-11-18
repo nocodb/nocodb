@@ -1540,7 +1540,7 @@
     "creatingAgent": "এজেন্ট তৈরি হচ্ছে",
     "agentToolsAndAccess": "সরঞ্জাম ও অ্যাক্সেস",
     "agentSkills": "দক্ষতা",
-    "agentSettings": "সেটিংস",
+    "agentSettings": "এজেন্ট সেটিংস",
     "updateRecordsCount": "{n}টি রেকর্ড হালনাগাদ করুন | {n}টি রেকর্ড হালনাগাদ করুন",
     "turnOffEditing": "সম্পাদনা বন্ধ করবেন?",
     "turnOnInlineEditing": "ইনলাইন সম্পাদনা চালু করবেন?",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "স্থির করা ফিল্ড সমন্বয় করতে উইন্ডোটি খুব সরু",
     "themeSettings": "থিম সেটিংস",
     "nFields": "{count}টি ফিল্ড | {count}টি ফিল্ড",
-    "noInterfaceMembersYet": "এখনও কোনও ইন্টারফেস সদস্য নেই",
-    "headJoin": "যোগ দিন | NocoDB"
+    "noInterfaceMembersYet": "এখনও অ্যাপের কোনও সদস্য নেই",
+    "headJoin": "যোগ দিন | NocoDB",
+    "abuseReports": "অপব্যবহারের রিপোর্ট",
+    "disablePublicLink": "সর্বজনীন লিঙ্ক বন্ধ করবেন?",
+    "blockUser": "ব্যবহারকারীকে ব্লক করবেন?",
+    "vaultBanner": "শংসাপত্র নিজের ভল্টে রাখুন",
+    "connectSecretsProvider": "একটি সিক্রেটস প্রদানকারী যুক্ত করুন",
+    "vaultConnected": "শংসাপত্র আপনার ভল্ট থেকে আসে",
+    "vaults": "ভল্ট",
+    "vaultDisconnect": "ভল্ট সংযোগ বিচ্ছিন্ন করুন",
+    "vaultEdit": "ভল্ট সম্পাদনা করুন",
+    "pickBaseForApp": "আপনার অ্যাপের জন্য একটি প্রকল্প বেছে নিন",
+    "baseTypeDefaultSubtext": "ওয়ার্কস্পেসের সদস্যরা নিজেদের ভূমিকা অনুযায়ী একসঙ্গে কাজ করতে পারেন।",
+    "baseTypePrivateSubtext": "শুধু আমন্ত্রণের প্রকল্প। এর সদস্যদের শুধু আপনি দেখতে ও পরিচালনা করতে পারেন।",
+    "auditDetails": "অডিটের বিবরণ",
+    "markdownEditor": "Markdown সম্পাদক",
+    "loyaltyBadgeTitle": "লয়্যালটি ছাড় আনলক হয়েছে! 55% পর্যন্ত সাশ্রয় করুন!"
   },
   "labels": {
     "syncing": "সিঙ্ক হচ্ছে",
@@ -6296,7 +6311,7 @@
     "hideFieldInView": "বর্তমান ভিউতে এই ফিল্ডটি লুকান।",
     "viewAllEventsInDayView": "দিন ভিউতে {count}টি ঘটনা দেখুন | দিন ভিউতে সব {count}টি ঘটনা দেখুন",
     "linkValueDelimiter": "একই কক্ষে একাধিক যুক্ত মান আলাদা করার অক্ষর (ডিফল্ট ,)",
-    "interfaceMixedRoles": "ইন্টারফেস বা পৃষ্ঠাভেদে ভূমিকা আলাদা। দেখতে প্রসারিত করুন",
+    "interfaceMixedRoles": "অ্যাপ বা পৃষ্ঠাভেদে ভূমিকা আলাদা। দেখতে প্রসারিত করুন",
     "chatQueueAttachmentUnavailable": "আপনি বার্তাটি সারিতে রাখলে এই সংযুক্তিটি পাঠানো হবে না। আগে এটি সরিয়ে দিন",
     "lockedViewDisabledOnProduction": "লক করা ভিউ কেবল পরিবেশের অনুলিপিতে তৈরি করা যায়",
     "personalViewDisabledOnEnvironment": "ব্যক্তিগত ভিউ শুধুমাত্র প্রোডাকশন প্রকল্পেই তৈরি করা যায়",
@@ -6376,7 +6391,36 @@
     "inviteLinkCannotGrantOwner": "আমন্ত্রণ লিঙ্ক মালিকের ভূমিকা দিতে পারে না",
     "inviteLinkRoleAboveYours": "আপনি কেবল নিজের ভূমিকা পর্যন্ত ভূমিকা দিতে পারেন",
     "noDefaultSourceForFolders": "এই প্রকল্পের কোনও ডিফল্ট উৎস নেই। বরং প্রতিটি উৎসের নিজস্ব মেনু থেকে ফোল্ডার তৈরি করুন",
-    "noDefaultSourceForSync": "এই প্রকল্পের কোনও ডিফল্ট উৎস নেই। সিঙ্কের টেবিল সংরক্ষণ করতে একটি উৎস দরকার"
+    "noDefaultSourceForSync": "এই প্রকল্পের কোনও ডিফল্ট উৎস নেই। সিঙ্কের টেবিল সংরক্ষণ করতে একটি উৎস দরকার",
+    "factoryGitApplyTruncated": "এই প্যাচ কেটে গেছে এবং কোনও পরিবর্তনের মাঝে শেষ হতে পারে, তাই এটি ঠিকভাবে প্রয়োগ হবে না।",
+    "factoryGitApplyWhitespace": "হোয়াইটস্পেস পরিবর্তন লুকানো আছে, তাই এই প্যাচে সেগুলি নেই। প্রয়োগযোগ্য প্যাচ কপি করতে সেগুলি দেখান।",
+    "factoryGitApplyBinary": "এই প্যাচ বাইনারি ফাইল বদলায়, যা git apply এটি থেকে আবার তৈরি করতে পারে না।",
+    "vaultComingSoon": "শীঘ্রই আসছে।",
+    "workflowButtonTriggerFieldReadOnly": "এই ট্রিগারের সঙ্গে যুক্ত বোতাম ফিল্ড কেবল ফিল্ডের সেটিংস থেকে বদলানো যায়",
+    "linkUnlinkDisabledEditFieldsForm": "ফর্মের মাধ্যমে ফিল্ড সম্পাদনা করা হলে এই বিকল্প বন্ধ থাকে",
+    "linkUnlinkDisabledEditFieldsOff": "ফিল্ড সম্পাদনা বন্ধ থাকলে এই বিকল্প বন্ধ থাকে",
+    "addRecordFormDisabledColumnNotInline": "এই কলাম ইনলাইনে সম্পাদনা করা না গেলে এই বিকল্প বন্ধ থাকে",
+    "readOnlyFieldCannotBeRequired": "কেবল-পঠনযোগ্য ফিল্ড আবশ্যিক করা যায় না",
+    "verifyEmailBeforeReset": "সাইন-আপের সময় আপনার ইমেল যাচাই না হয়ে থাকলে, রিসেট চালিয়ে যাওয়ার আগে এখনই যাচাই করুন; নইলে রিসেট কোড পাবেন না।",
+    "vaultPromoteToOrg": "পুরো সংস্থার জন্য উপলব্ধ করুন",
+    "testWebhookDisabledForScripts": "স্ক্রিপ্টের জন্য টেস্ট ওয়েবহুক বন্ধ",
+    "aiIntegrationNotAvailableOnMobile": "মোবাইল মোডে AI ইন্টিগ্রেশন পাওয়া যায় না।",
+    "categoryLimit": "যত শীর্ষ বিভাগ দেখানো হবে (ন্যূনতম: 10, সর্বোচ্চ: 50)",
+    "copyImageUrl": "ছবির URL কপি করুন",
+    "editImage": "ছবি সম্পাদনা করুন",
+    "removeImage": "ছবি সরান",
+    "panMode": "প্যান মোড",
+    "selectionMode": "নির্বাচন মোড",
+    "addNote": "নোট যোগ করুন",
+    "aiIntegrationForOperation": "এই কাজের জন্য ব্যবহৃত ইন্টিগ্রেশন",
+    "aiModelForOperation": "এই কাজের জন্য ব্যবহৃত মডেল",
+    "setupScriptSettingsFirstToExecute": "চালাতে হলে আগে স্ক্রিপ্ট সেটিংস ঠিক করুন",
+    "selectTable": "টেবিল বেছে নিন",
+    "copyViewId": "ভিউয়ের ID কপি করুন",
+    "dataSourceReadOnly": "এই ডেটা উৎস কেবল পড়ার জন্য।",
+    "mentionFields": "ফিল্ড উল্লেখ করুন",
+    "skipEnabledAfterDelay": "2 সেকেন্ড পরে চালু হবে",
+    "clickToCopyDocumentId": "নথির ID কপি করতে ক্লিক করুন"
   },
   "placeholder": {
     "enterVerificationCode": "৬-সংখ্যার কোড লিখুন",
@@ -9112,7 +9156,14 @@
       "descriptionLabel": "বিবরণ",
       "groupRequired": "একটি {group} বাছুন।",
       "requiredHint": "* আবশ্যক",
-      "browse": "ব্রাউজ করুন"
+      "browse": "ব্রাউজ করুন",
+      "title": "অনুরোধ পাঠান",
+      "staffHint": "টিমের আইটেমগুলি পর্যালোচনা বাদ দিয়ে সরাসরি আপনার বেছে নেওয়া স্থিতিতে চলে যায়।",
+      "titlePlaceholder": "ছোট একটি শিরোনাম",
+      "similar": "আগেই অনুরোধ করা হয়েছে? বরং ভোট দিন:",
+      "staffTitle": "নতুন অনুরোধ",
+      "titleLabel": "শিরোনাম",
+      "titleTooShort": "অন্তত {min}টি অক্ষর ব্যবহার করুন।"
     },
     "railTooltipUnseen": "Noco রোডম্যাপ · নতুন আপডেট প্রকাশিত হয়েছে",
     "stateTabs": "অনুরোধের অবস্থা",
@@ -9126,6 +9177,90 @@
     "previousRequest": "আগের অনুরোধ",
     "nextRequest": "পরবর্তী অনুরোধ",
     "saved": "পরিবর্তন সংরক্ষিত হয়েছে",
-    "saveShortcut": "সংরক্ষণ করতে ⌘/Ctrl + Enter · বাতিল করতে Esc"
+    "saveShortcut": "সংরক্ষণ করতে ⌘/Ctrl + Enter · বাতিল করতে Esc",
+    "title": "Noco রোডম্যাপ",
+    "you": "আপনি",
+    "youAppearAs": "অন্যরা আপনাকে যেভাবে দেখে",
+    "viewingAs": "যে হিসেবে দেখছেন",
+    "votesCount": "{count} ভোট | {count} ভোট",
+    "tab": {
+      "requests": "অনুরোধ",
+      "board": "বোর্ড"
+    },
+    "tabs": {
+      "comments": "মন্তব্য · {count}",
+      "internal": "অভ্যন্তরীণ · {count}",
+      "voters": "ভোটদাতা · {count}",
+      "links": "লিঙ্ক · {count}",
+      "activity": "কার্যক্রম",
+      "label": "অনুরোধের অংশ"
+    },
+    "view": {
+      "all": "সব অনুরোধ",
+      "mine": "আমার অনুরোধ",
+      "team": "ওয়ার্কস্পেসের অনুরোধ",
+      "voted": "আমার ভোট",
+      "triage": "বাছাই",
+      "assigned": "আমাকে বরাদ্দ করা",
+      "internal": "অভ্যন্তরীণ"
+    },
+    "teamScope": {
+      "workspace": "এই ওয়ার্কস্পেস",
+      "org": "পুরো সংস্থা",
+      "label": "টিমের পরিধি"
+    },
+    "visibility": {
+      "public": "সর্বজনীন",
+      "internal": "অভ্যন্তরীণ"
+    },
+    "underReview": {
+      "title": "পর্যালোচনাধীন",
+      "hint": "অনুমোদিত না হওয়া পর্যন্ত এটি শুধু আপনি আর NocoDB টিম দেখতে পায়।",
+      "next": "অনুমোদিত বা প্রত্যাখ্যাত হলে, কিংবা টিম উত্তর দিলে আমরা ইমেল করব।",
+      "nextInApp": "অনুমোদিত বা প্রত্যাখ্যাত হলে, কিংবা টিম উত্তর দিলে এখানে জানানো হবে।"
+    },
+    "subscribe": {
+      "subscribedTitle": "পরিবর্তন হলে জানাব",
+      "subscribedHint": "স্থিতি বদলালে বা টিম উত্তর দিলে আমরা ইমেল করব।",
+      "unsubscribedTitle": "এই অনুরোধের আপডেট পান",
+      "unsubscribedHint": "কবে এগোচ্ছে জানতে এটি অনুসরণ করুন।",
+      "mutedTitle": "বিজ্ঞপ্তি মিউট করা হয়েছে",
+      "mutedHint": "এই অনুরোধ সম্পর্কে আপনি আপডেট পাবেন না।",
+      "subscribe": "অনুসরণ করুন",
+      "mute": "মিউট করুন",
+      "unmute": "মিউট বন্ধ করুন",
+      "staffHint": "স্থিতি পরিবর্তন ও মন্তব্যের জন্য অ্যাপে বিজ্ঞপ্তি পাবেন।",
+      "emailOffHint": "ইমেল আপডেট বন্ধ আছে, তাই আপডেট শুধু অ্যাপে দেখা যায়।",
+      "turnOnEmail": "ইমেল চালু করুন",
+      "emailOn": "ইমেল আপডেট চালু আছে"
+    },
+    "voters": {
+      "summary": "{real}টি আসল ভোট · {adjustment} সমন্বয় | {real}টি আসল ভোট · {adjustment} সমন্বয়",
+      "person": "ব্যক্তি",
+      "account": "ওয়ার্কস্পেস / সংস্থা",
+      "plan": "প্ল্যান",
+      "voted": "ভোট দিয়েছেন",
+      "empty": "এখনও কোনও ভোট নেই।"
+    },
+    "triage": {
+      "title": "বাছাইয়ের অপেক্ষায়",
+      "merge": "মার্জ করুন",
+      "mergeHint": "বিদ্যমান একটি অনুরোধে মার্জ করুন",
+      "decline": "প্রত্যাখ্যান করুন",
+      "declineHint": "অনুরোধকারী দেখতে পাবেন এমন কারণসহ প্রত্যাখ্যান করুন",
+      "approveInto": "{status}-এ অনুমোদন করুন",
+      "chooseStatus": "কোন স্থিতিতে অনুমোদন করবেন তা বেছে নিন",
+      "approved": "অনুমোদন করে {status}-এ সরানো হয়েছে",
+      "clear": "বাছাই করার কিছু নেই"
+    },
+    "viewsNav": "রোডম্যাপের ভিউ",
+    "toggleSidebar": "ভিউ ও বিভাগ",
+    "vote": {
+      "ariaUpvote": "ভোট দিন, {count} ভোট | ভোট দিন, {count} ভোট",
+      "ariaRemove": "আপনার ভোট সরান, {count} ভোট | আপনার ভোট সরান, {count} ভোট",
+      "closed": "এই অনুরোধে ভোট দেওয়া বন্ধ",
+      "closedMerged": "এটি যে অনুরোধে মার্জ হয়েছে সেটিতে ভোট দিন"
+    },
+    "submittedBy": "{name} পাঠিয়েছেন"
   }
 }

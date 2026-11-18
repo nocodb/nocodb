@@ -1294,7 +1294,7 @@
   },
   "title": {
     "bookmarks": "Penanda",
-    "baseTrash": "Sampah Proyek",
+    "baseTrash": "Sampah proyek",
     "noWorkspaceAccess": "Tidak ada akses ruang kerja",
     "convertLegacyLink": "Tingkatkan Bidang Tautan",
     "versionHistory": "Riwayat Versi",
@@ -1538,7 +1538,7 @@
     "creatingAgent": "Membuat agen",
     "agentToolsAndAccess": "Alat dan akses",
     "agentSkills": "Keterampilan",
-    "agentSettings": "Pengaturan",
+    "agentSettings": "Pengaturan agent",
     "updateRecordsCount": "Perbarui {n} rekaman | Perbarui {n} rekaman",
     "turnOffEditing": "Matikan penyuntingan?",
     "turnOnInlineEditing": "Nyalakan penyuntingan langsung di tabel?",
@@ -1552,8 +1552,23 @@
     "tooNarrowToAdjustFrozenFields": "Jendela terlalu sempit untuk menyetel bidang yang dibekukan",
     "themeSettings": "Pengaturan tema",
     "nFields": "{count} bidang | {count} bidang",
-    "noInterfaceMembersYet": "Belum ada anggota antarmuka",
-    "headJoin": "Bergabung | NocoDB"
+    "noInterfaceMembersYet": "Belum ada anggota aplikasi",
+    "headJoin": "Bergabung | NocoDB",
+    "abuseReports": "Laporan penyalahgunaan",
+    "disablePublicLink": "Nonaktifkan tautan publik?",
+    "blockUser": "Blokir pengguna?",
+    "vaultBanner": "Simpan kredensial di brankas Anda sendiri",
+    "connectSecretsProvider": "Hubungkan penyedia rahasia",
+    "vaultConnected": "Kredensial berasal dari brankas Anda",
+    "vaults": "Brankas",
+    "vaultDisconnect": "Putuskan brankas",
+    "vaultEdit": "Edit brankas",
+    "pickBaseForApp": "Pilih proyek untuk aplikasi Anda",
+    "baseTypeDefaultSubtext": "Anggota ruang kerja dapat berkolaborasi sesuai perannya.",
+    "baseTypePrivateSubtext": "Proyek khusus undangan. Hanya Anda yang dapat melihat dan mengelola anggotanya.",
+    "auditDetails": "Detail audit",
+    "markdownEditor": "Editor Markdown",
+    "loyaltyBadgeTitle": "Diskon loyalitas terbuka! Hemat hingga 55%!"
   },
   "labels": {
     "syncing": "Sinkronisasi",
@@ -6279,7 +6294,7 @@
     "hideFieldInView": "Sembunyikan bidang ini pada tampilan saat ini.",
     "viewAllEventsInDayView": "Lihat {count} acara pada tampilan harian | Lihat semua {count} acara pada tampilan harian",
     "linkValueDelimiter": "Karakter pemisah beberapa nilai tertaut dalam satu sel (bawaan ,)",
-    "interfaceMixedRoles": "Peran berbeda di antara antarmuka atau halaman. Perluas untuk melihatnya",
+    "interfaceMixedRoles": "Peran berbeda di antara aplikasi atau halaman. Perluas untuk melihatnya",
     "chatQueueAttachmentUnavailable": "Lampiran ini tidak akan terkirim jika Anda mengantrekan pesan. Hapus dulu",
     "lockedViewDisabledOnProduction": "Tampilan terkunci hanya dapat dibuat di salinan lingkungan",
     "personalViewDisabledOnEnvironment": "Tampilan pribadi hanya dapat dibuat di proyek produksi",
@@ -6359,7 +6374,36 @@
     "inviteLinkCannotGrantOwner": "Tautan undangan tidak dapat memberikan peran Pemilik",
     "inviteLinkRoleAboveYours": "Anda hanya dapat menawarkan peran hingga setara peran Anda sendiri",
     "noDefaultSourceForFolders": "Proyek ini tidak memiliki sumber default. Buat folder dari menu sumber itu sendiri",
-    "noDefaultSourceForSync": "Proyek ini tidak memiliki sumber default. Sinkronisasi membutuhkannya untuk menyimpan tabelnya"
+    "noDefaultSourceForSync": "Proyek ini tidak memiliki sumber default. Sinkronisasi membutuhkannya untuk menyimpan tabelnya",
+    "factoryGitApplyTruncated": "Patch ini terpotong dan mungkin berakhir di tengah perubahan, sehingga tidak akan diterapkan dengan bersih.",
+    "factoryGitApplyWhitespace": "Perubahan spasi disembunyikan, jadi patch ini tidak menyertakannya. Tampilkan agar dapat menyalin patch yang bisa diterapkan.",
+    "factoryGitApplyBinary": "Patch ini mengubah berkas biner, yang tidak dapat dibuat ulang oleh git apply darinya.",
+    "vaultComingSoon": "Segera hadir.",
+    "workflowButtonTriggerFieldReadOnly": "Bidang Tombol yang terhubung ke pemicu ini hanya dapat diubah dari pengaturan bidang",
+    "linkUnlinkDisabledEditFieldsForm": "Opsi ini nonaktif saat bidang diedit melalui formulir",
+    "linkUnlinkDisabledEditFieldsOff": "Opsi ini nonaktif saat pengeditan bidang dimatikan",
+    "addRecordFormDisabledColumnNotInline": "Opsi ini nonaktif saat kolom ini tidak dapat diedit langsung",
+    "readOnlyFieldCannotBeRequired": "Bidang hanya baca tidak boleh wajib diisi",
+    "verifyEmailBeforeReset": "Jika email Anda belum diverifikasi saat pendaftaran, verifikasi sekarang sebelum melanjutkan penyetelan ulang; jika tidak, Anda tidak akan menerima kodenya.",
+    "vaultPromoteToOrg": "Sediakan untuk seluruh organisasi",
+    "testWebhookDisabledForScripts": "Webhook uji dinonaktifkan untuk skrip",
+    "aiIntegrationNotAvailableOnMobile": "Integrasi AI tidak tersedia dalam mode seluler.",
+    "categoryLimit": "Jumlah kategori teratas yang ditampilkan (min: 10, maks: 50)",
+    "copyImageUrl": "Salin URL gambar",
+    "editImage": "Edit gambar",
+    "removeImage": "Hapus gambar",
+    "panMode": "Mode geser",
+    "selectionMode": "Mode seleksi",
+    "addNote": "Tambah catatan",
+    "aiIntegrationForOperation": "Integrasi yang digunakan untuk operasi ini",
+    "aiModelForOperation": "Model yang digunakan untuk operasi ini",
+    "setupScriptSettingsFirstToExecute": "Atur dulu pengaturan skrip untuk menjalankannya",
+    "selectTable": "Pilih tabel",
+    "copyViewId": "Salin ID tampilan",
+    "dataSourceReadOnly": "Sumber data ini hanya baca.",
+    "mentionFields": "Sebut bidang",
+    "skipEnabledAfterDelay": "Akan aktif setelah 2 detik",
+    "clickToCopyDocumentId": "Klik untuk menyalin ID dokumen"
   },
   "placeholder": {
     "enterVerificationCode": "Masukkan kode 6 digit",
@@ -8232,7 +8276,7 @@
     "deletedItemsWillAppearHere": "Tabel, tampilan, bidang, dan lainnya yang dihapus akan muncul di sini",
     "confirmEmpty": "Semua item dalam sampah akan dihapus secara permanen. Ini tidak dapat dibatalkan.",
     "restoreRequiresCreator": "Memulihkan item ini membutuhkan peran Pembuat atau Pemilik",
-    "secondsAgo": "{count} detik yang lalu",
+    "secondsAgo": "{count} dtk lalu",
     "youDeleted": "Anda menghapus {type} dari {parent}: {name}",
     "userDeleted": "{user} menghapus {type} dari {parent}: {name}",
     "youDeletedNoParent": "Anda menghapus {type}: {name}",
@@ -9090,7 +9134,14 @@
       "descriptionLabel": "Deskripsi",
       "groupRequired": "Pilih {group}.",
       "requiredHint": "* Wajib",
-      "browse": "telusuri"
+      "browse": "telusuri",
+      "title": "Kirim permintaan",
+      "staffHint": "Item tim melewati peninjauan dan langsung mendapat status yang Anda pilih.",
+      "titlePlaceholder": "Judul singkat",
+      "similar": "Sudah pernah diminta? Beri suara saja:",
+      "staffTitle": "Permintaan baru",
+      "titleLabel": "Judul",
+      "titleTooShort": "Gunakan minimal {min} karakter."
     },
     "railTooltipUnseen": "Peta Jalan Noco · Pembaruan baru dirilis",
     "stateTabs": "Status permintaan",
@@ -9104,6 +9155,87 @@
     "previousRequest": "Permintaan sebelumnya",
     "nextRequest": "Permintaan berikutnya",
     "saved": "Perubahan disimpan",
-    "saveShortcut": "⌘/Ctrl + Enter untuk menyimpan · Esc untuk membatalkan"
+    "saveShortcut": "⌘/Ctrl + Enter untuk menyimpan · Esc untuk membatalkan",
+    "title": "Peta jalan Noco",
+    "you": "Anda",
+    "youAppearAs": "Orang lain melihat Anda sebagai",
+    "viewingAs": "Melihat sebagai",
+    "votesCount": "{count} suara | {count} suara",
+    "tab": {
+      "requests": "Permintaan",
+      "board": "Papan"
+    },
+    "tabs": {
+      "comments": "Komentar · {count}",
+      "voters": "Pemberi suara · {count}",
+      "links": "Tautan · {count}",
+      "activity": "Aktivitas",
+      "label": "Bagian permintaan"
+    },
+    "view": {
+      "all": "Semua permintaan",
+      "mine": "Permintaan saya",
+      "team": "Permintaan ruang kerja",
+      "voted": "Suara saya",
+      "triage": "Penyortiran",
+      "assigned": "Ditugaskan ke saya"
+    },
+    "teamScope": {
+      "workspace": "Ruang kerja ini",
+      "org": "Seluruh organisasi",
+      "label": "Cakupan tim"
+    },
+    "visibility": {
+      "public": "Publik"
+    },
+    "underReview": {
+      "title": "Sedang ditinjau",
+      "hint": "Hanya Anda dan tim NocoDB yang dapat melihat ini sampai disetujui.",
+      "next": "Kami akan mengirim email saat disetujui atau ditolak, atau saat tim membalas.",
+      "nextInApp": "Anda akan diberi tahu di sini saat disetujui atau ditolak, atau saat tim membalas."
+    },
+    "subscribe": {
+      "subscribedTitle": "Anda akan diberi tahu saat ini berubah",
+      "subscribedHint": "Kami akan mengirim email saat statusnya berubah atau saat tim membalas.",
+      "unsubscribedTitle": "Dapatkan pembaruan tentang permintaan ini",
+      "unsubscribedHint": "Ikuti untuk tahu saat permintaan ini maju.",
+      "mutedTitle": "Notifikasi dibisukan",
+      "mutedHint": "Anda tidak akan menerima pembaruan tentang permintaan ini.",
+      "subscribe": "Ikuti",
+      "mute": "Bisukan",
+      "unmute": "Bunyikan",
+      "staffHint": "Anda menerima notifikasi di aplikasi untuk perubahan status dan komentar.",
+      "emailOffHint": "Pembaruan lewat email nonaktif, jadi pembaruan hanya muncul di aplikasi.",
+      "turnOnEmail": "Aktifkan email",
+      "emailOn": "Pembaruan lewat email aktif"
+    },
+    "voters": {
+      "summary": "{real} suara asli · {adjustment} penyesuaian | {real} suara asli · {adjustment} penyesuaian",
+      "person": "Orang",
+      "account": "Ruang kerja / organisasi",
+      "plan": "Paket",
+      "voted": "Sudah memberi suara",
+      "empty": "Belum ada suara."
+    },
+    "triage": {
+      "title": "Menunggu penyortiran",
+      "merge": "Gabungkan",
+      "mergeHint": "Gabungkan ke permintaan yang ada",
+      "decline": "Tolak",
+      "declineHint": "Tolak dengan alasan yang dilihat pemohon",
+      "approveInto": "Setujui ke {status}",
+      "chooseStatus": "Pilih status untuk menyetujuinya",
+      "approved": "Disetujui dan dipindahkan ke {status}",
+      "clear": "Tidak ada yang perlu disortir"
+    },
+    "viewsNav": "Tampilan peta jalan",
+    "toggleSidebar": "Tampilan dan kategori",
+    "vote": {
+      "ariaUpvote": "Beri suara, {count} suara | Beri suara, {count} suara",
+      "ariaRemove": "Hapus suara Anda, {count} suara | Hapus suara Anda, {count} suara",
+      "closed": "Pemungutan suara untuk permintaan ini sudah ditutup",
+      "closedMerged": "Beri suara pada permintaan tempat ini digabungkan"
+    },
+    "submittedBy": "dikirim oleh {name}"
   }
 }

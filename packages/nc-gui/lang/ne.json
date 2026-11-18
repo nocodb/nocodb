@@ -1540,7 +1540,7 @@
     "creatingAgent": "एजेन्ट बनाइँदै",
     "agentToolsAndAccess": "उपकरण र पहुँच",
     "agentSkills": "सीपहरू",
-    "agentSettings": "सेटिङ",
+    "agentSettings": "एजेन्ट सेटिङ",
     "updateRecordsCount": "{n} रेकर्ड अद्यावधिक गर्नुहोस् | {n} रेकर्ड अद्यावधिक गर्नुहोस्",
     "turnOffEditing": "सम्पादन बन्द गर्ने?",
     "turnOnInlineEditing": "तालिकाभित्रै सम्पादन खोल्ने?",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "स्थिर गरिएका फिल्ड मिलाउन विन्डो अत्यन्तै साँघुरो छ",
     "themeSettings": "थिम सेटिङ",
     "nFields": "{count} फिल्ड | {count} फिल्डहरू",
-    "noInterfaceMembersYet": "अहिलेसम्म इन्टरफेसका सदस्य छैनन्",
-    "headJoin": "सामेल हुनुहोस् | NocoDB"
+    "noInterfaceMembersYet": "अहिलेसम्म एपका सदस्य छैनन्",
+    "headJoin": "सामेल हुनुहोस् | NocoDB",
+    "abuseReports": "दुरुपयोगका उजुरी",
+    "disablePublicLink": "सार्वजनिक लिङ्क बन्द गर्ने?",
+    "blockUser": "प्रयोगकर्तालाई ब्लक गर्ने?",
+    "vaultBanner": "आफ्नै भल्टमा परिचय विवरण राख्नुहोस्",
+    "connectSecretsProvider": "गोप्य कुञ्जी प्रदायक जोड्नुहोस्",
+    "vaultConnected": "परिचय विवरण तपाईंको भल्टबाट आउँछ",
+    "vaults": "भल्टहरू",
+    "vaultDisconnect": "भल्ट विच्छेद गर्नुहोस्",
+    "vaultEdit": "भल्ट सम्पादन गर्नुहोस्",
+    "pickBaseForApp": "आफ्नो एपका लागि परियोजना छान्नुहोस्",
+    "baseTypeDefaultSubtext": "कार्य क्षेत्रका सदस्यहरूले आ-आफ्नो भूमिकाअनुसार सँगै काम गर्न सक्छन्।",
+    "baseTypePrivateSubtext": "निम्तोमा मात्र चल्ने परियोजना। यसका सदस्य तपाईंले मात्र हेर्न र व्यवस्थापन गर्न सक्नुहुन्छ।",
+    "auditDetails": "अडिट विवरण",
+    "markdownEditor": "Markdown सम्पादक",
+    "loyaltyBadgeTitle": "वफादारी छुट खुल्यो! 55% सम्म बचत गर्नुहोस्!"
   },
   "labels": {
     "syncing": "Syncing",
@@ -6296,7 +6311,7 @@
     "hideFieldInView": "हालको दृश्यमा यो फिल्ड लुकाउनुहोस्।",
     "viewAllEventsInDayView": "दिन दृश्यमा {count} कार्यक्रम हेर्नुहोस् | दिन दृश्यमा सबै {count} कार्यक्रम हेर्नुहोस्",
     "linkValueDelimiter": "एउटै कक्षभित्र धेरै जोडिएका मान छुट्याउने वर्ण (पूर्वनिर्धारित ,)",
-    "interfaceMixedRoles": "इन्टरफेस वा पृष्ठअनुसार भूमिका फरक हुन्छन्। हेर्न विस्तार गर्नुहोस्",
+    "interfaceMixedRoles": "एप वा पृष्ठअनुसार भूमिका फरक हुन्छन्। हेर्न विस्तार गर्नुहोस्",
     "chatQueueAttachmentUnavailable": "तपाईंले सन्देशलाई पङ्क्तिमा राख्नुभयो भने यो संलग्नक पठाइने छैन। पहिले यसलाई हटाउनुहोस्",
     "lockedViewDisabledOnProduction": "लक गरिएका दृश्य वातावरण प्रतिलिपिमा मात्र सिर्जना गर्न सकिन्छ",
     "personalViewDisabledOnEnvironment": "व्यक्तिगत दृश्यहरू उत्पादन परियोजनामा मात्र बनाउन सकिन्छ",
@@ -6376,7 +6391,36 @@
     "inviteLinkCannotGrantOwner": "निमन्त्रणा लिङ्कले मालिकको भूमिका दिन सक्दैन",
     "inviteLinkRoleAboveYours": "तपाईं आफ्नै भूमिकासम्मका भूमिका मात्र दिन सक्नुहुन्छ",
     "noDefaultSourceForFolders": "यो परियोजनामा कुनै पूर्वनिर्धारित स्रोत छैन। बरु फोल्डरहरू स्रोतकै आफ्नै मेनुबाट बनाउनुहोस्",
-    "noDefaultSourceForSync": "यो परियोजनामा कुनै पूर्वनिर्धारित स्रोत छैन। सिंकलाई आफ्ना तालिकाहरू राख्न एउटा स्रोत चाहिन्छ"
+    "noDefaultSourceForSync": "यो परियोजनामा कुनै पूर्वनिर्धारित स्रोत छैन। सिंकलाई आफ्ना तालिकाहरू राख्न एउटा स्रोत चाहिन्छ",
+    "factoryGitApplyTruncated": "यो प्याच बीचमै काटिएको छ र कुनै परिवर्तनको बीचमा सकिन सक्छ, त्यसैले यो राम्ररी लागू हुँदैन।",
+    "factoryGitApplyWhitespace": "ह्वाइटस्पेस परिवर्तन लुकाइएका छन्, त्यसैले यो प्याचमा ती छैनन्। लागू हुने प्याच प्रतिलिपि गर्न ती देखाउनुहोस्।",
+    "factoryGitApplyBinary": "यो प्याचले बाइनरी फाइल बदल्छ, जसलाई git apply ले यसबाट पुनः बनाउन सक्दैन।",
+    "vaultComingSoon": "चाँडै आउँदैछ।",
+    "workflowButtonTriggerFieldReadOnly": "यो ट्रिगरसँग जोडिएको बटन फिल्ड फिल्डकै सेटिङबाट मात्र बदल्न सकिन्छ",
+    "linkUnlinkDisabledEditFieldsForm": "फारमबाट फिल्ड सम्पादन गर्दा यो विकल्प बन्द हुन्छ",
+    "linkUnlinkDisabledEditFieldsOff": "फिल्ड सम्पादन बन्द हुँदा यो विकल्प बन्द हुन्छ",
+    "addRecordFormDisabledColumnNotInline": "यो स्तम्भ भित्रै सम्पादन गर्न नमिल्दा यो विकल्प बन्द हुन्छ",
+    "readOnlyFieldCannotBeRequired": "पढ्न मात्र मिल्ने फिल्ड अनिवार्य हुन सक्दैनन्",
+    "verifyEmailBeforeReset": "दर्ता गर्दा तपाईंको इमेल प्रमाणित नभएको भए, रिसेट अघि बढाउनुअघि अहिल्यै प्रमाणित गर्नुहोस्; नत्र रिसेट कोड आउँदैन।",
+    "vaultPromoteToOrg": "सिंगो संगठनका लागि उपलब्ध गराउनुहोस्",
+    "testWebhookDisabledForScripts": "स्क्रिप्टका लागि परीक्षण वेबहुक बन्द छ",
+    "aiIntegrationNotAvailableOnMobile": "मोबाइल मोडमा AI इन्टिग्रेसन उपलब्ध छैन।",
+    "categoryLimit": "देखाइने शीर्ष वर्गको सङ्ख्या (न्यूनतम: 10, अधिकतम: 50)",
+    "copyImageUrl": "तस्बिरको URL प्रतिलिपि गर्नुहोस्",
+    "editImage": "तस्बिर सम्पादन गर्नुहोस्",
+    "removeImage": "तस्बिर हटाउनुहोस्",
+    "panMode": "सार्ने मोड",
+    "selectionMode": "चयन मोड",
+    "addNote": "टिपोट थप्नुहोस्",
+    "aiIntegrationForOperation": "यस कामका लागि प्रयोग हुने इन्टिग्रेसन",
+    "aiModelForOperation": "यस कामका लागि प्रयोग हुने मोडेल",
+    "setupScriptSettingsFirstToExecute": "चलाउन पहिले स्क्रिप्ट सेटिङ मिलाउनुहोस्",
+    "selectTable": "तालिका छान्नुहोस्",
+    "copyViewId": "दृश्यको ID प्रतिलिपि गर्नुहोस्",
+    "dataSourceReadOnly": "यो डेटा स्रोत पढ्न मात्र मिल्छ।",
+    "mentionFields": "फिल्ड उल्लेख गर्नुहोस्",
+    "skipEnabledAfterDelay": "2 सेकेन्डपछि सक्रिय हुनेछ",
+    "clickToCopyDocumentId": "कागजातको ID प्रतिलिपि गर्न क्लिक गर्नुहोस्"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8249,7 +8293,7 @@
     "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
-    "secondsAgo": "{count} seconds ago",
+    "secondsAgo": "{count} सेकेन्ड अघि",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
@@ -9112,7 +9156,14 @@
       "descriptionLabel": "विवरण",
       "groupRequired": "एउटा {group} छान्नुहोस्।",
       "requiredHint": "* अनिवार्य",
-      "browse": "ब्राउज गर्नुहोस्"
+      "browse": "ब्राउज गर्नुहोस्",
+      "title": "अनुरोध पठाउनुहोस्",
+      "staffHint": "टोलीका वस्तुहरूले समीक्षा छोडेर सिधै तपाईंले छानेको स्थितिमा जान्छन्।",
+      "titlePlaceholder": "छोटो शीर्षक",
+      "similar": "पहिले नै अनुरोध गरिएको छ? बरु मत दिनुहोस्:",
+      "staffTitle": "नयाँ अनुरोध",
+      "titleLabel": "शीर्षक",
+      "titleTooShort": "कम्तीमा {min} अक्षर प्रयोग गर्नुहोस्।"
     },
     "railTooltipUnseen": "Noco रोडम्याप · नयाँ अपडेट जारी भए",
     "stateTabs": "अनुरोधको अवस्था",
@@ -9126,6 +9177,90 @@
     "previousRequest": "अघिल्लो अनुरोध",
     "nextRequest": "अर्को अनुरोध",
     "saved": "परिवर्तनहरू सुरक्षित गरियो",
-    "saveShortcut": "सुरक्षित गर्न ⌘/Ctrl + Enter · रद्द गर्न Esc"
+    "saveShortcut": "सुरक्षित गर्न ⌘/Ctrl + Enter · रद्द गर्न Esc",
+    "title": "Noco रोडम्याप",
+    "you": "तपाईं",
+    "youAppearAs": "अरूले तपाईंलाई यसरी देख्छन्",
+    "viewingAs": "यसरी हेर्दै",
+    "votesCount": "{count} मत | {count} मत",
+    "tab": {
+      "requests": "अनुरोधहरू",
+      "board": "बोर्ड"
+    },
+    "tabs": {
+      "comments": "टिप्पणीहरू · {count}",
+      "internal": "आन्तरिक · {count}",
+      "voters": "मतदाताहरू · {count}",
+      "links": "लिङ्कहरू · {count}",
+      "activity": "गतिविधि",
+      "label": "अनुरोधका खण्डहरू"
+    },
+    "view": {
+      "all": "सबै अनुरोध",
+      "mine": "मेरा अनुरोध",
+      "team": "कार्य क्षेत्रका अनुरोध",
+      "voted": "मेरा मतहरू",
+      "triage": "छुट्याउने काम",
+      "assigned": "मलाई तोकिएका",
+      "internal": "आन्तरिक"
+    },
+    "teamScope": {
+      "workspace": "यो कार्य क्षेत्र",
+      "org": "सिंगो संगठन",
+      "label": "टोलीको दायरा"
+    },
+    "visibility": {
+      "public": "सार्वजनिक",
+      "internal": "आन्तरिक"
+    },
+    "underReview": {
+      "title": "समीक्षामा",
+      "hint": "स्वीकृत नहुन्जेल यो तपाईं र NocoDB टोलीले मात्र देख्न सक्छ।",
+      "next": "स्वीकृत वा अस्वीकृत हुँदा, वा टोलीले जवाफ दिँदा हामी इमेल पठाउनेछौं।",
+      "nextInApp": "स्वीकृत वा अस्वीकृत हुँदा, वा टोलीले जवाफ दिँदा यहाँ सूचना दिइनेछ।"
+    },
+    "subscribe": {
+      "subscribedTitle": "परिवर्तन हुँदा तपाईंलाई थाहा हुनेछ",
+      "subscribedHint": "स्थिति बदलिँदा वा टोलीले जवाफ दिँदा हामी इमेल पठाउनेछौं।",
+      "unsubscribedTitle": "यस अनुरोधका अपडेट प्राप्त गर्नुहोस्",
+      "unsubscribedHint": "कहिले अगाडि बढ्छ थाहा पाउन यसलाई पछ्याउनुहोस्।",
+      "mutedTitle": "सूचनाहरू म्युट गरियो",
+      "mutedHint": "तपाईंले यस अनुरोधको अपडेट पाउनुहुने छैन।",
+      "subscribe": "पछ्याउनुहोस्",
+      "mute": "म्युट गर्नुहोस्",
+      "unmute": "म्युट हटाउनुहोस्",
+      "staffHint": "स्थिति परिवर्तन र टिप्पणीका लागि एपमा सूचना पाउनुहुन्छ।",
+      "emailOffHint": "इमेल अपडेट बन्द छ, त्यसैले अपडेट एपमा मात्र देखिन्छ।",
+      "turnOnEmail": "इमेल खोल्नुहोस्",
+      "emailOn": "इमेल अपडेट खुला छ"
+    },
+    "voters": {
+      "summary": "{real} वास्तविक मत · {adjustment} समायोजन | {real} वास्तविक मत · {adjustment} समायोजन",
+      "person": "व्यक्ति",
+      "account": "कार्य क्षेत्र / संगठन",
+      "plan": "योजना",
+      "voted": "मत दिएको",
+      "empty": "अहिलेसम्म कुनै मत छैन।"
+    },
+    "triage": {
+      "title": "छुट्याउन पर्खिरहेको",
+      "merge": "मर्ज गर्नुहोस्",
+      "mergeHint": "भइरहेको अनुरोधमा मर्ज गर्नुहोस्",
+      "decline": "अस्वीकार गर्नुहोस्",
+      "declineHint": "अनुरोध गर्नेले देख्ने कारणसहित अस्वीकार गर्नुहोस्",
+      "approveInto": "{status} मा स्वीकृत गर्नुहोस्",
+      "chooseStatus": "कुन स्थितिमा स्वीकृत गर्ने छान्नुहोस्",
+      "approved": "स्वीकृत गरी {status} मा सारियो",
+      "clear": "छुट्याउन केही छैन"
+    },
+    "viewsNav": "रोडम्यापका दृश्य",
+    "toggleSidebar": "दृश्य र वर्गहरू",
+    "vote": {
+      "ariaUpvote": "मत दिनुहोस्, {count} मत | मत दिनुहोस्, {count} मत",
+      "ariaRemove": "आफ्नो मत हटाउनुहोस्, {count} मत | आफ्नो मत हटाउनुहोस्, {count} मत",
+      "closed": "यस अनुरोधमा मतदान बन्द छ",
+      "closedMerged": "यो जुन अनुरोधमा मर्ज भयो, त्यसमा मत दिनुहोस्"
+    },
+    "submittedBy": "{name} ले पठाएको"
   }
 }

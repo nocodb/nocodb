@@ -1539,7 +1539,7 @@
     "creatingAgent": "កំពុងបង្កើតភ្នាក់ងារ",
     "agentToolsAndAccess": "ឧបករណ៍ និងសិទ្ធិចូល",
     "agentSkills": "ជំនាញ",
-    "agentSettings": "ការកំណត់",
+    "agentSettings": "ការកំណត់ Agent",
     "updateRecordsCount": "ធ្វើបច្ចុប្បន្នភាពកំណត់ត្រា {n} | ធ្វើបច្ចុប្បន្នភាពកំណត់ត្រា {n}",
     "turnOffEditing": "បិទការកែសម្រួល?",
     "turnOnInlineEditing": "បើកការកែសម្រួលក្នុងតារាង?",
@@ -1553,8 +1553,23 @@
     "tooNarrowToAdjustFrozenFields": "បង្អួចតូចចង្អៀតពេកមិនអាចលៃតម្រូវវាលដែលបានបង្កក",
     "themeSettings": "ការកំណត់រូបរាង",
     "nFields": "{count} វាល | {count} វាល",
-    "noInterfaceMembersYet": "មិនទាន់មានសមាជិកចំណុចប្រទាក់ទេ",
-    "headJoin": "ចូលរួម | NocoDB"
+    "noInterfaceMembersYet": "មិនទាន់មានសមាជិកកម្មវិធីទេ",
+    "headJoin": "ចូលរួម | NocoDB",
+    "abuseReports": "របាយការណ៍ការរំលោភបំពាន",
+    "disablePublicLink": "បិទតំណសាធារណៈ?",
+    "blockUser": "ទប់ស្កាត់អ្នកប្រើប្រាស់?",
+    "vaultBanner": "រក្សាព័ត៌មានសម្ងាត់ក្នុងឃ្លាំងសុវត្ថិភាពផ្ទាល់ខ្លួនរបស់អ្នក",
+    "connectSecretsProvider": "ភ្ជាប់អ្នកផ្តល់សេវាគ្រប់គ្រងព័ត៌មានសម្ងាត់",
+    "vaultConnected": "ព័ត៌មានសម្ងាត់មកពីឃ្លាំងសុវត្ថិភាពរបស់អ្នក",
+    "vaults": "ឃ្លាំងសុវត្ថិភាព",
+    "vaultDisconnect": "ផ្តាច់ឃ្លាំងសុវត្ថិភាព",
+    "vaultEdit": "កែសម្រួលឃ្លាំងសុវត្ថិភាព",
+    "pickBaseForApp": "ជ្រើសរើសគម្រោងសម្រាប់កម្មវិធីរបស់អ្នក",
+    "baseTypeDefaultSubtext": "សមាជិកកន្លែងធ្វើការអាចសហការគ្នាតាមតួនាទីរបស់ពួកគេ។",
+    "baseTypePrivateSubtext": "គម្រោងសម្រាប់តែអ្នកដែលបានអញ្ជើញ។ មានតែអ្នកទេដែលអាចមើល និងគ្រប់គ្រងសមាជិករបស់វា។",
+    "auditDetails": "ព័ត៌មានលម្អិតនៃសវនកម្ម",
+    "markdownEditor": "កម្មវិធីកែសម្រួល Markdown",
+    "loyaltyBadgeTitle": "បានដោះសោការបញ្ចុះតម្លៃភាពស្មោះត្រង់! សន្សំរហូតដល់ 55%!"
   },
   "labels": {
     "syncing": "Syncing",
@@ -6263,7 +6278,7 @@
     "hideFieldInView": "លាក់វាលនេះក្នុងទិដ្ឋភាពបច្ចុប្បន្ន។",
     "viewAllEventsInDayView": "មើលព្រឹត្តិការណ៍ {count} ក្នុងទិដ្ឋភាពថ្ងៃ | មើលព្រឹត្តិការណ៍ទាំង {count} ក្នុងទិដ្ឋភាពថ្ងៃ",
     "linkValueDelimiter": "តួអក្សរដែលបំបែកតម្លៃភ្ជាប់ច្រើនក្នុងក្រឡាតែមួយ (លំនាំដើម ,)",
-    "interfaceMixedRoles": "តួនាទីខុសគ្នារវាងចំណុចប្រទាក់ឬទំព័រ។ ពង្រីកដើម្បីមើលពួកវា",
+    "interfaceMixedRoles": "តួនាទីខុសគ្នារវាងកម្មវិធី ឬទំព័រ។ ពង្រីកដើម្បីមើលពួកវា",
     "chatQueueAttachmentUnavailable": "ឯកសារភ្ជាប់នេះនឹងមិនត្រូវបានផ្ញើទេ ប្រសិនបើអ្នកដាក់សាររបស់អ្នកក្នុងជួរ។ សូមដកវាចេញជាមុនសិន",
     "lockedViewDisabledOnProduction": "ទិដ្ឋភាពដែលចាក់សោអាចបង្កើតបានតែក្នុងច្បាប់ចម្លងបរិស្ថាន",
     "personalViewDisabledOnEnvironment": "ទិដ្ឋភាពផ្ទាល់ខ្លួនអាចបង្កើតបានតែក្នុងគម្រោងផលិតកម្មប៉ុណ្ណោះ",
@@ -6344,7 +6359,36 @@
     "inviteLinkRoleAboveYours": "អ្នកអាចផ្តល់បានតែតួនាទីរហូតដល់តួនាទីរបស់អ្នកប៉ុណ្ណោះ",
     "noDefaultSourceForFolders": "គម្រោងនេះមិនមានប្រភពលំនាំដើមទេ។ សូមបង្កើតថតពីម៉ឺនុយរបស់ប្រភពនីមួយៗជំនួសវិញ",
     "noDefaultSourceForSync": "គម្រោងនេះមិនមានប្រភពលំនាំដើមទេ។ ការធ្វើសមកាលកម្មត្រូវការប្រភពមួយដើម្បីរក្សាទុកតារាងរបស់វា",
-    "variableInheritance": "កំណត់ថាអ្នកដែលដំឡើងគម្រោងនេះជាកម្មវិធីអាចធ្វើអ្វីខ្លះជាមួយអថេរនេះ៖ ថេរ រក្សាតម្លៃរបស់អ្នក និងលាក់វា, កែបាន ផ្ដល់តម្លៃរបស់អ្នកជាចំណុចចាប់ផ្ដើម, ទាមទារ ស្នើឱ្យពួកគេបញ្ចូលតម្លៃផ្ទាល់ខ្លួន។"
+    "variableInheritance": "កំណត់ថាអ្នកដែលដំឡើងគម្រោងនេះជាកម្មវិធីអាចធ្វើអ្វីខ្លះជាមួយអថេរនេះ៖ ថេរ រក្សាតម្លៃរបស់អ្នក និងលាក់វា, កែបាន ផ្ដល់តម្លៃរបស់អ្នកជាចំណុចចាប់ផ្ដើម, ទាមទារ ស្នើឱ្យពួកគេបញ្ចូលតម្លៃផ្ទាល់ខ្លួន។",
+    "factoryGitApplyTruncated": "បំណះនេះត្រូវបានកាត់ខ្លី ហើយអាចបញ្ចប់នៅពាក់កណ្តាលការផ្លាស់ប្តូរ ដូច្នេះវាមិនអាចអនុវត្តបានត្រឹមត្រូវទេ។",
+    "factoryGitApplyWhitespace": "ការផ្លាស់ប្តូរចន្លោះត្រូវបានលាក់ ដូច្នេះបំណះនេះមិនរួមបញ្ចូលវាទេ។ បង្ហាញវា ដើម្បីចម្លងបំណះដែលអនុវត្តបាន។",
+    "factoryGitApplyBinary": "បំណះនេះប្តូរឯកសារប្រព័ន្ធគោលពីរ ដែល git apply មិនអាចបង្កើតឡើងវិញពីវាបានទេ។",
+    "vaultComingSoon": "ឆាប់ៗនេះ។",
+    "workflowButtonTriggerFieldReadOnly": "វាលប៊ូតុងដែលភ្ជាប់ទៅត្រីហ្គ័រនេះ អាចប្តូរបានតែពីការកំណត់របស់វាលនោះប៉ុណ្ណោះ",
+    "linkUnlinkDisabledEditFieldsForm": "ជម្រើសនេះត្រូវបានបិទ នៅពេលវាលត្រូវបានកែសម្រួលតាមរយៈទម្រង់",
+    "linkUnlinkDisabledEditFieldsOff": "ជម្រើសនេះត្រូវបានបិទ នៅពេលការកែសម្រួលវាលត្រូវបានបិទ",
+    "addRecordFormDisabledColumnNotInline": "ជម្រើសនេះត្រូវបានបិទ នៅពេលជួរឈរនេះមិនអាចកែសម្រួលនៅនឹងកន្លែងបាន",
+    "readOnlyFieldCannotBeRequired": "វាលដែលអានបានតែប៉ុណ្ណោះមិនអាចតម្រូវឱ្យបំពេញបានទេ",
+    "verifyEmailBeforeReset": "ប្រសិនបើអ៊ីមែលរបស់អ្នកមិនបានផ្ទៀងផ្ទាត់ពេលចុះឈ្មោះ សូមផ្ទៀងផ្ទាត់វាឥឡូវនេះ មុនបន្តការកំណត់ឡើងវិញ បើមិនដូច្នេះទេ អ្នកនឹងមិនទទួលបានលេខកូដទេ។",
+    "vaultPromoteToOrg": "ធ្វើឱ្យអាចប្រើបានសម្រាប់អង្គការទាំងមូល",
+    "testWebhookDisabledForScripts": "Webhook សាកល្បងត្រូវបានបិទសម្រាប់ស្គ្រីប",
+    "aiIntegrationNotAvailableOnMobile": "ការរួមបញ្ចូល AI មិនអាចប្រើបានក្នុងរបៀបទូរសព្ទទេ។",
+    "categoryLimit": "ចំនួនប្រភេទកំពូលដែលត្រូវបង្ហាញ (តិចបំផុត៖ 10, ច្រើនបំផុត៖ 50)",
+    "copyImageUrl": "ចម្លង URL រូបភាព",
+    "editImage": "កែសម្រួលរូបភាព",
+    "removeImage": "លុបរូបភាព",
+    "panMode": "របៀបអូស",
+    "selectionMode": "របៀបជ្រើសរើស",
+    "addNote": "បន្ថែមកំណត់ចំណាំ",
+    "aiIntegrationForOperation": "ការរួមបញ្ចូលដែលត្រូវប្រើសម្រាប់ប្រតិបត្តិការនេះ",
+    "aiModelForOperation": "ម៉ូដែលដែលត្រូវប្រើសម្រាប់ប្រតិបត្តិការនេះ",
+    "setupScriptSettingsFirstToExecute": "កំណត់ការកំណត់ស្គ្រីបជាមុនសិន ដើម្បីដំណើរការ",
+    "selectTable": "ជ្រើសរើសតារាង",
+    "copyViewId": "ចម្លង ID ទិដ្ឋភាព",
+    "dataSourceReadOnly": "ប្រភពទិន្នន័យនេះអានបានតែប៉ុណ្ណោះ។",
+    "mentionFields": "រៀបរាប់វាល",
+    "skipEnabledAfterDelay": "នឹងបើកដំណើរការបន្ទាប់ពី 2 វិនាទី",
+    "clickToCopyDocumentId": "ចុចដើម្បីចម្លង ID ឯកសារ"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8215,7 +8259,7 @@
     "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
-    "secondsAgo": "{count} seconds ago",
+    "secondsAgo": "{count} វិនាទីមុន",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
@@ -9078,7 +9122,14 @@
       "descriptionLabel": "ការពិពណ៌នា",
       "groupRequired": "ជ្រើសរើស {group}។",
       "requiredHint": "* ចាំបាច់",
-      "browse": "រុករក"
+      "browse": "រុករក",
+      "title": "ដាក់ស្នើសំណើ",
+      "staffHint": "ធាតុរបស់ក្រុមរំលងការត្រួតពិនិត្យ ហើយទៅស្ថានភាពដែលអ្នកជ្រើសរើសដោយផ្ទាល់។",
+      "titlePlaceholder": "ចំណងជើងខ្លី",
+      "similar": "បានស្នើរួចហើយ? សូមបោះឆ្នោតជំនួសវិញ៖",
+      "staffTitle": "សំណើថ្មី",
+      "titleLabel": "ចំណងជើង",
+      "titleTooShort": "សូមប្រើយ៉ាងតិច {min} តួអក្សរ។"
     },
     "railTooltipUnseen": "ផែនទីបង្ហាញផ្លូវ Noco · មានការធ្វើបច្ចុប្បន្នភាពថ្មីចេញផ្សាយ",
     "stateTabs": "ស្ថានភាពសំណើ",
@@ -9092,6 +9143,90 @@
     "previousRequest": "សំណើមុន",
     "nextRequest": "សំណើបន្ទាប់",
     "saved": "បានរក្សាទុកការផ្លាស់ប្តូរ",
-    "saveShortcut": "⌘/Ctrl + Enter ដើម្បីរក្សាទុក · Esc ដើម្បីបោះបង់"
+    "saveShortcut": "⌘/Ctrl + Enter ដើម្បីរក្សាទុក · Esc ដើម្បីបោះបង់",
+    "title": "ផែនទីបង្ហាញផ្លូវ Noco",
+    "you": "អ្នក",
+    "youAppearAs": "អ្នកដទៃមើលឃើញអ្នកជា",
+    "viewingAs": "កំពុងមើលជា",
+    "votesCount": "{count} សន្លឹក | {count} សន្លឹក",
+    "tab": {
+      "requests": "សំណើ",
+      "board": "ក្ដារ"
+    },
+    "tabs": {
+      "comments": "មតិយោបល់ · {count}",
+      "internal": "ផ្ទៃក្នុង · {count}",
+      "voters": "អ្នកបោះឆ្នោត · {count}",
+      "links": "តំណ · {count}",
+      "activity": "សកម្មភាព",
+      "label": "ផ្នែកនៃសំណើ"
+    },
+    "view": {
+      "all": "សំណើទាំងអស់",
+      "mine": "សំណើរបស់ខ្ញុំ",
+      "team": "សំណើរបស់កន្លែងធ្វើការ",
+      "voted": "ការបោះឆ្នោតរបស់ខ្ញុំ",
+      "triage": "ការចាត់ថ្នាក់",
+      "assigned": "បានចាត់តាំងឱ្យខ្ញុំ",
+      "internal": "ផ្ទៃក្នុង"
+    },
+    "teamScope": {
+      "workspace": "កន្លែងធ្វើការនេះ",
+      "org": "អង្គការទាំងមូល",
+      "label": "វិសាលភាពក្រុម"
+    },
+    "visibility": {
+      "public": "សាធារណៈ",
+      "internal": "ផ្ទៃក្នុង"
+    },
+    "underReview": {
+      "title": "កំពុងពិនិត្យ",
+      "hint": "រហូតដល់ការអនុម័ត មានតែអ្នក និងក្រុម NocoDB ទេដែលមើលឃើញ។",
+      "next": "យើងនឹងផ្ញើអ៊ីមែលទៅអ្នក នៅពេលវាត្រូវបានអនុម័ត ឬបដិសេធ ឬពេលក្រុមឆ្លើយតប។",
+      "nextInApp": "យើងនឹងជូនដំណឹងនៅទីនេះ នៅពេលវាត្រូវបានអនុម័ត ឬបដិសេធ ឬពេលក្រុមឆ្លើយតប។"
+    },
+    "subscribe": {
+      "subscribedTitle": "យើងនឹងប្រាប់អ្នកពេលមានការផ្លាស់ប្តូរ",
+      "subscribedHint": "យើងនឹងផ្ញើអ៊ីមែលទៅអ្នក នៅពេលស្ថានភាពប្តូរ ឬពេលក្រុមឆ្លើយតប។",
+      "unsubscribedTitle": "ទទួលព័ត៌មានថ្មីអំពីសំណើនេះ",
+      "unsubscribedHint": "តាមដានវា ដើម្បីដឹងពេលវាដំណើរការទៅមុខ។",
+      "mutedTitle": "បានបិទសំឡេងការជូនដំណឹង",
+      "mutedHint": "អ្នកនឹងមិនទទួលបានព័ត៌មានថ្មីអំពីសំណើនេះទេ។",
+      "subscribe": "តាមដាន",
+      "mute": "បិទសំឡេង",
+      "unmute": "បើកសំឡេងវិញ",
+      "staffHint": "អ្នកទទួលបានការជូនដំណឹងក្នុងកម្មវិធីសម្រាប់ការប្តូរស្ថានភាព និងមតិយោបល់។",
+      "emailOffHint": "ការធ្វើបច្ចុប្បន្នភាពតាមអ៊ីមែលបានបិទ ដូច្នេះវាបង្ហាញតែក្នុងកម្មវិធីប៉ុណ្ណោះ។",
+      "turnOnEmail": "បើកអ៊ីមែល",
+      "emailOn": "ការធ្វើបច្ចុប្បន្នភាពតាមអ៊ីមែលបានបើក"
+    },
+    "voters": {
+      "summary": "ឆ្នោតពិត {real} · ការកែតម្រូវ {adjustment} | ឆ្នោតពិត {real} · ការកែតម្រូវ {adjustment}",
+      "person": "បុគ្គល",
+      "account": "កន្លែងធ្វើការ / អង្គការ",
+      "plan": "គម្រោងតម្លៃ",
+      "voted": "បានបោះឆ្នោត",
+      "empty": "មិនទាន់មានឆ្នោតទេ។"
+    },
+    "triage": {
+      "title": "កំពុងរង់ចាំការចាត់ថ្នាក់",
+      "merge": "បញ្ចូលគ្នា",
+      "mergeHint": "បញ្ចូលគ្នាជាមួយសំណើដែលមានស្រាប់",
+      "decline": "បដិសេធ",
+      "declineHint": "បដិសេធដោយមានហេតុផលដែលអ្នកស្នើមើលឃើញ",
+      "approveInto": "អនុម័តទៅ {status}",
+      "chooseStatus": "ជ្រើសរើសស្ថានភាពដែលត្រូវអនុម័តទៅ",
+      "approved": "បានអនុម័ត និងផ្លាស់ទៅ {status}",
+      "clear": "គ្មានអ្វីត្រូវចាត់ថ្នាក់ទេ"
+    },
+    "viewsNav": "ទិដ្ឋភាពផែនទីបង្ហាញផ្លូវ",
+    "toggleSidebar": "ទិដ្ឋភាព និងប្រភេទ",
+    "vote": {
+      "ariaUpvote": "បោះឆ្នោត {count} សន្លឹក | បោះឆ្នោត {count} សន្លឹក",
+      "ariaRemove": "ដកឆ្នោតរបស់អ្នក {count} សន្លឹក | ដកឆ្នោតរបស់អ្នក {count} សន្លឹក",
+      "closed": "ការបោះឆ្នោតលើសំណើនេះបានបិទ",
+      "closedMerged": "សូមបោះឆ្នោតលើសំណើដែលវាត្រូវបានបញ្ចូលគ្នា"
+    },
+    "submittedBy": "ដាក់ស្នើដោយ {name}"
   }
 }

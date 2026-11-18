@@ -1540,7 +1540,7 @@
     "creatingAgent": "در حال ساخت عامل",
     "agentToolsAndAccess": "ابزارها و دسترسی",
     "agentSkills": "مهارت‌ها",
-    "agentSettings": "تنظیمات",
+    "agentSettings": "تنظیمات عامل",
     "updateRecordsCount": "به‌روزرسانی {n} رکورد | به‌روزرسانی {n} رکورد",
     "turnOffEditing": "ویرایش خاموش شود؟",
     "turnOnInlineEditing": "ویرایش درون‌خطی روشن شود؟",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "پنجره برای تنظیم فیلدهای ثابت‌شده بسیار باریک است",
     "themeSettings": "تنظیمات پوسته",
     "nFields": "{count} فیلد | {count} فیلد",
-    "noInterfaceMembersYet": "هنوز عضوی در رابط کاربری نیست",
-    "headJoin": "پیوستن | NocoDB"
+    "noInterfaceMembersYet": "هنوز عضوی در برنامه نیست",
+    "headJoin": "پیوستن | NocoDB",
+    "abuseReports": "گزارش‌های سوءاستفاده",
+    "disablePublicLink": "پیوند عمومی غیرفعال شود؟",
+    "blockUser": "کاربر مسدود شود؟",
+    "vaultBanner": "اطلاعات ورود را در گاوصندوق خودتان نگه دارید",
+    "connectSecretsProvider": "اتصال یک ارائه‌دهنده رازها",
+    "vaultConnected": "اطلاعات ورود از گاوصندوق شما می‌آید",
+    "vaults": "گاوصندوق‌ها",
+    "vaultDisconnect": "قطع اتصال گاوصندوق",
+    "vaultEdit": "ویرایش گاوصندوق",
+    "pickBaseForApp": "برای برنامه‌تان یک پروژه انتخاب کنید",
+    "baseTypeDefaultSubtext": "اعضای فضای کار می‌توانند بر اساس نقش خود همکاری کنند.",
+    "baseTypePrivateSubtext": "پروژه فقط با دعوت. تنها شما می‌توانید اعضای آن را ببینید و مدیریت کنید.",
+    "auditDetails": "جزئیات ممیزی",
+    "markdownEditor": "ویرایشگر Markdown",
+    "loyaltyBadgeTitle": "تخفیف وفاداری باز شد! تا 55% صرفه‌جویی کنید!"
   },
   "labels": {
     "syncing": "Syncing",
@@ -6298,7 +6313,7 @@
     "hideFieldInView": "این فیلد را در نمای کنونی پنهان کنید.",
     "viewAllEventsInDayView": "دیدن {count} رویداد در نمای روز | دیدن همهٔ {count} رویداد در نمای روز",
     "linkValueDelimiter": "نویسه‌ای که چند مقدار پیوندی را درون یک سلول از هم جدا می‌کند (پیش‌فرض ,)",
-    "interfaceMixedRoles": "نقش‌ها در رابط‌ها یا صفحه‌های مختلف فرق می‌کنند. برای دیدن آنها باز کنید",
+    "interfaceMixedRoles": "نقش‌ها در برنامه‌ها یا صفحه‌های مختلف فرق می‌کنند. برای دیدن آنها باز کنید",
     "chatQueueAttachmentUnavailable": "اگر پیام خود را در صف قرار دهید، این پیوست ارسال نخواهد شد. ابتدا آن را حذف کنید",
     "lockedViewDisabledOnProduction": "نماهای قفل‌شده تنها در نسخهٔ محیط ساخته می‌شوند",
     "personalViewDisabledOnEnvironment": "نماهای شخصی فقط در پروژهٔ تولید قابل ایجاد هستند",
@@ -6378,7 +6393,36 @@
     "inviteLinkCannotGrantOwner": "پیوند دعوت نمی‌تواند نقش مالک را اعطا کند",
     "inviteLinkRoleAboveYours": "فقط می‌توانید نقش‌هایی تا سطح نقش خودتان را پیشنهاد دهید",
     "noDefaultSourceForFolders": "این پروژه منبع پیش‌فرض ندارد. پوشه‌ها را به جای آن از منوی خود هر منبع بسازید",
-    "noDefaultSourceForSync": "این پروژه منبع پیش‌فرض ندارد. همگام‌سازی برای ذخیرهٔ جدول‌هایش به یک منبع نیاز دارد"
+    "noDefaultSourceForSync": "این پروژه منبع پیش‌فرض ندارد. همگام‌سازی برای ذخیرهٔ جدول‌هایش به یک منبع نیاز دارد",
+    "factoryGitApplyTruncated": "این وصله کوتاه شده و ممکن است وسط یک تغییر تمام شود، بنابراین درست اعمال نمی‌شود.",
+    "factoryGitApplyWhitespace": "تغییرات فاصله پنهان است، پس این وصله آنها را ندارد. آنها را نشان دهید تا وصله‌ای قابل اعمال کپی کنید.",
+    "factoryGitApplyBinary": "این وصله فایل‌های باینری را تغییر می‌دهد که git apply نمی‌تواند از روی آن بازسازی کند.",
+    "vaultComingSoon": "به‌زودی.",
+    "workflowButtonTriggerFieldReadOnly": "فیلد دکمه متصل به این راه‌انداز فقط از تنظیمات همان فیلد قابل تغییر است",
+    "linkUnlinkDisabledEditFieldsForm": "وقتی فیلدها از طریق فرم ویرایش شوند، این گزینه غیرفعال است",
+    "linkUnlinkDisabledEditFieldsOff": "وقتی ویرایش فیلدها خاموش باشد، این گزینه غیرفعال است",
+    "addRecordFormDisabledColumnNotInline": "وقتی این ستون به‌صورت درون‌خطی قابل ویرایش نباشد، این گزینه غیرفعال است",
+    "readOnlyFieldCannotBeRequired": "فیلدهای فقط‌خواندنی نمی‌توانند الزامی باشند",
+    "verifyEmailBeforeReset": "اگر ایمیل شما هنگام ثبت‌نام تأیید نشده است، پیش از ادامه بازنشانی همین حالا آن را تأیید کنید؛ وگرنه کد بازنشانی را دریافت نمی‌کنید.",
+    "vaultPromoteToOrg": "در دسترس کل سازمان قرار بگیرد",
+    "testWebhookDisabledForScripts": "وب‌هوک آزمایشی برای اسکریپت‌ها غیرفعال است",
+    "aiIntegrationNotAvailableOnMobile": "یکپارچه‌سازی هوش مصنوعی در حالت موبایل در دسترس نیست.",
+    "categoryLimit": "تعداد دسته‌های برتر برای نمایش (حداقل: 10، حداکثر: 50)",
+    "copyImageUrl": "کپی نشانی URL تصویر",
+    "editImage": "ویرایش تصویر",
+    "removeImage": "حذف تصویر",
+    "panMode": "حالت جابه‌جایی",
+    "selectionMode": "حالت انتخاب",
+    "addNote": "افزودن یادداشت",
+    "aiIntegrationForOperation": "یکپارچه‌سازی مورد استفاده برای این عملیات",
+    "aiModelForOperation": "مدل مورد استفاده برای این عملیات",
+    "setupScriptSettingsFirstToExecute": "برای اجرا، ابتدا تنظیمات اسکریپت را انجام دهید",
+    "selectTable": "انتخاب جدول",
+    "copyViewId": "کپی شناسه نما",
+    "dataSourceReadOnly": "این منبع داده فقط خواندنی است.",
+    "mentionFields": "ذکر فیلدها",
+    "skipEnabledAfterDelay": "پس از 2 ثانیه فعال می‌شود",
+    "clickToCopyDocumentId": "برای کپی شناسه سند کلیک کنید"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8251,7 +8295,7 @@
     "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
-    "secondsAgo": "{count} seconds ago",
+    "secondsAgo": "{count} ثانیه پیش",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
@@ -9114,7 +9158,14 @@
       "descriptionLabel": "توضیحات",
       "groupRequired": "یک {group} انتخاب کنید.",
       "requiredHint": "* الزامی",
-      "browse": "مرور"
+      "browse": "مرور",
+      "title": "ارسال درخواست",
+      "staffHint": "موارد تیم بررسی را رد می‌کنند و مستقیماً به وضعیتی که انتخاب می‌کنید می‌روند.",
+      "titlePlaceholder": "یک عنوان کوتاه",
+      "similar": "قبلاً درخواست شده؟ به‌جایش رأی بدهید:",
+      "staffTitle": "درخواست جدید",
+      "titleLabel": "عنوان",
+      "titleTooShort": "حداقل {min} نویسه بنویسید."
     },
     "railTooltipUnseen": "نقشه راه Noco · به‌روزرسانی‌های جدید منتشر شد",
     "stateTabs": "وضعیت درخواست",
@@ -9128,6 +9179,90 @@
     "previousRequest": "درخواست قبلی",
     "nextRequest": "درخواست بعدی",
     "saved": "تغییرات ذخیره شد",
-    "saveShortcut": "⌘/Ctrl + Enter برای ذخیره · Esc برای لغو"
+    "saveShortcut": "⌘/Ctrl + Enter برای ذخیره · Esc برای لغو",
+    "title": "نقشه راه Noco",
+    "you": "شما",
+    "youAppearAs": "دیگران شما را این‌گونه می‌بینند",
+    "viewingAs": "مشاهده به‌عنوان",
+    "votesCount": "{count} رأی | {count} رأی",
+    "tab": {
+      "requests": "درخواست‌ها",
+      "board": "تخته"
+    },
+    "tabs": {
+      "comments": "دیدگاه‌ها · {count}",
+      "internal": "داخلی · {count}",
+      "voters": "رأی‌دهندگان · {count}",
+      "links": "پیوندها · {count}",
+      "activity": "فعالیت",
+      "label": "بخش‌های درخواست"
+    },
+    "view": {
+      "all": "همه درخواست‌ها",
+      "mine": "درخواست‌های من",
+      "team": "درخواست‌های فضای کار",
+      "voted": "رأی‌های من",
+      "triage": "دسته‌بندی",
+      "assigned": "واگذارشده به من",
+      "internal": "داخلی"
+    },
+    "teamScope": {
+      "workspace": "همین فضای کار",
+      "org": "کل سازمان",
+      "label": "دامنه تیم"
+    },
+    "visibility": {
+      "public": "عمومی",
+      "internal": "داخلی"
+    },
+    "underReview": {
+      "title": "در حال بررسی",
+      "hint": "تا زمانی که تأیید نشود، فقط شما و تیم NocoDB آن را می‌بینید.",
+      "next": "وقتی تأیید یا رد شود، یا تیم پاسخ دهد، برایتان ایمیل می‌فرستیم.",
+      "nextInApp": "وقتی تأیید یا رد شود، یا تیم پاسخ دهد، همین‌جا خبرتان می‌کنیم."
+    },
+    "subscribe": {
+      "subscribedTitle": "وقتی این تغییر کند خبرتان می‌کنیم",
+      "subscribedHint": "وقتی وضعیتش تغییر کند یا تیم پاسخ دهد، برایتان ایمیل می‌فرستیم.",
+      "unsubscribedTitle": "دریافت به‌روزرسانی درباره این درخواست",
+      "unsubscribedHint": "دنبالش کنید تا از پیشرفتش باخبر شوید.",
+      "mutedTitle": "اعلان‌ها بی‌صدا شد",
+      "mutedHint": "درباره این درخواست به‌روزرسانی دریافت نمی‌کنید.",
+      "subscribe": "دنبال کردن",
+      "mute": "بی‌صدا کردن",
+      "unmute": "لغو بی‌صدا کردن",
+      "staffHint": "برای تغییر وضعیت و دیدگاه‌ها در برنامه اعلان می‌گیرید.",
+      "emailOffHint": "به‌روزرسانی‌های ایمیلی خاموش است، پس به‌روزرسانی‌ها فقط در برنامه نمایش داده می‌شوند.",
+      "turnOnEmail": "روشن کردن ایمیل",
+      "emailOn": "به‌روزرسانی‌های ایمیلی روشن است"
+    },
+    "voters": {
+      "summary": "{real} رأی واقعی · {adjustment} تعدیل | {real} رأی واقعی · {adjustment} تعدیل",
+      "person": "شخص",
+      "account": "فضای کار / سازمان",
+      "plan": "طرح",
+      "voted": "رأی داد",
+      "empty": "هنوز رأیی ثبت نشده است."
+    },
+    "triage": {
+      "title": "در انتظار دسته‌بندی",
+      "merge": "ادغام",
+      "mergeHint": "ادغام در یک درخواست موجود",
+      "decline": "رد کردن",
+      "declineHint": "رد کردن با دلیلی که درخواست‌دهنده می‌بیند",
+      "approveInto": "تأیید به {status}",
+      "chooseStatus": "وضعیتی را که در آن تأیید شود انتخاب کنید",
+      "approved": "تأیید شد و به {status} منتقل شد",
+      "clear": "چیزی برای دسته‌بندی نیست"
+    },
+    "viewsNav": "نماهای نقشه راه",
+    "toggleSidebar": "نماها و دسته‌ها",
+    "vote": {
+      "ariaUpvote": "رأی دادن، {count} رأی | رأی دادن، {count} رأی",
+      "ariaRemove": "حذف رأی شما، {count} رأی | حذف رأی شما، {count} رأی",
+      "closed": "رأی‌گیری این درخواست بسته شده است",
+      "closedMerged": "به درخواستی که این در آن ادغام شد رأی بدهید"
+    },
+    "submittedBy": "ارسال‌شده توسط {name}"
   }
 }

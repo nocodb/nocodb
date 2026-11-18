@@ -1296,7 +1296,7 @@
   },
   "title": {
     "bookmarks": "Yer İmleri",
-    "baseTrash": "Proje Çöp Kutusu",
+    "baseTrash": "Proje çöp kutusu",
     "noWorkspaceAccess": "Çalışma alanına erişim yok",
     "convertLegacyLink": "Bağlantı Alanını Yükselt",
     "versionHistory": "Sürüm Geçmişi",
@@ -1540,7 +1540,7 @@
     "creatingAgent": "Ajan oluşturuluyor",
     "agentToolsAndAccess": "Araçlar ve erişim",
     "agentSkills": "Beceriler",
-    "agentSettings": "Ayarlar",
+    "agentSettings": "Agent ayarları",
     "updateRecordsCount": "{n} kaydı güncelle | {n} kaydı güncelle",
     "turnOffEditing": "Düzenleme kapatılsın mı?",
     "turnOnInlineEditing": "Tablo içinde düzenleme açılsın mı?",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "Pencere, sabitlenmiş alanları ayarlamak için fazla dar",
     "themeSettings": "Tema ayarları",
     "nFields": "{count} alan | {count} alan",
-    "noInterfaceMembersYet": "Henüz arayüz üyesi yok",
-    "headJoin": "Katıl | NocoDB"
+    "noInterfaceMembersYet": "Henüz uygulama üyesi yok",
+    "headJoin": "Katıl | NocoDB",
+    "abuseReports": "Kötüye kullanım bildirimleri",
+    "disablePublicLink": "Herkese açık bağlantı devre dışı bırakılsın mı?",
+    "blockUser": "Kullanıcı engellensin mi?",
+    "vaultBanner": "Kimlik bilgilerini kendi kasanızda tutun",
+    "connectSecretsProvider": "Bir gizli bilgi sağlayıcısı bağla",
+    "vaultConnected": "Kimlik bilgileri kasanızdan geliyor",
+    "vaults": "Kasalar",
+    "vaultDisconnect": "Kasa bağlantısını kes",
+    "vaultEdit": "Kasayı düzenle",
+    "pickBaseForApp": "Uygulamanız için bir proje seçin",
+    "baseTypeDefaultSubtext": "Çalışma alanı üyeleri rollerine göre birlikte çalışabilir.",
+    "baseTypePrivateSubtext": "Yalnızca davetle katılınan proje. Üyelerini yalnızca siz görebilir ve yönetebilirsiniz.",
+    "auditDetails": "Denetim ayrıntıları",
+    "markdownEditor": "Markdown Düzenleyici",
+    "loyaltyBadgeTitle": "Sadakat indirimi açıldı! %55'e varan tasarruf edin!"
   },
   "labels": {
     "syncing": "Senkronize ediliyor",
@@ -6291,7 +6306,7 @@
     "hideFieldInView": "Bu alanı geçerli görünümde gizle.",
     "viewAllEventsInDayView": "Gün görünümünde {count} etkinliği gör | Gün görünümünde {count} etkinliğin tümünü gör",
     "linkValueDelimiter": "Tek bir hücredeki birden çok bağlı değeri ayıran karakter (varsayılan ,)",
-    "interfaceMixedRoles": "Roller arayüzler veya sayfalar arasında farklılık gösterir. Görmek için genişletin",
+    "interfaceMixedRoles": "Roller uygulamalara veya sayfalara göre değişir. Görmek için genişletin",
     "chatQueueAttachmentUnavailable": "Mesajınızı kuyruğa alırsanız bu ek gönderilmeyecek. Önce kaldırın",
     "lockedViewDisabledOnProduction": "Kilitli görünümler yalnızca ortam kopyasında oluşturulabilir",
     "personalViewDisabledOnEnvironment": "Kişisel görünümler yalnızca üretim projesinde oluşturulabilir",
@@ -6371,7 +6386,36 @@
     "inviteLinkCannotGrantOwner": "Davet bağlantısı Sahip rolünü veremez",
     "inviteLinkRoleAboveYours": "Yalnızca kendi rolünüze kadar olan rolleri sunabilirsiniz",
     "noDefaultSourceForFolders": "Bu projenin varsayılan kaynağı yok. Klasörleri bunun yerine kaynağın kendi menüsünden oluşturun",
-    "noDefaultSourceForSync": "Bu projenin varsayılan kaynağı yok. Bir eşitlemenin tablolarını saklamak için buna ihtiyacı var"
+    "noDefaultSourceForSync": "Bu projenin varsayılan kaynağı yok. Bir eşitlemenin tablolarını saklamak için buna ihtiyacı var",
+    "factoryGitApplyTruncated": "Bu yama kısaltıldı ve bir değişikliğin ortasında bitebilir, bu yüzden düzgün uygulanmaz.",
+    "factoryGitApplyWhitespace": "Boşluk değişiklikleri gizli olduğundan bu yamada yer almıyor. Uygulanabilir bir yama kopyalamak için onları gösterin.",
+    "factoryGitApplyBinary": "Bu yama, git apply'ın ondan yeniden oluşturamayacağı ikili dosyaları değiştiriyor.",
+    "vaultComingSoon": "Çok yakında.",
+    "workflowButtonTriggerFieldReadOnly": "Bu tetikleyiciye bağlı Düğme alanı yalnızca alanın ayarlarından değiştirilebilir",
+    "linkUnlinkDisabledEditFieldsForm": "Alanlar bir form üzerinden düzenlendiğinde bu seçenek devre dışıdır",
+    "linkUnlinkDisabledEditFieldsOff": "Alan düzenleme kapalıyken bu seçenek devre dışıdır",
+    "addRecordFormDisabledColumnNotInline": "Bu sütun satır içinde düzenlenemediğinde bu seçenek devre dışıdır",
+    "readOnlyFieldCannotBeRequired": "Salt okunur alanlar zorunlu olamaz",
+    "verifyEmailBeforeReset": "E-postanız kayıt sırasında doğrulanmadıysa, sıfırlamaya devam etmeden önce şimdi doğrulayın; aksi halde sıfırlama kodunu almazsınız.",
+    "vaultPromoteToOrg": "Tüm organizasyonun kullanımına aç",
+    "testWebhookDisabledForScripts": "Test webhook'u betikler için devre dışı",
+    "aiIntegrationNotAvailableOnMobile": "Yapay zekâ entegrasyonu mobil modda kullanılamaz.",
+    "categoryLimit": "Gösterilecek en üst kategori sayısı (min: 10, maks: 50)",
+    "copyImageUrl": "Görsel URL'sini kopyala",
+    "editImage": "Görseli düzenle",
+    "removeImage": "Görseli kaldır",
+    "panMode": "Kaydırma modu",
+    "selectionMode": "Seçim modu",
+    "addNote": "Not ekle",
+    "aiIntegrationForOperation": "Bu işlem için kullanılacak entegrasyon",
+    "aiModelForOperation": "Bu işlem için kullanılacak model",
+    "setupScriptSettingsFirstToExecute": "Çalıştırmak için önce betik ayarlarını yapın",
+    "selectTable": "Tablo seç",
+    "copyViewId": "Görünüm kimliğini kopyala",
+    "dataSourceReadOnly": "Bu veri kaynağı salt okunur.",
+    "mentionFields": "Alanlardan bahset",
+    "skipEnabledAfterDelay": "2 saniye sonra etkinleşecek",
+    "clickToCopyDocumentId": "Belge kimliğini kopyalamak için tıklayın"
   },
   "placeholder": {
     "enterVerificationCode": "6 haneli kodu girin",
@@ -8244,7 +8288,7 @@
     "deletedItemsWillAppearHere": "Silinen tablolar, görünümler, alanlar ve daha fazlası burada görünecek",
     "confirmEmpty": "Çöp kutusundaki tüm öğeler kalıcı olarak silinecek. Bu işlem geri alınamaz.",
     "restoreRequiresCreator": "Bu öğeyi geri yüklemek için Oluşturucu veya Sahip rolü gereklidir",
-    "secondsAgo": "{count} saniye önce",
+    "secondsAgo": "{count} sn önce",
     "youDeleted": "{parent}'den bir {type} sildiniz: {name}",
     "userDeleted": "{user}, {parent}'den bir {type} sildi: {name}",
     "youDeletedNoParent": "Bir {type} sildiniz: {name}",
@@ -9107,7 +9151,14 @@
       "descriptionLabel": "Açıklama",
       "groupRequired": "Bir {group} seçin.",
       "requiredHint": "* Zorunlu",
-      "browse": "göz atın"
+      "browse": "göz atın",
+      "title": "İstek gönder",
+      "staffHint": "Ekip kayıtları incelemeyi atlar ve doğrudan seçtiğiniz duruma geçer.",
+      "titlePlaceholder": "Kısa bir başlık",
+      "similar": "Zaten istendi mi? Bunun yerine oy verin:",
+      "staffTitle": "Yeni istek",
+      "titleLabel": "Başlık",
+      "titleTooShort": "En az {min} karakter kullanın."
     },
     "railTooltipUnseen": "Noco Yol Haritası · Yeni güncellemeler yayınlandı",
     "stateTabs": "İstek durumu",
@@ -9121,6 +9172,90 @@
     "previousRequest": "Önceki istek",
     "nextRequest": "Sonraki istek",
     "saved": "Değişiklikler kaydedildi",
-    "saveShortcut": "Kaydetmek için ⌘/Ctrl + Enter · İptal için Esc"
+    "saveShortcut": "Kaydetmek için ⌘/Ctrl + Enter · İptal için Esc",
+    "title": "Noco yol haritası",
+    "you": "siz",
+    "youAppearAs": "Diğerleri sizi şöyle görür",
+    "viewingAs": "Şu kişi olarak görüntüleniyor",
+    "votesCount": "{count} oy | {count} oy",
+    "tab": {
+      "requests": "İstekler",
+      "board": "Pano"
+    },
+    "tabs": {
+      "comments": "Yorumlar · {count}",
+      "internal": "Dahili · {count}",
+      "voters": "Oy verenler · {count}",
+      "links": "Bağlantılar · {count}",
+      "activity": "Aktivite",
+      "label": "İstek bölümleri"
+    },
+    "view": {
+      "all": "Tüm istekler",
+      "mine": "İsteklerim",
+      "team": "Çalışma alanı istekleri",
+      "voted": "Oylarım",
+      "triage": "Sıralama",
+      "assigned": "Bana atananlar",
+      "internal": "Dahili"
+    },
+    "teamScope": {
+      "workspace": "Bu çalışma alanı",
+      "org": "Tüm organizasyon",
+      "label": "Ekip kapsamı"
+    },
+    "visibility": {
+      "public": "Herkese açık",
+      "internal": "Dahili"
+    },
+    "underReview": {
+      "title": "İnceleniyor",
+      "hint": "Onaylanana kadar bunu yalnızca siz ve NocoDB ekibi görebilir.",
+      "next": "Onaylandığında veya reddedildiğinde ya da ekip yanıtladığında size e-posta göndeririz.",
+      "nextInApp": "Onaylandığında veya reddedildiğinde ya da ekip yanıtladığında burada bildirim alırsınız."
+    },
+    "subscribe": {
+      "subscribedTitle": "Bu değiştiğinde haberiniz olur",
+      "subscribedHint": "Durumu değiştiğinde veya ekip yanıtladığında size e-posta göndeririz.",
+      "unsubscribedTitle": "Bu istekle ilgili güncellemeleri al",
+      "unsubscribedHint": "İlerlediğinde haberdar olmak için takip edin.",
+      "mutedTitle": "Bildirimler sessize alındı",
+      "mutedHint": "Bu istekle ilgili güncelleme almayacaksınız.",
+      "subscribe": "Takip et",
+      "mute": "Sessize al",
+      "unmute": "Sesi aç",
+      "staffHint": "Durum değişiklikleri ve yorumlar için uygulama içi bildirim alırsınız.",
+      "emailOffHint": "E-posta güncellemeleri kapalı, bu yüzden güncellemeler yalnızca uygulamada görünür.",
+      "turnOnEmail": "E-postayı aç",
+      "emailOn": "E-posta güncellemeleri açık"
+    },
+    "voters": {
+      "summary": "{real} gerçek oy · {adjustment} düzeltme | {real} gerçek oy · {adjustment} düzeltme",
+      "person": "Kişi",
+      "account": "Çalışma alanı / organizasyon",
+      "plan": "Plan",
+      "voted": "Oy verildi",
+      "empty": "Henüz oy yok."
+    },
+    "triage": {
+      "title": "Sıralama bekliyor",
+      "merge": "Birleştir",
+      "mergeHint": "Mevcut bir istekle birleştir",
+      "decline": "Reddet",
+      "declineHint": "İsteği gönderenin göreceği bir gerekçeyle reddet",
+      "approveInto": "{status} durumuna onayla",
+      "chooseStatus": "Hangi duruma onaylanacağını seçin",
+      "approved": "Onaylandı ve {status} durumuna taşındı",
+      "clear": "Sıralanacak bir şey yok"
+    },
+    "viewsNav": "Yol haritası görünümleri",
+    "toggleSidebar": "Görünümler ve kategoriler",
+    "vote": {
+      "ariaUpvote": "Oy verin, {count} oy | Oy verin, {count} oy",
+      "ariaRemove": "Oyunuzu kaldırın, {count} oy | Oyunuzu kaldırın, {count} oy",
+      "closed": "Bu istek için oylama kapandı",
+      "closedMerged": "Bunun birleştirildiği isteğe oy verin"
+    },
+    "submittedBy": "{name} tarafından gönderildi"
   }
 }

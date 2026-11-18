@@ -1540,7 +1540,7 @@
     "creatingAgent": "กำลังสร้างเอเจนต์",
     "agentToolsAndAccess": "เครื่องมือและสิทธิ์เข้าถึง",
     "agentSkills": "ทักษะ",
-    "agentSettings": "การตั้งค่า",
+    "agentSettings": "การตั้งค่า Agent",
     "updateRecordsCount": "อัปเดต {n} ระเบียน | อัปเดต {n} ระเบียน",
     "turnOffEditing": "ปิดการแก้ไขหรือไม่",
     "turnOnInlineEditing": "เปิดการแก้ไขในตารางหรือไม่",
@@ -1554,8 +1554,23 @@
     "tooNarrowToAdjustFrozenFields": "หน้าต่างแคบเกินไปสำหรับการปรับฟิลด์ที่ตรึงไว้",
     "themeSettings": "การตั้งค่าธีม",
     "nFields": "{count} ฟิลด์ | {count} ฟิลด์",
-    "noInterfaceMembersYet": "ยังไม่มีสมาชิกของอินเทอร์เฟซ",
-    "headJoin": "เข้าร่วม | NocoDB"
+    "noInterfaceMembersYet": "ยังไม่มีสมาชิกของแอป",
+    "headJoin": "เข้าร่วม | NocoDB",
+    "abuseReports": "รายงานการละเมิด",
+    "disablePublicLink": "ปิดใช้งานลิงก์สาธารณะหรือไม่?",
+    "blockUser": "บล็อกผู้ใช้หรือไม่?",
+    "vaultBanner": "เก็บข้อมูลรับรองไว้ในห้องนิรภัยของคุณเอง",
+    "connectSecretsProvider": "เชื่อมต่อผู้ให้บริการข้อมูลลับ",
+    "vaultConnected": "ข้อมูลรับรองมาจากห้องนิรภัยของคุณ",
+    "vaults": "ห้องนิรภัย",
+    "vaultDisconnect": "ยกเลิกการเชื่อมต่อห้องนิรภัย",
+    "vaultEdit": "แก้ไขห้องนิรภัย",
+    "pickBaseForApp": "เลือกโปรเจกต์สำหรับแอปของคุณ",
+    "baseTypeDefaultSubtext": "สมาชิกพื้นที่ทำงานสามารถทำงานร่วมกันได้ตามบทบาทของตน",
+    "baseTypePrivateSubtext": "โปรเจกต์แบบเชิญเท่านั้น มีเพียงคุณที่ดูและจัดการสมาชิกได้",
+    "auditDetails": "รายละเอียดการตรวจสอบ",
+    "markdownEditor": "โปรแกรมแก้ไข Markdown",
+    "loyaltyBadgeTitle": "ปลดล็อกส่วนลดสำหรับลูกค้าประจำแล้ว! ประหยัดสูงสุด 55%!"
   },
   "labels": {
     "syncing": "Syncing",
@@ -6297,7 +6312,7 @@
     "hideFieldInView": "ซ่อนฟิลด์นี้ในมุมมองปัจจุบัน",
     "viewAllEventsInDayView": "ดู {count} กิจกรรมในมุมมองรายวัน | ดูทั้ง {count} กิจกรรมในมุมมองรายวัน",
     "linkValueDelimiter": "อักขระที่คั่นค่าที่เชื่อมโยงหลายค่าภายในเซลล์เดียว (ค่าเริ่มต้น ,)",
-    "interfaceMixedRoles": "บทบาทแตกต่างกันในแต่ละอินเทอร์เฟซหรือหน้า ขยายเพื่อดู",
+    "interfaceMixedRoles": "บทบาทแตกต่างกันในแต่ละแอปหรือหน้า ขยายเพื่อดู",
     "chatQueueAttachmentUnavailable": "ไฟล์แนบนี้จะไม่ถูกส่งหากคุณจัดข้อความเข้าคิว นำออกก่อน",
     "lockedViewDisabledOnProduction": "มุมมองที่ล็อกสร้างได้เฉพาะในสำเนาสภาพแวดล้อม",
     "personalViewDisabledOnEnvironment": "สร้างมุมมองส่วนตัวได้เฉพาะในโปรเจกต์โปรดักชันเท่านั้น",
@@ -6377,7 +6392,36 @@
     "inviteLinkCannotGrantOwner": "ลิงก์เชิญไม่สามารถให้บทบาทเจ้าของได้",
     "inviteLinkRoleAboveYours": "คุณให้ได้เฉพาะบทบาทที่ไม่สูงกว่าบทบาทของคุณเอง",
     "noDefaultSourceForFolders": "โปรเจกต์นี้ไม่มีแหล่งข้อมูลเริ่มต้น ให้สร้างโฟลเดอร์จากเมนูของแหล่งข้อมูลนั้นแทน",
-    "noDefaultSourceForSync": "โปรเจกต์นี้ไม่มีแหล่งข้อมูลเริ่มต้น การซิงค์ต้องใช้แหล่งข้อมูลเพื่อเก็บตารางของมัน"
+    "noDefaultSourceForSync": "โปรเจกต์นี้ไม่มีแหล่งข้อมูลเริ่มต้น การซิงค์ต้องใช้แหล่งข้อมูลเพื่อเก็บตารางของมัน",
+    "factoryGitApplyTruncated": "แพตช์นี้ถูกตัดสั้นและอาจจบกลางการเปลี่ยนแปลง จึงนำไปใช้ได้ไม่สมบูรณ์",
+    "factoryGitApplyWhitespace": "การเปลี่ยนแปลงช่องว่างถูกซ่อนไว้ แพตช์นี้จึงไม่รวมไว้ แสดงขึ้นมาเพื่อคัดลอกแพตช์ที่ใช้ได้",
+    "factoryGitApplyBinary": "แพตช์นี้เปลี่ยนไฟล์ไบนารี ซึ่ง git apply ไม่สามารถสร้างใหม่จากแพตช์นี้ได้",
+    "vaultComingSoon": "เร็ว ๆ นี้",
+    "workflowButtonTriggerFieldReadOnly": "ฟิลด์ปุ่มที่เชื่อมกับทริกเกอร์นี้เปลี่ยนได้จากการตั้งค่าของฟิลด์เท่านั้น",
+    "linkUnlinkDisabledEditFieldsForm": "ตัวเลือกนี้จะถูกปิดเมื่อแก้ไขฟิลด์ผ่านฟอร์ม",
+    "linkUnlinkDisabledEditFieldsOff": "ตัวเลือกนี้จะถูกปิดเมื่อปิดการแก้ไขฟิลด์",
+    "addRecordFormDisabledColumnNotInline": "ตัวเลือกนี้จะถูกปิดเมื่อคอลัมน์นี้แก้ไขในบรรทัดไม่ได้",
+    "readOnlyFieldCannotBeRequired": "ฟิลด์อ่านอย่างเดียวกำหนดให้จำเป็นไม่ได้",
+    "verifyEmailBeforeReset": "หากอีเมลของคุณไม่ได้รับการยืนยันตอนสมัคร โปรดยืนยันตอนนี้ก่อนดำเนินการรีเซ็ต มิฉะนั้นคุณจะไม่ได้รับรหัสรีเซ็ต",
+    "vaultPromoteToOrg": "เปิดให้ทั้งองค์กรใช้งาน",
+    "testWebhookDisabledForScripts": "ปิดใช้งาน Webhook ทดสอบสำหรับสคริปต์",
+    "aiIntegrationNotAvailableOnMobile": "ไม่สามารถใช้การเชื่อมต่อ AI ในโหมดมือถือได้",
+    "categoryLimit": "จำนวนหมวดหมู่ยอดนิยมที่จะแสดง (ต่ำสุด: 10, สูงสุด: 50)",
+    "copyImageUrl": "คัดลอก URL รูปภาพ",
+    "editImage": "แก้ไขรูปภาพ",
+    "removeImage": "ลบรูปภาพ",
+    "panMode": "โหมดเลื่อน",
+    "selectionMode": "โหมดเลือก",
+    "addNote": "เพิ่มบันทึก",
+    "aiIntegrationForOperation": "การเชื่อมต่อที่ใช้สำหรับการทำงานนี้",
+    "aiModelForOperation": "โมเดลที่ใช้สำหรับการทำงานนี้",
+    "setupScriptSettingsFirstToExecute": "ตั้งค่าสคริปต์ก่อนจึงจะเรียกใช้ได้",
+    "selectTable": "เลือกตาราง",
+    "copyViewId": "คัดลอก ID มุมมอง",
+    "dataSourceReadOnly": "แหล่งข้อมูลนี้อ่านได้อย่างเดียว",
+    "mentionFields": "กล่าวถึงฟิลด์",
+    "skipEnabledAfterDelay": "จะเปิดใช้งานหลังจาก 2 วินาที",
+    "clickToCopyDocumentId": "คลิกเพื่อคัดลอก ID เอกสาร"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8250,7 +8294,7 @@
     "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
-    "secondsAgo": "{count} seconds ago",
+    "secondsAgo": "{count} วินาทีที่แล้ว",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
@@ -9113,7 +9157,14 @@
       "descriptionLabel": "คำอธิบาย",
       "groupRequired": "เลือก {group}",
       "requiredHint": "* จำเป็น",
-      "browse": "เรียกดู"
+      "browse": "เรียกดู",
+      "title": "ส่งคำขอ",
+      "staffHint": "รายการของทีมจะข้ามการตรวจสอบและไปยังสถานะที่คุณเลือกทันที",
+      "titlePlaceholder": "ชื่อเรื่องสั้น ๆ",
+      "similar": "มีคนขอไปแล้วหรือไม่? โหวตแทนดีกว่า:",
+      "staffTitle": "คำขอใหม่",
+      "titleLabel": "ชื่อเรื่อง",
+      "titleTooShort": "ใช้อย่างน้อย {min} ตัวอักษร"
     },
     "railTooltipUnseen": "แผนงาน Noco · มีอัปเดตใหม่เผยแพร่แล้ว",
     "stateTabs": "สถานะคำขอ",
@@ -9127,6 +9178,90 @@
     "previousRequest": "คำขอก่อนหน้า",
     "nextRequest": "คำขอถัดไป",
     "saved": "บันทึกการเปลี่ยนแปลงแล้ว",
-    "saveShortcut": "⌘/Ctrl + Enter เพื่อบันทึก · Esc เพื่อยกเลิก"
+    "saveShortcut": "⌘/Ctrl + Enter เพื่อบันทึก · Esc เพื่อยกเลิก",
+    "title": "โรดแมป Noco",
+    "you": "คุณ",
+    "youAppearAs": "คนอื่นเห็นคุณเป็น",
+    "viewingAs": "กำลังดูในฐานะ",
+    "votesCount": "{count} โหวต | {count} โหวต",
+    "tab": {
+      "requests": "คำขอ",
+      "board": "บอร์ด"
+    },
+    "tabs": {
+      "comments": "ความคิดเห็น · {count}",
+      "internal": "ภายใน · {count}",
+      "voters": "ผู้โหวต · {count}",
+      "links": "ลิงก์ · {count}",
+      "activity": "กิจกรรม",
+      "label": "ส่วนต่าง ๆ ของคำขอ"
+    },
+    "view": {
+      "all": "คำขอทั้งหมด",
+      "mine": "คำขอของฉัน",
+      "team": "คำขอของพื้นที่ทำงาน",
+      "voted": "โหวตของฉัน",
+      "triage": "การคัดแยก",
+      "assigned": "มอบหมายให้ฉัน",
+      "internal": "ภายใน"
+    },
+    "teamScope": {
+      "workspace": "พื้นที่ทำงานนี้",
+      "org": "ทั้งองค์กร",
+      "label": "ขอบเขตของทีม"
+    },
+    "visibility": {
+      "public": "สาธารณะ",
+      "internal": "ภายใน"
+    },
+    "underReview": {
+      "title": "อยู่ระหว่างตรวจสอบ",
+      "hint": "จนกว่าจะได้รับอนุมัติ มีเพียงคุณและทีม NocoDB ที่เห็นสิ่งนี้",
+      "next": "เราจะส่งอีเมลให้เมื่อได้รับอนุมัติหรือถูกปฏิเสธ หรือเมื่อทีมตอบกลับ",
+      "nextInApp": "เราจะแจ้งที่นี่เมื่อได้รับอนุมัติหรือถูกปฏิเสธ หรือเมื่อทีมตอบกลับ"
+    },
+    "subscribe": {
+      "subscribedTitle": "เราจะแจ้งให้ทราบเมื่อมีการเปลี่ยนแปลง",
+      "subscribedHint": "เราจะส่งอีเมลให้เมื่อสถานะเปลี่ยนหรือเมื่อทีมตอบกลับ",
+      "unsubscribedTitle": "รับอัปเดตเกี่ยวกับคำขอนี้",
+      "unsubscribedHint": "ติดตามไว้เพื่อรู้เมื่อมีความคืบหน้า",
+      "mutedTitle": "ปิดเสียงการแจ้งเตือนแล้ว",
+      "mutedHint": "คุณจะไม่ได้รับอัปเดตเกี่ยวกับคำขอนี้",
+      "subscribe": "ติดตาม",
+      "mute": "ปิดเสียง",
+      "unmute": "เปิดเสียง",
+      "staffHint": "คุณจะได้รับการแจ้งเตือนในแอปเมื่อสถานะเปลี่ยนและเมื่อมีความคิดเห็น",
+      "emailOffHint": "การแจ้งเตือนทางอีเมลปิดอยู่ อัปเดตจะแสดงในแอปเท่านั้น",
+      "turnOnEmail": "เปิดอีเมล",
+      "emailOn": "การแจ้งเตือนทางอีเมลเปิดอยู่"
+    },
+    "voters": {
+      "summary": "โหวตจริง {real} · ปรับ {adjustment} | โหวตจริง {real} · ปรับ {adjustment}",
+      "person": "บุคคล",
+      "account": "พื้นที่ทำงาน / องค์กร",
+      "plan": "แพ็กเกจ",
+      "voted": "โหวตแล้ว",
+      "empty": "ยังไม่มีโหวต"
+    },
+    "triage": {
+      "title": "รอการคัดแยก",
+      "merge": "รวม",
+      "mergeHint": "รวมเข้ากับคำขอที่มีอยู่",
+      "decline": "ปฏิเสธ",
+      "declineHint": "ปฏิเสธพร้อมเหตุผลที่ผู้ขอมองเห็น",
+      "approveInto": "อนุมัติไปยัง {status}",
+      "chooseStatus": "เลือกสถานะที่จะอนุมัติไป",
+      "approved": "อนุมัติและย้ายไปยัง {status} แล้ว",
+      "clear": "ไม่มีรายการรอคัดแยก"
+    },
+    "viewsNav": "มุมมองโรดแมป",
+    "toggleSidebar": "มุมมองและหมวดหมู่",
+    "vote": {
+      "ariaUpvote": "โหวต {count} โหวต | โหวต {count} โหวต",
+      "ariaRemove": "ลบโหวตของคุณ {count} โหวต | ลบโหวตของคุณ {count} โหวต",
+      "closed": "ปิดการโหวตสำหรับคำขอนี้แล้ว",
+      "closedMerged": "โหวตให้คำขอที่รวมรายการนี้เข้าไป"
+    },
+    "submittedBy": "ส่งโดย {name}"
   }
 }

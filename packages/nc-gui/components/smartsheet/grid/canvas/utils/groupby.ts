@@ -172,6 +172,32 @@ export function calculateGroupRowSlice(
   return { start, end }
 }
 
+// Matches useInfiniteData's CHUNK_SIZE.
+const GROUP_ROW_CHUNK_SIZE = 50
+
+/**
+ * Rows of the chunks just above and below a group's visible slice that haven't been requested yet,
+ * so a scroll lands on loaded rows. Null when both are loading, loaded or out of range.
+ */
+export function calculateGroupRowPrefetch(
+  start: number,
+  end: number,
+  count: number,
+  chunkStates: Array<'loading' | 'loaded' | undefined>,
+  chunkSize = GROUP_ROW_CHUNK_SIZE,
+) {
+  if (count <= 0 || end < start) return null
+  const lastChunk = Math.floor((count - 1) / chunkSize)
+  const chunks = [Math.floor(start / chunkSize) - 1, Math.floor(end / chunkSize) + 1].filter(
+    (chunk) => chunk >= 0 && chunk <= lastChunk && !chunkStates[chunk],
+  )
+  if (!chunks.length) return null
+  return {
+    start: Math.min(...chunks) * chunkSize,
+    end: Math.min(count - 1, (Math.max(...chunks) + 1) * chunkSize - 1),
+  }
+}
+
 export function generateGroupPath(data?: CanvasGroup) {
   if (!data) return []
   const path: Array<number> = []

@@ -38,6 +38,7 @@ import { getColumnDropTargetIndex, getDisplayValueDropSlot } from '../utils/head
 import {
   calculateGroupHeight,
   calculateGroupRange,
+  calculateGroupRowPrefetch,
   calculateGroupRowSlice,
   calculateGroupRowTop,
   comparePath,
@@ -3708,6 +3709,9 @@ export function useCanvasRender({
       const minIndex = Math.min(...rowsToFetch)
       getRows(minIndex, maxIndex, group.path)
     }
+
+    const prefetch = calculateGroupRowPrefetch(startIndex, endIndex, group.count, dataCache.chunkStates.value)
+    if (prefetch) getRows(prefetch.start, prefetch.end, group.path)
 
     return { yOffset, postRenderCbk }
   }

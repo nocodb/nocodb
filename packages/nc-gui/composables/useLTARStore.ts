@@ -51,6 +51,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const pendingLtarOps = smartsheetRowStore?.pendingLtarOps
     const rowStoreCurrentRow = smartsheetRowStore?.currentRow
 
+    // Linked records held on a saved row after they failed to create; shown as pending links.
+    const heldBlueprints = (): Record<string, any>[] =>
+      isNewRow?.value ? [] : smartsheetRowStore?.heldLtarBlueprints.value[column.value.title as string] ?? []
+
     // Related records queued as pending links for this column (existing-row deferral).
     const queuedLinkRecords = () =>
       (pendingLtarOps?.value ?? []).filter((o) => o.columnId === column.value.id && o.op === 'link').map((o) => o.record)
@@ -191,7 +195,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         const buffered = currentRow.value?.rowMeta?.ltarState?.[column.value?.title as string]
         pendingLinkRows.value = !buffered ? [] : Array.isArray(buffered) ? [...buffered] : [buffered]
       } else {
-        pendingLinkRows.value = queuedLinkRecords()
+        pendingLinkRows.value = [...queuedLinkRecords(), ...heldBlueprints()]
       }
     }
 
@@ -1050,16 +1054,88 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // Multi-target: keep the child-list count badge in sync. The cell value keeps its
       // shape (see `LtarCellShape`) — a bare count in a LinkToAnotherRecord cell made it
       // appear to clear on every deferred edit until save (#14013).
+      const held = heldBlueprints()
       if (!isSingleTargetRelation.value) {
         childrenListCount.value = resolveDeferredLtarCount(queue, colId, ltarCellCount(base))
       }
 
-      cur.row[colTitle] = resolveDeferredCellValue({
+      const value = resolveDeferredCellValue({
         queue,
         columnId: colId,
         shape: ltarCellShape.value,
         base,
         getRelatedRowId: getRelatedTableRowId,
+      })
+      cur.row[colTitle] = !held.length
+        ? value
+        : ltarCellShape.value === 'records'
+        ? [...(value ?? []), ...held]
+        : ltarCellShape.value === 'count'
+        ? ltarCellCount(value) + held.length
+        : value ?? held[0]
+    }
+
+    // A held record changes outside this store (a Save, an edit, a removal): redraw it.
+    watch(
+      () => smartsheetRowStore?.heldLtarBlueprints.value[column.value.title as string],
+      () => {
+        if (isNewRow?.value) return
+        refreshDeferredDisplay()
+        syncPendingLinkRows()
+      },
+      { deep: true },
+    )
+
+    // A view reload writes the persisted value back into the cell; add the held records again.
+    watch(
+      () => rowStoreCurrentRow?.value?.row?.[column.value.title as string],
+      (value) => {
+        const held = heldBlueprints()
+        if (isNewRow?.value || !held.length || !pendingLtarOps) return
+        const shown =
+          ltarCellShape.value === 'records'
+            ? held.every((h) => Array.isArray(value) && value.includes(h))
+            : ltarCellShape.value === 'count'
+            ? ltarCellCount(value) ===
+              resolveDeferredLtarCount(
+                pendingLtarOps.value,
+                column.value.id as string,
+                ltarCellCount(rowStoreCurrentRow?.value?.oldRow?.[column.value.title as string]),
+              ) +
+                held.length
+            : !!value
+        if (!shown) refreshDeferredDisplay()
+      },
+    )
+
+    const { open: openExpandedFormDetached } = useExpandedFormDetached()
+
+    /** Edit a blueprint (a linked record not created yet) in its own form; Save replaces it. */
+    const openBlueprintEditor = (
+      blueprint: Record<string, any>,
+      { breadcrumbs = [], linkOnParentSave = true }: { breadcrumbs?: string[]; linkOnParentSave?: boolean } = {},
+    ) => {
+      const { _isBlueprint, _ltarState, ...blueprintData } = blueprint
+      const nestedLtarState = _ltarState && Object.keys(_ltarState).length ? _ltarState : undefined
+
+      openExpandedFormDetached({
+        isOpen: true,
+        row: { row: { ...blueprintData }, oldRow: {}, rowMeta: { new: true, ltarState: nestedLtarState } },
+        state: nestedLtarState,
+        meta: relatedTableMeta.value,
+        loadRow: false,
+        useMetaFields: true,
+        blueprintMode: true,
+        blueprintParentTableId: meta.value?.id,
+        linkOnParentSave,
+        breadcrumbs: [...breadcrumbs, meta.value?.title || ''],
+        newRecordSubmitBtnText: 'Save Record',
+        newRecordHeader: `Edit ${relatedTableMeta.value?.title} Record`,
+        createdRecord: (record: Record<string, any>) => {
+          smartsheetRowStore?.replaceLtarBlueprint(column.value.title as string, blueprint, { ...record, _isBlueprint: true })
+          // A new row's list is a snapshot of its buffered links
+          if (isNewRow?.value) loadChildrenList(false)
+        },
       })
     }
 
@@ -1101,7 +1177,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // asymmetric counting (link only increments for multi-target).
     const removePendingLink = async (relatedRow: Record<string, any>) => {
       if (!rowStoreCurrentRow) return
-      if (isNewRow?.value) {
+      if (!isNewRow?.value && relatedRow?._isBlueprint) {
+        // A held record was never created: dropping it is all there is to undo.
+        smartsheetRowStore?.replaceLtarBlueprint(column.value.title as string, relatedRow, null)
+      } else if (isNewRow?.value) {
         // New row: links live in ltarState — drop the buffered link and update display.
         if (!removeLTARRef) return
         await removeLTARRef(relatedRow, column.value as ColumnType, { skipRowDisplay: true })
@@ -1680,6 +1759,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       childrenSearch.refresh()
     }
 
+    // Once the row is saved its linked list comes from the server; drop rows cached from the buffer.
+    watch(
+      () => !!isNewRow?.value,
+      (isNew, wasNew) => {
+        if (wasNew && !isNew) resetChildrenCache()
+      },
+    )
+
     const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
 
     const debounceLoadChildrenList = useDebounceFn(loadChildrenList, 500)
@@ -1856,6 +1943,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       removePendingLink,
       isPendingLink,
       isPendingUnlink,
+      openBlueprintEditor,
     }
   },
   'ltar-store',

@@ -25,7 +25,8 @@ import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 import { dropNoopRecordAuditFields, mergeRecordUpdateAuditDetails } from '~/utils/recordAuditUtils'
-import { ltarCellShapeOf, resolveDeferredCellValue } from '~/utils/ltarDeferredOps'
+import { ltarCellCount, ltarCellShapeOf, resolveDeferredCellValue } from '~/utils/ltarDeferredOps'
+import { createLtarBlueprints, splitLtarBlueprints, validateLtarBlueprints } from '~/utils/dataUtils'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -423,6 +424,53 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     }
 
+    const heldLtarBlueprints = rowStore.heldLtarBlueprints
+
+    // Create records held on this row (blueprints) once it is saved. Ones that fail stay held so the
+    // next Save retries them. The row itself is saved, so failures are reported, not thrown.
+    const createHeldLtarBlueprints = async (record: Record<string, any>, blueprints: Record<string, Record<string, any>[]>) => {
+      if (!Object.keys(blueprints).length) return
+
+      const { getMeta } = useMetas()
+      const { created, errors, failed } = await createLtarBlueprints({
+        meta: meta.value,
+        record,
+        blueprints,
+        getMeta,
+        createRecord: (relatedMeta, data) => $api.dbTableRow.create('noco', relatedMeta.base_id!, relatedMeta.id!, data),
+      })
+
+      // Count the created records in until the view reload brings them, so the link cell
+      // doesn't drop back to its old value when they stop being held.
+      for (const [title, records] of Object.entries(created)) {
+        const column = (meta.value.columns as ColumnType[] | undefined)?.find((c) => c.title === title)
+        if (!column) continue
+        const shape = ltarCellShapeOf(column)
+        for (const target of [row.value.row, row.value.oldRow]) {
+          if (!target) continue
+          const value = target[title]
+          target[title] =
+            // A has-many cell can hold a bare count instead of records
+            shape === 'count' || typeof value === 'number'
+              ? ltarCellCount(value) + records.length
+              : shape === 'records'
+              ? [...(Array.isArray(value) ? value : []), ...records]
+              : records[0]
+        }
+      }
+
+      heldLtarBlueprints.value = failed
+      if (!errors.length) return
+
+      const details = await Promise.all(
+        errors.map(
+          async ({ table, record: name, error }) =>
+            `${name ? `${table} "${name}"` : table}: ${await extractSdkResponseErrorMsg(error as Error)}`,
+        ),
+      )
+      message.warning(t('msg.error.linkedRecordsNotCreated', { details: details.join('; ') }))
+    }
+
     const save = async (
       ltarState: Record<string, any> = {},
       // TODO: Hack. Remove this when kanban injection store issue is resolved
@@ -441,9 +489,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       if (isNewRow) {
         const { getMeta } = useMetas()
 
+        // Records created from a link field wait for this row to exist (blueprints).
+        const { links, blueprints } = splitLtarBlueprints(ltarState)
+        await validateLtarBlueprints({ meta: meta.value, blueprints, getMeta })
+
         const { missingRequiredColumns, insertObj } = await populateInsertObject({
           meta: meta.value,
-          ltarState,
+          ltarState: links,
           getMeta,
           row: row.value.row,
           throwError: true,
@@ -461,7 +513,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         data = await $api.dbTableRow.create('noco', meta.value.base_id, meta.value.id, {
           ...insertObj,
-          ...(ltarState || {}),
+          ...links,
         })
 
         // Persist any SmartText (LongText + smartMode) drafts that were staged while
@@ -492,6 +544,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           },
           oldRow: { ...data },
         })
+
+        await createHeldLtarBlueprints(data, blueprints)
       } else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
           obj[col] = row.value.row[col]
@@ -513,7 +567,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         // save, not on each link/unlink. A record can be "modified" via links alone.
         const hasLtarChanges = rowStore.hasLtarChanges.value
 
-        if (Object.keys(updateOrInsertObj).length || hasLtarChanges || hasSmartTextDrafts) {
+        // Records left held by a save whose linked-record creation failed.
+        const heldBlueprints = heldLtarBlueprints.value
+        const hasHeldBlueprints = Object.keys(heldBlueprints).length > 0
+        if (hasHeldBlueprints) {
+          const { getMeta } = useMetas()
+          await validateLtarBlueprints({ meta: meta.value, blueprints: heldBlueprints, getMeta })
+        }
+
+        if (Object.keys(updateOrInsertObj).length || hasLtarChanges || hasSmartTextDrafts || hasHeldBlueprints) {
           const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
           if (!id) {
@@ -546,6 +608,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           if (hasLtarChanges) {
             await applyPendingLtarOps()
           }
+
+          await createHeldLtarBlueprints(row.value.row, heldBlueprints)
 
           if (commentsDrawer.value) {
             await Promise.all([loadComments()])
@@ -1102,6 +1166,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       formatSaveError,
       changedColumns,
       hasLtarChanges: rowStore.hasLtarChanges,
+      heldLtarBlueprints,
       pendingLtarOps: rowStore.pendingLtarOps,
       localOnlyChanges,
       takeRemoteChanges,

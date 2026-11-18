@@ -2,7 +2,7 @@
 import Draggable from 'vuedraggable'
 import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
-import { computeLtarNewRowState } from '~/utils/dataUtils'
+import { computeLtarNewRowState, isLtarFkOnRow } from '~/utils/dataUtils'
 
 interface Prop {
   modelValue?: boolean
@@ -33,6 +33,8 @@ const { isUIAllowed } = useRoles()
 const { t } = useI18n()
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -102,6 +104,7 @@ const {
   isSingleTargetRelation,
   pendingLinkRows,
   removePendingLink,
+  openBlueprintEditor,
   isPendingUnlink,
   canReorder,
   reorderLink,
@@ -257,6 +260,18 @@ const colTitle = computed(() => injectedColumn.value?.title || '')
 
 const onClick = (row: Row) => {
   if (isPublic.value || isForm.value) return
+  // A linked record not created yet opens in its own editor
+  if ((row as Record<string, any>)?._isBlueprint) {
+    // On a new row the list hands over a decorated copy; the staged entry at _index is the one to replace
+    const blueprint = isNew.value
+      ? childrenList.value?.list?.[(row as Record<string, any>)._index] ?? row
+      : (row as Record<string, any>)
+    openBlueprintEditor(blueprint, {
+      breadcrumbs: parentBreadcrumbs.value,
+      linkOnParentSave: !isTemplateMode.value,
+    })
+    return
+  }
   // Don't allow expanding if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
   // A New record form closed without saving leaves these set; reset them so this row opens as itself.
@@ -275,7 +290,8 @@ const addNewRecord = () => {
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
   isNewRecord.value = true
-  isBlueprintMode.value = false
+  // A new record saved from its form can't be linked to yet: buffer the child and create it on that Save.
+  isBlueprintMode.value = isNew.value && isExpandedFormOpen.value && !isLtarFkOnRow(injectedColumn?.value)
 }
 
 const reloadViewDataListener = withLoading((params) => {
@@ -410,7 +426,8 @@ const totalItemsToShow = computed(() => {
   if (isChildrenLoading.value) {
     return props.items
   }
-  return childrenListCount.value
+  // Held records (failed to create) are listed as pending links but aren't in the server count
+  return childrenListCount.value + pendingLinkRows.value.filter((r) => r?._isBlueprint).length
 })
 
 const isDataExist = computed<boolean>(() => {
@@ -858,6 +875,8 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         skip-reload
         maintain-default-view-order
         :blueprint-mode="isBlueprintMode"
+        :blueprint-parent-table-id="isBlueprintMode ? meta?.id : undefined"
+        :link-on-parent-save="isBlueprintMode"
         :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Record' : 'Create & Link'"
         :new-record-header="

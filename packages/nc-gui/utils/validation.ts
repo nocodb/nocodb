@@ -143,12 +143,13 @@ export const validateTeamName = {
     return new Promise((resolve, reject) => {
       const { t } = getI18n().global
 
-      if (!value) {
+      if (!value?.trim()) {
         return reject(new Error(t('msg.error.teamNameRequired')))
       }
 
-      if (value.length > 256) {
-        return reject(new Error(t('msg.error.teamNameExceedsCharacters', { value: 256 })))
+      // Matches the API's maxLength on team titles
+      if (value.trim().length > 150) {
+        return reject(new Error(t('msg.error.teamNameExceedsCharacters', { value: 150 })))
       }
 
       const m = value.match(/[./\\]/g)

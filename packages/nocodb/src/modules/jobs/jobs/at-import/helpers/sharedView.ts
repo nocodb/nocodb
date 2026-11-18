@@ -120,7 +120,7 @@ export function buildSharedViewImport(payload: any): SharedViewImport {
 
   const ctx: CellCtx = { userInfoById, signedUrls };
   const toRecord = (row) => {
-    const fields = {};
+    const fields: Record<string, unknown> = Object.create(null);
     for (const [colId, value] of Object.entries(
       row.cellValuesByColumnId ?? {},
     )) {

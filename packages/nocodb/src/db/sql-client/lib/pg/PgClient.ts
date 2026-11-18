@@ -3172,9 +3172,13 @@ class PGClient extends KnexClient {
 
     query += this.alterTablePK(table, args.columns, [], query, true);
 
-    query = this.genQuery(`CREATE TABLE ?? (${query});`, [
-      args.schema ? `${args.schema}.${args.tn}` : args.tn,
-    ]);
+    // Keep `?` escaped: knex reads a bare one as a binding here, and pg
+    // rewrites it to `$n` when the statement runs.
+    query = this.genQuery(
+      `CREATE TABLE ?? (${this.sanitize(query)});`,
+      [args.schema ? `${args.schema}.${args.tn}` : args.tn],
+      true,
+    );
 
     if (softDeleteColumnName) {
       const tn = args.schema ? `${args.schema}.${args.tn}` : args.tn;

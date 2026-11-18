@@ -64,7 +64,7 @@ export class SourceCreateController {
       );
       if (integration) {
         await assertIntegrationAvailableToBase(context, integration, baseId);
-        await validateDbConnectionTargets(integration.getConfig());
+        await validateDbConnectionTargets(integration.dataSourceConfigOf());
       }
     }
     if (body?.config) await validateDbConnectionTargets(body.config);

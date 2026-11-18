@@ -281,27 +281,35 @@ export class AtImportProcessor {
     const nestedRollupTbl: any[] = [];
     const ncSysFields = { id: 'ncRecordId', hash: 'ncRecordHash' };
     const storeLinks = false;
-    const ncLinkDataStore: any = {};
+    const ncLinkDataStore = new Map<
+      string,
+      Map<string, { id: string; fields: Map<string, unknown> }>
+    >();
     const insertedAssocRef: any = {};
 
-    const atNcAliasRef: {
-      [ncTableId: string]: {
-        [ncTitle: string]: string;
-      };
-    } = {};
+    // ncTableId -> ncTitle -> Airtable link name
+    const atNcAliasRef = new Map<string, Map<string, string>>();
 
-    const atFieldAliasToNcFieldAlias = {};
+    // ncTableTitle -> Airtable field alias -> nc field title
+    const atFieldAliasToNcFieldAlias = new Map<string, Map<string, string>>();
 
-    const addFieldAlias = (ncTableTitle, atFieldAlias, ncFieldAlias) => {
-      if (!atFieldAliasToNcFieldAlias[ncTableTitle]) {
-        atFieldAliasToNcFieldAlias[ncTableTitle] = {};
+    const addFieldAlias = (
+      ncTableTitle: string,
+      atFieldAlias: string,
+      ncFieldAlias: string,
+    ) => {
+      if (!atFieldAliasToNcFieldAlias.has(ncTableTitle)) {
+        atFieldAliasToNcFieldAlias.set(ncTableTitle, new Map());
       }
-      atFieldAliasToNcFieldAlias[ncTableTitle][atFieldAlias] = ncFieldAlias;
+      atFieldAliasToNcFieldAlias
+        .get(ncTableTitle)
+        .set(atFieldAlias, ncFieldAlias);
     };
+    const getUniqueNameGenerator = createUniqueNameGenerators();
     const uniqueTableNameGen = getUniqueNameGenerator('sheet');
 
-    const getNcFieldAlias = (ncTableTitle, atFieldAlias) => {
-      return atFieldAliasToNcFieldAlias[ncTableTitle][atFieldAlias];
+    const getNcFieldAlias = (ncTableTitle: string, atFieldAlias: string) => {
+      return atFieldAliasToNcFieldAlias.get(ncTableTitle)?.get(atFieldAlias);
     };
 
     // Track existing table names (populate at start with existing tables)
@@ -1261,9 +1269,12 @@ export class AtImportProcessor {
                   ncName.title = await claimColumnTitle(srcTbl, ncName.title);
 
                   // LTAR alias ref to AT
-                  atNcAliasRef[srcTbl.id] = atNcAliasRef[srcTbl.id] || {};
-                  atNcAliasRef[srcTbl.id][ncName.title] =
-                    aTblLinkColumns[i].name;
+                  if (!atNcAliasRef.has(srcTbl.id)) {
+                    atNcAliasRef.set(srcTbl.id, new Map());
+                  }
+                  atNcAliasRef
+                    .get(srcTbl.id)
+                    .set(ncName.title, aTblLinkColumns[i].name);
 
                   logDetailed(
                     `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`,
@@ -2249,12 +2260,14 @@ export class AtImportProcessor {
           case UITypes.LinkToAnotherRecord:
           case UITypes.Links:
             if (storeLinks) {
-              if (ncLinkDataStore[table.title][record.id] === undefined)
-                ncLinkDataStore[table.title][record.id] = {
-                  id: record.id,
-                  fields: {},
-                };
-              ncLinkDataStore[table.title][record.id]['fields'][key] = value;
+              if (!ncLinkDataStore.has(table.title)) {
+                ncLinkDataStore.set(table.title, new Map());
+              }
+              const tableLinks = ncLinkDataStore.get(table.title);
+              if (!tableLinks.has(record.id)) {
+                tableLinks.set(record.id, { id: record.id, fields: new Map() });
+              }
+              tableLinks.get(record.id).fields.set(key, value);
             }
             delete rec[key];
             break;
@@ -3961,19 +3974,23 @@ export class AtImportProcessor {
   }
 }
 
-const namesRef = {};
+// Names taken so far, per job.
+const createUniqueNameGenerators = () => {
+  const namesRef = new Map<string, Set<string>>();
 
-const getUniqueNameGenerator = (defaultName = 'name', context = 'default') => {
-  const finalContext = `${context}_${defaultName}}`;
-  if (!namesRef[finalContext]) namesRef[finalContext] = {};
-  return (initName: string = defaultName): string => {
-    let name = initName === '_' ? defaultName : initName;
-    let c = 0;
-    while (name.toLowerCase() in namesRef[finalContext]) {
-      name = `${initName}_${++c}`;
-    }
-    namesRef[finalContext][name.toLowerCase()] = true;
-    return name;
+  return (defaultName = 'name', context = 'default') => {
+    const finalContext = `${context}_${defaultName}}`;
+    if (!namesRef.has(finalContext)) namesRef.set(finalContext, new Set());
+    const taken = namesRef.get(finalContext);
+    return (initName: string = defaultName): string => {
+      let name = initName === '_' ? defaultName : initName;
+      let c = 0;
+      while (taken.has(name.toLowerCase())) {
+        name = `${initName}_${++c}`;
+      }
+      taken.add(name.toLowerCase());
+      return name;
+    };
   };
 };
 

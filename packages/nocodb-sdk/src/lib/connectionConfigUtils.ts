@@ -1,4 +1,6 @@
 import { SSLUsage } from '~/lib/enums';
+import { isSecretRef } from '~/lib/vault';
+import type { VaultSecretRef } from '~/lib/vault';
 
 /**
  * SSL fields a DB connection form can supply, for the knex `pg` / `mysql2`
@@ -10,10 +12,10 @@ export interface SqlSslConfig {
   /** SSL mode chosen in the form (an `SSLUsage` value). */
   sslMode?: SSLUsage | string;
   /** PEM contents of a CA certificate used to verify the server. */
-  sslCa?: string;
+  sslCa?: string | VaultSecretRef;
   /** PEM client certificate / key — mutual TLS. */
-  sslCert?: string;
-  sslKey?: string;
+  sslCert?: string | VaultSecretRef;
+  sslKey?: string | VaultSecretRef;
   /**
    * Legacy on/off flag kept for configs created before `sslMode` existed.
    * @deprecated use `sslMode`.
@@ -26,9 +28,9 @@ export interface SqlSslConfig {
 // boolean ("SSL profile must be an object") before it opens a socket.
 export type KnexSqlSslValue =
   | {
-      ca?: string;
-      cert?: string;
-      key?: string;
+      ca?: string | VaultSecretRef;
+      cert?: string | VaultSecretRef;
+      key?: string | VaultSecretRef;
       rejectUnauthorized: boolean;
     }
   | undefined;
@@ -56,8 +58,11 @@ export type KnexSqlSslValue =
  * mode from a stored config and nothing extra has to be persisted.
  */
 export function buildSqlAuthSsl(config: SqlSslConfig): KnexSqlSslValue {
-  const pem = (v?: string) =>
-    typeof v === 'string' && v.trim() ? v.trim() : undefined;
+  // A vault reference is kept as is; the connection resolves it.
+  const pem = (v?: string | VaultSecretRef) => {
+    if (isSecretRef(v)) return v;
+    return typeof v === 'string' && v.trim() ? v.trim() : undefined;
+  };
 
   const ca = pem(config.sslCa);
   const cert = pem(config.sslCert);

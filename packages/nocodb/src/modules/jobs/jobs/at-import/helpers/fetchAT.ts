@@ -31,7 +31,7 @@ function parseJsonStream(
       reject(err);
     };
 
-    const result = {};
+    const result: Record<string, any> = Object.create(null);
 
     objectStream.on('data', (chunk) => {
       if (chunk.key) result[chunk.key] = chunk.value;
@@ -73,7 +73,7 @@ export function prepareReadLink(link: string) {
 // JSON params are merged in; a shared view's access policy has `=` inside
 // its values, so they are not split by hand
 export function parseReadLinkParams(link: string) {
-  const result: Record<string, any> = {};
+  const result: Record<string, any> = Object.create(null);
   const params = new URLSearchParams(link.split('?')[1] ?? '');
   for (const [key, value] of params) {
     let parsed;

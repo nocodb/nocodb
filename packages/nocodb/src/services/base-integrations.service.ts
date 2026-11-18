@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { IntegrationsType as IntegrationsTypeEnum } from 'nocodb-sdk';
+import {
+  dataSourceClientOf,
+  IntegrationsType as IntegrationsTypeEnum,
+  isCombinedDataSourceIntegration,
+  knexConfigFromSqlAuthConfig,
+} from 'nocodb-sdk';
 import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
@@ -74,7 +79,17 @@ export class BaseIntegrationsService {
         );
       })
       .modify((qb) => {
-        if (param.type) {
+        if (param.type === IntegrationsTypeEnum.Database) {
+          // App connections that double as a data source; flag checked below.
+          qb.where((typeQb) => {
+            typeQb
+              .where(`${MetaTable.INTEGRATIONS}.type`, param.type)
+              .orWhere(
+                `${MetaTable.INTEGRATIONS}.type`,
+                IntegrationsTypeEnum.Auth,
+              );
+          });
+        } else if (param.type) {
           qb.where(`${MetaTable.INTEGRATIONS}.type`, param.type);
         }
         if (param.subType) {
@@ -96,6 +111,13 @@ export class BaseIntegrationsService {
     // Also exclude private integrations not created by the current user
     const available = integrations.filter((integration) => {
       if (
+        param.type === IntegrationsTypeEnum.Database &&
+        integration.type !== param.type &&
+        !isCombinedDataSourceIntegration(integration)
+      ) {
+        return false;
+      }
+      if (
         integration.is_private &&
         param.userId &&
         integration.created_by !== param.userId
@@ -112,9 +134,16 @@ export class BaseIntegrationsService {
     // includeDatabaseInfo subset in Integration.list; without it the base-scoped
     // list drops config entirely and the PG schema field never renders.
     for (const integration of available) {
-      if (integration.type === IntegrationsTypeEnum.Database) {
+      const combined = isCombinedDataSourceIntegration(integration);
+      if (integration.type === IntegrationsTypeEnum.Database || combined) {
+        const config = decryptPropIfRequired({ data: integration });
         integration.config = partialExtract(
-          decryptPropIfRequired({ data: integration }),
+          combined
+            ? knexConfigFromSqlAuthConfig(
+                dataSourceClientOf(integration),
+                config,
+              )
+            : config,
           [
             'client',
             ['connection', 'database'],

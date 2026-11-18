@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  dataSourceClientOf,
   EventType,
   IntegrationsType,
+  isDataSourceIntegration,
   validateAndExtractSSLProp,
 } from 'nocodb-sdk';
 import type { BaseReqType, IntegrationType } from 'nocodb-sdk';
@@ -129,10 +131,7 @@ export class SourcesService {
   }
 
   protected assertDatabaseIntegration(integration: IntegrationType) {
-    if (
-      integration.type !== IntegrationsType.Database ||
-      !integration.sub_type
-    ) {
+    if (!isDataSourceIntegration(integration) || !integration.sub_type) {
       NcError.badRequest('Integration type should be Database');
     }
   }
@@ -281,7 +280,9 @@ export class SourcesService {
 
       this.assertDatabaseIntegration(integration);
 
-      baseBody.type = integration.sub_type as unknown as BaseReqType['type'];
+      baseBody.type = dataSourceClientOf(
+        integration,
+      ) as unknown as BaseReqType['type'];
     }
 
     // update invalid ssl config value if found

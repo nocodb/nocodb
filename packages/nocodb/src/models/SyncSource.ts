@@ -52,9 +52,11 @@ export const maskSyncDetails = <T extends { apiKey?: unknown } | undefined>(
   details: T,
 ): T => (details?.apiKey ? { ...details, apiKey: SYNC_SECRET_MASK } : details);
 
-export const omitSyncToken = (details?: Record<string, unknown>) => {
-  const { apiKey: _apiKey, ...rest } = details ?? {};
-  return rest;
+// Stored details are free-form: pass on only the fields the import job reads.
+// The token stays out; the processor reads it from the sync source.
+export const atImportJobOptions = (details?: Record<string, unknown>) => {
+  const { shareId, appId, options } = details ?? {};
+  return { shareId, appId, options };
 };
 
 export default class SyncSource {
@@ -160,14 +162,10 @@ export default class SyncSource {
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(syncSource, [
-      'id',
       'title',
       'type',
       'details',
-      'deleted',
       'order',
-      'base_id',
-      'source_id',
     ]);
 
     if (updateObj.details) {

@@ -8324,6 +8324,7 @@
     "privateBaseShareRestrictedMsg": "This project is set as Private and cannot be shared publicly.",
     "privateBaseViewShareRestrictedMsg": "Views within a Private project cannot be shared publicly.",
     "warning": {
+      "mssqlStrictEncryptNotSupported": "Strict encryption isn't supported yet. Standard encryption is used.",
       "csvExtraCellsIgnored": "{file}: {count} row(s) have more values than columns, starting at row {row}. The extra values won't be imported. Turn on \"Use first record as header\" if the first row holds column names.",
       "invalidNumberImportedEmpty": "Row {row}, \"{column}\": \"{value}\" is not a number and will be imported as empty.",
       "invalidNumberImportedAs": "Row {row}, \"{column}\": \"{value}\" is not a valid number and will be imported as {stored}.",
@@ -8415,6 +8416,7 @@
       "fieldsChangedByOthers": "Someone else changed {fields} while you were editing. Saving replaces their values with yours.",
       "offlineEditQueued": "Can't reach the server. Your edits are kept and will be saved when the connection is back.",
       "offlineEditsDiscarded": "{count} edit made while offline wasn't saved | {count} edits made while offline weren't saved",
+      "appPreviewSessionRefreshed": "Session refreshed, click to reload",
       "baseDeleteRemovesCrossBaseLinks": "These link fields in other projects point into this project. Deleting it removes them.",
       "baseDeleteHiddenCrossBaseLinks": "Link fields in projects you cannot access that are also removed: {count}",
       "baseDeleteHiddenLockedCrossBaseLinks": "({count} of them in locked projects)",
@@ -9278,6 +9280,7 @@
         "atLeast8Char": "At least 8 characters"
       },
       "invalidURL": "Invalid URL",
+      "connectionUrlWrongDatabase": "This URL is for a different database type",
       "invalidEmail": "Invalid Email",
       "invalidEmailAddress": "“{email}” isn't a valid email address",
       "atLeastOneEmail": "At least one email address is required",

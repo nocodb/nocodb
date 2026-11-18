@@ -22,7 +22,6 @@ import { fetchForDataImport } from '~/helpers/dataImportFetch';
 import { Base, User } from '~/models';
 import Noco from '~/Noco';
 import { isCloud, isEE, isOnPrem, T } from '~/utils';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
@@ -77,7 +76,7 @@ interface AllMeta {
         webhookCount: number | null;
         filterCount: number | null;
         sortCount: number | null;
-        rowCount: ({ totalRecords: number } | null)[] | null;
+        rowCount: null;
         userCount: number | null;
       }
     | { error: string }
@@ -263,7 +262,6 @@ export class UtilsService {
               webhookCount,
               filterCount,
               sortCount,
-              rowCount,
               userCount,
             ] = this.extractResultOrNull(
               await Promise.allSettled([
@@ -367,18 +365,6 @@ export class UtilsService {
                   base.id,
                   MetaTable.SORT,
                 ),
-                // row count per base
-                base.getSources().then(async (sources) => {
-                  return this.extractResultOrNull(
-                    await Promise.allSettled(
-                      sources.map(async (source) =>
-                        (await NcConnectionMgrv2.getSqlClient(source))
-                          .totalRecords?.()
-                          ?.then((result) => result?.data),
-                      ),
-                    ),
-                  );
-                }),
                 // base users count
                 Noco.ncMeta.metaCount(
                   base.fk_workspace_id,
@@ -401,7 +387,8 @@ export class UtilsService {
               webhookCount,
               filterCount,
               sortCount,
-              rowCount,
+              // Counting rows opens a pool to every source (nocodb/nocodb#12554).
+              rowCount: null,
               userCount,
             };
           }),

@@ -23,6 +23,8 @@ import {
   isVirtualCol,
   ncIsArray,
   ncIsNumber,
+  parseDecimalValue,
+  parseIntValue,
   resolveCurrentUserToken,
   restoreEarlyYear,
   getLookupColumnType as sdkGetLookupColumnType,
@@ -569,16 +571,15 @@ export const getDecimalValue = (modelValue: string | null | number, col: ColumnT
   if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
-  const columnMeta = parseProp(col.meta)
 
-  return Number(modelValue).toFixed(columnMeta?.precision ?? 1)
+  return `${parseDecimalValue(modelValue, col) ?? ''}`
 }
 
-export const getIntValue = (modelValue: string | null | number) => {
+export const getIntValue = (modelValue: string | null | number, col?: ColumnType) => {
   if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
-  return Number(modelValue).toString()
+  return `${parseIntValue(modelValue, col) ?? ''}`
 }
 
 export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
@@ -813,8 +814,8 @@ export const parsePlainCellValue = (
     return value ? `${value}` : '0'
   }
 
-  if (isInt(col, abstractType)) {
-    return getIntValue(value)
+  if (col.uidt === UITypes.Number || isInt(col, abstractType)) {
+    return getIntValue(value, col)
   }
   if (isJSON(col)) {
     try {

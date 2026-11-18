@@ -7241,6 +7241,28 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
+    // if xcdb base then treat as virtual relation to avoid creating foreign key
+    if (param.source.isMeta() || param.source.type === 'snowflake') {
+      ltarReq.virtual = true;
+    }
+
+    // The FK / junction columns reference a single PK column, so a composite
+    // PK on a referenced side would create a broken relation. A virtual
+    // relation is fine when that column is unique on its own. Real FKs stay
+    // rejected: PG introspection marks multi-column UNIQUE members as unique.
+    for (const t of isMMLike ? [table, refTable] : [table]) {
+      const pk = t.primaryKey;
+      const singleColOk =
+        !!ltarReq.virtual && !!(pk.unique || pk.ai || pk.meta?.ag);
+      if (t.primaryKeys.length > 1 && !singleColOk) {
+        NcError.get(context).badRequest(
+          `Cannot create relation: table '${
+            t.title || t.table_name
+          }' has a composite primary key. Links to tables with a composite primary key are not supported.`,
+        );
+      }
+    }
+
     let refColumn: Column;
     const childView: View | null = ltarReq?.childViewId
       ? await View.getByTitleOrId(refContext, {
@@ -7279,11 +7301,6 @@ export class ColumnsService implements IColumnsService {
           });
     const isLinks =
       param.column.uidt === UITypes.Links || ltarReq.type === 'bt';
-
-    // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.source.isMeta() || param.source.type === 'snowflake') {
-      ltarReq.virtual = true;
-    }
 
     if (!isMMLike && (ltarReq.type === 'hm' || ltarReq.type === 'bt')) {
       // populate fk column name

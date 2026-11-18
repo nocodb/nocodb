@@ -2152,7 +2152,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                         :is="iconMap.drag"
                         class="cursor-move !h-3.5 text-nc-content-gray-subtle2 mr-1 rtl:(ml-1 mr-0)"
                         :class="{
-                          'opacity-0 !cursor-default': isLocked,
+                          'opacity-0 !cursor-default': isLocked || isSqlView,
                         }"
                       />
                       <NcTooltip v-if="field.id && viewFieldsMap[field.id]" :disabled="isLocked" class="flex">
@@ -2396,7 +2396,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                         :is="iconMap.drag"
                         class="cursor-move !h-3.5 text-nc-gray-200 mr-1 rtl:(ml-1 mr-0)"
                         :class="{
-                          'opacity-0 !cursor-default': isLocked,
+                          'opacity-0 !cursor-default': isLocked || isSqlView,
                         }"
                       />
                       <GeneralIcon
@@ -2558,7 +2558,7 @@ onBeforeRouteUpdate((_to, from) => confirmUnsavedChangesBeforeLeaving(from))
                   {{ $t('labels.multiField.selectField') }}
                 </div>
                 <div class="text-center text-sm px-2 text-nc-content-inverted-secondary-disabled pt-6">
-                  {{ $t('labels.multiField.selectFieldLabel') }}
+                  {{ isSqlView ? $t('tooltip.schemaChangeDisabledFormSqlView') : $t('labels.multiField.selectFieldLabel') }}
                 </div>
               </div>
             </div>

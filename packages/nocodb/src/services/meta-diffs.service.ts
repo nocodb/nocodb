@@ -28,6 +28,8 @@ import { NcError } from '~/helpers/catchError';
 import { getSourceIntrospectionSchema, normalizeDr } from '~/helpers/dbHelpers';
 import {
   detectColumnSchemaPropsChanged,
+  generatedReadonlyUpdate,
+  mergeIntrospectedInternalMeta,
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
@@ -1074,6 +1076,10 @@ export class MetaDiffsService {
               if (meta !== change.column.meta) column.meta = meta;
 
               column.title = change.column.title;
+              column.internal_meta = mergeIntrospectedInternalMeta(
+                change.column.internal_meta,
+                column.internal_meta,
+              );
               await Column.update(context, change.column.id, column);
             }
             break;
@@ -1093,6 +1099,12 @@ export class MetaDiffsService {
                 rqd,
                 un,
                 unique,
+                // From the stored column: a type change applied in this sync may have updated internal_meta.
+                ...generatedReadonlyUpdate(
+                  (await Column.get(context, { colId: change.column.id })) ??
+                    change.column,
+                  colMeta,
+                ),
               });
             }
             break;

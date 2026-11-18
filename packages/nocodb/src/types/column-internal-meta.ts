@@ -28,6 +28,13 @@ export interface ColumnInternalMeta {
    * checked: reads sign only held files until the cleanup clears it.
    */
   attachment_cleanup_pending?: boolean;
+
+  /**
+   * Set by PG introspection on a `GENERATED ALWAYS AS (expr) STORED` column it
+   * made readonly, so meta sync can clear that readonly if the column stops
+   * being generated without touching a readonly NocoDB set itself.
+   */
+  pg_generated?: boolean;
 }
 
 // Only Column.setAttachmentCleanupPending changes the mark, so a client, a copy or a stale column object can't.
@@ -85,6 +92,7 @@ export function validateColumnInternalMeta(
     'pg_enum_type_name',
     'pg_enum_schema_name',
     'attachment_cleanup_pending',
+    'pg_generated',
   ];
   const keys = Object.keys(value);
   for (const key of keys) {
@@ -132,6 +140,13 @@ export function validateColumnInternalMeta(
     typeof value.attachment_cleanup_pending !== 'boolean'
   ) {
     throw new Error('attachment_cleanup_pending must be a boolean');
+  }
+
+  if (
+    value.pg_generated !== undefined &&
+    typeof value.pg_generated !== 'boolean'
+  ) {
+    throw new Error('pg_generated must be a boolean');
   }
 
   // pg_enum_type_name and pg_enum_schema_name must be set together — an

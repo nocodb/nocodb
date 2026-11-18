@@ -41,7 +41,7 @@ import type {
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { decode as decodeHtmlEntities } from 'html-entities'
-import { isColumnRequiredAndNull } from './columnUtils'
+import { isColumnRequiredAndNull, isReadonlyDataCol } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 import type { GetMetaParams } from '~/composables/useMetas'
 
@@ -290,6 +290,8 @@ export const getSkippedDuplicateLinks = (row: Record<string, any> = {}, columns:
 //    auto-increment, default or auto-generated value) would be copied verbatim
 //    and the insert would fail on the unique constraint, so leave it for the
 //    user to fill in
+//  - readonly columns: the database computes them (e.g. PG generated columns)
+//    and the backend rejects a written value
 //  - single-parent links (has-many / one-to-one / one-to-many) — copying them
 //    would reassign the linked record to the copy and detach it from the
 //    original (see `isSingleParentLinkColumn`). Shareable links (belongs-to /
@@ -314,7 +316,10 @@ export const getDuplicateRowData = (
   delete clonedRow.ncRecordHash
 
   for (const col of columns) {
-    if (col.title && (isSystemColumn(col) || col.pk || (!keepSingleParentLinks && isSingleParentLinkColumn(col)))) {
+    if (
+      col.title &&
+      (isSystemColumn(col) || col.pk || isReadonlyDataCol(col) || (!keepSingleParentLinks && isSingleParentLinkColumn(col)))
+    ) {
       delete clonedRow[col.title]
     }
   }

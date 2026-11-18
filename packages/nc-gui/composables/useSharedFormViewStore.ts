@@ -337,7 +337,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       )
 
       columns.value = (viewMeta.model?.columns || [])
-        .filter((c: ColumnType) => fieldById[c.id])
+        .filter((c: ColumnType) => fieldById[c.id] && !isFormHiddenReadonlyCol(c, viewMeta.model))
         .map((c: ColumnType) => {
           if (
             !isSystemColumn(c) &&
@@ -994,7 +994,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   })
 
   function isRequired(column: Record<string, any>) {
-    if (!isVirtualCol(column) && ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)) {
+    if (
+      !isVirtualCol(column) &&
+      ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf || column.readonly)) || column.required)
+    ) {
       return true
     } else if (
       isLinksOrLTAR(column) &&

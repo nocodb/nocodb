@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
-import { ProjectRoles, UITypes, WorkspaceRolesToProjectRoles, getAttachmentAnnotationKey } from 'nocodb-sdk'
+import { ProjectRoles, RoleLabels, UITypes, WorkspaceRolesToProjectRoles, getAttachmentAnnotationKey } from 'nocodb-sdk'
 import type { ColumnType, CommentImageAnnotation, CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { CommentThread, CommentTypeExtended } from '~/composables/useRowComments'
 import { suggestionHandledKeyEvents } from '~/helpers/tiptap'
@@ -1010,6 +1010,12 @@ function getUserRole(email: string) {
   )
 }
 
+function getUserRoleLabel(email: string) {
+  const role = getUserRole(email)
+  const key = RoleLabels[role as keyof typeof RoleLabels] ?? role
+  return t(`objects.roleType.${key}`, key)
+}
+
 const tooltipInstances: any[] = []
 
 function loadCommentEditedTooltip() {
@@ -1373,7 +1379,9 @@ onBeforeUnmount(() => {
                                 class="px-3 rounded-b-lg !text-[13px] items-center text-nc-content-gray-subtle2 flex gap-1 bg-nc-bg-gray-light py-1.5"
                               >
                                 <template #role>
-                                  <RolesBadge size="sm" :border="false" :role="getUserRole(commentItem.created_by_email!)" />
+                                  <span class="font-semibold text-nc-content-gray">
+                                    {{ getUserRoleLabel(commentItem.created_by_email!) }}
+                                  </span>
                                 </template>
                               </i18n-t>
                             </div>

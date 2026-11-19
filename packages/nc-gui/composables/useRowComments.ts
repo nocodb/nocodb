@@ -58,22 +58,37 @@ export function getCommentMeta(comment?: CommentType | null): CommentMeta {
   return meta as CommentMeta
 }
 
-/** Top-level comments with their replies. A reply whose parent is gone starts its own thread. */
+/**
+ * Top-level comments with their replies. A reply whose parent is gone starts its own thread; a reply to a
+ * reply (stored before replies were flattened server-side) joins the thread at the top of its chain.
+ */
 export function buildCommentThreads(comments: CommentTypeExtended[]): CommentThread[] {
+  const byId = new Map(comments.filter((c) => c.id).map((c) => [c.id!, c]))
   const threadByRootId = new Map<string, CommentThread>()
   const threads: CommentThread[] = []
-  const ids = new Set(comments.map((c) => c.id))
+
+  function rootOf(comment: CommentTypeExtended) {
+    let current = comment
+    const seen = new Set<string>()
+
+    while (current.parent_comment_id && byId.has(current.parent_comment_id) && !seen.has(current.parent_comment_id)) {
+      seen.add(current.id!)
+      current = byId.get(current.parent_comment_id)!
+    }
+
+    return current
+  }
 
   for (const comment of comments) {
-    if (comment.parent_comment_id && ids.has(comment.parent_comment_id)) continue
+    if (rootOf(comment) !== comment) continue
     const thread = { root: comment, replies: [] }
     if (comment.id) threadByRootId.set(comment.id, thread)
     threads.push(thread)
   }
 
   for (const comment of comments) {
-    if (!comment.parent_comment_id) continue
-    threadByRootId.get(comment.parent_comment_id)?.replies.push(comment)
+    const root = rootOf(comment)
+    if (root !== comment) threadByRootId.get(root.id!)?.replies.push(comment)
   }
 
   return threads
@@ -306,14 +321,18 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
       lastReadAt.value = res?.last_read_at ?? null
 
-      await markCommentsRead(rowId)
+      // The list may still be loading; records that stay empty write nothing.
+      await until(() => comments.value.length > 0).toBe(true, { timeout: 5000 })
+
+      if (seq === readStateSeq) await markCommentsRead(rowId)
     } catch {
       // Without a read state nothing is flagged as new.
     }
   }
 
   async function markCommentsRead(_rowId?: string) {
-    if (!isCommentExtrasEnabled.value) return
+    // Nothing to have read: no row is written for records without comments.
+    if (!isCommentExtrasEnabled.value || !comments.value.length) return
 
     const rowId = _rowId ?? extractPkFromRow(row.value?.row, meta.value?.columns as ColumnType[])
     if (!rowId || !meta.value?.id) return

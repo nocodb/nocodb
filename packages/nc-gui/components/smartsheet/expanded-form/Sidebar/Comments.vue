@@ -513,7 +513,7 @@ function canSummarize(thread: CommentThread) {
     isCommentExtrasEnabled.value &&
     isAiFeaturesEnabled.value &&
     aiIntegrationAvailable.value &&
-    hasEditPermission.value &&
+    isUIAllowed('dataEdit') &&
     thread.replies.length >= SUMMARIZE_FROM_REPLIES
   )
 }

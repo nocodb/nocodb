@@ -4,6 +4,7 @@ import UITypes, {
   isLinksOrLTAR,
   isLinkV2,
   isMMOrMMLike,
+  partialUpdateAllowedTypes,
 } from './UITypes';
 
 // Helper to create a column-like object with colOptions
@@ -239,5 +240,13 @@ describe('UITypes — V2 LTAR helpers', () => {
       expect(isLinksOrLTAR({ uidt: UITypes.SingleLineText })).toBe(false);
       expect(isLinksOrLTAR({ uidt: UITypes.Rollup })).toBe(false);
     });
+  });
+});
+
+// Decimal/Percent format options stay editable on read-only sources (nocodb/nocodb#14837)
+describe('partialUpdateAllowedTypes', () => {
+  it('includes Decimal and Percent', () => {
+    expect(partialUpdateAllowedTypes).toContain(UITypes.Decimal);
+    expect(partialUpdateAllowedTypes).toContain(UITypes.Percent);
   });
 });

@@ -12,6 +12,7 @@ import {
   isSingleRecordLinkColumn,
   isVirtualCol,
   ncHasProperties,
+  partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
@@ -3085,7 +3086,10 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
-    (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt)) &&
+    (isDescription ||
+      !isMetaReadOnly.value ||
+      readonlyMetaAllowedTypes.includes(column.uidt) ||
+      partialUpdateAllowedTypes.includes(column.uidt)) &&
     !isSqlView.value
   ) {
     const rect = canvasRef.value?.getBoundingClientRect()

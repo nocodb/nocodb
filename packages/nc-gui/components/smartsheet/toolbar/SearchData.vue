@@ -83,8 +83,8 @@ const freeSpaceForSearch = computed(() => spacerWidth.value + wrapperWidth.value
 // does not mis-fire in icon mode, where the toolbar buttons collapse to icons and free up space.
 const EXPANDED_SEARCH_MIN_WIDTH = 320
 
-// The count and arrows share the input's row once there is a query.
-const SEARCH_RESULT_SLOT_WIDTH = 150
+// Extra width once the count shares the row; the input shrinks to make room for most of it.
+const SEARCH_RESULT_SLOT_WIDTH = 100
 
 const shouldCollapseSearch = computed(
   () =>
@@ -530,7 +530,8 @@ useSearchCommands({
               :inputmode="searchInputMode"
               name="globalSearchQuery"
               size="small"
-              class="!text-bodyDefaultSm flex-1 md:!w-40 h-full nc-view-search-data !pl-0"
+              class="!text-bodyDefaultSm flex-1 h-full nc-view-search-data !pl-0"
+              :class="isSearchResultVisible ? 'md:!w-28' : 'md:!w-40'"
               :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
               :bordered="false"
               autocomplete="off"

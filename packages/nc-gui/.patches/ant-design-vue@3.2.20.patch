@@ -38,6 +38,20 @@ index b82d75140e62213973551b10a852a2ce194f3e83..c2c00a079518d3ded4f89cd831b63fd1
              instance.update();
            }
          });
+diff --git a/es/vc-drawer/src/DrawerChild.js b/es/vc-drawer/src/DrawerChild.js
+index d609ede62defc89f53c26b39d495d0d41500ddc5..125cc6a6fc3e056221d6c61608af009ceba21e85 100644
+--- a/es/vc-drawer/src/DrawerChild.js
++++ b/es/vc-drawer/src/DrawerChild.js
+@@ -236,7 +236,8 @@ var DrawerChild = defineComponent({
+           if (right) {
+             addScrollingEffect(right);
+           }
+-          document.body.style.touchAction = 'none';
++          // nocodb: 'none' also blocked pinch-zoom on phones while a drawer was open
++          document.body.style.touchAction = 'pinch-zoom';
+           // 手机禁滚
+           domArray.forEach(function (item, i) {
+             if (!item) {
 diff --git a/es/vc-select/OptionList.js b/es/vc-select/OptionList.js
 index a93021fd63f8c5aeda5e9486952f72d3695de18c..f35ac48f5590c8801b6a15615e4836548d075956 100644
 --- a/es/vc-select/OptionList.js
@@ -82,6 +96,20 @@ index 1185a17aa98c8d6eceeca231bce1ebd119c41c56..71c55020f197a7bf29e8779b1bdab51f
          var _options$onValidate;
          var res = results.filter(function (result) {
            return result && result.errors.length;
+diff --git a/lib/vc-drawer/src/DrawerChild.js b/lib/vc-drawer/src/DrawerChild.js
+index dad28708fbd45fcf3578ee2f8bd1c5d7bd2c1556..a5cf692a8cb1b912b132e0bc591b3b3e839753b6 100644
+--- a/lib/vc-drawer/src/DrawerChild.js
++++ b/lib/vc-drawer/src/DrawerChild.js
+@@ -242,7 +242,8 @@ var DrawerChild = (0, _vue.defineComponent)({
+           if (right) {
+             addScrollingEffect(right);
+           }
+-          document.body.style.touchAction = 'none';
++          // nocodb: 'none' also blocked pinch-zoom on phones while a drawer was open
++          document.body.style.touchAction = 'pinch-zoom';
+           // 手机禁滚
+           domArray.forEach(function (item, i) {
+             if (!item) {
 diff --git a/lib/vc-select/OptionList.js b/lib/vc-select/OptionList.js
 index 067cf56330322759fcd481e0a8b33537a050e162..f2e81a179533cda3ef97151a2b78250ef952821a 100644
 --- a/lib/vc-select/OptionList.js

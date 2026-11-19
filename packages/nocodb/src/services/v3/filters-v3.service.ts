@@ -20,6 +20,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { validatePayload } from '~/helpers';
+import { withFilterOwner } from '~/helpers/filterOwnerHelpers';
 import { NcError } from '~/helpers/catchError';
 import { assertViewIdConfigEditable } from '~/helpers/viewLockHelpers';
 import { assertFiltersReadable } from '~/helpers/filterVerify';
@@ -304,13 +305,15 @@ export class FiltersV3Service {
         'parent_id' in groupOrFilter && groupOrFilter.parent_id;
       if (!hasParentInGroup) {
         // Root group handling when parent_id is not provided in groupOrFilter
-        const existingRootFilters = await Filter.rootFilterList(
-          context,
-          {
-            viewId,
-          },
-          ncMeta,
-        );
+        const existingRootFilters = (
+          await Filter.rootFilterList(
+            context,
+            {
+              viewId,
+            },
+            ncMeta,
+          )
+        ).filter((f) => !f.fk_parent_column_id);
         const existingRootFilter =
           existingRootFilters[1] || existingRootFilters[0];
         if (existingRootFilter) {
@@ -410,7 +413,7 @@ export class FiltersV3Service {
       const filter = await Filter.insert(
         context,
         {
-          ...groupOrFilter,
+          ...withFilterOwner(groupOrFilter),
           fk_parent_id: currentParentId, // Link to the parent group or root
           logical_op: extractLogicalOp(logicalOp), // Pass the logical operator
           ...additionalProps,
@@ -708,13 +711,16 @@ export class FiltersV3Service {
         ncMeta,
       );
     } else if ('viewId' in param && param.viewId) {
-      filters = await Filter.allViewFilterList(
-        context,
-        {
-          viewId: param.viewId,
-        },
-        ncMeta,
-      );
+      // Form-field conditions share fk_view_id but are not view filters.
+      filters = (
+        await Filter.allViewFilterList(
+          context,
+          {
+            viewId: param.viewId,
+          },
+          ncMeta,
+        )
+      ).filter((f) => !f.fk_parent_column_id);
     }
 
     return addDummyRootAndNest(filterBuilder().build(filters) as Filter[]);

@@ -812,6 +812,15 @@ export class MssqlUi implements SqlUi {
       'MD5',
       'SHA256',
       'SHA512',
+      // array functions are PostgreSQL-only
+      'TEXTSPLIT',
+      'ARRAYJOIN',
+      'ARRAYFLATTEN',
+      // built on DATETIME_DIFF, blocked above
+      'FROMNOW',
+      'TONOW',
+      // implemented for PG, MySQL and SQLite only, like DATETIME_FORMAT
+      'DATETIME_PARSE',
     ];
   }
 

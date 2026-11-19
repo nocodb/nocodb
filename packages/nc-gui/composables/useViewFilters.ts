@@ -703,6 +703,9 @@ export function useViewFilters(
     skipDataReload = false,
     lastFilterIndex: number | undefined = undefined,
   ) {
+    // A draft removed while its debounced save was pending must not be created.
+    if (filter.status === 'delete' && !filter.id) return
+
     // if already in progress the debounced function which will call this function again with 500ms delay until it's not saving
     if (savingStatus[i]) {
       return saveOrUpdateDebounced(filter, i, force, resortAfterSave, skipDataReload, lastFilterIndex)

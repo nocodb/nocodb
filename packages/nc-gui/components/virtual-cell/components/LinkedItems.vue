@@ -541,6 +541,30 @@ const visibleRows = computed(() => {
   })
 })
 
+// Linked state is keyed by childrenList index; a drag reorders reorderRows
+// before the reload, so resolve each reorder row to its childrenList index by id.
+const childrenListIndexById = computed(() => {
+  const map = new Map<string, number>()
+  childrenList.value?.list?.forEach((r, i) => {
+    const id = getRelatedTableRowId(r)
+    if (id != null) map.set(String(id), i)
+  })
+  return map
+})
+
+const reorderRowIndex = (row: Record<string, any>) => childrenListIndexById.value.get(String(getRelatedTableRowId(row))) ?? -1
+
+function isReorderRowLinked(row: Record<string, any>) {
+  if (shouldDefer.value && isPendingUnlink(row)) return false
+  return childrenCachedLinkedState.value.get(reorderRowIndex(row)) ?? true
+}
+
+const reorderRowLinkOrUnlink = (row: Record<string, any>) => {
+  const index = reorderRowIndex(row)
+  if (index < 0) return
+  linkOrUnLink(row, String(index))
+}
+
 onUnmounted(() => {
   resetChildrenListOffsetCount()
   resetChildrenCache()
@@ -671,7 +695,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               :animation="150"
               @end="onReorderEnd"
             >
-              <template #item="{ element, index }">
+              <template #item="{ element }">
                 <div
                   class="flex flex-row items-center border-b-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight"
                   data-testid="nc-child-list-reorder-item"
@@ -688,13 +712,13 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                     :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                     :fields="fields"
                     :display-value-column="relatedTableDisplayValueColumn"
-                    :is-linked="true"
+                    :is-linked="isReorderRowLinked(element)"
                     :is-loading="false"
                     :related-table-display-value-prop="relatedTableDisplayValueProp"
                     :row="element"
                     :allow-expand="allowRecordExpand"
                     data-testid="nc-child-list-item"
-                    @link-or-unlink="unlinkRow(element, index)"
+                    @link-or-unlink="reorderRowLinkOrUnlink(element)"
                     @expand="onClick(element)"
                     @close="vModel = false"
                   />

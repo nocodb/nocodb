@@ -18,6 +18,7 @@ export interface ShareUuidParams {
   sharedViewUuid?: string;
   sharedBaseUuid?: string;
   sharedDocUuid?: string;
+  sharedDashboardUuid?: string;
 }
 
 /**
@@ -40,6 +41,8 @@ export function resolveShareAccessSource(
   if (params.sharedBaseUuid) return NcAccessSource.SHARED_BASE;
 
   if (params.sharedDocUuid) return NcAccessSource.SHARED_DOC;
+
+  if (params.sharedDashboardUuid) return NcAccessSource.SHARED_DASHBOARD;
 
   return undefined;
 }

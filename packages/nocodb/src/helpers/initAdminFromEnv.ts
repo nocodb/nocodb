@@ -17,6 +17,7 @@ import { Base, BaseUser, User } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { randomTokenString } from '~/services/users/helpers';
 import { sanitizeEmail } from '~/utils/emailUtils';
+import { withFirstUserLock } from '~/helpers/firstUserLock';
 
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
 
@@ -83,163 +84,230 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
       process.exit(1);
     }
 
-    // annotated so a shifted argument fails to compile — inferred `any` here
-    // is what hid the context bug below
-    let ncMeta: MetaService;
-    try {
-      ncMeta = await _ncMeta.startTransaction();
-      const email = sanitizeEmail(process.env.NC_ADMIN_EMAIL).toLowerCase();
+    // Same lock as signup, so a concurrent signup cannot also become the first user.
+    await withFirstUserLock(async (isFirstUser) => {
+      // annotated so a shifted argument fails to compile — inferred `any` here
+      // is what hid the context bug below
+      let ncMeta: MetaService;
+      try {
+        ncMeta = await _ncMeta.startTransaction();
+        const email = sanitizeEmail(process.env.NC_ADMIN_EMAIL).toLowerCase();
 
-      const salt = await promisify(bcrypt.genSalt)(10);
-      const password = await promisify(bcrypt.hash)(
-        process.env.NC_ADMIN_PASSWORD,
-        salt,
-      );
-      const email_verification_token = uuidv4();
-      const roles = 'org-level-creator,super';
-
-      // if super admin not present
-      if (await User.isFirst(ncMeta)) {
-        // roles = 'owner,creator,editor'
-        T.emit('evt', {
-          evt_type: 'base:invite',
-          count: 1,
-        });
-
-        const user = await User.insert(
-          {
-            email,
-            salt,
-            password,
-            email_verification_token,
-            token_version: randomTokenString(),
-            roles,
-          },
-          ncMeta,
-        );
-
-        await verifyDefaultWorkspace(user, ncMeta);
-      } else {
         const salt = await promisify(bcrypt.genSalt)(10);
         const password = await promisify(bcrypt.hash)(
           process.env.NC_ADMIN_PASSWORD,
           salt,
         );
         const email_verification_token = uuidv4();
-        // TODO improve this
-        const superUsers: User[] = await ncMeta.metaList2(
-          RootScopes.ROOT,
-          RootScopes.ROOT,
-          MetaTable.USERS,
-        );
+        const roles = 'org-level-creator,super';
 
-        // NC_ADMIN_EMAIL names one identity, so exactly one super may claim
-        // it: the one already holding it, else the first. Running the rename
-        // below for every super walks them all onto the same address, and each
-        // pass absorbs and deletes the account the previous pass just renamed.
-        const superAdmins = superUsers.filter((u) =>
-          u.roles?.includes('super'),
-        );
-        const targetSuperId = (
-          superAdmins.find((u) => u.email === email) ?? superAdmins[0]
-        )?.id;
+        // if super admin not present
+        if (isFirstUser) {
+          // roles = 'owner,creator,editor'
+          T.emit('evt', {
+            evt_type: 'base:invite',
+            count: 1,
+          });
 
-        let superUserPresent = false;
-        for (const user of superUsers) {
-          if (!user.roles?.includes('super')) continue;
+          const user = await User.insert(
+            {
+              email,
+              salt,
+              password,
+              email_verification_token,
+              token_version: randomTokenString(),
+              roles,
+            },
+            ncMeta,
+          );
 
-          superUserPresent = true;
+          await verifyDefaultWorkspace(user, ncMeta);
+        } else {
+          const salt = await promisify(bcrypt.genSalt)(10);
+          const password = await promisify(bcrypt.hash)(
+            process.env.NC_ADMIN_PASSWORD,
+            salt,
+          );
+          const email_verification_token = uuidv4();
+          // TODO improve this
+          const superUsers: User[] = await ncMeta.metaList2(
+            RootScopes.ROOT,
+            RootScopes.ROOT,
+            MetaTable.USERS,
+          );
 
-          if (user.id !== targetSuperId) continue;
+          // NC_ADMIN_EMAIL names one identity, so exactly one super may claim
+          // it: the one already holding it, else the first. Running the rename
+          // below for every super walks them all onto the same address, and each
+          // pass absorbs and deletes the account the previous pass just renamed.
+          const superAdmins = superUsers.filter((u) =>
+            u.roles?.includes('super'),
+          );
+          const targetSuperId = (
+            superAdmins.find((u) => u.email === email) ?? superAdmins[0]
+          )?.id;
 
-          if (email !== user.email) {
-            // update admin email and password and migrate bases
-            // if user already present and associated with some base
+          let superUserPresent = false;
+          for (const user of superUsers) {
+            if (!user.roles?.includes('super')) continue;
 
+            superUserPresent = true;
+
+            if (user.id !== targetSuperId) continue;
+
+            if (email !== user.email) {
+              // update admin email and password and migrate bases
+              // if user already present and associated with some base
+
+              // check user account already present with the new admin email
+              const existingUserWithNewEmail = await User.getByEmail(
+                email,
+                ncMeta,
+              );
+
+              if (existingUserWithNewEmail?.id) {
+                // get all base access belongs to the existing account
+                // and migrate to the admin account
+                const existingUserProjects: BaseUser[] = await ncMeta
+                  .knexConnection(MetaTable.PROJECT_USERS)
+                  .where({ fk_user_id: existingUserWithNewEmail.id });
+
+                for (const existingUserProject of existingUserProjects) {
+                  // nc_base_users carries no workspace_id, so the scope every
+                  // BaseUser call needs has to come from the base itself
+                  const base = await Base.get(
+                    {
+                      workspace_id: RootScopes.BASE,
+                      base_id: RootScopes.BASE,
+                    } as NcContext,
+                    existingUserProject.base_id,
+                    ncMeta,
+                  );
+
+                  // orphaned row — base already deleted
+                  if (!base) continue;
+
+                  const baseContext: NcContext = {
+                    workspace_id: base.fk_workspace_id,
+                    base_id: base.id,
+                  };
+
+                  const userProject = await BaseUser.get(
+                    baseContext,
+                    base.id,
+                    user.id,
+                    ncMeta,
+                  );
+
+                  // if admin user already have access to the base
+                  // then update role based on the highest access level.
+                  // get left-joins, so it is truthy without a membership
+                  if (userProject?.is_mapped) {
+                    if (
+                      rolesLevel[userProject.roles] >
+                      rolesLevel[existingUserProject.roles]
+                    ) {
+                      await BaseUser.updateRoles(
+                        baseContext,
+                        base.id,
+                        user.id,
+                        existingUserProject.roles,
+                        ncMeta,
+                      );
+                    }
+                  } else {
+                    // if super doesn't have access then add the access
+                    await BaseUser.insert(
+                      baseContext,
+                      {
+                        ...existingUserProject,
+                        fk_user_id: user.id,
+                      },
+                      ncMeta,
+                    );
+                  }
+                  // delete the old base access entry from DB
+                  await BaseUser.delete(
+                    baseContext,
+                    base.id,
+                    existingUserProject.fk_user_id,
+                    ncMeta,
+                  );
+                }
+
+                // delete existing user
+                await ncMeta.metaDelete(
+                  RootScopes.ROOT,
+                  RootScopes.ROOT,
+                  MetaTable.USERS,
+                  existingUserWithNewEmail.id,
+                );
+
+                await NocoCache.del(
+                  'root',
+                  `${CacheScope.USER}:${existingUserWithNewEmail.id}`,
+                );
+                await NocoCache.del(
+                  'root',
+                  `${CacheScope.USER}:${existingUserWithNewEmail.email}`,
+                );
+
+                // Update email and password of super admin account
+                await User.update(
+                  user.id,
+                  {
+                    salt,
+                    email,
+                    password,
+                    email_verification_token,
+                    token_version: randomTokenString(),
+                  },
+                  ncMeta,
+                );
+              } else {
+                // if no user present with the new admin email update the email and password
+                await User.update(
+                  user.id,
+                  {
+                    salt,
+                    email,
+                    password,
+                    email_verification_token,
+                    token_version: randomTokenString(),
+                  },
+                  ncMeta,
+                );
+              }
+            } else {
+              const newPasswordHash = await promisify(bcrypt.hash)(
+                process.env.NC_ADMIN_PASSWORD,
+                user.salt,
+              );
+
+              if (newPasswordHash !== user.password) {
+                // if email's are same and passwords are different
+                // then update the password and token version
+                await User.update(
+                  user.id,
+                  {
+                    salt,
+                    password,
+                    email_verification_token,
+                    token_version: randomTokenString(),
+                  },
+                  ncMeta,
+                );
+              }
+            }
+          }
+
+          if (!superUserPresent) {
             // check user account already present with the new admin email
             const existingUserWithNewEmail = await User.getByEmail(
               email,
               ncMeta,
             );
-
             if (existingUserWithNewEmail?.id) {
-              // get all base access belongs to the existing account
-              // and migrate to the admin account
-              const existingUserProjects: BaseUser[] = await ncMeta
-                .knexConnection(MetaTable.PROJECT_USERS)
-                .where({ fk_user_id: existingUserWithNewEmail.id });
-
-              for (const existingUserProject of existingUserProjects) {
-                // nc_base_users carries no workspace_id, so the scope every
-                // BaseUser call needs has to come from the base itself
-                const base = await Base.get(
-                  {
-                    workspace_id: RootScopes.BASE,
-                    base_id: RootScopes.BASE,
-                  } as NcContext,
-                  existingUserProject.base_id,
-                  ncMeta,
-                );
-
-                // orphaned row — base already deleted
-                if (!base) continue;
-
-                const baseContext: NcContext = {
-                  workspace_id: base.fk_workspace_id,
-                  base_id: base.id,
-                };
-
-                const userProject = await BaseUser.get(
-                  baseContext,
-                  base.id,
-                  user.id,
-                  ncMeta,
-                );
-
-                // if admin user already have access to the base
-                // then update role based on the highest access level.
-                // get left-joins, so it is truthy without a membership
-                if (userProject?.is_mapped) {
-                  if (
-                    rolesLevel[userProject.roles] >
-                    rolesLevel[existingUserProject.roles]
-                  ) {
-                    await BaseUser.updateRoles(
-                      baseContext,
-                      base.id,
-                      user.id,
-                      existingUserProject.roles,
-                      ncMeta,
-                    );
-                  }
-                } else {
-                  // if super doesn't have access then add the access
-                  await BaseUser.insert(
-                    baseContext,
-                    {
-                      ...existingUserProject,
-                      fk_user_id: user.id,
-                    },
-                    ncMeta,
-                  );
-                }
-                // delete the old base access entry from DB
-                await BaseUser.delete(
-                  baseContext,
-                  base.id,
-                  existingUserProject.fk_user_id,
-                  ncMeta,
-                );
-              }
-
-              // delete existing user
-              await ncMeta.metaDelete(
-                RootScopes.ROOT,
-                RootScopes.ROOT,
-                MetaTable.USERS,
-                existingUserWithNewEmail.id,
-              );
-
               await NocoCache.del(
                 'root',
                 `${CacheScope.USER}:${existingUserWithNewEmail.id}`,
@@ -249,109 +317,48 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 `${CacheScope.USER}:${existingUserWithNewEmail.email}`,
               );
 
-              // Update email and password of super admin account
+              // Update password and roles of existing user
               await User.update(
-                user.id,
+                existingUserWithNewEmail.id,
                 {
                   salt,
                   email,
                   password,
                   email_verification_token,
                   token_version: randomTokenString(),
+                  roles,
                 },
                 ncMeta,
               );
             } else {
-              // if no user present with the new admin email update the email and password
-              await User.update(
-                user.id,
+              // no super user present and no user present with the new admin email
+              T.emit('evt', {
+                evt_type: 'base:invite',
+                count: 1,
+              });
+
+              await User.insert(
                 {
-                  salt,
                   email,
-                  password,
-                  email_verification_token,
-                  token_version: randomTokenString(),
-                },
-                ncMeta,
-              );
-            }
-          } else {
-            const newPasswordHash = await promisify(bcrypt.hash)(
-              process.env.NC_ADMIN_PASSWORD,
-              user.salt,
-            );
-
-            if (newPasswordHash !== user.password) {
-              // if email's are same and passwords are different
-              // then update the password and token version
-              await User.update(
-                user.id,
-                {
                   salt,
                   password,
                   email_verification_token,
                   token_version: randomTokenString(),
+                  roles,
                 },
                 ncMeta,
               );
             }
           }
+          await verifyDefaultWsOwner(ncMeta);
         }
 
-        if (!superUserPresent) {
-          // check user account already present with the new admin email
-          const existingUserWithNewEmail = await User.getByEmail(email, ncMeta);
-          if (existingUserWithNewEmail?.id) {
-            await NocoCache.del(
-              'root',
-              `${CacheScope.USER}:${existingUserWithNewEmail.id}`,
-            );
-            await NocoCache.del(
-              'root',
-              `${CacheScope.USER}:${existingUserWithNewEmail.email}`,
-            );
-
-            // Update password and roles of existing user
-            await User.update(
-              existingUserWithNewEmail.id,
-              {
-                salt,
-                email,
-                password,
-                email_verification_token,
-                token_version: randomTokenString(),
-                roles,
-              },
-              ncMeta,
-            );
-          } else {
-            // no super user present and no user present with the new admin email
-            T.emit('evt', {
-              evt_type: 'base:invite',
-              count: 1,
-            });
-
-            await User.insert(
-              {
-                email,
-                salt,
-                password,
-                email_verification_token,
-                token_version: randomTokenString(),
-                roles,
-              },
-              ncMeta,
-            );
-          }
-        }
-        await verifyDefaultWsOwner(ncMeta);
+        await ncMeta.commit();
+      } catch (e) {
+        console.log('Error occurred while updating/creating admin user');
+        await ncMeta.rollback(e);
+        throw e;
       }
-
-      await ncMeta.commit();
-    } catch (e) {
-      console.log('Error occurred while updating/creating admin user');
-      await ncMeta.rollback(e);
-      throw e;
-    }
+    }, _ncMeta);
   }
 }

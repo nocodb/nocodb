@@ -81,6 +81,7 @@ export const BODY_TABLE_ID_KEYS: Readonly<
   Record<string, Readonly<Record<string, string>>>
 > = {
   buttonRun: { columnId: 'columnId' },
+  commentRow: { fk_model_id: 'fk_model_id' },
 };
 
 @Controller()
@@ -320,7 +321,8 @@ export class InternalController {
     const body = req.body ?? {};
     const ids: Record<string, unknown> = {};
     for (const [bodyKey, key] of Object.entries(keys)) {
-      ids[key] = body[bodyKey];
+      // Two body keys may share a resolver key; both must be checked.
+      ids[key] = [ids[key], body[bodyKey]].flat().filter((id) => id != null);
     }
 
     req.context.ncTableId = await resolveRequestTable(

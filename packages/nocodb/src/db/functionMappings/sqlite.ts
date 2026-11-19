@@ -10,19 +10,38 @@ import {
 import commonFns, {
   escapePlaceholders,
   extractDatetimeFormat,
+  getDatetimeFormatTimezone,
+  isDatetimeInstantNode,
   jsonPathFromLiteral,
   safeDateAddUnitSQL,
   validateDateAddUnit,
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import type { WorkdaySqlDialect } from '~/db/functionMappings/workday';
+import type { DateCompareSqlDialect } from '~/db/functionMappings/dateCompare';
+import type { TextOccurrenceSqlDialect } from '~/db/functionMappings/textOccurrence';
 import { convertUnits } from '~/helpers/convertUnits';
+import { NcError } from '~/helpers/catchError';
 import {
   getWeekdayByText,
   getWeekStartOffsetSunday,
 } from '~/helpers/formulaFnHelper';
-import { getDatetimeFormatHandler } from '~/db/datetime-format';
+import {
+  getDatetimeFormatHandler,
+  getDatetimeParseHandler,
+} from '~/db/datetime-format';
 import { workdayDiffFn, workdayFn } from '~/db/functionMappings/workday';
+import {
+  isAfterFn,
+  isBeforeFn,
+  isSameFn,
+  parseLiteralDate,
+} from '~/db/functionMappings/dateCompare';
+import {
+  substituteFn,
+  textAfterFn,
+  textBeforeFn,
+} from '~/db/functionMappings/textOccurrence';
 
 // julianday('1900-01-01')
 const SQLITE_JULIAN_1900 = 2415020.5;
@@ -43,6 +62,81 @@ const sqliteWorkdayDialect: WorkdaySqlDialect = {
     `(WITH RECURSIVE wds(t, r) AS (SELECT NULL, CAST(${sql} AS TEXT) || ',' UNION ALL SELECT trim(substr(r, 1, instr(r, ',') - 1), ${SQLITE_BLANKS}), substr(r, instr(r, ',') + 1) FROM wds WHERE r <> '') SELECT CASE WHEN length(t) = 10 AND date(julianday(t)) = t THEN CAST(round(julianday(t) - ${SQLITE_JULIAN_1900}) AS INTEGER) END AS hn FROM wds)`,
   // the flattener skips a subquery with an OFFSET
   noInline: ' LIMIT -1 OFFSET 0',
+};
+
+// zero-padded text sorts in time order
+const SQLITE_TRUNCATE_FORMATS: Record<string, string> = {
+  year: '%Y',
+  month: '%Y-%m',
+  day: '%Y-%m-%d',
+  hour: '%Y-%m-%d %H',
+  minute: '%Y-%m-%d %H:%M',
+  second: '%Y-%m-%d %H:%M:%S',
+};
+
+// A stored instant (a DateTime-type field, CREATED_TIME(), or DATEADD / IF /
+// SWITCH over them) is UTC; NOW() and TODAY() are already local. As on pg, DATETIME_FORMAT and IS_* read a stored
+// instant in the server zone, so all of them agree on the day.
+const sqliteLocalInstant = (sql: string, node: MapFnArgs['pt']) =>
+  getDatetimeFormatTimezone() && isDatetimeInstantNode(node, true)
+    ? // strftime %f, not datetime(): that drops milliseconds
+      `strftime('%Y-%m-%d %H:%M:%f', ${sql}, 'localtime')`
+    : sql;
+
+// SQLite reads only `±HH:MM`, so `±HHMM` gets its colon (`col` is a column)
+const sqliteColonOffset = (col: string) =>
+  `CASE WHEN length(${col}) > 10 AND ${col} GLOB '*[+-][0-9][0-9][0-9][0-9]' THEN substr(${col}, 1, length(${col}) - 2) || ':' || substr(${col}, -2) ELSE ${col} END`;
+
+const sqliteHasZone = (col: string) =>
+  `(${col} GLOB '*[+-][0-9][0-9]:[0-9][0-9]' OR ${col} GLOB '*[Zz]')`;
+
+// text is read as pg's time parts read it: a date (else NULL, where bare
+// strftime reads '10:30' or '12345'), an offset applied, no offset as UTC
+const sqliteTimePart = async (fn: MapFnArgs['fn'], node: MapFnArgs['pt']) => {
+  const sql = `(${(await fn(node)).builder.toQuery()})`;
+  return node?.dataType === FormulaDataTypes.STRING
+    ? `(SELECT CASE WHEN date(substr(nc_tp.t, 1, 10)) = substr(nc_tp.t, 1, 10) THEN datetime(julianday(nc_tp.t)) END FROM (SELECT ${sqliteColonOffset(
+        'nc_tp0.t',
+      )} AS t FROM (SELECT trim(${sql}) AS t) nc_tp0) nc_tp)`
+    : sql;
+};
+
+// text with a zone is an instant: read in the server zone, as stored ones are
+const sqliteTextAsLocal = (sql: string) => {
+  const t = getDatetimeFormatTimezone()
+    ? `CASE WHEN ${sqliteHasZone(
+        'nc_tl.t',
+      )} THEN strftime('%Y-%m-%d %H:%M:%f', nc_tl.t, 'localtime') ELSE nc_tl.t END`
+    : 'nc_tl.t';
+  return `(SELECT ${t} FROM (SELECT ${sqliteColonOffset(
+    'nc_tl0.t',
+  )} AS t FROM (SELECT trim(${sql}) AS t) nc_tl0) nc_tl)`;
+};
+
+const sqliteDateCompareDialect: DateCompareSqlDialect = {
+  truncate: (raw, unit, dataType) => {
+    const sql =
+      dataType === FormulaDataTypes.STRING ? sqliteTextAsLocal(raw) : raw;
+    return unit === 'week'
+      ? `date(${sql}, 'weekday 0', '-6 days')`
+      : `strftime('${
+          unit ? SQLITE_TRUNCATE_FORMATS[unit] : '%Y-%m-%d %H:%M:%f'
+        }', ${sql})`;
+  },
+  datetimeLiteral: (iso) => `'${iso}'`,
+  localInstant: sqliteLocalInstant,
+};
+
+const sqliteTextOccurrenceDialect: TextOccurrenceSqlDialect = {
+  isWhole: (sql) => `(CAST(${sql} AS INTEGER) = ${sql})`,
+  // every occurrence, numbered, via a recursive CTE; then the n-th from either
+  // end. Not LIMIT/OFFSET: those can't read an outer column (a field as n).
+  occurrence: (text, delim, n) =>
+    `COALESCE((WITH RECURSIVE _occ(p, c) AS (SELECT instr(${text}, ${delim}), 1 WHERE length(${delim}) > 0 UNION ALL SELECT p + length(${delim}) - 1 + instr(substr(${text}, p + length(${delim})), ${delim}), c + 1 FROM _occ WHERE p > 0 AND instr(substr(${text}, p + length(${delim})), ${delim}) > 0) SELECT p FROM _occ WHERE p > 0 AND c = CASE WHEN ${n} > 0 THEN ${n} ELSE (SELECT count(*) FROM _occ WHERE p > 0) + ${n} + 1 END), 0)`,
+  substr: (text, from, length) =>
+    length ? `substr(${text}, ${from}, ${length})` : `substr(${text}, ${from})`,
+  length: (sql) => `length(${sql})`,
+  concat: (parts) => `(${parts.join(' || ')})`,
 };
 
 // scalar min() / max() take two or more arguments: min(x) is the aggregate
@@ -241,6 +335,34 @@ const sqlite3 = {
         'YYYY-MM-DD',
       )}'`;
     }
+    // A side is UTC when it is a known instant or its text has a zone; NOW()
+    // and plain text are local. A UTC side moves to local only against a
+    // local side: two UTC sides subtract as they are (no DST)
+    const sides = [datetime_expr1, datetime_expr2].map(
+      (expr) => `(${typeof expr === 'string' ? expr : expr.toQuery()})`,
+    );
+    const isUtc = [0, 1].map((i) =>
+      isDatetimeInstantNode(pt.arguments[i], true)
+        ? '1'
+        : sqliteHasZone(`nc_dd0.${'ab'[i]}`),
+    );
+    const shifted = (i: number) =>
+      getDatetimeFormatTimezone()
+        ? `CASE WHEN ${isUtc[i]} AND NOT ${
+            isUtc[1 - i]
+          } THEN strftime('%Y-%m-%d %H:%M:%f', nc_dd0.${
+            'ab'[i]
+          }, 'localtime') ELSE nc_dd0.${'ab'[i]} END`
+        : `nc_dd0.${'ab'[i]}`;
+    const diffFrom = `FROM (SELECT ${shifted(0)} AS a, ${shifted(
+      1,
+    )} AS b FROM (SELECT ${sqliteColonOffset(
+      'nc_dr.a',
+    )} AS a, ${sqliteColonOffset('nc_dr.b')} AS b FROM (SELECT ${
+      sides[0]
+    } AS a, ${sides[1]} AS b LIMIT -1 OFFSET 0) nc_dr) nc_dd0) nc_dd`;
+    datetime_expr1 = 'nc_dd.a';
+    datetime_expr2 = 'nc_dd.b';
 
     const rawUnit = pt.arguments[2]
       ? (await fn(pt.arguments[2])).builder.bindings[0]
@@ -294,18 +416,96 @@ const sqlite3 = {
       default:
         sql = '';
     }
-    return { builder: knex.raw(`ROUND(${sql})`) };
+    return {
+      builder: knex.raw(
+        escapePlaceholders(`(SELECT ROUND(${sql}) ${diffFrom})`),
+      ),
+    };
+  },
+  // |DATETIME_DIFF(NOW(), date, unit)| as pg computes it. A stored DateTime, or
+  // text with an offset, is UTC; anything else is local wall time like NOW() and
+  // TODAY(), so it is measured against local 'now'.
+  FROMNOW: async ({ fn, knex, pt }: MapFnArgs) => {
+    const node = pt.arguments[0];
+    const date =
+      node.type === JSEPNode.LITERAL && typeof node.value === 'string'
+        ? parseLiteralDate(node.value)
+        : null;
+    const value = date
+      ? knex.raw('?', [
+          date.isValid() ? date.format('YYYY-MM-DD HH:mm:ss.SSS') : null,
+        ])
+      : (await fn(node)).builder;
+    const nowJd = isDatetimeInstantNode(node, true)
+      ? `julianday('now')`
+      : `CASE WHEN nc_fw.t GLOB '*[+-][0-9][0-9]:[0-9][0-9]' OR nc_fw.t GLOB '*[Zz]' THEN julianday('now') ELSE julianday('now', 'localtime') END`;
+    const rawUnit = pt.arguments[1]
+      ? (await fn(pt.arguments[1])).builder.bindings[0]
+      : 'days';
+    // a / b: the later / earlier instant as julian days; whole milliseconds
+    // first, so float error can't move a .5 second or a day boundary
+    const ms = `ROUND((nc_fn.a - nc_fn.b) * 86400000)`;
+    const seconds = `CAST(ROUND(${ms} / 1000) AS INTEGER)`;
+    const days = `CAST(${ms} / 86400000 AS INTEGER)`;
+    const part = (f: string, jd: string) =>
+      `CAST(strftime('${f}', ${jd}) AS INTEGER)`;
+    const yearDiff = `(${part('%Y', 'nc_fn.a')} - ${part('%Y', 'nc_fn.b')})`;
+    let sql: string;
+    switch (convertUnits(rawUnit, 'sqlite')) {
+      case 'milliseconds':
+        sql = `${seconds} * 1000`;
+        break;
+      case 'seconds':
+        sql = seconds;
+        break;
+      case 'minutes':
+        sql = `${seconds} / 60`;
+        break;
+      case 'hours':
+        sql = `${seconds} / 3600`;
+        break;
+      case 'days':
+        sql = days;
+        break;
+      case 'weeks':
+        sql = `${days} / 7`;
+        break;
+      case 'months':
+        sql = `${yearDiff} * 12 + ${part('%m', 'nc_fn.a')} - ${part(
+          '%m',
+          'nc_fn.b',
+        )}`;
+        break;
+      case 'quarters':
+        sql = `${yearDiff} * 4 + (${part('%m', 'nc_fn.a')} - 1) / 3 - (${part(
+          '%m',
+          'nc_fn.b',
+        )} - 1) / 3`;
+        break;
+      case 'years':
+        // complete years, as pg's AGE counts them
+        sql = `${yearDiff} - (strftime('%m-%d %H:%M:%f', nc_fn.a) < strftime('%m-%d %H:%M:%f', nc_fn.b))`;
+        break;
+      default:
+        NcError.badRequest(`Invalid unit "${rawUnit}" for FROMNOW`);
+    }
+    return {
+      builder: knex.raw(
+        `(SELECT ${sql} FROM (SELECT max(nc_fv.n, nc_fv.v) AS a, min(nc_fv.n, nc_fv.v) AS b FROM (SELECT ${nowJd} AS n, julianday(nc_fw.t) AS v FROM (SELECT ? AS t LIMIT -1 OFFSET 0) nc_fw) nc_fv) nc_fn)`,
+        [value],
+      ),
+    };
   },
   DATETIME_FORMAT: async ({ fn, knex, pt }: MapFnArgs) => {
     const format = extractDatetimeFormat(pt);
-    const dateExpr = (await fn(pt?.arguments[0])).builder;
+    const dateExpr = sqliteLocalInstant(
+      `(${(await fn(pt?.arguments[0])).builder})`,
+      pt?.arguments[0],
+    );
     return {
       builder: knex.raw(
         escapePlaceholders(
-          getDatetimeFormatHandler(ClientType.SQLITE).build(
-            `(${dateExpr})`,
-            format,
-          ),
+          getDatetimeFormatHandler(ClientType.SQLITE).build(dateExpr, format),
         ),
       ),
     };
@@ -371,12 +571,59 @@ const sqlite3 = {
       ),
     };
   },
-  HOUR: async ({ fn, knex, pt }: MapFnArgs) => {
+  HOUR: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapePlaceholders(
+        `CAST(strftime('%H', ${await sqliteTimePart(
+          fn,
+          pt?.arguments[0],
+        )}) AS INTEGER)`,
+      ),
+    ),
+  }),
+  MINUTE: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapePlaceholders(
+        `CAST(strftime('%M', ${await sqliteTimePart(
+          fn,
+          pt?.arguments[0],
+        )}) AS INTEGER)`,
+      ),
+    ),
+  }),
+  SECOND: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapePlaceholders(
+        `CAST(strftime('%S', ${await sqliteTimePart(
+          fn,
+          pt?.arguments[0],
+        )}) AS INTEGER)`,
+      ),
+    ),
+  }),
+  // same clock as NOW() on this dialect
+  TODAY: (args: MapFnArgs) => {
+    return { builder: args.knex.raw(`DATE('now', 'localtime')`) };
+  },
+  IS_SAME: isSameFn(sqliteDateCompareDialect),
+  IS_AFTER: isAfterFn(sqliteDateCompareDialect),
+  IS_BEFORE: isBeforeFn(sqliteDateCompareDialect),
+  TEXTBEFORE: textBeforeFn(sqliteTextOccurrenceDialect),
+  TEXTAFTER: textAfterFn(sqliteTextOccurrenceDialect),
+  SUBSTITUTE: substituteFn(sqliteTextOccurrenceDialect),
+  DATETIME_PARSE: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    if (pt.arguments[0].dataType === FormulaDataTypes.DATE) {
+      return { builder: value };
+    }
     return {
       builder: knex.raw(
-        `CAST(strftime('%H', (${
-          (await fn(pt?.arguments[0])).builder
-        })) AS INTEGER)`,
+        escapePlaceholders(
+          getDatetimeParseHandler(ClientType.SQLITE).build(
+            `(${value.toQuery()})`,
+            pt.arguments[1]?.value,
+          ),
+        ),
       ),
     };
   },

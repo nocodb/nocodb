@@ -209,6 +209,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Trash entry '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_COMMENT_NOT_FOUND]: {
+    message: (id: string) => `Comment '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_PARENT_IN_TRASH]: {
     message: (parentType: string) =>
       `Cannot restore — parent ${parentType} is in trash. Restore it first.`,
@@ -654,6 +658,13 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.ERR_METHOD_NOT_ALLOWED]: {
     message: (method: string) => `Method ${method} not allowed`,
     code: 405,
+  },
+  [NcErrorType.ERR_PAYLOAD_TOO_LARGE]: {
+    message: (limit: string) =>
+      limit
+        ? `Request body is larger than the ${limit} limit`
+        : 'Request body is too large',
+    code: 413,
   },
   [NcErrorType.ERR_LICENSE_REQUIRED]: {
     // Not a plan-tier refusal — the instance has no active license at all.

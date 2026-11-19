@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { DATE_RANGE_SUB_OP, UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import SingleSelect from '~/components/cell/SingleSelect/index.vue'
 import MultiSelect from '~/components/cell/MultiSelect/index.vue'
@@ -16,6 +16,7 @@ import Float from '~/components/cell/Float/index.vue'
 import Text from '~/components/cell/Text/index.vue'
 import User from '~/components/cell/User/index.vue'
 import ColourFilter from '~/components/cell/Colour/FilterInput.vue'
+import DateRangeInput from '~/components/smartsheet/toolbar/Filter/DateRangeInput.vue'
 
 interface Props {
   // column could be possibly undefined when the filter is created
@@ -101,6 +102,8 @@ const filterInput = computed({
     emit('updateFilterValue', value)
   },
 })
+
+const isDateRange = computed(() => props.filter.comparison_sub_op === DATE_RANGE_SUB_OP)
 
 const booleanOptions = [
   { value: true, label: 'true' },
@@ -225,11 +228,27 @@ const isSingleOrMultiSelect = computed(() => {
   <div
     v-else
     class="bg-nc-bg-default border-1 flex flex-grow min-w-0 min-h-4 h-full px-1 items-center nc-filter-input-wrapper !rounded-lg"
-    :class="{ 'px-2': hasExtraPadding, 'border-nc-border-brand': isInputBoxOnFocus, '!max-w-100': isSingleOrMultiSelect }"
+    :class="{
+      'px-2': hasExtraPadding,
+      'border-nc-border-brand': isInputBoxOnFocus,
+      '!max-w-100': isSingleOrMultiSelect,
+      '!min-w-60': isDateRange,
+    }"
     @mouseup.stop
   >
+    <DateRangeInput
+      v-if="isDateRange"
+      :model-value="filter.value"
+      :column="column"
+      :disabled="props.disabled"
+      :read-only="filter.readOnly"
+      @update:model-value="emit('updateFilterValue', $event)"
+      @focus="isInputBoxOnFocus = true"
+      @blur="isInputBoxOnFocus = false"
+    />
     <component
       :is="filterType ? componentMap[filterType] : Text"
+      v-else
       v-model="filterInput"
       :disabled="filter.readOnly || props.disabled"
       :placeholder="$t('placeholder.enterAValue')"

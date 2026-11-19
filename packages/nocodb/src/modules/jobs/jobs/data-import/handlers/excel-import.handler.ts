@@ -47,6 +47,9 @@ type EmittingWorkbookReader = ExcelJS.stream.xlsx.WorkbookReader & {
   ): void;
 };
 
+// Workbook and rels parts are a few KB; past this, exceljs's own names are used.
+const WORKBOOK_PART_MAX_SIZE = 16 * 1024 * 1024;
+
 const XML_ENTITIES: Record<string, string> = {
   amp: '&',
   lt: '<',
@@ -64,15 +67,58 @@ function decodeXml(v: string): string {
   });
 }
 
+const isNameChar = (c: string) => /[\w.:-]/.test(c);
+const isSpace = (c: string) =>
+  c === ' ' || c === '\t' || c === '\n' || c === '\r';
+
+/** `key="value"` / `key='value'` pairs of one start tag's attribute text. */
+function parseAttrs(attrs: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  let i = 0;
+  while (i < attrs.length) {
+    if (!isNameChar(attrs[i])) {
+      i++;
+      continue;
+    }
+    const keyStart = i;
+    while (i < attrs.length && isNameChar(attrs[i])) i++;
+    const key = attrs.slice(keyStart, i);
+    let j = i;
+    while (j < attrs.length && isSpace(attrs[j])) j++;
+    if (attrs[j] !== '=') continue;
+    j++;
+    while (j < attrs.length && isSpace(attrs[j])) j++;
+    const quote = attrs[j];
+    if (quote !== '"' && quote !== "'") continue;
+    const close = attrs.indexOf(quote, j + 1);
+    if (close === -1) break;
+    out[key] = decodeXml(attrs.slice(j + 1, close));
+    i = close + 1;
+  }
+  return out;
+}
+
+/** Attributes of each `<tag …>` / `<ns:tag …>` start tag, in one linear pass. */
 function xmlElementAttrs(xml: string, tag: string): Record<string, string>[] {
-  const elements = new RegExp(`<(?:[\\w.-]+:)?${tag}\\s([^>]*?)/?>`, 'g');
-  return [...xml.matchAll(elements)].map(([, attrs]) =>
-    Object.fromEntries(
-      [...attrs.matchAll(/([\w.:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)].map(
-        ([, k, dq, sq]) => [k, decodeXml(dq ?? sq)],
-      ),
-    ),
-  );
+  const out: Record<string, string>[] = [];
+  let i = 0;
+  while ((i = xml.indexOf('<', i)) !== -1) {
+    const end = xml.indexOf('>', i + 1);
+    if (end === -1) break;
+    let n = i + 1;
+    while (n < end && isNameChar(xml[n])) n++;
+    const name = xml.slice(i + 1, n);
+    const colon = name.indexOf(':');
+    if (
+      isSpace(xml[n]) &&
+      name.slice(colon + 1) === tag &&
+      (colon === -1 || /^[\w.-]+$/.test(name.slice(0, colon)))
+    ) {
+      out.push(parseAttrs(xml.slice(n, end)));
+    }
+    i = end + 1;
+  }
+  return out;
 }
 
 /**
@@ -80,10 +126,16 @@ function xmlElementAttrs(xml: string, tag: string): Record<string, string>[] {
  * exceljs only names a sheet when the workbook part is read before it and the
  * relationship target is relative, so others come out as "Sheet<n>".
  */
-function readSheetNames(buf: Buffer): Map<string, string> {
+function readSheetNames(
+  buf: Buffer,
+  workbook: string | null,
+): Map<string, string> {
   const names = new Map<string, string>();
-  const workbook = readXlsxPart(buf, 'xl/workbook.xml');
-  const rels = readXlsxPart(buf, 'xl/_rels/workbook.xml.rels');
+  const rels = readXlsxPart(
+    buf,
+    'xl/_rels/workbook.xml.rels',
+    WORKBOOK_PART_MAX_SIZE,
+  );
   if (!workbook || !rels) return names;
 
   const targets = new Map<string, string>();
@@ -106,8 +158,7 @@ function readSheetNames(buf: Buffer): Map<string, string> {
 }
 
 /** Whether the workbook counts dates from 1904 (old Mac Excel) instead of 1900. */
-function readDate1904(buf: Buffer): boolean {
-  const workbook = readXlsxPart(buf, 'xl/workbook.xml');
+function readDate1904(workbook: string | null): boolean {
   const pr = workbook ? xmlElementAttrs(workbook, 'workbookPr')[0] : undefined;
   return pr?.date1904 === '1' || pr?.date1904 === 'true';
 }
@@ -118,8 +169,9 @@ async function* readWorksheets(buf: Buffer): AsyncGenerator<{
   reader: NamedWorksheetReader;
   date1904: boolean;
 }> {
-  const names = readSheetNames(buf);
-  const date1904 = readDate1904(buf);
+  const workbook = readXlsxPart(buf, 'xl/workbook.xml', WORKBOOK_PART_MAX_SIZE);
+  const names = readSheetNames(buf, workbook);
+  const date1904 = readDate1904(workbook);
   const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(
     Readable.from(repackXlsxForStreaming(buf)),
     WORKBOOK_READER_OPTIONS,

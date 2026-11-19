@@ -16,6 +16,7 @@ import type {
   NcRequest,
   ProseMirrorDoc,
   RowColoringInfo,
+  TableSyncSourceViewType,
   TableType,
 } from 'nocodb-sdk';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -62,7 +63,7 @@ export type InternalGETResponseType = Promise<
   | {
       source_table_missing: boolean;
       columns: Column[];
-      views: View[];
+      views: TableSyncSourceViewType[];
       visible_source_column_ids: string[];
     }
   | Filter[]

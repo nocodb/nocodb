@@ -52,6 +52,10 @@ import {
 } from '~/helpers/nestedLinkQueryHelpers';
 import { collectRelatedNeededColumnIds } from '~/helpers/relatedMetaProjection';
 import {
+  runWithSharedViewExposure,
+  withSharedViewExposure,
+} from '~/db/BaseModelSqlv2/shared-view-exposure';
+import {
   resolveSharedViewQueryScope,
   restrictSharedViewColumnReferences,
   restrictSharedViewQuery,
@@ -242,11 +246,11 @@ export class PublicDatasService {
     let count = 0;
 
     try {
-      data = await nocoExecute(
-        ast,
-        await baseModel.list(listArgs),
-        {},
-        listArgs,
+      data = await withSharedViewExposure(
+        context,
+        { model, viewId: view.id },
+        async () =>
+          nocoExecute(ast, await baseModel.list(listArgs), {}, listArgs),
       );
       count = await baseModel.count(listArgs);
     } catch (e) {
@@ -489,11 +493,10 @@ export class PublicDatasService {
         ...listArgs,
         groupColumnId,
       });
-      data = await nocoExecute(
-        { key: 1, value: ast },
-        groupedData,
-        {},
-        listArgs,
+      data = await withSharedViewExposure(
+        context,
+        { model, viewId: view.id },
+        () => nocoExecute({ key: 1, value: ast }, groupedData, {}, listArgs),
       );
       const countArr = await baseModel.groupedListCount({
         ...listArgs,
@@ -870,6 +873,7 @@ export class PublicDatasService {
     const row = await baseModel.nestedInsert(insertObject, param.req, null, {
       // An anonymous submitter must not move existing records between owners.
       rejectLinkTakeover: true,
+      formColumns: Object.values<Column>(fields),
     });
 
     // Only the record id and the fields the form shows go back.
@@ -1323,15 +1327,17 @@ export class PublicDatasService {
       await nocoExecute(
         requestObj,
         {
-          [key]: async (args) => {
-            return await baseModel.mmList(
-              {
-                colId: param.columnId,
-                parentId: param.rowId,
-              },
-              args,
-            );
-          },
+          // A link list returns the related key and display value only.
+          [key]: async (args) =>
+            runWithSharedViewExposure(new Map(), () =>
+              baseModel.mmList(
+                {
+                  colId: param.columnId,
+                  parentId: param.rowId,
+                },
+                args,
+              ),
+            ),
         },
         {},
 
@@ -1440,15 +1446,17 @@ export class PublicDatasService {
       await nocoExecute(
         requestObj,
         {
-          [key]: async (args) => {
-            return await baseModel.hmList(
-              {
-                colId: param.columnId,
-                id: param.rowId,
-              },
-              args,
-            );
-          },
+          // A link list returns the related key and display value only.
+          [key]: async (args) =>
+            runWithSharedViewExposure(new Map(), () =>
+              baseModel.hmList(
+                {
+                  colId: param.columnId,
+                  id: param.rowId,
+                },
+                args,
+              ),
+            ),
         },
         {},
         { nested: { [key]: param.query } },

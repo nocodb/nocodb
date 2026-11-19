@@ -128,6 +128,7 @@ export enum PlanFeatureTypes {
   FEATURE_DOCS_APIS = 'feature_docs_apis',
   FEATURE_DOCS_INLINE_COMMENTS = 'feature_docs_inline_comments',
   FEATURE_DOCS_EXPORT_PDF = 'feature_docs_export_pdf',
+  FEATURE_DOCS_PUBLIC_SHARE = 'feature_docs_public_share',
   FEATURE_DOCUMENT_PERMISSIONS = 'feature_document_permissions',
   FEATURE_DOC_AI = 'feature_doc_ai',
   /** Live co-editing of long-form fields (script source, Long Text, SmartText). */
@@ -581,6 +582,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]:
     'to use inline comments in documents.',
   [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]: 'to export documents as PDF.',
+  [PlanFeatureTypes.FEATURE_DOCS_PUBLIC_SHARE]:
+    'to share documents publicly.',
   [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]:
     'to use document permissions.',
   [PlanFeatureTypes.FEATURE_DOC_AI]: 'to use AI features in documents.',

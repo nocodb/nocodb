@@ -1,4 +1,5 @@
 import {
+  dataSourceClientOf,
   IntegrationsType,
   isDataSourceAuthClient,
   knexConfigFromSqlAuthConfig,
@@ -86,6 +87,8 @@ export default class Source implements SourceType {
   integration_config?: string;
   integration_title?: string;
   integration_type?: string;
+  integration_sub_type?: string;
+  integration_meta?: unknown;
   is_encrypted?: boolean;
   deleted?: boolean;
 
@@ -484,6 +487,17 @@ export default class Source implements SourceType {
       ? this.integration_type === IntegrationsType.Auth
       : !integrationConfig?.client;
     if (isAuthConfig && isDataSourceAuthClient(this.type)) {
+      // Sources cached before these fields were joined lack them; base create now refuses unflagged rows.
+      if (
+        this.integration_sub_type !== undefined &&
+        dataSourceClientOf({
+          type: this.integration_type,
+          sub_type: this.integration_sub_type,
+          meta: this.integration_meta,
+        }) !== this.type
+      ) {
+        NcError.badRequest('This connection cannot be used as a data source');
+      }
       integrationConfig = knexConfigFromSqlAuthConfig(
         this.type,
         integrationConfig,
@@ -833,6 +847,8 @@ export default class Source implements SourceType {
       `${MetaTable.INTEGRATIONS}.config as integration_config`,
       `${MetaTable.INTEGRATIONS}.title as integration_title`,
       `${MetaTable.INTEGRATIONS}.type as integration_type`,
+      `${MetaTable.INTEGRATIONS}.sub_type as integration_sub_type`,
+      `${MetaTable.INTEGRATIONS}.meta as integration_meta`,
     ).leftJoin(
       MetaTable.INTEGRATIONS,
       `${MetaTable.SOURCES}.fk_integration_id`,

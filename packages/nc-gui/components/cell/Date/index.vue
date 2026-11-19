@@ -71,9 +71,7 @@ const localState = computed({
       return undefined
     }
 
-    const format = picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
-
-    const value = parseStoredDate(modelValue, format)
+    const value = parseStoredDate(modelValue)
 
     return value
   },

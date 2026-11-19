@@ -1,52 +1,11 @@
+import { DATETIME_FORMAT_PRESETS, DATETIME_FORMAT_TOKENS } from 'nocodb-sdk';
 import type {
   DatetimeFormatHandler,
   FormatPart,
 } from '~/db/datetime-format/datetime-format.interface';
 
-// Localized format presets (en locale, matching Day.js' LocalizedFormat
-// plugin). Expanded into their underlying token strings before translation so
-// the same token map can serve every preset.
-const LOCALIZED_FORMATS: Record<string, string> = {
-  LTS: 'h:mm:ss A',
-  LT: 'h:mm A',
-  LLLL: 'dddd, MMMM D, YYYY h:mm A',
-  LLL: 'MMMM D, YYYY h:mm A',
-  LL: 'MMMM D, YYYY',
-  L: 'MM/DD/YYYY',
-  llll: 'ddd, MMM D, YYYY h:mm A',
-  lll: 'MMM D, YYYY h:mm A',
-  ll: 'MMM D, YYYY',
-  l: 'M/D/YYYY',
-};
-
-// Day.js date/time tokens we recognise (longest-match-first ordering handled by
-// the tokenizer). Anything not in this list is treated as literal text.
-const DATE_TOKENS = [
-  'YYYY',
-  'YY',
-  'MMMM',
-  'MMM',
-  'MM',
-  'M',
-  'Do',
-  'DD',
-  'D',
-  'dddd',
-  'ddd',
-  'dd',
-  'd',
-  'HH',
-  'H',
-  'hh',
-  'h',
-  'mm',
-  'm',
-  'ss',
-  's',
-  'SSS',
-  'A',
-  'a',
-];
+// a single-quoted SQL string literal
+export const sqlString = (value: string) => `'${value.replace(/'/g, "''")}'`;
 
 // Base strategy shared by every dialect handler. Owns the dialect-agnostic
 // parsing — localized-preset expansion, tokenization and literal coalescing —
@@ -55,7 +14,7 @@ export abstract class GeneralDatetimeFormatHandler
   implements DatetimeFormatHandler
 {
   // Recognised Day.js date/time tokens, longest-match-first.
-  protected readonly dateTokens = DATE_TOKENS;
+  protected readonly dateTokens = DATETIME_FORMAT_TOKENS;
 
   abstract build(dateExpr: string, format: string): string;
 
@@ -103,14 +62,15 @@ export abstract class GeneralDatetimeFormatHandler
   // text so the second pass treats it as literal.
   protected expandLocalizedFormats(format: string): string {
     const parts = this.tokenize(format, [
-      ...Object.keys(LOCALIZED_FORMATS),
+      ...Object.keys(DATETIME_FORMAT_PRESETS),
       ...this.dateTokens,
     ]);
 
     return parts
       .map((p) => {
         if (p.literal) return `[${p.value}]`;
-        if (LOCALIZED_FORMATS[p.value]) return LOCALIZED_FORMATS[p.value];
+        if (DATETIME_FORMAT_PRESETS[p.value])
+          return DATETIME_FORMAT_PRESETS[p.value];
         return p.value;
       })
       .join('');

@@ -906,12 +906,15 @@ export default class Model implements TableType {
     },
     knex,
     columns?: Column[],
+    opts?: { byTitleOrId?: boolean },
   ) {
     const dbDataWrapper = dataWrapper(data);
     const insertObj = {};
     for (const col of columns || (await this.getColumns())) {
       if (isVirtualCol(col)) continue;
-      let val = dbDataWrapper.getByColumnNameTitleOrId(col);
+      let val = opts?.byTitleOrId
+        ? dbDataWrapper.getByTitleOrId(col)
+        : dbDataWrapper.getByColumnNameTitleOrId(col);
       if (val !== undefined) {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);

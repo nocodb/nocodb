@@ -1,6 +1,11 @@
 <script lang="ts" setup>
 import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
 
+const props = defineProps<{
+  // Render the box in the toolbar instead of a body-teleported popup, for hosts that scroll inside the page.
+  inline?: boolean
+}>()
+
 const isSearchExpanded = defineModel<boolean>('searchExpanded', { default: false })
 
 const reloadData = inject(ReloadViewDataHookInj)!
@@ -41,6 +46,8 @@ function getTableTitle(tableId?: string) {
 }
 
 const isDropdownOpen = ref(false)
+
+const isInlineBox = computed(() => isMobileMode.value || !!props.inline)
 
 // Compact hosts (interface toolbar): the selected-field chip shows the label only.
 const isFieldListCompact = inject(FieldListCompactInj, ref(false))
@@ -99,7 +106,7 @@ const isSearchResultVisible = computed(() => {
   return (
     !isDropdownOpen.value &&
     search.value.query?.trim() &&
-    !isMobileMode.value &&
+    !isInlineBox.value &&
     (isGrid.value || isGallery.value) &&
     !isGroupBy.value
   )
@@ -228,9 +235,9 @@ const handleEscapeKey = (e: KeyboardEvent) => {
   showSearchBox.value = false
 }
 
-// Mobile has no Escape key: an empty search box closes on an outside tap.
+// Inline boxes (mobile has no Escape key): an empty search box closes on an outside tap.
 onClickOutside(globalSearchWrapperRef, (e) => {
-  if (!isMobileMode.value || !showSearchBox.value || search.value.query || isDropdownOpen.value) return
+  if (!isInlineBox.value || !showSearchBox.value || search.value.query || isDropdownOpen.value) return
 
   if ((e.target as HTMLElement)?.closest?.('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) return
 
@@ -266,16 +273,26 @@ watch(
   },
 )
 
+// A linked-records block scrolled out of view leaves the shortcut to a visible one.
+function isOutsideViewport() {
+  const rect = globalSearchWrapperRef.value?.getBoundingClientRect()
+  // display: none (collapsed group, condition-hidden field) has a zero rect
+  return !!rect && ((!rect.width && !rect.height) || rect.bottom < 0 || rect.top > window.innerHeight)
+}
+
 useEventListener('keydown', (e: KeyboardEvent) => {
   // Skip if event originated inside the smart text panel (it has its own search)
   if ((e.target as HTMLElement)?.closest?.('.nc-smart-text-panel')) return
 
   if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    // Another search box (an earlier linked-records block) already took it.
+    if (e.defaultPrevented) return
     // An open record is DOM, not canvas: leave Ctrl/Cmd+F to the browser's find
     if (isExpandedFormOpenExist()) return
     // Interface record sheet: only a search inside the sheet (LTAR viz) keeps the shortcut
     const recordSheet = document.querySelector('.nc-interface-record-form-sheet-layer')
     if (recordSheet && !recordSheet.contains(globalSearchWrapperRef.value ?? null)) return
+    if (props.inline && isOutsideViewport()) return
 
     e.preventDefault()
     handleShowSearchInput()
@@ -310,7 +327,7 @@ useSearchCommands({
 </script>
 
 <template>
-  <div ref="globalSearchWrapperRef" class="nc-global-search-wrapper relative">
+  <div ref="globalSearchWrapperRef" class="nc-global-search-wrapper relative" :class="{ 'min-w-0': props.inline }">
     <NcTooltip v-if="isSearchButtonVisible" :disabled="!search.query" placement="bottom">
       <template #title> {{ $t('general.searchIn') }} {{ displayColumnLabel ?? '' }}: {{ search.query }} </template>
       <NcButton
@@ -329,11 +346,11 @@ useSearchCommands({
         />
       </NcButton>
     </NcTooltip>
-    <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true" :realign-tick="realignTick">
+    <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true" :inline="props.inline" :realign-tick="realignTick">
       <div
         class="overflow-hidden"
         :class="{
-          'border-1 rounded-lg border-nc-border-gray-medium focus-within:(border-primary shadow-selected)': isMobileMode,
+          'border-1 rounded-lg border-nc-border-gray-medium focus-within:(border-primary shadow-selected)': isInlineBox,
         }"
       >
         <div
@@ -353,7 +370,7 @@ useSearchCommands({
             {{ getTableTitle(level.fk_model_id) }}
           </div>
         </div>
-        <div class="flex flex-row h-8 relative">
+        <div class="flex flex-row relative" :class="props.inline && !isMobileMode ? 'h-6' : 'h-8'">
           <NcDropdown
             v-model:visible="isDropdownOpen"
             :trigger="['click']"

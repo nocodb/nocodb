@@ -34,7 +34,10 @@ import { getUsersWithBaseAccess } from '~/helpers/baseAccessHelpers';
 import { setModelContext } from '~/helpers/modelContext';
 import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
-import { projectRelatedMetas } from '~/helpers/relatedMetaProjection';
+import {
+  getSharedModelVisibility,
+  projectRelatedMetas,
+} from '~/helpers/relatedMetaProjection';
 import { withoutViewSecrets } from '~/helpers/publicViewSecrets';
 import {
   getViewExposedColumnIds,
@@ -253,7 +256,16 @@ export class PublicMetasService {
     // path returns under `pkAndPvOnly` — the two must agree, or the frontend
     // renders fields the API refuses to return.
     if (isSharedViewAccess(context)) {
-      projectRelatedMetas(relatedMetas, view.model.columns);
+      projectRelatedMetas(
+        relatedMetas,
+        view.model.columns,
+        [],
+        getSharedModelVisibility(
+          view.model.id,
+          view.model.columns,
+          view.columns,
+        ),
+      );
     }
 
     view.relatedMetas = relatedMetas;

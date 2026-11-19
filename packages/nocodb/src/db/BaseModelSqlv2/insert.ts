@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import {
   coerceOracleReturnedPk,
   dataWrapper,
+  formMappingColumns,
   populatePk,
 } from 'src/helpers/dbHelpers';
 import {
@@ -263,6 +264,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       skipPermissionCheck = false,
       skipAttachmentOwnershipCheck = false,
       triggerLinkUpdateHooks = false,
+      formColumns,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -290,6 +292,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       skipAttachmentOwnershipCheck?: boolean;
       /** Fire update hooks on the records the nested links change — user writes only */
       triggerLinkUpdateHooks?: boolean;
+      /** Map only these columns (and the pks), by title or id — see `nestedInsert`. */
+      formColumns?: Column[];
     } = {},
   ) => {
     // The after-insert hooks read the inserted rows back by pk. In raw mode the
@@ -333,6 +337,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         const order = await baseModel.getHighestOrderInTable();
         const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
         const attachmentCols = columns.filter((c) => isAttachment(c));
+        const mapColumns = formMappingColumns(baseModel.model, formColumns);
 
         for (const [index, d] of datas.entries()) {
           const insertObj = await withRecordIndex(
@@ -342,11 +347,12 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             async () => {
               const insertObj = await baseModel.handleValidateBulkInsert(
                 d,
-                columns,
+                mapColumns ?? columns,
                 {
                   allowSystemColumn,
                   undo,
                   typecast,
+                  byTitleOrId: !!mapColumns,
                 },
               );
 

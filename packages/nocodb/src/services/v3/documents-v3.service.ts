@@ -204,6 +204,7 @@ export class DocumentsV3Service {
       context,
       'Documents are not available in an environment instance.',
     );
+    await this.documentsService.assertPublicShareAllowed(context);
     const doc = await Document.share(context, param.docId);
     const includeSubtree = !!getDocShareMeta(doc.meta).include_subtree;
 
@@ -260,6 +261,7 @@ export class DocumentsV3Service {
       context,
       'Documents are not available in an environment instance.',
     );
+    await this.documentsService.assertPublicShareAllowed(context);
     const doc = await Document.updateShareSettings(context, param.docId, body);
     const includeSubtree = !!getDocShareMeta(doc.meta).include_subtree;
 

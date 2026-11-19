@@ -2,6 +2,7 @@ import groupBy from 'lodash/groupBy';
 import {
   extractFilterFromXwhere,
   getFirstNonPersonalView,
+  isLinksOrLTAR,
   NcApiVersion,
   UITypes,
   ViewTypes,
@@ -9,13 +10,19 @@ import {
 import type { NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { Knex } from 'knex';
 import type { LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import conditionV2, { applyRelatedRls } from '~/db/conditionV2';
+import type { SharedViewExposure } from '~/db/BaseModelSqlv2/shared-view-exposure';
+import conditionV2, {
+  applyRelatedRls,
+  getLinkRelFilters,
+} from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
-import { Filter, Model, View } from '~/models';
+import { Column, Filter, Model, View } from '~/models';
 import { hasLimitedRelatedTableAccess } from '~/helpers/tableHelpers';
+import { isSharedViewAccess } from '~/helpers/accessSource';
 import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
 import { chunkArray } from '~/utils/tsUtils';
@@ -25,6 +32,11 @@ import {
   getRelationReadDepth,
   runAtNextRelationReadDepth,
 } from '~/db/BaseModelSqlv2/relation-read-depth';
+import {
+  getRequestSharedViewExposure,
+  getSharedViewExposure,
+  runWithSharedViewExposure,
+} from '~/db/BaseModelSqlv2/shared-view-exposure';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -120,6 +132,22 @@ function wrapUnionMember(model: IBaseModelSqlV2, query: any): any {
     .from((model as any).isMssql ? query.as('__nc_u') : query);
 }
 
+// A filtered Lookup reads only the related rows its link conditions keep.
+async function applyLookupLinkFilters(
+  refBaseModel: IBaseModelSqlV2,
+  qb: Knex.QueryBuilder,
+  alias: string | undefined,
+  lookupColumn: Column | undefined,
+) {
+  if (!lookupColumn) return;
+  const filters = await getLinkRelFilters({
+    column: lookupColumn,
+    table: refBaseModel.model,
+    context: refBaseModel.context,
+  });
+  if (filters.length) await conditionV2(refBaseModel, filters, qb, alias);
+}
+
 export const relationDataFetcher = (param: {
   baseModel: IBaseModelSqlV2;
   logger: Logger;
@@ -157,6 +185,14 @@ export const relationDataFetcher = (param: {
     // boundary on unlicensed on-prem (EE build, `Noco.isEE()` false).
     if (!context.cacheMap) {
       context.cacheMap = new Map();
+    }
+
+    if (isSharedViewAccess(context)) {
+      return sharedViewPostProcess(context, {
+        data,
+        model,
+        relationColumnId,
+      });
     }
 
     // Re-resolving a relation's lookups here re-enters this function for the
@@ -200,6 +236,107 @@ export const relationDataFetcher = (param: {
     );
   }
 
+  // Off the shared-view path (or licensed EE): undefined. On it, the related
+  // column ids the share exposes through `relationColumnId`, from the request's
+  // exposure — built from the view once per request on the outermost read.
+  async function getSharedExposure(relationColumnId: string): Promise<
+    | {
+        exposure?: SharedViewExposure;
+        ids: Set<string>;
+      }
+    | undefined
+  > {
+    if (Noco.isEE() || !isSharedViewAccess(baseModel.context)) return undefined;
+
+    let exposure = getSharedViewExposure();
+    if (!exposure && baseModel.viewId) {
+      exposure = await getRequestSharedViewExposure(baseModel.context, {
+        model: baseModel.model,
+        viewId: baseModel.viewId,
+      });
+    }
+    return {
+      exposure,
+      ids: exposure?.get(relationColumnId) ?? new Set(),
+    };
+  }
+
+  // Titles to select on a shared read; without an exposure keep the caller's.
+  async function sharedSelectFields(
+    relationColumnId: string,
+    relatedModel: Model,
+    fieldsSet?: Set<string>,
+  ): Promise<Set<string> | undefined> {
+    const shared = await getSharedExposure(relationColumnId);
+    if (!shared?.exposure) return fieldsSet;
+    return new Set(
+      (await relatedModel.getColumns())
+        .filter((c) => shared.ids.has(c.id))
+        .map((c) => c.title),
+    );
+  }
+
+  // A shared view publishes only the related rows' key and display value, plus
+  // what its own shown lookups/rollups/links need from them.
+  async function sharedViewPostProcess(
+    context: NcContext,
+    {
+      data,
+      model,
+      relationColumnId,
+    }: {
+      data: any[];
+      model: Model;
+      relationColumnId?: string;
+    },
+  ) {
+    const relationColumn = relationColumnId
+      ? await Column.get(baseModel.context, { colId: relationColumnId })
+      : null;
+    const relationColOptions = isLinksOrLTAR(relationColumn)
+      ? await relationColumn.getColOptions<LinkToAnotherRecordColumn>()
+      : null;
+
+    const depth = getRelationReadDepth();
+    const shared = relationColumn
+      ? await getSharedExposure(relationColumn.id)
+      : undefined;
+
+    let exposedIds = shared?.ids ?? new Set<string>();
+    // No exposure reaches a nested read started outside this fetcher (a list's
+    // batched relation read): keep what the owner's lookups need from it.
+    if (!shared?.exposure && relationColumn && depth > 0) {
+      exposedIds =
+        (await requiredLookupTargets(
+          baseModel.context,
+          baseModel.model,
+          relationColumn.id,
+        )) ?? new Set();
+    }
+    if (depth >= TARGETED_EXPANSION_MAX_DEPTH) exposedIds = new Set();
+
+    const fields = (await model.getColumns())
+      .filter(
+        (c) =>
+          c.pk ||
+          c.pv ||
+          c.id === relationColOptions?.fk_display_value_column_id ||
+          exposedIds.has(c.id),
+      )
+      .map((c) => c.title);
+
+    const { ast, parsedQuery } = await getAst(context, {
+      model,
+      query: { fields },
+    });
+
+    const run = () =>
+      runAtNextRelationReadDepth(() => nocoExecute(ast, data, {}, parsedQuery));
+    return shared?.exposure
+      ? runWithSharedViewExposure(shared.exposure, run)
+      : run();
+  }
+
   return {
     async multipleHmList(
       {
@@ -215,7 +352,12 @@ export const relationDataFetcher = (param: {
         nested?: boolean;
         linksAsLtar?: boolean;
       },
-      args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldsSet?: Set<string>;
+        lookupColumn?: Column;
+      } = {},
     ) {
       try {
         // skip duplicate id
@@ -256,7 +398,11 @@ export const relationDataFetcher = (param: {
         await childBaseModel.selectObject({
           qb,
           extractPkAndPv: true,
-          fieldsSet: args.fieldsSet,
+          fieldsSet: await sharedSelectFields(
+            colId,
+            childTable,
+            args.fieldsSet,
+          ),
           pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
           fk_display_value_column_id:
             relationColOpts.fk_display_value_column_id,
@@ -282,6 +428,12 @@ export const relationDataFetcher = (param: {
         const hmSoftDeleteFilter = await childBaseModel.getSoftDeleteFilter();
         if (hmSoftDeleteFilter) qb.where(hmSoftDeleteFilter);
         await applyRelatedRls(childBaseModel, qb);
+        await applyLookupLinkFilters(
+          childBaseModel,
+          qb,
+          undefined,
+          args.lookupColumn,
+        );
 
         const childColumns = await childTable.getColumns();
         const children = await execPerIdChunk(ids, (idChunk) =>
@@ -354,6 +506,7 @@ export const relationDataFetcher = (param: {
         offset?;
         fieldsSet?: Set<string>;
         pkAndPvOnly?: boolean;
+        lookupColumn?: Column;
       } = {},
       selectAllRecords = false,
     ) {
@@ -421,7 +574,7 @@ export const relationDataFetcher = (param: {
 
       await refBaseModel.selectObject({
         qb,
-        fieldsSet: args.fieldsSet,
+        fieldsSet: await sharedSelectFields(colId, refTable, args.fieldsSet),
         // postProcessData resolves the rows' relations, which load by pk
         extractPkAndPv: true,
         pkAndPvOnly:
@@ -499,6 +652,7 @@ export const relationDataFetcher = (param: {
       const mmSoftDeleteFilter = await refBaseModel.getSoftDeleteFilter(rtn);
       if (mmSoftDeleteFilter) qb.where(mmSoftDeleteFilter);
       await applyRelatedRls(refBaseModel, qb, rtn);
+      await applyLookupLinkFilters(refBaseModel, qb, rtn, args.lookupColumn);
 
       const children = await refBaseModel.execAndParse(
         qb,
@@ -526,7 +680,7 @@ export const relationDataFetcher = (param: {
         colId: string;
         parentId: any;
       },
-      args: { fieldsSet?: Set<string> } = {},
+      args: { fieldsSet?: Set<string>; lookupColumn?: Column } = {},
     ) {
       const relColumn = (await baseModel.model.getColumns()).find(
         (c) => c.id === colId,
@@ -583,6 +737,7 @@ export const relationDataFetcher = (param: {
         qb.where(refSoftDeleteFilter);
       }
       await applyRelatedRls(refBaseModel, qb, rtn);
+      await applyLookupLinkFilters(refBaseModel, qb, rtn, args.lookupColumn);
 
       const hasLimitedAccess = await hasLimitedRelatedTableAccess(
         baseModel.context,
@@ -591,7 +746,7 @@ export const relationDataFetcher = (param: {
 
       await refBaseModel.selectObject({
         qb,
-        fieldsSet: args.fieldsSet,
+        fieldsSet: await sharedSelectFields(colId, refTable, args.fieldsSet),
         // postProcessData resolves the row's relations, which load by pk
         extractPkAndPv: true,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
@@ -707,6 +862,7 @@ export const relationDataFetcher = (param: {
         offset?;
         fieldSet?: Set<string>;
         pkAndPvOnly?: boolean;
+        lookupColumn?: Column;
       } = {},
       selectAllRecords = false,
     ) {
@@ -775,7 +931,7 @@ export const relationDataFetcher = (param: {
 
         await childBaseModel.selectObject({
           qb,
-          fieldsSet: args.fieldSet,
+          fieldsSet: await sharedSelectFields(colId, childTable, args.fieldSet),
           pkAndPvOnly:
             relationColOpts.isCrossBaseLink() ||
             hasLimitedAccess ||
@@ -799,6 +955,12 @@ export const relationDataFetcher = (param: {
           await childBaseModel.getSoftDeleteFilter();
         if (hmListSoftDeleteFilter) qb.where(hmListSoftDeleteFilter);
         await applyRelatedRls(childBaseModel, qb);
+        await applyLookupLinkFilters(
+          childBaseModel,
+          qb,
+          undefined,
+          args.lookupColumn,
+        );
 
         const children = await childBaseModel.execAndParse(
           qb,
@@ -912,7 +1074,12 @@ export const relationDataFetcher = (param: {
         nested?: boolean;
         linksAsLtar?: boolean;
       },
-      args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+      args: {
+        limit?;
+        offset?;
+        fieldsSet?: Set<string>;
+        lookupColumn?: Column;
+      } = {},
     ) {
       // skip duplicate id
       const parentIds = [...new Set(_parentIds)];
@@ -967,7 +1134,7 @@ export const relationDataFetcher = (param: {
 
       await refBaseModel.selectObject({
         qb,
-        fieldsSet: args.fieldsSet,
+        fieldsSet: await sharedSelectFields(colId, refTable, args.fieldsSet),
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
         fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
@@ -990,6 +1157,7 @@ export const relationDataFetcher = (param: {
         rtn,
       );
       await applyRelatedRls(refBaseModel, qb, rtn);
+      await applyLookupLinkFilters(refBaseModel, qb, rtn, args.lookupColumn);
 
       const refColumns = await refTable.getColumns();
       const children = await execPerIdChunk(parentIds, (idChunk) =>

@@ -20,6 +20,24 @@ export function isPrivateIntegrationForbidden(
   return createdBy !== userId;
 }
 
+/** Someone else's private integration; fails closed without a user. */
+export function isPrivateToOtherUser(
+  integration:
+    | Pick<Integration, 'is_private' | 'created_by'>
+    | null
+    | undefined,
+  userId: string | null | undefined,
+): boolean {
+  return (
+    !!integration &&
+    isPrivateIntegrationForbidden(
+      !!integration.is_private,
+      integration.created_by,
+      userId,
+    )
+  );
+}
+
 /**
  * A restricted integration may back a source only in a base linked to it.
  * `baseId` null is a base being created, which has no links yet.
@@ -80,6 +98,24 @@ export async function getIntegrationForSource(
   }
 
   await assertIntegrationAvailableToBase(context, integration, baseId);
+
+  return integration;
+}
+
+/**
+ * Resolves an integration a request is about to use with its stored
+ * credentials. Someone else's private one is not-found, as on the read paths.
+ */
+export async function getIntegrationForUse(
+  context: Pick<NcContext, 'workspace_id' | 'api_version'>,
+  integrationId: string,
+  userId: string | null | undefined,
+): Promise<Integration> {
+  const integration = await Integration.get(context, integrationId);
+
+  if (!integration || isPrivateToOtherUser(integration, userId)) {
+    NcError.get(context).integrationNotFound(integrationId);
+  }
 
   return integration;
 }

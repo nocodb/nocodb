@@ -21,6 +21,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
 import { maskKnexConfig } from '~/helpers/responseHelpers';
+import { getIntegrationForUse } from '~/helpers/integrationAccess';
 import { NcError } from '~/helpers/ncError';
 
 @Controller()
@@ -222,12 +223,13 @@ export class IntegrationsController {
           op: 'sum';
           fields: string[];
         },
+    @Req() req?: NcRequest,
   ) {
-    const integration = await Integration.get(context, integrationId);
-
-    if (!integration) {
-      NcError.get(context).integrationNotFound(integrationId);
-    }
+    const integration = await getIntegrationForUse(
+      context,
+      integrationId,
+      req?.user?.id,
+    );
 
     return await this.integrationsService.integrationStore(
       context,
@@ -245,11 +247,13 @@ export class IntegrationsController {
     @Param('integrationId') integrationId: string,
     @Param('endpoint') endpoint: string,
     @Body() body: any,
+    @Req() req: NcRequest,
   ) {
     return await this.integrationsService.callIntegrationEndpoint(context, {
       integrationId,
       endpoint,
       payload: body,
+      userId: req.user?.id,
     });
   }
 }

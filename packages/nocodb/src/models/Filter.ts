@@ -111,11 +111,28 @@ export function markEnforcedFilters<T extends Filter>(filters: T[]): T[] {
   return filters;
 }
 
+// Set on conditions composed from saved builder config (interface pages). Only
+// exempts them from conditionV2's request-column check; unlike FILTER_ENFORCED,
+// hidden-table reads still compare as blank.
+export const FILTER_FROM_CONFIG: unique symbol = Symbol.for(
+  'nc_filter_from_config',
+);
+
+export function markConfigFilters<T extends Filter>(filters: T[]): T[] {
+  for (const filter of filters ?? []) {
+    if (!filter) continue;
+    filter[FILTER_FROM_CONFIG] = true;
+    if (Array.isArray(filter.children)) markConfigFilters(filter.children);
+  }
+  return filters;
+}
+
 export default class Filter implements FilterType {
   id: string;
 
   [FILTER_STORED_BASE]?: string;
   [FILTER_ENFORCED]?: boolean;
+  [FILTER_FROM_CONFIG]?: boolean;
 
   fk_workspace_id?: string;
   fk_model_id?: string;
@@ -932,12 +949,19 @@ export default class Filter implements FilterType {
   }
 
   // skip viewWebhookManager for this, deleteAll is not a standalone operation, it's invoked by view service
+  // Form-field conditions also carry fk_view_id; they are kept unless the view itself is deleted.
   static async deleteAll(
     context: NcContext,
     viewId: string,
     ncMeta = Noco.ncMeta,
+    {
+      includeFieldConditions = false,
+    }: { includeFieldConditions?: boolean } = {},
   ) {
     const filter = await this.getFilterObject(context, { viewId }, ncMeta);
+    if (!includeFieldConditions) {
+      filter.children = filter.children?.filter((f) => !f.fk_parent_column_id);
+    }
 
     const deleteRecursively = async (filter) => {
       if (!filter) return;

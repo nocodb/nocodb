@@ -691,6 +691,45 @@ export const comparisonSubOpList = (
           UITypes.CreatedTime,
         ],
       },
+      ...(
+        [
+          ['thisCalendarWeek', 'this week'],
+          ['thisCalendarMonth', 'this month'],
+          ['thisCalendarYear', 'this year'],
+          ['lastCalendarWeek', 'last week'],
+          ['lastCalendarMonth', 'last month'],
+          ['lastCalendarYear', 'last year'],
+          ['nextCalendarWeek', 'next week'],
+          ['nextCalendarMonth', 'next month'],
+          ['nextCalendarYear', 'next year'],
+        ] as const
+      )
+        // a month-format value is the 1st of its month, so a week rarely holds one
+        .filter(([value]) => !(isDateMonth && value.endsWith('Week')))
+        .map(([value, text]) => ({
+          text,
+          i18nKey: `filterOperation.subOp.${value}`,
+          value,
+          ignoreVal: true,
+          includedTypes: [
+            UITypes.Date,
+            UITypes.DateTime,
+            UITypes.LastModifiedTime,
+            UITypes.CreatedTime,
+          ],
+        })),
+      {
+        text: 'date range',
+        i18nKey: 'filterOperation.subOp.dateRange',
+        value: 'dateRange',
+        ignoreVal: false,
+        includedTypes: [
+          UITypes.Date,
+          UITypes.DateTime,
+          UITypes.LastModifiedTime,
+          UITypes.CreatedTime,
+        ],
+      },
     ];
   }
   return [
@@ -870,7 +909,9 @@ export const getPlaceholderNewRow = (
     filters.filter((filter) => filter.id).map((filter) => [filter.id, filter])
   );
   const hasDisabledAncestor = (filter: Filter) => {
-    let parent = filter.fk_parent_id ? byId.get(filter.fk_parent_id) : undefined;
+    let parent = filter.fk_parent_id
+      ? byId.get(filter.fk_parent_id)
+      : undefined;
     // Bounded by the list length so a malformed parent cycle cannot hang.
     for (let depth = 0; parent && depth < filters.length; depth++) {
       if (isDisabled(parent)) return true;

@@ -4,9 +4,11 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   BaseVersion,
+  dataSourceClientOf,
   EventType,
   extractRolesObj,
   IntegrationsType,
+  isDataSourceIntegration,
   NcBaseError,
   OrgUserRoles,
   SqlUiFactory,
@@ -28,6 +30,7 @@ import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
 import { getIntegrationForSource } from '~/helpers/integrationAccess';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { assertSqliteConnectionAllowed } from '~/helpers/sqliteConnectionTestAccess';
 import { parseConfigPayload } from '~/helpers/configPayload';
 import { validateDbConnectionTargets } from '~/helpers/validateDbConnectionHost';
 import { sanitizeBase } from '~/helpers/sanitizeBase';
@@ -221,6 +224,7 @@ export class BasesService {
       await Base.softDelete(context, param.baseId, transaction);
 
       await transaction.commit();
+      await Base.clearCache(context, param.baseId);
     } catch (e) {
       await transaction.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
@@ -362,12 +366,11 @@ export class BasesService {
           source.config?.client ?? source.type,
         );
         if (!source.fk_integration_id) {
-          // Mirrors the SQLite block in sources.service / integrationCreate.
-          if (source.config?.client === 'sqlite3' && Noco.isEE()) {
-            NcError.get({ api_version: param.apiVersion }).badRequest(
-              'SQLite connections are only available on the free self-hosted edition',
-            );
-          }
+          assertSqliteConnectionAllowed(
+            { api_version: param.apiVersion },
+            source.config,
+            source.type,
+          );
           await validateDbConnectionTargets(source.config);
           const integration = await Integration.createIntegration(
             {
@@ -387,7 +390,7 @@ export class BasesService {
             client: baseBody.config?.client,
           };
         } else {
-          await getIntegrationForSource(
+          const integration = await getIntegrationForSource(
             {
               workspace_id:
                 baseBody.fk_workspace_id ?? Noco.ncDefaultWorkspaceId,
@@ -396,6 +399,17 @@ export class BasesService {
             source.fk_integration_id,
             param.req.user?.id,
             null,
+          );
+          if (!isDataSourceIntegration(integration) || !integration.sub_type) {
+            NcError.get({ api_version: param.apiVersion }).badRequest(
+              'Integration type should be Database',
+            );
+          }
+          source.type = dataSourceClientOf(integration) as typeof source.type;
+          assertSqliteConnectionAllowed(
+            { api_version: param.apiVersion },
+            integration.getConfig(),
+            integration.sub_type,
           );
         }
       }

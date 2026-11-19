@@ -1,6 +1,8 @@
 import { validateFormulaAndExtractTreeWithType } from './validate-extract-tree';
 import { FormulaDataTypes, FormulaErrorType, JSEPNode } from './enums';
 import { FormulaError } from './error';
+import { formulas } from './formulas';
+import { formulaDateUidt, formulaInstantKind } from './dateOnlyFormula';
 import UITypes from '../UITypes';
 import { SqlUiFactory } from '~/lib/sqlUi';
 import { UnifiedMetaType } from '~/lib/types';
@@ -748,14 +750,22 @@ describe('validateFormulaAndExtractTreeWithType', () => {
   }
 
   // the database casts these to a timestamp, so a number fails only on save
-  it.each(['DAY', 'MONTH', 'YEAR', 'HOUR'])(
-    'should reject a number as the argument of %s',
-    async (fnName) => {
+  it.each(
+    ['pg', 'oracledb'].flatMap((client) =>
+      ['DAY', 'MONTH', 'YEAR', 'HOUR', 'MINUTE', 'SECOND'].map((fnName) => [
+        fnName,
+        client,
+      ])
+    )
+  )(
+    'should reject a number as the argument of %s on %s',
+    async (fnName, client) => {
+      const clientOrSqlUi = SqlUiFactory.create({ client });
       await expect(
         validateFormulaAndExtractTreeWithType({
           formula: `${fnName}({Column2})`,
           columns: mockColumns,
-          clientOrSqlUi: mockClientOrSqlUi,
+          clientOrSqlUi,
           getMeta: mockGetMeta,
         })
       ).rejects.toHaveProperty(
@@ -765,19 +775,24 @@ describe('validateFormulaAndExtractTreeWithType', () => {
       const result = await validateFormulaAndExtractTreeWithType({
         formula: `${fnName}({Column3})`,
         columns: mockColumns,
-        clientOrSqlUi: mockClientOrSqlUi,
+        clientOrSqlUi,
         getMeta: mockGetMeta,
       });
       expect(result.type).toBe(JSEPNode.CALL_EXP);
     }
   );
 
-  // SQLite reads a number as a Julian day, MySQL a YYYYMMDD integer as a date
-  it.each(['sqlite3', 'mysql2'])(
-    'should accept a number as the argument of DAY on %s',
-    async (client) => {
+  // SQLite reads a number as a Julian day, MySQL a YYYYMMDD integer as a
+  // date, MSSQL as days since 1900-01-01
+  it.each(
+    ['sqlite3', 'mysql2', 'mssql'].flatMap((client) =>
+      ['DAY', 'MINUTE'].map((fnName) => [fnName, client])
+    )
+  )(
+    'should accept a number as the argument of %s on %s',
+    async (fnName, client) => {
       const result = await validateFormulaAndExtractTreeWithType({
-        formula: 'DAY({Column2})',
+        formula: `${fnName}({Column2})`,
         columns: mockColumns,
         clientOrSqlUi: SqlUiFactory.create({ client }),
         getMeta: mockGetMeta,
@@ -1091,6 +1106,8 @@ describe('validateFormulaAndExtractTreeWithType', () => {
           dateLookupColumn,
           nestedDateLookupColumn,
           dateFormulaLookupColumn,
+          tomorrowFormulaColumn,
+          tomorrowLookupColumn,
         ],
         clientOrSqlUi: mockClientOrSqlUi,
         getMeta: mockGetMeta,
@@ -1114,6 +1131,35 @@ describe('validateFormulaAndExtractTreeWithType', () => {
         error: null,
         parsed_tree: dateAddTree,
         getParsedTree: () => dateAddTree as any,
+      } as UnifiedMetaType.IFormulaColumn,
+    } as UnifiedMetaType.IColumn;
+    // date-only with no Date source: it renders as a timestamp on pg
+    const tomorrowTree = {
+      type: JSEPNode.CALL_EXP,
+      callee: { type: JSEPNode.IDENTIFIER, name: 'DATEADD' },
+      arguments: [
+        {
+          type: JSEPNode.CALL_EXP,
+          callee: { type: JSEPNode.IDENTIFIER, name: 'TODAY' },
+          arguments: [],
+          dataType: FormulaDataTypes.DATE,
+        },
+        { type: JSEPNode.LITERAL, value: 1 },
+        { type: JSEPNode.LITERAL, value: 'day' },
+      ],
+      dataType: FormulaDataTypes.DATE,
+    };
+    const tomorrowFormulaColumn = {
+      ...mockColumns.find((c) => c.id === 'col4'),
+      id: 'colTomorrow',
+      title: 'Tomorrow',
+      colOptions: {
+        formula: "DATEADD(TODAY(), 1, 'day')",
+        formula_raw: "DATEADD(TODAY(), 1, 'day')",
+        fk_column_id: 'colTomorrow',
+        error: null,
+        parsed_tree: tomorrowTree,
+        getParsedTree: () => tomorrowTree as any,
       } as UnifiedMetaType.IFormulaColumn,
     } as UnifiedMetaType.IColumn;
     const lookupOf = (
@@ -1149,6 +1195,11 @@ describe('validateFormulaAndExtractTreeWithType', () => {
       'colNextDateLookup',
       'NextDateLookup',
       dateFormulaColumn
+    );
+    const tomorrowLookupColumn = lookupOf(
+      'colTomorrowLookup',
+      'TomorrowLookup',
+      tomorrowFormulaColumn
     );
 
     it.each([
@@ -1188,6 +1239,15 @@ describe('validateFormulaAndExtractTreeWithType', () => {
       ['WORKDAY("2026-12-18", 1, 5)', FormulaErrorType.TYPE_MISMATCH],
       ['WORKDAY("2026-12-18", 1, NOW())', FormulaErrorType.TYPE_MISMATCH],
       ['WORKDAY("2026-12-18", 1, {NextDate})', FormulaErrorType.TYPE_MISMATCH],
+      ['WORKDAY("2026-12-18", 1, {Tomorrow})', FormulaErrorType.TYPE_MISMATCH],
+      [
+        'WORKDAY("2026-12-18", 1, {TomorrowLookup})',
+        FormulaErrorType.TYPE_MISMATCH,
+      ],
+      [
+        `WORKDAY("2026-12-18", 1, DATEADD(TODAY(), 1, 'day'))`,
+        FormulaErrorType.TYPE_MISMATCH,
+      ],
       [
         'WORKDAY("2026-12-18", 1, {NextDateLookup})',
         FormulaErrorType.TYPE_MISMATCH,
@@ -1204,5 +1264,318 @@ describe('validateFormulaAndExtractTreeWithType', () => {
     ])('rejects %s', async (formula, type) => {
       await expect(validate(formula)).rejects.toHaveProperty('type', type);
     });
+  });
+
+  describe('TEXTBEFORE / TEXTAFTER / SUBSTITUTE instance', () => {
+    const validate = (formula: string, client = 'pg') =>
+      validateFormulaAndExtractTreeWithType({
+        formula,
+        columns: mockColumns,
+        clientOrSqlUi: SqlUiFactory.create({ client }),
+        getMeta: mockGetMeta,
+      });
+
+    it.each([
+      'TEXTBEFORE({Column1}, "@", 1.5)',
+      'TEXTBEFORE({Column1}, "@", -1.5)',
+      'TEXTBEFORE({Column1}, "@", 0)',
+      'TEXTBEFORE({Column1}, "@", -0)',
+      'TEXTAFTER({Column1}, "@", 0.5)',
+      'SUBSTITUTE({Column1}, "-", "+", 0)',
+      'SUBSTITUTE({Column1}, "-", "+", -2.5)',
+    ])('rejects %s', async (formula) => {
+      await expect(validate(formula)).rejects.toHaveProperty(
+        'type',
+        FormulaErrorType.INVALID_ARG_VALUE
+      );
+    });
+
+    it.each([
+      'TEXTBEFORE({Column1}, "@")',
+      'TEXTBEFORE({Column1}, "@", 2)',
+      'TEXTAFTER({Column1}, "@", -2)',
+      'TEXTBEFORE({Column1}, "@", {Column2})',
+      'SUBSTITUTE({Column1}, "-", "+", 3)',
+      'SUBSTITUTE({Column1}, "-", "+")',
+    ])('accepts %s', async (formula) => {
+      await expect(validate(formula)).resolves.toBeDefined();
+    });
+
+    it('still rejects a non-numeric instance', async () => {
+      await expect(
+        validate('TEXTBEFORE({Column1}, "@", "x")')
+      ).rejects.toBeInstanceOf(FormulaError);
+    });
+
+    it.each([
+      ['TEXTBEFORE({Column1}, "@", 2)', false],
+      ['TEXTAFTER({Column1}, "@", {Column2})', false],
+      ['SUBSTITUTE({Column1}, "-", "+", 2)', false],
+      ['TEXTBEFORE({Column1}, "@", -1)', true],
+      ['TEXTAFTER({Column1}, "@", 1)', true],
+      ['TEXTAFTER({Column1}, "@")', true],
+      ['SUBSTITUTE({Column1}, "-", "+")', true],
+    ])('mssql: %s valid=%s', async (formula, valid) => {
+      const result = validate(formula, 'mssql');
+      if (valid) await expect(result).resolves.toBeDefined();
+      else
+        await expect(result).rejects.toHaveProperty(
+          'type',
+          FormulaErrorType.INVALID_ARG_VALUE
+        );
+    });
+  });
+
+  describe('DATETIME_PARSE format', () => {
+    const validate = (format: string, client = 'pg') =>
+      validateFormulaAndExtractTreeWithType({
+        formula: `DATETIME_PARSE({Column1}, "${format}")`,
+        columns: mockColumns,
+        clientOrSqlUi: SqlUiFactory.create({ client }),
+        getMeta: mockGetMeta,
+      });
+
+    it.each([
+      'YYYY-MM-DD HH:mm Z',
+      'YYYY-MM-DD HH:mm ZZ',
+      'X',
+      'x',
+      'Q YYYY',
+      'HH:mm:ss.S',
+      'HH:mm:ss.SS',
+      'kk:mm',
+      'w YYYY',
+      'GGGG-WW',
+    ])('rejects %s', async (format) => {
+      await expect(validate(format)).rejects.toHaveProperty(
+        'type',
+        FormulaErrorType.INVALID_ARG_VALUE
+      );
+    });
+
+    it.each([
+      'DD/MM/YYYY',
+      'MMMM D, YYYY h:mm A',
+      'YYYY-MM-DD[T]HH:mm:ss.SSS',
+      'YYYY-MM-DD [Z]',
+      'LLL',
+      'dddd, D MMM YY',
+    ])('accepts %s', async (format) => {
+      await expect(validate(format)).resolves.toBeDefined();
+    });
+
+    it.each([
+      ['DD/MM/YYYY HH:mm:ss.SSS', true],
+      ['DD/MM/YY hh:mm A', true],
+      ['L', true],
+      ['YYYY-MM-DD [D]', true],
+      ['D/M/YYYY', false],
+      ['MMMM DD, YYYY', false],
+      ['l', false],
+      ['LT', false],
+      ['YYYY-MM-DD Z', false],
+    ])('sqlite: %s valid=%s', async (format, valid) => {
+      const result = validate(format, 'sqlite3');
+      if (valid) await expect(result).resolves.toBeDefined();
+      else
+        await expect(result).rejects.toHaveProperty(
+          'type',
+          FormulaErrorType.INVALID_ARG_VALUE
+        );
+    });
+  });
+
+  describe('CREATED_TIME', () => {
+    const column = (
+      overrides: Partial<UnifiedMetaType.IColumn>
+    ): UnifiedMetaType.IColumn => ({
+      ...mockColumns[0],
+      id: 'colCreated',
+      title: 'Created',
+      ...overrides,
+    });
+    const validate = (extra: UnifiedMetaType.IColumn[]) => {
+      const columns = [...mockColumns, ...extra];
+      return validateFormulaAndExtractTreeWithType({
+        formula: 'CREATED_TIME()',
+        columns,
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: (async () => ({
+          id: 'model1',
+          base_id: 'base1',
+          columns,
+        })) as unknown as UnifiedMetaType.IGetModel,
+      });
+    };
+
+    it('accepts the system CreatedTime field', async () => {
+      await expect(
+        validate([column({ uidt: UITypes.CreatedTime, system: true })])
+      ).resolves.toBeDefined();
+    });
+
+    // it records no field dependency, so only the system field is read
+    it.each([
+      [
+        'a datetime created_at',
+        [column({ column_name: 'created_at', uidt: UITypes.DateTime })],
+      ],
+      [
+        'a text created_at',
+        [column({ column_name: 'created_at', uidt: UITypes.SingleLineText })],
+      ],
+      [
+        'a non-system CreatedTime field',
+        [column({ uidt: UITypes.CreatedTime, system: false })],
+      ],
+    ])('rejects %s', async (_name, extra) => {
+      await expect(validate(extra)).rejects.toBeInstanceOf(FormulaError);
+    });
+  });
+});
+
+describe('date-only through formula references', () => {
+  // each formula column carries the tree the validator built for it
+  const build = async () => {
+    const columns: UnifiedMetaType.IColumn[] = [
+      ...mockColumns,
+      {
+        ...mockColumns.find((c) => c.id === 'col3'),
+        id: 'cAt',
+        title: 'At',
+        uidt: UITypes.DateTime,
+      } as UnifiedMetaType.IColumn,
+    ];
+    const add = async (id: string, title: string, formula: string) => {
+      const tree = await validateFormulaAndExtractTreeWithType({
+        formula,
+        columns,
+        clientOrSqlUi: mockClientOrSqlUi,
+        getMeta: mockGetMeta,
+      });
+      columns.push({
+        ...mockColumns.find((c) => c.id === 'col4'),
+        id,
+        title,
+        colOptions: {
+          formula,
+          formula_raw: formula,
+          fk_column_id: id,
+          error: null,
+          parsed_tree: tree,
+          getParsedTree: () => tree as any,
+        } as UnifiedMetaType.IFormulaColumn,
+      } as UnifiedMetaType.IColumn);
+    };
+    await add('cF1', 'F1', "DATEADD({Column3}, 1, 'day')");
+    await add('cF2', 'F2', "DATEADD({F1}, 3, 'hour')");
+    await add('cF4', 'F4', 'IF({Column2}, {F1}, NOW())');
+    await add('cF5', 'F5', 'IF({Column2}, {At}, NOW())');
+    await add('cF6', 'F6', "DATEADD({At}, 1, 'hour')");
+    await add('cF7', 'F7', 'DATETIME_PARSE({Column1})');
+    return columns;
+  };
+
+  it.each([
+    ['{F1}', UITypes.Date],
+    ["DATEADD({F1}, 1, 'day')", UITypes.Date],
+    ["DATEADD({F1}, 3, 'hour')", UITypes.DateTime],
+    ['{F2}', UITypes.DateTime],
+    ["DATEADD({F2}, 1, 'day')", UITypes.DateTime],
+    ['{F4}', UITypes.DateTime],
+  ])('%s is %s', async (formula, uidt) => {
+    const tree = await validateFormulaAndExtractTreeWithType({
+      formula,
+      columns: await build(),
+      clientOrSqlUi: mockClientOrSqlUi,
+      getMeta: mockGetMeta,
+    });
+    expect(formulaDateUidt(tree)).toBe(uidt);
+  });
+
+  // a referenced formula is an instant exactly when its own expression is
+  it.each([
+    ['{F5}', 'IF({Column2}, {At}, NOW())'],
+    ['{F6}', "DATEADD({At}, 1, 'hour')"],
+    ['{F7}', 'DATETIME_PARSE({Column1})'],
+    ['{F2}', "DATEADD({F1}, 3, 'hour')"],
+    ['{F1}', "DATEADD({Column3}, 1, 'day')"],
+  ])('%s is the same instant kind as %s', async (ref, inline) => {
+    const columns = await build();
+    const kind = async (formula: string) =>
+      formulaInstantKind(
+        await validateFormulaAndExtractTreeWithType({
+          formula,
+          columns,
+          clientOrSqlUi: mockClientOrSqlUi,
+          getMeta: mockGetMeta,
+        })
+      );
+    expect(await kind(ref)).toBe(await kind(inline));
+  });
+
+  it('classifies instants', async () => {
+    const columns = await build();
+    const kind = async (formula: string) =>
+      formulaInstantKind(
+        await validateFormulaAndExtractTreeWithType({
+          formula,
+          columns,
+          clientOrSqlUi: mockClientOrSqlUi,
+          getMeta: mockGetMeta,
+        })
+      );
+    expect(await kind('{F5}')).toBe('any');
+    expect(await kind('{F6}')).toBe('stored');
+    expect(await kind('{F7}')).toBe('stored');
+    expect(await kind('{F1}')).toBe('none');
+  });
+});
+
+describe('ARRAYFLATTEN argument check', () => {
+  const arg = (isDataArray: boolean) => ({
+    type: JSEPNode.IDENTIFIER,
+    name: 'c',
+    isDataArray,
+    dataType: FormulaDataTypes.STRING,
+  });
+  const check =
+    (...args: ReturnType<typeof arg>[]) =>
+    () =>
+      formulas.ARRAYFLATTEN.validation.custom(
+        [],
+        {
+          type: JSEPNode.CALL_EXP,
+          callee: { type: JSEPNode.IDENTIFIER, name: 'ARRAYFLATTEN' },
+          arguments: args,
+        } as any,
+        []
+      );
+
+  it('names the argument that is not a list', () => {
+    expect(check(arg(true), arg(true))).not.toThrow();
+    expect(check(arg(false), arg(true))).toThrow(/First parameter/);
+    expect(check(arg(true), arg(false))).toThrow(/at position 2/);
+  });
+});
+
+describe('SUBSTR / MID negative length', () => {
+  const check = (formula: string) =>
+    validateFormulaAndExtractTreeWithType({
+      formula,
+      columns: mockColumns,
+      clientOrSqlUi: 'pg',
+      getMeta: async () => ({} as any),
+    });
+
+  it('rejects a typed negative length and accepts the rest', async () => {
+    await expect(check('SUBSTR("abc", 1, -1)')).rejects.toThrow(
+      /Negative substring length/
+    );
+    await expect(check('MID("abc", 1, -2)')).rejects.toThrow(
+      /Negative substring length/
+    );
+    await expect(check('MID("abc", -2, 2)')).resolves.toBeDefined();
+    await expect(check('SUBSTR("abc", 1, 2)')).resolves.toBeDefined();
   });
 });

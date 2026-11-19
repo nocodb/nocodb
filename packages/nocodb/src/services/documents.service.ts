@@ -58,6 +58,8 @@ export class DocumentsService {
     return { permanent: false };
   }
 
+  async assertPublicShareAllowed(_context: NcContext): Promise<void> {}
+
   async reorder(
     _context: NcContext,
     _docId: string,

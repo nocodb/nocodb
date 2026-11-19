@@ -29,6 +29,7 @@ import {
 } from '~/db/linkedRecordDynamicFilter';
 import Filter, {
   FILTER_ENFORCED,
+  FILTER_FROM_CONFIG,
   FILTER_STORED_BASE,
   markEnforcedFilters,
 } from '~/models/Filter';
@@ -57,6 +58,10 @@ export default async function conditionV2(
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
+  await assertRequestLeavesOnModel(
+    baseModelSqlv2,
+    Array.isArray(conditionObj) ? conditionObj : [conditionObj],
+  );
   await FieldHandler.fromBaseModel(baseModelSqlv2).verifyFilters(
     Array.isArray(conditionObj)
       ? (conditionObj as Filter[])
@@ -79,6 +84,74 @@ export default async function conditionV2(
 
   filterOperationResult.clause(qb);
   filterOperationResult.rootApply?.(qb);
+}
+
+type FilterNode = (Filter | FilterType) & { fk_value_col_id?: string };
+
+/**
+ * A leaf that is not stored, server-enforced or built from saved config came
+ * from the request, and compiles as a bare column of this model's table — so
+ * it may only name this model's columns. Rejected like an unknown field, with
+ * the same message.
+ */
+async function assertRequestLeavesOnModel(
+  baseModelSqlv2: IBaseModelSqlV2,
+  filters: FilterNode[],
+) {
+  const context = baseModelSqlv2.context;
+  const model = baseModelSqlv2.model;
+  const ownIds = new Set(
+    (model.columns ?? (await model.getColumns())).map((c) => c.id),
+  );
+  const errors: string[] = [];
+
+  const isOwn = async (colId: string) => {
+    if (ownIds.has(colId)) return true;
+    const column = await Column.get(context, { colId });
+    // unknown fk_column_id: verifyFilters 422s it; unknown fk_value_col_id: resolveDynamicFilterValue drops the leaf
+    return !column || column.fk_model_id === model.id;
+  };
+
+  // `untrusted`: under a request group, so stored children it pulls in by id count as the request's.
+  const visit = async (nodes: unknown, untrusted = false) => {
+    if (!Array.isArray(nodes)) return;
+    for (const node of nodes as (FilterNode | FilterNode[])[]) {
+      if (!node) continue;
+      if (Array.isArray(node)) {
+        await visit(node, untrusted);
+        continue;
+      }
+      if (
+        !untrusted &&
+        ((node as Filter)[FILTER_STORED_BASE] ||
+          (node as Filter)[FILTER_ENFORCED] ||
+          (node as Filter)[FILTER_FROM_CONFIG])
+      ) {
+        continue;
+      }
+      if (node.is_group) {
+        if (Array.isArray(node.children)) {
+          await visit(node.children, untrusted);
+        } else if (node.id) {
+          await visit(
+            await Filter.parentFilterList(context, { parentId: node.id }),
+            true,
+          );
+        }
+        continue;
+      }
+      for (const key of ['fk_column_id', 'fk_value_col_id'] as const) {
+        if (node[key] && !(await isOwn(node[key]))) {
+          errors.push(
+            `Filter references a non-existent field (${key}: ${node[key]})`,
+          );
+        }
+      }
+    }
+  };
+  await visit(filters);
+
+  if (errors.length) NcError.get(context).filterVerificationFailed(errors);
 }
 
 // Cast a formula's compiled SQL expression to text so empty-string comparisons
@@ -547,19 +620,31 @@ const parseConditionV2 = async (
         },
       );
     }
-    if (
-      [UITypes.Formula].includes(column.uidt) &&
+    const formulaDateUidt =
+      column.uidt === UITypes.Formula &&
       customWhereClause &&
-      [UITypes.DateTime, UITypes.Date].includes(
-        getEquivalentUIType({ formulaColumn: column }) as UITypes,
-      )
+      getEquivalentUIType({ formulaColumn: column });
+    if (
+      formulaDateUidt === UITypes.DateTime ||
+      formulaDateUidt === UITypes.Date
     ) {
+      // a date-only group key is its wall date: expand it by that day, as a
+      // Date column does (a 1-minute window loses its end on a pg `date`)
+      if (
+        filter.groupby &&
+        formulaDateUidt === UITypes.Date &&
+        typeof filter.value === 'string' &&
+        /^\d{4}-\d{2}-\d{2}/.test(filter.value)
+      ) {
+        filter.value = filter.value.slice(0, 10);
+      }
       return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
         filter,
         setModelContext(
           new Column({
             ...column,
-            uidt: getEquivalentUIType({ formulaColumn: column }) as UITypes,
+            // a date-only result compares by its own day
+            uidt: formulaDateUidt,
           }),
           context,
         ),
@@ -569,7 +654,7 @@ const parseConditionV2 = async (
           depth: aliasCount,
           context,
           throwErrorIfInvalid,
-          customWhereClause,
+          customWhereClause: knex.raw('(?)', [customWhereClause]),
         },
       );
     }
@@ -1397,4 +1482,13 @@ export async function extractLinkRelFiltersAndApply(_: {
   baseModel: IBaseModelSqlV2;
 }) {
   // do nothing, it's just a placeholder
+}
+
+// A Lookup/Rollup's own link conditions; EE only.
+export async function getLinkRelFilters(_: {
+  column: Column<any>;
+  table: Model;
+  context: NcContext;
+}): Promise<Filter[]> {
+  return [];
 }

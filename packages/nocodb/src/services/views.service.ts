@@ -1048,7 +1048,8 @@ export class ViewsService {
   }
 
   async shareViewList(context: NcContext, param: { tableId: string }) {
-    return await View.shareViewList(context, param.tableId);
+    const views = await View.shareViewList(context, param.tableId);
+    return views.map((v) => View.maskPasswordForResponse(v));
   }
 
   @TraceCommand(OperationName.viewColumnsBulkSetVisibility)

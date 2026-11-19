@@ -181,6 +181,8 @@ export class DataTableService {
       };
       user?: any;
       req?: NcRequest;
+      /** Form-scoped write — see `BaseModelSqlv2.nestedInsert`. */
+      formColumns?: Column[];
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -214,6 +216,7 @@ export class DataTableService {
         allowSystemColumn: param.internalFlags?.allowSystemColumn,
         skip_hooks: param.internalFlags?.skipHooks,
         triggerLinkUpdateHooks: true,
+        formColumns: param.formColumns,
       },
     );
 
@@ -274,6 +277,8 @@ export class DataTableService {
         skipHooks?: boolean;
       };
       user?: any;
+      /** Form-scoped write — see `BaseModelSqlv2.nestedInsert`. */
+      formColumns?: Column[];
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -308,6 +313,7 @@ export class DataTableService {
         allowSystemColumn: param.internalFlags?.allowSystemColumn,
         skip_hooks: param.internalFlags?.skipHooks,
         triggerLinkUpdateHooks: true,
+        formColumns: param.formColumns,
       },
     );
     profiler.log('extractIdObj');

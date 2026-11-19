@@ -2,6 +2,7 @@ import { NcErrorType } from 'nocodb-sdk';
 import { DBErrorKind } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
+import { internalDbHostBlockedMessage } from '~/utils/ssrf';
 
 export class DefaultDBErrorExtractor implements IClientDbErrorExtractor {
   constructor(
@@ -16,7 +17,7 @@ export class DefaultDBErrorExtractor implements IClientDbErrorExtractor {
     if (error.code === 'EACCES') {
       return {
         error: NcErrorType.ERR_DATABASE_OP_FAILED,
-        message: 'Connection to internal hosts is not allowed',
+        message: internalDbHostBlockedMessage(),
         code: 'EACCES',
         httpStatus: 403,
       };

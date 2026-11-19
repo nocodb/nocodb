@@ -23,6 +23,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import PQueue from 'p-queue';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
+import type { ATSession } from './helpers/fetchAT';
 import { importData } from './helpers/readAndProcessData';
 import {
   buildSharedViewImport,
@@ -268,6 +269,7 @@ export class AtImportProcessor {
     };
 
     let atBase, atBaseId;
+    let atSession: ATSession;
     // set when the link is a shared view rather than a shared base
     let sharedView: SharedViewImport | undefined;
     const start = Date.now();
@@ -466,11 +468,13 @@ export class AtImportProcessor {
 
       if (sDB.shareId.startsWith('exp')) {
         const template = await FetchAT.readTemplate(sDB.shareId);
-        await FetchAT.initialize(template.template.exploreApplication.shareId);
+        atSession = await FetchAT.initialize(
+          template.template.exploreApplication.shareId,
+        );
       } else {
-        await FetchAT.initialize(sDB.shareId, sDB.appId);
+        atSession = await FetchAT.initialize(sDB.shareId, sDB.appId);
       }
-      const ft = await FetchAT.read();
+      const ft = await FetchAT.read(atSession);
       const duration = Date.now() - start;
       rtc.fetchAt.count++;
       rtc.fetchAt.time += duration;
@@ -520,7 +524,7 @@ export class AtImportProcessor {
       if (sharedView) return sharedView.view;
 
       const start = Date.now();
-      const ft = await FetchAT.readView(viewId);
+      const ft = await FetchAT.readView(viewId, atSession);
       const duration = Date.now() - start;
       rtc.fetchAt.count++;
       rtc.fetchAt.time += duration;
@@ -978,6 +982,7 @@ export class AtImportProcessor {
           user: syncDB.user,
           req,
           operationSource: OperationSource.AT_IMPORT,
+          trimTableName: true,
         });
       const copyColumns = (columns: any[]) => columns.map((c) => ({ ...c }));
 
@@ -2995,8 +3000,7 @@ export class AtImportProcessor {
 
     type ViewCtx = { table: string; view: string };
 
-    // Airtable `isWithin` modes -> nc `comparison_sub_op`. Calendar-relative
-    // modes (thisCalendarWeek, ...) have no nc equivalent and are skipped.
+    // Airtable `isWithin` modes -> nc `comparison_sub_op`.
     const isWithinMap = {
       pastWeek: 'pastWeek',
       pastMonth: 'pastMonth',
@@ -3006,6 +3010,15 @@ export class AtImportProcessor {
       nextYear: 'nextYear',
       pastNumberOfDays: 'pastNumberOfDays',
       nextNumberOfDays: 'nextNumberOfDays',
+      thisCalendarWeek: 'thisCalendarWeek',
+      thisCalendarMonth: 'thisCalendarMonth',
+      thisCalendarYear: 'thisCalendarYear',
+    };
+
+    // The shared-view payload carries no week start, so the report says so.
+    const isWithinApprox: Record<string, string> = {
+      thisCalendarWeek:
+        "'this calendar week' imported as a Monday-Sunday week: Airtable's starts on Sunday in some locales, so rows on the week's edges can differ",
     };
 
     // Airtable modes for the comparison operators (=, <, >, ...). Both
@@ -3256,6 +3269,16 @@ export class AtImportProcessor {
               value: filter.value?.numberOfDays,
               meta,
             });
+            if (isWithinApprox[mode]) {
+              recordIssue({
+                kind: AirtableImportIssueKind.APPROXIMATED,
+                category: AirtableImportIssueCategory.FILTER,
+                ...vctx,
+                field: colSchema.title,
+                airtable_type: colSchema.uidt,
+                reason: isWithinApprox[mode],
+              });
+            }
           } else {
             const subOp = dateModeMap[mode];
             if (!subOp) {

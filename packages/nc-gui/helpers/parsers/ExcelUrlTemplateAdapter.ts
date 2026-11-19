@@ -23,12 +23,14 @@ export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
 
   async init() {
     this.progress('Downloading excel file')
-    const data: any = await this.$api.utils.axiosRequestMake({
-      apiMeta: {
-        url: this.url,
+    this.excelData = await this.$api.utils.axiosRequestMake(
+      {
+        apiMeta: {
+          url: this.url,
+        },
       },
-    })
-    this.excelData = data.data
+      { format: 'arraybuffer' },
+    )
     await super.init()
   }
 }

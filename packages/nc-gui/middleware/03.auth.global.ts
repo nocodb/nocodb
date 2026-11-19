@@ -318,6 +318,8 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
           headers: {
             'xc-short-token': shortToken,
           } as any,
+          // The callback bound the token to a cookie on this browser; it must ride along.
+          withCredentials: true,
         },
       )
 

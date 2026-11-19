@@ -1,10 +1,14 @@
 import {
+  COMPARISON_SUB_OPS,
+  getComputedWhereUidt,
+  isDateType,
   isMMOrMMLike,
   ncIsNull,
   ncIsUndefined,
   parseProp,
   RelationTypes,
   UITypes,
+  validateFilterComparison,
 } from 'nocodb-sdk';
 import type {
   ConditionParser,
@@ -12,9 +16,15 @@ import type {
   FilterOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from 'knex';
-import type { ClientType } from 'nocodb-sdk';
+import type { ClientType, NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
+import type {
+  Column,
+  FormulaColumn,
+  LinkToAnotherRecordColumn,
+  LookupColumn,
+  RollupColumn,
+} from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
 import { setModelContext } from '~/helpers/modelContext';
@@ -23,7 +33,11 @@ import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 import { DBQueryClient } from '~/dbQueryClient';
-import { applyRelatedRls } from '~/db/conditionV2';
+import {
+  applyRelatedRls,
+  extractLinkRelFiltersAndApply,
+} from '~/db/conditionV2';
+import { DATE_TIME_FILTER_OPERATIONS } from '~/db/field-handler/handlers/date-time/date-time.general.handler';
 import {
   buildNestedLookupLevelLimit,
   loadLookupSortAndLimit,
@@ -188,13 +202,16 @@ export function getAlias(aliasCount: { count: number }) {
   return `__nc${aliasCount.count++}`;
 }
 
-// Keeps only `alias` rows of `baseModel` its RLS shows the requester.
-async function relatedRlsClause(
+// Keeps only `alias` rows of `baseModel` its RLS shows the requester and, given
+// a Lookup, that pass the Lookup's own link conditions.
+async function relatedRowsClause(
   baseModel: IBaseModelSqlV2,
   alias: string,
   rlsAlias: string,
+  lookupColumn?: Column,
 ): Promise<((qb: Knex.QueryBuilder) => void) | undefined> {
-  if (!(await baseModel.getRlsConditions()).length) return;
+  const hasConditions = !!parseProp(lookupColumn?.meta)?.enableConditions;
+  if (!hasConditions && !(await baseModel.getRlsConditions()).length) return;
   const knex = baseModel.dbDriver;
   const pks = baseModel.model.primaryKeys;
   if (!pks?.length) return (qb) => qb.whereRaw('1 = 0');
@@ -212,8 +229,61 @@ async function relatedRlsClause(
       knex.ref(`${alias}.${pk.column_name}`),
     );
   }
-  await applyRelatedRls(baseModel, visible, rlsAlias);
+  if (hasConditions) {
+    // applies RLS too (EE); a no-op in CE
+    await extractLinkRelFiltersAndApply({
+      qb: visible,
+      column: lookupColumn,
+      alias: rlsAlias,
+      table: baseModel.model,
+      baseModel,
+      context: baseModel.context,
+    });
+  } else {
+    await applyRelatedRls(baseModel, visible, rlsAlias);
+  }
   return (qb) => qb.whereExists(visible);
+}
+
+// A `where` parser can't see a lookup's date type, so a date sub-op arrives in
+// the value (`isWithin,thisCalendarWeek`); split it out at the date leaf.
+async function dateSubOpFromValue(
+  context: NcContext,
+  filter: Filter,
+  leaf?: Column,
+): Promise<Pick<Filter, 'comparison_sub_op' | 'value'> | undefined> {
+  if (filter.comparison_sub_op || !leaf) return;
+  if (!DATE_TIME_FILTER_OPERATIONS.includes(filter.comparison_op)) return;
+  const parts = Array.isArray(filter.value)
+    ? filter.value.map(String)
+    : typeof filter.value === 'string'
+    ? filter.value.split(',')
+    : null;
+  if (!parts) return;
+  const [subOp, ...rest] = parts.map((v) => v.trim());
+  if (!(COMPARISON_SUB_OPS as readonly string[]).includes(subOp)) return;
+  let uidt = leaf.uidt as UITypes;
+  if (uidt === UITypes.Formula || uidt === UITypes.Rollup) {
+    const colOptions = await leaf.getColOptions<FormulaColumn | RollupColumn>();
+    uidt = getComputedWhereUidt(
+      {
+        uidt,
+        colOptions:
+          uidt === UITypes.Formula
+            ? { parsed_tree: (colOptions as FormulaColumn).getParsedTree() }
+            : colOptions,
+      },
+      filter.value,
+    );
+  }
+  if (!isDateType(uidt)) return;
+  // as the `where` parser does for a date field: 400 on a mismatched pair
+  const [error] = validateFilterComparison(uidt, filter.comparison_op, subOp);
+  if (error) NcError.get(context).invalidFilter(error.message);
+  return {
+    comparison_sub_op: subOp as Filter['comparison_sub_op'],
+    value: rest.length ? rest.join(',') : null,
+  };
 }
 
 export async function nestedConditionJoin({
@@ -419,8 +489,8 @@ export async function nestedConditionJoin({
           break;
       }
 
-      // A nested lookup hop reads only rows the related table's RLS shows, as
-      // the display builders do.
+      // A nested lookup hop reads only rows the related table's RLS shows and
+      // the lookup's own link conditions keep, as the display builders do.
       if (
         lookupColumn.uidt === UITypes.Lookup &&
         [RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO, 'mm'].includes(
@@ -431,12 +501,15 @@ export async function nestedConditionJoin({
           relationType === RelationTypes.HAS_MANY
             ? childBaseModel
             : parentBaseModel;
-        const rlsClause = await relatedRlsClause(
+        // own prefix: conditionV2 numbers its aliases from __nc0, which would
+        // shadow a __ncN correlation alias
+        const rowsClause = await relatedRowsClause(
           related,
           relAlias,
-          `__nc${aliasCount.count++}`,
+          `__nc_rel${aliasCount.count++}`,
+          lookupColumn,
         );
-        if (rlsClause) clauses.push(rlsClause);
+        if (rowsClause) clauses.push(rowsClause);
       }
 
       // Per-lookup Limit — INNER level (PG): restrict this nested level's joined
@@ -511,6 +584,11 @@ export async function nestedConditionJoin({
         context,
         relationColumn,
       );
+      const displaySubOp = await dateSubOpFromValue(
+        context,
+        filter,
+        displayCol,
+      );
       switch (relationType) {
         case RelationTypes.HAS_MANY: {
           const filterOperationResult = await parseConditionV2(
@@ -518,6 +596,7 @@ export async function nestedConditionJoin({
             setModelContext(
               new Filter({
                 ...filter,
+                ...displaySubOp,
                 fk_model_id: childModel.id,
                 fk_column_id: displayCol?.id,
               }),
@@ -538,6 +617,7 @@ export async function nestedConditionJoin({
             setModelContext(
               new Filter({
                 ...filter,
+                ...displaySubOp,
                 fk_model_id: parentModel.id,
                 fk_column_id: displayCol?.id,
               }),
@@ -558,6 +638,7 @@ export async function nestedConditionJoin({
             setModelContext(
               new Filter({
                 ...filter,
+                ...displaySubOp,
                 fk_model_id: parentModel.id,
                 fk_column_id: displayCol?.id,
               }),
@@ -580,6 +661,7 @@ export async function nestedConditionJoin({
       setModelContext(
         new Filter({
           ...filter,
+          ...(await dateSubOpFromValue(context, filter, lookupColumn)),
           fk_model_id: (await lookupColumn.getModel()).id,
           fk_column_id: lookupColumn?.id,
         }),

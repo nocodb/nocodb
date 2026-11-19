@@ -26,12 +26,13 @@ import { CalendarsService } from '~/services/calendars.service';
 import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
-import { SyncSource, View } from '~/models';
+import { Comment, Model, SyncSource, View } from '~/models';
 import { atImportJobOptions } from '~/models/SyncSource';
 import { NcError } from '~/helpers/catchError';
 import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
 import { pickBulkAllQuery } from '~/helpers/dataHelpers';
 import { assertTableDataDownloadAllowed } from '~/helpers/tableDataDownloadPermission';
+import { isTableVisible } from '~/helpers/tableHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
@@ -166,6 +167,21 @@ export class UiPostOperations
     'dataImportFile' as const,
   ];
   httpMethod = 'POST' as const;
+
+  /** A comment on a hidden table answers like a missing comment. */
+  protected async assertCommentTableVisible(
+    context: NcContext,
+    commentId: string,
+    req: NcRequest,
+  ) {
+    const comment = commentId && (await Comment.get(context, commentId));
+    if (
+      comment &&
+      !(await isTableVisible(context, comment.fk_model_id, req.user))
+    ) {
+      NcError.get(context).commentNotFound(commentId);
+    }
+  }
 
   async handle(
     context: NcContext,
@@ -725,6 +741,7 @@ export class UiPostOperations
           req,
         });
       case 'commentUpdate':
+        await this.assertCommentTableVisible(context, payload.commentId, req);
         return await this.commentsService.commentUpdate(context, {
           commentId: payload.commentId,
           user: req.user,
@@ -732,6 +749,7 @@ export class UiPostOperations
           req,
         });
       case 'commentDelete':
+        await this.assertCommentTableVisible(context, payload.commentId, req);
         return await this.commentsService.commentDelete(context, {
           commentId: payload.commentId,
           user: req.user,
@@ -817,6 +835,18 @@ export class UiPostOperations
           req,
         });
       case 'dataImportFile':
+        // Sheets name their tables in the body, out of the visibility gate's reach.
+        if (payload?.options?.importDataOnly) {
+          for (const sheet of payload.sheets ?? []) {
+            if (
+              sheet?.tableId &&
+              (!(await Model.get(context, sheet.tableId)) ||
+                !(await isTableVisible(context, sheet.tableId, req.user)))
+            ) {
+              NcError.get(context).tableNotFound(sheet.tableId);
+            }
+          }
+        }
         return await this.dataImportService.importFile(context, {
           baseId: req.query.baseId as string,
           body: payload,

@@ -1,4 +1,5 @@
 import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
+import type { BoolType } from 'nocodb-sdk';
 import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
@@ -160,16 +161,85 @@ export function projectRelatedModelColumns(
     }
   }
 
-  const columns = related.columns.filter((column) => keep.has(column.id));
+  return withColumns(related, keep);
+}
+
+function withColumns(model: Model, keep: Set<string>): Model {
+  const columns = model.columns.filter((column) => keep.has(column.id));
   const columnsById = Object.fromEntries(
     columns.map((column) => [column.id, column]),
   );
 
-  return Object.assign(Object.create(Object.getPrototypeOf(related)), related, {
+  return Object.assign(Object.create(Object.getPrototypeOf(model)), model, {
     columns,
     columnsById,
     columnsHash: undefined,
   });
+}
+
+/**
+ * The shared table's own entry, reached through a self-link or a lookup back
+ * to it: unlike a linked table it keeps no pk/pv seed or dependency closure,
+ * only what the view exposes, needed columns the view doesn't hide (link FKs
+ * are system columns, kept so the frontend can resolve the link) and the
+ * display value of a shown self-link.
+ */
+function projectSharedModelColumns(
+  shared: Model,
+  neededColIds: Set<string>,
+  { exposedColumnIds, hiddenColumnIds }: SharedModelVisibility,
+): Model {
+  if (!shared?.columns) return shared;
+
+  const keep = new Set<string>();
+  for (const column of shared.columns) {
+    if (
+      exposedColumnIds.has(column.id) ||
+      (neededColIds.has(column.id) &&
+        (column.system || !hiddenColumnIds.has(column.id)))
+    ) {
+      keep.add(column.id);
+    }
+
+    // A shown self-link's cell renders the linked rows' display value.
+    if (
+      isLinksOrLTAR(column.uidt) &&
+      exposedColumnIds.has(column.id) &&
+      !hiddenColumnIds.has(column.id)
+    ) {
+      const colOptions = column.colOptions as
+        | LinkToAnotherRecordColumn
+        | undefined;
+      if (colOptions?.fk_related_model_id !== shared.id) continue;
+      const displayId =
+        colOptions.fk_display_value_column_id ??
+        shared.columns.find((c) => c.pv)?.id;
+      if (displayId) keep.add(displayId);
+    }
+  }
+  return withColumns(shared, keep);
+}
+
+export function getSharedModelVisibility(
+  modelId: string,
+  exposedColumns: Model['columns'],
+  viewColumns: { fk_column_id?: string; show?: BoolType }[] = [],
+): SharedModelVisibility {
+  return {
+    modelId,
+    exposedColumnIds: new Set((exposedColumns ?? []).map((c) => c.id)),
+    hiddenColumnIds: new Set(
+      viewColumns.filter((vc) => !vc.show).map((vc) => vc.fk_column_id),
+    ),
+  };
+}
+
+export interface SharedModelVisibility {
+  modelId: string;
+  /** Columns of the shared model the share exposes itself. */
+  exposedColumnIds: Set<string>;
+  /** Columns the view hides. */
+  hiddenColumnIds: Set<string>;
 }
 
 /** Safety bound on the fixpoint below — chains are short in practice. */
@@ -194,6 +264,7 @@ export function projectRelatedMetas(
   relatedMetas: Record<string, Model>,
   baseColumns: Model['columns'],
   extraNeededColIds: Iterable<string> = [],
+  sharedModel?: SharedModelVisibility,
 ): void {
   const neededColIds = collectRelatedNeededColumnIds(baseColumns);
   for (const id of extraNeededColIds) neededColIds.add(id);
@@ -201,10 +272,14 @@ export function projectRelatedMetas(
 
   for (let pass = 0; pass < RELATED_PROJECTION_MAX_PASSES; pass++) {
     for (const key of Object.keys(relatedMetas)) {
-      relatedMetas[key] = projectRelatedModelColumns(
-        unprojected[key],
-        neededColIds,
-      );
+      relatedMetas[key] =
+        sharedModel && key === sharedModel.modelId
+          ? projectSharedModelColumns(
+              unprojected[key],
+              neededColIds,
+              sharedModel,
+            )
+          : projectRelatedModelColumns(unprojected[key], neededColIds);
     }
 
     const before = neededColIds.size;

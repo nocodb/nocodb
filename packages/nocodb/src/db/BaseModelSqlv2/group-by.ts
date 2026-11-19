@@ -112,6 +112,14 @@ const sqlNullIfBlank = ({
     );
   }
 
+  // strict MySQL rejects '' against a DATE/DATETIME (ER_WRONG_VALUE)
+  if (baseModel.isMySQL && !isStringType) {
+    return baseModel.dbDriver.raw(
+      `CASE WHEN CAST(?? AS CHAR) = '' THEN NULL ELSE ?? END`,
+      [columnName, columnName],
+    );
+  }
+
   if (baseModel.isOracle) {
     // Oracle stores '' as NULL, so the blank → NULL normalization is a no-op.
     // It also rejects `NULLIF(col, '')` on non-string columns — the '' literal

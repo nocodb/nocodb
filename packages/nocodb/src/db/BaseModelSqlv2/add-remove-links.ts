@@ -549,11 +549,20 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     if (!column || !isLinksOrLTAR(column))
       NcError.get(baseModel.context).fieldNotFound(colId);
 
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const childColumn = await colOptions?.getChildColumn();
+
+    // When `childColumn` is this table's primary key, the row needs no other field
     const row = await baseModel.readByPk(
       rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      {
+        ignoreView: true,
+        getHiddenColumn: true,
+        extractOnlyPrimaries:
+          !!childColumn?.pk && childColumn.fk_model_id === baseModel.model.id,
+      },
     );
 
     // validate rowId
@@ -563,12 +572,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     if (!_childIds.length) return;
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
-
     const { childContext, parentContext, mmContext } =
       await colOptions.getParentChildContext();
 
-    const childColumn = await colOptions.getChildColumn();
     const parentColumn = await colOptions.getParentColumn();
     const parentTable = await parentColumn.getModel();
     const childTable = await childColumn.getModel();
@@ -1368,11 +1374,20 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     if (!column || !isLinksOrLTAR(column))
       NcError.get(baseModel.context).fieldNotFound(colId);
 
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const parentColumn = await colOptions?.getParentColumn();
+
+    // When `parentColumn` is this table's primary key, the row needs no other field
     const row = await baseModel.readByPk(
       rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      {
+        ignoreView: true,
+        getHiddenColumn: true,
+        extractOnlyPrimaries:
+          !!parentColumn?.pk && parentColumn.fk_model_id === baseModel.model.id,
+      },
     );
 
     // validate rowId
@@ -1382,13 +1397,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     if (!_childIds.length) return;
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
-
     const { parentContext, childContext, mmContext } =
       await colOptions.getParentChildContext();
 
     const childColumn = await colOptions.getChildColumn();
-    const parentColumn = await colOptions.getParentColumn();
     const parentTable = await parentColumn.getModel();
     const childTable = await childColumn.getModel();
     await childTable.getColumns();

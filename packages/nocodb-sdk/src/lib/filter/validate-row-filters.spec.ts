@@ -1278,6 +1278,76 @@ describe('RowFilterValidator', () => {
         }
       }
     });
+
+    // Thursday 2026-01-29 22:56 in Los Angeles, already Friday the 30th in UTC
+    const runWithin = (subOp: string, date: string, value?: string) => {
+      timestamp.value = 1769756211000;
+      return validator.validateSync({
+        filters: [
+          {
+            fk_column_id: '9',
+            comparison_op: 'isWithin',
+            comparison_sub_op: subOp as FilterType['comparison_sub_op'],
+            value,
+            meta: { timezone: 'America/Los_Angeles' },
+          } as FilterType & { meta?: any },
+        ],
+        data: { DateData: date },
+        columns: mockColumns,
+        client: mockClient,
+        metas: mockMetas,
+      });
+    };
+
+    it('calendar week runs Monday to Sunday in the filter timezone', () => {
+      expect(runWithin('thisCalendarWeek', '2026-01-26')).toBe(true);
+      expect(runWithin('thisCalendarWeek', '2026-02-01')).toBe(true);
+      expect(runWithin('thisCalendarWeek', '2026-01-25')).toBe(false);
+      expect(runWithin('thisCalendarWeek', '2026-02-02')).toBe(false);
+      expect(runWithin('lastCalendarWeek', '2026-01-19')).toBe(true);
+      expect(runWithin('lastCalendarWeek', '2026-01-26')).toBe(false);
+      expect(runWithin('nextCalendarWeek', '2026-02-08')).toBe(true);
+    });
+
+    it('calendar month and year', () => {
+      expect(runWithin('thisCalendarMonth', '2026-01-31')).toBe(true);
+      expect(runWithin('thisCalendarMonth', '2026-02-01')).toBe(false);
+      expect(runWithin('lastCalendarMonth', '2025-12-01')).toBe(true);
+      expect(runWithin('nextCalendarMonth', '2026-02-28')).toBe(true);
+      expect(runWithin('thisCalendarYear', '2026-12-31')).toBe(true);
+      expect(runWithin('lastCalendarYear', '2025-06-15')).toBe(true);
+      expect(runWithin('nextCalendarYear', '2026-12-31')).toBe(false);
+    });
+
+    it('dateRange includes both ends', () => {
+      const range = '2026-03-01,2026-03-31';
+      expect(runWithin('dateRange', '2026-03-01', range)).toBe(true);
+      expect(runWithin('dateRange', '2026-03-31', range)).toBe(true);
+      expect(runWithin('dateRange', '2026-04-01', range)).toBe(false);
+      expect(
+        runWithin('dateRange', '2026-03-15', '2026-03-01,2026-03-45')
+      ).toBe(false);
+      expect(runWithin('dateRange', '2026-03-15', '2026-03-01')).toBe(false);
+    });
+
+    // same as the backend, which applies no condition for a half-filled range
+    it('dateRange with a blank end matches every row', () => {
+      expect(runWithin('dateRange', '2026-03-15', '2026-03-01,')).toBe(true);
+      expect(runWithin('dateRange', '2026-03-15', undefined)).toBe(true);
+    });
+
+    it('dateRange accepts reversed ends', () => {
+      expect(
+        runWithin('dateRange', '2026-03-15', '2026-03-31,2026-03-01')
+      ).toBe(true);
+    });
+
+    it('dateRange keeps the offset of an end that has one', () => {
+      // 03:00Z on Mar 1 is still Feb 28 in Los Angeles
+      expect(
+        runWithin('dateRange', '2026-02-28', '2026-03-01T03:00:00Z,2026-03-05')
+      ).toBe(true);
+    });
   });
 });
 

@@ -60,6 +60,10 @@ import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
+import {
+  CUSTOM_OBJECT_SUFFIX,
+  isCustomObjectName,
+} from '~/helpers/customObjects';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -252,13 +256,21 @@ export class TablesService {
           desired: param.table.table_name,
           exclude_model_id: model.id,
           maxLength: tableNameLengthLimit,
+          sqlClientType,
         },
       );
     }
 
-    if (param.table.table_name.length > tableNameLengthLimit) {
+    if (
+      this.getTableNameLength(param.table.table_name, sqlClientType) >
+      tableNameLengthLimit
+    ) {
       NcError.get(context).invalidRequestBody(
-        `Table name exceeds ${tableNameLengthLimit} characters`,
+        this.tableNameTooLongMessage(
+          param.table.table_name,
+          tableNameLengthLimit,
+          sqlClientType,
+        ),
       );
     }
 
@@ -316,6 +328,7 @@ export class TablesService {
       exclude_model_id?: string;
       // The dialect's table-name limit; the suffix must fit within it.
       maxLength?: number;
+      sqlClientType?: string;
     },
   ): Promise<string> {
     const models = await Model.list(context, {
@@ -335,24 +348,81 @@ export class TablesService {
     // Trim the base so `<base>_<n>` stays within the limit: a free 62–63 char
     // name on pg would otherwise be refused as too long. A requested name that
     // is already over the limit is left alone so the length check rejects it.
+    const nameLength = (name: string) =>
+      this.getTableNameLength(name, param.sqlClientType);
     const maxLength =
-      param.maxLength && param.desired.length <= param.maxLength
+      param.maxLength && nameLength(param.desired) <= param.maxLength
         ? param.maxLength
         : undefined;
+    // `_<n>` goes before a custom-object marker so the name still ends with it.
+    const marker = isCustomObjectName(param.desired)
+      ? CUSTOM_OBJECT_SUFFIX
+      : '';
+    const stem = param.desired.slice(0, param.desired.length - marker.length);
     const candidate = (n: number) => {
-      const suffix = `_${n}`;
+      const suffix = `_${n}${marker}`;
+      if (!maxLength) return `${stem}${suffix}`;
       // Cut by code point so an astral character isn't split into a lone surrogate.
-      const base = maxLength
-        ? Array.from(param.desired)
-            .slice(0, maxLength - suffix.length)
-            .join('')
-        : param.desired;
-      return `${base}${suffix}`;
+      const chars = Array.from(stem);
+      while (
+        chars.length &&
+        nameLength(chars.join('')) + nameLength(suffix) > maxLength
+      ) {
+        chars.pop();
+      }
+      return `${chars.join('')}${suffix}`;
     };
 
     let i = 1;
     while (taken.has(candidate(i))) i++;
     return candidate(i);
+  }
+
+  // pg (NAMEDATALEN) and Oracle cap identifiers in bytes, the rest in characters.
+  private getTableNameLength(name: string, sqlClientType?: string): number {
+    if (sqlClientType === 'pg' || sqlClientType === 'oracledb') {
+      return Buffer.byteLength(name, 'utf8');
+    }
+    return name.length;
+  }
+
+  // Say "bytes" only when that differs from the character count, so an
+  // ASCII name keeps the existing message.
+  private tableNameTooLongMessage(
+    name: string,
+    limit: number,
+    sqlClientType?: string,
+  ): string {
+    const unit =
+      this.getTableNameLength(name, sqlClientType) !== name.length
+        ? 'bytes'
+        : 'characters';
+    return `Table name exceeds ${limit} ${unit}`;
+  }
+
+  // Trims a system-derived name to the limit, keeping a custom-object marker.
+  private fitDerivedTableName(
+    name: string,
+    limit: number,
+    sqlClientType: string,
+  ): string {
+    if (this.getTableNameLength(name, sqlClientType) <= limit) return name;
+
+    const marker = isCustomObjectName(name) ? CUSTOM_OBJECT_SUFFIX : '';
+    const budget = limit - this.getTableNameLength(marker, sqlClientType);
+    // Cut by code point so a multibyte or astral character is never split.
+    const chars = Array.from(name.slice(0, name.length - marker.length));
+    while (
+      chars.length &&
+      this.getTableNameLength(chars.join(''), sqlClientType) > budget
+    ) {
+      chars.pop();
+    }
+    const cut = chars.join('');
+    // Drop a trailing `_` left by the cut: `<name>_` is what pg truncates
+    // another table's `<name>_order_idx` index to.
+    const stripped = cut.replace(/[\s_]+$/, '');
+    return `${stripped || cut}${marker}`;
   }
 
   private getTableNameLengthLimit(sqlClientType: string): number {
@@ -967,6 +1037,9 @@ export class TablesService {
       apiVersion?: NcApiVersion;
       isDuplicateOperation?: boolean;
       operationSource?: OperationSource;
+      // table_name was derived by the system (duplicate/import/sync): trim it
+      // to the dialect limit instead of rejecting it.
+      trimTableName?: boolean;
     },
   ) {
     // before validating add title for columns if only column name is present
@@ -1124,6 +1197,14 @@ export class TablesService {
     const sqlClientType = sqlClient.knex.clientType();
     const tableNameLengthLimit = this.getTableNameLengthLimit(sqlClientType);
 
+    if (param.trimTableName) {
+      tableCreatePayLoad.table_name = this.fitDerivedTableName(
+        tableCreatePayLoad.table_name,
+        tableNameLengthLimit,
+        sqlClientType,
+      );
+    }
+
     tableCreatePayLoad.table_name = await this.resolveFreePhysicalTableName(
       context,
       {
@@ -1131,6 +1212,7 @@ export class TablesService {
         source_id: source.id,
         desired: tableCreatePayLoad.table_name,
         maxLength: tableNameLengthLimit,
+        sqlClientType,
       },
     );
 
@@ -1144,9 +1226,16 @@ export class TablesService {
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
 
-    if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
+    if (
+      this.getTableNameLength(tableCreatePayLoad.table_name, sqlClientType) >
+      tableNameLengthLimit
+    ) {
       NcError.get(context).invalidRequestBody(
-        `Table name exceeds ${tableNameLengthLimit} characters`,
+        this.tableNameTooLongMessage(
+          tableCreatePayLoad.table_name,
+          tableNameLengthLimit,
+          sqlClientType,
+        ),
       );
     }
     //#endregion validating table title and table name

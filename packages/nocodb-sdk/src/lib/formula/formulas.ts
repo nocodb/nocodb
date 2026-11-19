@@ -4,11 +4,193 @@ import { FormulaError } from './error';
 import {
   CallExpressionNode,
   FormulaMeta,
+  FormulaMetaArgValuesValidation,
   FormulaMetaCustomValidation,
+  ParsedFormulaNode,
 } from './types';
 import UITypes, { isLinksOrLTAR, isVirtualCol } from '~/lib/UITypes';
 import { isSystemColumn } from '~/lib/helperFunctions';
+import { MssqlUi } from '~/lib/sqlUi/MssqlUi';
+import { SqliteUi } from '~/lib/sqlUi/SqliteUi';
 export const API_DOC_PREFIX = 'https://nocodb.com/docs/product-docs/fields';
+
+// CREATED_TIME(): the system CreatedTime field only. It records no field
+// dependency, so a user column could be deleted from under it.
+export const findCreatedTimeColumn = <
+  T extends { uidt?: string; system?: unknown }
+>(
+  columns: T[]
+): T | undefined =>
+  columns?.find(
+    (column) => column.uidt === UITypes.CreatedTime && column.system
+  );
+
+// DATETIME_FORMAT / DATETIME_PARSE presets (en, as Day.js' LocalizedFormat)
+// and tokens; the backend format handlers read these too
+export const DATETIME_FORMAT_PRESETS: Record<string, string> = {
+  LTS: 'h:mm:ss A',
+  LT: 'h:mm A',
+  LLLL: 'dddd, MMMM D, YYYY h:mm A',
+  LLL: 'MMMM D, YYYY h:mm A',
+  LL: 'MMMM D, YYYY',
+  L: 'MM/DD/YYYY',
+  llll: 'ddd, MMM D, YYYY h:mm A',
+  lll: 'MMM D, YYYY h:mm A',
+  ll: 'MMM D, YYYY',
+  l: 'M/D/YYYY',
+};
+export const DATETIME_FORMAT_TOKENS = [
+  'YYYY',
+  'YY',
+  'MMMM',
+  'MMM',
+  'MM',
+  'M',
+  'Do',
+  'DD',
+  'D',
+  'dddd',
+  'ddd',
+  'dd',
+  'd',
+  'HH',
+  'H',
+  'hh',
+  'h',
+  'mm',
+  'm',
+  'ss',
+  's',
+  'SSS',
+  'A',
+  'a',
+];
+// SQLite reads the parts by position
+const DATETIME_PARSE_SQLITE_TOKENS = [
+  'YYYY',
+  'YY',
+  'MM',
+  'DD',
+  'HH',
+  'hh',
+  'mm',
+  'ss',
+  'SSS',
+  'A',
+  'a',
+];
+// Day.js tokens no dialect reads; unchecked they would be matched as literal text
+const DATETIME_PARSE_UNSUPPORTED_TOKENS = [
+  'ZZ',
+  'Z',
+  'X',
+  'x',
+  'Q',
+  'SS',
+  'S',
+  'kk',
+  'k',
+  'ww',
+  'w',
+  'WW',
+  'W',
+  'gggg',
+  'GGGG',
+];
+const DATETIME_PARSE_MATCH_ORDER = [
+  ...Object.keys(DATETIME_FORMAT_PRESETS),
+  ...DATETIME_FORMAT_TOKENS,
+  ...DATETIME_PARSE_UNSUPPORTED_TOKENS,
+].sort((a, b) => b.length - a.length);
+
+// the tokens of a Day.js format, presets expanded and `[...]` text skipped
+const datetimeParseFormatTokens = (format: string): string[] => {
+  const tokens: string[] = [];
+  let i = 0;
+  while (i < format.length) {
+    const end = format[i] === '[' ? format.indexOf(']', i + 1) : -1;
+    if (end !== -1) {
+      i = end + 1;
+      continue;
+    }
+    const token = DATETIME_PARSE_MATCH_ORDER.find((t) =>
+      format.startsWith(t, i)
+    );
+    if (!token) {
+      i++;
+      continue;
+    }
+    tokens.push(
+      ...(DATETIME_FORMAT_PRESETS[token]
+        ? datetimeParseFormatTokens(DATETIME_FORMAT_PRESETS[token])
+        : [token])
+    );
+    i += token.length;
+  }
+  return tokens;
+};
+
+// TEXTBEFORE / TEXTAFTER / SUBSTITUTE instance: a non-zero integer
+export const isFormulaInstanceNumber = (value: number) =>
+  Number.isInteger(value) && value !== 0;
+
+// a number, or a negated one, written in the formula
+export const formulaNumericLiteral = (
+  node?: ParsedFormulaNode
+): number | undefined => {
+  if (node?.type === JSEPNode.LITERAL && typeof node.value === 'number') {
+    return node.value;
+  }
+  if (
+    node?.type === JSEPNode.UNARY_EXP &&
+    node.operator === '-' &&
+    node.argument?.type === JSEPNode.LITERAL &&
+    typeof node.argument.value === 'number'
+  ) {
+    return -node.argument.value;
+  }
+  return undefined;
+};
+
+// TEXTBEFORE / TEXTAFTER / SUBSTITUTE instance: the checks the backend makes
+// when building the SQL (MSSQL finds only the first and last occurrence)
+// A typed negative length is a mistake; one read from a field is empty
+const substringLengthValidation: FormulaMetaArgValuesValidation = (
+  parsedTree
+) => {
+  const length = parsedTree.arguments?.[2];
+  const value = length ? formulaNumericLiteral(length) : undefined;
+  if (value !== undefined && value < 0) {
+    throw new FormulaError(
+      FormulaErrorType.INVALID_ARG_VALUE,
+      {},
+      'Negative substring length not allowed'
+    );
+  }
+};
+
+const instanceArgValidation =
+  (index: number): FormulaMetaArgValuesValidation =>
+  (parsedTree, sqlUI) => {
+    const node = parsedTree.arguments?.[index];
+    if (!node) return;
+    const calleeName = parsedTree.callee?.name?.toUpperCase();
+    const value = formulaNumericLiteral(node);
+    if (value !== undefined && !isFormulaInstanceNumber(value)) {
+      throw new FormulaError(
+        FormulaErrorType.INVALID_ARG_VALUE,
+        { calleeName, position: index + 1 },
+        `The instance argument of ${calleeName} must be a non-zero integer`
+      );
+    }
+    if (sqlUI instanceof MssqlUi && value !== 1 && value !== -1) {
+      throw new FormulaError(
+        FormulaErrorType.INVALID_ARG_VALUE,
+        { calleeName, position: index + 1 },
+        `The instance argument of ${calleeName} must be the number 1 or -1, typed in the formula, on this database`
+      );
+    }
+  };
 
 const customValidationArray: FormulaMetaCustomValidation = (
   _argTypes: FormulaDataTypes[],
@@ -77,10 +259,11 @@ const workdayArgsValidation =
           // Date lookup: a formula (e.g. DATEADD), directly or behind a lookup,
           // inherits the Date reference but renders a timestamp on PG
           const ref = arg.referencedColumn;
+          // (a date-only formula is referenced as itself, flagged dateOnly)
           const isDateFieldOrLookup =
             arg.type === JSEPNode.IDENTIFIER &&
             ref?.uidt === UITypes.Date &&
-            (ref.id === arg.name ||
+            ((ref.id === arg.name && !ref.dateOnly) ||
               (ref.intermediaryUidt === UITypes.Lookup &&
                 ref.intermediaryId === arg.name &&
                 ref.directLookup));
@@ -91,6 +274,139 @@ const workdayArgsValidation =
       }
     });
   };
+
+export type DateCompareUnit =
+  | 'year'
+  | 'month'
+  | 'week'
+  | 'day'
+  | 'hour'
+  | 'minute'
+  | 'second';
+
+// IS_SAME / IS_AFTER / IS_BEFORE unit argument → canonical unit
+export const DATE_COMPARE_UNITS: Record<string, DateCompareUnit> = {
+  year: 'year',
+  years: 'year',
+  y: 'year',
+  month: 'month',
+  months: 'month',
+  M: 'month',
+  week: 'week',
+  weeks: 'week',
+  w: 'week',
+  day: 'day',
+  days: 'day',
+  d: 'day',
+  hour: 'hour',
+  hours: 'hour',
+  h: 'hour',
+  minute: 'minute',
+  minutes: 'minute',
+  m: 'minute',
+  second: 'second',
+  seconds: 'second',
+  s: 'second',
+};
+
+const DATETIME_DIFF_UNITS = [
+  'milliseconds',
+  'ms',
+  'seconds',
+  's',
+  'minutes',
+  'm',
+  'hours',
+  'h',
+  'days',
+  'd',
+  'weeks',
+  'w',
+  'months',
+  'M',
+  'quarters',
+  'Q',
+  'years',
+  'y',
+];
+
+// Date literals at `dateArgs` must parse; the unit at `unitArg` must be one of
+// `units` and a literal, since the unit picks the SQL shape at build time.
+const dateUnitArgsValidation =
+  (
+    dateArgs: number[],
+    unitArg: number,
+    units: string[]
+  ): FormulaMetaCustomValidation =>
+  (argTypes: FormulaDataTypes[], parsedTree: CallExpressionNode) => {
+    const calleeName = parsedTree.callee?.name?.toUpperCase();
+    for (const i of dateArgs) {
+      const arg = parsedTree.arguments[i];
+      const type = argTypes[i];
+      if (
+        arg &&
+        (arg.type === JSEPNode.LITERAL
+          ? typeof arg.value !== 'string' ||
+            !validateDateWithUnknownFormat(arg.value)
+          : ![
+              FormulaDataTypes.DATE,
+              FormulaDataTypes.STRING,
+              FormulaDataTypes.NULL,
+              FormulaDataTypes.UNKNOWN,
+            ].includes(type))
+      ) {
+        throw new FormulaError(
+          FormulaErrorType.TYPE_MISMATCH,
+          {
+            key: 'msg.formula.typeIsExpected',
+            type: 'date',
+            calleeName,
+            position: i + 1,
+          },
+          `${calleeName} requires a date at position ${i + 1}`
+        );
+      }
+    }
+    const unit = parsedTree.arguments[unitArg];
+    if (
+      unit &&
+      (unit.type !== JSEPNode.LITERAL ||
+        typeof unit.value !== 'string' ||
+        !units.includes(unit.value))
+    ) {
+      throw new FormulaError(
+        FormulaErrorType.INVALID_ARG,
+        {},
+        `The unit of ${calleeName} must be one of ${units
+          .map((u) => `"${u}"`)
+          .join(', ')}`
+      );
+    }
+  };
+
+// Every argument must be a list (link, lookup or array formula)
+const customValidationArrayArgs: FormulaMetaCustomValidation = (
+  argTypes: FormulaDataTypes[],
+  parsedTree: CallExpressionNode,
+  columns
+) => {
+  customValidationArray(argTypes, parsedTree, columns);
+  parsedTree.arguments.forEach((arg, i) => {
+    if (i && !arg.isDataArray && arg.dataType !== FormulaDataTypes.ARRAY) {
+      const calleeName = parsedTree.callee?.name?.toUpperCase();
+      throw new FormulaError(
+        FormulaErrorType.TYPE_MISMATCH,
+        {
+          key: 'msg.formula.typeIsExpected',
+          type: 'list',
+          calleeName,
+          position: i + 1,
+        },
+        `${calleeName} requires a list at position ${i + 1}`
+      );
+    }
+  });
+};
 
 export const formulas: Record<string, FormulaMeta> = {
   AVG: {
@@ -814,6 +1130,7 @@ export const formulas: Record<string, FormulaMeta> = {
           FormulaDataTypes.NUMERIC,
         ],
       },
+      argValues: substringLengthValidation,
     },
     description:
       'Extracts a substring of length "n" from the input string, starting from the specified position.',
@@ -837,6 +1154,7 @@ export const formulas: Record<string, FormulaMeta> = {
           FormulaDataTypes.NUMERIC,
         ],
       },
+      argValues: substringLengthValidation,
     },
     description: 'Extracts a substring; an alias for SUBSTR.',
     syntax: 'MID(str, position, [count])',
@@ -1442,19 +1760,31 @@ export const formulas: Record<string, FormulaMeta> = {
     ],
     returnType: FormulaDataTypes.STRING,
   },
-  // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
-  // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas
-  //
-  // CREATED_TIME: {
-  //   validation: {
-  //     args: {
-  //       rqd: 0,
-  //     },
-  //   },
-  //   description: 'Returns the created time of the current record if it exists',
-  //   syntax: 'CREATED_TIME()',
-  //   examples: ['CREATED_TIME()'],
-  // },
+  CREATED_TIME: {
+    validation: {
+      args: {
+        rqd: 0,
+      },
+      custom(
+        _argTypes: FormulaDataTypes[],
+        _parsedTree: CallExpressionNode,
+        columns
+      ) {
+        // the backend resolves the same column; tables without one can't use it
+        if (columns && !findCreatedTimeColumn(columns)) {
+          throw new FormulaError(
+            FormulaErrorType.INVALID_ARG,
+            {},
+            'CREATED_TIME is not supported for this table'
+          );
+        }
+      },
+    },
+    description: 'Returns the created time of the current record',
+    syntax: 'CREATED_TIME()',
+    examples: ['CREATED_TIME()'],
+    returnType: FormulaDataTypes.DATE,
+  },
   LAST_MODIFIED_TIME: {
     validation: {
       args: {
@@ -1513,5 +1843,324 @@ export const formulas: Record<string, FormulaMeta> = {
       'LAST_MODIFIED_TIME({Status}, {Priority})',
     ],
     returnType: FormulaDataTypes.DATE,
+  },
+  NOT: {
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description:
+      'Reverses the logical value of its argument. Blank, 0, empty text and false count as false.',
+    syntax: 'NOT(expression)',
+    examples: ['NOT(TRUE()) => false', 'NOT({Done})'],
+    returnType: FormulaDataTypes.BOOLEAN,
+  },
+  TODAY: {
+    validation: {
+      args: {
+        rqd: 0,
+      },
+    },
+    description:
+      "Returns today's date, without a time, as the database server's current date, which can differ from your own date near midnight. Recalculated every time the record is read.",
+    syntax: 'TODAY()',
+    examples: ['TODAY() => 2026-11-06'],
+    returnType: FormulaDataTypes.DATE,
+  },
+  MINUTE: {
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    syntax: 'MINUTE(time | datetime)',
+    description: 'Extract minute from a time field (0-59)',
+    examples: ['MINUTE({column1})'],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+  SECOND: {
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    syntax: 'SECOND(time | datetime)',
+    description: 'Extract second from a time field (0-59)',
+    examples: ['SECOND({column1})'],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+  IS_SAME: {
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+        type: FormulaDataTypes.DATE,
+      },
+      custom: dateUnitArgsValidation(
+        [0, 1],
+        2,
+        Object.keys(DATE_COMPARE_UNITS)
+      ),
+    },
+    description:
+      'Checks whether two dates are the same. With a unit, only compares down to that unit (e.g. the same "month").',
+    syntax: 'IS_SAME(date1, date2, ["unit"])',
+    examples: [
+      'IS_SAME("2026-01-15", "2026-01-31", "month") => true',
+      'IS_SAME({Start}, {End}, "day")',
+    ],
+    returnType: FormulaDataTypes.BOOLEAN,
+  },
+  IS_AFTER: {
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+        type: FormulaDataTypes.DATE,
+      },
+      custom: dateUnitArgsValidation(
+        [0, 1],
+        2,
+        Object.keys(DATE_COMPARE_UNITS)
+      ),
+    },
+    description:
+      'Checks whether date1 is after date2. With a unit, only compares down to that unit.',
+    syntax: 'IS_AFTER(date1, date2, ["unit"])',
+    examples: [
+      'IS_AFTER("2026-02-01", "2026-01-31") => true',
+      'IS_AFTER({Due}, TODAY(), "day")',
+    ],
+    returnType: FormulaDataTypes.BOOLEAN,
+  },
+  IS_BEFORE: {
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+        type: FormulaDataTypes.DATE,
+      },
+      custom: dateUnitArgsValidation(
+        [0, 1],
+        2,
+        Object.keys(DATE_COMPARE_UNITS)
+      ),
+    },
+    description:
+      'Checks whether date1 is before date2. With a unit, only compares down to that unit.',
+    syntax: 'IS_BEFORE(date1, date2, ["unit"])',
+    examples: [
+      'IS_BEFORE("2026-01-01", "2026-01-31") => true',
+      'IS_BEFORE({Due}, TODAY(), "day")',
+    ],
+    returnType: FormulaDataTypes.BOOLEAN,
+  },
+  FROMNOW: {
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+        type: FormulaDataTypes.DATE,
+      },
+      custom: dateUnitArgsValidation([0], 1, DATETIME_DIFF_UNITS),
+    },
+    description:
+      'Returns the absolute difference between now and the given date, in the given unit (default "days").',
+    syntax: 'FROMNOW(date, ["unit"])',
+    examples: ['FROMNOW({Created}, "hours")'],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+  TONOW: {
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+        type: FormulaDataTypes.DATE,
+      },
+      custom: dateUnitArgsValidation([0], 1, DATETIME_DIFF_UNITS),
+    },
+    description: 'Same as FROMNOW.',
+    syntax: 'TONOW(date, ["unit"])',
+    examples: ['TONOW({Created}, "days")'],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+  DATETIME_PARSE: {
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+      custom: (
+        _argTypes: FormulaDataTypes[],
+        parsedTree: CallExpressionNode
+      ) => {
+        const format = parsedTree.arguments[1];
+        if (
+          format &&
+          (format.type !== JSEPNode.LITERAL || typeof format.value !== 'string')
+        ) {
+          throw new FormulaError(
+            FormulaErrorType.TYPE_MISMATCH,
+            {},
+            'Second parameter of DATETIME_PARSE must be a constant text format'
+          );
+        }
+      },
+      argValues: (parsedTree, sqlUI) => {
+        const format = parsedTree.arguments?.[1];
+        if (format?.type !== JSEPNode.LITERAL) return;
+        const sqlite = sqlUI instanceof SqliteUi;
+        for (const token of datetimeParseFormatTokens(String(format.value))) {
+          if (
+            DATETIME_PARSE_UNSUPPORTED_TOKENS.includes(token) ||
+            (sqlite && !DATETIME_PARSE_SQLITE_TOKENS.includes(token))
+          ) {
+            throw new FormulaError(
+              FormulaErrorType.INVALID_ARG_VALUE,
+              { calleeName: 'DATETIME_PARSE', position: 2 },
+              sqlite
+                ? `DATETIME_PARSE on this database reads fixed-width tokens only (${DATETIME_PARSE_SQLITE_TOKENS.join(
+                    ', '
+                  )}), not "${token}"`
+                : `DATETIME_PARSE does not support the format token "${token}"; put literal text in [ ]`
+            );
+          }
+        }
+      },
+    },
+    description:
+      'Converts text into a date using the given Day.js format. Without a format, ISO dates such as "2026-11-06 14:30" are read. Returns blank when the text does not match.',
+    syntax: 'DATETIME_PARSE(text, ["format"])',
+    examples: [
+      'DATETIME_PARSE("06/11/2026", "DD/MM/YYYY")',
+      'DATETIME_PARSE("2026-11-06 14:30")',
+    ],
+    returnType: FormulaDataTypes.DATE,
+  },
+  FIND: {
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+        type: [
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.NUMERIC,
+        ],
+      },
+    },
+    description:
+      'Returns the position of searchStr in str, starting the search at the optional start position; 0 if not found. Same as SEARCH, with the spreadsheet argument order.',
+    syntax: 'FIND(searchStr, str, [start])',
+    examples: ['FIND("WORLD", "HELLO WORLD") => 7', 'FIND("-", {SKU}, 5)'],
+    returnType: FormulaDataTypes.NUMERIC,
+  },
+  SUBSTITUTE: {
+    validation: {
+      args: {
+        min: 3,
+        max: 4,
+        type: [
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.NUMERIC,
+        ],
+      },
+      argValues: instanceArgValidation(3),
+    },
+    description:
+      'Replaces occurrences of oldStr with newStr. With an instance number, only that occurrence is replaced.',
+    syntax: 'SUBSTITUTE(str, oldStr, newStr, [instance])',
+    examples: [
+      'SUBSTITUTE("a-b-c", "-", "+") => "a+b+c"',
+      'SUBSTITUTE("a-b-c", "-", "+", 2) => "a-b+c"',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
+  TEXTBEFORE: {
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+        type: [
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.NUMERIC,
+        ],
+      },
+      argValues: instanceArgValidation(2),
+    },
+    description:
+      'Returns the text before the delimiter. The optional instance picks which occurrence; a negative instance counts from the end. Blank if not found.',
+    syntax: 'TEXTBEFORE(str, delimiter, [instance])',
+    examples: [
+      'TEXTBEFORE("john@example.com", "@") => "john"',
+      'TEXTBEFORE("a/b/c", "/", -1) => "a/b"',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
+  TEXTAFTER: {
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+        type: [
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.STRING,
+          FormulaDataTypes.NUMERIC,
+        ],
+      },
+      argValues: instanceArgValidation(2),
+    },
+    description:
+      'Returns the text after the delimiter. The optional instance picks which occurrence; a negative instance counts from the end. Blank if not found.',
+    syntax: 'TEXTAFTER(str, delimiter, [instance])',
+    examples: [
+      'TEXTAFTER("john@example.com", "@") => "example.com"',
+      'TEXTAFTER("a/b/c", "/", -1) => "c"',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
+  TEXTSPLIT: {
+    validation: {
+      // ignoreEmpty is read for truthiness: TRUE() is typed as a number
+      args: {
+        min: 2,
+        max: 3,
+      },
+    },
+    description:
+      'Splits text into an array at each delimiter. Pass TRUE() as the third argument to drop empty parts.',
+    syntax: 'TEXTSPLIT(str, delimiter, [ignoreEmpty])',
+    examples: ['TEXTSPLIT("a,b,,c", ",", TRUE()) => ["a", "b", "c"]'],
+    returnType: FormulaDataTypes.ARRAY,
+  },
+  ARRAYJOIN: {
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+      custom: customValidationArray,
+    },
+    description:
+      'Joins the items of an array into text, separated by the separator (default ", ").',
+    syntax: 'ARRAYJOIN(value, [separator])',
+    examples: ['ARRAYJOIN({Tags})', 'ARRAYJOIN({Tags}, " | ")'],
+    returnType: FormulaDataTypes.STRING,
+  },
+  ARRAYFLATTEN: {
+    validation: {
+      args: {
+        min: 1,
+      },
+      custom: customValidationArrayArgs,
+    },
+    description: 'Combines several arrays into one, keeping their order.',
+    syntax: 'ARRAYFLATTEN(value1, [value2, ...])',
+    examples: ['ARRAYFLATTEN({Tags}, {Categories})'],
+    returnType: FormulaDataTypes.ARRAY,
   },
 };

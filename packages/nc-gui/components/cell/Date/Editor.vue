@@ -101,9 +101,7 @@ const localState = computed({
 
     // Stored values are always Gregorian ISO; parse them as Gregorian even for
     // Jalali columns (the Jalali conversion happens at display/format time).
-    const format = isJalali.value ? 'YYYY-MM-DD' : picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
-
-    const value = parseStoredDate(modelValue, format)
+    const value = parseStoredDate(modelValue)
 
     return value
   },

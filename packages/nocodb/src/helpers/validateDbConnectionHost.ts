@@ -1,9 +1,13 @@
 import dns from 'dns/promises';
 import { isIP } from 'net';
 import { URL } from 'url';
+import parseKnexConnection from 'knex/lib/knex-builder/internal/parse-connection';
 import { OperationSource } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
-import { isSsrfProtectionEnabled } from '~/utils/ssrf';
+import {
+  internalDbHostBlockedMessage,
+  isSsrfProtectionEnabled,
+} from '~/utils/ssrf';
 import { isBlockedIp } from '~/helpers/dbSsrfLookup';
 import { isCloud } from '~/utils';
 
@@ -87,12 +91,82 @@ function parseDsn(dsn: string): URL | undefined {
   }
 }
 
-/** True if a connection string names a certificate file for the driver to read. */
+// node-oracledb reads a wallet directory or a config-provider file before it
+// dials; knex builds the connect string from `connectString` or host/database.
+const ORACLE_FILE_PARAM = /wallet_location|my_wallet_directory/i;
+const ORACLE_CONFIG_PROVIDER = /^\s*config-[a-z0-9]+:/i;
+const ORACLE_FILE_FIELDS = ['configDir', 'walletLocation'] as const;
+
+/**
+ * The string knex's oracledb dialect dials when no `connectString` is set,
+ * built from the top-level connection exactly as knex does, a missing host
+ * included.
+ */
+function oracleKnexConnectString(
+  n: Record<string, any>,
+  depth: number,
+): string | undefined {
+  if (n.connectString) return;
+  if (depth > 0 && (n.host === undefined || n.host === null)) return;
+  return n.port
+    ? `${n.host}:${n.port}/${n.database}`
+    : `${n.host}/${n.database}`;
+}
+
+function hasOracleFilePath(config: unknown): boolean {
+  if ((config as any)?.client !== 'oracledb') return false;
+
+  const names = (value: unknown) =>
+    typeof value === 'string' &&
+    (ORACLE_FILE_PARAM.test(value) || ORACLE_CONFIG_PROVIDER.test(value));
+
+  const visit = (node: unknown, depth: number): boolean => {
+    if (!node || depth > 3) return false;
+    if (typeof node === 'string') return names(node);
+    if (typeof node !== 'object') return false;
+
+    const n = node as Record<string, unknown>;
+    return (
+      ORACLE_FILE_FIELDS.some((k) => !!n[k]) ||
+      ['connectString', 'connectionString', 'host', 'database'].some((k) =>
+        names(n[k]),
+      ) ||
+      names(oracleKnexConnectString(n, depth)) ||
+      visit(n.connection, depth + 1)
+    );
+  };
+
+  return visit((config as any)?.connection, 0);
+}
+
+// snowflake-sdk reads a key-pair file, an easy-logging config and a token cache.
+const SNOWFLAKE_FILE_FIELDS = [
+  'privateKeyPath',
+  'clientConfigFile',
+  'credentialCacheDir',
+] as const;
+
+function hasSnowflakeFilePath(config: unknown): boolean {
+  if ((config as any)?.client !== 'snowflake') return false;
+  const connection = (config as any)?.connection;
+  return [connection, connection?.connection].some(
+    (n) =>
+      !!n && typeof n === 'object' && SNOWFLAKE_FILE_FIELDS.some((k) => !!n[k]),
+  );
+}
+
+/** True if a connection names a certificate, key or wallet file for the driver to read. */
 export function hasDsnSslFilePath(config: unknown): boolean {
-  return collectDsnStrings(config).some((dsn) => {
-    const url = parseDsn(dsn);
-    return !!url && DSN_SSL_FILE_PARAMS.some((p) => !!url.searchParams.get(p));
-  });
+  return (
+    hasOracleFilePath(config) ||
+    hasSnowflakeFilePath(config) ||
+    collectDsnStrings(config).some((dsn) => {
+      const url = parseDsn(dsn);
+      return (
+        !!url && DSN_SSL_FILE_PARAMS.some((p) => !!url.searchParams.get(p))
+      );
+    })
+  );
 }
 
 /** {@link validateDbConnectionSslPaths} for the certificate params of a DSN. */
@@ -111,6 +185,9 @@ interface DbConnectionTargets {
   sockets: string[];
   invalid: boolean;
 }
+
+// Clients whose string connection knex parses into settings, query params included.
+const PARSED_DSN_CLIENTS = new Set(['oracledb', 'snowflake', 'databricks']);
 
 // Snowflake's own account/region check (snowflake-sdk `isCorrectSubdomain`).
 const SNOWFLAKE_SUBDOMAIN = /^\w+([.-]\w+)*$/;
@@ -132,7 +209,7 @@ function collectDbConnectionTargets(config: unknown): DbConnectionTargets {
     const v = value.trim();
     if (!v) return;
     if (v.startsWith('/')) targets.sockets.push(v);
-    else targets.hosts.push(v);
+    else if (!targets.hosts.includes(v)) targets.hosts.push(v);
   };
 
   const addSocket = (value: unknown) => {
@@ -210,7 +287,13 @@ function collectDbConnectionTargets(config: unknown): DbConnectionTargets {
 
   const visit = (node: unknown, depth: number) => {
     if (!node || depth > 3) return;
-    if (typeof node === 'string') return addDsn(node);
+    if (typeof node === 'string') {
+      addDsn(node);
+      if (PARSED_DSN_CLIENTS.has(client)) {
+        visit(parseKnexConnection(node).connection, depth + 1);
+      }
+      return;
+    }
     if (typeof node !== 'object') return;
 
     const n = node as Record<string, any>;
@@ -218,6 +301,7 @@ function collectDbConnectionTargets(config: unknown): DbConnectionTargets {
     if (client === 'oracledb') {
       addOracleConnectString(n.connectString);
       addOracleConnectString(n.host);
+      addOracleConnectString(oracleKnexConnectString(n, depth));
     } else {
       addHost(n.host);
     }
@@ -239,6 +323,15 @@ function collectDbConnectionTargets(config: unknown): DbConnectionTargets {
       }
       addUrlHost(n.accessUrl);
       addHost(n.proxyHost);
+      addUrlHost(n.oauthTokenRequestUrl);
+      addUrlHost(n.oauthAuthorizationUrl);
+      // An Okta URL as authenticator: the SDK posts the credentials there.
+      if (
+        typeof n.authenticator === 'string' &&
+        /^\s*https:\/\//i.test(n.authenticator)
+      ) {
+        addUrlHost(n.authenticator);
+      }
     }
     if (client === 'databricks') addHost(n.proxy?.host);
 
@@ -275,15 +368,30 @@ const DB_TARGET_PATHS = [
   'account',
   'region',
   'accessUrl',
+  'oauthTokenRequestUrl',
+  'oauthAuthorizationUrl',
+  'authenticator',
   'proxyHost',
   'proxyPort',
   'proxy.host',
   'proxy.port',
+  // Local files the driver reads before it dials.
+  'walletLocation',
+  'configDir',
+  ...SNOWFLAKE_FILE_FIELDS,
+  'ssl.caFilePath',
+  'ssl.keyFilePath',
+  'ssl.certFilePath',
 ];
 
 /** The target fields a config sets, flattened to comparable strings. */
 export function dbTargetFields(config: unknown): Record<string, string> {
   const fields: Record<string, string> = {};
+  // knex appends oracle's database to the connect string, parameters included.
+  const paths =
+    (config as any)?.client === 'oracledb'
+      ? [...DB_TARGET_PATHS, 'database']
+      : DB_TARGET_PATHS;
 
   const visit = (node: unknown, prefix: string, depth: number) => {
     if (node === undefined || node === null || node === '' || depth > 3) return;
@@ -292,7 +400,7 @@ export function dbTargetFields(config: unknown): Record<string, string> {
       return;
     }
 
-    for (const path of DB_TARGET_PATHS) {
+    for (const path of paths) {
       const value = path.split('.').reduce<any>((obj, key) => obj?.[key], node);
       if (value === undefined || value === null || value === '') continue;
       fields[prefix + path] =
@@ -356,6 +464,19 @@ export function validateDbClient(config: unknown): void {
   }
 }
 
+// knex splices oracle's port into the connect string unparsed.
+function validateOraclePort(config: unknown): void {
+  if ((config as any)?.client !== 'oracledb') return;
+  const connection = (config as any)?.connection;
+  for (const n of [connection, connection?.connection]) {
+    const port = n && typeof n === 'object' ? n.port : undefined;
+    if (port === undefined || port === null || port === '') continue;
+    if (!/^\d{1,5}$/.test(String(port).trim())) {
+      NcError.badRequest('Invalid database connection configuration');
+    }
+  }
+}
+
 /**
  * Pre-flight for every external-DB write and connection test: reject
  * unsupported clients, internal hosts in every field the driver dials, unix
@@ -367,6 +488,10 @@ export async function validateDbConnectionTargets(
 ): Promise<void> {
   validateDbClient(config);
   validateDbConnectionDsnSslPaths(config);
+  validateOraclePort(config);
+  const connection = (config as any)?.connection;
+  validateDbConnectionSslPaths(connection?.ssl);
+  validateDbConnectionSslPaths(connection?.connection?.ssl);
 
   if (!isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }))
     return;
@@ -380,7 +505,7 @@ export async function validateDbConnectionTargets(
     NcError.badRequest('Invalid database connection configuration');
   }
   if (targets.sockets.length) {
-    NcError.badRequest('Connection to internal hosts is not allowed');
+    NcError.badRequest(internalDbHostBlockedMessage());
   }
   for (const host of targets.hosts) {
     await validateDbConnectionHost(host);
@@ -423,7 +548,7 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
     trimmed === '::' ||
     /^localhost$/i.test(trimmed)
   ) {
-    NcError.badRequest('Connection to internal hosts is not allowed');
+    NcError.badRequest(internalDbHostBlockedMessage());
   }
 
   // Save-time fail-fast for better UX. The authoritative, TOCTOU-free check runs
@@ -439,16 +564,14 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
       const records = await dns.lookup(trimmed, { all: true });
       resolvedIps = records.map((r) => r.address);
     } catch {
-      // Fail closed: clients without a connect-time hook (oracle, snowflake,
-      // databricks, string DSNs) rely on this check alone, and a name that
-      // resolves only later would skip it.
+      // Fail closed: a name that resolves only later would skip this check.
       NcError.badRequest('Unable to resolve the database host');
     }
   }
 
   for (const addr of resolvedIps) {
     if (isBlockedIp(addr)) {
-      NcError.badRequest('Connection to internal hosts is not allowed');
+      NcError.badRequest(internalDbHostBlockedMessage());
     }
   }
 }

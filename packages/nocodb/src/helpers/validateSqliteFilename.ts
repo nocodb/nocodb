@@ -49,6 +49,48 @@ function readLinkTarget(target: string): string | undefined {
   }
 }
 
+type FileId = { dev: bigint; ino: bigint };
+
+function fileId(target: string): FileId | undefined {
+  try {
+    const { dev, ino } = fs.statSync(target, { bigint: true });
+    // Filesystems without inode numbers report 0, which would match anything.
+    return ino === 0n ? undefined : { dev, ino };
+  } catch {
+    return undefined;
+  }
+}
+
+const sameFile = (a?: FileId, b?: FileId) =>
+  !!a && !!b && a.dev === b.dev && a.ino === b.ino;
+
+/**
+ * True if `resolved`, or a directory it lives under, is the same file as
+ * `protectedPath`. Strings miss aliases on case-insensitive filesystems
+ * (macOS, Windows), where realpath keeps the case it was given.
+ */
+function isOrIsUnder(resolved: string, protectedPath: string): boolean {
+  const target = fileId(protectedPath);
+  if (!target) return false;
+  for (let current = resolved; ; current = path.dirname(current)) {
+    if (sameFile(fileId(current), target)) return true;
+    if (path.dirname(current) === current) return false;
+  }
+}
+
+/**
+ * True when two SQLite filenames open the same file. Stored paths may predate
+ * canonicalisation (relative, or through a symlink).
+ */
+export function isSameSqliteFile(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== 'string' || typeof b !== 'string' || !a || !b) return false;
+  if (a.includes('\0') || b.includes('\0')) return false;
+  const ca = canonicalize(a);
+  const cb = canonicalize(b);
+  return ca === cb || sameFile(fileId(ca), fileId(cb));
+}
+
 /**
  * Reject SQLite filenames that point at NocoDB's own state (`noco.db`,
  * `nc_data.db`, `nc_minimal_dbs/`). SQLite is not a supported production
@@ -68,14 +110,22 @@ export function validateSqliteFilename(rawFilename: unknown): string {
   const resolved = canonicalize(rawFilename as string);
   const toolDir = canonicalize(getToolDir());
 
+  const internalDbs = [
+    path.join(toolDir, 'noco.db'),
+    path.join(toolDir, 'nc_data.db'),
+  ];
   if (
-    resolved === path.join(toolDir, 'noco.db') ||
-    resolved === path.join(toolDir, 'nc_data.db')
+    internalDbs.includes(resolved) ||
+    internalDbs.some((db) => sameFile(fileId(resolved), fileId(db)))
   ) {
     NcError.badRequest('Access to NocoDB internal database is not allowed');
   }
   const minimalDbs = path.join(toolDir, 'nc_minimal_dbs');
-  if (resolved === minimalDbs || resolved.startsWith(minimalDbs + path.sep)) {
+  if (
+    resolved === minimalDbs ||
+    resolved.startsWith(minimalDbs + path.sep) ||
+    isOrIsUnder(resolved, minimalDbs)
+  ) {
     NcError.badRequest('Access to NocoDB tenant databases is not allowed');
   }
   return resolved;

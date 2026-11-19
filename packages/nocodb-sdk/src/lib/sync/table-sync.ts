@@ -1,3 +1,5 @@
+import type { ViewType } from '../Api';
+
 export enum TableSyncTrigger {
   /** Event-driven, sub-second propagation via BaseModel hooks. Default for
    *  new internal syncs. */
@@ -56,6 +58,22 @@ export interface TableSyncMappingType {
   created_at: string;
   updated_at: string;
 }
+
+/** A view as listed by the sync form's view pickers — no share uuid or password. */
+export type TableSyncSourceViewType = Pick<
+  ViewType,
+  | 'id'
+  | 'title'
+  | 'type'
+  | 'fk_model_id'
+  | 'show'
+  | 'order'
+  | 'meta'
+  | 'allow_sync'
+> & {
+  is_shared: boolean;
+  has_password: boolean;
+};
 
 export interface TableSyncType {
   id: string;

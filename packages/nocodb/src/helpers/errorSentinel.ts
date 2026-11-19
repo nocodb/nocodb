@@ -40,6 +40,10 @@ function clean(value: unknown): unknown {
     };
   }
 
+  // a Date (mssql/oracle driver value) has no own keys and would become {}
+  const proto = Object.getPrototypeOf(value);
+  if (proto !== Object.prototype && proto !== null) return value;
+
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, clean(v)]));
 }
 

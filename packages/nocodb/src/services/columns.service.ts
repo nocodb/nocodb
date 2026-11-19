@@ -4328,6 +4328,8 @@ export class ColumnsService implements IColumnsService {
       suppressFormulaError?: boolean;
       /** import only — see validateLmtTrackedFields */
       allowEmptyLmtTrackedSet?: boolean;
+      /** Duplicate/snapshot/import copies keep an AI field's integration as stored. */
+      keepIntegrationBinding?: boolean;
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
       operationSource?: OperationSource;
@@ -8437,6 +8439,9 @@ export class ColumnsService implements IColumnsService {
           ...op,
           error: dbError?.message || e.message,
         });
+      } finally {
+        // ops share baseModel, whose loaded columns predate this op
+        baseModel.markColumnsChanged();
       }
     }
 

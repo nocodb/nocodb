@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import {
   ClientType,
   SqlUiFactory,
@@ -16,6 +17,7 @@ import {
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
+  ncIsString,
   parseProp,
 } from 'nocodb-sdk'
 import type {
@@ -464,4 +466,28 @@ export function countActiveFilters(
 ): number {
   return filters.filter((f) => !isEmptyFilterGroup(f, childrenOf) && (!enabledOnly || (f.enabled !== false && f.enabled !== 0)))
     .length
+}
+
+/** A `dateRange` filter value ("from,to") as its two ends. */
+export function getDateRangeParts(value: unknown): [string | null, string | null] {
+  const [from, to] = ncIsString(value) ? value.split(',') : []
+  return [from || null, to || null]
+}
+
+/**
+ * `value` with one end replaced; null when both ends are empty. On a month-format field the picker
+ * keeps the view date's day, so the ends snap to the whole month: the earlier end to its first day,
+ * the later to its last, whichever order they were picked in.
+ */
+export function setDateRangePart(value: unknown, index: 0 | 1, part: string | null, isMonthFormat = false): string | null {
+  const parts = getDateRangeParts(value)
+  parts[index] = part || null
+  if (isMonthFormat) {
+    const [from, to] = parts
+    const reversed = !!from && !!to && dayjs(to).isBefore(dayjs(from), 'month')
+    const [lo, hi] = reversed ? [to, from] : [from, to]
+    parts[0] = lo ? dayjs(lo).startOf('month').format('YYYY-MM-DD') : null
+    parts[1] = hi ? dayjs(hi).endOf('month').format('YYYY-MM-DD') : null
+  }
+  return parts.some(Boolean) ? parts.map((p) => p ?? '').join(',') : null
 }

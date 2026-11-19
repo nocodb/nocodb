@@ -20,6 +20,14 @@ const isPgIntegerColumn = (
   clientType === 'pg' &&
   /^(int|smallint|bigint)/.test((column.dt ?? '').toLowerCase());
 
+// 1/0 too: the EE mssql/oracle handlers turn 'true'/'false' into 1/0 before
+// dispatching the filter.
+const booleanIsOperand = (val: any): boolean | undefined => {
+  if ([true, 'true', 1, '1'].includes(val)) return true;
+  if ([false, 'false', 0, '0'].includes(val)) return false;
+  return undefined;
+};
+
 export class CheckboxGeneralHandler extends GenericFieldHandler {
   protected get checkedDbValue(): any {
     return true;
@@ -40,7 +48,7 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
 
   override async filterChecked(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
@@ -59,7 +67,7 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
   // unchecked"; both should match `notchecked`.
   override async filterNotchecked(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
@@ -80,6 +88,46 @@ export class CheckboxGeneralHandler extends GenericFieldHandler {
         });
       },
     };
+  }
+
+  // `(field,is,true)` / `(field,is,false)` read as checked / notchecked, so an
+  // unset (NULL) cell counts as unchecked, as in the grid. Other `is` values
+  // (`null`, `blank`, ...) stay generic.
+  override async filterIs(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ) {
+    switch (booleanIsOperand(args.val)) {
+      case true:
+        return this.filterChecked(args, rootArgs, options);
+      case false:
+        return this.filterNotchecked(args, rootArgs, options);
+      default:
+        return super.filterIs(args, rootArgs, options);
+    }
+  }
+
+  override async filterIsnot(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ) {
+    switch (booleanIsOperand(args.val)) {
+      case true:
+        return this.filterNotchecked(args, rootArgs, options);
+      case false:
+        return this.filterChecked(args, rootArgs, options);
+      default:
+        return super.filterIsnot(args, rootArgs, options);
+    }
   }
 
   override async filterEq(

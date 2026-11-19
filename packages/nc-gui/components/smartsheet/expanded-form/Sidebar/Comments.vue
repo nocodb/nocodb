@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
 import tippy from 'tippy.js'
 import { ProjectRoles, UITypes, WorkspaceRolesToProjectRoles, getAttachmentAnnotationKey } from 'nocodb-sdk'
 import type { ColumnType, CommentImageAnnotation, CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { CommentThread, CommentTypeExtended } from '~/composables/useRowComments'
+import { suggestionHandledKeyEvents } from '~/helpers/tiptap'
 
 /**
  * Copy URL builds a base-data deep link — hosts whose consumers have no data
@@ -15,7 +18,7 @@ const props = defineProps<{
    * comment filters). When SET, resolved comments are hidden unless
    * `showResolved` — classic mounts pass nothing and see everything.
    */
-  commentFilter?: 'all' | 'record' | 'onAttachments' | 'withAttachments'
+  commentFilter?: 'all' | 'record' | 'onAttachments' | 'withAttachments' | 'mentions' | 'unread'
   /**
    * Include resolved comments (the "Show resolved comments" toggle —
    * offered for the all/record filters only; attachment filters stay
@@ -24,6 +27,8 @@ const props = defineProps<{
   showResolved?: boolean
   /** Search box open — toggled by the host header's search icon. */
   showSearch?: boolean
+  /** Show the record's field changes between the comments. */
+  showRevisions?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -71,7 +76,25 @@ const {
   primaryKey,
   parsedHtmlComments,
   row,
+  threads,
+  isCommentExtrasEnabled,
+  getReactionSummary,
+  toggleReaction,
+  pinComment,
+  setCommentTask,
+  isCommentUnread,
+  loadReadState,
+  markCommentsRead,
+  acknowledgeUnread,
+  threadSummaries,
+  summarizeThread,
+  dismissThreadSummary,
 } = useRowCommentsOrThrow()
+
+// Absent in the attachment viewer and other hosts without a record form.
+const expandedFormStore = useExpandedFormStore()
+
+const { isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
 
 const {
   isCommentAttachmentsEnabled,
@@ -94,6 +117,17 @@ const {
   handleDrop: handleEditAttachmentDrop,
   removeAttachment: removeEditAttachment,
   clearAttachments: clearEditAttachments,
+} = useCommentAttachments()
+
+// A third, independent attachment state for the thread reply composer.
+const {
+  pendingAttachments: replyAttachments,
+  isUploading: isReplyAttachmentUploading,
+  openFilePicker: openReplyFilePicker,
+  handlePaste: handleReplyAttachmentPaste,
+  handleDrop: handleReplyAttachmentDrop,
+  removeAttachment: removeReplyAttachment,
+  clearAttachments: clearReplyAttachments,
 } = useCommentAttachments()
 
 // Present only inside the attachment carousel — exposes image-annotation state.
@@ -168,26 +202,73 @@ const annotationRefByCommentId = computed(() => {
   return map
 })
 
-// The rendered list — the caller's filter applied over the loaded comments.
-// Annotation anchoring is inherited by replies (annotationRefByCommentId), so
-// a thread filters as a unit; 'record' is its complement. Resolved comments
-// are hidden unless the toggle is on — the toggle is only offered for the
-// all/record filters, so the attachment filters stay open-comments-only.
-const visibleComments = computed(() => {
+/** Replies stay folded behind a summary line once a thread grows past this. */
+const COLLAPSE_AFTER_REPLIES = 3
+
+/** Shorter threads are quicker to read than to summarize. */
+const SUMMARIZE_FROM_REPLIES = 3
+
+function threadComments(thread: CommentThread) {
+  return [thread.root, ...thread.replies]
+}
+
+function mentionsMe(commentItem: CommentTypeExtended) {
+  return !!user.value?.id && !!commentItem.comment?.includes(`@(${user.value.id}|`)
+}
+
+// The rendered list — the caller's filter applied over the loaded threads. A
+// thread filters as a unit: annotation anchoring is inherited by replies
+// (annotationRefByCommentId) and 'record' is its complement; the other filters
+// keep a thread when any of its comments match. Resolved threads are hidden
+// unless the toggle is on — it is only offered for the all/record filters.
+const visibleThreads = computed(() => {
   const filter = props.commentFilter
-  if (!filter) return comments.value
+  if (!filter) return threads.value
 
-  let list = comments.value
+  let list = threads.value
 
-  if (filter === 'record') list = list.filter((c) => !c.id || !annotationRefByCommentId.value[c.id])
-  else if (filter === 'onAttachments') list = list.filter((c) => !!c.id && !!annotationRefByCommentId.value[c.id])
-  else if (filter === 'withAttachments') list = list.filter((c) => !!c.attachments?.length)
+  if (filter === 'record') list = list.filter((t) => !t.root.id || !annotationRefByCommentId.value[t.root.id])
+  else if (filter === 'onAttachments') list = list.filter((t) => !!t.root.id && !!annotationRefByCommentId.value[t.root.id])
+  else if (filter === 'withAttachments') list = list.filter((t) => threadComments(t).some((c) => !!c.attachments?.length))
+  else if (filter === 'mentions') list = list.filter((t) => threadComments(t).some(mentionsMe))
+  else if (filter === 'unread') list = list.filter((t) => threadComments(t).some(isCommentUnread))
 
   const includeResolved = props.showResolved && (filter === 'all' || filter === 'record')
-  if (!includeResolved) list = list.filter((c) => !c.resolved_by)
+  if (!includeResolved) list = list.filter((t) => !t.root.resolved_by)
 
   return list
 })
+
+const unreadComments = computed(() => visibleThreads.value.flatMap(threadComments).filter(isCommentUnread))
+
+/** The "New" line sits above the first thread that started since the last visit. */
+const firstUnreadRootId = computed(() => visibleThreads.value.find((thread) => isCommentUnread(thread.root))?.root.id)
+
+type FeedEntry =
+  | { type: 'thread'; key: string; at?: string; thread: CommentThread }
+  | { type: 'audit'; key: string; at?: string; audit: any }
+
+// Threads in order, with the record's field changes between them when asked for.
+const feedEntries = computed<FeedEntry[]>(() => {
+  const entries: FeedEntry[] = visibleThreads.value.map((thread) => ({
+    type: 'thread',
+    key: thread.root.id!,
+    at: thread.root.created_at,
+    thread,
+  }))
+
+  if (!props.showRevisions || !expandedFormStore) return entries
+
+  for (const audit of expandedFormStore.consolidatedAudits.value) {
+    entries.push({ type: 'audit', key: `audit-${audit.id}`, at: (audit as any).created_at, audit })
+  }
+
+  return entries.sort((a, b) => dayjs(a.at).valueOf() - dayjs(b.at).valueOf())
+})
+
+const pinnedComment = computed(() =>
+  isCommentExtrasEnabled.value ? comments.value.find((c) => !!getCommentMeta(c).pinned) : undefined,
+)
 
 const editCommentValue = ref<CommentType>()
 
@@ -202,6 +283,24 @@ const hoveredCommentId = ref<null | string>(null)
 const commentInputRef = ref<any>()
 
 const comment = ref('')
+
+/** Explicit open/closed picks, keyed by root id (and `resolved-<id>` for a resolved thread's one-line row). */
+const threadExpansion = ref<Record<string, boolean>>({})
+
+/** Root id of the thread whose reply composer is open. */
+const replyThreadId = ref<string | null>(null)
+
+const reply = ref('')
+
+const replyInputRef = ref<any>()
+
+/** Comment whose to-do form is open. */
+const taskFormCommentId = ref<string | null>(null)
+
+const isJumpToUnreadDismissed = ref(false)
+
+/** The first new comment sits below the visible part of the list. */
+const isFirstUnreadBelow = ref(false)
 
 const searchQuery = ref('')
 
@@ -250,6 +349,9 @@ const saveComment = async () => {
   // scroll to their new comment at the bottom instead of jumping back.
   deepLinkCommentId.value = null
 
+  // Whoever answers has read what was there.
+  acknowledgeUnread()
+
   isCommentMode.value = true
 
   const tempAttachments = [...pendingAttachments.value]
@@ -292,6 +394,250 @@ const saveComment = async () => {
   } catch (e) {
     console.error(e)
   }
+}
+
+const isSearching = computed(() => !!props.showSearch && !!searchQuery.value.trim())
+
+function threadHasComment(thread: CommentThread, commentId: string) {
+  return threadComments(thread).some((c) => c.id === commentId)
+}
+
+function findThread(commentId: string) {
+  return threads.value.find((thread) => threadHasComment(thread, commentId))
+}
+
+function isThreadExpanded(thread: CommentThread) {
+  const id = thread.root.id!
+
+  if (replyThreadId.value === id) return true
+  if (id in threadExpansion.value) return threadExpansion.value[id]
+  // Collapsed replies are not in the DOM, so search and deep links open them.
+  if (isSearching.value) return true
+  if (deepLinkCommentId.value && threadHasComment(thread, deepLinkCommentId.value)) return true
+
+  return thread.replies.length <= COLLAPSE_AFTER_REPLIES
+}
+
+/** A resolved thread reads as one line until it is opened. */
+function isResolvedCollapsed(thread: CommentThread) {
+  if (!thread.root.resolved_by) return false
+
+  const key = `resolved-${thread.root.id}`
+
+  if (key in threadExpansion.value) return !threadExpansion.value[key]
+  if (isSearching.value) return false
+  if (deepLinkCommentId.value && threadHasComment(thread, deepLinkCommentId.value)) return false
+
+  return true
+}
+
+function shownComments(thread: CommentThread) {
+  return isThreadExpanded(thread) ? threadComments(thread) : [thread.root]
+}
+
+function setThreadExpanded(thread: CommentThread, expanded: boolean) {
+  threadExpansion.value = { ...threadExpansion.value, [thread.root.id!]: expanded }
+
+  if (!expanded && replyThreadId.value === thread.root.id) cancelReply()
+
+  $e('c:comment:thread:toggle', { expanded })
+}
+
+function setResolvedOpen(thread: CommentThread, open: boolean) {
+  threadExpansion.value = { ...threadExpansion.value, [`resolved-${thread.root.id}`]: open }
+}
+
+function unreadReplyCount(thread: CommentThread) {
+  return thread.replies.filter(isCommentUnread).length
+}
+
+/** Up to three distinct repliers, most recent last, for the collapsed summary line. */
+function threadRepliers(thread: CommentThread) {
+  const seen = new Set<string>()
+  const repliers: CommentTypeExtended[] = []
+
+  for (const item of thread.replies) {
+    const key = item.created_by ?? item.created_by_email ?? ''
+    if (seen.has(key)) continue
+    seen.add(key)
+    repliers.push(item)
+  }
+
+  return repliers.slice(-3)
+}
+
+function commentPlainText(commentItem: CommentTypeExtended) {
+  return (commentItem.comment ?? '')
+    .replace(/@\(([^)]+)\)/g, (_match, inner: string) => {
+      const [, email, name] = inner.split('|')
+      return `@${name || email || ''}`
+    })
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[*_~`>#]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function firstName(commentItem: CommentTypeExtended) {
+  return createdBy(commentItem).split(' ')[0]
+}
+
+function updateUnreadVisibility() {
+  const wrapper = commentsWrapperEl.value
+  // A new reply in a collapsed thread is not rendered; its root marks the spot.
+  const firstThread = visibleThreads.value.find((thread) => threadComments(thread).some(isCommentUnread))
+  const firstUnread = firstThread && threadComments(firstThread).find(isCommentUnread)
+  const firstId = firstThread && firstUnread && !isThreadExpanded(firstThread) ? firstThread.root.id : firstUnread?.id
+
+  if (!wrapper || !firstId) {
+    isFirstUnreadBelow.value = false
+    return
+  }
+
+  const el = wrapper.querySelector(`.nc-comment-item.${CSS.escape(firstId)}`)
+  if (!el) {
+    isFirstUnreadBelow.value = false
+    return
+  }
+
+  isFirstUnreadBelow.value = el.getBoundingClientRect().top > wrapper.getBoundingClientRect().bottom - 24
+}
+
+function userName(userId?: string | null) {
+  const found = baseUsers.value.find((u) => u.id === userId)
+  return found ? extractUserDisplayNameOrEmail(found) : t('labels.sharedSource')
+}
+
+function canSummarize(thread: CommentThread) {
+  return (
+    isCommentExtrasEnabled.value &&
+    isAiFeaturesEnabled.value &&
+    aiIntegrationAvailable.value &&
+    hasEditPermission.value &&
+    thread.replies.length >= SUMMARIZE_FROM_REPLIES
+  )
+}
+
+function startReply(commentItem: CommentTypeExtended) {
+  const thread = findThread(commentItem.id!)
+  if (!thread?.root.id || thread.root.id.startsWith('temp-')) return
+
+  if (replyThreadId.value !== thread.root.id) {
+    reply.value = ''
+    clearReplyAttachments()
+  }
+
+  replyThreadId.value = thread.root.id
+  threadExpansion.value = { ...threadExpansion.value, [thread.root.id]: true, [`resolved-${thread.root.id}`]: true }
+
+  nextTick(() => {
+    document.querySelector('.nc-comment-reply-composer')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  })
+}
+
+function cancelReply() {
+  replyThreadId.value = null
+  reply.value = ''
+  clearReplyAttachments()
+}
+
+async function saveReply() {
+  const rootId = replyThreadId.value
+
+  if (!rootId || (!reply.value.trim() && !replyAttachments.value.length)) return
+
+  if (isReplyAttachmentUploading.value) return
+
+  let text = reply.value
+
+  while (text.endsWith('<br />') || text.endsWith('\n')) {
+    text = text.endsWith('<br />') ? text.slice(0, -6) : text.slice(0, -1)
+  }
+
+  const tempAttachments = [...replyAttachments.value]
+
+  deepLinkCommentId.value = null
+
+  acknowledgeUnread()
+
+  // Optimistic insert, under its thread.
+  comments.value = [
+    ...comments.value,
+    {
+      id: `temp-${new Date().getTime()}`,
+      comment: text,
+      parent_comment_id: rootId,
+      attachments: tempAttachments,
+      created_at: new Date().toISOString(),
+      created_by: user.value?.id,
+      created_by_email: user.value?.email,
+      created_display_name: user.value?.display_name ?? '',
+      created_display_name_short: extractUserDisplayNameOrEmail(user.value),
+      created_by_meta: user.value?.meta ?? '',
+    },
+  ]
+
+  threadExpansion.value = { ...threadExpansion.value, [rootId]: true }
+
+  cancelReply()
+
+  await _saveComment(text, tempAttachments, undefined, rootId)
+
+  $e('a:comment:reply:send')
+}
+
+function onReplyEscape(e: KeyboardEvent) {
+  // Runs before the editor sees the key; an Escape that closes the @mention list keeps the reply open.
+  setTimeout(() => {
+    if (!suggestionHandledKeyEvents.has(e)) cancelReply()
+  })
+}
+
+function onReplyBlur() {
+  // Leaving an empty reply box closes it; a draft stays.
+  setTimeout(() => {
+    if (!reply.value.trim() && !replyAttachments.value.length && !isReplyAttachmentUploading.value) cancelReply()
+  }, 150)
+}
+
+async function revealComment(commentId: string) {
+  const thread = findThread(commentId)
+  if (!thread?.root.id) return
+
+  threadExpansion.value = {
+    ...threadExpansion.value,
+    [`resolved-${thread.root.id}`]: true,
+    ...(commentId !== thread.root.id ? { [thread.root.id]: true } : {}),
+  }
+
+  await nextTick()
+
+  scrollToComment(commentId)
+  hoveredCommentId.value = commentId
+}
+
+function jumpToUnread() {
+  const first = unreadComments.value[0]
+  if (!first?.id) return
+
+  isJumpToUnreadDismissed.value = true
+  revealComment(first.id)
+
+  $e('c:comment:unread:navigate')
+}
+
+function toggleTaskDone(commentItem: CommentTypeExtended, done: boolean) {
+  setCommentTask(commentItem.id!, { done })
+}
+
+function saveTask(commentItem: CommentTypeExtended, value: { assignee: string; due: string | null }) {
+  taskFormCommentId.value = null
+  setCommentTask(commentItem.id!, { task: value })
+}
+
+function removeTask(commentItem: CommentTypeExtended) {
+  taskFormCommentId.value = null
+  setCommentTask(commentItem.id!, { task: null })
 }
 
 const copyComment = async (comment: CommentType) => {
@@ -374,8 +720,9 @@ watch(
 
 // Reset deep-link state when row changes so a new row defaults back to
 // the usual scroll-to-bottom behavior on first open.
-watch(primaryKey, () => {
-  deepLinkCommentId.value = null
+watch(primaryKey, (_pk, prev) => {
+  // The first key to arrive is the deep-linked record itself.
+  if (prev) deepLinkCommentId.value = null
 })
 
 function onCancel(e: KeyboardEvent) {
@@ -455,11 +802,11 @@ async function onEditComment() {
  */
 const isInterfaceSurface = inject(IsInterfaceRecordSurfaceInj, false)
 
-const createdBy = (
+function createdBy(
   comment: CommentType & {
     created_display_name_short?: string
   },
-) => {
+) {
   if (comment.created_by === user.value?.id) {
     return t('general.you')
   } else if (comment.created_display_name_short?.trim()) {
@@ -713,6 +1060,8 @@ watch(
         tryScrollToDeepLinkComment()
         return
       }
+      // A reply lands inside its thread, not at the end of the list.
+      if (comments.value[comments.value.length - 1]?.parent_comment_id) return
       scrollComments()
     })
   },
@@ -720,7 +1069,27 @@ watch(
 
 watch(primaryKey, () => {
   searchQuery.value = ''
+  threadExpansion.value = {}
+  taskFormCommentId.value = null
+  isJumpToUnreadDismissed.value = false
+  cancelReply()
+  loadReadState()
 })
+
+useEventListener(commentsWrapperEl, 'scroll', useDebounceFn(updateUnreadVisibility, 50), { passive: true })
+
+watch(
+  () => [unreadComments.value.length, commentsWrapperEl.value],
+  () => setTimeout(updateUnreadVisibility, 600),
+)
+
+watch(
+  () => props.showRevisions,
+  (show) => {
+    if (show && expandedFormStore && !expandedFormStore.audits.value.length) expandedFormStore.loadAudits()
+  },
+  { immediate: true },
+)
 
 watch(
   () => props.showSearch,
@@ -740,15 +1109,22 @@ watch(searchQuery, () => debouncedCollectSearchMatches())
 
 // New, edited or re-filtered comments re-render the text the ranges point into.
 watch(
-  [visibleComments, parsedHtmlComments],
+  [visibleThreads, parsedHtmlComments, threadExpansion],
   () => {
     if (searchQuery.value.trim()) nextTick(() => collectSearchMatches(true))
   },
   { deep: true },
 )
 
+onMounted(() => {
+  loadReadState()
+})
+
 onBeforeUnmount(() => {
   resetTooltipInstances()
+
+  // What arrived while the panel was open has been seen.
+  markCommentsRead()
 
   // Switching feeds unmounts the list; it comes back with search closed.
   if (props.showSearch) emits('update:showSearch', false)
@@ -820,7 +1196,10 @@ onBeforeUnmount(() => {
           </template>
         </a-input>
       </div>
-      <div v-if="comments.length === 0" class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin">
+      <div
+        v-if="comments.length === 0 && !feedEntries.length"
+        class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin"
+      >
         <div class="text-center text-3xl text-nc-content-gray-subtle opacity-40">
           <GeneralIcon icon="commentHere" />
         </div>
@@ -835,7 +1214,7 @@ onBeforeUnmount(() => {
       </div>
       <!-- Comments exist but the active filter matches none -->
       <div
-        v-else-if="visibleComments.length === 0"
+        v-else-if="visibleThreads.length === 0 && !feedEntries.length"
         class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin"
         data-testid="nc-comments-no-filter-match"
       >
@@ -846,298 +1225,642 @@ onBeforeUnmount(() => {
           {{ $t('labels.noCommentsMatchFilter') }}
         </div>
       </div>
-      <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
-        <div
-          v-for="(commentItem, index) of visibleComments"
-          :key="commentItem.id"
-          :class="[
-            {
-              'mt-auto': index === 0,
-            },
-            commentItem.id,
-          ]"
-          class="nc-comment-item"
-          @mouseover="handleResetHoverEffect"
-          @mouseenter="imageAnnotations?.setHovered(commentItem.id!)"
-          @mouseleave="imageAnnotations?.setHovered(null)"
+      <template v-else>
+        <button
+          v-if="pinnedComment"
+          type="button"
+          class="nc-comment-pinned flex-none mx-3 mt-2 mb-1 flex items-center gap-2 rounded-lg border-1 border-nc-border-brand-medium bg-nc-bg-brand px-2.5 py-1.5 text-left text-small cursor-pointer hover:border-nc-border-brand"
+          data-testid="nc-comment-pinned"
+          @click="revealComment(pinnedComment.id!)"
         >
-          <div
-            :class="{
-              'hover:bg-nc-bg-gray-light': editCommentValue?.id !== commentItem!.id,
-              'nc-hovered-comment bg-nc-bg-gray-light': hoveredCommentId === commentItem!.id,
-              'bg-nc-bg-gray-light':
-                imageAnnotations &&
-                (imageAnnotations.activeAnnotationId.value === commentItem.id ||
-                  imageAnnotations.hoveredAnnotationId.value === commentItem.id),
-        }"
-            class="group gap-3 overflow-hidden px-3 py-2 transition-colors"
-          >
-            <div class="flex items-start justify-between">
-              <div
-                class="flex items-start gap-3 flex-1"
-                :class="{
-                  'w-[calc(100%)] group-hover:w-[calc(100%_-_50px)]': !appInfo.ee,
-                  'w-[calc(100%_-_44px)] group-hover:w-[calc(100%_-_72px)]': appInfo.ee && commentItem.resolved_by,
-                  'w-[calc(100%_-_16px)] group-hover:w-[calc(100%_-_72px)]':
-                    appInfo.ee && !commentItem.resolved_by && hasEditPermission,
-                  'w-[calc(100%_-_16px)] group-hover:w-[calc(100%_-_44px)]':
-                    appInfo.ee && !commentItem.resolved_by && !hasEditPermission,
-                }"
-              >
-                <GeneralUserIcon
-                  :user="{
-                    display_name: commentItem?.created_display_name,
-                    email: commentItem?.created_by_email,
-                    meta: commentItem?.created_by_meta,
-                  }"
-                  class="mt-0.5"
-                  size="medium"
-                />
-                <div class="flex h-[28px] items-center gap-3 w-[calc(100%_-_40px)]">
-                  <NcDropdown placement="topLeft" :trigger="['hover']" class="flex-none max-w-[calc(100%_-_72px)]">
-                    <div
-                      class="nc-comment-author truncate text-nc-content-gray font-medium !text-small !leading-[18px] overflow-hidden"
-                    >
-                      {{ createdBy(commentItem) }}
-                    </div>
+          <GeneralIcon icon="ncPin" class="flex-none w-3.5 h-3.5 text-nc-content-brand" />
+          <span class="min-w-0 flex-1 truncate text-nc-content-gray">
+            <span class="font-semibold">{{ firstName(pinnedComment) }}:</span>
+            {{ commentPlainText(pinnedComment) }}
+          </span>
+          <GeneralIcon icon="chevronRight" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
+        </button>
 
-                    <template #overlay>
-                      <div class="bg-nc-bg-elevated rounded-lg">
-                        <div class="flex items-center gap-4 py-3 px-2">
-                          <GeneralUserIcon
-                            class="border-1 border-nc-border-gray-medium rounded-full"
-                            :user="{
-                              display_name: commentItem?.created_display_name,
-                              email: commentItem?.created_by_email,
-                              meta: commentItem?.created_by_meta,
-                            }"
-                            size="base"
-                          />
-                          <div class="flex flex-col">
-                            <div class="font-semibold text-nc-content-gray">
-                              {{ createdBy(commentItem) }}
-                            </div>
-                            <div class="text-xs text-nc-content-gray-subtle2">
-                              {{ commentItem.created_by_email }}
-                            </div>
-                          </div>
-                        </div>
-                        <!-- Base-role footer stays off interface surfaces: interface-only
-                             collaborators have no base user list to resolve the role from
-                             (and the base membership itself is base-scoped info). -->
-                        <i18n-t
-                          v-if="!props.hideRoleInfo && !isInterfaceSurface && isUIAllowed('dataEdit')"
-                          keypath="labels.hasRoleInBase"
-                          tag="div"
-                          class="px-3 rounded-b-lg !text-[13px] items-center text-nc-content-gray-subtle2 flex gap-1 bg-nc-bg-gray-light py-1.5"
-                        >
-                          <template #role>
-                            <RolesBadge size="sm" :border="false" :role="getUserRole(commentItem.created_by_email!)" />
-                          </template>
-                        </i18n-t>
-                      </div>
-                    </template>
-                  </NcDropdown>
-                  <div class="text-xs text-nc-content-gray-muted">
-                    {{ timeAgo(commentItem.created_at!) }}
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center">
-                <NcDropdown
-                  v-if="
-                    !editCommentValue &&
-                    (!props.hideCopyUrl || (user && commentItem.created_by_email === user.email && hasEditPermission))
-                  "
-                  class="nc-comment-more-actions !hidden !group-hover:block"
-                  overlay-class-name="!min-w-[160px]"
-                  placement="bottomRight"
-                >
-                  <NcButton
-                    class="nc-expand-form-more-actions !hover:bg-nc-bg-gray-medium !w-7 !h-7 !bg-transparent"
-                    size="xsmall"
-                    type="text"
-                  >
-                    <GeneralIcon class="text-md" icon="threeDotVertical" />
-                  </NcButton>
-                  <template #overlay>
-                    <NcMenu variant="small">
-                      <NcMenuItem
-                        v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
-                        v-e="['c:comment-expand:comment:edit']"
-                        @click="editComment(commentItem)"
-                      >
-                        <div class="flex gap-2 items-center">
-                          <component :is="iconMap.rename" class="cursor-pointer" />
-                          {{ $t('general.edit') }}
-                        </div>
-                      </NcMenuItem>
-                      <NcMenuItem
-                        v-if="!props.hideCopyUrl"
-                        v-e="['c:comment-expand:comment:copy']"
-                        @click="copyComment(commentItem)"
-                      >
-                        <div class="flex gap-2 items-center">
-                          <component :is="iconMap.copy" class="cursor-pointer" />
-                          {{ $t('activity.copyUrl') }}
-                        </div>
-                      </NcMenuItem>
-                      <template v-if="user && commentItem.created_by_email === user.email && hasEditPermission">
-                        <NcDivider />
-                        <NcMenuItem v-e="['c:row-expand:comment:delete']" danger @click="deleteComment(commentItem.id!)">
-                          <div class="flex gap-2 items-center">
-                            <GeneralIcon icon="delete" class="cursor-pointer" />
-                            {{ $t('general.delete') }}
-                          </div>
-                        </NcMenuItem>
-                      </template>
-                    </NcMenu>
-                  </template>
-                </NcDropdown>
-                <div v-if="appInfo.ee">
-                  <NcTooltip v-if="!commentItem.resolved_by && hasEditPermission">
-                    <NcButton
-                      class="nc-resolve-comment-btn !w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium !hidden !group-hover:block"
-                      size="xsmall"
-                      type="text"
-                      @click="resolveComment(commentItem.id!)"
-                    >
-                      <GeneralIcon class="text-md" icon="checkCircle" />
-                    </NcButton>
+        <div ref="commentsWrapperEl" class="relative flex flex-col h-full py-1 nc-scrollbar-thin">
+          <div class="mt-auto" />
+          <template v-for="entry of feedEntries" :key="entry.key">
+            <SmartsheetExpandedFormSidebarCommentActivity v-if="entry.type === 'audit'" :audit="entry.audit" />
 
-                    <template #title>{{ $t('activity.clickToResolve') }}</template>
-                  </NcTooltip>
-
-                  <NcTooltip v-else-if="commentItem.resolved_by">
-                    <template #title>{{ `${$t('activity.resolvedBy')} ${commentItem.resolved_display_name_short}` }}</template>
-                    <NcButton
-                      class="!h-7 !w-7 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
-                      size="xsmall"
-                      type="text"
-                      @click="resolveComment(commentItem.id!)"
-                    >
-                      <GeneralIcon class="text-md rounded-full bg-nc-fill-green-dark text-white" icon="checkFill" />
-                    </NcButton>
-                  </NcTooltip>
-                </div>
-              </div>
-            </div>
             <div
-              :class="{
-                'mt-3': commentItem.id === editCommentValue?.id,
-              }"
-              class="flex-1 flex flex-col gap-1 max-w-[calc(100%)]"
+              v-else
+              class="nc-comment-thread"
+              :class="{ 'nc-comment-thread-resolved': !!entry.thread.root.resolved_by }"
+              :data-testid="`nc-comment-thread-${entry.thread.root.id}`"
             >
               <div
-                v-if="commentItem.id === editCommentValue?.id && hasEditPermission"
-                @paste="isCommentAttachmentsEnabled ? handleEditAttachmentPaste($event) : undefined"
-                @dragover.prevent
-                @drop="isCommentAttachmentsEnabled ? handleEditAttachmentDrop($event) : undefined"
+                v-if="entry.thread.root.id === firstUnreadRootId"
+                class="nc-comment-new-divider flex items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase text-nc-content-red-medium"
+                data-testid="nc-comment-new-divider"
               >
-                <SmartsheetExpandedFormRichComment
-                  v-model:value="value"
-                  autofocus
-                  autofocus-to-end
-                  :hide-options="false"
-                  :extra-save-enabled="editAttachments.length > 0"
-                  class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-elevated !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
-                  data-testid="expanded-form-comment-input"
-                  @save="onEditComment"
-                  @keydown.esc="onCancel"
-                  @keydown="handleKeyPress"
-                  @blur="
-                    () => {
-                      editCommentValue = undefined
-                      isEditing = false
-                      clearEditAttachments()
-                    }
-                  "
-                  @keydown.enter.exact.prevent="onEditComment"
-                >
-                  <template v-if="editAttachments.length" #attachments>
-                    <SmartsheetExpandedFormCommentAttachments
-                      :attachments="editAttachments"
-                      :comment-id="editCommentValue?.id"
-                      editable
-                      class="px-1 pt-1"
-                      @remove="removeEditAttachment"
-                    />
-                  </template>
-                  <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
-                    <NcTooltip :title="$t('activity.attachFile')" placement="top">
-                      <NcButton
-                        v-e="['c:comment:attach-file']"
-                        type="text"
-                        size="xsmall"
-                        class="nc-comment-attach-btn !h-7 !w-7"
-                        :loading="isEditAttachmentUploading"
-                        :disabled="isEditAttachmentUploading"
-                        data-testid="nc-comment-attach-btn"
-                        :aria-label="$t('activity.attachFile')"
-                        @click="openEditFilePicker"
-                      >
-                        <GeneralIcon v-if="!isEditAttachmentUploading" icon="lucidePaperclip" class="h-3.5 w-3.5" />
-                      </NcButton>
-                    </NcTooltip>
-                  </template>
-                </SmartsheetExpandedFormRichComment>
+                <span class="h-px flex-1 bg-nc-border-red" />
+                {{ $t('activity.commentThread.newDivider') }}
+                <span class="h-px flex-1 bg-nc-border-red" />
               </div>
 
-              <div v-else class="space-y-1 pl-9">
-                <div
-                  v-if="annotationRefByCommentId[commentItem.id!]"
-                  class="nc-annotation-attachment inline-flex max-w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-1"
-                  :class="{
-                    'cursor-pointer hover:bg-nc-bg-gray-light':
-                      !!imageAnnotations || annotationRefByCommentId[commentItem.id!].matched,
-                  }"
-                  :data-testid="`nc-annotation-attachment-${commentItem.id}`"
-                  @click="viewAnnotationComment(commentItem)"
-                >
-                  <img
-                    v-if="annotationRefByCommentId[commentItem.id!].thumbnailSrc"
-                    :src="annotationRefByCommentId[commentItem.id!].thumbnailSrc"
-                    class="h-6 w-6 flex-none rounded object-cover"
-                  />
-                  <GeneralIcon v-else icon="image" class="h-4 w-4 flex-none text-nc-content-gray-muted" />
-                  <NcTooltip show-on-truncate-only class="truncate text-small text-nc-content-gray">
-                    {{ annotationRefByCommentId[commentItem.id!].title }}
-                  </NcTooltip>
-                </div>
-                <div
-                  v-if="parsedHtmlComments[commentItem.id]"
-                  v-dompurify-html="parsedHtmlComments[commentItem.id]"
-                  class="nc-comment-body nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
-                  @click="handleDompurifyLinkClick"
-                ></div>
-                <SmartsheetExpandedFormCommentAttachments
-                  v-if="commentItem.attachments?.length"
-                  :attachments="commentItem.attachments"
-                  :comment-id="commentItem.id"
-                  class="mt-1"
-                />
+              <!-- Resolved: one line until opened -->
+              <button
+                v-if="isResolvedCollapsed(entry.thread)"
+                type="button"
+                class="nc-comment-resolved-row mx-3 my-1 flex w-[calc(100%_-_24px)] items-center gap-2 rounded-lg border-1 border-nc-border-gray-light bg-nc-bg-gray-extralight px-2.5 py-1.5 text-left text-small cursor-pointer hover:bg-nc-bg-gray-light"
+                :class="entry.thread.root.id"
+                data-testid="nc-comment-resolved-row"
+                @click="setResolvedOpen(entry.thread, true)"
+              >
+                <GeneralIcon icon="checkFill" class="flex-none w-3.5 h-3.5 rounded-full bg-nc-fill-green-dark text-white" />
+                <span class="min-w-0 flex-1 truncate text-nc-content-gray-subtle">
+                  <span class="font-semibold text-nc-content-gray">{{ firstName(entry.thread.root) }}:</span>
+                  {{ commentPlainText(entry.thread.root) }}
+                </span>
+                <span class="flex-none text-xs text-nc-content-gray-muted">
+                  {{
+                    $t(
+                      'activity.commentThread.commentCount',
+                      { count: entry.thread.replies.length + 1 },
+                      entry.thread.replies.length + 1,
+                    )
+                  }}
+                </span>
+                <GeneralIcon icon="chevronDown" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
+              </button>
 
+              <template v-else>
                 <div
-                  v-if="annotationLabels[commentItem.id] || annotationRefByCommentId[commentItem.id!]?.matched"
-                  class="nc-annotation-ref mt-1 inline-flex items-center gap-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-0.5 cursor-pointer hover:bg-nc-bg-gray-light"
-                  :data-testid="`nc-annotation-ref-${annotationLabels[commentItem.id] ?? commentItem.id}`"
-                  @click="viewAnnotationComment(commentItem)"
+                  v-for="commentItem of shownComments(entry.thread)"
+                  :key="commentItem.id"
+                  :class="[
+                    commentItem.id,
+                    {
+                      'nc-comment-reply': commentItem !== entry.thread.root,
+                      'opacity-75': !!entry.thread.root.resolved_by,
+                    },
+                  ]"
+                  class="nc-comment-item"
+                  :data-testid="`nc-comment-item-${commentItem.id}`"
+                  @mouseover="handleResetHoverEffect"
+                  @mouseenter="imageAnnotations?.setHovered(commentItem.id!)"
+                  @mouseleave="imageAnnotations?.setHovered(null)"
                 >
-                  <span
-                    v-if="annotationLabels[commentItem.id]"
-                    class="flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full bg-nc-fill-primary text-white text-[9px] font-semibold"
+                  <div
+                    :class="{
+                      'hover:bg-nc-bg-gray-light': editCommentValue?.id !== commentItem!.id,
+                      'nc-hovered-comment bg-nc-bg-gray-light': hoveredCommentId === commentItem!.id,
+                      'bg-nc-bg-gray-light':
+                        imageAnnotations &&
+                        (imageAnnotations.activeAnnotationId.value === commentItem.id ||
+                          imageAnnotations.hoveredAnnotationId.value === commentItem.id),
+                      'pl-3': commentItem !== entry.thread.root,
+                    }"
+                    class="group relative overflow-hidden px-3 py-2 transition-colors"
                   >
-                    {{ annotationLabels[commentItem.id] }}
-                  </span>
-                  <span v-e="['c:attachment:annotation:view']" class="text-[11px] font-medium text-nc-content-brand">
-                    {{ $t('general.view') }}
-                  </span>
+                    <div class="flex items-start gap-3">
+                      <GeneralUserIcon
+                        :user="{
+                          display_name: commentItem?.created_display_name,
+                          email: commentItem?.created_by_email,
+                          meta: commentItem?.created_by_meta,
+                        }"
+                        class="mt-0.5 flex-none"
+                        :size="commentItem === entry.thread.root ? 'medium' : 'small'"
+                      />
+                      <div class="flex min-h-[24px] min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <NcDropdown placement="topLeft" :trigger="['hover']" class="min-w-0 max-w-full">
+                          <div
+                            class="nc-comment-author truncate text-nc-content-gray font-medium !text-small !leading-[18px] overflow-hidden"
+                          >
+                            {{ createdBy(commentItem) }}
+                          </div>
+
+                          <template #overlay>
+                            <div class="bg-nc-bg-elevated rounded-lg">
+                              <div class="flex items-center gap-4 py-3 px-2">
+                                <GeneralUserIcon
+                                  class="border-1 border-nc-border-gray-medium rounded-full"
+                                  :user="{
+                                    display_name: commentItem?.created_display_name,
+                                    email: commentItem?.created_by_email,
+                                    meta: commentItem?.created_by_meta,
+                                  }"
+                                  size="base"
+                                />
+                                <div class="flex flex-col">
+                                  <div class="font-semibold text-nc-content-gray">
+                                    {{ createdBy(commentItem) }}
+                                  </div>
+                                  <div class="text-xs text-nc-content-gray-subtle2">
+                                    {{ commentItem.created_by_email }}
+                                  </div>
+                                </div>
+                              </div>
+                              <!-- Base-role footer stays off interface surfaces: interface-only
+                                   collaborators have no base user list to resolve the role from
+                                   (and the base membership itself is base-scoped info). -->
+                              <i18n-t
+                                v-if="!props.hideRoleInfo && !isInterfaceSurface && isUIAllowed('dataEdit')"
+                                keypath="labels.hasRoleInBase"
+                                tag="div"
+                                class="px-3 rounded-b-lg !text-[13px] items-center text-nc-content-gray-subtle2 flex gap-1 bg-nc-bg-gray-light py-1.5"
+                              >
+                                <template #role>
+                                  <RolesBadge size="sm" :border="false" :role="getUserRole(commentItem.created_by_email!)" />
+                                </template>
+                              </i18n-t>
+                            </div>
+                          </template>
+                        </NcDropdown>
+                        <div class="flex-none text-xs text-nc-content-gray-muted">
+                          {{ timeAgo(commentItem.created_at!) }}
+                        </div>
+                        <span
+                          v-if="isCommentUnread(commentItem)"
+                          class="nc-comment-unread-dot h-1.5 w-1.5 flex-none rounded-full bg-nc-fill-red-medium"
+                          data-testid="nc-comment-unread-dot"
+                        />
+                        <span
+                          v-if="isCommentExtrasEnabled && getCommentMeta(commentItem).pinned"
+                          class="inline-flex flex-none items-center gap-0.5 text-[11px] font-medium text-nc-content-brand"
+                        >
+                          <GeneralIcon icon="ncPin" class="w-3 h-3" />
+                        </span>
+                        <NcTooltip
+                          v-if="commentItem === entry.thread.root && commentItem.resolved_by"
+                          class="flex flex-none"
+                          data-testid="nc-comment-resolved-badge"
+                        >
+                          <template #title>{{
+                            `${$t('activity.resolvedBy')} ${commentItem.resolved_display_name_short}`
+                          }}</template>
+                          <span
+                            class="inline-flex items-center gap-1 rounded-md bg-nc-bg-green-light px-1.5 py-0.5 text-[11px] font-medium text-nc-content-green-dark"
+                          >
+                            <GeneralIcon icon="check" class="w-3 h-3" />
+                            {{ $t('activity.commentThread.resolvedByName', { name: commentItem.resolved_display_name_short }) }}
+                          </span>
+                        </NcTooltip>
+                      </div>
+                    </div>
+
+                    <!-- Hover action bar -->
+                    <div
+                      v-if="!editCommentValue && !commentItem.id?.startsWith('temp-')"
+                      class="nc-comment-actions !hidden !group-hover:flex absolute right-2 top-1.5 z-10 items-center gap-0.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated p-0.5 shadow-sm"
+                      data-testid="nc-comment-actions"
+                    >
+                      <SmartsheetExpandedFormSidebarCommentReactionPicker
+                        v-if="isCommentExtrasEnabled && hasEditPermission"
+                        @react="toggleReaction(commentItem.id!, $event)"
+                      >
+                        <NcTooltip :title="$t('general.react')" placement="top" class="flex">
+                          <NcButton
+                            class="!w-7 !h-7"
+                            size="xsmall"
+                            type="text"
+                            :aria-label="$t('general.react')"
+                            data-testid="nc-comment-react-btn"
+                          >
+                            <GeneralIcon icon="ncSmile" class="w-4 h-4" />
+                          </NcButton>
+                        </NcTooltip>
+                      </SmartsheetExpandedFormSidebarCommentReactionPicker>
+
+                      <NcTooltip v-if="hasEditPermission" :title="$t('general.reply')" placement="top" class="flex">
+                        <NcButton
+                          v-e="['c:comment:reply']"
+                          class="!w-7 !h-7"
+                          size="xsmall"
+                          type="text"
+                          :aria-label="$t('general.reply')"
+                          data-testid="nc-comment-reply-btn"
+                          @click="startReply(commentItem)"
+                        >
+                          <GeneralIcon icon="ncCornerDownLeft" class="w-4 h-4" />
+                        </NcButton>
+                      </NcTooltip>
+
+                      <template v-if="appInfo.ee && commentItem === entry.thread.root">
+                        <NcTooltip v-if="!commentItem.resolved_by && hasEditPermission" placement="top" class="flex">
+                          <NcButton
+                            class="nc-resolve-comment-btn !w-7 !h-7"
+                            size="xsmall"
+                            type="text"
+                            :aria-label="$t('activity.clickToResolve')"
+                            @click="resolveComment(commentItem.id!)"
+                          >
+                            <GeneralIcon icon="checkCircle" class="w-4 h-4" />
+                          </NcButton>
+                          <template #title>{{ $t('activity.clickToResolve') }}</template>
+                        </NcTooltip>
+                        <NcTooltip v-else-if="commentItem.resolved_by && hasEditPermission" placement="top" class="flex">
+                          <NcButton
+                            class="nc-reopen-comment-btn !w-7 !h-7"
+                            size="xsmall"
+                            type="text"
+                            :aria-label="$t('activity.commentThread.reopen')"
+                            data-testid="nc-comment-reopen-btn"
+                            @click="resolveComment(commentItem.id!)"
+                          >
+                            <GeneralIcon icon="checkFill" class="w-4 h-4 rounded-full bg-nc-fill-green-dark text-white" />
+                          </NcButton>
+                          <template #title>{{ $t('activity.commentThread.reopen') }}</template>
+                        </NcTooltip>
+                      </template>
+
+                      <NcDropdown
+                        v-if="
+                          !props.hideCopyUrl ||
+                          (isCommentExtrasEnabled && hasEditPermission) ||
+                          (user && commentItem.created_by_email === user.email && hasEditPermission)
+                        "
+                        class="nc-comment-more-actions"
+                        overlay-class-name="!min-w-[180px]"
+                        placement="bottomRight"
+                      >
+                        <NcButton
+                          class="nc-expand-form-more-actions !w-7 !h-7"
+                          size="xsmall"
+                          type="text"
+                          :aria-label="$t('general.more')"
+                        >
+                          <GeneralIcon class="text-md" icon="threeDotVertical" />
+                        </NcButton>
+                        <template #overlay>
+                          <NcMenu variant="small">
+                            <template v-if="isCommentExtrasEnabled && hasEditPermission">
+                              <NcMenuItem
+                                data-testid="nc-comment-pin"
+                                @click="pinComment(commentItem.id!, !getCommentMeta(commentItem).pinned)"
+                              >
+                                <div class="flex gap-2 items-center">
+                                  <GeneralIcon :icon="getCommentMeta(commentItem).pinned ? 'ncPinOff' : 'ncPin'" />
+                                  {{
+                                    getCommentMeta(commentItem).pinned
+                                      ? $t('activity.commentThread.unpin')
+                                      : $t('activity.commentThread.pin')
+                                  }}
+                                </div>
+                              </NcMenuItem>
+                              <NcMenuItem data-testid="nc-comment-task-menu" @click="taskFormCommentId = commentItem.id!">
+                                <div class="flex gap-2 items-center">
+                                  <GeneralIcon icon="ncCheckSquare" />
+                                  {{
+                                    getCommentMeta(commentItem).task
+                                      ? $t('activity.commentThread.editTodo')
+                                      : $t('activity.commentThread.assignTodo')
+                                  }}
+                                </div>
+                              </NcMenuItem>
+                            </template>
+                            <NcMenuItem
+                              v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
+                              v-e="['c:comment-expand:comment:edit']"
+                              @click="editComment(commentItem)"
+                            >
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.rename" class="cursor-pointer" />
+                                {{ $t('general.edit') }}
+                              </div>
+                            </NcMenuItem>
+                            <NcMenuItem
+                              v-if="!props.hideCopyUrl"
+                              v-e="['c:comment-expand:comment:copy']"
+                              @click="copyComment(commentItem)"
+                            >
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.copy" class="cursor-pointer" />
+                                {{ $t('activity.copyUrl') }}
+                              </div>
+                            </NcMenuItem>
+                            <template v-if="user && commentItem.created_by_email === user.email && hasEditPermission">
+                              <NcDivider />
+                              <NcMenuItem v-e="['c:row-expand:comment:delete']" danger @click="deleteComment(commentItem.id!)">
+                                <div class="flex gap-2 items-center">
+                                  <GeneralIcon icon="delete" class="cursor-pointer" />
+                                  {{ $t('general.delete') }}
+                                </div>
+                              </NcMenuItem>
+                            </template>
+                          </NcMenu>
+                        </template>
+                      </NcDropdown>
+                    </div>
+
+                    <div
+                      :class="{
+                        'mt-3': commentItem.id === editCommentValue?.id,
+                      }"
+                      class="flex-1 flex flex-col gap-1 max-w-[calc(100%)]"
+                    >
+                      <div
+                        v-if="commentItem.id === editCommentValue?.id && hasEditPermission"
+                        @paste="isCommentAttachmentsEnabled ? handleEditAttachmentPaste($event) : undefined"
+                        @dragover.prevent
+                        @drop="isCommentAttachmentsEnabled ? handleEditAttachmentDrop($event) : undefined"
+                      >
+                        <SmartsheetExpandedFormRichComment
+                          v-model:value="value"
+                          autofocus
+                          autofocus-to-end
+                          :hide-options="false"
+                          :extra-save-enabled="editAttachments.length > 0"
+                          class="expanded-form-comment-edit-input cursor-text expanded-form-comment-input !py-2 !px-2 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-elevated !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+                          data-testid="expanded-form-comment-input"
+                          @save="onEditComment"
+                          @keydown.esc="onCancel"
+                          @keydown="handleKeyPress"
+                          @blur="
+                            () => {
+                              editCommentValue = undefined
+                              isEditing = false
+                              clearEditAttachments()
+                            }
+                          "
+                          @keydown.enter.exact.prevent="onEditComment"
+                        >
+                          <template v-if="editAttachments.length" #attachments>
+                            <SmartsheetExpandedFormCommentAttachments
+                              :attachments="editAttachments"
+                              :comment-id="editCommentValue?.id"
+                              editable
+                              class="px-1 pt-1"
+                              @remove="removeEditAttachment"
+                            />
+                          </template>
+                          <template v-if="isCommentAttachmentsEnabled" #bottom-bar-start>
+                            <NcTooltip :title="$t('activity.attachFile')" placement="top">
+                              <NcButton
+                                v-e="['c:comment:attach-file']"
+                                type="text"
+                                size="xsmall"
+                                class="nc-comment-attach-btn !h-7 !w-7"
+                                :loading="isEditAttachmentUploading"
+                                :disabled="isEditAttachmentUploading"
+                                data-testid="nc-comment-attach-btn"
+                                :aria-label="$t('activity.attachFile')"
+                                @click="openEditFilePicker"
+                              >
+                                <GeneralIcon v-if="!isEditAttachmentUploading" icon="lucidePaperclip" class="h-3.5 w-3.5" />
+                              </NcButton>
+                            </NcTooltip>
+                          </template>
+                        </SmartsheetExpandedFormRichComment>
+                      </div>
+
+                      <div v-else class="space-y-1.5" :class="commentItem === entry.thread.root ? 'pl-9' : 'pl-7'">
+                        <div
+                          v-if="annotationRefByCommentId[commentItem.id!] && commentItem.id === annotationRefByCommentId[commentItem.id!].rootId"
+                          class="nc-annotation-attachment inline-flex max-w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-1"
+                          :class="{
+                            'cursor-pointer hover:bg-nc-bg-gray-light':
+                              !!imageAnnotations || annotationRefByCommentId[commentItem.id!].matched,
+                          }"
+                          :data-testid="`nc-annotation-attachment-${commentItem.id}`"
+                          @click="viewAnnotationComment(commentItem)"
+                        >
+                          <img
+                            v-if="annotationRefByCommentId[commentItem.id!].thumbnailSrc"
+                            :src="annotationRefByCommentId[commentItem.id!].thumbnailSrc"
+                            class="h-6 w-6 flex-none rounded object-cover"
+                          />
+                          <GeneralIcon v-else icon="image" class="h-4 w-4 flex-none text-nc-content-gray-muted" />
+                          <NcTooltip show-on-truncate-only class="truncate text-small text-nc-content-gray">
+                            {{ annotationRefByCommentId[commentItem.id!].title }}
+                          </NcTooltip>
+                        </div>
+                        <div
+                          v-if="parsedHtmlComments[commentItem.id]"
+                          v-dompurify-html="parsedHtmlComments[commentItem.id]"
+                          class="nc-comment-body nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
+                          @click="handleDompurifyLinkClick"
+                        ></div>
+                        <SmartsheetExpandedFormCommentAttachments
+                          v-if="commentItem.attachments?.length"
+                          :attachments="commentItem.attachments"
+                          :comment-id="commentItem.id"
+                          class="mt-1"
+                        />
+
+                        <div
+                          v-if="annotationLabels[commentItem.id] || (annotationRefByCommentId[commentItem.id!]?.matched && commentItem.id === annotationRefByCommentId[commentItem.id!].rootId)"
+                          class="nc-annotation-ref mt-1 inline-flex items-center gap-1.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-0.5 cursor-pointer hover:bg-nc-bg-gray-light"
+                          :data-testid="`nc-annotation-ref-${annotationLabels[commentItem.id] ?? commentItem.id}`"
+                          @click="viewAnnotationComment(commentItem)"
+                        >
+                          <span
+                            v-if="annotationLabels[commentItem.id]"
+                            class="flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full bg-nc-fill-primary text-white text-[9px] font-semibold"
+                          >
+                            {{ annotationLabels[commentItem.id] }}
+                          </span>
+                          <span v-e="['c:attachment:annotation:view']" class="text-[11px] font-medium text-nc-content-brand">
+                            {{ $t('general.view') }}
+                          </span>
+                        </div>
+
+                        <SmartsheetExpandedFormSidebarCommentTaskForm
+                          v-if="taskFormCommentId === commentItem.id"
+                          :task="getCommentMeta(commentItem).task"
+                          :users="baseUsers.filter((u) => !u.deleted)"
+                          @save="saveTask(commentItem, $event)"
+                          @remove="removeTask(commentItem)"
+                          @cancel="taskFormCommentId = null"
+                        />
+                        <SmartsheetExpandedFormSidebarCommentTask
+                          v-else-if="isCommentExtrasEnabled && getCommentMeta(commentItem).task"
+                          :task="getCommentMeta(commentItem).task!"
+                          :assignee-name="userName(getCommentMeta(commentItem).task!.assignee)"
+                          :can-edit="hasEditPermission"
+                          @toggle="toggleTaskDone(commentItem, $event)"
+                          @edit="taskFormCommentId = commentItem.id!"
+                        />
+
+                        <SmartsheetExpandedFormSidebarCommentReactions
+                          v-if="isCommentExtrasEnabled"
+                          :summary="getReactionSummary(commentItem.id)"
+                          :can-react="hasEditPermission"
+                          @react="toggleReaction(commentItem.id!, $event)"
+                        />
+
+                        <!-- Thread controls under the root comment -->
+                        <div
+                          v-if="
+                            commentItem === entry.thread.root && (entry.thread.replies.length || entry.thread.root.resolved_by)
+                          "
+                          class="flex flex-wrap items-center gap-x-3 gap-y-1"
+                        >
+                          <button
+                            v-if="entry.thread.replies.length && !isThreadExpanded(entry.thread)"
+                            type="button"
+                            class="nc-comment-thread-summary-btn -ml-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md text-left px-1 py-0.5 text-xs font-semibold text-nc-content-brand hover:bg-nc-bg-brand cursor-pointer"
+                            data-testid="nc-comment-thread-expand"
+                            @click="setThreadExpanded(entry.thread, true)"
+                          >
+                            <span class="flex -space-x-1">
+                              <GeneralUserIcon
+                                v-for="replier of threadRepliers(entry.thread)"
+                                :key="replier.id"
+                                :user="{
+                                  display_name: replier.created_display_name,
+                                  email: replier.created_by_email,
+                                  meta: replier.created_by_meta,
+                                }"
+                                size="small"
+                                class="border-1 border-nc-bg-default rounded-full"
+                              />
+                            </span>
+                            <span class="whitespace-nowrap">
+                              {{
+                                $t(
+                                  'activity.commentThread.replyCount',
+                                  { count: entry.thread.replies.length },
+                                  entry.thread.replies.length,
+                                )
+                              }}
+                            </span>
+                            <template v-if="unreadReplyCount(entry.thread)">
+                              <span class="inline-flex items-center gap-1 whitespace-nowrap text-nc-content-red-medium">
+                                <span class="h-1.5 w-1.5 rounded-full bg-nc-fill-red-medium" />
+                                {{ $t('activity.commentThread.newCount', { count: unreadReplyCount(entry.thread) }) }}
+                              </span>
+                            </template>
+                            <span class="whitespace-nowrap font-normal text-nc-content-gray-muted">
+                              {{
+                                $t('activity.commentThread.lastReply', {
+                                  time: timeAgo(entry.thread.replies[entry.thread.replies.length - 1]!.created_at!),
+                                })
+                              }}
+                            </span>
+                          </button>
+                          <button
+                            v-else-if="entry.thread.replies.length > COLLAPSE_AFTER_REPLIES"
+                            type="button"
+                            class="-ml-1 flex items-center gap-1 rounded-md px-1 py-0.5 text-xs font-medium text-nc-content-gray-subtle hover:bg-nc-bg-gray-medium cursor-pointer"
+                            data-testid="nc-comment-thread-collapse"
+                            @click="setThreadExpanded(entry.thread, false)"
+                          >
+                            <GeneralIcon icon="ncChevronUp" class="w-3.5 h-3.5" />
+                            {{
+                              $t(
+                                'activity.commentThread.hideReplies',
+                                { count: entry.thread.replies.length },
+                                entry.thread.replies.length,
+                              )
+                            }}
+                          </button>
+
+                          <button
+                            v-if="canSummarize(entry.thread) && !threadSummaries[entry.thread.root.id!]"
+                            type="button"
+                            class="flex items-center gap-1 rounded-md px-1 py-0.5 text-xs font-semibold text-nc-content-purple-dark hover:bg-nc-bg-purple-light cursor-pointer"
+                            data-testid="nc-comment-thread-summarize"
+                            @click="summarizeThread(entry.thread.root.id!)"
+                          >
+                            <GeneralIcon icon="ncAutoAwesome" class="w-3.5 h-3.5 !text-current" />
+                            {{ $t('activity.commentThread.summarize') }}
+                          </button>
+
+                          <button
+                            v-if="entry.thread.root.resolved_by"
+                            type="button"
+                            class="flex items-center gap-1 rounded-md px-1 py-0.5 text-xs text-nc-content-gray-subtle hover:bg-nc-bg-gray-medium cursor-pointer"
+                            data-testid="nc-comment-resolved-collapse"
+                            @click="setResolvedOpen(entry.thread, false)"
+                          >
+                            <GeneralIcon icon="ncChevronUp" class="w-3.5 h-3.5" />
+                            {{ $t('general.collapse') }}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                <div v-if="threadSummaries[entry.thread.root.id!]" class="px-3 pb-2 pl-12">
+                  <SmartsheetExpandedFormSidebarCommentSummary
+                    :summary="threadSummaries[entry.thread.root.id!]!"
+                    @dismiss="dismissThreadSummary(entry.thread.root.id!)"
+                  />
+                </div>
+
+                <div
+                  v-if="replyThreadId === entry.thread.root.id && hasEditPermission"
+                  class="nc-comment-reply-composer nc-comment-reply flex flex-col gap-1 py-2 pl-3 pr-3"
+                  @paste="isCommentAttachmentsEnabled ? handleReplyAttachmentPaste($event) : undefined"
+                  @dragover.prevent
+                  @drop="isCommentAttachmentsEnabled ? handleReplyAttachmentDrop($event) : undefined"
+                  @keydown.esc.capture="onReplyEscape"
+                >
+                  <div class="flex items-start gap-2">
+                    <GeneralUserIcon :user="user" size="small" class="mt-2 flex-none" />
+                    <SmartsheetExpandedFormRichComment
+                      ref="replyInputRef"
+                      v-model:value="reply"
+                      autofocus
+                      hide-options
+                      :placeholder="$t('activity.commentThread.replyPlaceholder')"
+                      class="expanded-form-comment-input nc-comment-reply-input !py-1 !px-1.5 cursor-text border-1 rounded-lg min-w-0 flex-1 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[200px]"
+                      data-testid="nc-comment-reply-input"
+                      @keydown="handleKeyPress"
+                      @blur="onReplyBlur"
+                      @save="saveReply"
+                      @keydown.enter.exact.prevent="saveReply"
+                    />
+                    <div class="flex flex-none items-center gap-0.5 pt-0.5">
+                      <NcTooltip v-if="isCommentAttachmentsEnabled" :title="$t('activity.attachFile')" placement="top">
+                        <NcButton
+                          v-e="['c:comment:attach-file']"
+                          type="text"
+                          size="xsmall"
+                          class="nc-comment-attach-btn !h-7 !w-7"
+                          :loading="isReplyAttachmentUploading"
+                          :disabled="isReplyAttachmentUploading"
+                          :aria-label="$t('activity.attachFile')"
+                          @mousedown.prevent
+                          @click="openReplyFilePicker"
+                        >
+                          <GeneralIcon v-if="!isReplyAttachmentUploading" icon="lucidePaperclip" class="h-3.5 w-3.5" />
+                        </NcButton>
+                      </NcTooltip>
+                      <NcButton
+                        class="nc-comment-reply-send !h-7 !w-7 !shadow-none"
+                        size="xsmall"
+                        :disabled="(!reply.trim() && !replyAttachments.length) || isReplyAttachmentUploading"
+                        :aria-label="$t('general.send')"
+                        data-testid="nc-comment-reply-send"
+                        @mousedown.prevent
+                        @click="saveReply"
+                      >
+                        <GeneralIcon icon="ncSendAlt" />
+                      </NcButton>
+                    </div>
+                  </div>
+                  <SmartsheetExpandedFormCommentAttachments
+                    v-if="replyAttachments.length"
+                    :attachments="replyAttachments"
+                    editable
+                    class="pl-7"
+                    @remove="removeReplyAttachment"
+                  />
+                </div>
+              </template>
             </div>
-          </div>
+          </template>
+
+          <button
+            v-if="unreadComments.length && isFirstUnreadBelow && !isJumpToUnreadDismissed"
+            type="button"
+            class="nc-comment-jump-unread sticky bottom-2 z-20 mx-auto mt-2 flex flex-none items-center gap-1.5 rounded-full bg-nc-fill-primary px-3 py-1 text-xs font-semibold text-white shadow-md cursor-pointer hover:bg-nc-fill-primary-hover"
+            data-testid="nc-comment-jump-unread"
+            @click="jumpToUnread"
+          >
+            <GeneralIcon icon="arrowDown" class="w-3.5 h-3.5" />
+            {{ $t('activity.commentThread.newComments', { count: unreadComments.length }, unreadComments.length) }}
+          </button>
         </div>
-      </div>
+      </template>
       <SmartsheetExpandedFormCommentTypingIndicator v-if="isEeUI && hasEditPermission" :draft="comment" />
       <div
         v-if="hasEditPermission"
@@ -1209,11 +1932,14 @@ onBeforeUnmount(() => {
   @apply bg-nc-bg-elevated;
 }
 
-.nc-hovered-comment {
-  .nc-expand-form-more-actions,
-  .nc-resolve-comment-btn {
-    @apply !block;
-  }
+.nc-hovered-comment .nc-comment-actions,
+.nc-comment-actions:focus-within,
+.nc-comment-actions.nc-comment-actions-open {
+  @apply !flex;
+}
+
+.nc-comment-reply {
+  @apply ml-6 border-l-1 border-nc-border-gray-medium;
 }
 
 :deep(.nc-rich-link-tooltip) {

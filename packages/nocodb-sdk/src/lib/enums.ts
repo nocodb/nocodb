@@ -542,6 +542,16 @@ export enum AppEvents {
   FACTORY_MACHINE_ACTIVATE = 'factory.machine.activate',
   SKILL_POLICY_UPDATE = 'skill.policy.update',
 
+  MCP_CONNECTION_CREATE = 'mcp.connection.create',
+  MCP_CONNECTION_UPDATE = 'mcp.connection.update',
+  MCP_CONNECTION_DELETE = 'mcp.connection.delete',
+  MCP_TOOL_ALLOW = 'mcp.tool.allow',
+  MCP_CONNECTOR_CREATE = 'mcp.connector.create',
+  MCP_CONNECTOR_UPDATE = 'mcp.connector.update',
+  MCP_CONNECTOR_DELETE = 'mcp.connector.delete',
+  MCP_CONNECTOR_POLICY_UPDATE = 'mcp.connector.policy.update',
+  MCP_CONNECTOR_POLICY_RESET = 'mcp.connector.policy.reset',
+
   ROADMAP_ITEM_SUBMITTED = 'roadmap.item.submitted',
   ROADMAP_ITEM_UPDATED = 'roadmap.item.updated',
   ROADMAP_ITEM_APPROVED = 'roadmap.item.approved',

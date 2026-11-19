@@ -322,6 +322,38 @@ export class NcErrorBase {
     });
   }
 
+  /** A workspace or org MCP connector. */
+  mcpConnectorNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_MCP_CONNECTOR_NOT_FOUND,
+      { params: id, ...args },
+    );
+  }
+
+  /** A person's own MCP connection; anyone else's reads as missing. */
+  mcpConnectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_MCP_CONNECTION_NOT_FOUND,
+      { params: id, ...args },
+    );
+  }
+
+  /** A model-facing connector tool name that none of the person's connections offers. */
+  mcpToolNotFound(name: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_MCP_TOOL_NOT_FOUND, {
+      params: name,
+      ...args,
+    });
+  }
+
+  /** An action the integration's provider does not offer. */
+  integrationActionNotFound(name: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTEGRATION_ACTION_NOT_FOUND,
+      { params: name, ...args },
+    );
+  }
+
   /** A malformed `owner/repo` or `owner/repo/skillName`. */
   skillSourceInvalid(ref: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_SKILL_SOURCE_INVALID, {

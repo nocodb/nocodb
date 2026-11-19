@@ -365,6 +365,16 @@ enum AuditV1OperationTypes {
   SKILL_IMPORT = 'SKILL_IMPORT',
   SKILL_POLICY_UPDATE = 'SKILL_POLICY_UPDATE',
 
+  MCP_CONNECTION_CREATE = 'MCP_CONNECTION_CREATE',
+  MCP_CONNECTION_UPDATE = 'MCP_CONNECTION_UPDATE',
+  MCP_CONNECTION_DELETE = 'MCP_CONNECTION_DELETE',
+  MCP_TOOL_ALLOW = 'MCP_TOOL_ALLOW',
+  MCP_CONNECTOR_CREATE = 'MCP_CONNECTOR_CREATE',
+  MCP_CONNECTOR_UPDATE = 'MCP_CONNECTOR_UPDATE',
+  MCP_CONNECTOR_DELETE = 'MCP_CONNECTOR_DELETE',
+  MCP_CONNECTOR_POLICY_UPDATE = 'MCP_CONNECTOR_POLICY_UPDATE',
+  MCP_CONNECTOR_POLICY_RESET = 'MCP_CONNECTOR_POLICY_RESET',
+
   FACTORY_SESSION_CREATE = 'FACTORY_SESSION_CREATE',
   FACTORY_SESSION_STOP = 'FACTORY_SESSION_STOP',
   FACTORY_SESSION_ARCHIVE = 'FACTORY_SESSION_ARCHIVE',
@@ -557,6 +567,13 @@ export const auditV1OperationsCategory: Record<
     value: 'SKILL',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('SKILL_')
+    ),
+  },
+  CONNECTOR: {
+    label: 'title.connectors',
+    value: 'CONNECTOR',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('MCP_')
     ),
   },
   INTERFACE: {
@@ -1824,6 +1841,50 @@ export interface SkillPolicyUpdatePayload {
     allowlist: string[];
     personal: string;
   } | null;
+}
+
+/** A person's own connection; never its credentials. */
+export interface McpConnectionPayload {
+  connection_id: string;
+  title: string;
+  /** `verified` | `workspace` | `org` | `custom` */
+  source: string;
+  connector_id?: string;
+  /** Custom servers only: the URL without its query, where a key may sit. */
+  url?: string;
+  /** The account signed in, e.g. its email. */
+  identity?: string;
+  /** Update: what changed, e.g. `permission`, `tool_settings`, `sign_in`. */
+  changes?: string[];
+  /** Tool allow: the server's tool name. */
+  tool?: string;
+}
+
+/** A workspace or org connector; never its client secret. */
+export interface McpConnectorPayload {
+  connector_id: string;
+  title: string;
+  /** `workspace` | `org` */
+  scope: string;
+  scope_id: string;
+  url: string;
+  auth: string;
+  changes?: string[];
+}
+
+interface McpConnectorPolicyDetails {
+  mode: string;
+  verified: string;
+  verified_ids: string[];
+}
+
+export interface McpConnectorPolicyPayload {
+  /** `workspace` | `org` */
+  scope: string;
+  scope_id: string;
+  /** Null after an org reset: each workspace decides again. */
+  policy: McpConnectorPolicyDetails | null;
+  previous?: McpConnectorPolicyDetails | null;
 }
 
 export interface DocumentCreatePayload {
@@ -3208,6 +3269,54 @@ const descriptionTemplates = {
     audit: AuditV1<SkillPolicyUpdatePayload>
   ) =>
     `Skills policy updated for ${audit.details.scope}: community '${audit.details.community}', personal '${audit.details.personal}'`,
+  [AuditV1OperationTypes.MCP_CONNECTION_CREATE]: (
+    audit: AuditV1<McpConnectionPayload>
+  ) =>
+    `Connected '${audit.details.title}'${
+      audit.details.identity ? ` as ${audit.details.identity}` : ''
+    }`,
+  [AuditV1OperationTypes.MCP_CONNECTION_UPDATE]: (
+    audit: AuditV1<McpConnectionPayload>
+  ) =>
+    `Connection '${audit.details.title}' updated${
+      audit.details.changes?.length
+        ? `: ${audit.details.changes.join(', ')}`
+        : ''
+    }`,
+  [AuditV1OperationTypes.MCP_CONNECTION_DELETE]: (
+    audit: AuditV1<McpConnectionPayload>
+  ) => `Disconnected '${audit.details.title}'`,
+  [AuditV1OperationTypes.MCP_TOOL_ALLOW]: (
+    audit: AuditV1<McpConnectionPayload>
+  ) =>
+    `Tool '${audit.details.tool}' on '${audit.details.title}' set to run without asking`,
+  [AuditV1OperationTypes.MCP_CONNECTOR_CREATE]: (
+    audit: AuditV1<McpConnectorPayload>
+  ) =>
+    `Connector '${audit.details.title}' added for the ${audit.details.scope}`,
+  [AuditV1OperationTypes.MCP_CONNECTOR_UPDATE]: (
+    audit: AuditV1<McpConnectorPayload>
+  ) =>
+    `Connector '${audit.details.title}' updated${
+      audit.details.changes?.length
+        ? `: ${audit.details.changes.join(', ')}`
+        : ''
+    }`,
+  [AuditV1OperationTypes.MCP_CONNECTOR_DELETE]: (
+    audit: AuditV1<McpConnectorPayload>
+  ) =>
+    `Connector '${audit.details.title}' removed from the ${audit.details.scope}`,
+  [AuditV1OperationTypes.MCP_CONNECTOR_POLICY_UPDATE]: (
+    audit: AuditV1<McpConnectorPolicyPayload>
+  ) =>
+    `Connector policy updated for the ${audit.details.scope}: ${
+      audit.details.policy?.mode === 'restricted'
+        ? `approved connectors only, verified '${audit.details.policy.verified}'`
+        : 'any connector'
+    }`,
+  [AuditV1OperationTypes.MCP_CONNECTOR_POLICY_RESET]: (
+    _audit: AuditV1<McpConnectorPolicyPayload>
+  ) => `Organization connector policy reset: each workspace decides again`,
 };
 
 function auditDescription(audit: AuditV1) {

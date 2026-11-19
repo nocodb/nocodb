@@ -210,6 +210,8 @@ export enum PlanFeatureTypes {
   FEATURE_SKILLS_GOVERNANCE = 'feature_skills_governance',
   /** Org-scope skills, org policy over every workspace, inventory and load reporting. */
   FEATURE_SKILLS_ORG = 'feature_skills_org',
+  /** Adding workspace and org connectors and setting a connector policy. */
+  FEATURE_CONNECTORS_GOVERNANCE = 'feature_connectors_governance',
 
   /** Shared form views can require the submitter to sign in. */
   FEATURE_FORM_REQUIRE_SIGNIN = 'feature_form_require_signin',
@@ -659,6 +661,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to control which skills your workspace can install.',
   [PlanFeatureTypes.FEATURE_SKILLS_ORG]:
     'to manage skills across every workspace in your organization.',
+  [PlanFeatureTypes.FEATURE_CONNECTORS_GOVERNANCE]:
+    'to add connectors for everyone and choose which ones your workspace allows.',
   [PlanFeatureTypes.FEATURE_ENTERPRISE_VAULTS]:
     'to keep integration credentials in your own secrets manager.',
   [PlanFeatureTypes.FEATURE_COMPUTE_LITE]:

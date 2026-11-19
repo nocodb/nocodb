@@ -312,6 +312,22 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Skill '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_MCP_CONNECTOR_NOT_FOUND]: {
+    message: (id: string) => `Connector '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_MCP_CONNECTION_NOT_FOUND]: {
+    message: (id: string) => `Connection '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_MCP_TOOL_NOT_FOUND]: {
+    message: (name: string) => `Connector tool '${name}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_INTEGRATION_ACTION_NOT_FOUND]: {
+    message: (name: string) => `Integration action '${name}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_SKILL_SOURCE_INVALID]: {
     message: (ref: string) =>
       `'${ref}' is not a valid skill source — expected 'owner/repo' or 'owner/repo/skillName'`,

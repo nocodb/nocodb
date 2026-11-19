@@ -115,6 +115,8 @@ export const useEeConfig = createSharedComposable(() => {
   const blockSkillsOrg = computed(() => true)
   const showUpgradeToUseSkillsGovernance = (..._args: any[]) => {}
   const showUpgradeToUseSkillsOrg = (..._args: any[]) => {}
+  const blockConnectorsGovernance = computed(() => true)
+  const showUpgradeToUseConnectorsGovernance = (..._args: any[]) => {}
   const blockInterfaceToolbarToggles = computed(() => true)
   const blockInterfaceDrafts = computed(() => true)
   const blockInterfacePreviewAs = computed(() => true)
@@ -636,6 +638,8 @@ export const useEeConfig = createSharedComposable(() => {
     blockSkillsOrg,
     showUpgradeToUseSkillsGovernance,
     showUpgradeToUseSkillsOrg,
+    blockConnectorsGovernance,
+    showUpgradeToUseConnectorsGovernance,
     blockInterfaceMetricColorConditions,
     blockInterfacePivotWidget,
     blockInterfaceViewWidget,

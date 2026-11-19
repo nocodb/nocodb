@@ -666,6 +666,8 @@ export interface ChatToolMetadata {
   }>;
   /** What the approval card shows about a call waiting on it, read when it paused. */
   approval?: ChatApprovalPreview;
+  /** A connector tool's definition when its call paused; the approval runs only that version. */
+  connector?: { tool: string; fingerprint: string };
 }
 
 /** An agent's switches beyond reading tables, as `edit_agent`/`build_agent` take them. */

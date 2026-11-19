@@ -327,7 +327,9 @@ const getAst = async (
         // it under the bare title as a record read rather than a `_nc_lk_`
         // count (select-object skips its rollup), so it recurses like an LTAR.
         (col.uidt === UITypes.Links && isBtLikeV2Junction(col))) &&
-      !requiredColumnIds?.has(col.id)
+      !requiredColumnIds?.has(col.id) &&
+      // a link display value is the row's title; its chain is capped at create
+      col.id !== model.displayValue?.id
     ) {
       ast[getFieldKey(col)] = null;
       continue;

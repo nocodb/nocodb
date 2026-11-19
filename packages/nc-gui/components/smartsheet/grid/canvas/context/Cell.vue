@@ -6,8 +6,8 @@ import {
   type ViewType,
   isAIPromptCol,
   isLinksOrLTAR,
-  ncHasProperties,
   isSingleRecordLinkColumn,
+  ncHasProperties,
 } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'

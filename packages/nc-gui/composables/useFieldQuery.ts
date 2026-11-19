@@ -1,4 +1,3 @@
-import { linkDisplaySearchClause } from '~/utils/linkedRecordDisplay'
 import {
   ClientType,
   ColumnHelper,
@@ -12,6 +11,7 @@ import {
   isVirtualCol,
   ncIsNaN,
 } from 'nocodb-sdk'
+import { linkDisplaySearchClause } from '~/utils/linkedRecordDisplay'
 
 export interface FieldQueryType {
   field: string

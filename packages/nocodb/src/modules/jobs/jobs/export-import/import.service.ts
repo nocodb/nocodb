@@ -1443,6 +1443,31 @@ export class ImportService {
 
     elapsedTime(hrTime, 'create LTAR columns', 'importModels');
 
+    // A table whose display value is a link gets it back only now. A V1 belongs-to is created
+    // as the pair of its has-many, so its `pv` never reaches `columnAdd`, and the copy would
+    // otherwise keep the scalar display value `tableCreate` picked. A display value is a
+    // preference, so a link that no longer qualifies here must not fail the whole job.
+    for (const data of param.data) {
+      const pvColumn = data.model.columns?.find(
+        (c) => c.pv && isLinksOrLTAR(c),
+      );
+      if (!pvColumn) continue;
+
+      const columnId = getIdOrExternalId(pvColumn.id);
+      if (!columnId) continue;
+
+      try {
+        await this.columnsService.columnSetAsPrimary(targetContext, {
+          columnId,
+          req: param.req,
+        });
+      } catch (e) {
+        this.debugLog(
+          `failed to restore link display value for ${data.model.title}: ${e?.message}`,
+        );
+      }
+    }
+
     const referencedColumnsById = new Map(
       referencedColumnSet.map((col) => [col.id, col]),
     );

@@ -4222,10 +4222,118 @@ export class ColumnsService implements IColumnsService {
     }
   }
 
+  /**
+   * Switches a table's display value to `column` and tells everything that reads it: the
+   * meta-dependency handler (formula rollups over the display value), the column-update hooks
+   * for the old and the new display value, and the socket broadcasts. Shared by
+   * set-as-display-value and by a link created with `pv`, which must not skip any of it.
+   *
+   * Eligibility is the caller's to check — this only applies the change.
+   */
+  async setPrimaryColumn(
+    context: NcContext,
+    param: {
+      column: Column;
+      /** The display value being replaced, read before the switch. */
+      oldPrimaryColumn?: Column;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const { oldPrimaryColumn, req } = param;
+
+    const result = await Model.updatePrimaryColumn(
+      context,
+      param.column.fk_model_id,
+      param.column.id,
+      ncMeta,
+    );
+
+    const column = await Column.get(
+      context,
+      { colId: param.column.id },
+      ncMeta,
+    );
+
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.COLUMN_PRIMARY_UPDATED,
+        oldEntity: oldPrimaryColumn,
+        newEntity: column,
+      },
+      ncMeta,
+    );
+
+    // to reflect column properly on realtime and getWithInfo we will get default view column order and visibility in col meta
+    const table = await Model.getWithInfo(
+      context,
+      { id: column.fk_model_id },
+      ncMeta,
+    );
+
+    if (oldPrimaryColumn) {
+      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+        table,
+        oldColumn: oldPrimaryColumn,
+        column: { ...oldPrimaryColumn, pv: false },
+        columnId: column.id,
+        req,
+        context,
+        columns: table.columns,
+      });
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'column_update',
+            payload: {
+              table: tableForBroadcast(table),
+              column: { ...oldPrimaryColumn, pv: false },
+            },
+          },
+        },
+        context.socket_id,
+      );
+    }
+
+    this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+      table,
+      oldColumn: param.column,
+      column,
+      columnId: column.id,
+      req,
+      context,
+      columns: table.columns,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'column_update',
+          payload: {
+            table: tableForBroadcast(table),
+            column,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
+    void this.broadcastToCrossBaseReferrers(context, table.id);
+
+    return result;
+  }
+
   @TraceCommand(OperationName.columnSetAsPrimary)
   async columnSetAsPrimary(
     context: NcContext,
     param: { columnId: string; req: NcRequest },
+    ncMeta = Noco.ncMeta,
   ) {
     const oldColumn = await Column.get(context, { colId: param.columnId });
     if (!oldColumn) {
@@ -4256,78 +4364,11 @@ export class ColumnsService implements IColumnsService {
       }
       await assertNoDisplayValueCycle(context, oldColumn);
     }
-    const result = await Model.updatePrimaryColumn(
+    return this.setPrimaryColumn(
       context,
-      oldColumn.fk_model_id,
-      oldColumn.id,
+      { column: oldColumn, oldPrimaryColumn, req: param.req },
+      ncMeta,
     );
-
-    const column = await Column.get(context, { colId: param.columnId });
-
-    await this.metaDependencyEventHandler.handleEvent(context, {
-      eventType: MetaEventType.COLUMN_PRIMARY_UPDATED,
-      oldEntity: oldPrimaryColumn,
-      newEntity: column,
-    });
-
-    // to reflect column properly on realtime and getWithInfo we will get default view column order and visibility in col meta
-    const table = await Model.getWithInfo(context, { id: column.fk_model_id });
-
-    if (oldPrimaryColumn) {
-      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
-        table,
-        oldColumn: oldPrimaryColumn,
-        column: { ...oldPrimaryColumn, pv: false },
-        columnId: column.id,
-        req: param.req,
-        context,
-        columns: table.columns,
-      });
-
-      NocoSocket.broadcastEvent(
-        context,
-        {
-          event: EventType.META_EVENT,
-          payload: {
-            action: 'column_update',
-            payload: {
-              table: tableForBroadcast(table),
-              column: { ...oldPrimaryColumn, pv: false },
-            },
-          },
-        },
-        context.socket_id,
-      );
-    }
-
-    this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
-      table,
-      oldColumn,
-      column,
-      columnId: column.id,
-      req: param.req,
-      context,
-      columns: table.columns,
-    });
-
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'column_update',
-          payload: {
-            table: tableForBroadcast(table),
-            column,
-          },
-        },
-      },
-      context.socket_id,
-    );
-
-    void this.broadcastToCrossBaseReferrers(context, table.id);
-
-    return result;
   }
 
   // Barcode/QrCode encode a value read from another field in the same table.
@@ -4350,32 +4391,43 @@ export class ColumnsService implements IColumnsService {
   }
 
   /**
-   * Makes a freshly created link its table's display value. Keeps `pv: true` meaningful on
-   * create — it is also how duplicating a base rebuilds a link display value — instead of
-   * dropping it. `createLTARColumn` has already checked that the link may hold it.
+   * Makes a freshly created link its table's display value, so `pv: true` on a link create
+   * means what it says. `createLTARColumn` has already checked the link may hold it.
    *
-   * A link request creates a column on each side and the requested title lands on whichever
-   * side the relation puts it (a V1 belongs-to on `childId`, everything else on the table the
-   * request names), so look for the single-record one among both.
+   * A link request creates a column on each side — a V1 belongs-to names the one on `childId`,
+   * everything else the one on the table the request names — so both ids are offered and the
+   * single-record one wins. They come from the insert rather than a title lookup: the title is
+   * deduped against the table it lands on, so searching by it can find an older link instead.
    */
   protected async applyLinkDisplayValue(
     context: NcContext,
-    param: { title: string; tableIds: (string | undefined)[] },
+    param: { columnIds: (string | undefined)[]; req: NcRequest },
     ncMeta = Noco.ncMeta,
   ) {
-    for (const tableId of param.tableIds.filter(Boolean)) {
-      const model = await Model.get(context, tableId, false, ncMeta);
-      const candidate = (await model?.getColumns(ncMeta))?.find(
-        (c) => c.title === param.title && isLinksOrLTAR(c),
-      );
-      if (!candidate) continue;
+    for (const columnId of param.columnIds) {
+      if (!columnId) continue;
+
+      const candidate = await Column.get(context, { colId: columnId }, ncMeta);
+      if (!candidate || !isLinksOrLTAR(candidate)) continue;
+
       await candidate.getColOptions(ncMeta);
       if (!isSingleRecordLinkColumn(candidate)) continue;
 
-      await Model.updatePrimaryColumn(
+      const model = await Model.get(
         context,
         candidate.fk_model_id,
-        candidate.id,
+        false,
+        ncMeta,
+      );
+      const columns = (await model?.getColumns(ncMeta)) ?? [];
+
+      await this.setPrimaryColumn(
+        context,
+        {
+          column: candidate,
+          oldPrimaryColumn: columns.find((c) => c.pv),
+          req: param.req,
+        },
         ncMeta,
       );
       return;
@@ -4407,14 +4459,12 @@ export class ColumnsService implements IColumnsService {
       param.column.title = param.column.column_name;
     }
 
-    // Only a single-record link can be a display value, and it must not lead back to itself
-    // through the linked tables' display values. The relation type is known now, so reject an
-    // ineligible one before anything is created; the cycle check needs colOptions, so hold the
-    // flag back from the insert and apply it once the column exists.
     // `Column.insert` would promote a link to display value unchecked. Hold the flag back and
     // apply it after the link exists; `createLTARColumn` rejects an ineligible one up front,
     // so nothing is created when it cannot be honoured.
     let pvRequestedOnLink = false;
+    // ids of the two columns a link create inserts, filled in by the LTAR branch below
+    let pvLinkColumnIds: (string | undefined)[] = [];
     if (
       'pv' in param.column &&
       param.column.pv &&
@@ -4683,6 +4733,7 @@ export class ColumnsService implements IColumnsService {
           colExtra,
         });
         captureForTrace('ltar', ltarCapture);
+        pvLinkColumnIds = [savedColumn?.id, ltarCapture.reverseColumnId];
 
         this.appHooksService.emit(AppEvents.RELATION_CREATE, {
           column: {
@@ -5495,6 +5546,17 @@ export class ColumnsService implements IColumnsService {
 
     await this.postColumnAdd(context, param.column, table);
 
+    if (pvRequestedOnLink) {
+      await this.applyLinkDisplayValue(
+        context,
+        { columnIds: pvLinkColumnIds, req: param.req },
+        ncMeta,
+      );
+      // the switch flips `pv` on two columns — re-read so the response and the column_add
+      // broadcast below carry the new display value rather than the old one
+      await table.getColumns(undefined, defaultView?.id);
+    }
+
     const newColumn = table.columns.find((c) => c.title === param.column.title);
 
     const columnFilterKind: 'link' | 'button' | null = isLinksOrLTAR(
@@ -5602,20 +5664,6 @@ export class ColumnsService implements IColumnsService {
           e.stack,
         );
       }
-    }
-
-    if (pvRequestedOnLink) {
-      await this.applyLinkDisplayValue(
-        context,
-        {
-          title: param.column.title,
-          tableIds: [
-            param.tableId,
-            (param.column as LinkToAnotherColumnReqType).childId,
-          ],
-        },
-        ncMeta,
-      );
     }
 
     if (param.apiVersion === NcApiVersion.V3) {

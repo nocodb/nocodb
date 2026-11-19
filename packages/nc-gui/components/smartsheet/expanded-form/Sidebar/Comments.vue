@@ -1643,7 +1643,7 @@ onBeforeUnmount(() => {
                         <div
                           v-if="parsedHtmlComments[commentItem.id]"
                           v-dompurify-html="parsedHtmlComments[commentItem.id]"
-                          class="nc-comment-body nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
+                          class="nc-comment-body nc-rich-text-content !text-small !leading-5 !text-nc-content-gray"
                           @click="handleDompurifyLinkClick"
                         ></div>
                         <SmartsheetExpandedFormCommentAttachments

@@ -24,7 +24,7 @@ const { isMetaReadOnly } = useRoles()
 // update datatype precision when precision is less than the new value
 // avoid downgrading precision if the new value is less than the current precision
 // to avoid fractional part data loss(eg. 1.2345 -> 1.23)
-// skipped on a read-only schema: dtxs is only saved to meta there and would drift from the real column
+// skipped on a read-only schema: the column's scale can't change there, so keep dtxs as it is
 const onPrecisionChange = (value: number) => {
   if (isMetaReadOnly.value) return
   vModel.value.dtxs = Math.max(value, vModel.value.dtxs)

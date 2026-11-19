@@ -200,6 +200,10 @@ export class DataV3Service {
     depth: number,
     reuse: ReusableParams,
     linksAsLtar: boolean,
+    // model id -> shallowest depth its columns have been walked at. Shared across the
+    // whole recursion so a model first reached near the depth cap, where there was no
+    // budget left to walk it, is walked again when a shorter path reaches it.
+    expandedAt: Map<string, number> = new Map(),
   ): Promise<{
     modelMap: Record<string, ModelMeta>;
     columnModelMap: Record<string, string>;
@@ -229,7 +233,6 @@ export class DataV3Service {
       const modelId = info.model.id;
       columnModelMap[column.id] = modelId;
 
-      // Skip if model already resolved (handles circular refs)
       if (!modelMap[modelId]) {
         modelMap[modelId] = {
           id: modelId,
@@ -237,6 +240,16 @@ export class DataV3Service {
           primaryKeys: info.primaryKeys,
           columns: info.model.columns,
         };
+      }
+
+      // Walk the related model's columns the first time, and again whenever a shorter
+      // path reaches it: registering the model is not the same as having walked it, and
+      // a model first seen at the depth cap has none of its own links mapped. Recursion
+      // still terminates on `depth >= MAX_NESTING_DEPTH`, so a cycle cannot loop here.
+      const nextDepth = depth + 1;
+      const walkedAt = expandedAt.get(modelId);
+      if (walkedAt === undefined || walkedAt > nextDepth) {
+        expandedAt.set(modelId, nextDepth);
 
         // Recurse into the related model's columns using the related model's
         // base context. Without this, same-base links within a cross-base
@@ -249,9 +262,10 @@ export class DataV3Service {
         const nested = await this.buildModelMaps(
           relatedModelContext,
           info.model.columns,
-          depth + 1,
+          nextDepth,
           reuse,
           linksAsLtar,
+          expandedAt,
         );
         Object.assign(modelMap, nested.modelMap);
         Object.assign(columnModelMap, nested.columnModelMap);

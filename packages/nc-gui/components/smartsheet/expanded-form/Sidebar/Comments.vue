@@ -1275,7 +1275,7 @@ onBeforeUnmount(() => {
           <GeneralIcon icon="chevronRight" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
         </button>
 
-        <div ref="commentsWrapperEl" class="relative flex flex-col h-full py-1 nc-scrollbar-thin">
+        <div ref="commentsWrapperEl" class="relative flex flex-col h-full pt-4 pb-1 nc-scrollbar-thin">
           <div class="mt-auto" />
           <template v-for="entry of feedEntries" :key="entry.key">
             <SmartsheetExpandedFormSidebarCommentActivity v-if="entry.type === 'audit'" :audit="entry.audit" />
@@ -1349,7 +1349,7 @@ onBeforeUnmount(() => {
                           imageAnnotations.hoveredAnnotationId.value === commentItem.id),
                       'pl-3': commentItem !== entry.thread.root,
                     }"
-                    class="group relative overflow-hidden px-3 py-2 transition-colors"
+                    class="group relative min-w-0 px-3 py-2 transition-colors"
                   >
                     <div class="flex items-start gap-3">
                       <GeneralUserIcon
@@ -1443,7 +1443,7 @@ onBeforeUnmount(() => {
                     <!-- Hover action bar -->
                     <div
                       v-if="!editCommentValue && !commentItem.id?.startsWith('temp-')"
-                      class="nc-comment-actions !hidden !group-hover:flex !group-focus-within:flex absolute right-2 top-1.5 z-10 items-center gap-0.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated p-0.5 shadow-sm"
+                      class="nc-comment-actions !hidden !group-hover:flex !group-focus-within:flex absolute right-2 -top-3.5 z-10 items-center gap-0.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated p-0.5 shadow-sm"
                       data-testid="nc-comment-actions"
                     >
                       <SmartsheetExpandedFormSidebarCommentReactionPicker

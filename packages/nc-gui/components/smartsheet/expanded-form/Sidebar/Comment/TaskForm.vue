@@ -91,7 +91,7 @@ function save() {
     data-testid="nc-comment-task-form"
     @keydown.esc.stop="emits('cancel')"
   >
-    <NcDropdown v-model:visible="isUserListOpen" placement="bottomLeft">
+    <NcDropdown v-model:visible="isUserListOpen" placement="bottomRight">
       <button
         type="button"
         class="flex h-8 w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium px-2 text-small text-left cursor-pointer hover:bg-nc-bg-gray-light"
@@ -137,7 +137,7 @@ function save() {
       </template>
     </NcDropdown>
 
-    <NcDropdown v-model:visible="isDateOpen" placement="bottomLeft">
+    <NcDropdown v-model:visible="isDateOpen" placement="bottomRight">
       <button
         type="button"
         class="flex h-8 w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium px-2 text-small text-left cursor-pointer hover:bg-nc-bg-gray-light"

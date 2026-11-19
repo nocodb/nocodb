@@ -164,12 +164,15 @@ export default class Comment implements CommentType {
     // injected ids back onto the comment.
     if (commentObj.attachments?.length) {
       await Comment.reconcileAttachments(context, commentObj, ncMeta);
+      // Part of the insert, not an edit: keep updated_at so it doesn't show as edited.
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,
         MetaTable.COMMENTS,
         prepareForDb({ attachments: commentObj.attachments }, ['attachments']),
         commentObj.id,
+        {},
+        true,
       );
     }
 

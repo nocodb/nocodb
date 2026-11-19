@@ -1,13 +1,16 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
 import dayjs from 'dayjs'
 import {
+  DATE_RANGE_SUB_OP,
   type FilterType,
   type LinkToAnotherRecordType,
   type LookupType,
   type TableType,
   UITypes,
   isBtLikeV2Junction,
+  isCalendarPeriodSubOp,
   isDateMonthFormat,
+  isDateWithinPeriod,
   isLTAR,
   isLink,
   isUnratedRating,
@@ -459,6 +462,11 @@ export class FormFilters {
                   res = !(dataVal === '' || dataVal === null || dataVal === undefined)
                   break
                 case 'isWithin': {
+                  const subOp = filter.comparison_sub_op
+                  if (isCalendarPeriodSubOp(subOp) || subOp === DATE_RANGE_SUB_OP) {
+                    res = isDateWithinPeriod(subOp, filter.value, dayjs(dataVal), dayjs(), (end) => dayjs(end))
+                    break
+                  }
                   let now = dayjs(new Date()).format(dateFormat).toString()
                   now = column.uidt === UITypes.Date ? now.substring(0, 10) : now
                   switch (filter.comparison_sub_op) {
@@ -477,6 +485,10 @@ export class FormFilters {
                   }
                 }
               }
+            } else {
+              // As validate-row-filters: an empty date only passes neq/not. An explicit false, since
+              // undefined lets the next AND filter reset the chain.
+              res = filter.comparison_op === 'neq' || filter.comparison_op === 'not'
             }
           } else {
             switch (typeof filter.value) {

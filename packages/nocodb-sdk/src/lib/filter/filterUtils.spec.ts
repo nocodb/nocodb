@@ -1,4 +1,9 @@
-import { getPlaceholderNewRow } from '~/lib/filter/filterUtils';
+import {
+  comparisonSubOpList,
+  getPlaceholderNewRow,
+} from '~/lib/filter/filterUtils';
+import { formulaDateUidt } from '~/lib/formula/dateOnlyFormula';
+import { FormulaDataTypes, JSEPNode } from '~/lib/formula/enums';
 import { ColumnType, FilterType } from '~/lib/Api';
 import UITypes from '~/lib/UITypes';
 
@@ -146,5 +151,91 @@ describe('getPlaceholderNewRow', () => {
         columns
       )
     ).toEqual({ Code: 94513 });
+  });
+});
+
+describe('formulaDateUidt', () => {
+  const date = {
+    type: JSEPNode.IDENTIFIER,
+    name: 'cDate',
+    referencedColumn: { id: 'cDate', uidt: UITypes.Date },
+  };
+  const dateTime = {
+    type: JSEPNode.IDENTIFIER,
+    name: 'cDt',
+    referencedColumn: { id: 'cDt', uidt: UITypes.DateTime },
+  };
+  const num = {
+    type: JSEPNode.IDENTIFIER,
+    referencedColumn: { id: 'cNum', uidt: UITypes.Number },
+  };
+  const lit = (value: string | number) => ({
+    type: JSEPNode.LITERAL,
+    value,
+    raw: `${value}`,
+  });
+  const call = (name: string, ...args: any[]) =>
+    ({
+      type: JSEPNode.CALL_EXP,
+      callee: { type: JSEPNode.IDENTIFIER, name },
+      arguments: args,
+      dataType: FormulaDataTypes.DATE,
+    } as any);
+
+  it('a date-only result filters as a Date', () => {
+    for (const tree of [
+      call('DATEADD', date, lit(7), lit('day')),
+      call('DATEADD', date, lit(-1), lit('month')),
+      // DATEADD lowercases its unit
+      call('DATEADD', date, lit(2), lit('Week')),
+      call('DATEADD', date, { ...num, name: 'cNum' }, lit('day')),
+      call('TODAY'),
+      call('WORKDAY', date, lit(3)),
+      call('IF', lit(1), call('TODAY'), call('BLANK')),
+      // through a date-only formula, marked by validation
+      call(
+        'DATEADD',
+        {
+          ...date,
+          name: 'cFormula',
+          referencedColumn: { ...date.referencedColumn, dateOnly: true },
+        },
+        lit(1),
+        lit('day')
+      ),
+    ]) {
+      expect(formulaDateUidt(tree)).toBe(UITypes.Date);
+    }
+  });
+
+  it('a result that can carry a time stays a DateTime', () => {
+    for (const tree of [
+      call('NOW'),
+      call('DATEADD', date, lit(3), lit('hour')),
+      call('DATEADD', date, lit(1.5), lit('day')),
+      call('DATEADD', dateTime, lit(1), lit('day')),
+      // another formula's referencedColumn names its source, not itself
+      call('DATEADD', { ...date, name: 'cFormula' }, lit(1), lit('day')),
+      // a formula over a Number, e.g. MAX({Num}, 0.5), can be fractional
+      call('DATEADD', date, { ...num, name: 'cFormula' }, lit('day')),
+      call('IF', lit(1), call('TODAY'), call('NOW')),
+    ]) {
+      expect(formulaDateUidt(tree)).toBe(UITypes.DateTime);
+    }
+    expect(
+      formulaDateUidt({ ...call('TODAY'), dataType: FormulaDataTypes.STRING })
+    ).toBeUndefined();
+  });
+});
+
+describe('comparisonSubOpList isWithin', () => {
+  const values = (format?: string) =>
+    comparisonSubOpList('isWithin', format).map((o) => o.value);
+
+  it('hides calendar weeks on a month-format field', () => {
+    expect(values('YYYY-MM-DD')).toContain('thisCalendarWeek');
+    expect(values('YYYY-MM')).not.toContain('thisCalendarWeek');
+    expect(values('YYYY-MM')).not.toContain('lastCalendarWeek');
+    expect(values('YYYY-MM')).toContain('thisCalendarMonth');
   });
 });

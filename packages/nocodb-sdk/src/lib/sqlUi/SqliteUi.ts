@@ -1031,6 +1031,9 @@ export class SqliteUi implements SqlUi {
       'ARRAYUNIQUE',
       'ARRAYSLICE',
       'ARRAYCOMPACT',
+      'TEXTSPLIT',
+      'ARRAYJOIN',
+      'ARRAYFLATTEN',
       // node-sqlite3 has no built-in hash functions and does not support
       // user-defined functions, so checksum functions are unsupported.
       'MD5',

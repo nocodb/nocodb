@@ -4,15 +4,24 @@ import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import Handlebars from 'handlebars';
 import handlebarsHelpers from 'handlebars-helpers-v2';
 import {
   ColumnHelper,
+  DATE_RANGE_SUB_OP,
+  formulaDateUidt,
   getColumnResultType,
+  getNodejsTimezone,
   HookOperationCode,
+  isCalendarPeriodSubOp,
   isDateMonthFormat,
+  isDateWithinPeriod,
   isLinksOrLTAR,
   isUnratedRating,
+  parseDateInTimezone,
+  parseProp,
   UITypes,
 } from 'nocodb-sdk';
 import type {
@@ -25,7 +34,14 @@ import type {
 } from 'nocodb-sdk';
 import type { AxiosResponse } from 'axios';
 import type { NcContext } from '~/interface/config';
-import type { Column, FormView, Hook, Model, View } from '~/models';
+import type {
+  Column,
+  FormulaColumn,
+  FormView,
+  Hook,
+  Model,
+  View,
+} from '~/models';
 import { Filter, Source } from '~/models';
 import { populateUpdatePayloadDiff } from '~/utils';
 import { WebhookInvoker } from '~/utils/webhook-invoker';
@@ -38,6 +54,8 @@ handlebarsHelpers({ handlebars: Handlebars });
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 Handlebars.registerHelper('json', function (context, pretty = false) {
   if (pretty === true || pretty === 'true') {
@@ -104,10 +122,15 @@ async function resolveConditionDateType(
     if (target.uidt === UITypes.Lookup) {
       target = await travelLookupColumn({ context: column.context, column });
     }
+    let colOptions: FormulaColumn | undefined;
     if (target && [UITypes.Formula, UITypes.Rollup].includes(target.uidt)) {
-      await target.getColOptions();
+      colOptions = await target.getColOptions<FormulaColumn>();
     }
-    const uidt = getColumnResultType(target);
+    let uidt = getColumnResultType(target);
+    // as the view's SQL: a date formula filters by its result, not display_type
+    if (target.uidt === UITypes.Formula) {
+      uidt = formulaDateUidt(colOptions?.getParsedTree?.()) ?? uidt;
+    }
     return DATE_UIDTS.includes(uidt) ? { uidt, column: target } : {};
   } catch {
     // broken lookup/relation: keep the generic comparison
@@ -236,29 +259,34 @@ export async function validateCondition(
         }
 
         const matchDate = (dataVal: any) => {
+          // a Date is its wall date, even as pg's midnight +00:00
+          const day =
+            dateUidt === UITypes.Date && typeof dataVal === 'string'
+              ? dayjs(dataVal.slice(0, 10))
+              : dayjs(dataVal);
           let res;
-          if (rawFilterVal) res = dayjs(rawFilterVal).isSame(dataVal, 'day');
+          if (rawFilterVal) res = dayjs(rawFilterVal).isSame(day, 'day');
           if (!dataVal) return res;
           switch (filter.comparison_op) {
             case 'eq':
-              res = dayjs(dataVal).isSame(filterVal, 'day');
+              res = day.isSame(filterVal, 'day');
               break;
             case 'neq':
-              res = !dayjs(dataVal).isSame(filterVal, 'day');
+              res = !day.isSame(filterVal, 'day');
               break;
             case 'gt':
-              res = dayjs(dataVal).isAfter(filterVal, 'day');
+              res = day.isAfter(filterVal, 'day');
               break;
             case 'lt':
-              res = dayjs(dataVal).isBefore(filterVal, 'day');
+              res = day.isBefore(filterVal, 'day');
               break;
             case 'lte':
             case 'le':
-              res = dayjs(dataVal).isSameOrBefore(filterVal, 'day');
+              res = day.isSameOrBefore(filterVal, 'day');
               break;
             case 'gte':
             case 'ge':
-              res = dayjs(dataVal).isSameOrAfter(filterVal, 'day');
+              res = day.isSameOrAfter(filterVal, 'day');
               break;
             case 'empty':
             case 'blank':
@@ -273,6 +301,29 @@ export async function validateCondition(
               );
               break;
             case 'isWithin': {
+              const subOp = filter.comparison_sub_op;
+              if (isCalendarPeriodSubOp(subOp) || subOp === DATE_RANGE_SUB_OP) {
+                // same timezone as the view's SQL filter
+                const tz = getNodejsTimezone(
+                  parseProp(filter.meta).timezone,
+                  parseProp(dateColumn?.meta).timezone,
+                  context.timezone,
+                );
+                const toTz = (v: string) => parseDateInTimezone(v, tz);
+                // as the row validator: a Date is a wall date (a date-only
+                // formula on pg arrives as midnight +00:00), other types are
+                // stored in UTC
+                res = isDateWithinPeriod(
+                  subOp,
+                  filter.value,
+                  dateUidt === UITypes.Date && typeof dataVal === 'string'
+                    ? toTz(dataVal.slice(0, 10))
+                    : dayjs.utc(dataVal).tz(tz),
+                  dayjs().tz(tz),
+                  toTz,
+                );
+                break;
+              }
               let now = dayjs(new Date()).format(dateFormat).toString();
               now = dateUidt === UITypes.Date ? now.substring(0, 10) : now;
               switch (filter.comparison_sub_op) {
@@ -280,13 +331,13 @@ export async function validateCondition(
                 case 'pastMonth':
                 case 'pastYear':
                 case 'pastNumberOfDays':
-                  res = dayjs(dataVal).isBetween(filterVal, now, 'day');
+                  res = day.isBetween(filterVal, now, 'day');
                   break;
                 case 'nextWeek':
                 case 'nextMonth':
                 case 'nextYear':
                 case 'nextNumberOfDays':
-                  res = dayjs(dataVal).isBetween(now, filterVal, 'day');
+                  res = day.isBetween(now, filterVal, 'day');
                   break;
               }
             }

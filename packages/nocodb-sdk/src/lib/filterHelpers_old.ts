@@ -8,8 +8,13 @@ import {
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 import { FilterParseError } from '~/lib/filterHelpers';
 import type { FilterTypeWithMeta } from '~/lib/filterHelpers_withparser';
-import UITypes from '~/lib/UITypes';
+import UITypes, { getEquivalentUIType } from '~/lib/UITypes';
 import { getRollupResultUidt } from '~/lib/formula/rollupFormula';
+import {
+  DATE_RANGE_NEEDS_TWO_DATES,
+  DATE_RANGE_SUB_OP,
+  isPendingDateRangeWhere,
+} from '~/lib/filter/calendarDateRange';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -243,25 +248,29 @@ export function validateFilterComparison(
 }
 
 /**
- * The type a `where` condition on a rollup is read as: its result type. A date
- * result takes a date sub-op like a Date field, but only when the value starts
- * with one, so a plain date value (`(Rollup,gt,2026-03-01)`) keeps comparing
- * as before.
+ * The type a `where` condition on a rollup or formula is read as: its result
+ * type. A date result takes a date sub-op like a Date field, but only when the
+ * value starts with one, so a plain date value (`(Rollup,gt,2026-03-01)`) keeps
+ * comparing as before.
  */
-export function getRollupWhereUidt(
+export function getComputedWhereUidt(
   column: ColumnType,
   value: unknown
 ): UITypes | undefined {
-  const rollupUidt = getRollupResultUidt(column);
-  if (rollupUidt !== UITypes.Date && rollupUidt !== UITypes.DateTime) {
-    return rollupUidt;
+  const resultUidt =
+    column.uidt === UITypes.Formula
+      ? getEquivalentUIType({ formulaColumn: column }) || undefined
+      : getRollupResultUidt(column);
+  if (resultUidt !== UITypes.Date && resultUidt !== UITypes.DateTime) {
+    // a formula keeps its own type: only its date result reads differently
+    return column.uidt === UITypes.Formula ? undefined : resultUidt;
   }
   const first = Array.isArray(value)
     ? value[0]
     : typeof value === 'string'
     ? value.split(',')[0].trim()
     : undefined;
-  return COMPARISON_SUB_OPS.includes(first) ? rollupUidt : undefined;
+  return COMPARISON_SUB_OPS.includes(first) ? resultUidt : undefined;
 }
 
 export function extractCondition(
@@ -342,9 +351,17 @@ export function extractCondition(
         }
       }
 
+      // a blank end is a UI picker state, never a `where` value
+      if (aliasColObjMap[alias] && isPendingDateRangeWhere(op, value)) {
+        if (throwErrorIfInvalid)
+          throw new BadRequest(DATE_RANGE_NEEDS_TWO_DATES);
+        errors.push({ message: DATE_RANGE_NEEDS_TWO_DATES });
+        return null;
+      }
+
       if (aliasColObjMap[alias]) {
         const columnType =
-          getRollupWhereUidt(aliasColObjMap[alias], value) ??
+          getComputedWhereUidt(aliasColObjMap[alias], value) ??
           aliasColObjMap[alias].uidt;
 
         // Handle date and datetime values
@@ -358,9 +375,9 @@ export function extractCondition(
         ) {
           value = (value as string)?.split(',');
           sub_op = (value as string[])?.shift();
-          // `in` carries a comma-separated list; the date handler splits it on ','.
+          // `in` and `dateRange` carry a comma-separated list; the date handler splits it on ','.
           value =
-            op === 'in'
+            op === 'in' || sub_op === DATE_RANGE_SUB_OP
               ? (value as string[])?.join(',')
               : (value as string[])?.[0];
           if (sub_op === 'null') {

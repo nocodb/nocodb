@@ -14,3 +14,10 @@ export interface FormatPart {
 export interface DatetimeFormatHandler {
   build(dateExpr: string, format: string): string;
 }
+
+// DATETIME_PARSE: read `textExpr` with the Day.js `format` (ISO when absent)
+// into a datetime; NULL, never an SQL error, when the text doesn't match. A
+// text without an offset is read in `timezone` where the dialect supports it.
+export interface DatetimeParseHandler {
+  build(textExpr: string, format?: string, timezone?: string): string;
+}

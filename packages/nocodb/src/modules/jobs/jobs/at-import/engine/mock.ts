@@ -21,15 +21,8 @@ export const MOCK_SHARE_ID_MULTI_LINK = 'shrMultiLinkMock';
 // Share id that selects the shared view payload. See mockResponses/readSharedView.ts.
 export const MOCK_SHARE_ID_SHARED_VIEW = 'shrSharedViewMock';
 
-// `read()` is not told which share was requested — FetchAT derives its `info`
-// from the initialize HTML, which is a fixture with its own baked-in ids — so
-// remember the requested share id here. `ATImportEngine.get()` returns a new
-// instance per call, hence module scope. Imports are sequential per process.
-let requestedShareId: string | undefined;
-
 export class ATMockImportEngine {
   async initialize(_param: { appId: string; shareId: string }) {
-    requestedShareId = _param?.shareId;
     return {
       data: initializeHtml, // ← this is what axios returns
       status: 200,
@@ -39,7 +32,14 @@ export class ATMockImportEngine {
     } as AxiosResponse;
   }
 
-  async read(_info: { link: string; cookie: string; headers: any }) {
+  // The fixture HTML has its own baked-in ids, so the requested share id comes from the session.
+  async read(info: {
+    shareId?: string;
+    link: string;
+    cookie: string;
+    headers: any;
+  }) {
+    const requestedShareId = info?.shareId;
     const schema =
       requestedShareId === MOCK_SHARE_ID_DISPLAY_VALUE
         ? displayValueReadResponse

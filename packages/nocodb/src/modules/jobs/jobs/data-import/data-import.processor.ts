@@ -412,6 +412,7 @@ export class DataImportProcessor {
         },
         user: user as UserType,
         req,
+        trimTableName: true,
       });
 
       tableId = created.id;

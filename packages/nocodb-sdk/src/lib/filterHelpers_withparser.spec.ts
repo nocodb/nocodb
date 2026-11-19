@@ -109,6 +109,78 @@ describe('filterHelpers_withparser_specific', () => {
         expect(noValue.filters[0].value).toBeUndefined();
       });
 
+      it('will parse calendar period and date range sub-operators', () => {
+        const columnAlias: Record<string, ColumnType> = {
+          Date: {
+            id: 'field1',
+            column_name: 'col1',
+            title: 'Date',
+            uidt: UITypes.Date,
+          },
+        };
+
+        const period = extractFilterFromXwhere(context, {
+          str: '(Date,isWithin,lastCalendarMonth)',
+          aliasColObjMap: columnAlias,
+        });
+        expect(period.filters[0].comparison_sub_op).toBe('lastCalendarMonth');
+        expect(period.filters[0].value).toBeUndefined();
+
+        const range = extractFilterFromXwhere(context, {
+          str: '(Date,isWithin,dateRange,2026-03-01,2026-03-31)',
+          aliasColObjMap: columnAlias,
+        });
+        expect(range.filters[0].comparison_sub_op).toBe('dateRange');
+        expect(range.filters[0].value).toBe('2026-03-01,2026-03-31');
+
+        // a blank end is a UI picker state, not a `where` value
+        expect(
+          extractFilterFromXwhere(context, {
+            str: '(Date,isWithin,dateRange)',
+            aliasColObjMap: columnAlias,
+          }).errors?.[0]?.message
+        ).toMatch(/needs two dates/);
+        expect(() =>
+          extractFilterFromXwhere(context, {
+            str: '(Date,isWithin,dateRange)',
+            aliasColObjMap: columnAlias,
+            throwErrorIfInvalid: true,
+          })
+        ).toThrow(/needs two dates/);
+        // whatever the field type: a lookup's leaf type is unknown here
+        const withLookup = {
+          ...columnAlias,
+          DueLookup: {
+            id: 'field2',
+            column_name: 'col2',
+            title: 'DueLookup',
+            uidt: UITypes.Lookup,
+          },
+        };
+        expect(
+          extractFilterFromXwhere(context, {
+            str: '(DueLookup,isWithin,dateRange)',
+            aliasColObjMap: withLookup,
+          }).errors?.[0]?.message
+        ).toMatch(/needs two dates/);
+        expect(() =>
+          extractFilterFromXwhere(context, {
+            str: '(DueLookup,isWithin,dateRange)',
+            aliasColObjMap: withLookup,
+            throwErrorIfInvalid: true,
+          })
+        ).toThrow(/needs two dates/);
+
+        // calendar periods are isWithin-only
+        expect(() =>
+          extractFilterFromXwhere(context, {
+            str: '(Date,eq,thisCalendarWeek)',
+            aliasColObjMap: columnAlias,
+            throwErrorIfInvalid: true,
+          })
+        ).toThrow();
+      });
+
       it('will parse multiselect with ~or connection', () => {
         const query = '(fMultiSelect,allof,jun)~or(fMultiSelect,allof,may)';
 

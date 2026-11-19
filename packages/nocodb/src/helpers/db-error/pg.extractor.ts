@@ -2,6 +2,7 @@ import { NcErrorType } from 'nocodb-sdk';
 import { DBError, DBErrorKind } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
+import { internalDbHostBlockedMessage } from '~/utils/ssrf';
 
 const REGEX_DATE_TIME_OUT_OF_RANGE =
   /date\/time field value out of range:\s*(.*)$/;
@@ -381,7 +382,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         break;
 
       case 'EACCES': // SSRF protection blocked connection
-        message = 'Connection to internal hosts is not allowed';
+        message = internalDbHostBlockedMessage();
         httpStatus = 403;
         break;
 

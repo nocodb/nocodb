@@ -758,6 +758,8 @@ interface CellRendererOptions {
     tagBorderWidth?: number
     /** Tag text split into pieces; pieces with a `url` render as links */
     tagSegments?: Array<{ text: string; url?: string }>
+    /** Called with the drawn box of each link piece in `tagSegments` */
+    onTagLink?: (link: { x: number; width: number; url: string }) => void
   }
   disabled?: {
     isInvalid: boolean

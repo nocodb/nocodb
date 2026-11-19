@@ -338,25 +338,17 @@ export const LookupCellRenderer: CellRenderer = {
 
       // A link value keeps its tag; only its link text is underlined
       const formulaSegments = isPlainFormulaLeaf ? getFormulaValueSegments(options.value) : undefined
-      const formulaUrl = formulaSegments?.find((segment) => segment.url)?.url
-      const renderOptions = formulaSegments ? { ...options, tag: { ...options.tag, tagSegments: formulaSegments } } : options
-
-      const point =
-        renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
-          ? renderCell(ctx, lookupColumn, renderOptions)
-          : PlainCellRenderer.render(ctx, renderOptions)
-
-      if (formulaUrl && point?.x) {
-        urlLinkBoxes.push({
-          x: options.x,
-          y: options.y,
-          width: Math.max(point.x - options.x, 0),
-          height: rowHeightInPx['1']!,
-          url: formulaUrl,
-        })
+      // Only the link pieces are clickable, not the tag's plain text
+      const onTagLink = ({ x: linkX, width: linkWidth, url }: { x: number; width: number; url: string }) => {
+        urlLinkBoxes.push({ x: linkX, y: options.y, width: linkWidth, height: rowHeightInPx['1']!, url })
       }
+      const renderOptions = formulaSegments
+        ? { ...options, tag: { ...options.tag, tagSegments: formulaSegments, onTagLink } }
+        : options
 
-      return point
+      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
+        ? renderCell(ctx, lookupColumn, renderOptions)
+        : PlainCellRenderer.render(ctx, renderOptions)
     }
 
     const maxLines = rowHeightTruncateLines(height, true)

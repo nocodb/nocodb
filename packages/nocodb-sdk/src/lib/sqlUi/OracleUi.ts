@@ -835,6 +835,11 @@ export class OracleUi implements SqlUi {
       'MD5',
       'SHA256',
       'SHA512',
+      'TEXTSPLIT',
+      'ARRAYJOIN',
+      'ARRAYFLATTEN',
+      // implemented for PG, MySQL and SQLite only, like DATETIME_FORMAT
+      'DATETIME_PARSE',
     ];
   }
 

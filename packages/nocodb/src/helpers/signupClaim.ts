@@ -1,5 +1,6 @@
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
+import { User } from '~/models';
 import { normalizeEmail } from '~/utils/emailUtils';
 
 // Only has to outlive the re-check + insert below (a few ms). Kept short because
@@ -65,28 +66,26 @@ export async function findOrCreateUnderSignupClaim<T>(
   email: string,
   find: () => Promise<T | null | undefined>,
   create: () => Promise<T>,
-  { retries = 20, retryDelayMs = 100 } = {},
+  {
+    retries = 20,
+    retryDelayMs = 100,
+    busyMessage = 'Unable to invite user right now, please retry',
+  } = {},
 ): Promise<{ value: T; created: boolean }> {
   const existing = await find();
   if (existing) return { value: existing, created: false };
 
   const key = claimKey(email);
 
-  const claimed = await NocoCache.setIfNotExist(
-    'root',
-    key,
-    '1',
-    CLAIM_TTL_SECONDS,
-  );
-
-  if (!claimed) {
-    // A signup is mid-insert for this address; wait for its row.
-    for (let i = 0; i < retries; i++) {
-      await new Promise((r) => setTimeout(r, retryDelayMs));
-      const winner = await find();
-      if (winner) return { value: winner, created: false };
+  for (let attempt = 0; ; attempt++) {
+    if (await NocoCache.setIfNotExist('root', key, '1', CLAIM_TTL_SECONDS)) {
+      break;
     }
-    NcError.badRequest('Unable to invite user right now, please retry');
+    if (attempt >= retries) NcError.badRequest(busyMessage);
+    // Another request holds the claim: wait for its row, or for a release that left none.
+    await new Promise((r) => setTimeout(r, retryDelayMs));
+    const winner = await find();
+    if (winner) return { value: winner, created: false };
   }
 
   try {
@@ -101,6 +100,32 @@ export async function findOrCreateUnderSignupClaim<T>(
 
 // Covers a transaction, not just one insert; still a crash net.
 const HELD_CLAIM_TTL_SECONDS = 30;
+
+const SSO_RETRY_DELAY_MS = 100;
+
+/**
+ * First SSO sign-in: creates the account under the signup claim. Looks up the
+ * exact address only, as the strategies do; `created: false` is an account
+ * that already existed or won the race, for the caller's existing-user branch.
+ */
+export async function findOrCreateSsoUser(
+  email: string,
+  create: () => Promise<User>,
+): Promise<{ user: User; created: boolean }> {
+  const { value, created } = await findOrCreateUnderSignupClaim(
+    email,
+    () => User.getByEmail(email),
+    create,
+    {
+      // The holder may create another address under the same canonical key, so
+      // wait out even an invite's held claim rather than fail the sign-in.
+      retries: ((HELD_CLAIM_TTL_SECONDS + 1) * 1000) / SSO_RETRY_DELAY_MS,
+      retryDelayMs: SSO_RETRY_DELAY_MS,
+      busyMessage: 'Unable to sign in right now, please retry',
+    },
+  );
+  return { user: value, created };
+}
 
 const claimTimeouts = new WeakSet<object>();
 

@@ -41,6 +41,7 @@ import {
   ncIsObject,
   ncIsUndefined,
   parseHelper,
+  parseProp,
   PermissionEntity,
   PermissionKey,
   RelationTypes,
@@ -104,7 +105,10 @@ import {
   NestedLinkPreparator,
 } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
-import { collectLinkBroadcast } from '~/db/BaseModelSqlv2/link-broadcast-batch';
+import {
+  collectLinkAudit,
+  collectLinkBroadcast,
+} from '~/db/BaseModelSqlv2/link-broadcast-batch';
 import {
   mssqlBuildBulkInsertWithCapture,
   mssqlChunkSize,
@@ -118,7 +122,10 @@ import {
   extractCorrespondingLinkColumn,
 } from '~/db/BaseModelSqlv2/add-remove-links';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
-import conditionV2, { applyRelatedRls } from '~/db/conditionV2';
+import conditionV2, {
+  applyRelatedRls,
+  getLinkRelFilters,
+} from '~/db/conditionV2';
 import { DBQueryClient } from '~/dbQueryClient';
 import formulaQueryBuilderv2, {
   checkStoredFormulaError,
@@ -144,6 +151,7 @@ import {
   extractLinkFieldsByTitle,
   extractSortsObject,
   formatDataForAudit,
+  formMappingColumns,
   getAliasedSoftDeleteFilter,
   getAs,
   getBaseModelSqlFromModelId,
@@ -296,6 +304,8 @@ interface RelationLoaderArgs {
   offset?: number;
   fieldsSet?: Set<string>;
   fieldSet?: Set<string>;
+  // set when the rows feed a Lookup that has link conditions
+  lookupColumn?: Column;
 }
 
 /** DataLoader with a typed side-channel for query args. */
@@ -316,6 +326,20 @@ function cloneFilters(filters: Filter[]): Filter[] {
         ...(filter.children ? { children: cloneFilters(filter.children) } : {}),
       }),
   );
+}
+
+// A filtered Lookup's link conditions over `refBaseModel`'s rows
+async function lookupLinkFilters(
+  refBaseModel: IBaseModelSqlV2,
+  lookupColumn?: Column,
+): Promise<Filter[] | undefined> {
+  if (!lookupColumn) return;
+  const filters = await getLinkRelFilters({
+    column: lookupColumn,
+    table: refBaseModel.model,
+    context: refBaseModel.context,
+  });
+  return filters.length ? filters : undefined;
 }
 
 /**
@@ -345,6 +369,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected _columns = {};
   protected _softDeleteColumnName: Promise<string | null> | undefined;
   protected _rlsConditions: Promise<Filter[]> | undefined;
+  // lookup column id -> its resolved target; read by every execAndParse pass
+  protected _nestedColumns = new Map<string, Promise<Column | any>>();
+  // set when columns are edited under this instance: its loaded columns may be stale
+  protected _columnsChanged = false;
   protected source: Source;
   public model: Model;
   public context: NcContext;
@@ -1475,7 +1503,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       nested?: boolean;
       linksAsLtar?: boolean;
     },
-    args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+    args: {
+      limit?;
+      offset?;
+      fieldsSet?: Set<string>;
+      lookupColumn?: Column;
+    } = {},
   ) {
     try {
       return await retryLinkedReadOnRollupError(
@@ -1507,6 +1540,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       offset?;
       fieldsSet?: Set<string>;
       pkAndPvOnly?: boolean;
+      lookupColumn?: Column;
     } = {},
     selectAllRecords = false,
   ) {
@@ -1527,7 +1561,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       colId: string;
       parentId: any;
     },
-    args: { fieldsSet?: Set<string> } = {},
+    args: { fieldsSet?: Set<string>; lookupColumn?: Column } = {},
   ) {
     return retryLinkedReadOnRollupError(
       this,
@@ -1565,6 +1599,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       offset?;
       fieldSet?: Set<string>;
       pkAndPvOnly?: boolean;
+      lookupColumn?: Column;
     } = {},
     selectAllRecords = false,
   ) {
@@ -1595,7 +1630,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       nested?: boolean;
       linksAsLtar?: boolean;
     },
-    args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+    args: {
+      limit?;
+      offset?;
+      fieldsSet?: Set<string>;
+      lookupColumn?: Column;
+    } = {},
   ) {
     return retryLinkedReadOnRollupError(
       this,
@@ -1903,6 +1943,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       tableAlias,
       validateFormula,
       dryRunLimit,
+      // a validating build re-reads the columns: a column edit may have changed them
+      columns:
+        validateFormula || this._columnsChanged
+          ? undefined
+          : this.model.columns,
     });
     return qb;
   }
@@ -1949,6 +1994,393 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return true;
     };
     const columns = await this.model.getColumns();
+    // Registers a link column's relation resolver. A Lookup with link
+    // conditions gets its own copy under `key`, reading only the rows they keep.
+    const registerRelation = async (
+      column: Column,
+      key?: string,
+      lookupColumn?: Column,
+    ) => {
+      const linksKey =
+        key ??
+        (column.uidt === UITypes.Links && !linksAsLtar
+          ? `_nc_lk_${column.title}`
+          : column.title);
+      const titleKey = key ?? column.title;
+      const withLinkFilter = (args?: RelationLoaderArgs) =>
+        lookupColumn ? { ...args, lookupColumn } : args;
+      const isMMLike = isMMOrMMLike(column);
+      if (!key) this._columns[column.title] = column;
+      const colOptions =
+        (await column.getColOptions()) as LinkToAnotherRecordColumn;
+      if (!colOptions) return;
+
+      const { refContext } = colOptions.getRelContext();
+
+      if (colOptions?.type === 'hm' && !isMMLike) {
+        // DataLoader collects all .load(id) calls from the same microtick
+        // into a single batch. The batch callback is wrapped in _queryQueue.add()
+        // to serialize actual DB execution across all relation types.
+        const listLoader = new DataLoaderWithArgs(
+          (ids: readonly string[]) =>
+            this._queryQueue.add(async () => {
+              if (ids.length > 1) {
+                const data = await this.multipleHmList(
+                  {
+                    colId: column.id,
+                    ids: ids as string[],
+                    apiVersion,
+                    linksAsLtar,
+                  },
+                  listLoader.args,
+                );
+                return ids.map((id: string) => (data[id] ? data[id] : []));
+              } else {
+                return [
+                  await this.hmList(
+                    {
+                      colId: column.id,
+                      id: ids[0],
+                      apiVersion,
+                      nested: true,
+                      linksAsLtar,
+                    },
+                    listLoader.args,
+                  ),
+                ];
+              }
+            }),
+          {
+            cache: false,
+          },
+        );
+        const self: BaseModelSqlv2 = this;
+
+        proto[linksKey] = async function (
+          args?: RelationLoaderArgs,
+        ): Promise<any> {
+          const pk = getCompositePkValue(self.model.primaryKeys, this);
+          if (isMissingPk(pk, column)) return [];
+          listLoader.args = withLinkFilter(
+            withLookupFields(args, column, colOptions),
+          );
+          return listLoader.load(pk);
+        };
+      } else if (isBtLikeV2Junction(column)) {
+        // V2 MO/OO: single-record — return object (like BT)
+        // Use multipleMmList for batching, take first record per parent
+        const readLoader = new DataLoaderWithArgs(
+          (ids: readonly string[]) =>
+            this._queryQueue.add(async () => {
+              if (ids?.length > 1) {
+                const lists = await this.multipleMmList(
+                  {
+                    parentIds: ids as string[],
+                    colId: column.id,
+                  },
+                  readLoader.args,
+                );
+                return lists.map((list) => list?.[0] ?? null);
+              } else {
+                return [
+                  await this.mmRead(
+                    { parentId: ids[0], colId: column.id },
+                    readLoader.args,
+                  ),
+                ];
+              }
+            }),
+          {
+            cache: false,
+          },
+        );
+
+        const self: BaseModelSqlv2 = this;
+        proto[titleKey] = async function (args?: RelationLoaderArgs) {
+          const pk = getCompositePkValue(self.model.primaryKeys, this);
+          if (isMissingPk(pk, column)) return null;
+          readLoader.args = withLinkFilter(
+            withLookupFields(args, column, colOptions),
+          );
+          return await readLoader.load(pk);
+        };
+      } else if (colOptions.type === 'mm' || isMMLike) {
+        const listLoader = new DataLoaderWithArgs(
+          (ids: readonly string[]) =>
+            this._queryQueue.add(async () => {
+              if (ids?.length > 1) {
+                const data = await this.multipleMmList(
+                  {
+                    parentIds: ids as string[],
+                    colId: column.id,
+                    apiVersion,
+                    nested: true,
+                    linksAsLtar,
+                  },
+                  listLoader.args,
+                );
+
+                return data;
+              } else {
+                return [
+                  await this.mmList(
+                    {
+                      parentId: ids[0],
+                      colId: column.id,
+                      apiVersion,
+                      nested: true,
+                      linksAsLtar,
+                    },
+                    listLoader.args,
+                  ),
+                ];
+              }
+            }),
+          {
+            cache: false,
+          },
+        );
+
+        const self: BaseModelSqlv2 = this;
+        proto[linksKey] = async function (
+          args?: RelationLoaderArgs,
+        ): Promise<any> {
+          const pk = getCompositePkValue(self.model.primaryKeys, this);
+          if (isMissingPk(pk, column)) return [];
+          listLoader.args = withLinkFilter(
+            withLookupFields(args, column, colOptions),
+          );
+          return await listLoader.load(pk);
+        };
+      } else if (colOptions.type === 'bt' && !isMMLike) {
+        // @ts-ignore
+        const colOptions =
+          (await column.getColOptions()) as LinkToAnotherRecordColumn;
+
+        const pCol = await Column.get(refContext, {
+          colId: colOptions.fk_parent_column_id,
+        });
+        const cCol = await Column.get(this.context, {
+          colId: colOptions.fk_child_column_id,
+        });
+
+        // use dataloader to get batches of parent data together rather than getting them individually
+        // it takes individual keys and callback is invoked with an array of values and we can get the
+        // result for all those together and return the value in the same order as in the array
+        // this way all parents data extracted together
+        const readLoader = new DataLoaderWithArgs(
+          (_ids: readonly string[]) =>
+            this._queryQueue.add(async () => {
+              // handle binary(16) foreign keys
+              const ids = _ids.map((id) => {
+                if (pCol.ct !== 'binary(16)') return id;
+
+                // Cast the id to string.
+                const idAsString = id + '';
+                // Check if the id is a UUID and the column is binary(16)
+                const isUUIDBinary16 =
+                  idAsString.length === 36 || idAsString.length === 32;
+                // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                const idAsUUID = isUUIDBinary16
+                  ? idAsString.length === 32
+                    ? idAsString.replace(
+                        /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                        '$1-$2-$3-$4-$5',
+                      )
+                    : idAsString
+                  : null;
+
+                return idAsUUID
+                  ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                  : id;
+              });
+
+              const pBaseModel = await Model.getBaseModelSQL(refContext, {
+                id: pCol.fk_model_id,
+                dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
+              });
+              const data = await pBaseModel.list(
+                {
+                  fieldsSet: readLoader.args?.fieldsSet,
+                  customConditions: await lookupLinkFilters(
+                    pBaseModel,
+                    readLoader.args?.lookupColumn,
+                  ),
+                  filterArr: [
+                    new Filter({
+                      id: null,
+                      fk_column_id: pCol.id,
+                      fk_model_id: pCol.fk_model_id,
+                      value: ids as any[],
+                      comparison_op: 'in',
+                    }),
+                  ],
+                },
+                {
+                  ignoreViewFilterAndSort: true,
+                  ignorePagination: true,
+                },
+              );
+
+              const groupedList = groupBy(data, pCol.title);
+              return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
+            }),
+          {
+            cache: false,
+          },
+        );
+
+        // defining BelongsTo read resolver method
+        proto[titleKey] = async function (args?: RelationLoaderArgs) {
+          if (this?.[cCol?.title] === null || this?.[cCol?.title] === undefined)
+            return null;
+
+          readLoader.args = withLinkFilter(args);
+
+          return await readLoader.load(this?.[cCol?.title]);
+        };
+      } else if (colOptions.type === 'oo' && !isMMLike) {
+        const isBt = column.meta?.bt;
+
+        if (isBt) {
+          // @ts-ignore
+          const colOptions =
+            (await column.getColOptions()) as LinkToAnotherRecordColumn;
+          const pCol = await Column.get(refContext, {
+            colId: colOptions.fk_parent_column_id,
+          });
+          const cCol = await Column.get(this.context, {
+            colId: colOptions.fk_child_column_id,
+          });
+
+          // use dataloader to get batches of parent data together rather than getting them individually
+          // it takes individual keys and callback is invoked with an array of values and we can get the
+          // result for all those together and return the value in the same order as in the array
+          // this way all parents data extracted together
+          const readLoader = new DataLoaderWithArgs(
+            (_ids: readonly string[]) =>
+              this._queryQueue.add(async () => {
+                // handle binary(16) foreign keys
+                const ids = _ids.map((id) => {
+                  if (pCol.ct !== 'binary(16)') return id;
+
+                  // Cast the id to string.
+                  const idAsString = id + '';
+                  // Check if the id is a UUID and the column is binary(16)
+                  const isUUIDBinary16 =
+                    idAsString.length === 36 || idAsString.length === 32;
+                  // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                  const idAsUUID = isUUIDBinary16
+                    ? idAsString.length === 32
+                      ? idAsString.replace(
+                          /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                          '$1-$2-$3-$4-$5',
+                        )
+                      : idAsString
+                    : null;
+
+                  return idAsUUID
+                    ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                    : id;
+                });
+
+                const pBaseModel = await Model.getBaseModelSQL(refContext, {
+                  id: pCol.fk_model_id,
+                  dbDriver: this.dbDriver,
+                  queryQueue: this._queryQueue,
+                });
+                const data = await pBaseModel.list(
+                  {
+                    fieldsSet: readLoader.args?.fieldsSet,
+                    customConditions: await lookupLinkFilters(
+                      pBaseModel,
+                      readLoader.args?.lookupColumn,
+                    ),
+                    filterArr: [
+                      new Filter({
+                        id: null,
+                        fk_column_id: pCol.id,
+                        fk_model_id: pCol.fk_model_id,
+                        value: ids as any[],
+                        comparison_op: 'in',
+                      }),
+                    ],
+                  },
+                  {
+                    ignoreViewFilterAndSort: true,
+                    ignorePagination: true,
+                  },
+                );
+
+                const groupedList = groupBy(data, pCol.title);
+                return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
+              }),
+            {
+              cache: false,
+            },
+          );
+
+          // defining BelongsTo read resolver method
+          proto[titleKey] = async function (args?: RelationLoaderArgs) {
+            if (
+              this?.[cCol?.title] === null ||
+              this?.[cCol?.title] === undefined
+            )
+              return null;
+
+            readLoader.args = withLinkFilter(args);
+
+            return await readLoader.load(this?.[cCol?.title]);
+          };
+        } else {
+          const listLoader = new DataLoaderWithArgs(
+            (ids: readonly string[]) =>
+              this._queryQueue.add(async () => {
+                if (ids.length > 1) {
+                  const data = await this.multipleHmList(
+                    {
+                      colId: column.id,
+                      ids: ids as string[],
+                    },
+                    listLoader.args,
+                  );
+                  return ids.map((id: string) =>
+                    data[id] ? data[id]?.[0] : null,
+                  );
+                } else {
+                  return [
+                    (
+                      await this.hmList(
+                        {
+                          colId: column.id,
+                          id: ids[0],
+                        },
+                        listLoader.args,
+                      )
+                    )?.[0] ?? null,
+                  ];
+                }
+              }),
+            {
+              cache: false,
+            },
+          );
+          const self: BaseModelSqlv2 = this;
+
+          proto[linksKey] = async function (
+            args?: RelationLoaderArgs,
+          ): Promise<any> {
+            const pk = getCompositePkValue(self.model.primaryKeys, this);
+            if (isMissingPk(pk, column)) return null;
+            listLoader.args = withLinkFilter(
+              withLookupFields(args, column, colOptions),
+            );
+            return listLoader.load(pk);
+          };
+        }
+      }
+    };
     await Promise.all(
       columns.map(async (column) => {
         switch (column.uidt) {
@@ -1996,8 +2428,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 brokenLookup();
                 break;
               }
+              // Reading the link's own rows would ignore the lookup's conditions
+              let relKey = relColTitle;
+              if (parseProp(column.meta)?.enableConditions) {
+                relKey = `__nc_lkf_${column.id}`;
+                await registerRelation(relCol, relKey, column);
+              }
               proto.__columnAliases[column.title] = {
-                path: [relColTitle, lookupCol.title],
+                path: [relKey, lookupCol.title],
               };
               (lookupFieldsByRelColId[relCol.id] ??= new Set()).add(
                 lookupCol.title,
@@ -2006,395 +2444,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           case UITypes.Links:
           case UITypes.LinkToAnotherRecord:
-            {
-              const isMMLike = isMMOrMMLike(column);
-              this._columns[column.title] = column;
-              const colOptions =
-                (await column.getColOptions()) as LinkToAnotherRecordColumn;
-              if (!colOptions) break;
-
-              const { refContext } = colOptions.getRelContext();
-
-              if (colOptions?.type === 'hm' && !isMMLike) {
-                // DataLoader collects all .load(id) calls from the same microtick
-                // into a single batch. The batch callback is wrapped in _queryQueue.add()
-                // to serialize actual DB execution across all relation types.
-                const listLoader = new DataLoaderWithArgs(
-                  (ids: readonly string[]) =>
-                    this._queryQueue.add(async () => {
-                      if (ids.length > 1) {
-                        const data = await this.multipleHmList(
-                          {
-                            colId: column.id,
-                            ids: ids as string[],
-                            apiVersion,
-                            linksAsLtar,
-                          },
-                          listLoader.args,
-                        );
-                        return ids.map((id: string) =>
-                          data[id] ? data[id] : [],
-                        );
-                      } else {
-                        return [
-                          await this.hmList(
-                            {
-                              colId: column.id,
-                              id: ids[0],
-                              apiVersion,
-                              nested: true,
-                              linksAsLtar,
-                            },
-                            listLoader.args,
-                          ),
-                        ];
-                      }
-                    }),
-                  {
-                    cache: false,
-                  },
-                );
-                const self: BaseModelSqlv2 = this;
-
-                proto[
-                  column.uidt === UITypes.Links && !linksAsLtar
-                    ? `_nc_lk_${column.title}`
-                    : column.title
-                ] = async function (args?: RelationLoaderArgs): Promise<any> {
-                  const pk = getCompositePkValue(self.model.primaryKeys, this);
-                  if (isMissingPk(pk, column)) return [];
-                  listLoader.args = withLookupFields(args, column, colOptions);
-                  return listLoader.load(pk);
-                };
-              } else if (isBtLikeV2Junction(column)) {
-                // V2 MO/OO: single-record — return object (like BT)
-                // Use multipleMmList for batching, take first record per parent
-                const readLoader = new DataLoaderWithArgs(
-                  (ids: readonly string[]) =>
-                    this._queryQueue.add(async () => {
-                      if (ids?.length > 1) {
-                        const lists = await this.multipleMmList(
-                          {
-                            parentIds: ids as string[],
-                            colId: column.id,
-                          },
-                          readLoader.args,
-                        );
-                        return lists.map((list) => list?.[0] ?? null);
-                      } else {
-                        return [
-                          await this.mmRead(
-                            { parentId: ids[0], colId: column.id },
-                            readLoader.args,
-                          ),
-                        ];
-                      }
-                    }),
-                  {
-                    cache: false,
-                  },
-                );
-
-                const self: BaseModelSqlv2 = this;
-                proto[column.title] = async function (
-                  args?: RelationLoaderArgs,
-                ) {
-                  const pk = getCompositePkValue(self.model.primaryKeys, this);
-                  if (isMissingPk(pk, column)) return null;
-                  readLoader.args = withLookupFields(args, column, colOptions);
-                  return await readLoader.load(pk);
-                };
-              } else if (colOptions.type === 'mm' || isMMLike) {
-                const listLoader = new DataLoaderWithArgs(
-                  (ids: readonly string[]) =>
-                    this._queryQueue.add(async () => {
-                      if (ids?.length > 1) {
-                        const data = await this.multipleMmList(
-                          {
-                            parentIds: ids as string[],
-                            colId: column.id,
-                            apiVersion,
-                            nested: true,
-                            linksAsLtar,
-                          },
-                          listLoader.args,
-                        );
-
-                        return data;
-                      } else {
-                        return [
-                          await this.mmList(
-                            {
-                              parentId: ids[0],
-                              colId: column.id,
-                              apiVersion,
-                              nested: true,
-                              linksAsLtar,
-                            },
-                            listLoader.args,
-                          ),
-                        ];
-                      }
-                    }),
-                  {
-                    cache: false,
-                  },
-                );
-
-                const self: BaseModelSqlv2 = this;
-                proto[
-                  column.uidt === UITypes.Links && !linksAsLtar
-                    ? `_nc_lk_${column.title}`
-                    : column.title
-                ] = async function (args?: RelationLoaderArgs): Promise<any> {
-                  const pk = getCompositePkValue(self.model.primaryKeys, this);
-                  if (isMissingPk(pk, column)) return [];
-                  listLoader.args = withLookupFields(args, column, colOptions);
-                  return await listLoader.load(pk);
-                };
-              } else if (colOptions.type === 'bt' && !isMMLike) {
-                // @ts-ignore
-                const colOptions =
-                  (await column.getColOptions()) as LinkToAnotherRecordColumn;
-
-                const pCol = await Column.get(refContext, {
-                  colId: colOptions.fk_parent_column_id,
-                });
-                const cCol = await Column.get(this.context, {
-                  colId: colOptions.fk_child_column_id,
-                });
-
-                // use dataloader to get batches of parent data together rather than getting them individually
-                // it takes individual keys and callback is invoked with an array of values and we can get the
-                // result for all those together and return the value in the same order as in the array
-                // this way all parents data extracted together
-                const readLoader = new DataLoaderWithArgs(
-                  (_ids: readonly string[]) =>
-                    this._queryQueue.add(async () => {
-                      // handle binary(16) foreign keys
-                      const ids = _ids.map((id) => {
-                        if (pCol.ct !== 'binary(16)') return id;
-
-                        // Cast the id to string.
-                        const idAsString = id + '';
-                        // Check if the id is a UUID and the column is binary(16)
-                        const isUUIDBinary16 =
-                          idAsString.length === 36 || idAsString.length === 32;
-                        // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                        const idAsUUID = isUUIDBinary16
-                          ? idAsString.length === 32
-                            ? idAsString.replace(
-                                /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                                '$1-$2-$3-$4-$5',
-                              )
-                            : idAsString
-                          : null;
-
-                        return idAsUUID
-                          ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                          : id;
-                      });
-
-                      const data = await (
-                        await Model.getBaseModelSQL(refContext, {
-                          id: pCol.fk_model_id,
-                          dbDriver: this.dbDriver,
-                          queryQueue: this._queryQueue,
-                        })
-                      ).list(
-                        {
-                          fieldsSet: readLoader.args?.fieldsSet,
-                          filterArr: [
-                            new Filter({
-                              id: null,
-                              fk_column_id: pCol.id,
-                              fk_model_id: pCol.fk_model_id,
-                              value: ids as any[],
-                              comparison_op: 'in',
-                            }),
-                          ],
-                        },
-                        {
-                          ignoreViewFilterAndSort: true,
-                          ignorePagination: true,
-                        },
-                      );
-
-                      const groupedList = groupBy(data, pCol.title);
-                      return _ids.map(
-                        async (id: string) => groupedList?.[id]?.[0],
-                      );
-                    }),
-                  {
-                    cache: false,
-                  },
-                );
-
-                // defining BelongsTo read resolver method
-                proto[column.title] = async function (
-                  args?: RelationLoaderArgs,
-                ) {
-                  if (
-                    this?.[cCol?.title] === null ||
-                    this?.[cCol?.title] === undefined
-                  )
-                    return null;
-
-                  readLoader.args = args;
-
-                  return await readLoader.load(this?.[cCol?.title]);
-                };
-              } else if (colOptions.type === 'oo' && !isMMLike) {
-                const isBt = column.meta?.bt;
-
-                if (isBt) {
-                  // @ts-ignore
-                  const colOptions =
-                    (await column.getColOptions()) as LinkToAnotherRecordColumn;
-                  const pCol = await Column.get(refContext, {
-                    colId: colOptions.fk_parent_column_id,
-                  });
-                  const cCol = await Column.get(this.context, {
-                    colId: colOptions.fk_child_column_id,
-                  });
-
-                  // use dataloader to get batches of parent data together rather than getting them individually
-                  // it takes individual keys and callback is invoked with an array of values and we can get the
-                  // result for all those together and return the value in the same order as in the array
-                  // this way all parents data extracted together
-                  const readLoader = new DataLoaderWithArgs(
-                    (_ids: readonly string[]) =>
-                      this._queryQueue.add(async () => {
-                        // handle binary(16) foreign keys
-                        const ids = _ids.map((id) => {
-                          if (pCol.ct !== 'binary(16)') return id;
-
-                          // Cast the id to string.
-                          const idAsString = id + '';
-                          // Check if the id is a UUID and the column is binary(16)
-                          const isUUIDBinary16 =
-                            idAsString.length === 36 ||
-                            idAsString.length === 32;
-                          // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                          const idAsUUID = isUUIDBinary16
-                            ? idAsString.length === 32
-                              ? idAsString.replace(
-                                  /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                                  '$1-$2-$3-$4-$5',
-                                )
-                              : idAsString
-                            : null;
-
-                          return idAsUUID
-                            ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                            : id;
-                        });
-
-                        const data = await (
-                          await Model.getBaseModelSQL(refContext, {
-                            id: pCol.fk_model_id,
-                            dbDriver: this.dbDriver,
-                            queryQueue: this._queryQueue,
-                          })
-                        ).list(
-                          {
-                            fieldsSet: readLoader.args?.fieldsSet,
-                            filterArr: [
-                              new Filter({
-                                id: null,
-                                fk_column_id: pCol.id,
-                                fk_model_id: pCol.fk_model_id,
-                                value: ids as any[],
-                                comparison_op: 'in',
-                              }),
-                            ],
-                          },
-                          {
-                            ignoreViewFilterAndSort: true,
-                            ignorePagination: true,
-                          },
-                        );
-
-                        const groupedList = groupBy(data, pCol.title);
-                        return _ids.map(
-                          async (id: string) => groupedList?.[id]?.[0],
-                        );
-                      }),
-                    {
-                      cache: false,
-                    },
-                  );
-
-                  // defining BelongsTo read resolver method
-                  proto[column.title] = async function (
-                    args?: RelationLoaderArgs,
-                  ) {
-                    if (
-                      this?.[cCol?.title] === null ||
-                      this?.[cCol?.title] === undefined
-                    )
-                      return null;
-
-                    readLoader.args = args;
-
-                    return await readLoader.load(this?.[cCol?.title]);
-                  };
-                } else {
-                  const listLoader = new DataLoaderWithArgs(
-                    (ids: readonly string[]) =>
-                      this._queryQueue.add(async () => {
-                        if (ids.length > 1) {
-                          const data = await this.multipleHmList(
-                            {
-                              colId: column.id,
-                              ids: ids as string[],
-                            },
-                            listLoader.args,
-                          );
-                          return ids.map((id: string) =>
-                            data[id] ? data[id]?.[0] : null,
-                          );
-                        } else {
-                          return [
-                            (
-                              await this.hmList(
-                                {
-                                  colId: column.id,
-                                  id: ids[0],
-                                },
-                                listLoader.args,
-                              )
-                            )?.[0] ?? null,
-                          ];
-                        }
-                      }),
-                    {
-                      cache: false,
-                    },
-                  );
-                  const self: BaseModelSqlv2 = this;
-
-                  proto[
-                    column.uidt === UITypes.Links && !linksAsLtar
-                      ? `_nc_lk_${column.title}`
-                      : column.title
-                  ] = async function (args?: RelationLoaderArgs): Promise<any> {
-                    const pk = getCompositePkValue(
-                      self.model.primaryKeys,
-                      this,
-                    );
-                    if (isMissingPk(pk, column)) return null;
-                    listLoader.args = withLookupFields(
-                      args,
-                      column,
-                      colOptions,
-                    );
-                    return listLoader.load(pk);
-                  };
-                }
-              }
-            }
-            break;
+            await registerRelation(column);
         }
       }),
     );
@@ -3241,11 +3291,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const columns = await this.model.getColumns();
 
+      // A column_name can equal another field's title, so forms map by title or id.
+      const formColumns = formMappingColumns(this.model, param?.formColumns);
+
       // Exclude auto-increment columns from the insert body so the DB assigns
       // them.
       const dbDataWrapper = dataWrapper(data);
-      for (const col of columns) {
+      for (const col of formColumns ?? columns) {
         if (col.ai) {
+          if (formColumns) {
+            delete data[col.title];
+            delete data[col.id];
+            continue;
+          }
           const keyName = dbDataWrapper.getColumnKeyName(col);
           if (data[keyName]) {
             delete data[keyName];
@@ -3259,7 +3317,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         data,
         this.clientMeta,
         this.dbDriver,
-        columns,
+        formColumns ?? columns,
+        { byTitleOrId: !!formColumns },
       );
       let rowId = null;
 
@@ -4506,6 +4565,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn: boolean;
       undo: boolean;
       typecast: boolean;
+      byTitleOrId?: boolean;
     } = {
       allowSystemColumn: false,
       undo: false,
@@ -4575,7 +4635,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // map alias to column
       if (!isVirtualCol(col)) {
-        let val = !ncIsUndefined(d?.[col.column_name])
+        let val = params.byTitleOrId
+          ? !ncIsUndefined(d?.[col.title])
+            ? d?.[col.title]
+            : d?.[col.id]
+          : !ncIsUndefined(d?.[col.column_name])
           ? d?.[col.column_name]
           : !ncIsUndefined(d?.[col.title])
           ? d?.[col.title]
@@ -4702,6 +4766,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipAttachmentOwnershipCheck?: boolean;
       /** Fire update hooks on the records the nested links change — user writes only */
       triggerLinkUpdateHooks?: boolean;
+      /** Map only these columns (and the pks), by title or id — see `nestedInsert`. */
+      formColumns?: Column[];
     },
   ) {
     return await baseModelInsert(this).bulk(datas, params);
@@ -4721,6 +4787,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       triggerLinkUpdateHooks = false,
       skip_hooks = false,
       skipPermissionCheck = false,
+      formColumns,
     }: {
       cookie?: any;
       raw?: boolean;
@@ -4739,6 +4806,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skip_hooks?: boolean;
       /** Trusted internal copy paths only — see `prepareNocoData`. */
       skipPermissionCheck?: boolean;
+      /** Map only these columns (and the pks), by title or id — see `nestedInsert`. */
+      formColumns?: Column[];
     } = {},
   ) {
     let transaction;
@@ -4755,6 +4824,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
+      const mapColumns = formMappingColumns(this.model, formColumns);
       const updateDatas = raw
         ? datas
         : await Promise.all(
@@ -4763,7 +4833,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 d,
                 this.clientMeta,
                 this.dbDriver,
-                columns,
+                mapColumns ?? columns,
+                { byTitleOrId: !!mapColumns },
               ),
             ),
           );
@@ -7327,6 +7398,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return;
     }
 
+    if (collectLinkAudit(this, commonAuditObj, auditObjs)) return;
+
     const { opType, model, refModel, columnTitle, columnId, req } =
       commonAuditObj;
 
@@ -8644,8 +8717,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // skip it instead of dereferencing null below (which would 500 the
           // whole list). Mirrors getAst, which already skips such columns.
         } else if (
-          (col.colOptions as LinkToAnotherRecordColumn)?.fk_related_base_id !==
-          this.model.base_id
+          // same-base ids resolve below through missingColumnIds
+          (col.colOptions as LinkToAnotherRecordColumn)?.fk_related_base_id &&
+          (col.colOptions as LinkToAnotherRecordColumn).fk_related_base_id !==
+            this.model.base_id
         ) {
           const { refContext } = (
             col.colOptions as LinkToAnotherRecordColumn
@@ -8659,24 +8734,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         ltarMap[col.id] = true;
 
-        // Find any data that contains this column and collect missing column IDs
-        const linkData = data.find(
-          (d) =>
-            d[col.id] &&
-            ((!Array.isArray(d[col.id]) && Object.keys(d[col.id]).length > 0) ||
-              (Array.isArray(d[col.id]) && d[col.id].length > 0)),
-        );
-
-        if (linkData && typeof linkData[col.id] === 'object') {
-          const sampleData = Array.isArray(linkData[col.id])
-            ? linkData[col.id][0] || {}
-            : linkData[col.id];
-
-          Object.keys(sampleData).forEach((k) => {
-            if (!idToAliasMap[k]) {
-              missingColumnIds.add(k);
+        // Collect untranslated keys from every nested row: same-base titles come only from here
+        for (const d of data) {
+          const value = d?.[col.id];
+          if (!value || typeof value !== 'object') continue;
+          for (const nested of Array.isArray(value) ? value : [value]) {
+            if (!nested || typeof nested !== 'object' || Array.isArray(nested))
+              continue;
+            for (const k of Object.keys(nested)) {
+              if (!idToAliasMap[k]) missingColumnIds.add(k);
             }
-          });
+          }
         }
       } else {
         ltarMap[col.id] = false;
@@ -9238,7 +9306,28 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (column.uidt !== UITypes.Lookup) {
       return column;
     }
-    const colOptions = await column.getColOptions<LookupColumn>();
+    let resolved = this._nestedColumns.get(column.id);
+    if (!resolved) {
+      resolved = this.resolveNestedColumn(column);
+      this._nestedColumns.set(column.id, resolved);
+      resolved.catch(() => this._nestedColumns.delete(column.id));
+    }
+    return resolved;
+  }
+
+  // call after editing columns through a reused instance: from then on lookups
+  // and formulas re-read column options instead of trusting the loaded ones
+  public markColumnsChanged() {
+    this._columnsChanged = true;
+    this._nestedColumns.clear();
+  }
+
+  private async resolveNestedColumn(column: Column) {
+    const loaded = column.colOptions as LookupColumn | undefined;
+    const colOptions =
+      !this._columnsChanged && typeof loaded?.getRelationColumn === 'function'
+        ? loaded
+        : await column.getColOptions<LookupColumn>();
     if (colOptions?.error) return { uidt: UITypes.SingleLineText };
     const relationCol = await colOptions.getRelationColumn();
     if (!relationCol) return { uidt: UITypes.SingleLineText };
@@ -9248,7 +9337,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const { refContext } = relationColOpt.getRelContext();
     return this.getNestedColumn(
-      await colOptions?.getLookupColumn(),
+      await Column.get(refContext, { colId: colOptions.fk_lookup_column_id }),
       refContext,
     );
   }
@@ -9553,6 +9642,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         col.uidt === UITypes.Formula ||
         getRollupResultUidt(col) === UITypes.DateTime
       ) {
+        // mssql/oracle drivers return MIN/MAX of a datetime as a Date
+        if (d[col.id] instanceof Date) {
+          if (dayjs(d[col.id]).isValid()) {
+            d[col.id] = dayjs(d[col.id]).utc().format('YYYY-MM-DD HH:mm:ssZ');
+          }
+          continue;
+        }
         if (!d[col.id] || typeof d[col.id] !== 'string') {
           continue;
         }
@@ -9954,7 +10050,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const parentTn = parentModel.getTnPath(parentTable);
 
       const qb = this.dbDriver(parentTn);
-      await this.applySortAndFilter({ table: parentTable, where, qb, sort });
+      await parentModel.applySortAndFilter({
+        table: parentTable,
+        where,
+        qb,
+        sort,
+      });
 
       qb.where(
         parentCol.column_name,
@@ -11150,30 +11251,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  private async broadcastLinkUpdateAwaited(
-    ids: Array<string>,
-    linkColumnIds: string[] = [],
-  ) {
-    const ast = await getAst(this.context, {
-      model: this.model,
-    });
-
-    const list = await this.chunkList({
-      pks: ids,
-      chunkSize: 100,
-      args: ast.dependencyFields,
-    });
-
-    NocoSocket.broadcastBulkDataEvent(this.context, {
-      tableId: this.model.id,
-      rows: list.map((item) => ({
-        id: this.extractPksValues(item),
-        action: 'update' as const,
-        payload: item,
-      })),
-      linkColumnIds,
-    });
-  }
+  // CE has no realtime clients, so there is nothing to read or send. EE reads and broadcasts the rows.
+  protected async broadcastLinkUpdateAwaited(
+    _ids: Array<string>,
+    _linkColumnIds: string[] = [],
+  ) {}
 
   /**
    * `linkColumnIds`: the link columns that changed (other tables' ids are ignored);

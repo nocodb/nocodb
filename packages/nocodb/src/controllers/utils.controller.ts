@@ -9,9 +9,11 @@ import {
   Post,
   Req,
   Request,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { ProjectRoles, validateAndExtractSSLProp } from 'nocodb-sdk';
+import { Response } from 'express';
 import {
   ErrorReportReqType,
   getTestDatabaseName,
@@ -177,8 +179,7 @@ export class UtilsController {
         // Authoritative, TOCTOU-free check: hook the driver's socket so the
         // host it ACTUALLY resolves and dials is range-checked at connect time
         // (a short-TTL DNS flip or a `?host=` override can't slip past the
-        // pre-flight above). Inside the try so a throw gets the generic answer;
-        // oracle/snowflake/databricks have no hook.
+        // pre-flight above). Inside the try so a throw gets the generic answer.
         applyDbSsrfProtection(
           config,
           isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }),
@@ -236,8 +237,12 @@ export class UtilsController {
   @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v2/meta/axiosRequestMake'])
   @Acl('fetchViaUrl')
   @HttpCode(200)
-  async axiosRequestMake(@Body() body: any) {
-    return await this.utilsService.axiosRequestMake({ body });
+  async axiosRequestMake(@Body() body: any, @Res() res: Response) {
+    const data = await this.utilsService.axiosRequestMake({ body });
+    if (!Buffer.isBuffer(data)) return res.json(data);
+    // raw bytes: JSON-encoding a Buffer costs seconds and ~10x its size in heap
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.send(data);
   }
 
   @UseGuards(PublicApiLimiterGuard)

@@ -13,7 +13,10 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
 import { validateDbConnectionTargets } from '~/helpers/validateDbConnectionHost';
-import { assertIntegrationAvailableToBase } from '~/helpers/integrationAccess';
+import {
+  assertIntegrationAvailableToBase,
+  isPrivateToOtherUser,
+} from '~/helpers/integrationAccess';
 import { parseConfigPayload } from '~/helpers/configPayload';
 import { Integration } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
@@ -62,6 +65,9 @@ export class SourceCreateController {
         context,
         body.fk_integration_id,
       );
+      if (isPrivateToOtherUser(integration, req.user?.id)) {
+        NcError.get(context).integrationNotFound(body.fk_integration_id);
+      }
       if (integration) {
         await assertIntegrationAvailableToBase(context, integration, baseId);
         await validateDbConnectionTargets(integration.dataSourceConfigOf());

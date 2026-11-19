@@ -63,6 +63,10 @@ export class NcError {
     return NcError._.trashNotFound(id, args);
   }
 
+  static commentNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.commentNotFound(id, args);
+  }
+
   static parentInTrash(parentType: string, args?: NcErrorArgs): never {
     return NcError._.parentInTrash(parentType, args);
   }

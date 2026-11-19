@@ -20,6 +20,13 @@ import { ColumnHelper } from '~/lib/columnHelper/column-helper';
 import { parseCheckboxValue } from '~/lib/columnHelper/utils/parser';
 import { CURRENT_USER_TOKEN } from '~/lib/globals';
 import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
+import {
+  DATE_RANGE_SUB_OP,
+  isCalendarPeriodSubOp,
+  isDateWithinPeriod,
+  parseDateInTimezone,
+} from '~/lib/filter/calendarDateRange';
+import { formulaDateUidt } from '~/lib/formula/dateOnlyFormula';
 
 extend(utc);
 extend(timezone);
@@ -100,12 +107,12 @@ export class RowFilterValidator {
     const { column, columns, metas, baseId } = params;
     switch (column.uidt as UITypes) {
       case UITypes.Formula: {
-        const dataType = parseProp(column.colOptions)?.parsed_tree?.dataType;
-        switch (dataType) {
+        const parsedTree = parseProp(column.colOptions)?.parsed_tree;
+        switch (parsedTree?.dataType) {
           case FormulaDataTypes.NUMERIC:
             return UITypes.Decimal;
           case FormulaDataTypes.DATE:
-            return UITypes.DateTime;
+            return formulaDateUidt(parsedTree);
           case FormulaDataTypes.BOOLEAN:
           case FormulaDataTypes.LOGICAL:
             return UITypes.Checkbox;
@@ -631,6 +638,18 @@ export class RowFilterValidator {
             break;
           }
           case 'isWithin': {
+            const subOp = filter.comparison_sub_op;
+            if (isCalendarPeriodSubOp(subOp) || subOp === DATE_RANGE_SUB_OP) {
+              const tz = getTimezone();
+              res = isDateWithinPeriod(
+                subOp,
+                filter.value,
+                getDayjsDataVal(),
+                dayjs.tz(this.dateNow(), tz),
+                (end) => parseDateInTimezone(end, tz)
+              );
+              break;
+            }
             let now = dayjs
               .tz(this.dateNow(), getTimezone())
               .format(dateFormat)

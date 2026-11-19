@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import {
+  CALENDAR_PERIOD_SUB_OPS,
   canEncodeQueryFilterToken,
+  DATE_RANGE_SUB_OP,
   encodeQueryFilterToken,
   IS_WITHIN_COMPARISON_SUB_OPS,
   UITypes,
@@ -81,6 +83,7 @@ const VALUELESS_SUB_OPS = new Set([
   'nextWeek',
   'nextMonth',
   'nextYear',
+  ...CALENDAR_PERIOD_SUB_OPS,
 ]);
 
 const DATE_TYPES = [
@@ -490,7 +493,13 @@ function dateSubOperator(
     ncError.badRequest(`sub_operator '${subOp}' takes no value`);
   }
 
-  if (!VALUELESS_SUB_OPS.has(subOp) && !values.length) {
+  if (subOp === DATE_RANGE_SUB_OP) {
+    if (values.length !== 2 || values.some((v) => `${v}`.trim() === '')) {
+      ncError.badRequest(
+        `sub_operator 'dateRange' needs [from, to], like ['2026-06-01', '2026-06-30']`,
+      );
+    }
+  } else if (!VALUELESS_SUB_OPS.has(subOp) && !values.length) {
     ncError.badRequest(
       `sub_operator '${subOp}' needs a value${
         subOp === 'exactDate' ? " like '2026-06-01'" : ' — a number of days'

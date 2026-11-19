@@ -883,6 +883,7 @@ export enum NcAccessSource {
   SHARED_FORM = 'shared-form',
   SHARED_DOC = 'shared-doc',
   SHARED_INTERFACE = 'shared-interface',
+  SHARED_DASHBOARD = 'shared-dashboard',
 }
 
 /** Every source that is a share surface — i.e. everything `is_public` covers. */

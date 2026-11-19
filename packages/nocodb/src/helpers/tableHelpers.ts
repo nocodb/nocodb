@@ -16,12 +16,18 @@ import {
 import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import type { AgentRoleCap, NcRequest, UserType } from 'nocodb-sdk';
 import type {
-  Column,
   LinkToAnotherRecordColumn,
   LookupColumn,
   RollupColumn,
 } from '~/models';
-import { Model, ModelRoleVisibility, Permission, User, View } from '~/models';
+import {
+  Column,
+  Model,
+  ModelRoleVisibility,
+  Permission,
+  User,
+  View,
+} from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
   TableSystemColumns,
@@ -552,20 +558,27 @@ export async function lookupChainHops(
     hops.length <= MAX_HIDDEN_CHAIN_DEPTH &&
     (current?.uidt === UITypes.Lookup || current?.uidt === UITypes.Rollup)
   ) {
-    const colOptions = await current.getColOptions<
-      LookupColumn | RollupColumn
-    >();
+    const loaded = current.colOptions as LookupColumn | RollupColumn;
+    const colOptions =
+      typeof loaded?.getRelationColumn === 'function'
+        ? loaded
+        : await current.getColOptions<LookupColumn | RollupColumn>();
     if (!colOptions || colOptions.error) break;
     const relationColumn = await colOptions.getRelationColumn();
-    const link =
-      await relationColumn?.getColOptions<LinkToAnotherRecordColumn>();
+    const link = (relationColumn?.colOptions ??
+      (await relationColumn?.getColOptions<LinkToAnotherRecordColumn>())) as
+      | LinkToAnotherRecordColumn
+      | undefined;
     if (!link) break;
     hops.push({ context: hopContext, link, column: current });
 
-    current =
-      current.uidt === UITypes.Lookup
-        ? await (colOptions as LookupColumn).getLookupColumn()
-        : await (colOptions as RollupColumn).getRollupColumn();
+    // same target as getLookupColumn()/getRollupColumn(), without re-reading the link
+    current = await Column.get(link.getRelContext().refContext, {
+      colId:
+        current.uidt === UITypes.Lookup
+          ? (colOptions as LookupColumn).fk_lookup_column_id
+          : (colOptions as RollupColumn).fk_rollup_column_id,
+    });
     hopContext = relatedBaseContext(hopContext, link);
   }
   // A lookup of a link field also reads the table that link points to.

@@ -1,5 +1,9 @@
 import { createToken, Lexer } from 'chevrotain';
 import { COMMON_TOKEN } from '../common-token';
+import {
+  CALENDAR_PERIOD_SUB_OPS,
+  DATE_RANGE_SUB_OP,
+} from '~/lib/filter/calendarDateRange';
 
 export const GROUPBY_COMPARISON_OPS = <const>[
   // these are used for groupby
@@ -56,6 +60,8 @@ export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
   'nextYear',
   'pastNumberOfDays',
   'nextNumberOfDays',
+  ...CALENDAR_PERIOD_SUB_OPS,
+  DATE_RANGE_SUB_OP,
 ];
 
 // Sub-ops whose value is a number of days.

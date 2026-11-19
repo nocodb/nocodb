@@ -54,6 +54,14 @@ const RESERVED_CONNECTION_KEYS = new Set([
   'authentication',
   'instanceName',
   'lookup',
+  // knex's mssql dialect builds tedious `authentication` from these.
+  'type',
+  'userName',
+  'token',
+  'clientId',
+  'clientSecret',
+  'tenantId',
+  'msiEndpoint',
 ]);
 
 interface IntegrationLike {

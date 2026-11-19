@@ -645,6 +645,7 @@ export enum CacheScope {
   PRESIGNED_URL = 'presignedUrl',
   STORE = 'store',
   PROJECT_ALIAS = 'baseAlias',
+  BASE_TO_WORKSPACE = 'baseToWorkspace',
   MODEL_ALIAS = 'modelAlias',
   VIEW_ALIAS = 'viewAlias',
   SSO_CLIENT = 'ssoClient',

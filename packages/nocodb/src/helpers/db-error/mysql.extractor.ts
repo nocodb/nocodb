@@ -2,6 +2,7 @@ import { NcErrorType } from 'nocodb-sdk';
 import { DBError, DBErrorKind } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
+import { internalDbHostBlockedMessage } from '~/utils/ssrf';
 
 export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
   constructor(
@@ -184,7 +185,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'The JSON path is not valid for MySQL.';
         break;
       case 'EACCES':
-        message = 'Connection to internal hosts is not allowed';
+        message = internalDbHostBlockedMessage();
         httpStatus = 403;
         break;
       default:

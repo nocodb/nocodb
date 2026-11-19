@@ -4,10 +4,16 @@ import utc from 'dayjs/plugin/utc.js';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import {
   COMPARISON_SUB_OPS,
+  DATE_RANGE_PENDING,
+  DATE_RANGE_SUB_OP,
   DAY_COUNT_COMPARISON_SUB_OPS,
+  getCalendarPeriodRange,
   getNodejsTimezone,
+  isCalendarPeriodSubOp,
   isDateTimeStringHasTimezone,
   isFieldTrackingLmtCol,
+  parseDateInTimezone,
+  parseDateRangeValue,
   parseDateTimeValue,
   parseProp,
 } from 'nocodb-sdk';
@@ -75,6 +81,36 @@ export const dateTimeFromFormat = (
   return parsed.isValid() ? parsed.format('YYYY-MM-DD HH:mm:ssZ') : null;
 };
 
+// Calendar periods and date ranges: bounds, not an anchor day for eq/lt/...
+const isIsWithinOnlyPeriod = (filter: Filter) =>
+  isCalendarPeriodSubOp(filter.comparison_sub_op) ||
+  filter.comparison_sub_op === DATE_RANGE_SUB_OP;
+
+// operations a date field filters with
+export const DATE_TIME_FILTER_OPERATIONS: string[] = [
+  'gb_eq',
+  'gb_null',
+  'eq',
+  'neq',
+  'not',
+  'empty',
+  'notempty',
+  'null',
+  'notnull',
+  'blank',
+  'notblank',
+  'gt',
+  'lt',
+  'gte',
+  'lte',
+  'ge',
+  'le',
+  'isnot',
+  'is',
+  'isWithin',
+  'in',
+];
+
 const NULL_CHECK_OPS = [
   'blank',
   'notblank',
@@ -124,30 +160,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
   dateValueFormat = 'YYYY-MM-DD HH:mm:ss';
 
   override async verifyFilter(filter: Filter, column: Column) {
-    const supportedOperations = [
-      'gb_eq',
-      'gb_null',
-      'eq',
-      'neq',
-      'not',
-      'empty',
-      'notempty',
-      'null',
-      'notnull',
-      'blank',
-      'notblank',
-      'gt',
-      'lt',
-      'gte',
-      'lte',
-      'ge',
-      'le',
-      'isnot',
-      'is',
-      'isWithin',
-      'in',
-    ];
-    if (!supportedOperations.includes(filter.comparison_op)) {
+    if (!DATE_TIME_FILTER_OPERATIONS.includes(filter.comparison_op)) {
       return {
         isValid: false,
         errors: [
@@ -175,6 +188,27 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         isValid: false,
         errors: [`${subOpProblem} on column ${column.title}`],
       } as FilterVerificationResult;
+    }
+
+    // older mismatched pairs (eq + pastWeek) may be saved: reject only these
+    if (isIsWithinOnlyPeriod(filter) && filter.comparison_op !== 'isWithin') {
+      return {
+        isValid: false,
+        errors: [
+          `Sub-operation ${filter.comparison_sub_op} is only supported with isWithin on column ${column.title}`,
+        ],
+      } as FilterVerificationResult;
+    }
+
+    if (filter.comparison_sub_op === DATE_RANGE_SUB_OP) {
+      if (!parseDateRangeValue(filter.value)) {
+        return {
+          isValid: false,
+          errors: [
+            `Value ${filter.value} is not a valid date range for column ${column.title}`,
+          ],
+        } as FilterVerificationResult;
+      }
     }
 
     if (filter.comparison_sub_op === 'exactDate' || !filter.comparison_sub_op) {
@@ -326,37 +360,21 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     column: Column,
     options: FilterOptions,
   ) {
-    // if the time provided has timezone, return as is
-    if (isDateTimeStringHasTimezone(value)) {
-      const result = dayjs(value).tz(
-        this.getTimezone(_knex, filter, column, options),
-      );
-      dateTimeHandlerDebug(
-        'parseFilterValue ' +
-          value +
-          ' DateTimeStringHasTimezone: ' +
-          result +
-          ' ' +
-          result.format(this.dateValueFormat),
-      );
-      return result;
-    }
-    // assume local
-    else {
-      const result = dayjs.tz(
-        value,
-        this.getTimezone(_knex, filter, column, options),
-      );
-      dateTimeHandlerDebug(
-        'parseFilterValue ' +
-          value +
-          ' withoutTimezone: ' +
-          result +
-          ' ' +
-          result.format(this.dateValueFormat),
-      );
-      return result;
-    }
+    const result = parseDateInTimezone(
+      value,
+      this.getTimezone(_knex, filter, column, options),
+    );
+    dateTimeHandlerDebug(
+      'parseFilterValue ' +
+        value +
+        (isDateTimeStringHasTimezone(value)
+          ? ' DateTimeStringHasTimezone: '
+          : ' withoutTimezone: ') +
+        result +
+        ' ' +
+        result.format(this.dateValueFormat),
+    );
+    return result;
   }
 
   protected getNow(
@@ -392,6 +410,19 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     { knex }: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
   ) {
+    // an end-of-day bound written without milliseconds drops 23:59:59.4;
+    // the next instant as an exclusive bound keeps it
+    if (rangeDate.millisecond() === 999) {
+      qb.where(
+        knex.raw('?? >= ? and ?? < ?', [
+          sourceField,
+          anchorDate.utc().format(this.dateValueFormat),
+          sourceField,
+          rangeDate.add(1, 'millisecond').utc().format(this.dateValueFormat),
+        ]),
+      );
+      return;
+    }
     qb.where(
       knex.raw('?? between ? and ?', [
         sourceField,
@@ -416,6 +447,15 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     { knex }: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
   ) {
+    // an end-of-day bound (…59.999) against the next instant, as
+    // comparisonBetween does, so eq / neq / lte / gt agree on 23:59:59.4
+    if (
+      val.millisecond() === 999 &&
+      (comparisonOp === '>' || comparisonOp === '<=')
+    ) {
+      val = val.add(1, 'millisecond');
+      comparisonOp = comparisonOp === '>' ? '>=' : '<';
+    }
     qb.where(
       knex.raw(`?? ${comparisonOp} ?`, [
         sourceField,
@@ -544,6 +584,61 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     const now = this.getNow(knex, filter, column, options);
     let anchorDate: dayjs.Dayjs;
     const emptyResult = { clause: () => {} } as FilterOperationResult;
+
+    if (isIsWithinOnlyPeriod(filter)) {
+      // nested filters skip verifyFilter. A request's filter is rejected; a
+      // saved one (lookup/link filters aren't verified on save) matches no
+      // rows, so it can't break every later read of the view
+      const invalid = (detail: string) => {
+        if (!filter.id) NcError.get(options.context).invalidFilter(detail);
+        return { clause: (qb: Knex.QueryBuilder) => qb.whereRaw('1 = 0') };
+      };
+      // without isWithin no anchor is set and the empty clause would match
+      // every row
+      if (filter.comparison_op !== 'isWithin') {
+        return invalid(
+          `${column.title} ${filter.comparison_op} ${filter.comparison_sub_op}`,
+        );
+      }
+      let bounds: [dayjs.Dayjs, dayjs.Dayjs];
+      if (isCalendarPeriodSubOp(filter.comparison_sub_op)) {
+        bounds = getCalendarPeriodRange(filter.comparison_sub_op, now);
+      } else {
+        const range = parseDateRangeValue(filter.value);
+        // a blank end on a saved/UI filter is still being picked: any dated
+        // row matches, as in the row validator (the `where` parser rejects it)
+        if (range === DATE_RANGE_PENDING) {
+          return {
+            clause: (qb) => qb.where(knex.raw('?? is not null', [field])),
+          };
+        }
+        if (!range) {
+          return invalid(`${column.title} dateRange ${filter.value}`);
+        }
+        const [from, to] = range.map((v) =>
+          this.parseFilterValue(v, knex, filter, column, options),
+        );
+        bounds = [from.startOf('day'), to.endOf('day')];
+      }
+      return {
+        rootApply: undefined,
+        clause: (qb: Knex.QueryBuilder) => {
+          qb.where((nestedQb) => {
+            this.comparisonBetween(
+              {
+                sourceField: field,
+                val: undefined,
+                anchorDate: bounds[0],
+                rangeDate: bounds[1],
+                qb: nestedQb,
+              },
+              { knex, filter, column },
+              options,
+            );
+          });
+        },
+      };
+    }
 
     // handle sub operation
     switch (filter.comparison_sub_op) {

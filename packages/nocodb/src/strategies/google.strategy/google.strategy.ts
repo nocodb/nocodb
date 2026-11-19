@@ -10,6 +10,7 @@ import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider
 import type { NcRequest } from '~/interface/config';
 import Noco from '~/Noco';
 import { UsersService } from '~/services/users/users.service';
+import { findOrCreateSsoUser } from '~/helpers/signupClaim';
 import { BaseUser, Plugin, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -48,8 +49,25 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         return done(new Error('Email not verified'));
       }
 
-      const user = await User.getByEmail(email);
-      if (user) {
+      let user = await User.getByEmail(email);
+      let created = false;
+      // if user not found create new user if allowed
+      // or return error
+      if (!user) {
+        const salt = await promisify(bcrypt.genSalt)(10);
+        ({ user, created } = await findOrCreateSsoUser(email, () =>
+          this.usersService.registerNewUserIfAllowed({
+            email_verification_token: null,
+            email: profile.emails[0].value,
+            password: '',
+            salt,
+            req,
+          } as any),
+        ));
+      }
+
+      // Also an account a racing signup or invite created first.
+      if (!created) {
         // if base id defined extract base level roles
         if (req.ncBaseId) {
           BaseUser.get(req.context, req.ncBaseId, user.id)
@@ -63,17 +81,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         } else {
           return done(null, sanitiseUserObj(user));
         }
-        // if user not found create new user if allowed
-        // or return error
       } else {
-        const salt = await promisify(bcrypt.genSalt)(10);
-        const user = await this.usersService.registerNewUserIfAllowed({
-          email_verification_token: null,
-          email: profile.emails[0].value,
-          password: '',
-          salt,
-          req,
-        } as any);
         return done(null, sanitiseUserObj(user));
       }
     } catch (err) {

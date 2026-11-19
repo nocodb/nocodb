@@ -215,6 +215,15 @@ export const externalDbValidatingLookup: LookupFunction = (
   });
 };
 
+/**
+ * The validating lookup for clients that accept one (e.g. a socket connector),
+ * or undefined when SSRF protection is disabled. Node tries every address it
+ * returns, and re-resolves on each reconnect.
+ */
+export function externalDbLookup(): LookupFunction | undefined {
+  return isDbSsrfProtectionEnabled() ? externalDbValidatingLookup : undefined;
+}
+
 function refusingSocket(): Socket {
   const socket = new Socket();
   process.nextTick(() => socket.destroy(blockedSocketError()));
@@ -319,6 +328,13 @@ function tediousConnector(
   });
 }
 
+/** A knex client name, or the `dialect` of a client class. */
+function clientName(client: unknown): unknown {
+  if (typeof client !== 'function') return client;
+  const proto = (client as { prototype?: Record<string, unknown> }).prototype;
+  return proto?.dialect ?? proto?.driverName;
+}
+
 /**
  * Re-check the address the driver actually dials (pg, mysql2, mssql), so a
  * DNS answer that changes after `assertExternalDbHostAllowed` cannot reach an
@@ -332,7 +348,7 @@ export function withExternalDbSsrfProtection<
   const connection = config.connection as Record<string, any> | undefined;
   if (!connection || typeof connection !== 'object') return config;
 
-  switch (config.client) {
+  switch (clientName(config.client)) {
     case 'pg':
     case 'postgres':
     case 'postgresql':

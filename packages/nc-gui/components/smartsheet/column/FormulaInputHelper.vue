@@ -591,7 +591,11 @@ function functionMenuItems(functionNames: string[], partial: string): DotPathMen
           syntax: fnMeta.syntax,
           examples: fnMeta.examples,
           docsUrl: fnMeta.docsUrl,
-          unsupported: unsupportedFnList.includes(fn) && !LIST_AGGREGATE_FUNCTIONS.includes(fn),
+          // a rollup's own functions run on every database; the scalar list doesn't apply
+          unsupported:
+            !(isRollupMode.value && rollupFunctionMetas.has(fn)) &&
+            unsupportedFnList.includes(fn) &&
+            !LIST_AGGREGATE_FUNCTIONS.includes(fn),
         }
       })
       // functions the database can't run go last

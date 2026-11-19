@@ -43,6 +43,7 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'app-assistant': 'app-assistant',
   'app-api': 'app-api',
   'app-versions': 'app-versions',
+  'app-danger-zone': 'app-danger-zone',
   'skills': 'skills',
   'personal-agents': 'personal-agents',
 }
@@ -107,6 +108,7 @@ export const appSettingsNav: {
     testId: 'app-versions',
     production: true,
   },
+  { tab: 'app-danger-zone', label: 'labels.dangerZone', icon: 'ncAlertTriangle', testId: 'app-danger-zone' },
 ]
 
 /** The nav an installed app's owner gets; the full one for its publisher. */

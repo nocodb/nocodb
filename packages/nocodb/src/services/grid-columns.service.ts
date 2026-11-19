@@ -145,9 +145,16 @@ export class GridColumnsService {
 
   async gridColumnClearGroupBy(
     context: NcContext,
-    param: { viewId: string; viewWebhookManager?: ViewWebhookManager },
+    param: {
+      viewId: string;
+      req?: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
     ncMeta = Noco.ncMeta,
   ) {
+    const view = await View.get(context, param.viewId, false, ncMeta);
+    assertViewConfigEditable(context, view, param.req);
+
     const qb = ncMeta
       .knex(MetaTable.GRID_VIEW_COLUMNS)
       .where('base_id', '=', context.base_id)
@@ -165,7 +172,6 @@ export class GridColumnsService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (

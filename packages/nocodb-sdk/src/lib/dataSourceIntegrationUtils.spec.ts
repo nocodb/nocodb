@@ -203,6 +203,29 @@ describe('combined data-source integrations', () => {
     expect(cfg.connection.socketPath).toBe(undefined);
   });
 
+  it('extra params cannot pick the SQL Server authentication', () => {
+    const extraParams = {
+      type: 'azure-active-directory-msi-vm',
+      userName: 'other',
+      token: 't',
+      clientId: 'c',
+      clientSecret: 's',
+      tenantId: 'tn',
+      msiEndpoint: 'http://169.254.169.254/',
+      appName: 'nocodb',
+    };
+    const cfg = knexConfigFromSqlAuthConfig('mssql', {
+      host: 'real',
+      username: 'svc',
+      extraParams,
+    });
+    expect(cfg.connection).toMatchObject({ host: 'real', user: 'svc' });
+    expect(cfg.connection.appName).toBe('nocodb');
+    for (const key of Object.keys(extraParams).filter((k) => k !== 'appName')) {
+      expect(cfg.connection[key]).toBe(undefined);
+    }
+  });
+
   it('maps a parsed connection URL back to the flat fields', () => {
     expect(
       sqlAuthConfigFromKnexConfig({

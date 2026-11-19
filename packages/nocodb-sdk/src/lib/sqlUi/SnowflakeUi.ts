@@ -1295,6 +1295,23 @@ export class SnowflakeUi implements SqlUi {
       'MD5',
       'SHA256',
       'SHA512',
+      // no Snowflake mapping
+      'MINUTE',
+      'SECOND',
+      'TODAY',
+      'IS_SAME',
+      'IS_AFTER',
+      'IS_BEFORE',
+      'FROMNOW',
+      'TONOW',
+      'DATETIME_PARSE',
+      'FIND',
+      'SUBSTITUTE',
+      'TEXTBEFORE',
+      'TEXTAFTER',
+      'TEXTSPLIT',
+      'ARRAYJOIN',
+      'ARRAYFLATTEN',
     ];
   }
 

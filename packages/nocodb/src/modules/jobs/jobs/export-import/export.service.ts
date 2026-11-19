@@ -1612,7 +1612,7 @@ export class ExportService {
     const dateOnlyTypes: string[] = [UITypes.Date];
     const fromIsDateOnly = dateOnlyTypes.includes(fromColumn.uidt);
 
-    const displayColumn =
+    let displayColumn =
       model.columns.find((c) => c.pv) ?? model.columns.find((c) => c.pk);
 
     const pkColumn = model.columns.find((c) => c.pk);
@@ -1626,6 +1626,10 @@ export class ExportService {
       visibleColumnIds = new Set(
         viewColumns.filter((vc) => vc.show).map((vc) => vc.fk_column_id),
       );
+      // The shared calendar shows no title for a hidden display value.
+      if (displayColumn && !visibleColumnIds.has(displayColumn.id)) {
+        displayColumn = undefined;
+      }
     }
 
     // Non-system, non-virtual data columns (in field order) used to build the

@@ -363,6 +363,7 @@ export class ImportService {
           }),
           req: param.req,
           isDuplicateOperation: param.isDuplicateOperation,
+          trimTableName: true,
         }));
 
       idMap.set(modelData.id, table.id);
@@ -1694,6 +1695,7 @@ export class ImportService {
             req: param.req,
             user: param.user,
             suppressFormulaError: true,
+            keepIntegrationBinding: true,
             columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;
@@ -1725,6 +1727,7 @@ export class ImportService {
             }) as any,
             req: param.req,
             user: param.user,
+            keepIntegrationBinding: true,
             columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;

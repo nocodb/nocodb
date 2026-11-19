@@ -1,5 +1,6 @@
 import UITypes from '../UITypes';
 import { FormulaDataTypes, JSEPNode } from './enums';
+import { isDateOnlyExpression } from './dateOnlyFormula';
 import type {
   CallExpressionNode,
   FormulaMeta,
@@ -307,52 +308,22 @@ export function getRollupResultUidt(column?: {
   return undefined;
 }
 
-const DATE_ONLY_DATEADD_UNITS: readonly unknown[] = [
-  'day',
-  'week',
-  'month',
-  'year',
-];
-
 /**
  * MIN / MAX of a Date field, optionally moved by DATEADD in whole days,
  * weeks, months or years, or chosen by IF / SWITCH: never carries a time of day.
  */
-function isDateOnlyRollupFormula(node?: ParsedFormulaNode): boolean {
-  if (node?.type !== JSEPNode.CALL_EXP) return false;
-  if (node.rollupAggregate) {
-    return (
+const isDateOnlyRollupFormula = (node?: ParsedFormulaNode): boolean =>
+  isDateOnlyExpression(
+    node,
+    (leaf) =>
+      leaf.type === JSEPNode.CALL_EXP &&
       [RollupAggregate.MIN, RollupAggregate.MAX].includes(
-        node.rollupAggregate
+        leaf.rollupAggregate
       ) &&
-      rollupFormulaKeepsTargetFormat(node) &&
-      node.referencedColumn?.uidt === UITypes.Date
-    );
-  }
-  const callee = node.callee?.name?.toUpperCase();
-  if (callee === 'IF' || callee === 'SWITCH') {
-    const rest = node.arguments?.slice(1) ?? [];
-    // SWITCH(expr, pattern, result, …, [default])
-    const results =
-      callee === 'IF'
-        ? rest
-        : rest.filter((_, i) => i % 2 === 1 || i === rest.length - 1);
-    const isBlank = (n: ParsedFormulaNode) =>
-      n.type === JSEPNode.CALL_EXP && n.callee?.name?.toUpperCase() === 'BLANK';
-    return (
-      results.some((n) => !isBlank(n)) &&
-      results.every((n) => isBlank(n) || isDateOnlyRollupFormula(n))
-    );
-  }
-  if (callee !== 'DATEADD') return false;
-  const [date, count, unit] = node.arguments ?? [];
-  return (
-    isDateOnlyRollupFormula(date) &&
-    isIntegerRollupFormula(count) &&
-    unit?.type === JSEPNode.LITERAL &&
-    DATE_ONLY_DATEADD_UNITS.includes(unit.value)
+      rollupFormulaKeepsTargetFormat(leaf) &&
+      leaf.referencedColumn?.uidt === UITypes.Date,
+    isIntegerRollupFormula
   );
-}
 
 /** Field type a rollup formula result behaves as for filters, aggregations and display */
 export function rollupFormulaResultUidt(

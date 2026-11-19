@@ -12,10 +12,27 @@ import commonFns, {
   treatArgAsConditionalExp,
   validateDateAddUnit,
 } from './commonFns';
-import type { CallExpressionNode } from 'nocodb-sdk';
+import type { CallExpressionNode, ParsedFormulaNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import type { WorkdaySqlDialect } from '~/db/functionMappings/workday';
-import { questionFreeLiteral, rawFromBuilder } from '~/helpers/sqlSanitize';
+import type { DateCompareSqlDialect } from '~/db/functionMappings/dateCompare';
+import type { TextOccurrenceSqlDialect } from '~/db/functionMappings/textOccurrence';
+import {
+  isAfterFn,
+  isBeforeFn,
+  isSameFn,
+  parseLiteralDate,
+} from '~/db/functionMappings/dateCompare';
+import {
+  substituteFn,
+  textAfterFn,
+  textBeforeFn,
+} from '~/db/functionMappings/textOccurrence';
+import {
+  escapeBindingPlaceholders,
+  questionFreeLiteral,
+  rawFromBuilder,
+} from '~/helpers/sqlSanitize';
 import {
   guardedLogBaseSql,
   guardedLogSql,
@@ -40,7 +57,12 @@ import {
   getWeekStartOffsetSunday,
 } from '~/helpers/formulaFnHelper';
 import { NcError } from '~/helpers/ncError';
-import { getDatetimeFormatHandler } from '~/db/datetime-format';
+import {
+  getDatetimeFormatHandler,
+  getDatetimeParseHandler,
+} from '~/db/datetime-format';
+import { pgLenientTextInstant } from '~/db/datetime-format/handlers/datetime-parse.pg.handler';
+import { sqlString } from '~/db/datetime-format/handlers/datetime-format.general.handler';
 import { workdayDiffFn, workdayFn } from '~/db/functionMappings/workday';
 
 // `{Field}` or `{Link}.{Field}`
@@ -123,6 +145,103 @@ const pgWorkdayDialect: WorkdaySqlDialect = {
     `(SELECT CASE WHEN wdt.t ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN CASE WHEN ${PG_HOLIDAY_YEAR} > 0 AND ${PG_HOLIDAY_MONTH} BETWEEN 1 AND 12 AND substr(wdt.t, 9, 2)::int BETWEEN 1 AND 31 THEN CASE WHEN to_char(${PG_HOLIDAY_DATE}, 'YYYY-MM-DD') = wdt.t THEN ${PG_HOLIDAY_DATE} - DATE '1900-01-01' END END END AS hn FROM (SELECT btrim(wdx, ' ' || chr(9) || chr(10) || chr(13)) AS t FROM unnest(string_to_array((${sql})::text, ',')) AS wdx) wdt)`,
   castResult: (sql) => `(${sql})::int`,
   noInline: ' OFFSET 0',
+};
+
+// EPOCH reads a plain timestamp as UTC and a timestamptz as its instant, so
+// both resolve to the same instant regardless of the session timezone
+// parenthesised: a trailing `::TIMESTAMP` would otherwise cast the zone name
+const pgInstantInZone = (sql: string, timezone: string) =>
+  `(to_timestamp(EXTRACT(EPOCH FROM (${sql}))) AT TIME ZONE '${timezone.replace(
+    /'/g,
+    "''",
+  )}')`;
+
+// the zone DATETIME_PARSE reads bare text in
+const pgTextZone = () => getDatetimeFormatTimezone() ?? 'UTC';
+
+// text as an instant, bare text in DATETIME_PARSE's zone; NULL rather than a
+// failed query for a non-date, which `::timestamp` would raise on
+const pgTextInstant = (sql: string) => pgLenientTextInstant(sql, pgTextZone());
+
+// wall time in the server zone, the frame DATETIME_FORMAT shows: an instant
+// is converted (whatever the session TimeZone), text read there, a Date as is
+const pgZoneWall = (sql: string, node?: ParsedFormulaNode) => {
+  if (node?.dataType === FormulaDataTypes.STRING)
+    return `(${pgTextInstant(sql)} AT TIME ZONE ${sqlString(pgTextZone())})`;
+  return isDatetimeInstantNode(node)
+    ? pgInstantInZone(sql, pgTextZone())
+    : `(${sql})::TIMESTAMP`;
+};
+
+const pgDateCompareDialect: DateCompareSqlDialect = {
+  truncate: (sql, unit, dataType) => {
+    // text as wall time in the zone localInstant reads instants in
+    const ts =
+      dataType === FormulaDataTypes.STRING
+        ? `(${pgTextInstant(sql)} AT TIME ZONE ${sqlString(pgTextZone())})`
+        : `(${sql})::timestamp`;
+    return unit ? `date_trunc('${unit}', ${ts})` : ts;
+  },
+  datetimeLiteral: (iso) => `TIMESTAMP '${iso}'`,
+  // the zone DATETIME_FORMAT and TODAY() use
+  localInstant: (sql) => {
+    const timezone = getDatetimeFormatTimezone();
+    return timezone ? pgInstantInZone(sql, timezone) : sql;
+  },
+};
+
+// date and time parts all read the server-zone wall time; a Time field
+// (INTERVAL) is a pg `time`, which can't be cast to timestamp
+const pgDatePart = async (
+  fn: MapFnArgs['fn'],
+  node?: ParsedFormulaNode,
+): Promise<string> => {
+  const sql = `(${(await fn(node)).builder.toQuery()})`;
+  if (node?.dataType === FormulaDataTypes.INTERVAL) return `(${sql}::TIME)`;
+  return `(${pgZoneWall(sql, node)})`;
+};
+
+const pgTextOccurrenceDialect: TextOccurrenceSqlDialect = {
+  isWhole: (sql) => `((${sql})::numeric = TRUNC((${sql})::numeric))`,
+  // the n-th delimiter ends the n-th element of string_to_array
+  occurrence: (text, delim, n) =>
+    `(SELECT CASE WHEN _to.i BETWEEN 1 AND _to.k THEN char_length(array_to_string(_to.a[1:_to.i], ${delim})) + 1 ELSE 0 END FROM (SELECT _tk.a, _tk.k, CASE WHEN ${n} > 0 THEN ${n} ELSE _tk.k + ${n} + 1 END AS i FROM (SELECT _ta.a, cardinality(_ta.a) - 1 AS k FROM (SELECT string_to_array((${text})::text, (${delim})::text) AS a OFFSET 0) _ta) _tk) _to)`,
+  substr: (text, from, length) =>
+    length
+      ? `SUBSTR((${text})::text, ${from}, ${length})`
+      : `SUBSTR((${text})::text, ${from})`,
+  length: (sql) => `char_length((${sql})::text)`,
+  concat: (parts) => `(${parts.map((p) => `(${p})::text`).join(' || ')})`,
+  noInline: ' OFFSET 0',
+};
+
+// pg's substr takes only integer: a Number/Decimal is truncated and clamped to
+// int range (as SQLite truncates); a NULL stays NULL (GREATEST would drop it)
+const pgSubstrInt = (col: string, min: number) =>
+  `CASE WHEN ${col} IS NOT NULL THEN TRUNC(LEAST(GREATEST(${col}, ${min}), 2147483647))::INTEGER END`;
+
+// a negative start counts from the end, and one before the first character
+// or a negative length is empty, as on MySQL
+const pgSubstr = async ({ fn, knex, pt }: MapFnArgs) => {
+  const str = (await fn(pt.arguments[0])).builder;
+  const positionFrom = (await fn(pt.arguments[1] ?? 1)).builder;
+  const numberOfCharacters = pt.arguments[2]
+    ? (await fn(pt.arguments[2])).builder
+    : null;
+  const p = pgSubstrInt('nc_ss.p', -2147483648);
+  const from = `CASE WHEN char_length(nc_ss.t)::bigint + ${p} < 0 THEN 2147483647 WHEN ${p} < 0 THEN char_length(nc_ss.t) + ${p} + 1 ELSE ${p} END`;
+  return {
+    builder: knex.raw(
+      `(SELECT SUBSTR(nc_ss.t, ${from}${
+        numberOfCharacters ? `, ${pgSubstrInt('nc_ss.n', 0)}` : ''
+      }) FROM (SELECT (?)::TEXT AS t, (?)::numeric AS p, ${
+        numberOfCharacters ? '(?)::numeric' : 'NULL::numeric'
+      } AS n OFFSET 0) nc_ss)`,
+      numberOfCharacters
+        ? [str, positionFrom, numberOfCharacters]
+        : [str, positionFrom],
+    ),
+  };
 };
 
 const pg = {
@@ -213,7 +332,7 @@ const pg = {
       ),
     };
   },
-  MID: 'SUBSTR',
+  MID: pgSubstr,
   FLOAT: async ({ fn, knex, pt }: MapFnArgs) => {
     let source = (await fn(pt.arguments[0])).builder;
     if (isBooleanFormulaType(pt.arguments[0]?.dataType)) {
@@ -282,23 +401,37 @@ const pg = {
     };
   },
   DATETIME_DIFF: async ({ fn, knex, pt }: MapFnArgs) => {
-    const datetime_expr1 = (await fn(pt.arguments[0])).builder;
-    const datetime_expr2 = (await fn(pt.arguments[1])).builder;
+    // two instants subtract in UTC (no DST hour); anything else in server-zone
+    // wall time, where Dates and bare text live. A literal's Day.js wall is in
+    // the process zone, which is that zone.
+    // SQL text: a Raw is thenable, so an async function returning one runs it
+    const utc =
+      isDatetimeInstantNode(pt.arguments[0]) &&
+      isDatetimeInstantNode(pt.arguments[1]);
+    const side = async (node: MapFnArgs['pt']): Promise<string> => {
+      if (
+        node.dataType !== FormulaDataTypes.DATE &&
+        node.dataType !== FormulaDataTypes.STRING
+      )
+        return (await fn(node)).builder.toQuery();
+      if (node.type === JSEPNode.LITERAL) {
+        const date = parseLiteralDate(String(node.value ?? ''));
+        return node.value && date.isValid()
+          ? `TIMESTAMP '${date.format('YYYY-MM-DD HH:mm:ss.SSS')}'`
+          : 'NULL::TIMESTAMP';
+      }
+      const sql = `(${(await fn(node)).builder.toQuery()})`;
+      return utc ? pgInstantInZone(sql, 'UTC') : `(${pgZoneWall(sql, node)})`;
+    };
+    const datetime_expr1 = await side(pt.arguments[0]);
+    const datetime_expr2 = await side(pt.arguments[1]);
     const rawUnit = pt.arguments[2]
       ? (await fn(pt.arguments[2])).builder.bindings[0]
       : 'seconds';
-    const expr1_typecast = [
-      FormulaDataTypes.DATE,
-      FormulaDataTypes.STRING,
-    ].includes(pt.arguments[0].dataType)
-      ? '::TIMESTAMP'
-      : '';
-    const expr2_typecast = [
-      FormulaDataTypes.DATE,
-      FormulaDataTypes.STRING,
-    ].includes(pt.arguments[1].dataType)
-      ? '::TIMESTAMP'
-      : '';
+    const expr1_typecast =
+      pt.arguments[0].dataType === FormulaDataTypes.DATE ? '::TIMESTAMP' : '';
+    const expr2_typecast =
+      pt.arguments[1].dataType === FormulaDataTypes.DATE ? '::TIMESTAMP' : '';
 
     let sql;
     const unit = convertUnits(rawUnit, 'pg');
@@ -342,7 +475,7 @@ const pg = {
       default:
         sql = '';
     }
-    return { builder: knex.raw(`${sql}`) };
+    return { builder: knex.raw(escapePlaceholders(`${sql}`)) };
   },
   WORKDAY: workdayFn(pgWorkdayDialect),
   WORKDAY_DIFF: workdayDiffFn(pgWorkdayDialect),
@@ -351,15 +484,17 @@ const pg = {
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
     return {
       builder: knex.raw(
-        `(EXTRACT(ISODOW FROM ${
-          pt.arguments[0].type === 'Literal'
-            ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
-                'YYYY-MM-DD',
-              )}'`
-            : (await fn(pt.arguments[0])).builder
-        }) - 1 - ${getWeekdayByText(
-          pt?.arguments[1]?.value,
-        )} % 7 + 7) ::INTEGER % 7`,
+        escapeBindingPlaceholders(
+          `(EXTRACT(ISODOW FROM ${
+            pt.arguments[0].type === 'Literal'
+              ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
+                  'YYYY-MM-DD',
+                )}'`
+              : await pgDatePart(fn, pt.arguments[0])
+          }) - 1 - ${getWeekdayByText(
+            pt?.arguments[1]?.value,
+          )} % 7 + 7) ::INTEGER % 7`,
+        ),
       ),
     };
   },
@@ -371,13 +506,15 @@ const pg = {
         ? `date '${dayjs((await fn(pt.arguments[0])).builder).format(
             'YYYY-MM-DD',
           )}'`
-        : `(${(await fn(pt.arguments[0])).builder})::TIMESTAMP`;
+        : await pgDatePart(fn, pt.arguments[0]);
     const startSun = getWeekStartOffsetSunday(pt?.arguments[1]?.value);
     const doy = `EXTRACT(DOY FROM ${source})::INTEGER`;
     const dow = `EXTRACT(DOW FROM ${source})::INTEGER`;
     return {
       builder: knex.raw(
-        `(FLOOR(((${doy} - 1) + ((((${dow} - (${doy} - 1) - ${startSun}) % 7) + 7) % 7)) / 7.0) + 1)::INTEGER`,
+        escapeBindingPlaceholders(
+          `(FLOOR(((${doy} - 1) + ((((${dow} - (${doy} - 1) - ${startSun}) % 7) + 7) % 7)) / 7.0) + 1)::INTEGER`,
+        ),
       ),
     };
   },
@@ -395,12 +532,7 @@ const pg = {
     let dateExpr = `${(await fn(pt?.arguments[0])).builder}`;
     const timezone = getDatetimeFormatTimezone();
     if (timezone && isDatetimeInstantNode(pt?.arguments[0])) {
-      // EPOCH reads a plain timestamp as UTC and a timestamptz as its instant,
-      // so both resolve to the same instant regardless of the session timezone
-      dateExpr = `to_timestamp(EXTRACT(EPOCH FROM (${dateExpr}))) AT TIME ZONE '${timezone.replace(
-        /'/g,
-        "''",
-      )}'`;
+      dateExpr = pgInstantInZone(dateExpr, timezone);
     }
     return {
       builder: knex.raw(
@@ -410,39 +542,170 @@ const pg = {
       ),
     };
   },
-  DAY: async ({ fn, knex, pt }: MapFnArgs) => {
+  DAY: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapeBindingPlaceholders(
+        `EXTRACT('Day' FROM ${await pgDatePart(fn, pt?.arguments[0])})`,
+      ),
+    ),
+  }),
+  MONTH: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapeBindingPlaceholders(
+        `EXTRACT('Month' FROM ${await pgDatePart(fn, pt?.arguments[0])})`,
+      ),
+    ),
+  }),
+  YEAR: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapeBindingPlaceholders(
+        `EXTRACT('Year' FROM ${await pgDatePart(fn, pt?.arguments[0])})`,
+      ),
+    ),
+  }),
+  HOUR: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapeBindingPlaceholders(
+        `EXTRACT('Hour' FROM ${await pgDatePart(fn, pt?.arguments[0])})`,
+      ),
+    ),
+  }),
+  MINUTE: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapeBindingPlaceholders(
+        `EXTRACT('Minute' FROM ${await pgDatePart(fn, pt?.arguments[0])})`,
+      ),
+    ),
+  }),
+  SECOND: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapeBindingPlaceholders(
+        `FLOOR(EXTRACT('Second' FROM ${await pgDatePart(
+          fn,
+          pt?.arguments[0],
+        )}))`,
+      ),
+    ),
+  }),
+  // the date in the same zone DATETIME_FORMAT renders in; NOW() runs per query,
+  // so a cached plan stays correct
+  TODAY: async ({ knex }: MapFnArgs) => {
+    const timezone = (getDatetimeFormatTimezone() ?? 'UTC').replace(/'/g, "''");
+    return {
+      builder: knex.raw(`((NOW() AT TIME ZONE '${timezone}')::date)`),
+    };
+  },
+  IS_SAME: isSameFn(pgDateCompareDialect),
+  IS_AFTER: isAfterFn(pgDateCompareDialect),
+  IS_BEFORE: isBeforeFn(pgDateCompareDialect),
+  TEXTBEFORE: textBeforeFn(pgTextOccurrenceDialect),
+  TEXTAFTER: textAfterFn(pgTextOccurrenceDialect),
+  SUBSTITUTE: substituteFn(pgTextOccurrenceDialect),
+  DATETIME_PARSE: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    if (pt.arguments[0].dataType === FormulaDataTypes.DATE) {
+      return { builder: value };
+    }
     return {
       builder: knex.raw(
-        `EXTRACT('Day' FROM ((${
-          (await fn(pt?.arguments[0])).builder
-        })::TIMESTAMP))`,
+        escapePlaceholders(
+          getDatetimeParseHandler(ClientType.PG).build(
+            `${value.toQuery()}`,
+            pt.arguments[1]?.value,
+            getDatetimeFormatTimezone() ?? 'UTC',
+          ),
+        ),
       ),
     };
   },
-  MONTH: async ({ fn, knex, pt }: MapFnArgs) => {
+  TEXTSPLIT: async (args: MapFnArgs) => {
+    const { fn, knex, pt } = args;
+    const text = (await fn(pt.arguments[0])).builder.toQuery();
+    const delim = (await fn(pt.arguments[1])).builder.toQuery();
+    // a NULL delimiter splits into characters on pg; read it as '' (no split)
+    const parts = `string_to_array((${text})::text, COALESCE((${delim})::text, ''))`;
+    if (!pt.arguments[2]) {
+      return { builder: knex.raw(escapePlaceholders(parts)) };
+    }
+    const ignoreEmpty = (
+      await treatArgAsConditionalExp(args, pt.arguments[2])
+    ).builder.toQuery();
     return {
       builder: knex.raw(
-        `EXTRACT('Month' FROM ((${
-          (await fn(pt?.arguments[0])).builder
-        })::TIMESTAMP))`,
+        escapePlaceholders(
+          `(CASE WHEN ${ignoreEmpty} THEN array_remove(${parts}, '') ELSE ${parts} END)`,
+        ),
       ),
     };
   },
-  YEAR: async ({ fn, knex, pt }: MapFnArgs) => {
+  ARRAYJOIN: async (args: MapFnArgs) => {
+    const { fn, knex, pt } = args;
+    const separator = pt.arguments[1]
+      ? (await fn(pt.arguments[1])).builder
+      : knex.raw(`', '`);
+    // ARRAYJOIN returns text, so the call node has no referenced column
+    const sourceUidt = (<CallExpressionNode>pt.arguments[0])?.referencedColumn
+      ?.uidt;
+    if (sourceUidt === UITypes.User) {
+      const source = (await getArraySourceUserUnnested(pt.arguments[0], args))
+        .builder;
+      return {
+        builder: knex.raw(
+          `(SELECT string_agg(email, (?)::text) FROM ( ?? ) as _tbl1)`,
+          [separator, source],
+        ),
+      };
+    } else if (sourceUidt === UITypes.Attachment) {
+      const source = (
+        await getArraySourceAttachmentUnnested(pt.arguments[0], args)
+      ).builder;
+      return {
+        builder: knex.raw(
+          `(SELECT string_agg(title, (?)::text) FROM ( ?? ) as _tbl1)`,
+          [separator, source],
+        ),
+      };
+    }
+    const source = (await getArraySource(pt.arguments[0], args)).builder;
     return {
-      builder: knex.raw(
-        `EXTRACT('Year' FROM ((${
-          (await fn(pt?.arguments[0])).builder
-        })::TIMESTAMP))`,
-      ),
+      builder: knex.raw(`array_to_string(??, (?)::text)`, [source, separator]),
     };
   },
-  HOUR: async ({ fn, knex, pt }: MapFnArgs) => {
+  // concatenates the arrays in argument order; items are read as text so
+  // arrays of different element types can be combined. Unless the result keeps
+  // a User/Attachment display, users read as emails and attachments as titles
+  ARRAYFLATTEN: async (args: MapFnArgs) => {
+    const { knex, pt } = args;
+    const displayUidt = (<CallExpressionNode>pt).referencedColumn?.uidt;
+    const union = (
+      await Promise.all(
+        pt.arguments.map(async (arg, i) => {
+          const argUidt = (<CallExpressionNode>arg).referencedColumn?.uidt;
+          if (argUidt === UITypes.User && displayUidt !== UITypes.User) {
+            const source = (
+              await getArraySourceUserUnnested(arg, args)
+            ).builder.toQuery();
+            return `SELECT _afu.email AS v, ${i} AS g, row_number() OVER () AS o FROM (${source}) _afu`;
+          }
+          if (
+            argUidt === UITypes.Attachment &&
+            displayUidt !== UITypes.Attachment
+          ) {
+            const source = (
+              await getArraySourceAttachmentUnnested(arg, args)
+            ).builder.toQuery();
+            return `SELECT _afa.title AS v, ${i} AS g, row_number() OVER () AS o FROM (${source}) _afa`;
+          }
+          const source = (await getArraySource(arg, args)).builder.toQuery();
+          return `SELECT _afe.v::text AS v, ${i} AS g, _afe.o FROM unnest((${source})) WITH ORDINALITY AS _afe(v, o)`;
+        }),
+      )
+    ).join(' UNION ALL ');
     return {
       builder: knex.raw(
-        `EXTRACT('Hour' FROM ((${
-          (await fn(pt?.arguments[0])).builder
-        })::TIMESTAMP))`,
+        escapePlaceholders(
+          `ARRAY(SELECT _af.v FROM (${union}) _af ORDER BY _af.g, _af.o)`,
+        ),
       ),
     };
   },
@@ -491,26 +754,7 @@ const pg = {
       builder: args.knex.raw(`CASE WHEN ? THEN TRUE ELSE FALSE END`, [clause]),
     };
   },
-  SUBSTR: async ({ fn, knex, pt }: MapFnArgs) => {
-    const str = (await fn(pt.arguments[0])).builder;
-    const positionFrom = (await fn(pt.arguments[1] ?? 1)).builder;
-    const numberOfCharacters = pt.arguments[2]
-      ? (await fn(pt.arguments[2])).builder
-      : null;
-    if (numberOfCharacters) {
-      return {
-        builder: knex.raw(`SUBSTR(?::TEXT, ?, ?)`, [
-          str,
-          positionFrom,
-          numberOfCharacters,
-        ]),
-      };
-    } else {
-      return {
-        builder: knex.raw(`SUBSTR(?::TEXT, ?)`, [str, positionFrom]),
-      };
-    }
-  },
+  SUBSTR: pgSubstr,
   MOD: async ({ fn, knex, pt }: MapFnArgs) => {
     const x = (await fn(pt.arguments[0])).builder;
     const y = (await fn(pt.arguments[1])).builder;

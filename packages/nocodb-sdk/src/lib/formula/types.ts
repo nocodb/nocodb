@@ -17,6 +17,10 @@ export interface ReferencedInfo {
     intermediaryId?: string;
     // Lookup only: values are the referenced field's own, with no formula hop
     directLookup?: boolean;
+    // a date-only formula in between: the value is a Date without a time
+    dateOnly?: boolean;
+    // a date formula in between: whether its value is a UTC instant
+    instant?: 'stored' | 'any' | 'none';
   };
   invalidForReferenceColumn?: boolean;
   uidtCandidates?: UITypes[];
@@ -101,6 +105,10 @@ export interface FormulaMetaCustomValidation {
   ): void;
 }
 
+export interface FormulaMetaArgValuesValidation {
+  (parseTree: CallExpressionNode, sqlUI?: SqlUI): void;
+}
+
 export interface FormulaMeta {
   validation?: {
     args?: {
@@ -113,6 +121,9 @@ export interface FormulaMeta {
       type?: FormulaDataTypes | FormulaDataTypes[];
     };
     custom?: FormulaMetaCustomValidation;
+    // checks constant argument values; unlike `custom` it runs after the
+    // args.type check rather than replacing it
+    argValues?: FormulaMetaArgValuesValidation;
   };
   description?: string;
   syntax?: string;

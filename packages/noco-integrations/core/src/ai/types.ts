@@ -1,5 +1,7 @@
 import {
+  asSchema,
   generateText as sdkGenerateText,
+  NoObjectGeneratedError,
   Output,
   wrapLanguageModel,
   defaultSettingsMiddleware,
@@ -8,7 +10,12 @@ import {
 import { devToolsMiddleware } from '@ai-sdk/devtools';
 import { IntegrationWrapper } from '../integration';
 import { maskSecret } from '../auth/sensitive';
-import type { EmbeddingModel, ModelMessage, ToolSet } from 'ai';
+import type {
+  EmbeddingModel,
+  LanguageModelUsage,
+  ModelMessage,
+  ToolSet,
+} from 'ai';
 import type {
   LanguageModelV4 as LanguageModel,
   LanguageModelV4CallOptions,
@@ -194,6 +201,33 @@ export function splitLanguageModelUsage(
       cacheWriteTokens: usage?.inputTokens?.cacheWrite,
     },
   });
+}
+
+/**
+ * Some OpenAI-compatible gateways ignore the `json_schema` response format and
+ * wrap the JSON in markdown code fences. Recover the object from the error's raw
+ * text; `null` when it isn't that case or the object fails the schema.
+ */
+async function recoverFencedObject(
+  error: unknown,
+  schema: any,
+): Promise<{ output: unknown; usage: LanguageModelUsage } | null> {
+  if (!NoObjectGeneratedError.isInstance(error)) return null;
+  const { text, usage } = error;
+  const fenced = text?.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (!fenced || !usage) return null;
+
+  let value: unknown;
+  try {
+    value = JSON.parse(fenced[1]);
+  } catch {
+    return null;
+  }
+
+  const validate = asSchema(schema).validate;
+  if (!validate) return { output: value, usage };
+  const result = await validate(value);
+  return result.success ? { output: result.value, usage } : null;
 }
 
 /** Reasoning intensity callers ask for; each integration maps it per model. */
@@ -591,15 +625,22 @@ export abstract class AiIntegration<
     });
     const tools = args.websearch ? this.webSearchTool() : undefined;
 
-    const response = await sdkGenerateText({
-      model,
-      output: Output.object({ schema: args.schema }),
-      messages: args.messages,
-      allowSystemInMessages: true,
-      temperature: this.temperature,
-      abortSignal: args.abortSignal,
-      ...(tools ? { tools } : {}),
-    });
+    let response: { output: unknown; usage: LanguageModelUsage };
+    try {
+      response = await sdkGenerateText({
+        model,
+        output: Output.object({ schema: args.schema }),
+        messages: args.messages,
+        allowSystemInMessages: true,
+        temperature: this.temperature,
+        abortSignal: args.abortSignal,
+        ...(tools ? { tools } : {}),
+      });
+    } catch (e) {
+      const recovered = await recoverFencedObject(e, args.schema);
+      if (!recovered) throw e;
+      response = recovered;
+    }
 
     // Cache reads/writes split out of input so billing prices each bucket at
     // its own rate; reasoning is already inside outputTokens.

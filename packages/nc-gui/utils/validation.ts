@@ -6,6 +6,13 @@ import { TypeConversionError } from '../error/type-conversion.error'
 
 export { getEmailHref, validateEmail }
 
+// pg caps identifiers in UTF-8 bytes, not characters. Like the backend, say
+// "bytes" only when that differs from the character count.
+export const getTableNameLengthError = (name: string, limit: number, inBytes: boolean): string | undefined => {
+  const size = inBytes ? new TextEncoder().encode(name).length : name.length
+  if (size > limit) return `Table name exceeds ${limit} ${size !== name.length ? 'bytes' : 'characters'}`
+}
+
 export const validateTableName = {
   validator: (_: unknown, value: string) => {
     return new Promise((resolve, reject) => {

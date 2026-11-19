@@ -454,6 +454,15 @@ export const nanoidv2 = customAlphabet(
   14,
 );
 
+/** Columns a form-scoped write maps: the pks plus the form's own columns. */
+export function formMappingColumns(
+  model: Model,
+  formColumns?: Column[] | null,
+): Column[] | undefined {
+  if (!formColumns) return undefined;
+  return [...model.primaryKeys, ...formColumns.filter((c) => !c.pk)];
+}
+
 export async function populatePk(
   context: NcContext,
   model: Model,
@@ -1174,6 +1183,17 @@ export const dataWrapper = (data: any) => {
         return data[column.column_name];
       }
 
+      if (Object.hasOwn(data, column.title)) {
+        return data[column.title];
+      }
+
+      if (Object.hasOwn(data, column.id)) {
+        return data[column.id];
+      }
+
+      return undefined;
+    },
+    getByTitleOrId: (column: { id: string; title: string }) => {
       if (Object.hasOwn(data, column.title)) {
         return data[column.title];
       }

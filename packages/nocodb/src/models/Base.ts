@@ -40,6 +40,9 @@ import {
 
 const logger = new Logger('Base');
 
+// Bypass lookups trust the cached base until this pointer expires; read via getMany, which never extends it.
+const BYPASS_POINTER_TTL_SECONDS = 5 * 60;
+
 export default class Base implements BaseType {
   public id: string;
   public fk_workspace_id?: string;
@@ -307,13 +310,32 @@ export default class Base implements BaseType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Base> {
+    // Base entries are keyed by their own workspace, which a bypass lookup
+    // (extract-ids) doesn't know yet: find it through a root pointer.
+    const isBypass =
+      context.workspace_id === RootScopes.BYPASS ||
+      context.workspace_id === RootScopes.FULL_BYPASS;
+    const cacheWorkspaceId =
+      baseId && isBypass
+        ? (
+            await NocoCache.getMany('root', [
+              `${CacheScope.BASE_TO_WORKSPACE}:${baseId}`,
+            ])
+          )[0]
+        : context.workspace_id;
+
     let baseData =
       baseId &&
+      cacheWorkspaceId &&
       (await NocoCache.get(
-        { workspace_id: context.workspace_id, base_id: null },
+        { workspace_id: cacheWorkspaceId, base_id: null },
         `${CacheScope.PROJECT}:${baseId}`,
         CacheGetType.TYPE_OBJECT,
       ));
+    // A moved base keeps its old entry, updated in place.
+    if (isBypass && baseData?.fk_workspace_id !== cacheWorkspaceId) {
+      baseData = null;
+    }
     if (!baseData) {
       baseData = await ncMeta.metaGet2(
         context.workspace_id,
@@ -331,6 +353,14 @@ export default class Base implements BaseType {
           `${CacheScope.PROJECT}:${baseId}`,
           baseData,
         );
+        if (isBypass) {
+          await NocoCache.setExpiring(
+            'root',
+            `${CacheScope.BASE_TO_WORKSPACE}:${baseId}`,
+            baseData.fk_workspace_id,
+            BYPASS_POINTER_TTL_SECONDS,
+          );
+        }
       }
     } else {
       if (baseData.deleted) {
@@ -366,6 +396,7 @@ export default class Base implements BaseType {
       sources.forEach((s) => {
         s.config = undefined;
         s.integration_config = undefined;
+        s.integration_meta = undefined;
       });
     }
     return sources;
@@ -434,6 +465,16 @@ export default class Base implements BaseType {
       return base;
     }
     return null;
+  }
+
+  // Call after the delete commits: a read inside the transaction re-caches the
+  // pre-commit row, and bypass lookups (extract-ids) trust the cache.
+  static async clearCache(context: NcContext, baseId: string) {
+    await NocoCache.deepDel(
+      { workspace_id: context.workspace_id, base_id: null },
+      `${CacheScope.PROJECT}:${baseId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
   }
 
   // @ts-ignore

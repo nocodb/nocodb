@@ -1461,7 +1461,7 @@ export default class View implements ViewType {
         break;
     }
 
-    const key = `${cacheScope}:viewColumnId:${colId}`;
+    const key = `${cacheScope}:viewColumnId:${viewId}:${colId}`;
     const o = await NocoCache.get(context, key, CacheGetType.TYPE_STRING);
     if (o) return o;
 
@@ -1996,11 +1996,8 @@ export default class View implements ViewType {
    * Mask the stored password value before returning a view to an
    * owner-facing API consumer.
    *
-   * - Bcrypt hash → replaced with the sentinel; the hash never leaves the
-   *   backend and the frontend renders a masked locked state.
-   * - Legacy plaintext (pre-PR-8174 rows that have never been re-saved) →
-   *   left as-is so the owner can still read their original password.
-   *   Migrates to bcrypt the next time the owner changes it.
+   * - Any stored value, bcrypt hash or legacy plaintext → replaced with the
+   *   sentinel; the frontend renders a masked locked state.
    * - Empty/null → unchanged.
    *
    * Returns a copy when masking is needed so we don't mutate cached View
@@ -2011,7 +2008,6 @@ export default class View implements ViewType {
     view: T,
   ): T {
     if (!view || !view.password) return view;
-    if (!isBcryptHash(view.password)) return view;
     return Object.assign(Object.create(Object.getPrototypeOf(view)), view, {
       password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
     });
@@ -2226,7 +2222,9 @@ export default class View implements ViewType {
   static async delete(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
     const view = await this.get(context, viewId, false, ncMeta);
     await Sort.deleteAll(context, viewId, ncMeta);
-    await Filter.deleteAll(context, viewId, ncMeta);
+    await Filter.deleteAll(context, viewId, ncMeta, {
+      includeFieldConditions: true,
+    });
     const table = this.extractViewTableName(view);
 
     const tableScope = this.extractViewTableNameScope(view);

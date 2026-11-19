@@ -50,6 +50,12 @@ const showSearchBox = ref(false)
 // Query cleared by Escape; restored (selected) on the next open.
 const lastClosedQuery = ref('')
 
+// Query (and field) the shown results are for; Enter on it steps through matches instead of reloading.
+const lastSearchedKey = ref('')
+
+// Set by Enter or an arrow; a new query or field clears it.
+const isSearchStepping = ref(false)
+
 const globalSearchRef = ref<HTMLInputElement>()
 
 const globalSearchWrapperRef = ref<HTMLInputElement>()
@@ -117,6 +123,75 @@ const columns = computed(() => {
   return (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? []
 })
 
+// Grouped grids load rows per group and keep single-field search for now.
+const isAllFieldsSearchAvailable = computed(() => isAllFieldsSearchSupported.value && !isGroupBy.value)
+
+// Listed with an upgrade badge on a plan without it, but never selected.
+const isAllFieldsUsable = computed(() => isAllFieldsSearchAvailable.value && !blockGlobalSearch.value)
+
+const isAllFieldsSelected = computed(() => isAllFieldsUsable.value && search.value.field === ALL_FIELDS_SEARCH_FIELD)
+
+const allFieldsOption = computed(() => ({ id: ALL_FIELDS_SEARCH_FIELD, title: t('labels.allFields') } as ColumnType))
+
+const fieldOptions = computed(() =>
+  isAllFieldsSearchAvailable.value ? [allFieldsOption.value, ...columns.value] : columns.value,
+)
+
+// Only an all-fields count is capped; a single-field count is exact.
+const isSearchCountCapped = computed(() => isAllFieldsSelected.value && totalRowsWithSearchQuery.value > SEARCH_COUNT_CAP)
+
+const searchCountLabel = computed(() =>
+  isSearchCountCapped.value ? `${SEARCH_COUNT_CAP.toLocaleString()}+` : totalRowsWithSearchQuery.value.toLocaleString(),
+)
+
+const searchTotalLabel = computed(() => totalRowsWithoutSearchQuery.value.toLocaleString())
+
+const searchCountTooltip = computed(() =>
+  t(
+    'title.countOfTotalMatchingRecords',
+    { matched: searchCountLabel.value, total: searchTotalLabel.value },
+    totalRowsWithoutSearchQuery.value,
+  ),
+)
+
+// Say why a search may be slow or missing rows.
+const searchStateMessage = computed(() => {
+  if (!isAllFieldsSelected.value) return ''
+  switch (searchState.value) {
+    case 'indexing':
+      return t('msg.info.searchStateIndexing')
+    case 'failed':
+      return t('msg.info.searchStateFailed')
+    case 'too_large_unindexed':
+      return t('msg.info.searchStateTooLargeUnindexed')
+    case 'too_large':
+      return t('msg.info.searchStateTooLarge')
+    case 'unsupported':
+      return t('msg.info.searchStateUnsupported')
+    case 'catching_up':
+      return t('msg.info.searchStateCatchingUp')
+    case 'term_too_short':
+      return t('msg.info.searchStateTermTooShort')
+    default:
+      return ''
+  }
+})
+
+// Arrows stay (disabled) at zero matches so the input doesn't change width.
+const isSearchNavigationShown = computed(
+  () => isAllFieldsSelected.value && isSearchResultVisible.value && isGrid.value && !isGroupBy.value,
+)
+
+// Next/previous steps through the grid's rows, which are all matches (all-fields search only).
+const isSearchNavigationVisible = computed(() => isSearchNavigationShown.value && totalRowsWithSearchQuery.value > 0)
+
+// "1/900" replaces "900 of 1,000" only after a step; a slash so it never reads as the count.
+const searchPositionLabel = computed(() =>
+  isSearchStepping.value && isSearchNavigationVisible.value && searchCursorRow.value >= 0
+    ? `${(searchCursorRow.value + 1).toLocaleString()}/${searchCountLabel.value}`
+    : '',
+)
+
 watch(
   () => activeView.value?.id,
   (n, o) => {
@@ -155,6 +230,41 @@ function onPressEnter() {
   reloadAggregate?.trigger()
 }
 
+// Turned off on the server since this page loaded: with appInfo refreshed the box falls back to the display value field.
+watch(searchState, async (state) => {
+  if (state !== 'disabled') return
+  await loadAppInfo()
+  await nextTick()
+  if (!appInfo.value.globalSearchEnabled && search.value.query?.trim()) onPressEnter()
+})
+
+function searchKey() {
+  return `${search.value.field}:${search.value.query?.trim() ?? ''}`
+}
+
+function navigateSearch(direction: 1 | -1) {
+  isSearchStepping.value = true
+  $e('c:view:search:navigate', { direction: direction === 1 ? 'next' : 'previous' })
+  // Past the cap only the first SEARCH_COUNT_CAP matches are loaded, so stepping stops at the ends instead of wrapping.
+  eventBus.emit(SmartsheetStoreEvents.SEARCH_NAVIGATE, {
+    direction,
+    viewId: activeView.value?.id,
+    wrap: !isSearchCountCapped.value,
+  })
+}
+
+// Enter runs the search at once; the typing debounce still pending for the same text would run it again.
+let enterSearch: { key: string; at: number } | undefined
+
+function onSearchEnter(e: KeyboardEvent) {
+  if (isSearchNavigationVisible.value && lastSearchedKey.value === searchKey()) {
+    navigateSearch(e.shiftKey ? -1 : 1)
+    return
+  }
+  enterSearch = { key: searchKey(), at: Date.now() }
+  onPressEnter()
+}
+
 const displayColumn = computed(() => {
   if (search.value.field) {
     // use search field label if specified
@@ -165,6 +275,23 @@ const displayColumn = computed(() => {
   search.value.field = pvColumn?.id as string
   return pvColumn
 })
+
+watch(searchKey, () => {
+  isSearchStepping.value = false
+})
+
+// "All fields" is the default where available; elsewhere the box falls back to the display value field.
+watch(
+  [isAllFieldsUsable, () => search.value.field, columns],
+  ([isAvailable, field]) => {
+    if (!field && isAvailable) {
+      search.value.field = ALL_FIELDS_SEARCH_FIELD
+    } else if (!field || (field === ALL_FIELDS_SEARCH_FIELD && !isAvailable)) {
+      search.value.field = columns.value?.find((column) => column.pv)?.id ?? ''
+    }
+  },
+  { immediate: true },
+)
 
 const searchInputMode = computed(() => {
   if (!displayColumn.value?.uidt) return
@@ -399,9 +526,6 @@ useSearchCommands({
               name="globalSearchQuery"
               size="small"
               class="!text-bodyDefaultSm flex-1 md:!w-40 h-full nc-view-search-data !pl-0"
-              :class="{
-                '!pr-7': !isValidSearchQuery,
-              }"
               :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
               :bordered="false"
               autocomplete="off"
@@ -410,24 +534,82 @@ useSearchCommands({
             >
             </a-input>
           </form>
-          <NcTooltip
-            v-if="!isValidSearchQuery"
-            :title="$t('msg.error.invalidSearchQuery')"
-            class="absolute right-1 top-[50%] transform -translate-y-[50%] flex items-center pr-1"
-            placement="topRight"
+          <div
+            v-if="!isValidSearchQuery || isSearchResultVisible"
+            class="nc-search-result flex-none flex items-center gap-0.5 my-1.5 pl-1.5 pr-1 border-l-1 border-nc-border-gray-medium"
+            data-testid="nc-search-result"
           >
-            <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
-          </NcTooltip>
-        </div>
-        <div v-if="isSearchResultVisible" class="border-t-1 border-nc-border-gray-medium py-1 px-3 flex gap-3">
-          <div class="text-nc-content-gray text-bodySmBold">
-            {{
-              $t(
-                'title.countOfTotalMatchingRecords',
-                { matched: totalRowsWithSearchQuery, total: totalRowsWithoutSearchQuery },
-                totalRowsWithoutSearchQuery,
-              )
-            }}
+            <NcTooltip
+              v-if="!isValidSearchQuery"
+              :title="$t('msg.error.invalidSearchQuery')"
+              placement="topRight"
+              class="flex px-1"
+            >
+              <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
+            </NcTooltip>
+            <template v-else>
+              <NcTooltip v-if="searchStateMessage" :title="searchStateMessage" placement="bottom" class="flex px-0.5">
+                <GeneralIcon
+                  icon="alertTriangle"
+                  class="flex-none h-3.5 w-3.5 text-nc-content-orange-medium"
+                  data-testid="nc-search-state"
+                />
+              </NcTooltip>
+              <NcTooltip placement="bottom" class="flex">
+                <template #title>
+                  {{ searchCountTooltip }}
+                  <template v-if="isSearchCountCapped">
+                    <br />
+                    {{ $t('msg.info.searchNavigationCapped', { cap: SEARCH_COUNT_CAP.toLocaleString() }) }}
+                  </template>
+                </template>
+                <span
+                  class="px-1 text-bodySm whitespace-nowrap tabular-nums"
+                  :class="totalRowsWithSearchQuery ? 'text-nc-content-gray-muted' : 'text-nc-content-red-medium'"
+                  data-testid="nc-search-count"
+                >
+                  <span v-if="searchPositionLabel" class="text-nc-content-gray font-semibold">{{ searchPositionLabel }}</span>
+                  <i18n-t v-else keypath="title.countOfTotal" tag="span">
+                    <template #count>
+                      <span :class="{ 'text-nc-content-gray font-semibold': totalRowsWithSearchQuery }">{{
+                        searchCountLabel
+                      }}</span>
+                    </template>
+                    <template #total>{{ searchTotalLabel }}</template>
+                  </i18n-t>
+                </span>
+              </NcTooltip>
+              <div
+                v-if="isSearchNavigationShown"
+                class="nc-search-navigation flex items-center"
+                data-testid="nc-search-navigation"
+              >
+                <NcTooltip :title="`${$t('labels.previous')} (Shift + Enter)`" placement="bottom">
+                  <NcButton
+                    size="xxsmall"
+                    type="text"
+                    :disabled="!isSearchNavigationVisible"
+                    data-testid="nc-search-navigation-previous"
+                    @mousedown.prevent
+                    @click="navigateSearch(-1)"
+                  >
+                    <GeneralIcon icon="arrowUp" class="h-3.5 w-3.5" />
+                  </NcButton>
+                </NcTooltip>
+                <NcTooltip :title="`${$t('general.next')} (Enter)`" placement="bottom">
+                  <NcButton
+                    size="xxsmall"
+                    type="text"
+                    :disabled="!isSearchNavigationVisible"
+                    data-testid="nc-search-navigation-next"
+                    @mousedown.prevent
+                    @click="navigateSearch(1)"
+                  >
+                    <GeneralIcon icon="arrowDown" class="h-3.5 w-3.5" />
+                  </NcButton>
+                </NcTooltip>
+              </div>
+            </template>
           </div>
         </div>
       </div>

@@ -468,6 +468,7 @@ export class UtilsService {
         process.env.NC_DISABLE_ERR_REPORTS !== 'true'
           ? process.env.NC_SENTRY_DSN
           : null,
+      sentryEnvironment: process.env.NC_SENTRY_ENVIRONMENT || null,
       auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
       undoRedoEnabled: !NC_DISABLE_UNDO_REDO,
       ncSiteUrl: (param.req as any).ncSiteUrl,

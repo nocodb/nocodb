@@ -391,6 +391,8 @@ export function useCanvasTable({
     currentUser,
   )
 
+  actionManager.setMetas(metas)
+
   watch(
     () => [baseStore.base?.id, baseStore.base?.fk_workspace_id] as const,
     ([baseId, workspaceId]) => {

@@ -24,9 +24,12 @@ export function useDateDisplayLinkFields(columns: Ref<ColumnType[]>, enabled: Re
         tableIdOrTitle: colOptions.fk_related_model_id,
         disableError: true,
       })
-      const overrideId = colOptions.fk_display_value_column_id
-      const displayColumn =
-        (overrideId && relatedMeta?.columns?.find((c) => c.id === overrideId)) || relatedMeta?.columns?.find((c) => c.pv)
+      // follows a display value that is itself a single-record link down to its leaf
+      const { column: displayColumn } = await resolveDisplayLeafColumn(
+        relatedMeta,
+        (baseId, tableId) => getMeta({ baseId, tableIdOrTitle: tableId, disableError: true }),
+        colOptions.fk_display_value_column_id,
+      )
       if (displayColumn && isDateType(displayColumn.uidt as UITypes)) {
         result[column.id!] = displayColumn
       }

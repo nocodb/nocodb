@@ -1,3 +1,4 @@
+import { isSingleRecordLinkColumn } from 'nocodb-sdk'
 import type { ShallowRef } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
 import type { PendingLtarOp } from '~/utils/ltarDeferredOps'
@@ -21,6 +22,8 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
 
     const meta = inject(MetaInj, ref())
 
+    const { metas } = useMetas()
+
     const pk = computed(() => extractPkFromRow(currentRow.value.row, meta.value?.columns ?? []))
 
     // getters
@@ -30,6 +33,8 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       const row = unref(currentRow)
 
       const column = meta.value?.columns.find((col) => col.pv) || meta.value?.columns.find((col) => col.pk)
+
+      if (column && isSingleRecordLinkColumn(column)) return recordTitleOf(row.row, meta.value, metas.value)
 
       return row.row[column?.title]
     })

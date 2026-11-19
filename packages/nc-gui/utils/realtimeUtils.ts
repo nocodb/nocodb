@@ -1,4 +1,12 @@
-import { CURRENT_USER_TOKEN, EventType, UITypes, isBcryptHash, isLinksOrLTAR, parseProp } from 'nocodb-sdk'
+import {
+  CURRENT_USER_TOKEN,
+  EventType,
+  UITypes,
+  isBcryptHash,
+  isLinksOrLTAR,
+  isSingleRecordLinkColumn,
+  parseProp,
+} from 'nocodb-sdk'
 import type {
   DataPayload,
   FilterType,
@@ -94,9 +102,15 @@ export function isTableEventForMeta(
       }
 
       // A plain link still shows the related record's display value, which can be
-      // computed (e.g. a formula over a lookup) and so read further tables.
+      // computed (e.g. a formula over a lookup) or a single-record link, and so read further tables.
       const displayValue = related?.columns?.find((c) => c.pv)
-      if (displayValue && COMPUTED_DISPLAY_VALUE_TYPES.has(displayValue.uidt as UITypes) && reaches(related!)) return true
+      if (
+        displayValue &&
+        (COMPUTED_DISPLAY_VALUE_TYPES.has(displayValue.uidt as UITypes) || isSingleRecordLinkColumn(displayValue)) &&
+        reaches(related!)
+      ) {
+        return true
+      }
     }
 
     return false

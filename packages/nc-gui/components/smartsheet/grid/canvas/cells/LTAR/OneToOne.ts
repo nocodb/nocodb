@@ -2,6 +2,7 @@ import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { isBoxHovered } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
+import { resolveLinkedChipDisplay } from './linkedChip'
 
 export const OneToOneCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -36,33 +37,29 @@ export const OneToOneCellRenderer: CellRenderer = {
     const relatedTableDisplayValueProp =
       displayValueCol?.title || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
 
-    const relatedTableDisplayValuePropId =
-      displayValueCol?.id || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
-
     const ooColumn = relatedTableMeta?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp) as
       | ColumnType
       | undefined
 
     if (!ooColumn) return
     let returnData
-    if (isValidValue(value)) {
+    const leaf = isValidValue(value)
+      ? resolveLinkedChipDisplay(props, value && !Array.isArray(value) && typeof value === 'object' ? value : undefined)
+      : undefined
+
+    if (leaf) {
       const cellWidth = width - (isSimpleLinkRecordList ? 26 : !readonly && selected ? 34 : 0)
 
-      const cellValue =
-        value && !Array.isArray(value) && typeof value === 'object'
-          ? value[relatedTableDisplayValueProp] ?? value[relatedTableDisplayValuePropId]
-          : value
-
       const cellRenderer = (options: CellRendererOptions) => {
-        return renderAsCellLookupOrLtarValue.includes(ooColumn.uidt)
-          ? renderCell(ctx, ooColumn, options)
+        return renderAsCellLookupOrLtarValue.includes(leaf.column.uidt)
+          ? renderCell(ctx, leaf.column, options)
           : PlainCellRenderer.render(ctx, options)
       }
 
       returnData = cellRenderer({
         ...props,
-        value: cellValue,
-        column: ooColumn,
+        value: leaf.value,
+        column: leaf.column,
         width: cellWidth,
         relatedColObj: undefined,
         relatedTableMeta: undefined,
@@ -75,7 +72,7 @@ export const OneToOneCellRenderer: CellRenderer = {
           tagBgColor: getColor(themeV4Colors.brand['50'], 'var(--nc-bg-gray-light)'),
           tagHeight: 24,
         },
-        meta: relatedTableMeta,
+        meta: leaf.meta,
         x: x + 4,
         y: y + (rowHeightInPx['1'] === height ? 0 : 2),
       })

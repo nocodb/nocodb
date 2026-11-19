@@ -271,6 +271,10 @@ export const useInfiniteGroups = (
             const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
             group.relatedColumn = col
             group.displayValueProp = col?.title
+            // load hop metas when the display value is a single-record link
+            await resolveDisplayLeafColumn(relatedTableMeta, async (baseId, tableId) =>
+              getMeta({ baseId, tableIdOrTitle: tableId, disableError: true }),
+            )
           }
         }
 
@@ -343,6 +347,7 @@ export const useInfiniteGroups = (
           item[groupCol.column.title!] ?? item[groupCol.column.column_name!],
           groupCol.column,
           group?.displayValueProp,
+          { meta: group?.relatedTableMeta, metas: metas.value },
         )
         const groupIndex = offset + index
 

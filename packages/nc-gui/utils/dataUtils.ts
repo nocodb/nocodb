@@ -46,6 +46,7 @@ import dayjs from 'dayjs'
 import { decode as decodeHtmlEntities } from 'html-entities'
 import { isColumnRequiredAndNull, isReadonlyDataCol } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
+import { LINKED_RECORD_MAX_DEPTH } from '~/utils/linkedRecordDisplay'
 import type { GetMetaParams } from '~/composables/useMetas'
 
 export { isValidValue }
@@ -861,6 +862,11 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
 }
 
 export const getLookupValue = (modelValue: string | null | number | Array<any>, params: ParsePlainCellValueProps['params']) => {
+  // a link display value can nest links; stop runaway chains
+  const linkDepth = params.linkDepth ?? 0
+  if (linkDepth > LINKED_RECORD_MAX_DEPTH) return ''
+  params = { ...params, linkDepth: linkDepth + 1 }
+
   const { col, meta, metas } = params
 
   const colOptions = col.colOptions as LookupType
@@ -890,7 +896,9 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   // and stringifies as [object Object]
   const resolveRecordValue = (v: any) => {
     if (v && typeof v === 'object' && !Array.isArray(v) && childColumn?.title) {
-      return v[childColumn.title] ?? v[childColumn.id] ?? v
+      // a present-but-null key (unlinked nested link) must not fall through to the whole record
+      if (childColumn.title in v) return v[childColumn.title]
+      return v[childColumn.id] ?? v
     }
 
     return v
@@ -921,6 +929,8 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   if (!childColumn) {
     if (typeof modelValue === 'string') {
       return modelValue
+    } else if (modelValue && typeof modelValue === 'object') {
+      return ''
     } else {
       return modelValue?.toString() ?? ''
     }

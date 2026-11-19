@@ -2,6 +2,8 @@ import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderSingleLineText } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
+import { resolveLinkedChipDisplay } from './linkedChip'
+import type { LinkedChipDisplay } from './linkedChip'
 
 const ellipsisWidth = 15
 const buttonSize = 20
@@ -42,12 +44,10 @@ export const ManyToManyCellRenderer: CellRenderer = {
     const cells = (ncIsArray(value) ? value : []).reduce((acc, curr) => {
       if (!relatedTableDisplayValueProp) return acc
 
-      const value = curr[relatedTableDisplayValueProp]
-
-      acc.push({ value, item: curr })
+      acc.push({ leaf: resolveLinkedChipDisplay(props, curr), item: curr })
 
       return acc
-    }, []) as { value: any; item: Record<string, any> }[]
+    }, []) as { leaf?: LinkedChipDisplay; item: Record<string, any> }[]
 
     const initialX = x + 4
     // Simple link picker reserves the select-chevron slot up front — chips must
@@ -82,8 +82,8 @@ export const ManyToManyCellRenderer: CellRenderer = {
     }
 
     const cellRenderer = (options: CellRendererOptions) => {
-      return renderAsCellLookupOrLtarValue.includes(m2mColumn.uidt)
-        ? renderCell(ctx, m2mColumn, options)
+      return renderAsCellLookupOrLtarValue.includes(options.column.uidt)
+        ? renderCell(ctx, options.column, options)
         : PlainCellRenderer.render(ctx, options)
     }
 
@@ -93,13 +93,18 @@ export const ManyToManyCellRenderer: CellRenderer = {
     let count = 1
 
     for (const cell of cells) {
-      const point = cellRenderer({
-        ...renderProps,
-        value: cell.value,
-        x: currentX,
-        y: currentY,
-        width: currentWidth,
-      })
+      // no resolvable leaf (unlinked, cyclic or meta still loading): keep a blank clickable chip
+      const point = cell.leaf
+        ? cellRenderer({
+            ...renderProps,
+            column: cell.leaf.column,
+            meta: cell.leaf.meta,
+            value: cell.leaf.value,
+            x: currentX,
+            y: currentY,
+            width: currentWidth,
+          })
+        : undefined
 
       if (point?.x) {
         // Add rendered chip info in return data

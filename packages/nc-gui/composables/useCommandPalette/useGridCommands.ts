@@ -48,6 +48,7 @@ export function useGridCommands(
   const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
   const { meta, view, columns, activeCell, selection, getDataCache, interfacePageDataApi } = g
+  const { metas } = useMetas()
 
   useCommandProvider(
     () => `grid-active-row:${view.value?.id}`,
@@ -319,7 +320,7 @@ export function useGridCommands(
       ]
 
       const displayColumn = (meta.value?.columns as ColumnType[] | undefined)?.find((c) => c.pv)
-      const recordLabel = (displayColumn && String(row.row[displayColumn.title!] ?? '')) || String(rowId ?? '')
+      const recordLabel = (displayColumn && recordTitleOf(row.row, meta.value, metas.value)) || String(rowId ?? '')
       return {
         // Names the cell: "<record> › <field>"; the table chip is one Backspace away.
         context: cellColumnObj

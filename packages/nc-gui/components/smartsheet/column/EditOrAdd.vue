@@ -369,6 +369,7 @@ const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: s
     return types.map((type) => {
       if (!isEdit.value) return type
 
+      // strict on purpose: a link type is never offered when converting the current display value
       const isColumnTypeDisabled =
         !!column.value?.pv && column.value?.uidt !== type.name && !isSupportedDisplayValueColumn({ uidt: type.name as UITypes })
 

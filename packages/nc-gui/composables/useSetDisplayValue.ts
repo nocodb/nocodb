@@ -39,7 +39,8 @@ export function useSetDisplayValue() {
 
       return true
     } catch (e) {
-      message.error(t('msg.error.primaryColumnUpdateFailed'))
+      // the server's reason (e.g. a link cycle) is more useful than the generic text
+      message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.primaryColumnUpdateFailed'))
       return false
     }
   }

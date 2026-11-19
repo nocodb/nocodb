@@ -18,6 +18,7 @@ import {
   isHiddenCol,
   isLinksOrLTAR,
   isReadOnlyColumn,
+  isSingleRecordLinkColumn,
   isSystemColumn,
   isVirtualCol,
 } from 'nocodb-sdk'
@@ -145,6 +146,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       return fieldId && isAllowed(PermissionEntity.FIELD, fieldId, PermissionKey.RECORD_FIELD_EDIT)
     }
 
+    const { metas: metasMap } = useMetas()
+
     // getters
     const displayValue = computed(() => {
       if (row?.value?.row) {
@@ -153,6 +156,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         if (!col) {
           return
         }
+
+        // a single-record link pv resolves to its leaf text
+        if (isSingleRecordLinkColumn(col)) return recordTitleOf(row.value.row, meta.value, metasMap.value)
 
         return row.value.row?.[col.title as string]
       }

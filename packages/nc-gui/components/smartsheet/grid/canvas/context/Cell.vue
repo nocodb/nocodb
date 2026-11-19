@@ -101,6 +101,7 @@ const { isAiRecordContextEnabled, setAiRecordContext } = useAiRecordContext()
 const { appInfo, isMobileMode } = useGlobal()
 const { paste } = usePaste()
 const { meta } = useSmartsheetStoreOrThrow()
+const { metas } = useMetas()
 
 const { copy } = useCopy()
 
@@ -338,12 +339,12 @@ function askAiAboutRecord() {
   if (!recordId) return
 
   const pvCol = cols.find((c) => c.pv)
-  const title = pvCol ? row.row[pvCol.title] : ''
+  const title = pvCol ? recordTitleOf(row.row, meta.value, metas.value) : ''
 
   setAiRecordContext({
     tableId: meta.value.id,
     recordId: String(recordId),
-    title: title != null ? String(title) : '',
+    title,
   })
 }
 

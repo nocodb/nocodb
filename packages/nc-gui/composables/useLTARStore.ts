@@ -10,12 +10,14 @@ import {
   isDateOrDateTimeCol,
   isLinkV2,
   isLinksOrLTAR,
+  isSingleRecordLinkColumn,
   isSystemColumn,
   parseStringDateTime,
   timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { LtarCellShape } from '~/utils/ltarDeferredOps'
+import { recordTitleOf, resolveDisplayLeafColumn, resolveLinkedRecordDisplay } from '~/utils/linkedRecordDisplay'
 import {
   applyLtarCellOp,
   ltarCellCount,
@@ -301,6 +303,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         })
       }
 
+      await loadRelatedDisplayChainMeta()
+
       if (isPublic.value) return
 
       // Interface pages: the projected page meta pre-seeds one level of
@@ -347,6 +351,35 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return relatedTableDisplayValueColumn.value?.id || ''
     })
 
+    // A pv that is a single-record link nests the leaf record; resolve it to the leaf column, value and text
+    const relatedDisplayLeaf = (record: Record<string, any> | null | undefined) =>
+      resolveLinkedRecordDisplay(record, relatedTableMeta.value, {
+        metas: metas.value,
+        overrideColumnId: colOptions.value?.fk_display_value_column_id,
+      })
+
+    // Column and value for a flat chip; undefined column when there is no leaf to draw
+    const relatedChipDisplay = (record: Record<string, any> | null | undefined) => {
+      const leaf = relatedDisplayLeaf(record)
+      if (!leaf.complete || !leaf.leafColumn || isSingleRecordLinkColumn(leaf.leafColumn)) {
+        return { column: undefined, value: undefined }
+      }
+      return { column: leaf.leafColumn, value: leaf.leafValue }
+    }
+
+    const relatedRecordTitle = (record: Record<string, any> | null | undefined) => relatedDisplayLeaf(record).text
+
+    // Loads the metas of hops a link display value passes through
+    const loadRelatedDisplayChainMeta = () =>
+      resolveDisplayLeafColumn(
+        relatedTableMeta.value,
+        async (hopBaseId, hopTableId) => {
+          await getMeta({ baseId: hopBaseId, tableIdOrTitle: hopTableId, disableError: true })
+          return getMetaByKey(hopBaseId, hopTableId)
+        },
+        colOptions.value?.fk_display_value_column_id,
+      )
+
     const displayValueProp = computed(() => {
       return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || meta?.value?.columns?.[0])?.title
     })
@@ -378,6 +411,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     })
 
     const headerDisplayValue = computed(() => {
+      const pvCol = meta.value?.columns?.find((c) => c.pv) || meta.value?.columns?.[0]
+      if (pvCol && isSingleRecordLinkColumn(pvCol)) return recordTitleOf(row.value.row, meta.value, metas.value)
+
       if (
         row.value.row[displayValueProp.value] &&
         displayValueTypeAndFormatProp.value.type &&
@@ -839,9 +875,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           const rawList = newRowState.state?.[colTitle] ?? []
           const query = childrenListPagination.query.toLocaleLowerCase()
           const list = query
-            ? rawList.filter((record: Record<string, any>) =>
-                `${record[relatedTableDisplayValueProp.value] ?? ''}`.toLocaleLowerCase().includes(query),
-              )
+            ? rawList.filter((record: Record<string, any>) => relatedRecordTitle(record).toLocaleLowerCase().includes(query))
             : rawList
           childrenList.value = {
             list,
@@ -1650,9 +1684,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         const rawList = newRowState.state?.[colTitle] ?? []
         const query = childrenListPagination.query.toLocaleLowerCase()
         const list = query
-          ? rawList.filter((record: Record<string, any>) =>
-              `${record[relatedTableDisplayValueProp.value] ?? ''}`.toLocaleLowerCase().includes(query),
-            )
+          ? rawList.filter((record: Record<string, any>) => relatedRecordTitle(record).toLocaleLowerCase().includes(query))
           : rawList
         return {
           list: list.slice(offset, offset + limit),
@@ -1906,6 +1938,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       getRelatedTableRowId,
       headerDisplayValue,
       relatedTableDisplayValueColumn,
+      relatedDisplayLeaf,
+      relatedChipDisplay,
+      relatedRecordTitle,
       relatedTableDisplayValuePropId,
       resetChildrenExcludedOffsetCount,
       resetChildrenListOffsetCount,

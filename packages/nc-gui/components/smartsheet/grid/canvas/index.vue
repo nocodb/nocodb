@@ -504,12 +504,9 @@ watch(
     if (!recordId) return
 
     const pvCol = cols.find((c) => c.pv)
-    const title = pvCol ? row.row[pvCol.title] : ''
+    const title = pvCol ? recordTitleOf(row.row, meta.value, metas.value) : ''
 
-    setAiRecordContext(
-      { tableId: meta.value.id, recordId: String(recordId), title: title != null ? String(title) : '' },
-      { openPanel: false },
-    )
+    setAiRecordContext({ tableId: meta.value.id, recordId: String(recordId), title }, { openPanel: false })
   },
 )
 

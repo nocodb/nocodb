@@ -1622,6 +1622,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       limit?;
       offset?;
       fieldSet?: Set<string>;
+      fieldsSet?: Set<string>;
       pkAndPvOnly?: boolean;
       lookupColumn?: Column;
     } = {},

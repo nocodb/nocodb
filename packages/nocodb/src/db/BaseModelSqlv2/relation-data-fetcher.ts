@@ -861,6 +861,8 @@ export const relationDataFetcher = (param: {
         limit?;
         offset?;
         fieldSet?: Set<string>;
+        // the relation read loader passes this name
+        fieldsSet?: Set<string>;
         pkAndPvOnly?: boolean;
         lookupColumn?: Column;
       } = {},
@@ -931,7 +933,11 @@ export const relationDataFetcher = (param: {
 
         await childBaseModel.selectObject({
           qb,
-          fieldsSet: await sharedSelectFields(colId, childTable, args.fieldSet),
+          fieldsSet: await sharedSelectFields(
+            colId,
+            childTable,
+            args.fieldsSet ?? args.fieldSet,
+          ),
           pkAndPvOnly:
             relationColOpts.isCrossBaseLink() ||
             hasLimitedAccess ||

@@ -137,7 +137,7 @@ function save() {
       <NcButton
         v-if="task"
         type="text"
-        size="xsmall"
+        size="xs"
         class="!text-nc-content-red-medium"
         data-testid="nc-comment-task-remove"
         @click="emits('remove')"
@@ -145,10 +145,10 @@ function save() {
         {{ $t('activity.commentThread.removeTodo') }}
       </NcButton>
       <div class="flex-1" />
-      <NcButton type="secondary" size="xsmall" data-testid="nc-comment-task-cancel" @click="emits('cancel')">
+      <NcButton type="secondary" size="xs" data-testid="nc-comment-task-cancel" @click="emits('cancel')">
         {{ $t('general.cancel') }}
       </NcButton>
-      <NcButton type="primary" size="xsmall" :disabled="!assignee" data-testid="nc-comment-task-save" @click="save">
+      <NcButton type="primary" size="xs" :disabled="!assignee" data-testid="nc-comment-task-save" @click="save">
         {{ $t('activity.commentThread.assign') }}
       </NcButton>
     </div>

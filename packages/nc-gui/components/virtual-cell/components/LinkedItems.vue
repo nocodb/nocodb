@@ -893,11 +893,6 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               {{ isMobileMode ? $t('title.linkMore') : $t('title.linkMoreRecords') }}
             </div>
           </NcButton>
-        </div>
-        <div class="flex items-center gap-2">
-          <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
-            {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}
-          </div>
           <NcTooltip v-if="linkedRecordsWhere && childrenCachedTotalRows > 0" :disabled="!isMobileMode">
             <template #title>{{ $t('labels.viewAllInTable') }}</template>
             <NcButton
@@ -914,6 +909,11 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               </div>
             </NcButton>
           </NcTooltip>
+        </div>
+        <div class="flex items-center gap-2">
+          <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
+            {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}
+          </div>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 import Draggable from 'vuedraggable'
 import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
-import { computeLtarNewRowState, isLtarFkOnRow } from '~/utils/dataUtils'
+import { buildLinkedRecordsWhere, computeLtarNewRowState, isLtarFkOnRow } from '~/utils/dataUtils'
 
 interface Prop {
   modelValue?: boolean
@@ -115,6 +115,20 @@ const {
 const { withLoading } = useLoadingTrigger()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
+
+const { openTable } = useTablesStore()
+
+const linkedRecordsWhere = computed(() => {
+  if (isPublic.value || isForm.value || isNew.value || !isLinkedTableAccessible.value) return
+  return buildLinkedRecordsWhere(injectedColumn.value, meta.value, relatedTableMeta.value, rowId.value)
+})
+
+const openLinkedRecordsInTable = async () => {
+  if (!linkedRecordsWhere.value || !relatedTableMeta.value) return
+  const where = linkedRecordsWhere.value
+  vModel.value = false
+  await openTable(relatedTableMeta.value, false, { where })
+}
 
 // Buffered (unsaved) links to show ABOVE the persisted virtual list. Only for an
 // existing row edited in the expanded form (deferred mode) and multi-target
@@ -871,6 +885,22 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               {{ isMobileMode ? $t('title.linkMore') : $t('title.linkMoreRecords') }}
             </div>
           </NcButton>
+          <NcTooltip v-if="linkedRecordsWhere && childrenCachedTotalRows > 0" :disabled="!isMobileMode">
+            <template #title>{{ $t('labels.viewAllInTable') }}</template>
+            <NcButton
+              v-e="['c:link:records:table:open']"
+              data-testid="nc-child-list-button-view-in-table"
+              class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
+              size="small"
+              type="secondary"
+              @click="openLinkedRecordsInTable"
+            >
+              <div class="flex items-center gap-1">
+                <GeneralIcon icon="externalLink" class="h-4 w-4" />
+                <span v-if="!isMobileMode">{{ $t('labels.viewAllInTable') }}</span>
+              </div>
+            </NcButton>
+          </NcTooltip>
         </div>
         <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
           {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}

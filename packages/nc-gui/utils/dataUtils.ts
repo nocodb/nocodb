@@ -2,7 +2,9 @@ import {
   NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
+  canEncodeQueryFilterToken,
   dateFormats,
+  encodeQueryFilterClause,
   getEffectiveDisplayColumn,
   getEffectiveLookupColumn,
   getRenderAsTextFunForUiType,
@@ -105,6 +107,62 @@ export const findIndexByPk = (pk: Record<string, string>, data: Row[]) => {
   return -1
 }
 
+/** The link field on the related table that points back through the same relation. */
+export function findReverseLinkColumn(
+  ltarColumn: ColumnType | null | undefined,
+  relatedMeta: TableType | null | undefined,
+  currentTableId: string | null | undefined,
+): ColumnType | undefined {
+  const colOpt = ltarColumn?.colOptions as LinkToAnotherRecordType | undefined
+  if (!ltarColumn || !colOpt || !relatedMeta?.columns || !currentTableId) return
+
+  return relatedMeta.columns.find((col) => {
+    // On a self-link the column itself also passes the checks below; only its reverse may match.
+    if (!isLinksOrLTAR(col) || col.id === ltarColumn.id) return false
+    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
+    if (colOpt1?.fk_related_model_id !== currentTableId) return false
+
+    // V2 relations (OM/MO/OO/MM) all store fk_parent/fk_child inverted between
+    // the paired columns — same shape as V1 MM. V1 HM/BT/OO store them straight.
+    const isJunctionShape =
+      (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) ||
+      (isLinkV2(ltarColumn) && isLinkV2(col))
+
+    if (isJunctionShape) {
+      return (
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
+        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
+        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
+      )
+    }
+
+    return colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
+  })
+}
+
+/**
+ * `where` that filters the related table to the records linked to `rowId`, through the reverse
+ * link's `.Id`. Undefined when that filter can't be built or wouldn't match by id.
+ */
+export function buildLinkedRecordsWhere(
+  ltarColumn: ColumnType | null | undefined,
+  currentMeta: TableType | null | undefined,
+  relatedMeta: TableType | null | undefined,
+  rowId: string | null | undefined,
+): string | undefined {
+  if (!rowId || !currentMeta?.id) return
+  // The backend matches `.Id` on the first PK only.
+  if (currentMeta.columns?.filter((c) => c.pk).length !== 1) return
+
+  const reverseColumn = findReverseLinkColumn(ltarColumn, relatedMeta, currentMeta.id)
+  if (!reverseColumn?.title || !canEncodeQueryFilterToken(reverseColumn.title)) return
+  // A view-limited link usually hides the PK there, and the backend then matches `.Id` on the display value.
+  if ((reverseColumn.colOptions as LinkToAnotherRecordType | undefined)?.fk_target_view_id) return
+
+  // `@` selects the parser that understands quoted field names.
+  return `@${encodeQueryFilterClause(`${reverseColumn.title}.Id`, 'eq', rowId)}`
+}
+
 /**
  * Compute the pre-fill state for a new record opened from a LTAR "New record"
  * button (LinkedItems or UnLinkedItems panel).
@@ -127,32 +185,7 @@ export function computeLtarNewRowState(
 ): Record<string, any> {
   if (isNewRow || !ltarColumn || !relatedMeta?.columns || !currentTableId) return {}
 
-  const colOpt = ltarColumn.colOptions as LinkToAnotherRecordType
-  if (!colOpt) return {}
-
-  const colInRelatedTable = relatedMeta.columns.find((col) => {
-    // On a self-link the column itself also passes the checks below; only its reverse may be seeded.
-    if (!isLinksOrLTAR(col) || col.id === ltarColumn.id) return false
-    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
-    if (colOpt1?.fk_related_model_id !== currentTableId) return false
-
-    // V2 relations (OM/MO/OO/MM) all store fk_parent/fk_child inverted between
-    // the paired columns — same shape as V1 MM. V1 HM/BT/OO store them straight.
-    const isJunctionShape =
-      (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) ||
-      (isLinkV2(ltarColumn) && isLinkV2(col))
-
-    if (isJunctionShape) {
-      return (
-        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
-        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
-        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
-      )
-    }
-
-    return colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
-  })
-
+  const colInRelatedTable = findReverseLinkColumn(ltarColumn, relatedMeta, currentTableId)
   if (!colInRelatedTable) return {}
   const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
   if (!relatedTableColOpt) return {}

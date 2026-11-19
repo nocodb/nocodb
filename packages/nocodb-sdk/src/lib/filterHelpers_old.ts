@@ -331,7 +331,7 @@ export function extractCondition(
       // column whose title contains a dot is not shadowed by an LTAR base match.
       let ltarSubField: string | undefined;
       if (alias && !aliasColObjMap[alias] && alias.includes('.')) {
-        const dotIdx = alias.indexOf('.');
+        const dotIdx = alias.lastIndexOf('.');
         const baseAlias = alias.substring(0, dotIdx);
         const subField = alias.substring(dotIdx + 1);
         const baseCol = aliasColObjMap[baseAlias];

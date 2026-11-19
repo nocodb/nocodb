@@ -7,6 +7,7 @@ import relativeTime from 'dayjs/plugin/relativeTime.js';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
+import type { FilterTypeWithMeta } from '~/lib/filterHelpers_withparser';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
@@ -316,6 +317,13 @@ export class RowFilterValidator {
               res = false; // Unsupported operation for User fields
           }
         } else if (
+          (filter as FilterTypeWithMeta).meta?.ltarSubField &&
+          column.uidt === UITypes.Links &&
+          !isBtLikeV2Junction(column)
+        ) {
+          // A many-record Links cell holds a count, not the linked ids: leave `Link.Id` to the server.
+          res = true;
+        } else if (
           column.uidt === UITypes.LinkToAnotherRecord ||
           (column.uidt === UITypes.Links && isBtLikeV2Junction(column))
         ) {
@@ -343,8 +351,11 @@ export class RowFilterValidator {
           if (!relatedMeta?.columns) {
             res = false;
           } else {
-            // Find the child column in the related table
-            const childColumn = relatedMeta.columns.find((col) => col.pv);
+            // `(Link.Id,eq,5)` matches the linked records' primary key, not their display value.
+            const childColumn = (filter as FilterTypeWithMeta).meta
+              ?.ltarSubField
+              ? relatedMeta.columns.find((col) => col.pk)
+              : relatedMeta.columns.find((col) => col.pv);
             if (!childColumn) {
               res = false;
             } else {

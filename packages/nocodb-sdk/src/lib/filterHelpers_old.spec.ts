@@ -321,6 +321,24 @@ export const testExtractFilterFromXwhere = (
       });
     });
   });
+
+  describe(`${title}: LTAR sub-field on a link title containing a dot`, () => {
+    it('splits on the last dot', () => {
+      const result = extractFilterFromXwhere('(Orders v1.2.Id,eq,5)', {
+        'Orders v1.2': {
+          id: 'ltar_dot_col',
+          column_name: 'orders',
+          title: 'Orders v1.2',
+          uidt: UITypes.Links,
+        },
+      });
+      expect(result.errors ?? []).toHaveLength(0);
+      const f = result.filters![0];
+      expect(f.fk_column_id).toBe('ltar_dot_col');
+      expect(f.value).toBe('5');
+      expect((f as any).meta?.ltarSubField).toBe('Id');
+    });
+  });
 };
 testExtractFilterFromXwhere('filterHelpers_old', extractFilterFromXwhere);
 

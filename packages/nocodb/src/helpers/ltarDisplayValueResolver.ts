@@ -92,7 +92,8 @@ export async function getLtarDisplayValueContext(
 }
 
 // One query per value, so only this many distinct values are resolved per call when the
-// related display value is a link; the rest stay unmatched.
+// related display value is a link; the rest stay unmatched. Only exact matches link: a
+// substring match would link 'Acme Corp' for a pasted 'Acme'.
 const LINK_DISPLAY_VALUE_RESOLVE_CAP = 500;
 // Rows read per value; enough to tell a unique match from an ambiguous one.
 const LINK_DISPLAY_VALUE_MATCH_LIMIT = 25;
@@ -101,10 +102,8 @@ async function resolveLinkDisplayValues(
   groupCtx: LtarDisplayValueContext,
   values: Set<string>,
   {
-    caseInsensitiveFallback,
     assign,
   }: {
-    caseInsensitiveFallback: boolean;
     assign: (value: string, pk: string | number) => void;
   },
 ): Promise<void> {
@@ -116,10 +115,10 @@ async function resolveLinkDisplayValues(
     ),
   };
 
-  const matchOne = async (value: string, op: 'eq' | 'like') => {
+  const matchOne = async (value: string) => {
     const filter = new Filter({
       fk_column_id: displayValueColumn.id,
-      comparison_op: op,
+      comparison_op: 'eq',
       value,
       logical_op: 'or',
     });
@@ -139,13 +138,8 @@ async function resolveLinkDisplayValues(
     return rows.length > 0;
   };
 
-  const capped = [...values].slice(0, LINK_DISPLAY_VALUE_RESOLVE_CAP);
-  const unmatched: string[] = [];
-  for (const value of capped) {
-    if (!(await matchOne(value, 'eq'))) unmatched.push(value);
-  }
-  if (caseInsensitiveFallback) {
-    for (const value of unmatched) await matchOne(value, 'like');
+  for (const value of [...values].slice(0, LINK_DISPLAY_VALUE_RESOLVE_CAP)) {
+    await matchOne(value);
   }
 }
 
@@ -218,7 +212,6 @@ export async function resolveLtarDisplayValuesToPks(
   // resolve per value and trust that match.
   if (isLinksOrLTAR(displayValueColumn)) {
     await resolveLinkDisplayValues(groupCtx, allUniqueValues, {
-      caseInsensitiveFallback,
       assign,
     });
     return valueToPk;

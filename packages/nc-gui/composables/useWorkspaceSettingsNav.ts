@@ -102,6 +102,13 @@ export function useWorkspaceSettingsNav() {
             title: t('labels.aiSkills'),
             keywords: 'ai skill prompt assistant',
           },
+          canSeeSkills.value && {
+            slug: 'connectors',
+            icon: 'mcp',
+            testId: 'ws-connectors',
+            title: t('title.connectors'),
+            keywords: 'ai connector mcp server integration policy',
+          },
           canSeeGeneral.value && {
             slug: 'danger-zone',
             icon: 'ncAlertTriangle',
@@ -137,6 +144,10 @@ export function useWorkspaceSettingsNav() {
     'skills': {
       title: t('labels.aiSkills'),
       description: t('labels.wsNav.desc.skills'),
+    },
+    'connectors': {
+      title: t('title.connectors'),
+      description: t('labels.wsNav.desc.connectors'),
     },
     'security': {
       title: t('labels.enableTwoFactor'),

@@ -107,6 +107,17 @@ function normaliseEmbeddedIpv4(parsed: ipaddr.IPv4 | ipaddr.IPv6) {
   return v6;
 }
 
+/** Cloud always enforces; self-hosted may opt out of every SSRF check. */
+export function isSsrfProtectionEnabled(): boolean {
+  return forceEnforce || process.env.NC_DISABLE_SSRF_PROTECTION !== 'true';
+}
+
+/** True for an address no external integration may reach; fails closed on spellings ipaddr.js can't parse. */
+export function isBlockedAddress(addr: string): boolean {
+  if (!ipaddr.isValid(addr)) return isIP(addr) !== 0;
+  return isBlockedIp(ipaddr.parse(addr));
+}
+
 function isBlockedIp(parsed: ipaddr.IPv4 | ipaddr.IPv6): boolean {
   if (BLOCKED_RANGES.has(parsed.range())) return true;
   if (

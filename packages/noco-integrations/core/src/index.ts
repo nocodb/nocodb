@@ -4,6 +4,7 @@ export * from './registry';
 export * from './utils/manifest';
 export * from './utils/axios';
 export * from './utils/externalDbSsrf';
+export * from './utils/ssrfFetch';
 export * from './utils/dbSsl';
 export * from './utils/emailBody';
 export * from './utils/emailAttachments';

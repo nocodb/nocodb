@@ -76,7 +76,8 @@ export function useOAuthPopup() {
     const left = window.screenX + (window.outerWidth - width) / 2
     const top = window.screenY + (window.outerHeight - height) / 2.5
 
-    url = appendParams(url, { state })
+    // A discovered sign-in's URL was built server-side and already carries its state.
+    if (!new URL(url).searchParams.has('state')) url = appendParams(url, { state })
 
     const popup = window.open(url, `${oauthMeta.provider} OAuth`, `width=${width},height=${height},left=${left},top=${top}`)
     if (!popup) throw new Error('Popup blocked')
@@ -213,5 +214,33 @@ export function useOAuthPopup() {
     }
   }
 
-  return { performOAuthDance }
+  /**
+   * The popup half of a sign-in the server started: it discovered the
+   * authorization server, registered a client and built the URL, state
+   * included. Resolves the code, or `null` when the user cancelled.
+   */
+  const performServerOAuth = async (
+    start: { authorization_url: string; state: string },
+    provider: string,
+    redirectUri: string,
+  ): Promise<string | null> => {
+    try {
+      const result = await openPopup(
+        { provider, authUri: '', clientId: '', redirectUri },
+        start.authorization_url,
+        start.state,
+        '',
+      )
+      return result?.code ?? null
+    } catch (e: any) {
+      if (e?.message?.includes('Popup closed by user') || e?.message?.includes('No code returned')) {
+        return null
+      }
+
+      message.error(e?.message || 'Failed to authenticate using OAuth')
+      return null
+    }
+  }
+
+  return { performOAuthDance, performServerOAuth }
 }

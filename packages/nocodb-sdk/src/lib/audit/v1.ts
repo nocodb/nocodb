@@ -402,9 +402,17 @@ export const auditV1OperationTypesAlias = Object.values(
   acc[key] = key
     .replace(/_/g, ' ') // Replace underscores with spaces
     .toLowerCase() // Convert to lowercase
-    .replace(/\b[a-z]/g, (char) => char.toUpperCase());
+    .replace(/\b[a-z]/g, (char) => char.toUpperCase())
+    // An acronym stays one: "MCP Connection Create", not "Mcp …"
+    .replace(/^Mcp\b/, 'MCP');
   return acc;
 }, {} as Record<string, string>);
+
+// Short enough for the audit list's event column.
+auditV1OperationTypesAlias[AuditV1OperationTypes.MCP_CONNECTOR_POLICY_UPDATE] =
+  'MCP Policy Update';
+auditV1OperationTypesAlias[AuditV1OperationTypes.MCP_CONNECTOR_POLICY_RESET] =
+  'MCP Policy Reset';
 
 /**
  * For audit logs table filter usecase only

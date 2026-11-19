@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CommentReactionSummaryItem } from '~/composables/useRowComments'
 
-defineProps<{
+const props = defineProps<{
   summary: CommentReactionSummaryItem[]
   canReact?: boolean
 }>()
@@ -9,6 +9,8 @@ defineProps<{
 const emits = defineEmits<{
   (e: 'react', emoji: string): void
 }>()
+
+const reacted = computed(() => props.summary.filter((item) => item.hasReacted).map((item) => item.emoji))
 </script>
 
 <template>
@@ -33,7 +35,7 @@ const emits = defineEmits<{
       </button>
     </NcTooltip>
 
-    <SmartsheetExpandedFormSidebarCommentReactionPicker v-if="canReact" @react="emits('react', $event)">
+    <SmartsheetExpandedFormSidebarCommentReactionPicker v-if="canReact" :reacted="reacted" @react="emits('react', $event)">
       <button
         type="button"
         class="nc-comment-reaction-add inline-flex items-center justify-center w-6 h-6 rounded-full border-1 border-nc-border-gray-medium text-nc-content-gray-muted hover:bg-nc-bg-gray-light cursor-pointer transition-colors"

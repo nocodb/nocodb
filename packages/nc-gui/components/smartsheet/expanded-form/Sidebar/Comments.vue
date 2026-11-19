@@ -1427,6 +1427,11 @@ onBeforeUnmount(() => {
                     >
                       <SmartsheetExpandedFormSidebarCommentReactionPicker
                         v-if="isCommentExtrasEnabled && hasEditPermission"
+                        :reacted="
+                          getReactionSummary(commentItem.id)
+                            .filter((item) => item.hasReacted)
+                            .map((item) => item.emoji)
+                        "
                         @react="toggleReaction(commentItem.id!, $event)"
                       >
                         <NcTooltip :title="$t('general.react')" placement="top" class="flex">

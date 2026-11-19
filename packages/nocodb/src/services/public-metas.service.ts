@@ -34,14 +34,13 @@ import { getUsersWithBaseAccess } from '~/helpers/baseAccessHelpers';
 import { setModelContext } from '~/helpers/modelContext';
 import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
+import { DISPLAY_VALUE_LINK_MAX_DEPTH } from '~/helpers/displayValueCycle';
 import {
   getSharedModelVisibility,
+  markDisplayValueHop,
   projectRelatedMetas,
+  unmarkDisplayValueHop,
 } from '~/helpers/relatedMetaProjection';
-import {
-  DISPLAY_VALUE_LINK_MAX_DEPTH,
-  getLinkDisplayOverride,
-} from '~/helpers/displayValueCycle';
 import { withoutViewSecrets } from '~/helpers/publicViewSecrets';
 import {
   getViewExposedColumnIds,
@@ -366,6 +365,7 @@ export class PublicMetasService {
   ) {
     const { refContext, mmContext } = ltarColOption.getRelContext();
 
+    unmarkDisplayValueHop(relatedMetas, ltarColOption.fk_related_model_id);
     relatedMetas[ltarColOption.fk_related_model_id] = await Model.getWithInfo(
       refContext,
       {
@@ -383,6 +383,7 @@ export class PublicMetasService {
       relatedMetas,
     });
     if (ltarColOption.type === 'mm') {
+      unmarkDisplayValueHop(relatedMetas, ltarColOption.fk_mm_model_id);
       relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
         mmContext,
         {
@@ -418,8 +419,9 @@ export class PublicMetasService {
       if (!related?.columns || visited.has(related.id)) return;
       visited.add(related.id);
 
-      // the link's own display column replaces the related table's display value
-      if (getLinkDisplayOverride(opt, related.columns)) return;
+      // The link's own display column replaces the related table's display value. Checked on
+      // the id: limited access may already have stripped that column from the meta.
+      if (opt.fk_display_value_column_id) return;
       const pv = related.displayValue;
       if (!pv || !isLinksOrLTAR(pv)) return;
 
@@ -428,6 +430,13 @@ export class PublicMetasService {
 
       const { refContext } = pvOpt.getRelContext();
       if (!relatedMetas[pvOpt.fk_related_model_id]) {
+        markDisplayValueHop(
+          relatedMetas,
+          pvOpt.fk_related_model_id,
+          pvOpt.fk_display_value_column_id
+            ? [pvOpt.fk_display_value_column_id]
+            : [],
+        );
         relatedMetas[pvOpt.fk_related_model_id] = await Model.getWithInfo(
           refContext,
           { id: pvOpt.fk_related_model_id },
@@ -494,6 +503,9 @@ export class PublicMetasService {
     });
 
     if (!lookedUpCol) return;
+
+    unmarkDisplayValueHop(relatedMetas, relationCol.fk_model_id);
+    unmarkDisplayValueHop(relatedMetas, lookedUpCol.fk_model_id);
 
     // extract meta for table which belongs the relation column
     // if not already extracted

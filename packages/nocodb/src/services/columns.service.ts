@@ -71,10 +71,7 @@ import type {
   ReusableParams,
 } from '~/services/columns.service.type';
 import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
-import {
-  assertNoDisplayValueCycle,
-  getEligibleDisplayValueLinkIds,
-} from '~/helpers/displayValueCycle';
+import { assertNoDisplayValueCycle } from '~/helpers/displayValueCycle';
 import { NcContext } from '~/interface/config';
 import {
   type ColumnWebhookManager,
@@ -122,7 +119,8 @@ import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
 } from '~/helpers/getUniqueName';
-import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import { pickDefaultDisplayValue } from '~/helpers/displayValueRepick';
+import { clearSingleQueryCacheForReferencingModels } from '~/helpers/singleQueryCacheInvalidator';
 import validateParams from '~/helpers/validateParams';
 import { MetaService } from '~/meta/meta.service';
 import {
@@ -2096,6 +2094,13 @@ export class ColumnsService implements IColumnsService {
                 );
               }
 
+              // The override ends the display value chain: changing it can close a loop
+              if (column.pv) {
+                await assertNoDisplayValueCycle(context, column, {
+                  [column.id]: resolvedDisplayValueColumnId,
+                });
+              }
+
               await Column.updateDisplayValueColumn(context, {
                 colId: param.columnId,
                 fk_display_value_column_id: resolvedDisplayValueColumnId,
@@ -2115,6 +2120,14 @@ export class ColumnsService implements IColumnsService {
               // override in their own models' compiled queries — clear those
               // caches too or they keep serving the old nested JSON shape.
               await clearDependentLookupModelCaches(context, column);
+
+              // Tables whose reads show this link's display value through their own link
+              if (column.pv) {
+                await clearSingleQueryCacheForReferencingModels(
+                  context,
+                  column.fk_model_id,
+                );
+              }
             }
           }
           // handle reorder column
@@ -6366,9 +6379,7 @@ export class ColumnsService implements IColumnsService {
     // Pass defaultViewId so that default view column order and visibility get added to the column meta
     await table.getColumns(ncMeta, defaultView?.id);
 
-    const displayValueColumn = mapDefaultDisplayValue(table.columns, {
-      eligibleLinkIds: await getEligibleDisplayValueLinkIds(table.columns),
-    });
+    const displayValueColumn = await pickDefaultDisplayValue(table.columns);
     if (displayValueColumn) {
       await Model.updatePrimaryColumn(
         context,
@@ -6385,10 +6396,7 @@ export class ColumnsService implements IColumnsService {
         ncMeta,
       );
       const linkedDisplayValue =
-        linked &&
-        mapDefaultDisplayValue(linked.columns, {
-          eligibleLinkIds: await getEligibleDisplayValueLinkIds(linked.columns),
-        });
+        linked && (await pickDefaultDisplayValue(linked.columns));
       if (linkedDisplayValue) {
         await Model.updatePrimaryColumn(
           linkedTable.context,

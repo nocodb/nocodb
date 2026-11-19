@@ -29,6 +29,7 @@ import type RowColorCondition from '~/models/RowColorCondition';
 import type { GetRowColorConditionsResult } from '~/helpers/rowColorViewHelpers';
 import type { ExcelNumberFormat } from '~/modules/jobs/jobs/export-import/excel-number-format';
 import { NcError } from '~/helpers/catchError';
+import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 import { DriverClient } from '~/utils/nc-config';
 import {
   escapeFormulaeInRows,
@@ -1707,12 +1708,15 @@ export class ExportService {
             continue;
           }
 
-          const summary = displayColumn
-            ? await serializeForDescription(
+          // a link display value is a nested record: use its leaf text
+          const summary = !displayColumn
+            ? undefined
+            : isLinksOrLTAR(displayColumn)
+            ? (await flattenDisplayValue(row, displayColumn)) ?? undefined
+            : await serializeForDescription(
                 row[displayColumn.title],
                 displayColumn,
-              )
-            : undefined;
+              );
 
           const descriptionParts: string[] = [];
           for (const col of descriptionColumns) {

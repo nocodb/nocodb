@@ -91,6 +91,64 @@ export async function getLtarDisplayValueContext(
   };
 }
 
+// One query per value, so only this many distinct values are resolved per call when the
+// related display value is a link; the rest stay unmatched.
+const LINK_DISPLAY_VALUE_RESOLVE_CAP = 500;
+// Rows read per value; enough to tell a unique match from an ambiguous one.
+const LINK_DISPLAY_VALUE_MATCH_LIMIT = 25;
+
+async function resolveLinkDisplayValues(
+  groupCtx: LtarDisplayValueContext,
+  values: Set<string>,
+  {
+    caseInsensitiveFallback,
+    assign,
+  }: {
+    caseInsensitiveFallback: boolean;
+    assign: (value: string, pk: string | number) => void;
+  },
+): Promise<void> {
+  const { relatedModel, relatedBaseModel, displayValueColumn } = groupCtx;
+  const fieldHandler = FieldHandler.fromBaseModel(relatedBaseModel);
+  const listOpts = {
+    fieldsSet: new Set(
+      relatedModel.primaryKeys.map((pk) => pk.title || pk.column_name),
+    ),
+  };
+
+  const matchOne = async (value: string, op: 'eq' | 'like') => {
+    const filter = new Filter({
+      fk_column_id: displayValueColumn.id,
+      comparison_op: op,
+      value,
+      logical_op: 'or',
+    });
+    if (!(await fieldHandler.verifyFiltersSafe([filter])).isValid) return false;
+    const rows = await relatedBaseModel.list(
+      {
+        ...listOpts,
+        filterArr: [filter],
+        limit: LINK_DISPLAY_VALUE_MATCH_LIMIT,
+        apiVersion: NcApiVersion.V3,
+      },
+      { ignoreViewFilterAndSort: true },
+    );
+    for (const row of rows) {
+      assign(value, dataWrapper(row).extractPksValue(relatedModel, true));
+    }
+    return rows.length > 0;
+  };
+
+  const capped = [...values].slice(0, LINK_DISPLAY_VALUE_RESOLVE_CAP);
+  const unmatched: string[] = [];
+  for (const value of capped) {
+    if (!(await matchOne(value, 'eq'))) unmatched.push(value);
+  }
+  if (caseInsensitiveFallback) {
+    for (const value of unmatched) await matchOne(value, 'like');
+  }
+}
+
 /**
  * Batch-resolves display values to primary keys for the related table.
  *
@@ -154,6 +212,17 @@ export async function resolveLtarDisplayValuesToPks(
   };
 
   if (allUniqueValues.size === 0) return valueToPk;
+
+  // The related display value is a link: its rows hold a nested record, not the text, so the
+  // text cannot be compared after the fetch. The filter matches through the chain in SQL;
+  // resolve per value and trust that match.
+  if (isLinksOrLTAR(displayValueColumn)) {
+    await resolveLinkDisplayValues(groupCtx, allUniqueValues, {
+      caseInsensitiveFallback,
+      assign,
+    });
+    return valueToPk;
+  }
 
   // The display value column may be typed (Number, Decimal, Date, …). A
   // submitted value that isn't valid for that type — e.g. matching text "A"

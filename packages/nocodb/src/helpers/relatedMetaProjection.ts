@@ -242,6 +242,29 @@ export interface SharedModelVisibility {
   hiddenColumnIds: Set<string>;
 }
 
+// Tables only reached through a link display value chain, per relatedMetas map, with the
+// columns each keeps besides pk + display value (the override of the link that enters it).
+const displayValueHops = new WeakMap<object, Map<string, Set<string>>>();
+
+/** Marks a related meta as only reached through a display value chain. */
+export function markDisplayValueHop(
+  relatedMetas: Record<string, Model>,
+  modelId: string,
+  keepColumnIds: Iterable<string> = [],
+) {
+  const hops = displayValueHops.get(relatedMetas) ?? new Map();
+  hops.set(modelId, new Set(keepColumnIds));
+  displayValueHops.set(relatedMetas, hops);
+}
+
+/** A table a column reaches directly is projected like any related meta. */
+export function unmarkDisplayValueHop(
+  relatedMetas: Record<string, Model>,
+  modelId: string,
+) {
+  displayValueHops.get(relatedMetas)?.delete(modelId);
+}
+
 /** Safety bound on the fixpoint below — chains are short in practice. */
 const RELATED_PROJECTION_MAX_PASSES = 6;
 
@@ -269,21 +292,45 @@ export function projectRelatedMetas(
   const neededColIds = collectRelatedNeededColumnIds(baseColumns);
   for (const id of extraNeededColIds) neededColIds.add(id);
   const unprojected = { ...relatedMetas };
+  const hops = new Map(displayValueHops.get(relatedMetas));
+  // the shared table keeps the view's own visibility, even as a hop
+  if (sharedModel) hops.delete(sharedModel.modelId);
+
+  // A hop only renders its display value: pk + display value, without the dependency
+  // columns the projection below would pull in for them.
+  for (const [key, keep] of hops) {
+    const hop = unprojected[key];
+    if (!hop?.columns) continue;
+    relatedMetas[key] = withColumns(
+      hop,
+      new Set(
+        hop.columns
+          .filter((c) => c.pk || c.pv || keep.has(c.id))
+          .map((c) => c.id),
+      ),
+    );
+  }
 
   for (let pass = 0; pass < RELATED_PROJECTION_MAX_PASSES; pass++) {
     for (const key of Object.keys(relatedMetas)) {
-      relatedMetas[key] =
-        sharedModel && key === sharedModel.modelId
-          ? projectSharedModelColumns(
-              unprojected[key],
-              neededColIds,
-              sharedModel,
-            )
-          : projectRelatedModelColumns(unprojected[key], neededColIds);
+      if (sharedModel && key === sharedModel.modelId) {
+        relatedMetas[key] = projectSharedModelColumns(
+          unprojected[key],
+          neededColIds,
+          sharedModel,
+        );
+        continue;
+      }
+      if (hops.has(key)) continue;
+      relatedMetas[key] = projectRelatedModelColumns(
+        unprojected[key],
+        neededColIds,
+      );
     }
 
     const before = neededColIds.size;
-    for (const related of Object.values(relatedMetas)) {
+    for (const [key, related] of Object.entries(relatedMetas)) {
+      if (hops.has(key)) continue;
       for (const id of collectRelatedNeededColumnIds(related?.columns)) {
         neededColIds.add(id);
       }

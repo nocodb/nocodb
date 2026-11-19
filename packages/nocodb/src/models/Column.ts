@@ -51,6 +51,7 @@ import {
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import {
   clearSingleQueryCacheForColumnReferences,
+  clearSingleQueryCacheForReferencingModels,
   clearSingleQueryCacheForRenamedColumnReferences,
 } from '~/helpers/singleQueryCacheInvalidator';
 import { NcCache } from '~/decorators/nc-cache.decorator';
@@ -2399,17 +2400,39 @@ export default class Column<T = any> implements ColumnType {
       });
 
     for (const link of links) {
+      const linkContext = {
+        ...context,
+        workspace_id: link.fk_workspace_id,
+        base_id: link.base_id,
+      };
       await Column.updateDisplayValueColumn(
-        {
-          workspace_id: link.fk_workspace_id,
-          base_id: link.base_id,
-        },
+        linkContext,
         {
           colId: link.fk_column_id,
           fk_display_value_column_id: null,
         },
         ncMeta,
       );
+      // A display value link's compiled reads embedded the override; so do its referrers'
+      const owner = await ncMeta.metaGet2(
+        linkContext.workspace_id,
+        linkContext.base_id,
+        MetaTable.COLUMNS,
+        link.fk_column_id,
+      );
+      if (owner?.pv) {
+        await View.clearSingleQueryCache(
+          linkContext,
+          owner.fk_model_id,
+          null,
+          ncMeta,
+        );
+        await clearSingleQueryCacheForReferencingModels(
+          linkContext,
+          owner.fk_model_id,
+          ncMeta,
+        );
+      }
     }
   }
 

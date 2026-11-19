@@ -8701,6 +8701,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // link columns, whose values are linked records that may nest another one (a display
     // value that is itself a link)
     const linkColumnIds = new Set<string>();
+    // where the keys inside a link's values live: its related table's base
+    const valuesContext = new Map<string, NcContext>();
 
     // Build initial maps and collect missing column IDs
     for (const col of modelColumns) {
@@ -8762,7 +8764,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           });
           for (const refCol of columns) {
             idToAliasMap[refCol.id] = refCol.title;
-            if (isLinksOrLTAR(refCol)) linkColumnIds.add(refCol.id);
+            if (!isLinksOrLTAR(refCol)) continue;
+            linkColumnIds.add(refCol.id);
+            // its values (a nested display value) are keyed in its own related base
+            const refOpt =
+              (refCol.colOptions as LinkToAnotherRecordColumn) ??
+              (await refCol.getColOptions<LinkToAnotherRecordColumn>());
+            if (refOpt) {
+              valuesContext.set(refCol.id, refOpt.getRelContext().refContext);
+            }
           }
         }
 
@@ -8788,8 +8798,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // A linked record only nests another one when the linked table's display value is itself
     // a link (without its own display column), so only those links are scanned.
     const nestingLinkIds = new Set<string>();
-    // where the keys inside a link's values live: its related table's base
-    const valuesContext = new Map<string, NcContext>();
     for (const col of modelColumns) {
       if (!isLinksOrLTAR(col) || !col.colOptions) continue;
       const colOpt = col.colOptions as LinkToAnotherRecordColumn;

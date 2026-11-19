@@ -48,9 +48,12 @@ export async function resolveDisplayValueChain(
     // Treat `override.column` as the display value of `override.modelId`, for a column that is
     // about to become one.
     override,
+    // Link column id -> display column it is about to get (null clears it).
+    linkDisplayColumns,
   }: {
     maxDepth?: number;
     override?: { modelId: string; column: Column };
+    linkDisplayColumns?: Record<string, string | null>;
   } = {},
 ): Promise<{
   chain: Column[];
@@ -79,8 +82,14 @@ export async function resolveDisplayValueChain(
     if (!related) return { chain, leaf: null, cyclic: false, tooDeep: false };
     const relatedColumns = await related.getColumns();
     // The link's own display column is a scalar and ends the chain.
+    const linkOpts =
+      linkDisplayColumns && cur.id in linkDisplayColumns
+        ? {
+            fk_display_value_column_id: linkDisplayColumns[cur.id] ?? undefined,
+          }
+        : opts;
     cur =
-      getLinkDisplayOverride(opts, relatedColumns) ??
+      getLinkDisplayOverride(linkOpts, relatedColumns) ??
       (override && related.id === override.modelId
         ? override.column
         : related.displayValue);
@@ -96,18 +105,20 @@ export async function resolveDisplayValueChain(
 export async function assertNoDisplayValueCycle(
   context: NcContext,
   candidate: Column,
+  linkDisplayColumns?: Record<string, string | null>,
 ) {
   const { cyclic, tooDeep } = await resolveDisplayValueChain(candidate, {
     override: { modelId: candidate.fk_model_id, column: candidate },
+    linkDisplayColumns,
   });
   if (cyclic) {
     NcError.get(context).invalidRequestBody(
-      'This link cannot be the display value: it would refer back to itself through the display values of the linked tables.',
+      "This link would refer back to itself through the linked tables' display values.",
     );
   }
   if (tooDeep) {
     NcError.get(context).invalidRequestBody(
-      `This link cannot be the display value: the chain of linked display values is longer than ${DISPLAY_VALUE_LINK_MAX_DEPTH} tables.`,
+      `Linked display values are nested more than ${DISPLAY_VALUE_LINK_MAX_DEPTH} tables deep.`,
     );
   }
 }

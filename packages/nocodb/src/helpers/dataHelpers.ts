@@ -17,10 +17,10 @@ import {
 } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
-import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type { NcContext } from '~/interface/config';
+import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, View } from '~/models';
 import Base from '~/models/Base';

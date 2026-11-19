@@ -80,7 +80,7 @@ export class LookupHelper extends AbstractColumnHelper {
 
     // a link display value can nest links; stop runaway chains
     const linkDepth = params.linkDepth ?? 0;
-    if (linkDepth > 5) return '';
+    if (linkDepth > 16) return '';
     params = { ...params, linkDepth: linkDepth + 1 };
 
     const { col, meta, metas } = params;

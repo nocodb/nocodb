@@ -3872,13 +3872,18 @@ export class ColumnsService implements IColumnsService {
         });
 
         // create nested replace statement for each user
-        const setStatement = baseUsers.reduce((acc, user) => {
-          const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
-            user.id,
-            user.email,
-          ]);
-          return escapeBindingPlaceholders(qb.toQuery());
-        }, escapeBindingPlaceholders(sqlClient.knex.raw(`??`, [column.column_name]).toQuery()));
+        const setStatement = baseUsers.reduce(
+          (acc, user) => {
+            const qb = sqlClient.knex.raw(`REPLACE(${acc}, ?, ?)`, [
+              user.id,
+              user.email,
+            ]);
+            return escapeBindingPlaceholders(qb.toQuery());
+          },
+          escapeBindingPlaceholders(
+            sqlClient.knex.raw(`??`, [column.column_name]).toQuery(),
+          ),
+        );
 
         const updateSql = sqlClient.knex
           .raw(`UPDATE ?? SET ?? = ${setStatement};`, [

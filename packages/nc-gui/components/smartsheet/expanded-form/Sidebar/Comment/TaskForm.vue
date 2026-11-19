@@ -33,6 +33,39 @@ const filteredUsers = computed(() =>
 
 const selectedDate = computed(() => (due.value ? dayjs(due.value) : null))
 
+const formEl = ref<HTMLDivElement>()
+
+const searchInputRef = ref()
+
+const activeUserIndex = ref(0)
+
+watch(userSearch, () => (activeUserIndex.value = 0))
+
+watch(isUserListOpen, (open) => {
+  if (!open) return
+  activeUserIndex.value = Math.max(
+    0,
+    filteredUsers.value.findIndex((u) => u.id === assignee.value),
+  )
+  setTimeout(() => searchInputRef.value?.focus(), 50)
+})
+
+function onUserSearchKeydown(e: KeyboardEvent) {
+  const count = filteredUsers.value.length
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault()
+    if (!count) return
+    activeUserIndex.value = (activeUserIndex.value + (e.key === 'ArrowDown' ? 1 : count - 1)) % count
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    pickUser(filteredUsers.value[activeUserIndex.value]?.id)
+  } else if (e.key === 'Escape') {
+    isUserListOpen.value = false
+  }
+}
+
+onMounted(() => nextTick(() => formEl.value?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })))
+
 function pickUser(id?: string) {
   if (!id) return
   assignee.value = id
@@ -53,6 +86,7 @@ function save() {
 
 <template>
   <div
+    ref="formEl"
     class="nc-comment-task-form flex flex-col gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated p-2"
     data-testid="nc-comment-task-form"
     @keydown.esc.stop="emits('cancel')"
@@ -74,18 +108,20 @@ function save() {
       <template #overlay>
         <div class="w-60 p-1.5 flex flex-col gap-1">
           <a-input
+            ref="searchInputRef"
             v-model:value="userSearch"
             :placeholder="$t('placeholder.searchUsers')"
             class="!h-8 !rounded-lg !text-small"
             data-testid="nc-comment-task-assignee-search"
-            @keydown.stop
+            @keydown.stop="onUserSearchKeydown"
           />
           <div class="max-h-52 nc-scrollbar-thin flex flex-col">
             <button
-              v-for="u in filteredUsers"
+              v-for="(u, i) in filteredUsers"
               :key="u.id"
               type="button"
               class="flex items-center gap-2 rounded-md px-2 py-1.5 text-small text-left cursor-pointer hover:bg-nc-bg-gray-light"
+              :class="{ 'bg-nc-bg-gray-light': i === activeUserIndex }"
               :data-testid="`nc-comment-task-assignee-${u.email}`"
               @click="pickUser(u.id)"
             >
@@ -154,7 +190,7 @@ function save() {
         {{ $t('general.cancel') }}
       </NcButton>
       <NcButton type="primary" size="xs" class="flex-none" :disabled="!assignee" data-testid="nc-comment-task-save" @click="save">
-        {{ $t('activity.commentThread.assign') }}
+        {{ task ? $t('general.save') : $t('activity.commentThread.assign') }}
       </NcButton>
     </div>
   </div>

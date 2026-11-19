@@ -545,9 +545,10 @@ function startReply(commentItem: CommentTypeExtended) {
   replyThreadId.value = thread.root.id
   threadExpansion.value = { ...threadExpansion.value, [thread.root.id]: true, [`resolved-${thread.root.id}`]: true }
 
-  nextTick(() => {
+  // Wait for the thread to expand and the editor to mount, or the composer's lower edge stays hidden.
+  setTimeout(() => {
     document.querySelector('.nc-comment-reply-composer')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-  })
+  }, 150)
 }
 
 function cancelReply() {
@@ -629,6 +630,9 @@ async function revealComment(commentId: string) {
 
   scrollToComment(commentId)
   hoveredCommentId.value = commentId
+  setTimeout(() => {
+    if (hoveredCommentId.value === commentId) hoveredCommentId.value = null
+  }, 2000)
 }
 
 function jumpToUnread() {
@@ -1073,7 +1077,14 @@ watch(
 
 watch(
   () => comments.value?.length,
-  () => {
+  (length, prevLength) => {
+    const wrapper = commentsWrapperEl.value
+    const newest = comments.value[comments.value.length - 1]
+    // Someone else's comment doesn't pull a reader who scrolled up; the jump button offers it instead.
+    const isReadingAbove =
+      !!wrapper && wrapper.scrollHeight - wrapper.scrollTop - wrapper.clientHeight > 120 && !!prevLength && length > prevLength
+    if (isReadingAbove && newest?.created_by_email !== user.value?.email) return
+
     nextTick(() => {
       // Deep-link target still in scope (only cleared on user post / row
       // change) — keep anchoring on it rather than snapping to bottom.
@@ -1432,7 +1443,7 @@ onBeforeUnmount(() => {
                     <!-- Hover action bar -->
                     <div
                       v-if="!editCommentValue && !commentItem.id?.startsWith('temp-')"
-                      class="nc-comment-actions !hidden !group-hover:flex absolute right-2 top-1.5 z-10 items-center gap-0.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated p-0.5 shadow-sm"
+                      class="nc-comment-actions !hidden !group-hover:flex !group-focus-within:flex absolute right-2 top-1.5 z-10 items-center gap-0.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated p-0.5 shadow-sm"
                       data-testid="nc-comment-actions"
                     >
                       <SmartsheetExpandedFormSidebarCommentReactionPicker

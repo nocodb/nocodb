@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
-import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, canEncodeQueryFilterToken, encodeQueryFilterClause } from 'nocodb-sdk'
 import { computeLtarNewRowState, findReverseLinkColumn, isLtarFkOnRow } from '~/utils/dataUtils'
 
@@ -126,6 +126,8 @@ const linkedRecordsWhere = computed(() => {
 
   const reverseColumn = findReverseLinkColumn(injectedColumn.value, relatedTableMeta.value, meta.value?.id)
   if (!reverseColumn?.title || !canEncodeQueryFilterToken(reverseColumn.title)) return
+  // A view-limited link usually hides the PK there, and the backend then matches `.Id` on the display value.
+  if ((reverseColumn.colOptions as LinkToAnotherRecordType | undefined)?.fk_target_view_id) return
 
   // `@` selects the parser that understands quoted field names.
   return `@${encodeQueryFilterClause(`${reverseColumn.title}.Id`, 'eq', rowId.value)}`

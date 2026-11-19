@@ -992,6 +992,39 @@ describe('validateRowFilters', () => {
       expect(run({ RelatedRecords: [{ Id: 7, Primary: '42' }] })).toBe(false);
     });
 
+    it('leaves an `.Id` filter on a many-record Links count to the server', () => {
+      const columns = [
+        {
+          id: 'hm',
+          title: 'Orders',
+          uidt: UITypes.Links,
+          colOptions: {
+            fk_related_model_id: 'relatedModel',
+            type: 'hm',
+            version: 2,
+          } as LinkToAnotherRecordType,
+        },
+      ];
+      const filters: FilterTypeWithMeta[] = [
+        {
+          fk_column_id: 'hm',
+          comparison_op: 'eq',
+          value: '7',
+          meta: { ltarSubField: 'Id' },
+        },
+      ];
+      // The cell is a count (2), which must not be compared with the id.
+      expect(
+        validateRowFilters({
+          filters,
+          data: { Orders: 2 },
+          columns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+      ).toBe(true);
+    });
+
     it('should correctly evaluate "eq" for linked record primary value', () => {
       const filters: FilterType[] = [
         { fk_column_id: '6', comparison_op: 'eq', value: 'RecordA' },

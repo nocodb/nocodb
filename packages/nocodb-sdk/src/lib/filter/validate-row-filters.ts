@@ -317,6 +317,13 @@ export class RowFilterValidator {
               res = false; // Unsupported operation for User fields
           }
         } else if (
+          (filter as FilterTypeWithMeta).meta?.ltarSubField &&
+          column.uidt === UITypes.Links &&
+          !isBtLikeV2Junction(column)
+        ) {
+          // A many-record Links cell holds a count, not the linked ids: leave `Link.Id` to the server.
+          res = true;
+        } else if (
           column.uidt === UITypes.LinkToAnotherRecord ||
           (column.uidt === UITypes.Links && isBtLikeV2Junction(column))
         ) {

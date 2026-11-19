@@ -55,6 +55,7 @@ export {
   isLinkV2,
   isMMOrMMLike,
   isBtLikeV2Junction,
+  isSingleRecordLinkColumn,
   isSelfLinkCol,
   isCreatedOrLastModifiedTimeCol,
   isCreatedOrLastModifiedByCol,

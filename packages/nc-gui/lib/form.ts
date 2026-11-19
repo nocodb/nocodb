@@ -13,9 +13,11 @@ import {
   isDateWithinPeriod,
   isLTAR,
   isLink,
+  isSingleRecordLinkColumn,
   isUnratedRating,
 } from 'nocodb-sdk'
 import type { GetMetaParams } from '~/composables/useMetas'
+import { resolveDisplayLeafColumn, resolveLinkedRecordDisplay } from '~/utils/linkedRecordDisplay'
 
 type FormViewColumn = ColumnType & Record<string, any>
 
@@ -220,19 +222,44 @@ export class FormFilters {
 
     if (value === null || value === undefined) return null
 
+    // A display value that is a single-record link nests the leaf record; resolve it to the leaf text
+    const displayCol = customDisplayCol || relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0]
+    let titleOf = (record: Record<string, any>): string | undefined => {
+      const v = record?.[displayValTitle]
+      return v !== undefined && v !== null ? `${v}` : undefined
+    }
+
+    if (displayCol && isSingleRecordLinkColumn(displayCol)) {
+      const getMeta = this.getMeta
+      const loaded: Record<string, TableType> = {}
+      await resolveDisplayLeafColumn(
+        relatedTableMeta,
+        async (baseId, tableId) => {
+          const hopMeta = await getMeta({ baseId, tableIdOrTitle: tableId, disableError: true })
+          if (hopMeta) loaded[`${baseId}:${tableId}`] = hopMeta
+          return hopMeta
+        },
+        colOptions?.fk_display_value_column_id,
+      )
+      titleOf = (record) =>
+        resolveLinkedRecordDisplay(record, relatedTableMeta, {
+          metas: loaded,
+          overrideColumnId: colOptions?.fk_display_value_column_id,
+        }).text || undefined
+    }
+
     // Multi-record relations (mm / om) — value is an array of linked rows
     if (Array.isArray(value)) {
       const displayValues = value
-        .map((row) => (row && typeof row === 'object' ? row[displayValTitle] : undefined))
-        .filter((v): v is string | number | boolean => v !== undefined && v !== null)
-        .map((v) => `${v}`)
+        .map((row) => (row && typeof row === 'object' ? titleOf(row) : undefined))
+        .filter((v): v is string => v !== undefined)
 
       return displayValues.length ? displayValues.join(', ') : null
     }
 
     // Single-record relations (mo / oo) — value is a single linked row
-    if (typeof value === 'object' && value[displayValTitle] !== undefined && value[displayValTitle] !== null) {
-      return `${value[displayValTitle]}`
+    if (typeof value === 'object') {
+      return titleOf(value) ?? null
     }
 
     return null

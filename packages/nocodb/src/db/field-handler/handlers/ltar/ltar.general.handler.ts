@@ -102,6 +102,31 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       throwErrorIfInvalid,
       conditionParser: parseConditionV2,
     } = options;
+    // A Date display value can't be matched by text or `like`; reject as no match
+    // instead of sending the SQL a failing comparison.
+    if (!LINK_EMPTINESS_OPS.includes(filter.comparison_op)) {
+      const displayColumn = await getRefTableColumnForFilter(
+        context,
+        column,
+        filter.meta?.ltarSubField,
+      );
+      if (displayColumn && isDateType(displayColumn.uidt as UITypes)) {
+        const verdict = await options.fieldHandler?.verifyFilter(
+          new Filter({ ...filter, fk_column_id: displayColumn.id }),
+          displayColumn,
+          options,
+        );
+        if (verdict && !verdict.isValid) {
+          const negated = filter.comparison_op in negatedMapping;
+          return {
+            clause: (qb: Knex.QueryBuilder) =>
+              qb.whereRaw(negated ? '1 = 1' : '1 = 0'),
+            rootApply: () => {},
+          };
+        }
+      }
+    }
+
     const isMMLike = isMMOrMMLike(column);
     const colOptions =
       (await column.getColOptions()) as LinkToAnotherRecordColumn;

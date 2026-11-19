@@ -73,6 +73,7 @@ const {
   childrenExcludedOffsetCount,
   childrenListOffsetCount,
   relatedTableDisplayValueProp,
+  relatedRecordTitle,
   displayValueTypeAndFormatProp,
   unlink,
   isChildrenListLinked,
@@ -359,7 +360,7 @@ const onCreatedRecord = async (record: any) => {
         },
         t('activity.gotSavedLinkedSuccessfully', {
           tableName: relatedTableMeta.value?.title,
-          recordTitle: record[relatedTableDisplayValueProp.value],
+          recordTitle: relatedRecordTitle(record),
         }),
       ),
     ],

@@ -34,9 +34,12 @@ import { getUsersWithBaseAccess } from '~/helpers/baseAccessHelpers';
 import { setModelContext } from '~/helpers/modelContext';
 import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
+import { DISPLAY_VALUE_LINK_MAX_DEPTH } from '~/helpers/displayValueCycle';
 import {
   getSharedModelVisibility,
+  markDisplayValueHop,
   projectRelatedMetas,
+  unmarkDisplayValueHop,
 } from '~/helpers/relatedMetaProjection';
 import { withoutViewSecrets } from '~/helpers/publicViewSecrets';
 import {
@@ -362,6 +365,7 @@ export class PublicMetasService {
   ) {
     const { refContext, mmContext } = ltarColOption.getRelContext();
 
+    unmarkDisplayValueHop(relatedMetas, ltarColOption.fk_related_model_id);
     relatedMetas[ltarColOption.fk_related_model_id] = await Model.getWithInfo(
       refContext,
       {
@@ -374,7 +378,12 @@ export class PublicMetasService {
       relatedMetas,
       ltarColOption.fk_related_model_id,
     );
+    await this.extractDisplayValueChainMetas(context, {
+      ltarColOption,
+      relatedMetas,
+    });
     if (ltarColOption.type === 'mm') {
+      unmarkDisplayValueHop(relatedMetas, ltarColOption.fk_mm_model_id);
       relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
         mmContext,
         {
@@ -387,6 +396,59 @@ export class PublicMetasService {
         relatedMetas,
         ltarColOption.fk_mm_model_id,
       );
+    }
+  }
+
+  // A related table whose display value is a link shows the linked record's display value,
+  // so the tables further down that chain are needed to render it.
+  protected async extractDisplayValueChainMetas(
+    context: NcContext,
+    {
+      ltarColOption,
+      relatedMetas,
+    }: {
+      ltarColOption: LinkToAnotherRecordColumn;
+      relatedMetas: { [key: string]: Model };
+    },
+  ) {
+    const visited = new Set<string>();
+    let opt = ltarColOption;
+
+    for (let depth = 0; depth < DISPLAY_VALUE_LINK_MAX_DEPTH; depth++) {
+      const related = relatedMetas[opt.fk_related_model_id];
+      if (!related?.columns || visited.has(related.id)) return;
+      visited.add(related.id);
+
+      // The link's own display column replaces the related table's display value. Checked on
+      // the id: limited access may already have stripped that column from the meta.
+      if (opt.fk_display_value_column_id) return;
+      const pv = related.displayValue;
+      if (!pv || !isLinksOrLTAR(pv)) return;
+
+      const pvOpt = await pv.getColOptions<LinkToAnotherRecordColumn>();
+      if (!pvOpt?.fk_related_model_id) return;
+
+      const { refContext } = pvOpt.getRelContext();
+      if (!relatedMetas[pvOpt.fk_related_model_id]) {
+        markDisplayValueHop(
+          relatedMetas,
+          pvOpt.fk_related_model_id,
+          pvOpt.fk_display_value_column_id
+            ? [pvOpt.fk_display_value_column_id]
+            : [],
+        );
+        relatedMetas[pvOpt.fk_related_model_id] = await Model.getWithInfo(
+          refContext,
+          { id: pvOpt.fk_related_model_id },
+        );
+        await this.filterIfLimitedAccess(
+          context,
+          refContext,
+          relatedMetas,
+          pvOpt.fk_related_model_id,
+        );
+      }
+      opt = pvOpt;
     }
   }
 
@@ -441,6 +503,9 @@ export class PublicMetasService {
     });
 
     if (!lookedUpCol) return;
+
+    unmarkDisplayValueHop(relatedMetas, relationCol.fk_model_id);
+    unmarkDisplayValueHop(relatedMetas, lookedUpCol.fk_model_id);
 
     // extract meta for table which belongs the relation column
     // if not already extracted

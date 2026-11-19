@@ -51,7 +51,9 @@ const currentDisplayValueId = computed(() => meta.value?.columns?.find((c) => c.
 const selectedColumn = computed(() => meta.value?.columns?.find((c) => c.id === selectedFieldId.value))
 
 const selectedFieldError = computed(() =>
-  selectedColumn.value && !selectedColumn.value.pv && !isSupportedDisplayValueColumn(selectedColumn.value)
+  selectedColumn.value &&
+  !selectedColumn.value.pv &&
+  !isSupportedDisplayValueColumn(selectedColumn.value, { allowSingleRecordLink: true })
     ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(selectedColumn.value) })
     : '',
 )
@@ -63,9 +65,9 @@ const currentDisplayValueHint = computed(() =>
 const getFormatedColumn = (column: ColumnType) => ({
   title: column.title,
   id: column.id,
-  ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
+  ncItemDisabled: !isSupportedDisplayValueColumn(column, { allowSingleRecordLink: true }) && !column.pv,
   ncItemTooltip:
-    !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
+    !isSupportedDisplayValueColumn(column, { allowSingleRecordLink: true }) && columnTypeName(column) && !column.pv
       ? t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) })
       : '',
   column,

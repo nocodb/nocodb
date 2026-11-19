@@ -59,7 +59,8 @@ const {
   isChildrenExcludedLoading,
   isSingleTargetRelation,
   relatedTableMeta,
-  relatedTableDisplayValueProp,
+  relatedChipDisplay,
+  relatedRecordTitle,
   getRelatedTableRowId,
   link,
   unlink,
@@ -151,9 +152,7 @@ function matchesQuery(rec: Record<string, any>) {
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) return true
 
-  const value = rec?.[relatedTableDisplayValueProp.value]
-
-  return value !== null && value !== undefined && String(value).toLowerCase().includes(query)
+  return relatedRecordTitle(rec).toLowerCase().includes(query)
 }
 
 const linkedRecord = computed<Record<string, any> | null>(() => {
@@ -219,8 +218,9 @@ const visibleRows = computed<SimpleListItem[]>(() => {
   return items
 })
 
-function displayValueOf(rec?: Record<string, any>) {
-  return rec?.[relatedTableDisplayValueProp.value]
+// leaf column and value of the record's display value (a single-record link pv is followed to its leaf)
+function displayChipOf(rec?: Record<string, any>) {
+  return relatedChipDisplay(rec)
 }
 
 function resetSessionState() {
@@ -601,12 +601,11 @@ onUnmounted(() => {
               <NcCheckbox v-if="!isSingleTarget && !readonly" :checked="item.checked" class="pointer-events-none flex-none" />
               <div class="flex-1 truncate text-[13px] leading-5 text-nc-content-gray">
                 <SmartsheetPlainCell
-                  v-if="props.column"
-                  :model-value="displayValueOf(item.row)"
-                  :column="props.column"
+                  v-if="displayChipOf(item.row).column"
+                  :model-value="displayChipOf(item.row).value"
+                  :column="displayChipOf(item.row).column"
                   class="truncate"
                 />
-                <template v-else>{{ displayValueOf(item.row) }}</template>
               </div>
               <!-- An interface element's "Preview utilization", attached by the server. -->
               <VirtualCellComponentsUtilizationPreview

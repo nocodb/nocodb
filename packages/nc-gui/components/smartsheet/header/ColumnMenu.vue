@@ -13,6 +13,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isCrossBaseLink,
   isLinksOrLTAR,
+  isSingleRecordLinkColumn,
   isSupportedDisplayValueColumn,
   isSystemColumn,
   partialUpdateAllowedTypes,
@@ -842,8 +843,10 @@ if (props.headless) {
       </div>
     </NcMenuItem>
     <NcTooltip
-      v-if="column && !column?.pv && !isHiddenCol && (!virtual || column.uidt === UITypes.Formula)"
-      :disabled="isSupportedDisplayValueColumn(column) && !isSyncedTable"
+      v-if="
+        column && !column?.pv && !isHiddenCol && (!virtual || column.uidt === UITypes.Formula || isSingleRecordLinkColumn(column))
+      "
+      :disabled="isSupportedDisplayValueColumn(column, { allowSingleRecordLink: true }) && !isSyncedTable"
       placement="right"
     >
       <template #title>
@@ -854,7 +857,10 @@ if (props.headless) {
         }}
       </template>
 
-      <NcMenuItem :disabled="isLocked || isSyncedTable || !isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
+      <NcMenuItem
+        :disabled="isLocked || isSyncedTable || !isSupportedDisplayValueColumn(column, { allowSingleRecordLink: true })"
+        @click="setAsDisplayValue"
+      >
         <div class="nc-column-set-primary nc-header-menu-item item">
           <GeneralLoader v-if="isLoading === 'setDisplay'" size="regular" />
           <GeneralIcon v-else icon="star" class="opacity-80 !w-4.25 !h-4.25" />

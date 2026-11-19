@@ -24,7 +24,7 @@ const props = withDefaults(
 
 const emits = defineEmits(['expand', 'linkOrUnlink', 'close'])
 
-const { showExtraFields, relatedTableMeta, meta, isLinkedTableAccessible } = useLTARStoreOrThrow()!
+const { showExtraFields, relatedTableMeta, meta, isLinkedTableAccessible, relatedChipDisplay } = useLTARStoreOrThrow()!
 
 provide(IsExpandedFormOpenInj, ref(true))
 
@@ -45,6 +45,9 @@ provide(MetaInj, relatedTableMeta)
 const row = useVModel(props, 'row')
 
 const { isLinked, isLoading, isSelected } = toRefs(props)
+
+// leaf of the display value (a single-record link pv is followed to its leaf column)
+const displayChip = computed(() => relatedChipDisplay(row.value))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -142,10 +145,10 @@ const utilization = computed(() => props.row?.[LINK_UTILIZATION_ROW_KEY] ?? null
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
           <div class="flex justify-start">
             <SmartsheetPlainCell
-              v-if="displayValueColumn"
+              v-if="displayChip.column"
               class="font-semibold text-nc-content-brand nc-display-value truncate leading-[20px]"
-              :column="displayValueColumn"
-              :model-value="row[displayValueColumn.title]"
+              :column="displayChip.column"
+              :model-value="displayChip.value"
             />
           </div>
 

@@ -53,6 +53,7 @@ const {
   loadChildrenList,
   childrenExcludedListPagination,
   relatedTableDisplayValueProp,
+  relatedRecordTitle,
   displayValueTypeAndFormatProp,
   relatedTableDisplayValueColumn,
   link,
@@ -380,7 +381,7 @@ const onCreatedRecord = (record: any) => {
         },
         t('activity.gotSavedLinkedSuccessfully', {
           tableName: relatedTableMeta.value?.title,
-          recordTitle: record[relatedTableDisplayValueProp.value],
+          recordTitle: relatedRecordTitle(record),
         }),
       ),
     ],

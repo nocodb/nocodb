@@ -1,12 +1,19 @@
 import {
   isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
   isSupportedDisplayValueColumn,
   isSystemColumn,
 } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
 
+/**
+ * `eligibleLinkIds`: links that may be picked when no scalar column fits. Any other link is
+ * never picked, so a has-many link or one that leads back to itself cannot become the
+ * display value by default.
+ */
 export default function mapDefaultDisplayValue<T extends ColumnType>(
   columnsArr: Array<T>,
+  { eligibleLinkIds }: { eligibleLinkIds?: Set<string> } = {},
 ): void | T {
   if (!columnsArr.some((column) => column.pv)) {
     const pkIndex = columnsArr.findIndex((column) => column.pk);
@@ -32,8 +39,16 @@ export default function mapDefaultDisplayValue<T extends ColumnType>(
       return displayValueColumn;
     }
 
+    const link = columnsArr.find((column) => eligibleLinkIds?.has(column.id));
+    if (link) {
+      link.pv = true;
+      return link;
+    }
+
     // Fallback: pick the first non-system column
-    const fallback = columnsArr.find((column) => !isSystemColumn(column));
+    const fallback = columnsArr.find(
+      (column) => !isSystemColumn(column) && !isLinksOrLTAR(column),
+    );
     if (fallback) {
       fallback.pv = true;
       return fallback;

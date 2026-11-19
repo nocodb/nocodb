@@ -44,8 +44,14 @@ const isOpen = ref(false)
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, relatedTableDisplayValuePropId, unlink } =
-  useProvideLTARStore(column as Ref<Required<ColumnType>>, row, isNew, reloadRowTrigger.trigger)
+const {
+  relatedTableMeta,
+  loadRelatedTableMeta,
+  relatedTableDisplayValueProp,
+  relatedTableDisplayValuePropId,
+  relatedChipDisplay,
+  unlink,
+} = useProvideLTARStore(column as Ref<Required<ColumnType>>, row, isNew, reloadRowTrigger.trigger)
 
 await loadRelatedTableMeta()
 
@@ -67,6 +73,8 @@ const value = computed(() => {
   // A single-record link holds one object; unwrap a one-item list (e.g. a form prefill).
   return Array.isArray(v) ? v[0] ?? null : v
 })
+
+const chip = computed(() => relatedChipDisplay(value.value))
 
 const unlinkRef = async (rec: Record<string, any>) => {
   if (isNew.value) {
@@ -170,12 +178,8 @@ onUnmounted(() => {
           <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
             <VirtualCellComponentsItemChip
               :item="value"
-              :value="
-                !Array.isArray(value) && typeof value === 'object'
-                  ? value[relatedTableDisplayValueProp] ?? value[relatedTableDisplayValuePropId]
-                  : value
-              "
-              :column="belongsToColumn"
+              :value="chip.value"
+              :column="chip.column"
               :show-unlink-button="true"
               @unlink="unlinkRef(value)"
             />

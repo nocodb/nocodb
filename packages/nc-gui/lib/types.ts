@@ -332,6 +332,7 @@ interface Group {
   rows?: Row[]
   root?: boolean
   displayValueProp?: string
+  relatedTableMeta?: TableType
   /** The linked table's primary-key title, for groups keyed by a linked record. */
   relatedPkProp?: string
 }
@@ -995,6 +996,7 @@ interface ParsePlainCellValueProps {
     t: Composer['t']
     isUnderLookup?: boolean
     numberFormat?: { skipThousandSeparator?: boolean; skipAbbreviation?: boolean }
+    linkDepth?: number
   }
 }
 

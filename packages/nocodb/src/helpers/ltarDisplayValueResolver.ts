@@ -6,6 +6,7 @@ import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { FieldHandler } from '~/db/field-handler';
+import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 
 /**
  * Shared context + display-value → pk resolution for link (LTAR) columns.
@@ -155,6 +156,37 @@ export async function resolveLtarDisplayValuesToPks(
 
   if (allUniqueValues.size === 0) return valueToPk;
 
+  // A link display value is read as a nested record, not as the cell's own value, and `list`
+  // returns neither — so re-read the rows a filter matched with their display value expanded
+  // (one query per chunk) and take the leaf of the chain as their text. A link can only be the
+  // related table's own display value here: a link's custom display column is always scalar.
+  const dvIsLink = isLinksOrLTAR(displayValueColumn);
+  const pkOf = (row: Record<string, any>) =>
+    dataWrapper(row).extractPksValue(relatedModel, true);
+  const textByRow = async (rows: Record<string, any>[]) => {
+    const texts = new Map<Record<string, any>, any>();
+    if (!dvIsLink) {
+      for (const row of rows) texts.set(row, row[dvTitle]);
+      return texts;
+    }
+    if (!rows.length) return texts;
+
+    const byPk = new Map<string, Record<string, any>>();
+    for (const row of rows) byPk.set(String(pkOf(row)), row);
+
+    const expanded = await relatedBaseModel.chunkList({
+      pks: [...byPk.keys()],
+      extractOnlyPrimaries: true,
+    });
+    for (const record of expanded) {
+      const row = byPk.get(String(pkOf(record)));
+      if (row) {
+        texts.set(row, await flattenDisplayValue(record, displayValueColumn));
+      }
+    }
+    return texts;
+  };
+
   // The display value column may be typed (Number, Decimal, Date, …). A
   // submitted value that isn't valid for that type — e.g. matching text "A"
   // against a Number display column — would make `FieldHandler.verifyFilters`
@@ -186,12 +218,13 @@ export async function resolveLtarDisplayValuesToPks(
       listFlags,
     );
 
+    const exactTexts = await textByRow(exactRows);
     for (const row of exactRows) {
-      const dv = row[dvTitle];
+      const dv = exactTexts.get(row);
       if (dv == null) continue;
       const dvStr = String(dv);
       if (allUniqueValues.has(dvStr)) {
-        assign(dvStr, dataWrapper(row).extractPksValue(relatedModel, true));
+        assign(dvStr, pkOf(row));
       }
     }
   }
@@ -215,16 +248,14 @@ export async function resolveLtarDisplayValuesToPks(
         if (!lowerToOriginal.has(lower)) lowerToOriginal.set(lower, v);
       }
 
+      const candidateTexts = await textByRow(candidateRows);
       for (const row of candidateRows) {
-        const dv = row[dvTitle];
+        const dv = candidateTexts.get(row);
         if (dv == null) continue;
         const dvLower = String(dv).toLowerCase();
         const originalValue = lowerToOriginal.get(dvLower);
         if (originalValue) {
-          assign(
-            originalValue,
-            dataWrapper(row).extractPksValue(relatedModel, true),
-          );
+          assign(originalValue, pkOf(row));
         }
       }
     }

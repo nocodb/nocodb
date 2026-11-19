@@ -37,6 +37,8 @@ export class ActionManager {
 
   private readonly userSync: Ref<UserObject>
 
+  private metas?: Ref<Record<string, TableType>>
+
   private eventBus?: any
 
   // Consolidated state maps
@@ -74,6 +76,10 @@ export class ActionManager {
     this.userSync = userSync
 
     this.setupEventListeners()
+  }
+
+  setMetas(metas: Ref<Record<string, TableType>>) {
+    this.metas = metas
   }
 
   setBaseInfo(baseId: string, workspaceId: string) {
@@ -273,11 +279,15 @@ export class ActionManager {
     if (!row?.row) return ''
 
     const displayField = this.meta.value?.columns?.find((col) => col.pv || col.pk)
-    if (displayField?.title && row.row[displayField.title]) {
-      return String(row.row[displayField.title])
+    if (displayField?.title) {
+      const title = recordTitleOf(row.row, { ...this.meta.value, columns: [displayField] }, this.metas?.value)
+      if (title) return title
     }
 
-    const firstValue = Object.values(row.row).find((val) => val !== null && val !== undefined && val !== '')
+    // objects (link values) would stringify as [object Object]
+    const firstValue = Object.values(row.row).find(
+      (val) => val !== null && val !== undefined && val !== '' && typeof val !== 'object',
+    )
     return firstValue ? String(firstValue) : ''
   }
 

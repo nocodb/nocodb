@@ -1251,6 +1251,10 @@ export default class Model implements TableType {
       }),
     );
 
+    // compiled SQL of this table and of every table embedding its display value is stale
+    await View.clearSingleQueryCache(context, tableId, null, ncMeta);
+    await clearSingleQueryCacheForReferencingModels(context, tableId, ncMeta);
+
     return true;
   }
 

@@ -320,6 +320,11 @@ const router = useRouter()
 
 const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : []))
 
+/** To-dos go to people who can open this record. */
+const assignableUsers = computed(() =>
+  baseUsers.value.filter((u) => !u.deleted && getUserRole(u.email!) !== ProjectRoles.NO_ACCESS),
+)
+
 const debouncedLoadCommentEditedTooltip = useDebounceFn(loadCommentEditedTooltip, 1000)
 
 function scrollComments() {
@@ -993,7 +998,7 @@ watch(commentsWrapperEl, (el) => {
   }, 100)
 })
 
-const getUserRole = (email: string) => {
+function getUserRole(email: string) {
   const user = baseUsers.value.find((user) => user.email === email)
   if (!user) return ProjectRoles.NO_ACCESS
 
@@ -1067,7 +1072,9 @@ watch(
   },
 )
 
-watch(primaryKey, () => {
+watch(primaryKey, (_pk, prev) => {
+  // Stamp the record being left: what arrived while it was open has been seen.
+  if (prev) markCommentsRead(`${prev}`)
   searchQuery.value = ''
   threadExpansion.value = {}
   taskFormCommentId.value = null
@@ -1663,7 +1670,7 @@ onBeforeUnmount(() => {
                         <SmartsheetExpandedFormSidebarCommentTaskForm
                           v-if="taskFormCommentId === commentItem.id"
                           :task="getCommentMeta(commentItem).task"
-                          :users="baseUsers.filter((u) => !u.deleted)"
+                          :users="assignableUsers"
                           @save="saveTask(commentItem, $event)"
                           @remove="removeTask(commentItem)"
                           @cancel="taskFormCommentId = null"

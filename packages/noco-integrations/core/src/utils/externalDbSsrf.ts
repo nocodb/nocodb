@@ -193,16 +193,6 @@ async function assertSingleHostAllowed(host: string): Promise<void> {
   }
 }
 
-function isBlockedAddress(addr: string): boolean {
-  if (!ipaddr.isValid(addr)) {
-    // Node accepts IPv6 spellings ipaddr.js rejects (dotted-quad tails behind a
-    // multi-group prefix, on ipaddr.js < 2.2). A routable host always parses —
-    // so fail closed.
-    return isIP(addr) !== 0;
-  }
-  return isBlockedIp(ipaddr.parse(addr));
-}
-
 function blockedSocketError(): NodeJS.ErrnoException {
   return Object.assign(new SsrfBlockedHostError(), { code: 'EACCES' });
 }

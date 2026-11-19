@@ -322,6 +322,19 @@ const predictedFieldType = ref<UITypes | null>(null)
 
 // const lastPredictedAt = ref<number>(0)
 
+const acceptOnlyValidLabel = computed(() => {
+  switch (formState.value.uidt) {
+    case UITypes.Email:
+      return t('msg.acceptOnlyValidEmail')
+    case UITypes.URL:
+      return t('msg.acceptOnlyValidURL')
+    case UITypes.PhoneNumber:
+      return t('msg.acceptOnlyValidPhoneNumber')
+    default:
+      return t('msg.acceptOnlyValid', { type: getUidtI18nName(formState.value.uidt, t, te) })
+  }
+})
+
 const uiTypesOptions = computed<(UiTypesType & { disabled?: boolean; tooltip?: string })[]>(() => {
   const types = [
     ...uiTypes.filter(uiFilters),
@@ -1418,7 +1431,7 @@ const unique = computed({
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
           <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
             <div class="text-sm text-nc-content-gray">
-              {{ $t('msg.acceptOnlyValid', { type: getUidtI18nName(formState.uidt, t, te) }) }}
+              {{ acceptOnlyValidLabel }}
             </div>
           </NcSwitch>
         </div>

@@ -684,6 +684,40 @@ export function isBtLikeV2Junction(
 }
 
 /**
+ * True for a link that holds at most one related record and carries its foreign key on this
+ * side: Belongs-To (bt), One-to-One (oo, the side with the FK) and Many-to-One (mo), for
+ * LinkToAnotherRecord and Links V2. Needs `colOptions`; returns false when they are not loaded.
+ * V1 `Links` render as a count, so they never qualify.
+ */
+export function isSingleRecordLinkColumn(
+  col:
+    | ColumnType
+    | { uidt?: UITypes | string; colOptions?: any; meta?: any }
+    | null
+    | undefined
+): boolean {
+  if (!col || typeof col !== 'object' || !isLinksOrLTAR(col as ColumnType)) {
+    return false;
+  }
+  const opts = (col as ColumnType).colOptions as
+    | LinkToAnotherRecordType
+    | undefined;
+  if (!opts) return false;
+
+  if (opts.version == LinksVersion.V2) {
+    return isBtLikeV2Junction(col as ColumnType);
+  }
+
+  if (col.uidt !== UITypes.LinkToAnotherRecord) return false;
+  if (opts.type === RelationTypes.BELONGS_TO) return true;
+  // V1 one-to-one keeps its FK on one side only; `meta.bt` marks that side.
+  return (
+    opts.type === RelationTypes.ONE_TO_ONE &&
+    !!parseProp((col as { meta?: any }).meta)?.bt
+  );
+}
+
+/**
  * Whether an LTAR/Links column resolves to an array of related records (`[]`
  * when unlinked) vs a single record / null (object-shape).
  *
@@ -855,8 +889,15 @@ export const getUITypesForFormulaDataType = (
   }
 };
 
-export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
+export const isSupportedDisplayValueColumn = (
+  column: Partial<ColumnType>,
+  // The display value picker allows a single-record link; the link's own custom display column
+  // and view-level callers keep the scalar-only rule.
+  { allowSingleRecordLink = false }: { allowSingleRecordLink?: boolean } = {}
+) => {
   if (!column?.uidt) return false;
+
+  if (allowSingleRecordLink && isSingleRecordLinkColumn(column)) return true;
 
   switch (column.uidt) {
     case UITypes.SingleLineText:

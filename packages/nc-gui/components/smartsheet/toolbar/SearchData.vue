@@ -83,8 +83,13 @@ const freeSpaceForSearch = computed(() => spacerWidth.value + wrapperWidth.value
 // does not mis-fire in icon mode, where the toolbar buttons collapse to icons and free up space.
 const EXPANDED_SEARCH_MIN_WIDTH = 320
 
+// The count and arrows share the input's row once there is a query.
+const SEARCH_RESULT_SLOT_WIDTH = 150
+
 const shouldCollapseSearch = computed(
-  () => freeSpaceForSearch.value > 0 && freeSpaceForSearch.value < EXPANDED_SEARCH_MIN_WIDTH - 20,
+  () =>
+    freeSpaceForSearch.value > 0 &&
+    freeSpaceForSearch.value < EXPANDED_SEARCH_MIN_WIDTH + (search.value.query?.trim() ? SEARCH_RESULT_SLOT_WIDTH : 0) - 20,
 )
 
 const isSearchButtonVisible = computed(() => {

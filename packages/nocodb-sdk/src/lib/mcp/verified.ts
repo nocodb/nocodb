@@ -4,9 +4,9 @@ import type { McpVerifiedConnector } from './index';
  * Remote MCP servers NocoDB has reviewed. Hand-written: being on this list is a
  * code-review decision. Each `url` is the vendor's own endpoint, or `serverUrl`
  * asks each person for their tenant's. `OAuthClient` ones need NocoDB's OAuth app
- * for that vendor (`NC_MCP_<ID>_CLIENT_ID`/`_SECRET`). `OAuthDynamic` ones sign in
- * with NocoDB's client ID metadata document where the server accepts one (Shopify
- * accepts only that), else by registering a client.
+ * for that vendor (`NC_MCP_<ID>_CLIENT_ID`/`_SECRET`). `OAuthDynamic` ones register
+ * a client, or use NocoDB's client ID metadata document where the server offers
+ * no registration.
  */
 export const VERIFIED_MCP_CONNECTORS: McpVerifiedConnector[] = [
   {
@@ -251,7 +251,8 @@ export const VERIFIED_MCP_CONNECTORS: McpVerifiedConnector[] = [
     category: 'files',
     url: 'https://mcp.dropbox.com/mcp',
     transport: 'http',
-    auth: 'oauth_dcr',
+    // Registration is open to Dropbox's pre-registered partners only.
+    auth: 'oauth_client',
     websiteUrl: 'https://www.dropbox.com/',
     privacyUrl: 'https://www.dropbox.com/privacy',
     termsUrl: 'https://www.dropbox.com/terms',
@@ -395,7 +396,8 @@ export const VERIFIED_MCP_CONNECTORS: McpVerifiedConnector[] = [
     category: 'crm',
     url: 'https://mcp.pipedrive.ai/mcp',
     transport: 'http',
-    auth: 'oauth_dcr',
+    // Registered clients are limited to localhost redirects.
+    auth: 'oauth_client',
     websiteUrl: 'https://www.pipedrive.com/',
     privacyUrl: 'https://www.pipedrive.com/en/privacy',
     termsUrl: 'https://www.pipedrive.com/en/terms-of-service',
@@ -449,7 +451,8 @@ export const VERIFIED_MCP_CONNECTORS: McpVerifiedConnector[] = [
     category: 'support',
     url: 'https://mcp.intercom.com/mcp',
     transport: 'http',
-    auth: 'oauth_dcr',
+    // OAuth registration only allows redirect hosts Intercom approved; an access token works anywhere.
+    auth: 'api_key',
     websiteUrl: 'https://www.intercom.com/',
     privacyUrl: 'https://www.intercom.com/legal/privacy',
     termsUrl: 'https://www.intercom.com/legal/terms-and-policies',
@@ -885,7 +888,8 @@ export const VERIFIED_MCP_CONNECTORS: McpVerifiedConnector[] = [
     developer: 'Intuit Mailchimp',
     description: 'Read Mailchimp audiences, campaigns and campaign reports.',
     category: 'marketing',
-    url: 'https://ai-inc.mailchimp.com/claude/mcp/v2',
+    // The ai-inc /claude endpoint's metadata names the wrong issuer, so sign-in fails there.
+    url: 'https://mc-chatgpt-mcp.mailchimp.com/mcp/v2',
     transport: 'http',
     auth: 'oauth_dcr',
     websiteUrl: 'https://mailchimp.com/',
@@ -894,41 +898,6 @@ export const VERIFIED_MCP_CONNECTORS: McpVerifiedConnector[] = [
     prompts: [
       'Add the Mailchimp open and click rates for each campaign in this table',
       'How many subscribers joined my main Mailchimp audience this month?',
-    ],
-  },
-  {
-    id: 'quickbooks',
-    title: 'QuickBooks',
-    developer: 'Intuit',
-    description: 'Read QuickBooks Online invoices, customers, bills and reports.',
-    category: 'finance',
-    url: 'https://ai-inc.quickbooks.intuit.com/v1/mcp',
-    transport: 'http',
-    auth: 'oauth_dcr',
-    websiteUrl: 'https://quickbooks.intuit.com/',
-    privacyUrl: 'https://www.intuit.com/privacy/statement/',
-    termsUrl: 'https://www.intuit.com/legal/terms/',
-    prompts: [
-      'Create a QuickBooks invoice for each completed job in this table',
-      'Show my QuickBooks profit and loss for last quarter',
-    ],
-  },
-  {
-    id: 'shopify',
-    title: 'Shopify',
-    developer: 'Shopify',
-    description: 'Manage a Shopify store\'s products, orders, customers and discounts.',
-    category: 'finance',
-    url: 'https://setup.shopify.com/mcp',
-    transport: 'http',
-    auth: 'oauth_dcr',
-    websiteUrl: 'https://www.shopify.com/',
-    privacyUrl: 'https://www.shopify.com/legal/privacy',
-    termsUrl: 'https://www.shopify.com/legal/terms',
-    docsUrl: 'https://help.shopify.com/en/manual/ai-powered-tools/connecting-ai-tools',
-    prompts: [
-      'Update the Shopify price for each product in this table',
-      'List Shopify orders from today that haven\'t shipped',
     ],
   },
 ];

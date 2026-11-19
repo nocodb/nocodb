@@ -7244,6 +7244,7 @@
       "headerName": "Header",
       "headerValue": "Value",
       "addHeader": "Add header",
+      "removeStoredSecret": "Remove the stored client secret",
       "signInExpired": "Sign-in expired",
       "terms": "Terms of service",
       "toolKind": {

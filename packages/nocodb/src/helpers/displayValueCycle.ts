@@ -13,7 +13,8 @@ import type {
 import { NcError } from '~/helpers/catchError';
 
 // A display value chain longer than this is rejected rather than followed.
-export const DISPLAY_VALUE_LINK_MAX_DEPTH = 16;
+// Keep it within getAst's nesting cap and the grid's LINKED_RECORD_MAX_DEPTH.
+export const DISPLAY_VALUE_LINK_MAX_DEPTH = 5;
 
 /** The link's own scalar display column on the related table, which wins over its display value. */
 export function getLinkDisplayOverride(

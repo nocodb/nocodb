@@ -4376,16 +4376,8 @@ export class ColumnsService implements IColumnsService {
       param.column.title = param.column.column_name;
     }
 
-    // Only a belongs-to, one-to-one or many-to-one link can be a display value.
-    if (
-      (param.column as any).pv &&
-      isLinksOrLTAR(param.column.uidt) &&
-      ![
-        RelationTypes.BELONGS_TO,
-        RelationTypes.ONE_TO_ONE,
-        RelationTypes.MANY_TO_ONE,
-      ].includes((param.column as any).type)
-    ) {
+    // A link becomes a display value only through set-as-display-value, which checks cycles.
+    if ((param.column as any).pv && isLinksOrLTAR(param.column.uidt)) {
       (param.column as any).pv = false;
     }
 

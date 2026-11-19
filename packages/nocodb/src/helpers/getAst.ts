@@ -31,7 +31,11 @@ import {
 import { resolveViewVisibleColumns } from '~/helpers/viewVisibleColumns';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { hasLimitedLinkTargetAccess } from '~/helpers/tableHelpers';
-import { resolveDisplayValueChain } from '~/helpers/displayValueCycle';
+import {
+  getLinkDisplayOverride,
+  isUnfollowableChain,
+  resolveDisplayValueChain,
+} from '~/helpers/displayValueCycle';
 
 const logger = new Logger('getAst');
 
@@ -196,13 +200,18 @@ const getAst = async (
     await extractDependencies(context, model.displayValue, dependencyFields);
 
     // A link display value is read as a record of its own, pruned to pk + display value
-    // the same way; the scalar would return the whole related record.
+    // the same way; the scalar would return the whole related record. Always pk/pv only, so
+    // hasLimitedLinkTargetAccess (which only picks that projection) has nothing to add here.
+    // A chain that cannot be followed, or one the parent link's own display column replaces,
+    // is left as the scalar.
     const pv = model.displayValue;
-    // (A chain that loops back is left as the scalar rather than expanded.)
     if (
       pv &&
       isLinksOrLTAR(pv) &&
-      !(await resolveDisplayValueChain(pv)).cyclic
+      !(
+        getLinkDisplayOverride({ fk_display_value_column_id }, model.columns) ||
+        isUnfollowableChain(await resolveDisplayValueChain(pv))
+      )
     ) {
       const colOpt = await pv.getColOptions<LinkToAnotherRecordColumn>();
       const pvModel = await colOpt?.getRelatedTable();

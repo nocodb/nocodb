@@ -14,10 +14,10 @@ import {
   isFieldTrackingLmbCol,
   isFieldTrackingLmtCol,
   isLinksOrLTAR,
-  isSingleRecordLinkColumn,
   isMMOrMMLike,
   isRollupFormula,
   isServiceUser,
+  isSingleRecordLinkColumn,
   isSupportedDisplayValueColumn,
   isSystemColumn,
   isVirtualCol,
@@ -44,7 +44,6 @@ import {
   validateFormulaAndExtractTreeWithType,
   WebhookActions,
 } from 'nocodb-sdk';
-import { assertNoDisplayValueCycle } from '~/helpers/displayValueCycle';
 import {
   dateFormats,
   dateMonthFormats,
@@ -72,6 +71,10 @@ import type {
   ReusableParams,
 } from '~/services/columns.service.type';
 import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
+import {
+  assertNoDisplayValueCycle,
+  getEligibleDisplayValueLinkIds,
+} from '~/helpers/displayValueCycle';
 import { NcContext } from '~/interface/config';
 import {
   type ColumnWebhookManager,
@@ -6363,7 +6366,9 @@ export class ColumnsService implements IColumnsService {
     // Pass defaultViewId so that default view column order and visibility get added to the column meta
     await table.getColumns(ncMeta, defaultView?.id);
 
-    const displayValueColumn = mapDefaultDisplayValue(table.columns);
+    const displayValueColumn = mapDefaultDisplayValue(table.columns, {
+      eligibleLinkIds: await getEligibleDisplayValueLinkIds(table.columns),
+    });
     if (displayValueColumn) {
       await Model.updatePrimaryColumn(
         context,
@@ -6380,7 +6385,10 @@ export class ColumnsService implements IColumnsService {
         ncMeta,
       );
       const linkedDisplayValue =
-        linked && mapDefaultDisplayValue(linked.columns);
+        linked &&
+        mapDefaultDisplayValue(linked.columns, {
+          eligibleLinkIds: await getEligibleDisplayValueLinkIds(linked.columns),
+        });
       if (linkedDisplayValue) {
         await Model.updatePrimaryColumn(
           linkedTable.context,

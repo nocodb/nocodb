@@ -6,11 +6,8 @@ import {
   type ViewType,
   isAIPromptCol,
   isLinksOrLTAR,
-<<<<<<< HEAD
   ncHasProperties,
-=======
   isSingleRecordLinkColumn,
->>>>>>> 20ac9a653bc (fix(nc-gui): search a link display value by its shown text, load hop metas, public views)
 } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'

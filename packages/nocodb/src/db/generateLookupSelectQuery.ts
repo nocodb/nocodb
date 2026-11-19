@@ -3,7 +3,6 @@ import {
   isLinksOrLTAR,
   isMMOrMMLike,
   isSingleRecordLinkColumn,
-  isSupportedDisplayValueColumn,
   NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
@@ -40,6 +39,8 @@ import { rawFromBuilder } from '~/helpers/sqlSanitize';
 import { readsHiddenTable } from '~/helpers/tableHelpers';
 import {
   DISPLAY_VALUE_LINK_MAX_DEPTH,
+  getLinkDisplayOverride,
+  isUnfollowableChain,
   resolveDisplayValueChain,
 } from '~/helpers/displayValueCycle';
 
@@ -55,17 +56,17 @@ export async function getDisplayValueOfRefTable(
   const model = await colOpt.getRelatedTable();
   const cols = await model.getColumns();
 
-  const overrideId = (colOpt as LinkToAnotherRecordColumn)
-    .fk_display_value_column_id;
-  if (overrideId) {
-    const override = cols.find((c) => c.id === overrideId);
-    if (override && isSupportedDisplayValueColumn(override)) return override;
-  }
+  const override = getLinkDisplayOverride(colOpt, cols);
+  if (override) return override;
 
   const pv = cols.find((col) => col.pv) || cols[0];
 
   // A display value link that leads back to itself cannot be followed: use the id instead.
-  if (pv && isLinksOrLTAR(pv) && (await resolveDisplayValueChain(pv)).cyclic) {
+  if (
+    pv &&
+    isLinksOrLTAR(pv) &&
+    isUnfollowableChain(await resolveDisplayValueChain(pv))
+  ) {
     return cols.find((col) => col.pk) || cols[0];
   }
 

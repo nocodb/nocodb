@@ -38,6 +38,10 @@ import {
   getSharedModelVisibility,
   projectRelatedMetas,
 } from '~/helpers/relatedMetaProjection';
+import {
+  DISPLAY_VALUE_LINK_MAX_DEPTH,
+  getLinkDisplayOverride,
+} from '~/helpers/displayValueCycle';
 import { withoutViewSecrets } from '~/helpers/publicViewSecrets';
 import {
   getViewExposedColumnIds,
@@ -374,6 +378,10 @@ export class PublicMetasService {
       relatedMetas,
       ltarColOption.fk_related_model_id,
     );
+    await this.extractDisplayValueChainMetas(context, {
+      ltarColOption,
+      relatedMetas,
+    });
     if (ltarColOption.type === 'mm') {
       relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
         mmContext,
@@ -387,6 +395,51 @@ export class PublicMetasService {
         relatedMetas,
         ltarColOption.fk_mm_model_id,
       );
+    }
+  }
+
+  // A related table whose display value is a link shows the linked record's display value,
+  // so the tables further down that chain are needed to render it.
+  protected async extractDisplayValueChainMetas(
+    context: NcContext,
+    {
+      ltarColOption,
+      relatedMetas,
+    }: {
+      ltarColOption: LinkToAnotherRecordColumn;
+      relatedMetas: { [key: string]: Model };
+    },
+  ) {
+    const visited = new Set<string>();
+    let opt = ltarColOption;
+
+    for (let depth = 0; depth < DISPLAY_VALUE_LINK_MAX_DEPTH; depth++) {
+      const related = relatedMetas[opt.fk_related_model_id];
+      if (!related?.columns || visited.has(related.id)) return;
+      visited.add(related.id);
+
+      // the link's own display column replaces the related table's display value
+      if (getLinkDisplayOverride(opt, related.columns)) return;
+      const pv = related.displayValue;
+      if (!pv || !isLinksOrLTAR(pv)) return;
+
+      const pvOpt = await pv.getColOptions<LinkToAnotherRecordColumn>();
+      if (!pvOpt?.fk_related_model_id) return;
+
+      const { refContext } = pvOpt.getRelContext();
+      if (!relatedMetas[pvOpt.fk_related_model_id]) {
+        relatedMetas[pvOpt.fk_related_model_id] = await Model.getWithInfo(
+          refContext,
+          { id: pvOpt.fk_related_model_id },
+        );
+        await this.filterIfLimitedAccess(
+          context,
+          refContext,
+          relatedMetas,
+          pvOpt.fk_related_model_id,
+        );
+      }
+      opt = pvOpt;
     }
   }
 

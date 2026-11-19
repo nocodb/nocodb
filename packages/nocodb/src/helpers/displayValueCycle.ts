@@ -1,10 +1,40 @@
-import { isLinksOrLTAR } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isSingleRecordLinkColumn,
+  isSupportedDisplayValueColumn,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { Column, LinksColumn, LinkToAnotherRecordColumn } from '~/models';
+import type {
+  Column,
+  LinksColumn,
+  LinkToAnotherRecordColumn,
+  Model,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 // A display value chain longer than this is rejected rather than followed.
-export const DISPLAY_VALUE_LINK_MAX_DEPTH = 8;
+export const DISPLAY_VALUE_LINK_MAX_DEPTH = 16;
+
+/** The link's own scalar display column on the related table, which wins over its display value. */
+export function getLinkDisplayOverride(
+  colOpt: { fk_display_value_column_id?: string } | null | undefined,
+  relatedColumns: Column[] | undefined,
+): Column | undefined {
+  const overrideId = colOpt?.fk_display_value_column_id;
+  if (!overrideId) return undefined;
+  const override = relatedColumns?.find((c) => c.id === overrideId);
+  return override && isSupportedDisplayValueColumn(override)
+    ? override
+    : undefined;
+}
+
+/** The chain cannot be followed: it loops back or is deeper than the cap. */
+export function isUnfollowableChain(result: {
+  cyclic: boolean;
+  tooDeep: boolean;
+}) {
+  return result.cyclic || result.tooDeep;
+}
 
 /**
  * Follows a link display value to the first non-link column and returns the chain of
@@ -22,14 +52,22 @@ export async function resolveDisplayValueChain(
     maxDepth?: number;
     override?: { modelId: string; column: Column };
   } = {},
-): Promise<{ chain: Column[]; leaf: Column | null; cyclic: boolean }> {
+): Promise<{
+  chain: Column[];
+  leaf: Column | null;
+  cyclic: boolean;
+  tooDeep: boolean;
+}> {
   const chain: Column[] = [];
   const seen = new Set<string>();
   let cur: Column | null = start;
 
   while (cur && isLinksOrLTAR(cur)) {
-    if (seen.has(cur.id) || chain.length >= maxDepth) {
-      return { chain, leaf: null, cyclic: true };
+    if (seen.has(cur.id)) {
+      return { chain, leaf: null, cyclic: true, tooDeep: false };
+    }
+    if (chain.length >= maxDepth) {
+      return { chain, leaf: null, cyclic: false, tooDeep: true };
     }
     seen.add(cur.id);
     chain.push(cur);
@@ -38,15 +76,17 @@ export async function resolveDisplayValueChain(
       LinkToAnotherRecordColumn | LinksColumn
     >();
     const related = await opts?.getRelatedTable();
-    if (!related) return { chain, leaf: null, cyclic: false };
-    await related.getColumns();
+    if (!related) return { chain, leaf: null, cyclic: false, tooDeep: false };
+    const relatedColumns = await related.getColumns();
+    // The link's own display column is a scalar and ends the chain.
     cur =
-      override && related.id === override.modelId
+      getLinkDisplayOverride(opts, relatedColumns) ??
+      (override && related.id === override.modelId
         ? override.column
-        : related.displayValue;
+        : related.displayValue);
   }
 
-  return { chain, leaf: cur, cyclic: false };
+  return { chain, leaf: cur, cyclic: false, tooDeep: false };
 }
 
 /**
@@ -57,7 +97,7 @@ export async function assertNoDisplayValueCycle(
   context: NcContext,
   candidate: Column,
 ) {
-  const { cyclic } = await resolveDisplayValueChain(candidate, {
+  const { cyclic, tooDeep } = await resolveDisplayValueChain(candidate, {
     override: { modelId: candidate.fk_model_id, column: candidate },
   });
   if (cyclic) {
@@ -65,14 +105,45 @@ export async function assertNoDisplayValueCycle(
       'This link cannot be the display value: it would refer back to itself through the display values of the linked tables.',
     );
   }
+  if (tooDeep) {
+    NcError.get(context).invalidRequestBody(
+      `This link cannot be the display value: the chain of linked display values is longer than ${DISPLAY_VALUE_LINK_MAX_DEPTH} tables.`,
+    );
+  }
 }
 
-/** A table's display value, or undefined when it is a link whose chain loops back. */
+/**
+ * A related table's display value, or undefined when it cannot be followed: a link whose
+ * chain loops back or is too deep, or one the link's own display column replaces.
+ */
 export async function displayValueUnlessCyclic(
-  displayValue: Column | undefined,
+  relatedModel: Model,
+  colOpt?: { fk_display_value_column_id?: string } | null,
 ): Promise<Column | undefined> {
+  const displayValue = relatedModel.displayValue;
   if (!displayValue || !isLinksOrLTAR(displayValue)) return displayValue;
-  return (await resolveDisplayValueChain(displayValue)).cyclic
+  if (getLinkDisplayOverride(colOpt, relatedModel.columns)) return undefined;
+  return isUnfollowableChain(await resolveDisplayValueChain(displayValue))
     ? undefined
     : displayValue;
+}
+
+/**
+ * Ids of the single-record links among `columns` that may be their table's display value:
+ * not part of a loop and not too deep. Used when a display value has to be re-picked.
+ */
+export async function getEligibleDisplayValueLinkIds(
+  columns: Column[],
+): Promise<Set<string>> {
+  const ids = new Set<string>();
+  for (const col of columns) {
+    if (!isLinksOrLTAR(col) || col.system) continue;
+    if (!col.colOptions) await col.getColOptions();
+    if (!isSingleRecordLinkColumn(col)) continue;
+    const result = await resolveDisplayValueChain(col, {
+      override: { modelId: col.fk_model_id, column: col },
+    });
+    if (!isUnfollowableChain(result)) ids.add(col.id);
+  }
+  return ids;
 }

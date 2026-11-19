@@ -167,7 +167,10 @@ import {
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
-import { DISPLAY_VALUE_LINK_MAX_DEPTH } from '~/helpers/displayValueCycle';
+import {
+  DISPLAY_VALUE_LINK_MAX_DEPTH,
+  getLinkDisplayOverride,
+} from '~/helpers/displayValueCycle';
 import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 import { extractProps } from '~/helpers/extractProps';
 import { mapNonFiniteToString } from '~/helpers/formulaNonFinite';
@@ -644,7 +647,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await model.getCachedColumns();
 
     if (extractDisplayValueData) {
-      return data ? (await flattenDisplayValue(data, model.displayValue)) : '';
+      return data ? await flattenDisplayValue(data, model.displayValue) : '';
     }
 
     return data;
@@ -8782,22 +8785,56 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
     }
 
+    // A linked record only nests another one when the linked table's display value is itself
+    // a link (without its own display column), so only those links are scanned.
+    const nestingLinkIds = new Set<string>();
+    // where the keys inside a link's values live: its related table's base
+    const valuesContext = new Map<string, NcContext>();
+    for (const col of modelColumns) {
+      if (!isLinksOrLTAR(col) || !col.colOptions) continue;
+      const colOpt = col.colOptions as LinkToAnotherRecordColumn;
+      valuesContext.set(col.id, colOpt.getRelContext().refContext);
+      if (!colOpt.fk_related_model_id) continue;
+      const related = await colOpt.getRelatedTable();
+      if (!related) continue;
+      const relatedColumns = await related.getColumns();
+      const pv = related.displayValue;
+      if (
+        pv &&
+        isLinksOrLTAR(pv) &&
+        !getLinkDisplayOverride(colOpt, relatedColumns)
+      ) {
+        nestingLinkIds.add(col.id);
+      }
+    }
+
     // Fetch missing column aliases concurrently; a linked record that nests another one
     // (a link display value) brings the next level's ids, so repeat until none are left.
+    // Each id is read in the base of the table it belongs to.
     const requestedColumnIds = new Set<string>();
-    const collectNestedIds = (value: any) => {
-      if (Array.isArray(value)) return value.forEach(collectNestedIds);
+    const idContext = new Map<string, NcContext>();
+    const collectNestedIds = (value: any, ctx: NcContext) => {
+      if (Array.isArray(value)) {
+        return value.forEach((v) => collectNestedIds(v, ctx));
+      }
       if (!value || typeof value !== 'object') return;
       for (const [k, v] of Object.entries(value)) {
-        if (!idToAliasMap[k] && !requestedColumnIds.has(k))
+        if (!idToAliasMap[k] && !requestedColumnIds.has(k)) {
           missingColumnIds.add(k);
-        if (linkColumnIds.has(k)) collectNestedIds(v);
+          idContext.set(k, ctx);
+        }
+        if (linkColumnIds.has(k)) {
+          collectNestedIds(v, valuesContext.get(k) ?? ctx);
+        }
       }
     };
     const collectFromRows = () => {
+      if (!nestingLinkIds.size) return;
       for (const item of data) {
-        for (const [k, v] of Object.entries(item ?? {})) {
-          if (linkColumnIds.has(k)) collectNestedIds(v);
+        for (const k of nestingLinkIds) {
+          if (item?.[k] != null) {
+            collectNestedIds(item[k], valuesContext.get(k) ?? this.context);
+          }
         }
       }
     };
@@ -8814,7 +8851,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const columnResults = await Promise.all(
         toFetch.map(async (k) => {
           try {
-            const col = await Column.get(this.context, { colId: k });
+            const colContext = idContext.get(k) ?? this.context;
+            const col = await Column.get(colContext, { colId: k });
+            if (col && isLinksOrLTAR(col)) {
+              const colOpt =
+                (col.colOptions as LinkToAnotherRecordColumn) ??
+                (await col.getColOptions<LinkToAnotherRecordColumn>());
+              if (colOpt) {
+                valuesContext.set(k, colOpt.getRelContext().refContext);
+              }
+            }
             return { id: k, title: col?.title, col };
           } catch (e) {
             // ignore error to avoid breaking the entire response

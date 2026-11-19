@@ -250,7 +250,7 @@ function mapFilterClauseSubType(
   // column whose title contains a dot is not shadowed by an LTAR base match.
   const dotIdx = aliasColObjMap[filter.field]
     ? -1
-    : filter.field?.indexOf('.') ?? -1;
+    : filter.field?.lastIndexOf('.') ?? -1;
   if (dotIdx !== -1) {
     const baseField = filter.field.substring(0, dotIdx);
     const subField = filter.field.substring(dotIdx + 1);

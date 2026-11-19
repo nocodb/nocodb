@@ -3,6 +3,7 @@ import {
   validateRowFilters,
 } from '~/lib/filter/validate-row-filters';
 import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
+import type { FilterTypeWithMeta } from '~/lib/filterHelpers_withparser';
 import UITypes from '~/lib/UITypes';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
@@ -959,6 +960,38 @@ describe('validateRowFilters', () => {
 
   // Test cases for LinkToAnotherRecord filters
   describe('LinkToAnotherRecord filters', () => {
+    it('matches the linked record primary key for an `.Id` sub-field filter', () => {
+      const metas = {
+        relatedModel: {
+          columns: [
+            { id: 'r0', title: 'Id', pk: true, uidt: UITypes.ID },
+            ...mockMetas.relatedModel.columns,
+          ],
+        },
+      };
+      const filters: FilterTypeWithMeta[] = [
+        {
+          fk_column_id: '6',
+          comparison_op: 'eq',
+          value: '42',
+          meta: { ltarSubField: 'Id' },
+        },
+      ];
+      const run = (data: Record<string, any>) =>
+        validateRowFilters({
+          filters,
+          data,
+          columns: mockColumns,
+          client: mockClient,
+          metas,
+        });
+      expect(run({ RelatedRecords: [{ Id: 42, Primary: 'RecordA' }] })).toBe(
+        true
+      );
+      // A display value equal to the id must not match.
+      expect(run({ RelatedRecords: [{ Id: 7, Primary: '42' }] })).toBe(false);
+    });
+
     it('should correctly evaluate "eq" for linked record primary value', () => {
       const filters: FilterType[] = [
         { fk_column_id: '6', comparison_op: 'eq', value: 'RecordA' },
@@ -1068,7 +1101,11 @@ describe('validateRowFilters', () => {
       expect(
         validateRowFilters({
           filters: [
-            { fk_column_id: '10', comparison_op: 'gb_eq' as any, value: 'RecordA' },
+            {
+              fk_column_id: '10',
+              comparison_op: 'gb_eq' as any,
+              value: 'RecordA',
+            },
           ],
           data: { RelatedRecords: { Primary: 'RecordA' } },
           columns,

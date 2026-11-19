@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
 import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
-import { computeLtarNewRowState, isLtarFkOnRow } from '~/utils/dataUtils'
+import { PermissionEntity, PermissionKey, canEncodeQueryFilterToken, encodeQueryFilterClause } from 'nocodb-sdk'
+import { computeLtarNewRowState, findReverseLinkColumn, isLtarFkOnRow } from '~/utils/dataUtils'
 
 interface Prop {
   modelValue?: boolean
@@ -115,6 +115,28 @@ const {
 const { withLoading } = useLoadingTrigger()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
+
+const { openTable } = useTablesStore()
+
+// Filter the related table by its reverse link pointing at this record. The backend
+// matches `.Id` on the first PK only, so composite-PK tables are left out.
+const linkedRecordsWhere = computed(() => {
+  if (isPublic.value || isForm.value || isNew.value || !isLinkedTableAccessible.value || !rowId.value) return
+  if (meta.value?.columns?.filter((c) => c.pk).length !== 1) return
+
+  const reverseColumn = findReverseLinkColumn(injectedColumn.value, relatedTableMeta.value, meta.value?.id)
+  if (!reverseColumn?.title || !canEncodeQueryFilterToken(reverseColumn.title)) return
+
+  // `@` selects the parser that understands quoted field names.
+  return `@${encodeQueryFilterClause(`${reverseColumn.title}.Id`, 'eq', rowId.value)}`
+})
+
+const openLinkedRecordsInTable = async () => {
+  if (!linkedRecordsWhere.value || !relatedTableMeta.value) return
+  const where = linkedRecordsWhere.value
+  vModel.value = false
+  await openTable(relatedTableMeta.value, false, { where })
+}
 
 // Buffered (unsaved) links to show ABOVE the persisted virtual list. Only for an
 // existing row edited in the expanded form (deferred mode) and multi-target
@@ -872,8 +894,26 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
             </div>
           </NcButton>
         </div>
-        <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
-          {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}
+        <div class="flex items-center gap-2">
+          <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
+            {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}
+          </div>
+          <NcTooltip v-if="linkedRecordsWhere && childrenCachedTotalRows > 0" :disabled="!isMobileMode">
+            <template #title>{{ $t('labels.viewAllInTable') }}</template>
+            <NcButton
+              v-e="['c:link:records:table:open']"
+              data-testid="nc-child-list-button-view-in-table"
+              class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
+              size="small"
+              type="secondary"
+              @click="openLinkedRecordsInTable"
+            >
+              <div class="flex items-center gap-1">
+                <GeneralIcon icon="externalLink" class="h-4 w-4" />
+                <span v-if="!isMobileMode">{{ $t('labels.viewAllInTable') }}</span>
+              </div>
+            </NcButton>
+          </NcTooltip>
         </div>
       </div>
     </div>

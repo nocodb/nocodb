@@ -54,10 +54,14 @@ export async function resolveDisplayValueChain(
     override,
     // Link column id -> display column it is about to get (null clears it).
     linkDisplayColumns,
+    // Reaching this table's display value closes the loop, for a candidate link that does not
+    // exist yet and so cannot be recognised by identity.
+    cycleAt,
   }: {
     maxDepth?: number;
     override?: { modelId: string; column: Column };
     linkDisplayColumns?: Record<string, string | null>;
+    cycleAt?: string;
   } = {},
 ): Promise<{
   chain: Column[];
@@ -84,6 +88,9 @@ export async function resolveDisplayValueChain(
     >();
     const related = await opts?.getRelatedTable();
     if (!related) return { chain, leaf: null, cyclic: false, tooDeep: false };
+    if (related.id === cycleAt) {
+      return { chain, leaf: null, cyclic: true, tooDeep: false };
+    }
     const relatedColumns = await related.getColumns();
     // The link's own display column is a scalar and ends the chain.
     const linkOpts =
@@ -199,6 +206,59 @@ export async function assertNoDisplayValueCycle(
     NcError.get(context).invalidRequestBody(
       `Linked display values are nested more than ${DISPLAY_VALUE_LINK_MAX_DEPTH} tables deep.`,
     );
+  }
+}
+
+/**
+ * Same rules as {@link assertNoDisplayValueCycle}, for a link that is about to be created: the
+ * chain it would follow is the related table's own display value, so it can be checked before
+ * anything is written.
+ */
+export async function assertNewLinkDisplayValueOk(
+  context: NcContext,
+  param: {
+    ownerModelId: string;
+    relatedModel: Model;
+    displayColumnId?: string | null;
+  },
+) {
+  const { ownerModelId, relatedModel, displayColumnId } = param;
+  await relatedModel.getColumns();
+
+  const cyclic = () =>
+    NcError.get(context).invalidRequestBody(
+      "This link would refer back to itself through the linked tables' display values.",
+    );
+  const tooDeep = () =>
+    NcError.get(context).invalidRequestBody(
+      `Linked display values are nested more than ${DISPLAY_VALUE_LINK_MAX_DEPTH} tables deep.`,
+    );
+
+  // The link's own display column is a scalar and ends the chain; without one, a link back to
+  // its own table would read the display value it is becoming.
+  const override = getLinkDisplayOverride(
+    { fk_display_value_column_id: displayColumnId ?? undefined },
+    relatedModel.columns,
+  );
+  if (!override && relatedModel.id === ownerModelId) cyclic();
+
+  let chain: Column[] = [];
+  const start = override ?? relatedModel.displayValue;
+  if (start && isLinksOrLTAR(start)) {
+    const result = await resolveDisplayValueChain(start, {
+      cycleAt: ownerModelId,
+    });
+    if (result.cyclic) cyclic();
+    if (result.tooDeep) tooDeep();
+    chain = result.chain;
+  }
+
+  // + 1 for the link itself
+  if (
+    1 + chain.length + (await longestUpstreamChain(context, ownerModelId)) >
+    DISPLAY_VALUE_LINK_MAX_DEPTH
+  ) {
+    tooDeep();
   }
 }
 

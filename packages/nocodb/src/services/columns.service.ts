@@ -71,7 +71,10 @@ import type {
   ReusableParams,
 } from '~/services/columns.service.type';
 import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
-import { assertNoDisplayValueCycle } from '~/helpers/displayValueCycle';
+import {
+  assertNewLinkDisplayValueOk,
+  assertNoDisplayValueCycle,
+} from '~/helpers/displayValueCycle';
 import { NcContext } from '~/interface/config';
 import {
   type ColumnWebhookManager,
@@ -4347,9 +4350,9 @@ export class ColumnsService implements IColumnsService {
   }
 
   /**
-   * Makes a freshly created link its table's display value, once its colOptions exist so the
-   * single-record and cycle rules can be checked. Keeps `pv: true` meaningful on create —
-   * duplicating a base whose display value is a link rebuilds it — instead of dropping it.
+   * Makes a freshly created link its table's display value. Keeps `pv: true` meaningful on
+   * create — it is also how duplicating a base rebuilds a link display value — instead of
+   * dropping it. `createLTARColumn` has already checked that the link may hold it.
    *
    * A link request creates a column on each side and the requested title lands on whichever
    * side the relation puts it (a V1 belongs-to on `childId`, everything else on the table the
@@ -4360,8 +4363,6 @@ export class ColumnsService implements IColumnsService {
     param: { title: string; tableIds: (string | undefined)[] },
     ncMeta = Noco.ncMeta,
   ) {
-    let column: Column | undefined;
-
     for (const tableId of param.tableIds.filter(Boolean)) {
       const model = await Model.get(context, tableId, false, ncMeta);
       const candidate = (await model?.getColumns(ncMeta))?.find(
@@ -4369,28 +4370,16 @@ export class ColumnsService implements IColumnsService {
       );
       if (!candidate) continue;
       await candidate.getColOptions(ncMeta);
-      column = column ?? candidate;
-      if (isSingleRecordLinkColumn(candidate)) {
-        column = candidate;
-        break;
-      }
-    }
+      if (!isSingleRecordLinkColumn(candidate)) continue;
 
-    if (!column) return;
-
-    if (!isSingleRecordLinkColumn(column)) {
-      NcError.get(context).invalidRequestBody(
-        'Only a belongs-to, one-to-one or many-to-one link can be set as the display value.',
+      await Model.updatePrimaryColumn(
+        context,
+        candidate.fk_model_id,
+        candidate.id,
+        ncMeta,
       );
+      return;
     }
-    await assertNoDisplayValueCycle(context, column);
-
-    await Model.updatePrimaryColumn(
-      context,
-      column.fk_model_id,
-      column.id,
-      ncMeta,
-    );
   }
 
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
@@ -4422,25 +4411,15 @@ export class ColumnsService implements IColumnsService {
     // through the linked tables' display values. The relation type is known now, so reject an
     // ineligible one before anything is created; the cycle check needs colOptions, so hold the
     // flag back from the insert and apply it once the column exists.
+    // `Column.insert` would promote a link to display value unchecked. Hold the flag back and
+    // apply it after the link exists; `createLTARColumn` rejects an ineligible one up front,
+    // so nothing is created when it cannot be honoured.
     let pvRequestedOnLink = false;
     if (
       'pv' in param.column &&
       param.column.pv &&
       isLinksOrLTAR(param.column.uidt)
     ) {
-      if (
-        ![
-          RelationTypes.BELONGS_TO,
-          RelationTypes.ONE_TO_ONE,
-          RelationTypes.MANY_TO_ONE,
-        ].includes(
-          (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
-        )
-      ) {
-        NcError.get(context).invalidRequestBody(
-          'Only a belongs-to, one-to-one or many-to-one link can be set as the display value.',
-        );
-      }
       pvRequestedOnLink = true;
       param.column.pv = false;
     }
@@ -4693,6 +4672,7 @@ export class ColumnsService implements IColumnsService {
         savedColumn = await this.createLTARColumn(context, {
           tableId: param.tableId,
           column: param.column,
+          pvRequested: pvRequestedOnLink,
           user: param.user,
           req: param.req,
           reuse: param.reuse,
@@ -7264,6 +7244,8 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       req: NcRequest;
       columnWebhookManager?: ColumnWebhookManager;
+      /** The request asked for this link to be the table's display value. */
+      pvRequested?: boolean;
       // Sandbox-replay capture slot, mutated by this method with the
       // side-effect IDs (assoc model, FK cols, back-link, reverse LTAR).
       // Caller passes a fresh object and reads back after the call to
@@ -7413,6 +7395,37 @@ export class ColumnsService implements IColumnsService {
           }' has a composite primary key. Links to tables with a composite primary key are not supported.`,
         );
       }
+    }
+
+    // `pv: true` on a link create: the request names one side of the relation, and only a
+    // side that holds a single record may be the display value. Decide here, before anything
+    // is written, so an ineligible or looping request does not leave a column behind.
+    //   V1 belongs-to  → the named column lands on `childId`, and is the FK side
+    //   V1 one-to-one  → the named column is the side WITHOUT the FK, so it does not qualify
+    //   V2 (junction)  → the named column lands on `parentId`; bt normalises to many-to-one
+    if (param.pvRequested) {
+      const isV1 = ltarReq.version === LinksVersion.V1;
+      const singleRecord = isV1
+        ? relationType === RelationTypes.BELONGS_TO
+        : [
+            RelationTypes.BELONGS_TO,
+            RelationTypes.MANY_TO_ONE,
+            RelationTypes.ONE_TO_ONE,
+          ].includes(relationType as RelationTypes);
+
+      if (!singleRecord) {
+        NcError.get(context).invalidRequestBody(
+          'Only a belongs-to, one-to-one or many-to-one link can be set as the display value.',
+        );
+      }
+
+      const ownsNamedColumn =
+        isV1 && relationType === RelationTypes.BELONGS_TO ? refTable : table;
+      await assertNewLinkDisplayValueOk(context, {
+        ownerModelId: ownsNamedColumn.id,
+        relatedModel: ownsNamedColumn.id === table.id ? refTable : table,
+        displayColumnId: ltarReq.fk_display_value_column_id,
+      });
     }
 
     let refColumn: Column;

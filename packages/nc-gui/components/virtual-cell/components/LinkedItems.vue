@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import Draggable from 'vuedraggable'
-import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, canEncodeQueryFilterToken, encodeQueryFilterClause } from 'nocodb-sdk'
-import { computeLtarNewRowState, findReverseLinkColumn, isLtarFkOnRow } from '~/utils/dataUtils'
+import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { buildLinkedRecordsWhere, computeLtarNewRowState, isLtarFkOnRow } from '~/utils/dataUtils'
 
 interface Prop {
   modelValue?: boolean
@@ -118,19 +118,9 @@ const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow
 
 const { openTable } = useTablesStore()
 
-// Filter the related table by its reverse link pointing at this record. The backend
-// matches `.Id` on the first PK only, so composite-PK tables are left out.
 const linkedRecordsWhere = computed(() => {
-  if (isPublic.value || isForm.value || isNew.value || !isLinkedTableAccessible.value || !rowId.value) return
-  if (meta.value?.columns?.filter((c) => c.pk).length !== 1) return
-
-  const reverseColumn = findReverseLinkColumn(injectedColumn.value, relatedTableMeta.value, meta.value?.id)
-  if (!reverseColumn?.title || !canEncodeQueryFilterToken(reverseColumn.title)) return
-  // A view-limited link usually hides the PK there, and the backend then matches `.Id` on the display value.
-  if ((reverseColumn.colOptions as LinkToAnotherRecordType | undefined)?.fk_target_view_id) return
-
-  // `@` selects the parser that understands quoted field names.
-  return `@${encodeQueryFilterClause(`${reverseColumn.title}.Id`, 'eq', rowId.value)}`
+  if (isPublic.value || isForm.value || isNew.value || !isLinkedTableAccessible.value) return
+  return buildLinkedRecordsWhere(injectedColumn.value, meta.value, relatedTableMeta.value, rowId.value)
 })
 
 const openLinkedRecordsInTable = async () => {
@@ -912,10 +902,8 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
             </NcButton>
           </NcTooltip>
         </div>
-        <div class="flex items-center gap-2">
-          <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
-            {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}
-          </div>
+        <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
+          {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}
         </div>
       </div>
     </div>

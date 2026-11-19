@@ -2,7 +2,9 @@ import {
   NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
+  canEncodeQueryFilterToken,
   dateFormats,
+  encodeQueryFilterClause,
   getEffectiveDisplayColumn,
   getEffectiveLookupColumn,
   getRenderAsTextFunForUiType,
@@ -136,6 +138,29 @@ export function findReverseLinkColumn(
 
     return colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
   })
+}
+
+/**
+ * `where` that filters the related table to the records linked to `rowId`, through the reverse
+ * link's `.Id`. Undefined when that filter can't be built or wouldn't match by id.
+ */
+export function buildLinkedRecordsWhere(
+  ltarColumn: ColumnType | null | undefined,
+  currentMeta: TableType | null | undefined,
+  relatedMeta: TableType | null | undefined,
+  rowId: string | null | undefined,
+): string | undefined {
+  if (!rowId || !currentMeta?.id) return
+  // The backend matches `.Id` on the first PK only.
+  if (currentMeta.columns?.filter((c) => c.pk).length !== 1) return
+
+  const reverseColumn = findReverseLinkColumn(ltarColumn, relatedMeta, currentMeta.id)
+  if (!reverseColumn?.title || !canEncodeQueryFilterToken(reverseColumn.title)) return
+  // A view-limited link usually hides the PK there, and the backend then matches `.Id` on the display value.
+  if ((reverseColumn.colOptions as LinkToAnotherRecordType | undefined)?.fk_target_view_id) return
+
+  // `@` selects the parser that understands quoted field names.
+  return `@${encodeQueryFilterClause(`${reverseColumn.title}.Id`, 'eq', rowId)}`
 }
 
 /**

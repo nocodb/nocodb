@@ -41,6 +41,10 @@ const activeUserIndex = ref(0)
 
 watch(userSearch, () => (activeUserIndex.value = 0))
 
+const userListEl = ref<HTMLDivElement>()
+
+watch(activeUserIndex, (i) => nextTick(() => userListEl.value?.children[i]?.scrollIntoView({ block: 'nearest' })))
+
 watch(isUserListOpen, (open) => {
   if (!open) return
   activeUserIndex.value = Math.max(
@@ -115,7 +119,7 @@ function save() {
             data-testid="nc-comment-task-assignee-search"
             @keydown.stop="onUserSearchKeydown"
           />
-          <div class="max-h-52 nc-scrollbar-thin flex flex-col">
+          <div ref="userListEl" class="max-h-52 nc-scrollbar-thin flex flex-col">
             <button
               v-for="(u, i) in filteredUsers"
               :key="u.id"

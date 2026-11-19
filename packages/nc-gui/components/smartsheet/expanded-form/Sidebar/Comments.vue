@@ -308,8 +308,8 @@ const taskFormCommentId = ref<string | null>(null)
 
 const isJumpToUnreadDismissed = ref(false)
 
-/** The first new comment sits below the visible part of the list. */
-const isFirstUnreadBelow = ref(false)
+/** First new comment below the visible part of the list; the jump button targets it. */
+const unreadBelowId = ref<string | null>(null)
 
 const searchQuery = ref('')
 
@@ -498,23 +498,21 @@ function firstName(commentItem: CommentTypeExtended) {
 
 function updateUnreadVisibility() {
   const wrapper = commentsWrapperEl.value
-  // A new reply in a collapsed thread is not rendered; its root marks the spot.
-  const firstThread = visibleThreads.value.find((thread) => threadComments(thread).some(isCommentUnread))
-  const firstUnread = firstThread && threadComments(firstThread).find(isCommentUnread)
-  const firstId = firstThread && firstUnread && !isThreadExpanded(firstThread) ? firstThread.root.id : firstUnread?.id
+  unreadBelowId.value = null
+  if (!wrapper) return
 
-  if (!wrapper || !firstId) {
-    isFirstUnreadBelow.value = false
-    return
+  const bottom = wrapper.getBoundingClientRect().bottom - 24
+  for (const thread of visibleThreads.value) {
+    for (const unread of threadComments(thread).filter(isCommentUnread)) {
+      // A new reply in a collapsed thread is not rendered; its root marks the spot.
+      const id = isThreadExpanded(thread) ? unread.id : thread.root.id
+      const el = id && wrapper.querySelector(`.nc-comment-item.${CSS.escape(id)}`)
+      if (el && el.getBoundingClientRect().top > bottom) {
+        unreadBelowId.value = unread.id ?? null
+        return
+      }
+    }
   }
-
-  const el = wrapper.querySelector(`.nc-comment-item.${CSS.escape(firstId)}`)
-  if (!el) {
-    isFirstUnreadBelow.value = false
-    return
-  }
-
-  isFirstUnreadBelow.value = el.getBoundingClientRect().top > wrapper.getBoundingClientRect().bottom - 24
 }
 
 function userName(userId?: string | null) {
@@ -636,11 +634,11 @@ async function revealComment(commentId: string) {
 }
 
 function jumpToUnread() {
-  const first = unreadComments.value[0]
-  if (!first?.id) return
+  const targetId = unreadBelowId.value ?? unreadComments.value[0]?.id
+  if (!targetId) return
 
   isJumpToUnreadDismissed.value = true
-  revealComment(first.id)
+  revealComment(targetId)
 
   $e('c:comment:unread:navigate')
 }
@@ -1083,7 +1081,10 @@ watch(
     // Someone else's comment doesn't pull a reader who scrolled up; the jump button offers it instead.
     const isReadingAbove =
       !!wrapper && wrapper.scrollHeight - wrapper.scrollTop - wrapper.clientHeight > 120 && !!prevLength && length > prevLength
-    if (isReadingAbove && newest?.created_by_email !== user.value?.email) return
+    if (isReadingAbove && newest && newest.created_by_email !== user.value?.email && isCommentUnread(newest)) {
+      isJumpToUnreadDismissed.value = false
+      return
+    }
 
     nextTick(() => {
       // Deep-link target still in scope (only cleared on user post / row
@@ -1677,7 +1678,7 @@ onBeforeUnmount(() => {
                         <div
                           v-if="parsedHtmlComments[commentItem.id]"
                           v-dompurify-html="parsedHtmlComments[commentItem.id]"
-                          class="nc-comment-body nc-rich-text-content !text-small !leading-5 !text-nc-content-gray"
+                          class="nc-comment-body nc-rich-text-content !text-small !leading-5 !text-nc-content-gray [overflow-wrap:anywhere]"
                           @click="handleDompurifyLinkClick"
                         ></div>
                         <SmartsheetExpandedFormCommentAttachments
@@ -1894,7 +1895,7 @@ onBeforeUnmount(() => {
           </template>
 
           <button
-            v-if="unreadComments.length && isFirstUnreadBelow && !isJumpToUnreadDismissed"
+            v-if="unreadComments.length && unreadBelowId && !isJumpToUnreadDismissed"
             type="button"
             class="nc-comment-jump-unread sticky bottom-2 z-20 mx-auto mt-2 flex flex-none items-center gap-1.5 rounded-full bg-nc-fill-primary px-3 py-1 text-xs font-semibold text-white shadow-md cursor-pointer hover:bg-nc-fill-primary-hover"
             data-testid="nc-comment-jump-unread"

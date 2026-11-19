@@ -92,7 +92,7 @@ export const isExpandedFormPanelOpen = () =>
   (isFocusInsideExpandedFormPanel() || expandedFormPanelIntent.clickedInside())
 
 export const isDrawerOrModalExist = () =>
-  !!document.querySelector('.ant-modal.active, .ant-drawer-open') || isExpandedFormPanelOpen()
+  !!document.querySelector('.ant-modal.active, .ant-drawer-open, .nc-exp-palette') || isExpandedFormPanelOpen()
 
 export const isExpandedFormOpenExist = () =>
   !!document.querySelector('.nc-drawer-expanded-form.active') || isExpandedFormPanelOpen()

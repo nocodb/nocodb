@@ -23035,6 +23035,11 @@
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Meta info for the comment (e.g. image annotation anchor)"
+          },
+          "parent_comment_id": {
+            "type": "string",
+            "description": "Comment this one replies to. A reply to a reply joins the same thread.",
+            "example": "cmt043cx4r30343ff"
           }
         },
         "required": [

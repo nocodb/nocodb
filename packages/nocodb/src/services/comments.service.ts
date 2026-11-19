@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType } from 'nocodb-sdk';
+import {
+  AppEvents,
+  COMMENT_META_RESERVED_KEYS,
+  EventType,
+  ncIsObject,
+} from 'nocodb-sdk';
 import { Base, Model, Source } from '../models';
 import type {
   AttachmentType,
@@ -54,6 +59,17 @@ async function assertCommentAttachmentsOwned(
   }
 }
 
+// Pin and to-do state have their own operations; create and edit keep
+// whatever the comment already holds.
+function mergeCommentMeta(incoming: unknown, existing?: unknown) {
+  const meta: Record<string, any> = ncIsObject(incoming) ? { ...incoming } : {};
+  for (const key of COMMENT_META_RESERVED_KEYS) {
+    delete meta[key];
+    if (ncIsObject(existing) && existing[key]) meta[key] = existing[key];
+  }
+  return meta;
+}
+
 @Injectable()
 export class CommentsService {
   constructor(
@@ -96,8 +112,18 @@ export class CommentsService {
       NcError.get(context).recordNotFound(param.body.row_id);
     }
 
+    const parentCommentId = await this.resolveThreadRoot(context, {
+      parentCommentId: param.body.parent_comment_id,
+      fk_model_id: model.id,
+      row_id: param.body.row_id,
+    });
+
     const res = await Comment.insert(context, {
       ...param.body,
+      ...(param.body.meta !== undefined
+        ? { meta: mergeCommentMeta(param.body.meta) }
+        : {}),
+      parent_comment_id: parentCommentId,
       comment: sanitizedComment,
       created_by: param.user?.id,
       created_by_email: param.user?.email,
@@ -143,6 +169,31 @@ export class CommentsService {
     );
 
     return res;
+  }
+
+  // Threads are one level deep: a reply to a reply joins the same thread.
+  protected async resolveThreadRoot(
+    context: NcContext,
+    param: { parentCommentId?: string; fk_model_id: string; row_id: string },
+  ) {
+    if (!param.parentCommentId) return undefined;
+
+    const parent = await Comment.get(context, param.parentCommentId);
+
+    if (
+      !parent ||
+      parent.is_deleted ||
+      parent.fk_model_id !== param.fk_model_id ||
+      `${parent.row_id}` !== `${param.row_id}`
+    ) {
+      NcError.get(context).genericNotFound('Comment', param.parentCommentId);
+    }
+
+    if (!parent.parent_comment_id) return parent.id;
+
+    // A reply whose thread root was deleted starts its own thread.
+    const root = await Comment.get(context, parent.parent_comment_id);
+    return root && !root.is_deleted ? root.id : parent.id;
   }
 
   async commentDelete(
@@ -285,7 +336,9 @@ export class CommentsService {
       ...(param.body.attachments !== undefined
         ? { attachments: param.body.attachments }
         : {}),
-      ...(param.body.meta !== undefined ? { meta: param.body.meta } : {}),
+      ...(param.body.meta !== undefined
+        ? { meta: mergeCommentMeta(param.body.meta, comment.meta) }
+        : {}),
     });
 
     const model = await Model.getByIdOrName(context, {

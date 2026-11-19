@@ -222,6 +222,26 @@ export default class Comment implements CommentType {
     return updated;
   }
 
+  /** Pin and to-do state: stored in `meta`, and not an edit of the comment. */
+  public static async updateMeta(
+    context: NcContext,
+    commentId: string,
+    meta: MetaType,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COMMENTS,
+      prepareForDb({ meta }, ['meta']),
+      commentId,
+      {},
+      true,
+    );
+
+    return Comment.get(context, commentId, ncMeta);
+  }
+
   public static async resolve(
     context,
     commentId: string,

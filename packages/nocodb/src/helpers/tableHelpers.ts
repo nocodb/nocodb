@@ -588,7 +588,6 @@ export async function lookupChainHops(
   // Past the last lookup, a link target reads the linked table and then follows that
   // table's display value, as generateLookupSelectQuery does.
   const seen = new Set<string>();
-  let viaDisplayValue = false;
   while (
     hops.length &&
     current &&
@@ -606,22 +605,19 @@ export async function lookupChainHops(
       hops.push({ context: hopContext, link, column: current });
       current = await colOptions.getLookupColumn();
       hopContext = relatedBaseContext(hopContext, link);
-      viaDisplayValue = false;
       continue;
     }
     if (!isLinksOrLTAR(current)) break;
     const link = await current.getColOptions<LinkToAnotherRecordColumn>();
     if (!link) break;
     hops.push({ context: hopContext, link, column: current });
-    if (
-      current.uidt === UITypes.Links &&
-      !(viaDisplayValue && isSingleRecordLinkColumn(current))
-    ) {
+    // a multi-record Links target reads as a count; a single-record one may carry
+    // on to the linked table's display value, so it must be checked as if it does
+    if (current.uidt === UITypes.Links && !isSingleRecordLinkColumn(current)) {
       break;
     }
     current = await getDisplayValueOfRefTable(hopContext, current);
     hopContext = relatedBaseContext(hopContext, link);
-    viaDisplayValue = true;
   }
   return hops;
 }

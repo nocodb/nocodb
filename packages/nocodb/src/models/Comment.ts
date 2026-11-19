@@ -222,24 +222,64 @@ export default class Comment implements CommentType {
     return updated;
   }
 
-  /** Pin and to-do state: stored in `meta`, and not an edit of the comment. */
-  public static async updateMeta(
+  /**
+   * Rewrites the `meta` of a record's comments under a row lock, so concurrent
+   * pin and to-do changes cannot overwrite each other. `patch` returns the new
+   * meta for a comment, or undefined to leave it as it is. Not an edit: the
+   * comment's `updated_at` is untouched.
+   */
+  public static async patchRecordMeta(
     context: NcContext,
-    commentId: string,
-    meta: MetaType,
+    param: {
+      fk_model_id: string;
+      row_id: string;
+      patch: (comment: Comment) => Record<string, any> | undefined;
+    },
     ncMeta = Noco.ncMeta,
-  ) {
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COMMENTS,
-      prepareForDb({ meta }, ['meta']),
-      commentId,
-      {},
-      true,
-    );
+  ): Promise<Comment[]> {
+    const nested = !!ncMeta.knexConnection.isTransaction;
+    const trx = await ncMeta.startTransaction();
 
-    return Comment.get(context, commentId, ncMeta);
+    try {
+      const rows = await trx
+        .knexConnection(MetaTable.COMMENTS)
+        .where({
+          base_id: context.base_id,
+          fk_model_id: param.fk_model_id,
+          row_id: param.row_id,
+        })
+        .where(function () {
+          this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+        })
+        .forUpdate();
+
+      const changed: Comment[] = [];
+
+      for (const row of rows) {
+        const comment = new Comment(row);
+        const meta = param.patch(comment);
+        if (meta === undefined) continue;
+
+        await trx.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COMMENTS,
+          prepareForDb({ meta }, ['meta']),
+          comment.id,
+          {},
+          true,
+        );
+
+        changed.push(new Comment({ ...row, meta }));
+      }
+
+      if (!nested) await trx.commit();
+
+      return changed;
+    } catch (e) {
+      if (!nested) await trx.rollback();
+      throw e;
+    }
   }
 
   public static async resolve(

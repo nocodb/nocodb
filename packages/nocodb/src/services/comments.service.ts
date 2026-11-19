@@ -61,11 +61,24 @@ async function assertCommentAttachmentsOwned(
 
 // Pin and to-do state have their own operations; create and edit keep
 // whatever the comment already holds.
+// The API accepts meta as an object or a JSON string.
+function parseCommentMeta(value: unknown): Record<string, any> {
+  if (typeof value === 'string') {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return {};
+    }
+  }
+  return ncIsObject(value) ? (value as Record<string, any>) : {};
+}
+
 function mergeCommentMeta(incoming: unknown, existing?: unknown) {
-  const meta: Record<string, any> = ncIsObject(incoming) ? { ...incoming } : {};
+  const meta = { ...parseCommentMeta(incoming) };
+  const current = parseCommentMeta(existing);
   for (const key of COMMENT_META_RESERVED_KEYS) {
     delete meta[key];
-    if (ncIsObject(existing) && existing[key]) meta[key] = existing[key];
+    if (current[key]) meta[key] = current[key];
   }
   return meta;
 }

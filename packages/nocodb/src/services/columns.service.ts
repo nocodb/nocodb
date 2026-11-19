@@ -5715,6 +5715,21 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
+    // The deleted link may be the display value of the table on its other side (its paired
+    // column goes with it), which then needs a new one.
+    let linkedTable: { modelId: string; context: NcContext } | undefined;
+    if (isLinksOrLTAR(column)) {
+      const linkOpts =
+        column.colOptions ??
+        (await column.getColOptions<LinkToAnotherRecordColumn>(ncMeta));
+      if (linkOpts?.fk_related_model_id) {
+        linkedTable = {
+          modelId: linkOpts.fk_related_model_id,
+          context: linkOpts.getRelContext().refContext,
+        };
+      }
+    }
+
     /**
      * @Note: When using 'falls through to default' cases in a switch statement,
      * it is crucial to place them after cases with break statements.
@@ -6356,6 +6371,24 @@ export class ColumnsService implements IColumnsService {
         displayValueColumn.id,
         ncMeta,
       );
+    }
+
+    if (linkedTable && linkedTable.modelId !== table.id) {
+      const linked = await Model.getWithInfo(
+        linkedTable.context,
+        { id: linkedTable.modelId },
+        ncMeta,
+      );
+      const linkedDisplayValue =
+        linked && mapDefaultDisplayValue(linked.columns);
+      if (linkedDisplayValue) {
+        await Model.updatePrimaryColumn(
+          linkedTable.context,
+          linked.id,
+          linkedDisplayValue.id,
+          ncMeta,
+        );
+      }
     }
 
     // junction rows referencing the deleted column as a *tracked* field are

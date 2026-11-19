@@ -1,10 +1,6 @@
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type {
-  Column,
-  LinksColumn,
-  LinkToAnotherRecordColumn,
-} from '~/models';
+import type { Column, LinksColumn, LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 // A display value chain longer than this is rejected rather than followed.
@@ -69,4 +65,14 @@ export async function assertNoDisplayValueCycle(
       'This link cannot be the display value: it would refer back to itself through the display values of the linked tables.',
     );
   }
+}
+
+/** A table's display value, or undefined when it is a link whose chain loops back. */
+export async function displayValueUnlessCyclic(
+  displayValue: Column | undefined,
+): Promise<Column | undefined> {
+  if (!displayValue || !isLinksOrLTAR(displayValue)) return displayValue;
+  return (await resolveDisplayValueChain(displayValue)).cyclic
+    ? undefined
+    : displayValue;
 }

@@ -167,6 +167,8 @@ import {
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import { DISPLAY_VALUE_LINK_MAX_DEPTH } from '~/helpers/displayValueCycle';
+import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 import { extractProps } from '~/helpers/extractProps';
 import { mapNonFiniteToString } from '~/helpers/formulaNonFinite';
 import { isNonFiniteFormulaHandlingEnabled } from '~/db/formulav2/pg-ieee';
@@ -642,7 +644,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await model.getCachedColumns();
 
     if (extractDisplayValueData) {
-      return data ? data[model.displayValue.title] ?? null : '';
+      return data ? (await flattenDisplayValue(data, model.displayValue)) : '';
     }
 
     return data;
@@ -685,8 +687,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           },
         );
         if (extractDisplayValueData) {
-          const titleKey = displayColumn?.title ?? model.displayValue?.title;
-          results.push(data ? data[titleKey] ?? null : '');
+          results.push(
+            data
+              ? await flattenDisplayValue(
+                  data,
+                  model.displayValue,
+                  displayColumn,
+                )
+              : '',
+          );
         } else {
           results.push(data);
         }
@@ -742,16 +751,28 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // Reassemble results in original order
-    return props.map(
-      ({ model, id, extractDisplayValueData = true, displayColumn }) => {
-        const key = `${model.id}::${displayColumn?.id ?? ''}`;
-        const record = recordsByKey.get(key)?.get(String(id));
-        if (extractDisplayValueData) {
-          const titleKey = displayColumn?.title ?? model.displayValue?.title;
-          return record ? record[titleKey] ?? null : '';
-        }
-        return record ?? null;
-      },
+    return Promise.all(
+      props.map(
+        async ({
+          model,
+          id,
+          extractDisplayValueData = true,
+          displayColumn,
+        }) => {
+          const key = `${model.id}::${displayColumn?.id ?? ''}`;
+          const record = recordsByKey.get(key)?.get(String(id));
+          if (extractDisplayValueData) {
+            return record
+              ? await flattenDisplayValue(
+                  record,
+                  model.displayValue,
+                  displayColumn,
+                )
+              : '';
+          }
+          return record ?? null;
+        },
+      ),
     );
   }
 
@@ -7478,7 +7499,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         for (const displayValue of displayValues) {
           const pk = sourceBaseModel.extractPksValues(displayValue, true);
 
-          displayValueMap.set(pk, displayValue[displayValueColumn.title]);
+          displayValueMap.set(
+            pk,
+            await flattenDisplayValue(displayValue, displayValueColumn),
+          );
         }
       }
     }
@@ -7507,7 +7531,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           refDisplayValueMap.set(
             pk,
-            refDisplayValue[refDisplayValueColumn.title],
+            await flattenDisplayValue(refDisplayValue, refDisplayValueColumn),
           );
         }
       }
@@ -8671,6 +8695,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const idToAliasMap: Record<string, string> = {};
     const ltarMap: Record<string, boolean> = {};
     const missingColumnIds = new Set<string>();
+    // link columns, whose values are linked records that may nest another one (a display
+    // value that is itself a link)
+    const linkColumnIds = new Set<string>();
 
     // Build initial maps and collect missing column IDs
     for (const col of modelColumns) {
@@ -8679,6 +8706,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       idToAliasMap[col.id] = col.title;
+      if (isLinksOrLTAR(col)) linkColumnIds.add(col.id);
 
       // For Links columns, only treat as LTAR when linksAsLtar produced
       // nested object data (not a count number). Check the actual data to decide.
@@ -8729,7 +8757,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             fk_model_id: (col.colOptions as LinkToAnotherRecordColumn)
               .fk_related_model_id,
           });
-          for (const col of columns) idToAliasMap[col.id] = col.title;
+          for (const refCol of columns) {
+            idToAliasMap[refCol.id] = refCol.title;
+            if (isLinksOrLTAR(refCol)) linkColumnIds.add(refCol.id);
+          }
         }
 
         ltarMap[col.id] = true;
@@ -8751,26 +8782,55 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
     }
 
-    // Fetch all missing column aliases concurrently
-    if (missingColumnIds.size > 0) {
-      const columnPromises = Array.from(missingColumnIds).map(async (k) => {
-        try {
-          const col = await Column.get(this.context, { colId: k });
-          return { id: k, title: col?.title };
-        } catch (e) {
-          // ignore error to avoid breaking the entire response
-          return {};
+    // Fetch missing column aliases concurrently; a linked record that nests another one
+    // (a link display value) brings the next level's ids, so repeat until none are left.
+    const requestedColumnIds = new Set<string>();
+    const collectNestedIds = (value: any) => {
+      if (Array.isArray(value)) return value.forEach(collectNestedIds);
+      if (!value || typeof value !== 'object') return;
+      for (const [k, v] of Object.entries(value)) {
+        if (!idToAliasMap[k] && !requestedColumnIds.has(k))
+          missingColumnIds.add(k);
+        if (linkColumnIds.has(k)) collectNestedIds(v);
+      }
+    };
+    const collectFromRows = () => {
+      for (const item of data) {
+        for (const [k, v] of Object.entries(item ?? {})) {
+          if (linkColumnIds.has(k)) collectNestedIds(v);
         }
-      });
+      }
+    };
+    collectFromRows();
+    for (
+      let round = 0;
+      missingColumnIds.size > 0 && round <= DISPLAY_VALUE_LINK_MAX_DEPTH;
+      round++
+    ) {
+      const toFetch = Array.from(missingColumnIds);
+      missingColumnIds.clear();
+      toFetch.forEach((k) => requestedColumnIds.add(k));
 
-      const columnResults = await Promise.all(columnPromises);
+      const columnResults = await Promise.all(
+        toFetch.map(async (k) => {
+          try {
+            const col = await Column.get(this.context, { colId: k });
+            return { id: k, title: col?.title, col };
+          } catch (e) {
+            // ignore error to avoid breaking the entire response
+            return {} as { id?: string; title?: string; col?: Column };
+          }
+        }),
+      );
 
-      // Update the alias map with fetched columns
-      columnResults.forEach(({ id, title }) => {
+      columnResults.forEach(({ id, title, col }) => {
         if (title) {
           idToAliasMap[id] = title;
+          if (isLinksOrLTAR(col)) linkColumnIds.add(id);
         }
       });
+
+      collectFromRows();
     }
 
     // Transform data in a single pass
@@ -8797,7 +8857,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // Transform array of objects
             transformedItem[targetKey] = value.map((arrVal) => {
               if (!arrVal || typeof arrVal !== 'object') return arrVal;
-              return transformObjectKeys(arrVal, idToAliasMap);
+              return transformObjectKeys(arrVal, idToAliasMap, linkColumnIds);
             });
           } else if (
             value &&
@@ -8808,6 +8868,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             transformedItem[targetKey] = transformObjectKeys(
               value,
               idToAliasMap,
+              linkColumnIds,
             );
           } else {
             // Directly assign arrays of primitives or primitive values

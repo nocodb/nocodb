@@ -17,6 +17,7 @@ import {
 } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
+import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 import type LookupColumn from '~/models/LookupColumn';
 import type RollupColumn from '~/models/RollupColumn';
 import type { NcContext } from '~/interface/config';
@@ -343,11 +344,14 @@ async function linkDisplayValue(column: Column, value: any) {
       )
     : undefined;
   const displayCol = overrideCol ?? relatedModel.displayValue;
-  return [...(Array.isArray(value) ? value : [value])]
-    .map((v) => {
-      return v[displayCol?.title] ?? v[displayCol?.id];
-    })
-    .join(', ');
+  return (
+    await Promise.all(
+      [...(Array.isArray(value) ? value : [value])].map((v) =>
+        // a link display value is a nested record: print its leaf text
+        flattenDisplayValue(v, displayCol),
+      ),
+    )
+  ).join(', ');
 }
 
 /**

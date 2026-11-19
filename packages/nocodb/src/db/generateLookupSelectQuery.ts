@@ -1,6 +1,8 @@
 import {
   isBtLikeV2Junction,
+  isLinksOrLTAR,
   isMMOrMMLike,
+  isSingleRecordLinkColumn,
   isSupportedDisplayValueColumn,
   NC_ERROR_SENTINEL,
   RelationTypes,
@@ -36,6 +38,10 @@ import { getAliasGenerator } from '~/utils';
 import { DBQueryClient } from '~/dbQueryClient';
 import { rawFromBuilder } from '~/helpers/sqlSanitize';
 import { readsHiddenTable } from '~/helpers/tableHelpers';
+import {
+  DISPLAY_VALUE_LINK_MAX_DEPTH,
+  resolveDisplayValueChain,
+} from '~/helpers/displayValueCycle';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
@@ -56,7 +62,14 @@ export async function getDisplayValueOfRefTable(
     if (override && isSupportedDisplayValueColumn(override)) return override;
   }
 
-  return cols.find((col) => col.pv) || cols[0];
+  const pv = cols.find((col) => col.pv) || cols[0];
+
+  // A display value link that leads back to itself cannot be followed: use the id instead.
+  if (pv && isLinksOrLTAR(pv) && (await resolveDisplayValueChain(pv)).cyclic) {
+    return cols.find((col) => col.pk) || cols[0];
+  }
+
+  return pv;
 }
 
 /**
@@ -462,10 +475,34 @@ export default async function generateLookupSelectQuery({
         }
       }
 
-      while (
-        lookupColumn.uidt === UITypes.Lookup ||
-        lookupColumn.uidt === UITypes.LinkToAnotherRecord
-      ) {
+      // A display value that is a link carries on to the linked table's display value. It
+      // may be a V2 junction `Links`, which a lookup's own target never continues through.
+      let viaDisplayValue = !lookupColOpt;
+      // a cycle in the data would otherwise join forever
+      const visitedHops = new Set<string>();
+
+      const isHop = async (col: Column) => {
+        if (
+          col.uidt === UITypes.Lookup ||
+          col.uidt === UITypes.LinkToAnotherRecord
+        )
+          return true;
+        if (!viaDisplayValue || col.uidt !== UITypes.Links) return false;
+        if (!col.colOptions) await col.getColOptions();
+        return isSingleRecordLinkColumn(col);
+      };
+
+      while (await isHop(lookupColumn)) {
+        if (
+          visitedHops.has(lookupColumn.id) ||
+          visitedHops.size >= DISPLAY_VALUE_LINK_MAX_DEPTH * 2
+        ) {
+          return {
+            builder: NC_ERROR_SENTINEL,
+            applyCte: () => {},
+          };
+        }
+        visitedHops.add(lookupColumn.id);
         const nestedAlias = getAlias();
 
         let relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>;
@@ -706,13 +743,16 @@ export default async function generateLookupSelectQuery({
           });
         }
 
-        if (lookupColumn.uidt === UITypes.Lookup)
+        if (lookupColumn.uidt === UITypes.Lookup) {
           lookupColumn = await nestedLookupColOpt.getLookupColumn();
-        else
+          viaDisplayValue = false;
+        } else {
           lookupColumn = await getDisplayValueOfRefTable(
             nestedRefContext,
             relationCol,
           );
+          viaDisplayValue = true;
+        }
 
         if (!lookupColumn) {
           return {

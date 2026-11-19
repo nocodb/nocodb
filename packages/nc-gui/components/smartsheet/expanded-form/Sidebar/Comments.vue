@@ -1442,7 +1442,7 @@ onBeforeUnmount(() => {
                             :aria-label="$t('general.react')"
                             data-testid="nc-comment-react-btn"
                           >
-                            <GeneralIcon icon="ncSmile" class="w-4 h-4" />
+                            <GeneralIcon icon="ncSmile" class="w-3.5 h-3.5" />
                           </NcButton>
                         </NcTooltip>
                       </SmartsheetExpandedFormSidebarCommentReactionPicker>
@@ -1457,7 +1457,7 @@ onBeforeUnmount(() => {
                           data-testid="nc-comment-reply-btn"
                           @click="startReply(commentItem)"
                         >
-                          <GeneralIcon icon="ncCornerDownLeft" class="w-4 h-4" />
+                          <GeneralIcon icon="ncCornerDownLeft" class="w-3.5 h-3.5" />
                         </NcButton>
                       </NcTooltip>
 
@@ -1470,7 +1470,7 @@ onBeforeUnmount(() => {
                             :aria-label="$t('activity.clickToResolve')"
                             @click="resolveComment(commentItem.id!)"
                           >
-                            <GeneralIcon icon="checkCircle" class="w-4 h-4" />
+                            <GeneralIcon icon="checkCircle" class="w-3.5 h-3.5" />
                           </NcButton>
                           <template #title>{{ $t('activity.clickToResolve') }}</template>
                         </NcTooltip>
@@ -1483,7 +1483,7 @@ onBeforeUnmount(() => {
                             data-testid="nc-comment-reopen-btn"
                             @click="resolveComment(commentItem.id!)"
                           >
-                            <GeneralIcon icon="checkFill" class="w-4 h-4 rounded-full bg-nc-fill-green-dark text-white" />
+                            <GeneralIcon icon="checkFill" class="w-3.5 h-3.5 rounded-full bg-nc-fill-green-dark text-white" />
                           </NcButton>
                           <template #title>{{ $t('activity.commentThread.reopen') }}</template>
                         </NcTooltip>
@@ -1505,7 +1505,7 @@ onBeforeUnmount(() => {
                           type="text"
                           :aria-label="$t('general.more')"
                         >
-                          <GeneralIcon class="text-md" icon="threeDotVertical" />
+                          <GeneralIcon icon="threeDotVertical" class="w-3.5 h-3.5" />
                         </NcButton>
                         <template #overlay>
                           <NcMenu variant="small">

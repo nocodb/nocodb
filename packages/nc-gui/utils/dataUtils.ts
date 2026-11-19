@@ -1098,6 +1098,18 @@ export const parsePlainCellValue = (
   return value as unknown as string
 }
 
+// Column-aware `format` for recordTitleOf / resolveLinkedRecordDisplay: renders a leaf like a plain cell
+export const linkedRecordTitleFormatter =
+  (ctx: Omit<ParsePlainCellValueProps['params'], 'col' | 'meta'> & { meta?: TableType }) =>
+  (value: unknown, col: ColumnType, leafMeta?: TableType): string => {
+    if (value === null || value === undefined) return ''
+    const out = parsePlainCellValue(
+      value as ParsePlainCellValueProps['value'],
+      { ...ctx, col, meta: leafMeta ?? ctx.meta } as ParsePlainCellValueProps['params'],
+    )
+    return out === null || out === undefined || typeof out === 'object' ? '' : String(out)
+  }
+
 // Utility to stringify filter or sort array, if the array is empty return undefined
 export const stringifyFilterOrSortArr = (arr: any[]) => {
   if (!arr || (Array.isArray(arr) && !arr.length)) return undefined

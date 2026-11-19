@@ -78,7 +78,6 @@ export function resolveLinkedRecordDisplay(
     const colOptions = col.colOptions as LinkToAnotherRecordType
     const relatedBaseId = colOptions.fk_related_base_id || currentMeta?.base_id
     const relatedModelId = colOptions.fk_related_model_id as string
-    const relatedKey = `${relatedBaseId}:${relatedModelId}`
 
     if (depth + 1 > LINKED_RECORD_MAX_DEPTH || visited.has(hereKey)) return incomplete()
     if (typeof next !== 'object') return incomplete()

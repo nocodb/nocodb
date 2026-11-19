@@ -1502,7 +1502,10 @@ onBeforeUnmount(() => {
                                 @click="pinComment(commentItem.id!, !getCommentMeta(commentItem).pinned)"
                               >
                                 <div class="flex gap-2 items-center">
-                                  <GeneralIcon :icon="getCommentMeta(commentItem).pinned ? 'ncPinOff' : 'ncPin'" />
+                                  <GeneralIcon
+                                    :icon="getCommentMeta(commentItem).pinned ? 'ncPinOff' : 'ncPin'"
+                                    class="flex-none w-4 h-4"
+                                  />
                                   {{
                                     getCommentMeta(commentItem).pinned
                                       ? $t('activity.commentThread.unpin')

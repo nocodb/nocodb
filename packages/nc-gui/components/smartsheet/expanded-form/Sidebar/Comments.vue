@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
-import { ProjectRoles, RoleLabels, UITypes, WorkspaceRolesToProjectRoles, getAttachmentAnnotationKey } from 'nocodb-sdk'
+import {
+  PlanFeatureTypes,
+  ProjectRoles,
+  RoleLabels,
+  UITypes,
+  WorkspaceRolesToProjectRoles,
+  getAttachmentAnnotationKey,
+} from 'nocodb-sdk'
 import type { ColumnType, CommentImageAnnotation, CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { CommentThread, CommentTypeExtended } from '~/composables/useRowComments'
 import { suggestionHandledKeyEvents } from '~/helpers/tiptap'
@@ -95,6 +102,8 @@ const {
 const expandedFormStore = useExpandedFormStore()
 
 const { isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+
+const { getFeature } = useEeConfig()
 
 const {
   isCommentAttachmentsEnabled,
@@ -518,6 +527,7 @@ function canSummarize(thread: CommentThread) {
     isCommentExtrasEnabled.value &&
     isAiFeaturesEnabled.value &&
     aiIntegrationAvailable.value &&
+    getFeature(PlanFeatureTypes.FEATURE_AI) &&
     isUIAllowed('dataEdit') &&
     thread.replies.length >= SUMMARIZE_FROM_REPLIES
   )

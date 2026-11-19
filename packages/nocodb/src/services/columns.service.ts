@@ -4346,6 +4346,53 @@ export class ColumnsService implements IColumnsService {
     }
   }
 
+  /**
+   * Makes a freshly created link its table's display value, once its colOptions exist so the
+   * single-record and cycle rules can be checked. Keeps `pv: true` meaningful on create —
+   * duplicating a base whose display value is a link rebuilds it — instead of dropping it.
+   *
+   * A link request creates a column on each side and the requested title lands on whichever
+   * side the relation puts it (a V1 belongs-to on `childId`, everything else on the table the
+   * request names), so look for the single-record one among both.
+   */
+  protected async applyLinkDisplayValue(
+    context: NcContext,
+    param: { title: string; tableIds: (string | undefined)[] },
+    ncMeta = Noco.ncMeta,
+  ) {
+    let column: Column | undefined;
+
+    for (const tableId of param.tableIds.filter(Boolean)) {
+      const model = await Model.get(context, tableId, false, ncMeta);
+      const candidate = (await model?.getColumns(ncMeta))?.find(
+        (c) => c.title === param.title && isLinksOrLTAR(c),
+      );
+      if (!candidate) continue;
+      await candidate.getColOptions(ncMeta);
+      column = column ?? candidate;
+      if (isSingleRecordLinkColumn(candidate)) {
+        column = candidate;
+        break;
+      }
+    }
+
+    if (!column) return;
+
+    if (!isSingleRecordLinkColumn(column)) {
+      NcError.get(context).invalidRequestBody(
+        'Only a belongs-to, one-to-one or many-to-one link can be set as the display value.',
+      );
+    }
+    await assertNoDisplayValueCycle(context, column);
+
+    await Model.updatePrimaryColumn(
+      context,
+      column.fk_model_id,
+      column.id,
+      ncMeta,
+    );
+  }
+
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
@@ -4371,12 +4418,30 @@ export class ColumnsService implements IColumnsService {
       param.column.title = param.column.column_name;
     }
 
-    // A link becomes a display value only through set-as-display-value, which checks cycles.
+    // Only a single-record link can be a display value, and it must not lead back to itself
+    // through the linked tables' display values. The relation type is known now, so reject an
+    // ineligible one before anything is created; the cycle check needs colOptions, so hold the
+    // flag back from the insert and apply it once the column exists.
+    let pvRequestedOnLink = false;
     if (
       'pv' in param.column &&
       param.column.pv &&
       isLinksOrLTAR(param.column.uidt)
     ) {
+      if (
+        ![
+          RelationTypes.BELONGS_TO,
+          RelationTypes.ONE_TO_ONE,
+          RelationTypes.MANY_TO_ONE,
+        ].includes(
+          (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
+        )
+      ) {
+        NcError.get(context).invalidRequestBody(
+          'Only a belongs-to, one-to-one or many-to-one link can be set as the display value.',
+        );
+      }
+      pvRequestedOnLink = true;
       param.column.pv = false;
     }
 
@@ -5557,6 +5622,20 @@ export class ColumnsService implements IColumnsService {
           e.stack,
         );
       }
+    }
+
+    if (pvRequestedOnLink) {
+      await this.applyLinkDisplayValue(
+        context,
+        {
+          title: param.column.title,
+          tableIds: [
+            param.tableId,
+            (param.column as LinkToAnotherColumnReqType).childId,
+          ],
+        },
+        ncMeta,
+      );
     }
 
     if (param.apiVersion === NcApiVersion.V3) {

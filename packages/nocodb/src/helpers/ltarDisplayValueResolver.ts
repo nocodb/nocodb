@@ -6,6 +6,7 @@ import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { FieldHandler } from '~/db/field-handler';
+import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 
 /**
  * Shared context + display-value → pk resolution for link (LTAR) columns.
@@ -91,58 +92,6 @@ export async function getLtarDisplayValueContext(
   };
 }
 
-// One query per value, so only this many distinct values are resolved per call when the
-// related display value is a link; the rest stay unmatched. Only exact matches link: a
-// substring match would link 'Acme Corp' for a pasted 'Acme'.
-const LINK_DISPLAY_VALUE_RESOLVE_CAP = 500;
-// Rows read per value; enough to tell a unique match from an ambiguous one.
-const LINK_DISPLAY_VALUE_MATCH_LIMIT = 25;
-
-async function resolveLinkDisplayValues(
-  groupCtx: LtarDisplayValueContext,
-  values: Set<string>,
-  {
-    assign,
-  }: {
-    assign: (value: string, pk: string | number) => void;
-  },
-): Promise<void> {
-  const { relatedModel, relatedBaseModel, displayValueColumn } = groupCtx;
-  const fieldHandler = FieldHandler.fromBaseModel(relatedBaseModel);
-  const listOpts = {
-    fieldsSet: new Set(
-      relatedModel.primaryKeys.map((pk) => pk.title || pk.column_name),
-    ),
-  };
-
-  const matchOne = async (value: string) => {
-    const filter = new Filter({
-      fk_column_id: displayValueColumn.id,
-      comparison_op: 'eq',
-      value,
-      logical_op: 'or',
-    });
-    if (!(await fieldHandler.verifyFiltersSafe([filter])).isValid) return false;
-    const rows = await relatedBaseModel.list(
-      {
-        ...listOpts,
-        filterArr: [filter],
-        limit: LINK_DISPLAY_VALUE_MATCH_LIMIT,
-        apiVersion: NcApiVersion.V3,
-      },
-      { ignoreViewFilterAndSort: true },
-    );
-    for (const row of rows) {
-      assign(value, dataWrapper(row).extractPksValue(relatedModel, true));
-    }
-    return rows.length > 0;
-  };
-
-  for (const value of [...values].slice(0, LINK_DISPLAY_VALUE_RESOLVE_CAP)) {
-    await matchOne(value);
-  }
-}
-
 /**
  * Batch-resolves display values to primary keys for the related table.
  *
@@ -207,15 +156,36 @@ export async function resolveLtarDisplayValuesToPks(
 
   if (allUniqueValues.size === 0) return valueToPk;
 
-  // The related display value is a link: its rows hold a nested record, not the text, so the
-  // text cannot be compared after the fetch. The filter matches through the chain in SQL;
-  // resolve per value and trust that match.
-  if (isLinksOrLTAR(displayValueColumn)) {
-    await resolveLinkDisplayValues(groupCtx, allUniqueValues, {
-      assign,
+  // A link display value is read as a nested record, not as the cell's own value, and `list`
+  // returns neither — so re-read the rows a filter matched with their display value expanded
+  // (one query per chunk) and take the leaf of the chain as their text. A link can only be the
+  // related table's own display value here: a link's custom display column is always scalar.
+  const dvIsLink = isLinksOrLTAR(displayValueColumn);
+  const pkOf = (row: Record<string, any>) =>
+    dataWrapper(row).extractPksValue(relatedModel, true);
+  const textByRow = async (rows: Record<string, any>[]) => {
+    const texts = new Map<Record<string, any>, any>();
+    if (!dvIsLink) {
+      for (const row of rows) texts.set(row, row[dvTitle]);
+      return texts;
+    }
+    if (!rows.length) return texts;
+
+    const byPk = new Map<string, Record<string, any>>();
+    for (const row of rows) byPk.set(String(pkOf(row)), row);
+
+    const expanded = await relatedBaseModel.chunkList({
+      pks: [...byPk.keys()],
+      extractOnlyPrimaries: true,
     });
-    return valueToPk;
-  }
+    for (const record of expanded) {
+      const row = byPk.get(String(pkOf(record)));
+      if (row) {
+        texts.set(row, await flattenDisplayValue(record, displayValueColumn));
+      }
+    }
+    return texts;
+  };
 
   // The display value column may be typed (Number, Decimal, Date, …). A
   // submitted value that isn't valid for that type — e.g. matching text "A"
@@ -248,12 +218,13 @@ export async function resolveLtarDisplayValuesToPks(
       listFlags,
     );
 
+    const exactTexts = await textByRow(exactRows);
     for (const row of exactRows) {
-      const dv = row[dvTitle];
+      const dv = exactTexts.get(row);
       if (dv == null) continue;
       const dvStr = String(dv);
       if (allUniqueValues.has(dvStr)) {
-        assign(dvStr, dataWrapper(row).extractPksValue(relatedModel, true));
+        assign(dvStr, pkOf(row));
       }
     }
   }
@@ -277,16 +248,14 @@ export async function resolveLtarDisplayValuesToPks(
         if (!lowerToOriginal.has(lower)) lowerToOriginal.set(lower, v);
       }
 
+      const candidateTexts = await textByRow(candidateRows);
       for (const row of candidateRows) {
-        const dv = row[dvTitle];
+        const dv = candidateTexts.get(row);
         if (dv == null) continue;
         const dvLower = String(dv).toLowerCase();
         const originalValue = lowerToOriginal.get(dvLower);
         if (originalValue) {
-          assign(
-            originalValue,
-            dataWrapper(row).extractPksValue(relatedModel, true),
-          );
+          assign(originalValue, pkOf(row));
         }
       }
     }

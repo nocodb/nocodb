@@ -8,7 +8,6 @@ import {
   ROLLUP_VALUES_KEYWORD,
   type TableType,
   UITypes,
-  UITypesName,
   type UnifiedMetaType,
   getMethodFunctions,
   isColumnInError,
@@ -78,7 +77,7 @@ const meta = inject(MetaInj, ref())
 
 const { getMeta, getMetaByKey } = useMetas()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const isFormulaSupportedColumn = (col: ColumnType, tableMeta?: TableType) =>
   !uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes) && !isColumnInError(col) && !isHiddenCol(col, tableMeta)
@@ -216,7 +215,7 @@ const statusBar = computed(() => {
     isValid,
     errorMessage,
     uidt: isValid ? uidt : undefined,
-    typeLabel: uidt ? UITypesName[uidt as keyof typeof UITypesName] ?? uidt : undefined,
+    typeLabel: uidt ? getUidtI18nName(uidt, t, te) : undefined,
   }
 })
 
@@ -556,7 +555,7 @@ function dotPathFieldHint(c: ColumnType) {
   if (isLinksOrLTAR(c)) {
     return isToManyLink(c) ? t('labels.formulaDotPath.linkMany') : t('labels.formulaDotPath.linkOne')
   }
-  const typeName = UITypesName[c.uidt as keyof typeof UITypesName] ?? c.uidt
+  const typeName = getColumnTypeI18nName(c, t, te)
   return c.pv ? `${typeName} · ${t('labels.formulaDotPath.displayValue')}` : typeName
 }
 

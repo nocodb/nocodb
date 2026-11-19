@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isColumnInError, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 const meta = inject(MetaInj, ref())
@@ -7,7 +7,7 @@ const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { eventBus, isList } = useSmartsheetStoreOrThrow()
 
 const { blockToggleSort, showUpgradeToUseToggleSort } = useEeConfig()
@@ -101,7 +101,7 @@ const columns = computed(() =>
       c.ncItemDisabled = true
       c.ncItemTooltip = isColumnInError(c)
         ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
-        : t('tooltip.sortingNotSupportedForField', { type: UITypesName[c.uidt] })
+        : t('tooltip.sortingNotSupportedForField', { type: getColumnTypeI18nName(c, t, te) })
     }
 
     return c

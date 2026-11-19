@@ -3348,7 +3348,7 @@ function handleSendRecord(rowId: string) {
   showSendRecordModal.value = true
 }
 
-watch([height, width, windowWidth, windowHeight], () => {
+watch([height, width, windowWidth, windowHeight, locale], () => {
   nextTick(() => {
     calculateSlices()
     triggerRefreshCanvas()

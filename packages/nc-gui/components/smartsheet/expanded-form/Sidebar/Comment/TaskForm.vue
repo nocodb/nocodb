@@ -134,21 +134,26 @@ function save() {
     </NcDropdown>
 
     <div class="flex items-center gap-2">
-      <NcButton
-        v-if="task"
-        type="text"
-        size="xs"
-        class="!text-nc-content-red-medium"
-        data-testid="nc-comment-task-remove"
-        @click="emits('remove')"
-      >
-        {{ $t('activity.commentThread.removeTodo') }}
-      </NcButton>
+      <NcTooltip v-if="task" :title="$t('activity.commentThread.removeTodo')" placement="top" class="flex">
+        <NcButton
+          type="text"
+          size="xs"
+          icon-only
+          class="!text-nc-content-red-medium"
+          :aria-label="$t('activity.commentThread.removeTodo')"
+          data-testid="nc-comment-task-remove"
+          @click="emits('remove')"
+        >
+          <template #icon>
+            <GeneralIcon icon="delete" class="w-4 h-4" />
+          </template>
+        </NcButton>
+      </NcTooltip>
       <div class="flex-1" />
-      <NcButton type="secondary" size="xs" data-testid="nc-comment-task-cancel" @click="emits('cancel')">
+      <NcButton type="secondary" size="xs" class="flex-none" data-testid="nc-comment-task-cancel" @click="emits('cancel')">
         {{ $t('general.cancel') }}
       </NcButton>
-      <NcButton type="primary" size="xs" :disabled="!assignee" data-testid="nc-comment-task-save" @click="save">
+      <NcButton type="primary" size="xs" class="flex-none" :disabled="!assignee" data-testid="nc-comment-task-save" @click="save">
         {{ $t('activity.commentThread.assign') }}
       </NcButton>
     </div>

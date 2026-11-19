@@ -4123,7 +4123,7 @@ watch(
         >
           <canvas
             ref="canvasRef"
-            class="sticky top-0 left-0 touch-none"
+            class="nc-grid-canvas sticky top-0 left-0"
             :height="`${height}px`"
             :width="`${width}px`"
             oncontextmenu="return false"
@@ -4496,6 +4496,11 @@ watch(
 </template>
 
 <style scoped lang="scss">
+// One-finger pans are the grid's own scrolling; still let the browser pinch-zoom
+.nc-grid-canvas {
+  touch-action: pinch-zoom;
+}
+
 .nc-grid-ime-proxy {
   @apply absolute w-px p-0 border-0 opacity-0 pointer-events-none resize-none overflow-hidden;
 }

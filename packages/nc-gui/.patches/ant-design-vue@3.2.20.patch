@@ -39,10 +39,20 @@ index b82d75140e62213973551b10a852a2ce194f3e83..c2c00a079518d3ded4f89cd831b63fd1
            }
          });
 diff --git a/es/vc-drawer/src/DrawerChild.js b/es/vc-drawer/src/DrawerChild.js
-index d609ede62defc89f53c26b39d495d0d41500ddc5..125cc6a6fc3e056221d6c61608af009ceba21e85 100644
+index d609ede62defc89f53c26b39d495d0d41500ddc5..332714fba8c94caad23bf87427834655a0813bd4 100644
 --- a/es/vc-drawer/src/DrawerChild.js
 +++ b/es/vc-drawer/src/DrawerChild.js
-@@ -236,7 +236,8 @@ var DrawerChild = defineComponent({
+@@ -130,7 +130,8 @@ var DrawerChild = defineComponent({
+       };
+     };
+     var removeMoveHandler = function removeMoveHandler(e) {
+-      if (e.changedTouches.length > 1) {
++      // nocodb: a pinch often moves one finger per event, so check the fingers down
++      if (e.touches.length > 1) {
+         return;
+       }
+       var currentTarget = e.currentTarget;
+@@ -236,7 +237,8 @@ var DrawerChild = defineComponent({
            if (right) {
              addScrollingEffect(right);
            }
@@ -97,10 +107,20 @@ index 1185a17aa98c8d6eceeca231bce1ebd119c41c56..71c55020f197a7bf29e8779b1bdab51f
          var res = results.filter(function (result) {
            return result && result.errors.length;
 diff --git a/lib/vc-drawer/src/DrawerChild.js b/lib/vc-drawer/src/DrawerChild.js
-index dad28708fbd45fcf3578ee2f8bd1c5d7bd2c1556..a5cf692a8cb1b912b132e0bc591b3b3e839753b6 100644
+index dad28708fbd45fcf3578ee2f8bd1c5d7bd2c1556..9213e81e577388188fa0be2e342539dcb526bb40 100644
 --- a/lib/vc-drawer/src/DrawerChild.js
 +++ b/lib/vc-drawer/src/DrawerChild.js
-@@ -242,7 +242,8 @@ var DrawerChild = (0, _vue.defineComponent)({
+@@ -136,7 +136,8 @@ var DrawerChild = (0, _vue.defineComponent)({
+       };
+     };
+     var removeMoveHandler = function removeMoveHandler(e) {
+-      if (e.changedTouches.length > 1) {
++      // nocodb: a pinch often moves one finger per event, so check the fingers down
++      if (e.touches.length > 1) {
+         return;
+       }
+       var currentTarget = e.currentTarget;
+@@ -242,7 +243,8 @@ var DrawerChild = (0, _vue.defineComponent)({
            if (right) {
              addScrollingEffect(right);
            }

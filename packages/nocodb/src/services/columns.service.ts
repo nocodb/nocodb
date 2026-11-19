@@ -14,6 +14,7 @@ import {
   isFieldTrackingLmbCol,
   isFieldTrackingLmtCol,
   isLinksOrLTAR,
+  isSingleRecordLinkColumn,
   isMMOrMMLike,
   isRollupFormula,
   isServiceUser,
@@ -43,6 +44,7 @@ import {
   validateFormulaAndExtractTreeWithType,
   WebhookActions,
 } from 'nocodb-sdk';
+import { assertNoDisplayValueCycle } from '~/helpers/displayValueCycle';
 import {
   dateFormats,
   dateMonthFormats,
@@ -4223,6 +4225,17 @@ export class ColumnsService implements IColumnsService {
       NcError.get(context).invalidRequestBody(
         'Long Text fields cannot be set as the display value.',
       );
+    }
+    // Only a link that holds one related record can be a display value, and it must not lead
+    // back to itself through the linked tables' display values.
+    if (isLinksOrLTAR(oldColumn) && !oldColumn.pv) {
+      await oldColumn.getColOptions();
+      if (!isSingleRecordLinkColumn(oldColumn)) {
+        NcError.get(context).invalidRequestBody(
+          'Only a belongs-to, one-to-one or many-to-one link can be set as the display value.',
+        );
+      }
+      await assertNoDisplayValueCycle(context, oldColumn);
     }
     const result = await Model.updatePrimaryColumn(
       context,

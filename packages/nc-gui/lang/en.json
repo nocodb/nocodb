@@ -7193,8 +7193,8 @@
         "apiKey": "API key",
         "headers": "Custom headers",
         "none": "No authentication",
-        "oauth": "OAuth (DCR)",
-        "oauthClient": "OAuth (client ID)"
+        "oauth": "OAuth sign-in",
+        "oauthClient": "OAuth with your own app"
       },
       "byDeveloper": "By {developer}",
       "category": {
@@ -7219,7 +7219,6 @@
       "makeDefault": "Make default",
       "manageConnectors": "Manage connectors",
       "name": "Name",
-      "needsSetup": "Needs setup",
       "notAllowedHere": "Not allowed here",
       "notConnected": "You have not connected it",
       "otherWorkspace": "From another workspace",
@@ -7264,7 +7263,12 @@
       "youAreConnected": "You are connected",
       "yourConnections": "Your connections",
       "yourServerUrl": "Your {title} server URL",
-      "unavailableHere": "Not available in this workspace"
+      "unavailableHere": "Not available in this workspace",
+      "policy": "Connector policy",
+      "verifiedAll": "All verified connectors",
+      "verifiedSelected": "Only the ones you pick",
+      "verifiedNone": "No verified connectors",
+      "selectedCount": "{count} of {total} selected"
     }
   },
   "activity": {
@@ -8107,7 +8111,9 @@
     "connectorNickname": "Work, Personal, …",
     "keepStoredSecret": "Leave empty to keep the stored secret",
     "optionalForPublicClients": "Optional for public clients",
-    "searchConnectors": "Search connectors"
+    "searchConnectors": "Search connectors",
+    "connectorNameAdmin": "e.g. Internal wiki",
+    "connectorDescription": "What members can do with it"
   },
   "msg": {
     "agentSkillsSubtitle": "Reusable instructions this agent can load when relevant.",
@@ -9901,7 +9907,9 @@
         "headers": "Header names and values sent with every request, e.g. X-API-Key.",
         "none": "The server is open to anyone.",
         "oauth": "Sign in with your account. NocoDB registers itself with the server.",
-        "oauthClient": "Sign in through an OAuth app you registered with the server."
+        "oauthClient": "Sign in through an OAuth app you registered with the server.",
+        "apiKeyAdmin": "Each member pastes their own key. Sent as a bearer token.",
+        "headersAdmin": "Each member enters the headers the server needs, e.g. X-API-Key."
       },
       "blockedHere": "This workspace does not allow this connector, so chats and agents here do not use it. Your sign-in is kept.",
       "customBlocked": "This workspace only allows approved connectors",
@@ -9923,20 +9931,24 @@
       },
       "policy": {
         "any": "Verified connectors, workspace connectors and any server URL members add.",
-        "managedByOrg": "Your organization manages connectors for this workspace.",
+        "managedByOrg": "Your organization sets this policy for every workspace. Change it in the organization admin panel.",
         "orgPausesWorkspace": "Your organization allows only the connectors it approves, so this workspace's own connectors are paused and new ones can't be added.",
-        "restricted": "The verified connectors you pick, plus the connectors you add below. No custom URLs.",
+        "restricted": "The verified connectors you pick, plus the ones admins add. No custom server URLs.",
         "subtitle": "Members always connect with their own accounts.",
         "summaryAny": "Members can use every verified connector, {count} workspace connectors and any server URL.",
         "summaryRestricted": "Members can use {verified} verified and {workspace} workspace connectors. Custom URLs are blocked.",
         "verifiedAll": "Every verified connector, including ones NocoDB adds later.",
-        "verifiedNone": "No verified connectors. Members can only use the ones you add below.",
+        "verifiedNone": "Members can only use the connectors admins add.",
         "workspacesDecide": "Workspace admins choose their own. Organization connectors apply everywhere.",
         "orgAny": "Every workspace allows verified connectors, organization and workspace connectors, and any server URL.",
         "orgRestricted": "The verified connectors you pick, plus organization connectors. Workspace connectors and custom URLs are off.",
         "summaryWorkspacesDecide": "Each workspace sets its own policy. {count} organization connectors are available in all of them.",
         "summaryOrgAny": "Every workspace can use every verified connector, {count} organization connectors and any server URL.",
-        "summaryOrgRestricted": "Every workspace can use {verified} verified and {org} organization connectors, plus its own. Custom URLs are blocked."
+        "summaryOrgRestricted": "Every workspace can use {verified} verified and {org} organization connectors. Workspace connectors and custom URLs are blocked.",
+        "allowedHint": "What members can connect to in chats and agents.",
+        "allowedHintOrg": "Applies to every workspace in this organization and replaces their own policy.",
+        "verifiedHint": "Connectors NocoDB has reviewed. More are added over time.",
+        "verifiedSelected": "Pick them below. Verified connectors NocoDB adds later stay off until you pick them."
       },
       "removeConfirm": "Members keep their sign-ins, but chats and agents stop using this connector.",
       "signInExpired": "Reconnect to keep using this connector in chats and agents.",
@@ -9945,7 +9957,13 @@
       "workspaceFormHint": "Members connect with their own accounts. Nobody shares yours.",
       "workspaceSubtitle": "Servers you set up once for everyone in this workspace.",
       "serverUrlInvalid": "That isn't a {title} server URL. Use the HTTPS address shown in your {title} account.",
-      "serverUrlSecret": "This URL contains a key. It is stored encrypted and never shown again."
+      "serverUrlSecret": "This URL contains a key. It is stored encrypted and never shown again.",
+      "noWorkspaceConnectorsHint": "Add an MCP server your team uses, such as an internal tool. Each member signs in with their own account.",
+      "noOrgConnectorsHint": "Add a server once and it becomes available in every workspace of this organization.",
+      "orgConnectorsOnWorkspace": "Available in every workspace. Manage them in the organization admin panel.",
+      "orgConnectorLocked": "Managed by your organization",
+      "removeConfirmOrg": "Members of every workspace keep their sign-ins, but chats and agents stop using this connector.",
+      "urlInvalid": "Enter the server's full address, starting with https://"
     }
   },
   "trash": {

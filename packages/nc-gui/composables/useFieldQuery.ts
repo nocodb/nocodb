@@ -107,8 +107,11 @@ export function useFieldQuery() {
 
     // A single-record link (e.g. as a display value) is searched by its leaf text
     if (params.getWhereQueryAs) {
-      const linkClause = linkDisplaySearchClause(col, query as string, params.getWhereQueryAs)
-      if (linkClause) return linkClause
+      const linkClause = linkDisplaySearchClause(col, query as string, params.getWhereQueryAs, {
+        meta: tableMeta,
+        metas: metas.value,
+      })
+      if (linkClause !== undefined) return linkClause
     }
 
     let searchQuery = query

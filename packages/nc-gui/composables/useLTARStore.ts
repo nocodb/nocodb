@@ -612,6 +612,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       const displayCol = relatedTableDisplayValueColumn.value
 
+      // A link display value is typed by its leaf inside getValidSearchQueryForColumn (no date special case)
       // Date/DateTime display value: keep single-column exact date search (used with date picker input)
       if (isDateOrDateTimeCol(displayCol)) {
         return `(${displayCol.title},eq,exactDate,${query})`

@@ -1,4 +1,4 @@
-import { getMetaWithCompositeKey, isSingleRecordLinkColumn } from 'nocodb-sdk'
+import { FormulaDataTypes, UITypes, getMetaWithCompositeKey, isSingleRecordLinkColumn, ncIsNaN } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 
 // Hops followed through single-record links that are themselves a display value
@@ -42,8 +42,8 @@ export function resolveLinkedRecordDisplay(
   opts: ResolveOptions = {},
 ): LinkedRecordDisplay {
   const format = opts.format ?? defaultFormat
+  // tables already passed through via a link: reaching one again as a link is a cycle
   const visited = new Set<string>()
-  if (meta) visited.add(`${meta.base_id}:${meta.id}`)
 
   let currentMeta = meta
   let currentRecord = record
@@ -68,6 +68,7 @@ export function resolveLinkedRecordDisplay(
       ...extra,
     })
 
+    const hereKey = `${currentMeta?.base_id}:${currentMeta?.id}`
     const next = Array.isArray(value) ? value[0] : value
     // unlinked: nothing to show, but the chain itself is intact
     if (next === null || next === undefined) {
@@ -79,13 +80,13 @@ export function resolveLinkedRecordDisplay(
     const relatedModelId = colOptions.fk_related_model_id as string
     const relatedKey = `${relatedBaseId}:${relatedModelId}`
 
-    if (depth + 1 > LINKED_RECORD_MAX_DEPTH || visited.has(relatedKey)) return incomplete()
+    if (depth + 1 > LINKED_RECORD_MAX_DEPTH || visited.has(hereKey)) return incomplete()
     if (typeof next !== 'object') return incomplete()
 
     const relatedMeta = getMetaWithCompositeKey(opts.metas, relatedBaseId, relatedModelId)
     if (!relatedMeta) return incomplete({ missingMeta: { tableId: relatedModelId, baseId: relatedBaseId } })
 
-    visited.add(relatedKey)
+    visited.add(hereKey)
     currentMeta = relatedMeta
     currentRecord = next
     overrideId = colOptions.fk_display_value_column_id
@@ -109,7 +110,7 @@ export async function resolveDisplayLeafColumn(
 ): Promise<{ column?: ColumnType; meta?: TableType; complete: boolean }> {
   let currentMeta = meta
   let overrideId = overrideColumnId
-  const seen = new Set<string>(meta ? [`${meta.base_id}:${meta.id}`] : [])
+  const seen = new Set<string>()
 
   for (let depth = 0; ; depth++) {
     const col = pickDisplayColumn(currentMeta, overrideId)
@@ -119,7 +120,7 @@ export async function resolveDisplayLeafColumn(
     const opts = col.colOptions as LinkToAnotherRecordType
     const baseId = opts.fk_related_base_id || currentMeta?.base_id
     const tableId = opts.fk_related_model_id as string
-    const key = `${baseId}:${tableId}`
+    const key = `${currentMeta?.base_id}:${currentMeta?.id}`
     if (!baseId || !tableId || depth + 1 > LINKED_RECORD_MAX_DEPTH || seen.has(key)) return { complete: false }
     seen.add(key)
 
@@ -136,16 +137,77 @@ export async function resolveDisplayLeafColumn(
   }
 }
 
-// Search clause on a single-record link column: the server resolves `like` on it to the leaf display text
+// Leaf column of a link's display chain from already-loaded metas; undefined when a hop is missing
+function resolveLeafColumnSync(col: ColumnType, hostMeta?: TableType, metas?: Record<string, TableType>): ColumnType | undefined {
+  let current: ColumnType | undefined = col
+  let currentMeta = hostMeta
+  const seen = new Set<string>()
+  for (let depth = 0; depth <= LINKED_RECORD_MAX_DEPTH * 2; depth++) {
+    if (!current) return undefined
+    const opts = current.colOptions as any
+    let related: TableType | undefined
+    let next: (meta?: TableType) => ColumnType | undefined
+    if (isSingleRecordLinkColumn(current)) {
+      const baseId = opts.fk_related_base_id || currentMeta?.base_id
+      related = getMetaWithCompositeKey(metas, baseId, opts.fk_related_model_id as string)
+      next = (m) => pickDisplayColumn(m, opts.fk_display_value_column_id)
+      if (seen.has(`${baseId}:${opts.fk_related_model_id}`)) return undefined
+      seen.add(`${baseId}:${opts.fk_related_model_id}`)
+    } else if (current.uidt === UITypes.Lookup) {
+      const rel = currentMeta?.columns?.find((c) => c.id === opts.fk_relation_column_id)
+      const relOpts = rel?.colOptions as LinkToAnotherRecordType | undefined
+      if (!relOpts) return undefined
+      related = getMetaWithCompositeKey(
+        metas,
+        relOpts.fk_related_base_id || currentMeta?.base_id,
+        relOpts.fk_related_model_id as string,
+      )
+      next = (m) => m?.columns?.find((c) => c.id === opts.fk_lookup_column_id)
+    } else return current
+    if (!related) return undefined
+    current = next(related)
+    currentMeta = related
+  }
+  return undefined
+}
+
+const TEXT_LEAF = new Set<string>([UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.URL, UITypes.PhoneNumber])
+const NUMERIC_LEAF = new Set<string>([
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.AutoNumber,
+])
+
+// Search clause on a single-record link column: the server resolves the op on it to the leaf display column.
+// undefined: not a link; '': a link whose leaf cannot be searched with this query. With no metas the leaf
+// is unknown and `like` is assumed.
 export function linkDisplaySearchClause(
   col: ColumnType,
   query: string,
   as: 'string' | 'object' = 'string',
-): string | { fk_column_id: string; comparison_op: 'like'; value: string } | undefined {
+  ctx?: { meta?: TableType; metas?: Record<string, TableType> },
+): string | { fk_column_id: string; comparison_op: 'like' | 'eq'; value: string } | undefined {
   const value = query?.trim()
   if (!value || !isSingleRecordLinkColumn(col)) return undefined
-  if (as === 'object') return { fk_column_id: col.id!, comparison_op: 'like', value }
-  return `(${col.title},like,%${value}%)`
+
+  let op: 'like' | 'eq' = 'like'
+  const leaf = ctx ? resolveLeafColumnSync(col, ctx.meta, ctx.metas) : undefined
+  if (leaf) {
+    const dataType = (leaf.colOptions as any)?.parsed_tree?.dataType
+    if (TEXT_LEAF.has(leaf.uidt as string)) op = 'like'
+    else if (NUMERIC_LEAF.has(leaf.uidt as string) || (leaf.uidt === UITypes.Formula && dataType === FormulaDataTypes.NUMERIC)) {
+      if (ncIsNaN(value)) return ''
+      op = 'eq'
+    } else if (leaf.uidt === UITypes.Formula && (dataType === undefined || dataType === FormulaDataTypes.STRING)) {
+      op = 'like'
+    } else return ''
+  }
+
+  if (as === 'object') return { fk_column_id: col.id!, comparison_op: op, value }
+  return op === 'like' ? `(${col.title},like,%${value}%)` : `(${col.title},eq,${value})`
 }
 
 // Loads, one hop at a time, the metas a record's link display chain still lacks.

@@ -1448,12 +1448,19 @@ export class ImportService {
     // otherwise keep the scalar display value `tableCreate` picked. A display value is a
     // preference, so a link that no longer qualifies here must not fail the whole job.
     for (const data of param.data) {
+      // A column duplicate imports one column into a live table, but `data.model.columns`
+      // still lists every column — the display value never moved, so leave it alone rather
+      // than re-applying it and emitting its hooks, audit rows and broadcasts again.
+      if (param.existingModel) break;
+
       const pvColumn = data.model.columns?.find(
         (c) => c.pv && isLinksOrLTAR(c),
       );
       if (!pvColumn) continue;
 
-      const columnId = getIdOrExternalId(pvColumn.id);
+      // only a column this import created — `getIdOrExternalId` would fall back to the
+      // live column through `externalIdMap`
+      const columnId = idMap.get(pvColumn.id);
       if (!columnId) continue;
 
       try {

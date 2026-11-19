@@ -4372,8 +4372,12 @@ export class ColumnsService implements IColumnsService {
     }
 
     // A link becomes a display value only through set-as-display-value, which checks cycles.
-    if ((param.column as any).pv && isLinksOrLTAR(param.column.uidt)) {
-      (param.column as any).pv = false;
+    if (
+      'pv' in param.column &&
+      param.column.pv &&
+      isLinksOrLTAR(param.column.uidt)
+    ) {
+      param.column.pv = false;
     }
 
     validatePayload(

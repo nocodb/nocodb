@@ -17,7 +17,8 @@ export async function flattenDisplayValue(
   let col: Column = customDisplayColumn ?? pvColumn;
   let value = record[col.title] ?? record[col.id];
 
-  for (let i = 0; i < DISPLAY_VALUE_LINK_MAX_DEPTH; i++) {
+  // one pass past the cap reads the leaf of a chain of exactly that many links
+  for (let i = 0; i <= DISPLAY_VALUE_LINK_MAX_DEPTH; i++) {
     if (Array.isArray(value)) value = value[0];
     if (!isLinksOrLTAR(col) || value == null || typeof value !== 'object') {
       return value ?? null;

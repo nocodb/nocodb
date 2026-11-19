@@ -1,6 +1,5 @@
 import {
   isBtLikeV2Junction,
-  isLinksOrLTAR,
   isMMOrMMLike,
   isSingleRecordLinkColumn,
   NC_ERROR_SENTINEL,
@@ -39,39 +38,12 @@ import { rawFromBuilder } from '~/helpers/sqlSanitize';
 import { readsHiddenTable } from '~/helpers/tableHelpers';
 import {
   DISPLAY_VALUE_LINK_MAX_DEPTH,
-  getLinkDisplayOverride,
-  isUnfollowableChain,
-  resolveDisplayValueChain,
+  getDisplayValueOfRefTable,
 } from '~/helpers/displayValueCycle';
 
+export { getDisplayValueOfRefTable };
+
 const LOOKUP_VAL_SEPARATOR = '___';
-
-export async function getDisplayValueOfRefTable(
-  context: NcContext,
-  relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
-) {
-  const colOpt = await relationCol.getColOptions<
-    LinkToAnotherRecordColumn | LinksColumn
-  >();
-  const model = await colOpt.getRelatedTable();
-  const cols = await model.getColumns();
-
-  const override = getLinkDisplayOverride(colOpt, cols);
-  if (override) return override;
-
-  const pv = cols.find((col) => col.pv) || cols[0];
-
-  // A display value link that leads back to itself cannot be followed: use the id instead.
-  if (
-    pv &&
-    isLinksOrLTAR(pv) &&
-    isUnfollowableChain(await resolveDisplayValueChain(pv))
-  ) {
-    return cols.find((col) => col.pk) || cols[0];
-  }
-
-  return pv;
-}
 
 /**
  * Like getDisplayValueOfRefTable but supports filtering by the related record's

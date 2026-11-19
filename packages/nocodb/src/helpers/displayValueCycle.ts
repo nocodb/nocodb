@@ -11,6 +11,9 @@ import type {
   Model,
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
+import { Column as ColumnModel } from '~/models';
+import { MetaTable } from '~/utils/globals';
 
 // A display value chain longer than this is rejected rather than followed.
 // Keep it within getAst's nesting cap and the grid's LINKED_RECORD_MAX_DEPTH.
@@ -99,16 +102,86 @@ export async function resolveDisplayValueChain(
   return { chain, leaf: cur, cyclic: false, tooDeep: false };
 }
 
+export async function getDisplayValueOfRefTable(
+  context: NcContext,
+  relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
+) {
+  const colOpt = await relationCol.getColOptions<
+    LinkToAnotherRecordColumn | LinksColumn
+  >();
+  const model = await colOpt.getRelatedTable();
+  const cols = await model.getColumns();
+
+  const override = getLinkDisplayOverride(colOpt, cols);
+  if (override) return override;
+
+  const pv = cols.find((col) => col.pv) || cols[0];
+
+  // A display value link that leads back to itself cannot be followed: use the id instead.
+  if (
+    pv &&
+    isLinksOrLTAR(pv) &&
+    isUnfollowableChain(await resolveDisplayValueChain(pv))
+  ) {
+    return cols.find((col) => col.pk) || cols[0];
+  }
+
+  return pv;
+}
+
+/**
+ * Links in the longest chain of display-value links that ends at `modelId`: a link counts
+ * when it is its table's display value and reads the linked table's display value (no
+ * display column of its own). Same-base links only; one meta query per level, capped.
+ */
+async function longestUpstreamChain(
+  context: NcContext,
+  modelId: string,
+  seen = new Set<string>([modelId]),
+): Promise<number> {
+  if (seen.size > DISPLAY_VALUE_LINK_MAX_DEPTH) return 0;
+  const relations = await Noco.ncMeta.metaList2(
+    context.workspace_id,
+    context.base_id,
+    MetaTable.COL_RELATIONS,
+    { condition: { fk_related_model_id: modelId } },
+  );
+  let longest = 0;
+  for (const relation of relations) {
+    if (relation.fk_display_value_column_id) continue;
+    const col = await ColumnModel.get(context, {
+      colId: relation.fk_column_id,
+    });
+    if (
+      !col?.pv ||
+      !isLinksOrLTAR(col) ||
+      seen.has(col.fk_model_id) ||
+      (await col.getColOptions<LinkToAnotherRecordColumn>())
+        ?.fk_related_model_id !== modelId
+    ) {
+      continue;
+    }
+    const upstream = await longestUpstreamChain(
+      context,
+      col.fk_model_id,
+      new Set(seen).add(col.fk_model_id),
+    );
+    longest = Math.max(longest, 1 + upstream);
+  }
+  return longest;
+}
+
 /**
  * Rejects making `candidate` (a link column) its table's display value when following the
- * related tables' display values leads back to a column already on the path.
+ * related tables' display values leads back to a column already on the path, or when the
+ * chain, with the display-value links that already lead into its table, would be too deep.
  */
 export async function assertNoDisplayValueCycle(
   context: NcContext,
   candidate: Column,
   linkDisplayColumns?: Record<string, string | null>,
 ) {
-  const { cyclic, tooDeep } = await resolveDisplayValueChain(candidate, {
+  const { chain, cyclic, tooDeep } = await resolveDisplayValueChain(candidate, {
     override: { modelId: candidate.fk_model_id, column: candidate },
     linkDisplayColumns,
   });
@@ -117,7 +190,12 @@ export async function assertNoDisplayValueCycle(
       "This link would refer back to itself through the linked tables' display values.",
     );
   }
-  if (tooDeep) {
+  if (
+    tooDeep ||
+    chain.length +
+      (await longestUpstreamChain(context, candidate.fk_model_id)) >
+      DISPLAY_VALUE_LINK_MAX_DEPTH
+  ) {
     NcError.get(context).invalidRequestBody(
       `Linked display values are nested more than ${DISPLAY_VALUE_LINK_MAX_DEPTH} tables deep.`,
     );

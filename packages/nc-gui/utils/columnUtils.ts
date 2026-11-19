@@ -24,6 +24,7 @@ import {
   isLinksOrLTAR,
   isNumericCol,
   isRollupAggregatableColumn,
+  isSingleRecordLinkColumn,
   isSystemColumn,
   isValidPhoneNumber,
   isValidURL,
@@ -556,6 +557,8 @@ const getFormulaColDataType = (col: ColumnType) => {
 }
 
 const isSearchableColumn = (column: ColumnType) => {
+  // single-record links (even V2 `Links`) search by their leaf display text
+  if (isSingleRecordLinkColumn(column)) return !isSystemColumn(column)
   return (
     (column?.pk || !isSystemColumn(column)) &&
     ![

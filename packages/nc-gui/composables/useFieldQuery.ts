@@ -1,3 +1,4 @@
+import { linkDisplaySearchClause } from '~/utils/linkedRecordDisplay'
 import {
   ClientType,
   ColumnHelper,
@@ -103,6 +104,12 @@ export function useFieldQuery() {
     params: { getWhereQueryAs?: 'string' | 'object'; serializeLinkRecordSearchQuery?: boolean } = {},
   ): string | ValidSearchQueryForColumnReturnType => {
     if (!isValidValue(query)) return ''
+
+    // A single-record link (e.g. as a display value) is searched by its leaf text
+    if (params.getWhereQueryAs) {
+      const linkClause = linkDisplaySearchClause(col, query as string, params.getWhereQueryAs)
+      if (linkClause) return linkClause
+    }
 
     let searchQuery = query
 

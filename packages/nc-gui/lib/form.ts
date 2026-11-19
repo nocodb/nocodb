@@ -235,7 +235,7 @@ export class FormFilters {
       await resolveDisplayLeafColumn(
         relatedTableMeta,
         async (baseId, tableId) => {
-          const hopMeta = await getMeta({ baseId, tableIdOrTitle: tableId })
+          const hopMeta = await getMeta({ baseId, tableIdOrTitle: tableId, disableError: true })
           if (hopMeta) loaded[`${baseId}:${tableId}`] = hopMeta
           return hopMeta
         },

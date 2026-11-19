@@ -147,6 +147,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     }
 
     const { metas: metasMap } = useMetas()
+    const { ensureLinkedMetas } = useLinkedRecordMetas()
+
+    watch(
+      () => [row?.value?.row, meta?.value?.id],
+      () => {
+        const col = meta?.value?.columns?.find((c) => c.pv)
+        if (col && isSingleRecordLinkColumn(col)) ensureLinkedMetas(row.value?.row, meta.value)
+      },
+      { immediate: true },
+    )
 
     // getters
     const displayValue = computed(() => {

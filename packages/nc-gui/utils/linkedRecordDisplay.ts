@@ -135,3 +135,39 @@ export async function resolveDisplayLeafColumn(
     overrideId = opts.fk_display_value_column_id
   }
 }
+
+// Search clause on a single-record link column: the server resolves `like` on it to the leaf display text
+export function linkDisplaySearchClause(
+  col: ColumnType,
+  query: string,
+  as: 'string' | 'object' = 'string',
+): string | { fk_column_id: string; comparison_op: 'like'; value: string } | undefined {
+  const value = query?.trim()
+  if (!value || !isSingleRecordLinkColumn(col)) return undefined
+  if (as === 'object') return { fk_column_id: col.id!, comparison_op: 'like', value }
+  return `(${col.title},like,%${value}%)`
+}
+
+// Loads, one hop at a time, the metas a record's link display chain still lacks.
+// Failures stop quietly; the title then stays empty.
+export async function ensureLinkedRecordMetas(
+  record: Record<string, any> | null | undefined,
+  meta: TableType | undefined,
+  io: {
+    getMetas: () => Record<string, TableType> | undefined
+    loadMeta: (baseId: string, tableId: string) => Promise<unknown>
+  },
+  overrideColumnId?: string | null,
+): Promise<void> {
+  for (let i = 0; i <= LINKED_RECORD_MAX_DEPTH; i++) {
+    const { missingMeta } = resolveLinkedRecordDisplay(record, meta, { metas: io.getMetas(), overrideColumnId })
+    if (!missingMeta?.baseId) return
+    try {
+      await io.loadMeta(missingMeta.baseId, missingMeta.tableId)
+    } catch {
+      return
+    }
+    // still absent after the load: give up instead of looping
+    if (!getMetaWithCompositeKey(io.getMetas(), missingMeta.baseId, missingMeta.tableId)) return
+  }
+}

@@ -58,9 +58,9 @@ export default defineNuxtPlugin(() => {
     const index = openModals.indexOf(modal)
     openModals.splice(index, 1)
 
-    // a modal opened later still covers what this one marked, so it keeps it inert until it closes
-    const newest = openModals[openModals.length - 1]
-    if (newest && index < openModals.length) newest.marked.push(...modal.marked)
+    // the modal opened right after this one still covers what it marked, so it keeps it inert until it closes
+    const above = openModals[index]
+    if (above) above.marked.push(...modal.marked)
     else modal.marked.forEach((el) => el.removeAttribute('inert'))
   }
 

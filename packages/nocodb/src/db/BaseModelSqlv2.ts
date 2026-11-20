@@ -351,7 +351,8 @@ function cloneFilters(filters: Filter[]): Filter[] {
 }
 
 // A BT loader matches parents back by the referenced column, so it must be
-// fetched even when it is neither the pk nor the display value.
+// fetched even when it is neither the pk nor the display value. A pk is
+// always returned anyway, so it is never stripped.
 function withBtRefField(
   fieldsSet: Set<string> | undefined,
   pCol: Column,

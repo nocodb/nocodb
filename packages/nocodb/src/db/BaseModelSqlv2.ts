@@ -350,18 +350,6 @@ function cloneFilters(filters: Filter[]): Filter[] {
   );
 }
 
-// A BT loader matches parents back by the referenced column, so it must be
-// fetched even when it is neither the pk nor the display value. A pk is
-// always returned anyway, so it is never stripped.
-function withBtRefField(
-  fieldsSet: Set<string> | undefined,
-  pCol: Column,
-): { fieldsSet: Set<string> | undefined; added: boolean } {
-  if (!fieldsSet || fieldsSet.has(pCol.title) || fieldsSet.has(pCol.id))
-    return { fieldsSet, added: false };
-  return { fieldsSet: new Set([...fieldsSet, pCol.title]), added: !pCol.pk };
-}
-
 // A filtered Lookup's link conditions over `refBaseModel`'s rows
 async function lookupLinkFilters(
   refBaseModel: IBaseModelSqlV2,
@@ -2271,10 +2259,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 dbDriver: this.dbDriver,
                 queryQueue: this._queryQueue,
               });
-              const btFields = withBtRefField(readLoader.args?.fieldsSet, pCol);
               const data = await pBaseModel.list(
                 {
-                  fieldsSet: btFields.fieldsSet,
+                  // parents are matched back by the referenced column, so fetch it
+                  fieldsSet:
+                    readLoader.args?.fieldsSet &&
+                    new Set([...readLoader.args.fieldsSet, pCol.title]),
                   customConditions: await lookupLinkFilters(
                     pBaseModel,
                     readLoader.args?.lookupColumn,
@@ -2296,8 +2286,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               );
 
               const groupedList = groupBy(data, pCol.title);
-              if (btFields.added)
-                for (const row of data) delete row[pCol.title];
               return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
             }),
           {
@@ -2364,13 +2352,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   dbDriver: this.dbDriver,
                   queryQueue: this._queryQueue,
                 });
-                const btFields = withBtRefField(
-                  readLoader.args?.fieldsSet,
-                  pCol,
-                );
                 const data = await pBaseModel.list(
                   {
-                    fieldsSet: btFields.fieldsSet,
+                    // parents are matched back by the referenced column, so fetch it
+                    fieldsSet:
+                      readLoader.args?.fieldsSet &&
+                      new Set([...readLoader.args.fieldsSet, pCol.title]),
                     customConditions: await lookupLinkFilters(
                       pBaseModel,
                       readLoader.args?.lookupColumn,
@@ -2392,8 +2379,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 );
 
                 const groupedList = groupBy(data, pCol.title);
-                if (btFields.added)
-                  for (const row of data) delete row[pCol.title];
                 return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
               }),
             {

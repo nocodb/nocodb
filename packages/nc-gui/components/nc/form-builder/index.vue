@@ -425,6 +425,7 @@ watch(
                       class="!w-full !rounded-lg !text-sm !min-h-[90px] max-h-[500px] nc-scrollbar-thin"
                       size="large"
                       hide-details
+                      :disabled="disabled || field.disabled"
                       :value="deepReference(field.model)"
                       :placeholder="field.placeholder"
                       @update:value="setFormStateWithEmit(field.model, $event)"
@@ -658,13 +659,15 @@ watch(
                       :element="field"
                       :have-value="!!deepReference(field.model)"
                       :form-data="formState"
+                      :disabled="disabled || field.disabled"
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Checkbox">
                     <div
-                      class="px-3 py-2 border-1 cursor-pointer rounded-lg shadow-default transition-shadow border-nc-border-gray-medium"
-                      @click="setFormStateWithEmit(field.model, !deepReference(field.model))"
+                      class="px-3 py-2 border-1 rounded-lg shadow-default transition-shadow border-nc-border-gray-medium"
+                      :class="disabled || field.disabled ? 'cursor-not-allowed' : 'cursor-pointer'"
+                      @click="!(disabled || field.disabled) && setFormStateWithEmit(field.model, !deepReference(field.model))"
                     >
                       <div class="flex gap-3">
                         <NcCheckbox :disabled="disabled || field.disabled" :checked="deepReference(field.model)" />

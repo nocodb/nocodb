@@ -24,8 +24,8 @@ import Model from '~/models/Model';
 import Column from '~/models/Column';
 import { pluralizeTitle } from '~/helpers/pluralizeTitle';
 
-// System columns of a NocoDB-created table. An external table with all six is
-// treated as one NocoDB created, so they map back to system fields.
+// System columns of a NocoDB-created table, mapped back to system fields when an
+// external table has them.
 const NC_SYSTEM_COL_UIDT: Record<string, UITypes> = {
   created_at: UITypes.CreatedTime,
   updated_at: UITypes.LastModifiedTime,
@@ -35,12 +35,28 @@ const NC_SYSTEM_COL_UIDT: Record<string, UITypes> = {
   [META_COL_NAME]: UITypes.Meta,
 };
 
-/** Column name -> system uidt when all six NocoDB system columns are present, else null. */
+// Every NocoDB-created table has these; nc_row_meta exists only on EE + PG tables.
+const NC_REQUIRED_SYSTEM_COLS = [
+  'created_at',
+  'updated_at',
+  'created_by',
+  'updated_by',
+  'nc_order',
+];
+
+// System types a regular field can become without changing how records are
+// written: the created/modified ones reject API writes and are auto-filled.
+export const NC_CONVERTIBLE_SYSTEM_UIDTS: ReadonlySet<UITypes> = new Set([
+  UITypes.Order,
+  UITypes.Meta,
+]);
+
+/** Column name -> system uidt for a NocoDB-created table, else null. */
 export function getNcSystemColumnUidts(
   columnNames: Array<string>,
 ): Record<string, UITypes> | null {
   const names = new Set(columnNames);
-  return Object.keys(NC_SYSTEM_COL_UIDT).every((name) => names.has(name))
+  return NC_REQUIRED_SYSTEM_COLS.every((name) => names.has(name))
     ? NC_SYSTEM_COL_UIDT
     : null;
 }

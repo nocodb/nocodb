@@ -37,6 +37,7 @@ import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import {
   getNcSystemColumnUidts,
   mapNcSystemColumns,
+  NC_CONVERTIBLE_SYSTEM_UIDTS,
 } from '~/helpers/populateMeta';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -320,9 +321,11 @@ export class MetaDiffsService {
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
 
         const systemUidt = getSystemUidt(column.cn);
-        // a display value column, or one other fields depend on, stays a regular field
+        // An already-synced field converts only to Order or Meta; a display value
+        // column, or one other fields depend on, stays a regular field.
         if (
           systemUidt &&
+          NC_CONVERTIBLE_SYSTEM_UIDTS.has(systemUidt) &&
           !oldCol.pv &&
           !(await this.hasTypeDependents(context, oldCol, tableColumns))
         ) {

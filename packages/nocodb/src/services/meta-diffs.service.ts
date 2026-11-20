@@ -33,6 +33,10 @@ import {
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
+import {
+  getNcSystemColumnUidts,
+  mapNcSystemColumns,
+} from '~/helpers/populateMeta';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
@@ -48,6 +52,7 @@ export enum MetaDiffType {
   TABLE_COLUMN_ADD = 'TABLE_COLUMN_ADD',
   TABLE_COLUMN_TYPE_CHANGE = 'TABLE_COLUMN_TYPE_CHANGE',
   TABLE_COLUMN_PROPS_CHANGED = 'TABLE_COLUMN_PROPS_CHANGED',
+  TABLE_COLUMN_SYSTEM_FIELD = 'TABLE_COLUMN_SYSTEM_FIELD',
   TABLE_COLUMN_REMOVE = 'TABLE_COLUMN_REMOVE',
   VIEW_NEW = 'VIEW_NEW',
   VIEW_REMOVE = 'VIEW_REMOVE',
@@ -94,6 +99,15 @@ type MetaDiffChange = {
       model?: Model;
       id?: string;
       cn: string;
+      // set when the column is a NocoDB system column of a NocoDB-created table
+      systemUidt?: UITypes;
+    }
+  | {
+      type: MetaDiffType.TABLE_COLUMN_SYSTEM_FIELD;
+      id?: string;
+      cn: string;
+      column: Column;
+      uidt: UITypes;
     }
   | {
       type:
@@ -271,6 +285,19 @@ export class MetaDiffsService {
 
       await oldMeta.getColumns();
 
+      // A NocoDB-created table: its system columns become system fields, unless
+      // the table already has a system field of that type.
+      const ncSystemUidts = getNcSystemColumnUidts(
+        colListRef[table.tn].map((c) => c.cn),
+      );
+      const existingSystemUidts = new Set(
+        oldMeta.columns.filter((c) => c.system).map((c) => c.uidt),
+      );
+      const getSystemUidt = (cn: string) => {
+        const uidt = ncSystemUidts?.[cn];
+        return uidt && !existingSystemUidts.has(uidt) ? uidt : undefined;
+      };
+
       for (const column of colListRef[table.tn]) {
         const oldColIdx = oldMeta.columns.findIndex(
           (c) => c.column_name === column.cn,
@@ -283,11 +310,25 @@ export class MetaDiffsService {
             msg: `New column(${column.cn})`,
             cn: column.cn,
             id: oldMeta.id,
+            systemUidt: getSystemUidt(column.cn),
           });
           continue;
         }
 
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
+
+        const systemUidt = getSystemUidt(column.cn);
+        // a display value column stays a regular field
+        if (systemUidt && !oldCol.pv) {
+          tableProp.detectedChanges.push({
+            type: MetaDiffType.TABLE_COLUMN_SYSTEM_FIELD,
+            msg: `Column is a NocoDB system field(${column.cn})`,
+            cn: oldCol.column_name,
+            id: oldMeta.id,
+            column: oldCol,
+            uidt: systemUidt,
+          });
+        }
 
         if (
           oldCol.dt !== column.dt ||
@@ -963,6 +1004,7 @@ export class MetaDiffsService {
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
+              mapNcSystemColumns(columns);
               mapDefaultDisplayValue(columns);
 
               const model = await Model.insert(context, base.id, source.id, {
@@ -977,7 +1019,10 @@ export class MetaDiffsService {
               });
 
               for (const column of columns) {
-                const uidt = getColumnUiType(source, column);
+                const uidt =
+                  column.system && column.uidt
+                    ? column.uidt
+                    : getColumnUiType(source, column);
                 await Column.insert(context, {
                   uidt,
                   fk_model_id: model.id,
@@ -997,6 +1042,7 @@ export class MetaDiffsService {
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
+              mapNcSystemColumns(columns);
               mapDefaultDisplayValue(columns);
 
               const model = await Model.insert(context, base.id, source.id, {
@@ -1007,7 +1053,10 @@ export class MetaDiffsService {
               });
 
               for (const column of columns) {
-                const uidt = getColumnUiType(source, column);
+                const uidt =
+                  column.system && column.uidt
+                    ? column.uidt
+                    : getColumnUiType(source, column);
                 await Column.insert(context, {
                   uidt,
                   fk_model_id: model.id,
@@ -1034,7 +1083,12 @@ export class MetaDiffsService {
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
-              column.uidt = getColumnUiType(source, column);
+              if (change.systemUidt) {
+                column.uidt = change.systemUidt;
+                column.system = true;
+              } else {
+                column.uidt = getColumnUiType(source, column);
+              }
               column.meta = getIntrospectedColumnMeta(column.uidt, column);
               //todo: inflection
               column.title = getColumnNameAlias(column.cn, source);
@@ -1107,6 +1161,13 @@ export class MetaDiffsService {
                 ),
               });
             }
+            break;
+          case MetaDiffType.TABLE_COLUMN_SYSTEM_FIELD:
+            // meta only: the DB type is unchanged
+            await Column.update(context, change.column.id, {
+              uidt: change.uidt,
+              system: true,
+            });
             break;
           case MetaDiffType.TABLE_COLUMN_REMOVE:
           case MetaDiffType.VIEW_COLUMN_REMOVE:

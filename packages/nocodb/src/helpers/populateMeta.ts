@@ -24,6 +24,41 @@ import Model from '~/models/Model';
 import Column from '~/models/Column';
 import { pluralizeTitle } from '~/helpers/pluralizeTitle';
 
+// System columns of a NocoDB-created table. An external table with all six is
+// treated as one NocoDB created, so they map back to system fields.
+const NC_SYSTEM_COL_UIDT: Record<string, UITypes> = {
+  created_at: UITypes.CreatedTime,
+  updated_at: UITypes.LastModifiedTime,
+  created_by: UITypes.CreatedBy,
+  updated_by: UITypes.LastModifiedBy,
+  nc_order: UITypes.Order,
+  [META_COL_NAME]: UITypes.Meta,
+};
+
+/** Column name -> system uidt when all six NocoDB system columns are present, else null. */
+export function getNcSystemColumnUidts(
+  columnNames: Array<string>,
+): Record<string, UITypes> | null {
+  const names = new Set(columnNames);
+  return Object.keys(NC_SYSTEM_COL_UIDT).every((name) => names.has(name))
+    ? NC_SYSTEM_COL_UIDT
+    : null;
+}
+
+/** Marks the NocoDB system columns of a NocoDB-created table as system fields. */
+export function mapNcSystemColumns(
+  columns: Array<{ cn: string; uidt?: UITypes | string; system?: boolean }>,
+) {
+  const systemUidts = getNcSystemColumnUidts(columns.map((c) => c.cn));
+  if (!systemUidts) return;
+  for (const column of columns) {
+    if (systemUidts[column.cn]) {
+      column.uidt = systemUidts[column.cn];
+      column.system = true;
+    }
+  }
+}
+
 export const IGNORE_TABLES = [
   'nc_models',
   'nc_roles',
@@ -334,17 +369,6 @@ export async function populateMeta(
 
   // await this.syncRelations();
 
-  // Detect NocoDB-created tables by presence of all 6 system columns.
-  // If all are found together, remap them to their proper UITypes and mark as system.
-  const NC_SYSTEM_COL_UIDT: Record<string, UITypes> = {
-    created_at: UITypes.CreatedTime,
-    updated_at: UITypes.LastModifiedTime,
-    created_by: UITypes.CreatedBy,
-    updated_by: UITypes.LastModifiedBy,
-    nc_order: UITypes.Order,
-    [META_COL_NAME]: UITypes.Meta,
-  };
-
   const tableMetasInsert = tables.map((table) => {
     return async () => {
       logger?.(`Populating meta for table '${table.title}'`);
@@ -374,17 +398,10 @@ export async function populateMeta(
           ? []
           : tableRelations.filter((r) => r.tn === table.tn);
 
-      const columnNameSet = new Set(columns.map((c) => c.cn));
-      const isNcCreatedTable = Object.keys(NC_SYSTEM_COL_UIDT).every((name) =>
-        columnNameSet.has(name),
-      );
+      mapNcSystemColumns(columns);
 
       for (const column of columns) {
-        // Remap NocoDB system columns to their proper UITypes
-        if (isNcCreatedTable && NC_SYSTEM_COL_UIDT[column.cn]) {
-          column.uidt = NC_SYSTEM_COL_UIDT[column.cn];
-          column.system = true;
-        } else if (!column.uidt) {
+        if (!column.uidt) {
           column.uidt = getColumnUiType(source, column);
         }
       }

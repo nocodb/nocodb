@@ -30,6 +30,7 @@ import {
 import Filter, {
   FILTER_ENFORCED,
   FILTER_FROM_CONFIG,
+  FILTER_RAW_CLAUSE,
   FILTER_STORED_BASE,
   markEnforcedFilters,
 } from '~/models/Filter';
@@ -420,6 +421,11 @@ const parseConditionV2 = async (
     // Skip disabled leaf filters
     if (isFilterDisabled(filter, supportToggle)) {
       return { clause: () => {}, rootApply: () => {} };
+    }
+
+    const rawClause = filter[FILTER_RAW_CLAUSE];
+    if (rawClause) {
+      return { clause: (qbP) => rawClause(qbP, alias) };
     }
 
     // handle group by filter separately,

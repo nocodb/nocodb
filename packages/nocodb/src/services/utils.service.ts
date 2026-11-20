@@ -37,6 +37,7 @@ import {
   NC_DISABLE_SUPPORT_CHAT,
 } from '~/utils/nc-config';
 import NocoCache from '~/cache/NocoCache';
+import { isGlobalSearchEnabled } from '~/db/search/searchIndexMeta';
 
 const versionCache = {
   releaseVersion: null,
@@ -463,6 +464,7 @@ export class UtilsService {
       timezone: defaultConnectionConfig.timezone,
       ncMin: !!process.env.NC_MIN,
       teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
+      globalSearchEnabled: isGlobalSearchEnabled(),
       errorReportingEnabled: process.env.NC_DISABLE_ERR_REPORTS !== 'true',
       sentryDSN:
         process.env.NC_DISABLE_ERR_REPORTS !== 'true'

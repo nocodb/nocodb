@@ -170,3 +170,25 @@ export const getWebhookMaxBodySize = () => {
   }
   return DEFAULT_WEBHOOK_MAX_BODY_SIZE;
 };
+
+const positiveIntEnv = (name: string, fallback: number) => {
+  const parsed = parseInt(process.env[name] ?? '', 10);
+  return !isNaN(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+// All-fields search: per-statement timeout, and search requests one base may
+// run at once in this process (further ones wait NC_SEARCH_QUEUE_WAIT_MS, then
+// 429). The cap counts requests: one grid search sends at least 3 (count, one
+// per list-chunk batch, aggregate), so 12 is at most 4 concurrent searches.
+export const NC_SEARCH_STATEMENT_TIMEOUT_MS = positiveIntEnv(
+  'NC_SEARCH_STATEMENT_TIMEOUT_MS',
+  5000,
+);
+export const NC_SEARCH_MAX_CONCURRENT = positiveIntEnv(
+  'NC_SEARCH_MAX_CONCURRENT',
+  12,
+);
+export const NC_SEARCH_QUEUE_WAIT_MS = positiveIntEnv(
+  'NC_SEARCH_QUEUE_WAIT_MS',
+  2000,
+);

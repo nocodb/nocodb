@@ -48,6 +48,8 @@ import { DuplicateModelUtils } from '~/utils/duplicate-model.utils';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import { Untraced } from '~/decorators/trace-command.decorator';
 import { NcError } from '~/helpers/catchError';
+import { runWithSearchIndexDeferred } from '~/db/search/searchIndexScope';
+import { rebuildSearchIndexFields } from '~/db/search/searchIndexSync';
 
 @Injectable()
 export class DuplicateProcessor {
@@ -770,6 +772,18 @@ export class DuplicateProcessor {
         sourceColumn.fk_model_id,
       )
     ).forCreate();
+    // The copy's writes are left untracked: only the new fields need
+    // indexing, built once the copy is done.
+    const columnIdsBefore = new Map<string, Set<string>>();
+    for (const model of [sourceModel, ...relatedModels]) {
+      columnIdsBefore.set(
+        model.id,
+        new Set((await model.getColumns()).map((c) => c.id)),
+      );
+    }
+    const searchDeferred = <T>(fn: () => Promise<T>) =>
+      runWithSearchIndexDeferred([...columnIdsBefore.keys()], fn);
+
     let idMap: Map<string, string>;
     try {
       // save old default value
@@ -793,18 +807,20 @@ export class DuplicateProcessor {
 
       Object.assign(replacedColumn, extra);
 
-      idMap = await this.importService.importModels(context, {
-        baseId,
-        sourceId: source.id,
-        data: [exportedModel],
-        user,
-        req,
-        attachmentHolder: null,
-        externalModels: relatedModels,
-        existingModel: sourceModel,
-        importColumnIds: [columnId],
-        columnWebhookManager,
-      });
+      idMap = await searchDeferred(() =>
+        this.importService.importModels(context, {
+          baseId,
+          sourceId: source.id,
+          data: [exportedModel],
+          user,
+          req,
+          attachmentHolder: null,
+          externalModels: relatedModels,
+          existingModel: sourceModel,
+          importColumnIds: [columnId],
+          columnWebhookManager,
+        }),
+      );
 
       elapsedTime(hrTime, 'import model schema', 'duplicateColumn');
 
@@ -847,21 +863,23 @@ export class DuplicateProcessor {
             fields[md.id].push(...bts);
           }
         }
-        await this.importModelsData(context, context, {
-          idMap,
-          sourceProject: base,
-          sourceModels: [],
-          destProject: base,
-          destBase: source,
-          hrTime,
-          modelFieldIds: fields,
-          externalModels: [
-            sourceModel,
-            ...relatedModels.filter((m) => m.id !== sourceModel.id),
-          ],
-          req,
-          droppedAttachments,
-        });
+        await searchDeferred(() =>
+          this.importModelsData(context, context, {
+            idMap,
+            sourceProject: base,
+            sourceModels: [],
+            destProject: base,
+            destBase: source,
+            hrTime,
+            modelFieldIds: fields,
+            externalModels: [
+              sourceModel,
+              ...relatedModels.filter((m) => m.id !== sourceModel.id),
+            ],
+            req,
+            droppedAttachments,
+          }),
+        );
 
         elapsedTime(hrTime, 'import model data', 'duplicateColumn');
       }
@@ -878,17 +896,27 @@ export class DuplicateProcessor {
         !isAIPromptCol(destColumn) &&
         destColumn.uidt !== UITypes.UUID
       ) {
-        await this.columnsService.columnUpdate(context, {
-          columnId: findWithIdentifier(idMap, sourceColumn.id),
-          column: {
-            ...destColumn,
-            cdf: oldCdf,
-            ...(oldRequired ? { rqd: oldRequired } : {}),
-          },
-          user: req.user,
-          req,
-          columnWebhookManager,
-        });
+        await searchDeferred(() =>
+          this.columnsService.columnUpdate(context, {
+            columnId: findWithIdentifier(idMap, sourceColumn.id),
+            column: {
+              ...destColumn,
+              cdf: oldCdf,
+              ...(oldRequired ? { rqd: oldRequired } : {}),
+            },
+            user: req.user,
+            req,
+            columnWebhookManager,
+          }),
+        );
+      }
+
+      for (const [modelId, before] of columnIdsBefore) {
+        const model = await Model.get(context, modelId);
+        const added = (await model?.getColumns())
+          ?.map((c) => c.id)
+          .filter((id) => !before.has(id));
+        await rebuildSearchIndexFields(context, modelId, added ?? []);
       }
 
       this.debugLog(

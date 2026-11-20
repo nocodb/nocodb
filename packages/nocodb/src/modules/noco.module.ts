@@ -118,6 +118,7 @@ import { SortsService } from '~/services/sorts.service';
 import { SourcesService } from '~/services/sources.service';
 import { SyncService } from '~/services/sync.service';
 import { TablesService } from '~/services/tables.service';
+import { SearchIndexService } from '~/services/search-index.service';
 import { UtilsService } from '~/services/utils.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
@@ -335,6 +336,7 @@ export const nocoModuleMetadata = {
     ViewColumnsService,
     UtilsService,
     TablesService,
+    SearchIndexService,
     SyncService,
     SortsService,
     SharedBasesService,
@@ -410,6 +412,7 @@ export const nocoModuleMetadata = {
     /* Metas */
     MetaService,
     TablesService,
+    SearchIndexService,
     ColumnsService,
     LinkPlaceholderService,
     DuplicateDetectionService,

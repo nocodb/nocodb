@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   dataSourceClientOf,
   IntegrationsType,
@@ -22,6 +23,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { dropSearchSchema } from '~/db/search/searchIndexSchema';
 import {
   parseMetaProp,
   prepareForDb,
@@ -65,6 +67,8 @@ export const SOURCE_UPDATE_PROPS = [
   'fk_integration_id',
   'is_encrypted',
 ];
+
+const logger = new Logger('Source');
 
 export default class Source implements SourceType {
   id?: string;
@@ -544,6 +548,13 @@ export default class Source implements SourceType {
   }
 
   async sourceCleanup(_ncMeta = Noco.ncMeta) {
+    if (this.isMeta() && /^(pg|postgres)/.test(this.type ?? '')) {
+      try {
+        await dropSearchSchema(await NcConnectionMgrv2.get(this), this.base_id);
+      } catch (e) {
+        logger.warn(`Search index cleanup failed for ${this.base_id}: ${e}`);
+      }
+    }
     await NcConnectionMgrv2.releaseSource(this);
     // Not a static import: ProjectMgrv2 → KnexMigratorv2 → Base cycles back into the models.
     const { default: ProjectMgrv2 } = await import(

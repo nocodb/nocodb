@@ -13,6 +13,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { flagFailingRollups, isRollupDataError } from '~/db/rollupReadFallback';
 import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import conditionV2 from '~/db/conditionV2';
+import { getSearchFilters } from '~/db/search';
 import { Filter, GridViewColumn, KanbanView, Model } from '~/models';
 import { getDataQueryTimeout } from '~/utils/nc-config';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -177,6 +178,7 @@ export const aggregate = (_client: DBQueryClient, logger?: Logger) => {
             is_group: true,
             logical_op: 'and',
           }),
+          ...(await getSearchFilters(baseModel, args)),
         ],
         qb,
       );

@@ -412,6 +412,18 @@ export async function hasTableVisibilityRule(
 const linkTargetVerdicts = new WeakMap<object, Map<string, Promise<boolean>>>();
 
 /**
+ * Whether `isLinkTargetHidden` can hide anything from this requester: a read
+ * with no user that is not a public share (jobs, webhooks), or a service
+ * user, is never limited.
+ */
+export function canHideLinkTargets(context: NcContext): boolean {
+  const publicShare =
+    isSharedViewAccess(context) ||
+    context.access_source === NcAccessSource.SHARED_BASE;
+  return !context.user ? publicShare : !isServiceUser(context.user);
+}
+
+/**
  * Whether a link's related table is hidden from the requester. Unlike
  * `hasLimitedLinkTargetAccess`, a shared view is not limited by itself, and a
  * read with no user that is not a public share (jobs, webhooks) is not limited.
@@ -420,10 +432,7 @@ export async function isLinkTargetHidden(
   context: NcContext,
   colOptions: LinkToAnotherRecordColumn,
 ): Promise<boolean> {
-  const publicShare =
-    isSharedViewAccess(context) ||
-    context.access_source === NcAccessSource.SHARED_BASE;
-  if (!context.user ? !publicShare : isServiceUser(context.user)) return false;
+  if (!canHideLinkTargets(context)) return false;
   if (
     context.access_source === NcAccessSource.SHARED_BASE &&
     colOptions.isCrossBaseLink()

@@ -6,8 +6,10 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { QueryGuardInterceptor } from '~/interceptors/query-guard/query-guard.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { CalendarDatasService } from '~/services/calendar-datas.service';
@@ -18,6 +20,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
+@UseInterceptors(QueryGuardInterceptor)
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class CalendarDatasController {
   constructor(private readonly calendarDatasService: CalendarDatasService) {}

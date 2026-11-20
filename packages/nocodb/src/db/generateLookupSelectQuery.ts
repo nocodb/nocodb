@@ -638,11 +638,6 @@ export default async function generateLookupSelectQuery({
           const parentModel = await parentColumn.getModel();
           await parentModel.getColumns();
 
-          const childBaseModel = await Model.getBaseModelSQL(childContext, {
-            model: childModel,
-            dbDriver: knex,
-          });
-
           const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
             model: parentModel,
             dbDriver: knex,
@@ -676,15 +671,6 @@ export default async function generateLookupSelectQuery({
               knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`) as any,
               '=',
               knex.ref(`${nestedAlias}.${parentColumn.column_name}`) as any,
-            )
-            .where(
-              knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
-              '=',
-              knex.ref(
-                `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
-                  childColumn.column_name
-                }`,
-              ),
             );
 
           // Exclude soft-deleted referenced records from nested MM lookup
@@ -841,6 +827,7 @@ export default async function generateLookupSelectQuery({
               )
               .from(selectQb.as(subQueryAlias)),
             applyCte,
+            aggregated: true,
           };
         }
         // alternate approach with array_agg
@@ -849,6 +836,7 @@ export default async function generateLookupSelectQuery({
             .select(knex.raw('json_agg(??)::text', [lookupColumn.id]))
             .from(selectQb.as(subQueryAlias)),
           applyCte,
+          aggregated: true,
         };
         /*
         // alternate approach with array_agg

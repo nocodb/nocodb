@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
+import { SEARCH_COUNT_CAP } from 'nocodb-sdk'
 
 const props = defineProps<{
   // Render the box in the toolbar instead of a body-teleported popup, for hosts that scroll inside the page.
@@ -20,8 +21,19 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { meta, eventBus, isGrid, isGallery, isList, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
-  useSmartsheetStoreOrThrow()
+const {
+  meta,
+  eventBus,
+  isGrid,
+  isGallery,
+  isList,
+  totalRowsWithSearchQuery,
+  totalRowsWithoutSearchQuery,
+  gridEditEnabled,
+  isAllFieldsSearchSupported,
+  searchCursorRow,
+  searchState,
+} = useSmartsheetStoreOrThrow()
 
 const { lastOpenedViewId } = storeToRefs(useViewsStore())
 
@@ -33,7 +45,9 @@ const route = router.currentRoute
 
 const { search, loadFieldQuery, isScoped: isScopedSearch } = useFieldQuery()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, appInfo, loadAppInfo } = useGlobal()
+
+const { blockGlobalSearch, showUpgradeToUseGlobalSearch } = useEeConfig()
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 const { getMetaByKey } = useMetas()
@@ -56,6 +70,12 @@ const showSearchBox = ref(false)
 
 // Query cleared by Escape; restored (selected) on the next open.
 const lastClosedQuery = ref('')
+
+// Query (and field) the shown results are for; Enter on it steps through matches instead of reloading.
+const lastSearchedKey = ref('')
+
+// Set by Enter or an arrow; a new query or field clears it.
+const isSearchStepping = ref(false)
 
 const globalSearchRef = ref<HTMLInputElement>()
 
@@ -84,8 +104,13 @@ const freeSpaceForSearch = computed(() => spacerWidth.value + wrapperWidth.value
 // does not mis-fire in icon mode, where the toolbar buttons collapse to icons and free up space.
 const EXPANDED_SEARCH_MIN_WIDTH = 320
 
+// Extra width once the count shares the row; the input shrinks to make room for most of it.
+const SEARCH_RESULT_SLOT_WIDTH = 100
+
 const shouldCollapseSearch = computed(
-  () => freeSpaceForSearch.value > 0 && freeSpaceForSearch.value < EXPANDED_SEARCH_MIN_WIDTH - 20,
+  () =>
+    freeSpaceForSearch.value > 0 &&
+    freeSpaceForSearch.value < EXPANDED_SEARCH_MIN_WIDTH + (search.value.query?.trim() ? SEARCH_RESULT_SLOT_WIDTH : 0) - 20,
 )
 
 const isSearchButtonVisible = computed(() => {
@@ -124,6 +149,75 @@ const columns = computed(() => {
   return (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? []
 })
 
+// Grouped grids load rows per group and keep single-field search for now.
+const isAllFieldsSearchAvailable = computed(() => isAllFieldsSearchSupported.value && !isGroupBy.value)
+
+// Listed with an upgrade badge on a plan without it, but never selected.
+const isAllFieldsUsable = computed(() => isAllFieldsSearchAvailable.value && !blockGlobalSearch.value)
+
+const isAllFieldsSelected = computed(() => isAllFieldsUsable.value && search.value.field === ALL_FIELDS_SEARCH_FIELD)
+
+const allFieldsOption = computed(() => ({ id: ALL_FIELDS_SEARCH_FIELD, title: t('labels.allFields') } as ColumnType))
+
+const fieldOptions = computed(() =>
+  isAllFieldsSearchAvailable.value ? [allFieldsOption.value, ...columns.value] : columns.value,
+)
+
+// Only an all-fields count is capped; a single-field count is exact.
+const isSearchCountCapped = computed(() => isAllFieldsSelected.value && totalRowsWithSearchQuery.value > SEARCH_COUNT_CAP)
+
+const searchCountLabel = computed(() =>
+  isSearchCountCapped.value ? `${SEARCH_COUNT_CAP.toLocaleString()}+` : totalRowsWithSearchQuery.value.toLocaleString(),
+)
+
+const searchTotalLabel = computed(() => totalRowsWithoutSearchQuery.value.toLocaleString())
+
+const searchCountTooltip = computed(() =>
+  t(
+    'title.countOfTotalMatchingRecords',
+    { matched: searchCountLabel.value, total: searchTotalLabel.value },
+    totalRowsWithoutSearchQuery.value,
+  ),
+)
+
+// Say why a search may be slow or missing rows.
+const searchStateMessage = computed(() => {
+  if (!isAllFieldsSelected.value) return ''
+  switch (searchState.value) {
+    case 'indexing':
+      return t('msg.info.searchStateIndexing')
+    case 'failed':
+      return t('msg.info.searchStateFailed')
+    case 'too_large_unindexed':
+      return t('msg.info.searchStateTooLargeUnindexed')
+    case 'too_large':
+      return t('msg.info.searchStateTooLarge')
+    case 'unsupported':
+      return t('msg.info.searchStateUnsupported')
+    case 'catching_up':
+      return t('msg.info.searchStateCatchingUp')
+    case 'term_too_short':
+      return t('msg.info.searchStateTermTooShort')
+    default:
+      return ''
+  }
+})
+
+// Arrows stay (disabled) at zero matches so the input doesn't change width.
+const isSearchNavigationShown = computed(
+  () => isAllFieldsSelected.value && isSearchResultVisible.value && isGrid.value && !isGroupBy.value,
+)
+
+// Next/previous steps through the grid's rows, which are all matches (all-fields search only).
+const isSearchNavigationVisible = computed(() => isSearchNavigationShown.value && totalRowsWithSearchQuery.value > 0)
+
+// "1/900" replaces "900 of 1,000" only after a step; a slash so it never reads as the count.
+const searchPositionLabel = computed(() =>
+  isSearchStepping.value && isSearchNavigationVisible.value && searchCursorRow.value >= 0
+    ? `${(searchCursorRow.value + 1).toLocaleString()}/${searchCountLabel.value}`
+    : '',
+)
+
 watch(
   () => activeView.value?.id,
   (n, o) => {
@@ -157,21 +251,73 @@ if (isList.value && listViewStore) {
 }
 
 function onPressEnter() {
+  lastSearchedKey.value = searchKey()
   $e('a:view:search')
   reloadData.trigger({ shouldShowLoading: false, offset: 0, inPlace: true })
   reloadAggregate?.trigger()
 }
 
+// Turned off on the server since this page loaded: with appInfo refreshed the box falls back to the display value field.
+watch(searchState, async (state) => {
+  if (state !== 'disabled') return
+  await loadAppInfo()
+  await nextTick()
+  if (!appInfo.value.globalSearchEnabled && search.value.query?.trim()) onPressEnter()
+})
+
+function searchKey() {
+  return `${search.value.field}:${search.value.query?.trim() ?? ''}`
+}
+
+function navigateSearch(direction: 1 | -1) {
+  isSearchStepping.value = true
+  $e('c:view:search:navigate', { direction: direction === 1 ? 'next' : 'previous' })
+  // Past the cap only the first SEARCH_COUNT_CAP matches are loaded, so stepping stops at the ends instead of wrapping.
+  eventBus.emit(SmartsheetStoreEvents.SEARCH_NAVIGATE, {
+    direction,
+    viewId: activeView.value?.id,
+    wrap: !isSearchCountCapped.value,
+  })
+}
+
+// Enter runs the search at once; the typing debounce still pending for the same text would run it again.
+let enterSearch: { key: string; at: number } | undefined
+
+function onSearchEnter(e: KeyboardEvent) {
+  if (isSearchNavigationVisible.value && lastSearchedKey.value === searchKey()) {
+    navigateSearch(e.shiftKey ? -1 : 1)
+    return
+  }
+  enterSearch = { key: searchKey(), at: Date.now() }
+  onPressEnter()
+}
+
 const displayColumn = computed(() => {
+  if (isAllFieldsSelected.value) return undefined
   if (search.value.field) {
     // use search field label if specified
     return columns.value?.find((column) => column.id === search.value.field)
   }
   // use primary value label by default
-  const pvColumn = columns.value?.find((column) => column.pv)
-  search.value.field = pvColumn?.id as string
-  return pvColumn
+  return columns.value?.find((column) => column.pv)
 })
+
+watch(searchKey, () => {
+  isSearchStepping.value = false
+})
+
+// "All fields" is the default where available; elsewhere the box falls back to the display value field.
+watch(
+  [isAllFieldsUsable, () => search.value.field, columns],
+  ([isAvailable, field]) => {
+    if (!field && isAvailable) {
+      search.value.field = ALL_FIELDS_SEARCH_FIELD
+    } else if (!field || (field === ALL_FIELDS_SEARCH_FIELD && !isAvailable)) {
+      search.value.field = columns.value?.find((column) => column.pv)?.id ?? ''
+    }
+  },
+  { immediate: true },
+)
 
 const searchInputMode = computed(() => {
   if (!displayColumn.value?.uidt) return
@@ -180,12 +326,13 @@ const searchInputMode = computed(() => {
 })
 
 const displayColumnLabel = computed(() => {
-  return displayColumn.value?.title
+  return isAllFieldsSelected.value ? t('labels.allFields') : displayColumn.value?.title
 })
 
 watchDebounced(
   () => search.value.query,
   () => {
+    if (enterSearch?.key === searchKey() && Date.now() - enterSearch.at < 1000) return
     onPressEnter()
   },
   {
@@ -194,6 +341,12 @@ watchDebounced(
 )
 
 const onSelectOption = (column: ColumnType) => {
+  if (column.id === ALL_FIELDS_SEARCH_FIELD && blockGlobalSearch.value) {
+    isDropdownOpen.value = false
+    showUpgradeToUseGlobalSearch({ triggerSource: 'search-all-fields' })
+    return
+  }
+
   search.value.field = column.id as string
   isDropdownOpen.value = false
 
@@ -379,7 +532,10 @@ useSearchCommands({
             <div class="flex items-center gap-2 group px-2 cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
               <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
               <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
-                <SmartsheetHeaderIcon v-if="!isFieldListCompact" :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
+                <template v-if="!isFieldListCompact">
+                  <GeneralIcon v-if="isAllFieldsSelected" icon="search" class="!w-3.5 !h-3.5 flex-none" />
+                  <SmartsheetHeaderIcon v-else :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
+                </template>
                 <div v-if="!isMobileMode" class="w-16 text-bodyDefaultSm font-medium truncate">
                   {{ displayColumnLabel ?? '' }}
                 </div>
@@ -398,7 +554,7 @@ useSearchCommands({
                 :is-parent-open="isDropdownOpen"
                 :selected-option-id="search.field"
                 show-selected-option
-                :options="columns"
+                :options="fieldOptions"
                 :input-bordered="false"
                 :search-input-placeholder="$t('placeholder.searchFields')"
                 toolbar-menu="globalSearch"
@@ -415,36 +571,92 @@ useSearchCommands({
               :inputmode="searchInputMode"
               name="globalSearchQuery"
               size="small"
-              class="!text-bodyDefaultSm flex-1 md:!w-40 h-full nc-view-search-data !pl-0"
-              :class="{
-                '!pr-7': !isValidSearchQuery,
-              }"
+              class="!text-bodyDefaultSm flex-1 h-full nc-view-search-data !pl-0"
+              :class="isSearchResultVisible ? 'md:!w-28' : 'md:!w-40'"
               :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
               :bordered="false"
               autocomplete="off"
               data-testid="search-data-input"
-              @press-enter="onPressEnter"
+              @press-enter="onSearchEnter"
             >
             </a-input>
           </form>
-          <NcTooltip
-            v-if="!isValidSearchQuery"
-            :title="$t('msg.error.invalidSearchQuery')"
-            class="absolute right-1 top-[50%] transform -translate-y-[50%] flex items-center pr-1"
-            placement="topRight"
+          <div
+            v-if="!isValidSearchQuery || isSearchResultVisible"
+            class="nc-search-result flex-none flex items-center gap-0.5 my-1.5 pl-1.5 pr-1 border-l-1 border-nc-border-gray-medium"
+            data-testid="nc-search-result"
           >
-            <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
-          </NcTooltip>
-        </div>
-        <div v-if="isSearchResultVisible" class="border-t-1 border-nc-border-gray-medium py-1 px-3 flex gap-3">
-          <div class="text-nc-content-gray text-bodySmBold">
-            {{
-              $t(
-                'title.countOfTotalMatchingRecords',
-                { matched: totalRowsWithSearchQuery, total: totalRowsWithoutSearchQuery },
-                totalRowsWithoutSearchQuery,
-              )
-            }}
+            <NcTooltip
+              v-if="!isValidSearchQuery"
+              :title="$t('msg.error.invalidSearchQuery')"
+              placement="topRight"
+              class="flex px-1"
+            >
+              <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
+            </NcTooltip>
+            <template v-else>
+              <NcTooltip v-if="searchStateMessage" :title="searchStateMessage" placement="bottom" class="flex px-0.5">
+                <GeneralIcon
+                  icon="alertTriangle"
+                  class="flex-none h-3.5 w-3.5 text-nc-content-orange-medium"
+                  data-testid="nc-search-state"
+                />
+              </NcTooltip>
+              <NcTooltip placement="bottom" class="flex">
+                <template #title>
+                  {{ searchCountTooltip }}
+                  <template v-if="isSearchCountCapped">
+                    <br />
+                    {{ $t('msg.info.searchNavigationCapped', { cap: SEARCH_COUNT_CAP.toLocaleString() }) }}
+                  </template>
+                </template>
+                <span
+                  class="px-1 text-bodySm whitespace-nowrap tabular-nums"
+                  :class="totalRowsWithSearchQuery ? 'text-nc-content-gray-muted' : 'text-nc-content-red-medium'"
+                  data-testid="nc-search-count"
+                >
+                  <span v-if="searchPositionLabel" class="text-nc-content-gray font-semibold">{{ searchPositionLabel }}</span>
+                  <i18n-t v-else keypath="title.countOfTotal" tag="span">
+                    <template #count>
+                      <span :class="{ 'text-nc-content-gray font-semibold': totalRowsWithSearchQuery }">{{
+                        searchCountLabel
+                      }}</span>
+                    </template>
+                    <template #total>{{ searchTotalLabel }}</template>
+                  </i18n-t>
+                </span>
+              </NcTooltip>
+              <div
+                v-if="isSearchNavigationShown"
+                class="nc-search-navigation flex items-center"
+                data-testid="nc-search-navigation"
+              >
+                <NcTooltip :title="`${$t('labels.previous')} (Shift + Enter)`" placement="bottom">
+                  <NcButton
+                    size="xxsmall"
+                    type="text"
+                    :disabled="!isSearchNavigationVisible"
+                    data-testid="nc-search-navigation-previous"
+                    @mousedown.prevent
+                    @click="navigateSearch(-1)"
+                  >
+                    <GeneralIcon icon="arrowUp" class="h-3.5 w-3.5" />
+                  </NcButton>
+                </NcTooltip>
+                <NcTooltip :title="`${$t('general.next')} (Enter)`" placement="bottom">
+                  <NcButton
+                    size="xxsmall"
+                    type="text"
+                    :disabled="!isSearchNavigationVisible"
+                    data-testid="nc-search-navigation-next"
+                    @mousedown.prevent
+                    @click="navigateSearch(1)"
+                  >
+                    <GeneralIcon icon="arrowDown" class="h-3.5 w-3.5" />
+                  </NcButton>
+                </NcTooltip>
+              </div>
+            </template>
           </div>
         </div>
       </div>

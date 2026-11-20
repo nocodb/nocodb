@@ -1,10 +1,18 @@
-import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, getFirstNonPersonalView } from 'nocodb-sdk'
+import type { ColumnType, FilterType, KanbanType, SearchState, SortType, TableType, ViewType } from 'nocodb-sdk'
+import {
+  NcApiVersion,
+  ViewLockType,
+  ViewTypes,
+  extractFilterFromXwhere,
+  getFirstNonPersonalView,
+  isSystemColumn,
+} from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { CanvasEditEnabledType } from '~/lib/types'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { isInterfaceSyntheticViewId } from '~/lib/interfaceData'
 import { flattenFiltersForEval, hasViewerScopedFilter } from '~/utils/realtimeUtils'
+import type { ParsedSearchTerm } from '~/utils/allFieldsSearchUtils'
 
 // Saved-filter loads for roles below Editor, shared by the store instances of one view.
 const VIEWER_FILTER_LOAD_SHARE_MS = 1000
@@ -41,7 +49,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const router = useRouter()
     const route = router.currentRoute
 
-    const { user, isMobileMode } = useGlobal()
+    const { user, isMobileMode, appInfo } = useGlobal()
 
     const { isUIAllowed } = useRoles()
 
@@ -202,12 +210,64 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return search.value.query?.trim() && !isMobileMode.value && (isGrid.value || isGallery.value)
     })
 
+    // Present only under an interface page — carries the viewer's ephemeral
+    // narrowing for the realtime gate below.
+    const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
+
+    const { blockGlobalSearch } = useEeConfig()
+
+    const { isFeatureEnabled } = useBetaFeatureToggle()
+
+    // Server-side search over every visible field: Postgres grid (ungrouped) and gallery views,
+    // unless global search is off on the server or its experimental flag is off. Elsewhere the
+    // box searches one field, built into `xWhere` below. A plan without it still lists
+    // "All fields", with an upgrade badge.
+    const isAllFieldsSearchSupported = computed(
+      () =>
+        isEeUI &&
+        !!appInfo.value.globalSearchEnabled &&
+        isFeatureEnabled(FEATURE_FLAG.GLOBAL_SEARCH) &&
+        !isPublic.value &&
+        !interfacePageDataApi &&
+        (isGrid.value || isGallery.value) &&
+        baseStore.isPg((meta.value as TableType)?.source_id),
+    )
+
+    const isAllFieldsSearch = computed(
+      () => isAllFieldsSearchSupported.value && !blockGlobalSearch.value && search.value.field === ALL_FIELDS_SEARCH_FIELD,
+    )
+
+    const allFieldsSearchTerm = computed(() => (isAllFieldsSearch.value ? search.value.query?.trim() || '' : ''))
+
+    /** Spread into data/count/aggregate request params alongside `where: xWhere`. */
+    const searchQueryParams = computed<{ search?: string; searchTz?: string }>(() =>
+      allFieldsSearchTerm.value ? { search: allFieldsSearchTerm.value, searchTz: getSearchTimezone() } : {},
+    )
+
+    /** What the grid highlights in loaded cells; only an all-fields search tints and steps through matches. */
+    const searchHighlight = computed<ParsedSearchTerm | null>(() => {
+      const term = search.value.query?.trim().toLowerCase()
+      if (!term || !isAllFieldsSearch.value) return null
+      return parseSearchTerm(term)
+    })
+
+    /** Grid row (0-based) the toolbar's next/previous last landed on; -1 before the first jump. */
+    const searchCursorRow = ref(-1)
+
+    /** Why the last all-fields search returned no or possibly incomplete rows (from its count). */
+    const searchState = ref<SearchState>()
+
     const xWhere = computed(() => {
       let where
 
       // if where is already present in the query, use that
       if (whereQueryFromUrl.value) {
         where = whereQueryFromUrl.value
+      }
+
+      if (isAllFieldsSearch.value) {
+        search.value.isValidFieldQuery = true
+        return where
       }
 
       const col =
@@ -254,10 +314,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       }))
     })
 
-    // Present only under an interface page — carries the viewer's ephemeral
-    // narrowing for the realtime gate below.
-    const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
-
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
     const isSyncedTable = computed(() => !!(meta.value as TableType)?.synced)
@@ -279,9 +335,12 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     // A realtime update's prevMatchedViewIds covers saved filters only, so with these
     // active the row's previous membership is unknown.
-    const hasClientSideRowFilters = computed(() => !!(xWhereFilters.value.length || interfaceViewerFilters.value.length))
+    const hasClientSideRowFilters = computed(
+      () => !!(xWhereFilters.value.length || interfaceViewerFilters.value.length || allFieldsSearchTerm.value),
+    )
 
     const rowMatchesSearchAndUrl = (rowPayload: Record<string, any>) => {
+      if (!rowMatchesAllFieldsSearch(rowPayload)) return false
       const allFilters = [...xWhereFilters.value, ...interfaceViewerFilters.value]
       if (!allFilters.length) return true
       return validateRowFilters(
@@ -426,6 +485,27 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return promise
     }
 
+    // The fields the server searches: the view's visible ones plus the display value.
+    const allFieldsSearchColumns = computed(() => {
+      const columns = (meta.value as TableType)?.columns ?? []
+      const viewColumns =
+        base.value?.id && view.value?.id ? viewColumnsMap[getViewColumnsKey(base.value.id, view.value.id)] : undefined
+      const visible = viewColumns?.length ? new Set(viewColumns.filter((vc) => vc.show).map((vc) => vc.fk_column_id)) : undefined
+      return columns.filter((c) => c.pv || (!isSystemColumn(c) && (!visible || visible.has(c.id))))
+    })
+
+    // The server's displayed-value match, applied to a pushed row.
+    function rowMatchesAllFieldsSearch(rowPayload: Record<string, any>) {
+      const term = allFieldsSearchTerm.value.toLowerCase()
+      if (!term) return true
+      const parsed = parseSearchTerm(term)
+      return allFieldsSearchColumns.value.some((c) => valueMatchesSearchTerm(c, rowPayload[c.title!], parsed))
+    }
+
+    watch(allFieldsSearchTerm, (term) => {
+      if (term && base.value?.id && view.value?.id) getViewColumns(base.value.id, view.value.id).catch(() => {})
+    })
+
     return {
       view,
       meta,
@@ -469,6 +549,12 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       gridEditEnabled,
       getValidSearchQueryForColumn,
       searchAbortSignal,
+      isAllFieldsSearchSupported,
+      isAllFieldsSearch,
+      searchQueryParams,
+      searchHighlight,
+      searchCursorRow,
+      searchState,
       isViewOperationsAllowed,
     }
   },

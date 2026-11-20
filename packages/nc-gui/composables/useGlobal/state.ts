@@ -145,6 +145,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     oneClick: false,
     baseHasAdmin: false,
     teleEnabled: true,
+    globalSearchEnabled: false,
     errorReportingEnabled: false,
     auditEnabled: true,
     undoRedoEnabled: true,

@@ -11,8 +11,10 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { QueryGuardInterceptor } from '~/interceptors/query-guard/query-guard.interceptor';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataTableService } from '~/services/data-table.service';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
@@ -23,6 +25,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
+@UseInterceptors(QueryGuardInterceptor)
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class DataTableController {
   constructor(protected readonly dataTableService: DataTableService) {}

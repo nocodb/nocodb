@@ -25,6 +25,8 @@ export interface AppInfo {
   oneClick: boolean
   baseHasAdmin: boolean
   teleEnabled: boolean
+  /** All-fields grid search and base record search are shown (NC_GLOBAL_SEARCH=on). */
+  globalSearchEnabled?: boolean
   errorReportingEnabled: boolean
   auditEnabled: boolean
   undoRedoEnabled: boolean

@@ -77,6 +77,8 @@ export const permissionScopes = {
     'abuseReportDisableResource',
     'orgUserBlock',
     'orgUserUnblock',
+    'globalSearchModeGet',
+    'globalSearchModeSet',
 
     // Cache
     'cacheGet',
@@ -273,6 +275,10 @@ export const permissionScopes = {
     'baseUserList',
     'sourceCreate',
     'columnAdd',
+    'searchIndexBuild',
+    'searchIndexDrop',
+    'searchIndexSetMode',
+    'searchIndexStatus',
 
     // Invite links -- editor+, the same floor as inviting by email (product
     // decision 2026-09-19; it was viewer while the two were weighed separately).
@@ -899,6 +905,10 @@ export default rolePermissions;
 const permissionDescriptions: Record<string, string> = {
   aiCmdkInterpret: 'interpret a Cmd+K query using AI',
 
+  searchIndexBuild: 'build a search index for a table',
+  searchIndexDrop: 'remove the search index of a table',
+  searchIndexSetMode: 'set whether a table has a search index',
+  searchIndexStatus: 'view the search index status of a table',
   // cloudOrg permissions
   orgUserAdd: 'add users to the organization',
   orgUserRemove: 'remove users from the organization',
@@ -966,6 +976,8 @@ const permissionDescriptions: Record<string, string> = {
   abuseReportDisableResource: 'disable the public link of a reported item',
   orgUserBlock: 'block a user',
   orgUserUnblock: 'unblock a user',
+  globalSearchModeGet: 'view the server-wide global search mode',
+  globalSearchModeSet: 'lower the server-wide global search mode',
   testConnection: 'test connection to a service',
   genericGPT: 'use generic GPT functionality',
 

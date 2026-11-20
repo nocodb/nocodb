@@ -19,6 +19,7 @@ import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
 import type { CSSProperties, ComputedRef, Ref } from 'vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
+import { cellMatchesSearch } from '../../../../utils/allFieldsSearchUtils'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
 import type { CanvasGroup, GridRemoteFocus } from '../../../../lib/types'
 import { useCanvasTable } from './composables/useCanvasTable'
@@ -183,7 +184,7 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const vSelectedAllRecordsSkipPks = useVModel(props, 'selectedAllRecordsSkipPks', emits)
 
-const { eventBus, isSqlView, isExternalSource, meta: currentMeta } = useSmartsheetStoreOrThrow()
+const { eventBus, isSqlView, isExternalSource, meta: currentMeta, searchHighlight, searchCursorRow } = useSmartsheetStoreOrThrow()
 
 const { metas, getMeta } = useMetas()
 const { ensureLinkedMetas } = useLinkedRecordMetas()
@@ -1663,7 +1664,7 @@ function scrollToLeftEdge(): void {
   scroller.value?.scrollTo({ left: 0 })
 }
 
-function scrollToCell(row?: number, column?: number, path?: Array<number>, horizontalScroll: boolean = true): void {
+function scrollToCell(row?: number, column?: number, path?: Array<number>, horizontalScroll = true): void {
   const currentRow = row ?? activeCell.value.row ?? -1
   const currentColumn = column ?? activeCell.value.column ?? -1
   const currentPath = path ?? activeCell.value.path ?? []
@@ -3653,10 +3654,77 @@ const smartsheetEvents = async (event: SmartsheetStoreEvents, payload) => {
     // This event is triggered when a field is updated
     calculateSlices()
     triggerRefreshCanvas()
+  } else if (event === SmartsheetStoreEvents.SEARCH_NAVIGATE) {
+    // The bus is app-wide: a grid embedded in another must not follow the outer toolbar.
+    if (payload?.viewId && payload.viewId !== view.value?.id) return
+    await navigateSearchMatch(payload?.direction === -1 ? -1 : 1, payload?.wrap !== false)
   }
 }
 
+/** Data columns of the loaded row whose values match the search, in grid order. */
+function searchMatchColumns(rowIndex: number): number[] {
+  const row = cachedRows.value.get(rowIndex)
+  if (!row) return []
+  const matches: number[] = []
+  columns.value.forEach((column, index) => {
+    if (column.id === 'row_number' || !column.columnObj) return
+    if (cellMatchesSearch(searchHighlight.value, column.columnObj, row.row[column.title])) matches.push(index)
+  })
+  return matches
+}
+
+async function loadSearchRow(rowIndex: number) {
+  if (cachedRows.value.has(rowIndex)) return
+  // Scrolling the row into view fetches its chunk.
+  scrollToCell(rowIndex, undefined, [], false)
+  await until(() => cachedRows.value.has(rowIndex)).toBe(true, { timeout: 5000 })
+}
+
+/**
+ * Selects the next (or previous) matching cell. Every row on screen is a search
+ * result, so this walks cells within a row, then moves to the adjacent row,
+ * wrapping at either end unless `wrap` is off (a capped result set).
+ */
+async function navigateSearchMatch(direction: 1 | -1, wrap = true) {
+  const total = totalRows.value
+  if (!searchHighlight.value || !total || isGroupBy.value) return
+
+  const fromRow = activeCell.value.row ?? -1
+  const hasCursor = fromRow >= 0 && fromRow < total
+
+  if (hasCursor) {
+    const fromColumn = activeCell.value.column ?? -1
+    const inRow = searchMatchColumns(fromRow)
+    const sameRow = direction === 1 ? inRow.find((c) => c > fromColumn) : inRow.reverse().find((c) => c < fromColumn)
+    if (sameRow !== undefined) return selectSearchMatch(fromRow, sameRow)
+  }
+
+  const nextRow = fromRow + direction
+  if (hasCursor && !wrap && (nextRow < 0 || nextRow >= total)) return
+  const row = hasCursor ? (nextRow + total) % total : direction === 1 ? 0 : total - 1
+  await loadSearchRow(row)
+  const inRow = searchMatchColumns(row)
+  // The server can match a value the loaded row doesn't show (e.g. a formatted date); land on the row's first field.
+  const firstDataColumn = columns.value.findIndex((c) => c.id !== 'row_number' && c.columnObj)
+  selectSearchMatch(row, (direction === 1 ? inRow[0] : inRow[inRow.length - 1]) ?? Math.max(firstDataColumn, 0))
+}
+
+function selectSearchMatch(row: number, column: number) {
+  activeCell.value = { row, column, path: [] }
+  selectCell()
+  scrollToCell(row, column)
+}
+
 eventBus.on(smartsheetEvents)
+
+// The toolbar's "row n of m" follows the selected row, however it was selected.
+watch(
+  () => activeCell.value.row,
+  (row) => {
+    searchCursorRow.value = row ?? -1
+  },
+  { immediate: true },
+)
 
 // Mirror SmartText panel navigation into the canvas active cell so the blue
 // active border follows the cell whose panel is currently open.
@@ -3779,6 +3847,8 @@ onClickOutside(
       '.canvas-header-add-new-row-menu',
       '.canvas-group-context-menu',
       '.nc-smart-text-panel',
+      // Toolbar search next/previous steps from the selected cell.
+      '.nc-search-navigation',
       // Interface builder: interacting with a field's config pane must not
       // count as an outside-click deselect (it would close the pane mid-edit).
       '.nc-interface-properties-panel',

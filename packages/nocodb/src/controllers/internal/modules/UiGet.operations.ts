@@ -22,6 +22,7 @@ import { CommentsService } from '~/services/comments.service';
 import { NcError } from '~/helpers/catchError';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { SearchIndexService } from '~/services/search-index.service';
 import { hideCommentEmailsForSharedBase } from '~/helpers/commentAuthorVisibility';
 
 @Injectable()
@@ -43,12 +44,14 @@ export class UiGetOperations
     protected commentsService: CommentsService,
     protected syncService: SyncService,
     protected extensionsService: ExtensionsService,
+    protected searchIndexService: SearchIndexService,
   ) {}
   operations = [
     'nestedDataList' as const,
     'tableGet' as const,
     'refTableGet' as const,
     'columnsHash' as const,
+    'searchIndexStatus' as const,
     'viewList' as const,
     'viewColumnList' as const,
     'viewRowColorInfo' as const,
@@ -121,6 +124,10 @@ export class UiGetOperations
           columnId: req.query.columnId as string,
           tableId: req.query.refTableId as string,
           user: req.user,
+        });
+      case 'searchIndexStatus':
+        return await this.searchIndexService.status(context, {
+          tableId: req.query.tableId as string,
         });
       case 'columnsHash':
         return await this.columnsService.columnsHash(

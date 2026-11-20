@@ -2329,6 +2329,7 @@ export default class View implements ViewType {
           context,
           DependencyTableType.DateDependency,
           ganttRule.id,
+          ncMeta,
         );
         await DateDependency.deleteByGanttViewId(context, viewId, ncMeta);
       }
@@ -2364,9 +2365,14 @@ export default class View implements ViewType {
 
       const contextRef = { ...context };
       for (const link of links) {
-        await LinkToAnotherRecordColumn.update(context, link.fk_column_id, {
-          fk_target_view_id: null,
-        });
+        await LinkToAnotherRecordColumn.update(
+          context,
+          link.fk_column_id,
+          {
+            fk_target_view_id: null,
+          },
+          ncMeta,
+        );
 
         // notify all sockets of the change in the related column
         (async (l) => {

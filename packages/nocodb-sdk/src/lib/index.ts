@@ -38,6 +38,7 @@ export * from '~/lib/bookmark';
 export * from '~/lib/hq-roadmap';
 export * from '~/lib/helpers/metaHelpers';
 export * from '~/lib/circularReplacer';
+export * from '~/lib/search';
 export * from '~/lib/payment/credits';
 export {
   default as UITypes,

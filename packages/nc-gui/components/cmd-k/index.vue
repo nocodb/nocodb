@@ -112,6 +112,9 @@ const activeLevel = computed<CmdLevel>(() => activeContext.value?.level ?? 'glob
 
 const activePage = computed(() => pages.value[pages.value.length - 1])
 
+// A searching page with its answer still on the way: a loader, not "no results".
+const isPagePending = computed(() => !!activePage.value?.pending?.(debouncedQuery.value))
+
 const rowHeight = computed(() => (activePage.value?.searchesChildren ? SNIPPET_ROW_HEIGHT : ROW_HEIGHT))
 
 const isSearching = computed(() => !!debouncedQuery.value.trim())
@@ -136,6 +139,7 @@ const fallbacks = computed<CmdCommand[]>(() =>
             // Data answers (calc, stats, quick create) lead from any level; edits only from the active chip.
             (command) => !command.lead || provider === activeContextProvider.value || command.id.startsWith('data:'),
           )
+          .filter((command) => !command.atLevel || command.atLevel === activeLevel.value)
           .map((command) =>
             where && command.id.startsWith('data:')
               ? { ...command, hint: [where, command.hint].filter(Boolean).join(' · ') }
@@ -172,7 +176,7 @@ const trailingFallbacks = computed(() => {
   const rank = (command: CmdCommand) =>
     command.id.endsWith(':create-named') ? (createFirst ? 3 : 0) : command.id.endsWith(':search-for') ? 2 : 1
   return fallbacks.value
-    .filter((command) => !command.lead && !(leadFallbacks.value.length && command.id.endsWith(':create-named')))
+    .filter((command) => !command.lead && !command.top && !(leadFallbacks.value.length && command.id.endsWith(':create-named')))
     .sort((a, b) => rank(b) - rank(a))
 })
 
@@ -230,11 +234,12 @@ const results = computed<CmdCommand[]>(() => {
   // "Not understood" only when nothing else answered: a matching command means the query was understood.
   const leadRows = matches.length ? leadFallbacks.value.filter((c) => c.tele?.kind !== 'decline') : leadFallbacks.value
   const lead = [...recentRows.value, ...leadRows]
-  if (!ai) return [...lead, ...matches, ...trailingFallbacks.value]
-  if (ai.trailing) return [...lead, ...matches, ...trailingFallbacks.value, ai]
+  const top = fallbacks.value.filter((command) => command.top)
+  if (!ai) return [...top, ...lead, ...matches, ...trailingFallbacks.value]
+  if (ai.trailing) return [...top, ...lead, ...matches, ...trailingFallbacks.value, ai]
   // Mid-typing ("…where company si"): what is being typed leads, not the AI, unless it ends with "?".
   const question = /\?\s*$/.test(debouncedQuery.value)
-  if (!question && isBeingTyped(debouncedQuery.value)) return [...lead, ...matches, ...trailingFallbacks.value, ai]
+  if (!question && isBeingTyped(debouncedQuery.value)) return [...top, ...lead, ...matches, ...trailingFallbacks.value, ai]
   // "create workflow Foo" asks for the named create, not the AI; "add 1 week" asks for the edit.
   const namedCreate = /^\s*(create|new)\s/i.test(debouncedQuery.value)
     ? fallbacks.value.find((command) => command.id.endsWith(':create-named'))
@@ -244,8 +249,8 @@ const results = computed<CmdCommand[]>(() => {
   const answered = lead.length > 0 && (!question || confident)
   return !answered &&
     isCmdNaturalLanguage(debouncedQuery.value, matches.length > 0 || !!namedCreate || lead.length > 0, matches[0]?.title)
-    ? [ai, ...lead, ...matches, ...trailingFallbacks.value]
-    : [...lead, ...matches, ...trailingFallbacks.value, ai]
+    ? [...top, ai, ...lead, ...matches, ...trailingFallbacks.value]
+    : [...top, ...lead, ...matches, ...trailingFallbacks.value, ai]
 })
 
 const rows = computed<CmdRow[]>(() =>
@@ -267,7 +272,10 @@ const readingRows = computed(() =>
 
 /** Nothing was read and the fallback row leads, or already ran (no `stayOpen`): no chips or completions. */
 const fallbackLeads = computed(
-  () => !!aiRow.value && !readingRows.value.length && (results.value[0]?.id === aiRow.value.id || !aiRow.value.stayOpen),
+  () =>
+    !!aiRow.value &&
+    !readingRows.value.length &&
+    (results.value.find((command) => !command.top)?.id === aiRow.value.id || !aiRow.value.stayOpen),
 )
 
 /**
@@ -308,10 +316,15 @@ const firstCompletion = computed(() =>
   activePage.value || fallbackLeads.value ? undefined : results.value.find((c) => c.complete !== undefined),
 )
 
-/** A submenu opens on its current value (e.g. the active theme), else on the first row. */
+/**
+ * A submenu opens on its current value (e.g. the active theme), else on the first row. A `top` row
+ * (Search records) leads the list but is only selected when nothing else matches.
+ */
 function defaultSelectedId() {
   const current = activePage.value && !debouncedQuery.value ? results.value.find((c) => c.checked && !c.disabled) : undefined
-  return current?.id ?? selectableIds.value[0]
+  if (current) return current.id
+  const firstNonTop = rows.value.find((row) => row.kind === 'command' && !row.command.disabled && !row.command.top)
+  return firstNonTop?.kind === 'command' ? firstNonTop.command.id : selectableIds.value[0]
 }
 
 /**
@@ -1115,7 +1128,11 @@ defineExpose({
 
       <div v-else :key="`page-${pages.length}`" class="cmdk-body">
         <div v-if="!rows.length" class="nc-cmdk-empty">
-          <GeneralLoader v-if="cmdLoading" :size="24" />
+          <template v-if="isPagePending">
+            <GeneralLoader :size="24" />
+            <div class="text-body text-nc-content-gray-muted">{{ $t('labels.commandPalette.recordSearchLoading') }}</div>
+          </template>
+          <GeneralLoader v-else-if="cmdLoading" :size="24" />
           <template v-else>
             <GeneralIcon icon="search" class="h-6 w-6 text-nc-content-gray-muted" />
             <div class="text-body text-nc-content-gray">{{ $t('placeholder.noResultsFoundForYourSearch') }}</div>

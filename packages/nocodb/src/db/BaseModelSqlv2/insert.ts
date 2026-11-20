@@ -30,6 +30,7 @@ import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHa
 import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
 import { captureNestedLinkHooks } from '~/db/BaseModelSqlv2/add-remove-links';
+import { isSearchIndexTracked } from '~/db/search/searchIndex';
 
 const logger = new Logger('BaseModelSqlv2');
 
@@ -302,6 +303,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
     // out of the insert itself.
     const capturePks =
       typeof onInsertedPks === 'function' || (raw && !skip_hooks);
+    // Indexed tables need the inserted pks, or every row is re-indexed.
+    const returnPksForSearch =
+      baseModel.isPg && isSearchIndexTracked(baseModel.model);
     let trx;
     try {
       const insertDatas = raw ? datas : [];
@@ -605,7 +609,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           );
         } else {
           responses =
-            (!raw || capturePks) && baseModel.isPg
+            (!raw || capturePks || returnPksForSearch) && baseModel.isPg
               ? await trx
                   .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
                   .returning(
@@ -653,6 +657,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // Transaction is finalized; clear the reference so a post-commit
       // failure below can't trigger rollback() on an already-closed trx.
       trx = null;
+      // Queued now: the hook readbacks below can fail after the commit. The
+      // after hook then only queues these rows.
+      const searchMarked = returnPksForSearch
+        ? await baseModel.trackSearchIndexInserted(responses)
+        : undefined;
 
       // Safe to run now that the rows are visible to other connections. These
       // only enqueue background jobs, so a failure must not fail the insert.
@@ -717,6 +726,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           );
         }
       }
+      if (searchMarked) baseModel.forgetSearchIndexWritten(searchMarked);
 
       await baseModel.statsUpdate({
         count: insertDatas.length,

@@ -344,6 +344,39 @@ export default abstract class CacheMgr {
     return res === 'OK';
   }
 
+  /** Re-arms `key`'s expiry while it still holds `value`, atomically. */
+  async expireIfValue(
+    key: string,
+    value: string,
+    seconds: number,
+  ): Promise<boolean> {
+    const res = await this.client.eval(
+      `if redis.call('GET', KEYS[1]) == ARGV[1] then
+         return redis.call('EXPIRE', KEYS[1], ARGV[2])
+       end
+       return 0`,
+      1,
+      key,
+      value,
+      String(seconds),
+    );
+    return Number(res) === 1;
+  }
+
+  /** Deletes `key` only while it still holds `value`, atomically. */
+  async delIfValue(key: string, value: string): Promise<boolean> {
+    const res = await this.client.eval(
+      `if redis.call('GET', KEYS[1]) == ARGV[1] then
+         return redis.call('DEL', KEYS[1])
+       end
+       return 0`,
+      1,
+      key,
+      value,
+    );
+    return Number(res) === 1;
+  }
+
   /**
    * Atomic take-one-from-a-set.
    *

@@ -52,6 +52,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { processConcurrently } from '~/utils';
 import { chunkArray } from '~/utils/tsUtils';
 import { batchLinkBroadcasts } from '~/db/BaseModelSqlv2/link-broadcast-batch';
+import { searchIndexQueue } from '~/db/search/searchIndexQueue';
 import {
   getLtarDisplayValueContext,
   resolveLtarDisplayValuesToPks,
@@ -542,6 +543,8 @@ export class DataImportProcessor {
       true,
     );
 
+    // Rows stay searchable through their marks; indexed once, after the import.
+    const releaseSearchIndex = searchIndexQueue.hold(context, model.id);
     const stats = await this.streamSheetData({
       context,
       baseId,
@@ -557,7 +560,7 @@ export class DataImportProcessor {
       ltarColMap,
       req,
       log,
-    });
+    }).finally(releaseSearchIndex);
 
     log(
       `Sheet${sheetLabel}: ${stats.rowsInserted} rows inserted, ${stats.rowsFailed} failed` +

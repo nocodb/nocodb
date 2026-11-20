@@ -214,6 +214,9 @@ export class IntegrationsService {
       );
 
       await integration.delete(ncMeta);
+      await ncMeta.commit();
+
+      // After commit: the audit hook writes on its own connection.
       this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
         integration,
         req: param.req,
@@ -223,8 +226,6 @@ export class IntegrationsService {
           base_id: null,
         },
       });
-
-      await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;

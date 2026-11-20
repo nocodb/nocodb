@@ -28,6 +28,7 @@ import {
   sanitize,
 } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
+import { getSearchFilters } from '~/db/search';
 import {
   lmbFieldQueryBuilder,
   lmtFieldQueryBuilder,
@@ -450,6 +451,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     sortArr?: Sort[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
     split_values?: boolean | string;
+    search?: string;
   }) => {
     const { where, ...rest } = baseModel._getListArgs(args as any);
 
@@ -911,6 +913,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           is_group: true,
           logical_op: 'and',
         }),
+        ...(await getSearchFilters(baseModel, args)),
       ],
       qb,
     );
@@ -1170,6 +1173,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     filterArr?: Filter[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
     split_values?: boolean | string;
+    search?: string;
   }) => {
     // Split groups: count the groups the split list returns, not the combinations.
     if (
@@ -1551,6 +1555,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           is_group: true,
           logical_op: 'and',
         }),
+        ...(await getSearchFilters(baseModel, args)),
       ],
       qb,
     );

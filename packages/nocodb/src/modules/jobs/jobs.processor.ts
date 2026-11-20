@@ -32,6 +32,11 @@ const LOCAL_CONCURRENCY_LIMIT = {
   [JobTypes.InterfaceDataExport]: 2,
   [JobTypes.DataImport]: 2,
   [JobTypes.DuplicateBase]: 2,
+  // Search index work: a build holds its slot for the whole backfill.
+  [JobTypes.SearchIndexBuild]: 2,
+  [JobTypes.SearchIndexFlush]: 3,
+  [JobTypes.SearchIndexFieldSync]: 1,
+  [JobTypes.SearchIndexReconcile]: 1,
 };
 
 export const LOCAL_JOB_COUNT_MAP = new Map<string, number>();

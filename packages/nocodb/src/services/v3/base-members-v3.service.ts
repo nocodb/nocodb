@@ -151,6 +151,7 @@ export class BaseMembersV3Service {
     if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {
       NcError.get(context).maxPayloadLimitExceeded(V3_META_REQUEST_LIMIT);
     }
+    const postCommit: (() => Promise<void>)[] = [];
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
@@ -167,6 +168,7 @@ export class BaseMembersV3Service {
             },
             userId,
             req: param.req,
+            afterCommit: (fn) => postCommit.push(fn),
           },
           ncMeta,
         );
@@ -179,6 +181,7 @@ export class BaseMembersV3Service {
       this.logger.error('Error updating base members', e);
       NcError.get(context).baseUserError('Bad Request');
     }
+    for (const fn of postCommit) await fn();
     return this.builder().build(
       await BaseUser.getUsersList(context, {
         base_id: param.baseId,

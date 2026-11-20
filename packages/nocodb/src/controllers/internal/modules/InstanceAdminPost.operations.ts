@@ -6,20 +6,26 @@ import type {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import { AbuseReportsService } from '~/services/abuse-reports.service';
+import { SearchIndexService } from '~/services/search-index.service';
 
 /** Instance-level moderation. Self-hosted only: cloud filters this module out. */
 @Injectable()
 export class InstanceAdminPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
 {
-  constructor(protected readonly abuseReportsService: AbuseReportsService) {}
+  constructor(
+    protected readonly abuseReportsService: AbuseReportsService,
+    protected readonly searchIndexService: SearchIndexService,
+  ) {}
 
   operations = [
     'abuseReportUpdate' as const,
     'abuseReportDisableResource' as const,
     'orgUserBlock' as const,
     'orgUserUnblock' as const,
+    'globalSearchModeSet' as const,
   ];
+  apiTokenBlockedOperations = ['globalSearchModeSet' as const];
   httpMethod = 'POST' as const;
 
   async handle(
@@ -59,6 +65,8 @@ export class InstanceAdminPostOperations
           userId: payload?.userId,
           req,
         });
+      case 'globalSearchModeSet':
+        return this.searchIndexService.globalModeSet({ mode: payload?.mode });
     }
   }
 }

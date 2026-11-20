@@ -5,6 +5,7 @@ import type {
   COMPARISON_SUB_OPS,
   FilterType,
 } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
@@ -94,6 +95,14 @@ export const FILTER_STORED_BASE: unique symbol = Symbol.for(
   'nc_filter_stored_base',
 );
 
+// A leaf compiled by this callback instead of its column. Set only in code
+// (search index); request JSON can't carry a Symbol key.
+export const FILTER_RAW_CLAUSE: unique symbol = Symbol.for(
+  'nc_filter_raw_clause',
+);
+
+export type FilterRawClause = (qb: Knex.QueryBuilder, alias?: string) => void;
+
 export function markStoredFilter(instance: Filter, row: Filter) {
   if (row?.base_id) instance[FILTER_STORED_BASE] = row.base_id;
 }
@@ -133,6 +142,8 @@ export default class Filter implements FilterType {
   [FILTER_STORED_BASE]?: string;
   [FILTER_ENFORCED]?: boolean;
   [FILTER_FROM_CONFIG]?: boolean;
+
+  [FILTER_RAW_CLAUSE]?: FilterRawClause;
 
   fk_workspace_id?: string;
   fk_model_id?: string;

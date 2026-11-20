@@ -7,7 +7,11 @@ import {
   EventType,
   type FilterType,
   NcApiVersion,
+  NcErrorType,
   type PaginatedType,
+  SEARCH_COUNT_CAP,
+  SEARCH_STATE_FIELD,
+  type SearchState,
   type TableType,
   UITypes,
   type ViewType,
@@ -194,6 +198,8 @@ export function useInfiniteData(args: {
     fetchTotalRowsWithSearchQuery,
     whereQueryFromUrl,
     searchAbortSignal,
+    searchQueryParams,
+    searchState,
     eventBus,
   } = disableSmartsheet
     ? {
@@ -211,6 +217,8 @@ export function useInfiniteData(args: {
         fetchTotalRowsWithSearchQuery: computed(() => false),
         whereQueryFromUrl: computed(() => ''),
         searchAbortSignal: ref<AbortSignal | undefined>(),
+        searchQueryParams: computed<{ search?: string }>(() => ({})),
+        searchState: ref<SearchState>(),
         eventBus: useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore),
       }
     : useSmartsheetStoreOrThrow()
@@ -438,6 +446,9 @@ export function useInfiniteData(args: {
 
   const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
+  /** Chunks a search reload reads together with its count. */
+  const SEARCH_FIRST_CHUNKS = [0, 1]
+
   const _fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
     const dataCache = getDataCache(path)
 
@@ -590,6 +601,28 @@ export function useInfiniteData(args: {
     }, {} as Record<string, { list: Record<string, any>[]; pageInfo: PaginatedType }>)
   }
 
+  // The search term whose request timed out (408) or hit the search limit (429): its other
+  // requests are not sent, so one failure isn't retried as several more. Cleared by a new term
+  // or a reload (filter, sort, Reload).
+  let searchGaveUpTerm: string | undefined
+  const searchGaveUp = () => !!searchQueryParams.value.search && searchGaveUpTerm === searchQueryParams.value.search
+  // A 429 from the general request throttler carries no error code: only the search slots' counts.
+  const isSearchLimitError = (error: any) =>
+    !!searchQueryParams.value.search &&
+    (error?.response?.status === 408 ||
+      (error?.response?.status === 429 && error?.response?.data?.error === NcErrorType.ERR_TOO_MANY_REQUESTS))
+  // Toasts the first failure of a term only.
+  const noteSearchLimit = async (error: any) => {
+    if (searchGaveUp()) return
+    searchGaveUpTerm = searchQueryParams.value.search
+    message.error(await extractSdkResponseErrorMsg(error))
+  }
+  watch(
+    () => searchQueryParams.value.search,
+    () => (searchGaveUpTerm = undefined),
+  )
+  inject(ReloadViewDataHookInj, undefined)?.on(() => (searchGaveUpTerm = undefined))
+
   async function processBatch() {
     if (pendingChunkRequests.length === 0) return
 
@@ -608,6 +641,14 @@ export function useInfiniteData(args: {
 
     if (!batch.length) return
 
+    if (searchGaveUp()) {
+      for (const request of batch) {
+        getDataCache(request.path).chunkStates.value[request.chunkId] = undefined
+        request.resolve(undefined)
+      }
+      return
+    }
+
     try {
       const bulkRequests = []
       // Raw per-chunk filter arrays — the interface-page adapter branch needs
@@ -620,6 +661,9 @@ export function useInfiniteData(args: {
         const filterArrJson = (await callbacks?.getWhereFilterArr?.(req.path)) ?? []
         bulkRequests.push({
           where,
+          ...searchQueryParams.value,
+          // A searched count is its own request (syncCount); a scan per chunk would repeat it.
+          ...(searchQueryParams.value.search ? { excludeCount: 'true' } : {}),
           offset: req.chunkId * CHUNK_SIZE,
           limit: CHUNK_SIZE,
           alias: `chunk_${req.chunkId}_${req.path.join('_')}`,
@@ -669,7 +713,7 @@ export function useInfiniteData(args: {
             const rows = formatData(
               chunkData.list,
               chunkData.pageInfo,
-              undefined,
+              { offset: request.chunkId * CHUNK_SIZE, limit: CHUNK_SIZE },
               request.path,
               getEvaluatedRowMetaRowColorInfo,
               evaluateButtonVisibility,
@@ -717,7 +761,8 @@ export function useInfiniteData(args: {
     } catch (error) {
       // Superseded by a newer search term. The individual fallback would only re-issue every chunk
       // against the same aborted signal, so reset them for the new term's fetch and stop here.
-      if (axios.isCancel(error)) {
+      if (axios.isCancel(error) || isSearchLimitError(error)) {
+        if (!axios.isCancel(error)) await noteSearchLimit(error)
         for (const request of batch) {
           // Skip stale group requests — getDataCache would leave a placeholder cache behind.
           if (!isStaleChunkRequest(request)) getDataCache(request.path).chunkStates.value[request.chunkId] = undefined
@@ -822,6 +867,7 @@ export function useInfiniteData(args: {
   const clearCache = (visibleStartIndex: number, visibleEndIndex: number, path: Array<number> = []) => {
     const dataCache = getDataCache(path)
     if (visibleEndIndex === Number.POSITIVE_INFINITY && visibleStartIndex === Number.NEGATIVE_INFINITY) {
+      searchGaveUpTerm = undefined
       dataCache.cachedRows.value.clear()
       dataCache.chunkStates.value = []
       return
@@ -874,10 +920,15 @@ export function useInfiniteData(args: {
     { total: nextTotal, applyTotal }: { total?: number; applyTotal?: () => void } = {},
   ) {
     const dataCache = getDataCache(path)
-    if (!path.length) await syncCount(path, false, false)
+    const firstChunkLoaded = !path.length && (await syncCount(path, false, false, { withFirstChunk: true }))
 
     const total = nextTotal ?? dataCache.totalRows.value
-    const loadedChunks = chunksToRefresh(dataCache.chunkStates.value, dataCache.cachedRows.value.keys(), total, CHUNK_SIZE)
+    const loadedChunks = chunksToRefresh(
+      dataCache.chunkStates.value,
+      dataCache.cachedRows.value.keys(),
+      total,
+      CHUNK_SIZE,
+    ).filter((chunkId) => !(firstChunkLoaded && SEARCH_FIRST_CHUNKS.includes(chunkId)))
 
     try {
       await Promise.all(loadedChunks.map((chunkId) => fetchChunk(chunkId, path, true)))
@@ -937,6 +988,45 @@ export function useInfiniteData(args: {
 
   let upgradeModalTimer: any
 
+  // All-fields search runs only on the internal `dataList` operation; the v1 data API ignores `search`.
+  function searchViewRows(query: Record<string, any>, requestParams: { signal?: AbortSignal }) {
+    return $api.internal.getOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      {
+        operation: 'dataList',
+        tableId: meta.value!.id!,
+        viewId: viewMeta.value!.id!,
+        baseId: meta.value!.base_id!,
+        ...query,
+      },
+      requestParams,
+    )
+  }
+
+  async function listViewRows(query: Record<string, any>, requestParams: { signal?: AbortSignal }) {
+    if (query.search) return await searchViewRows(query, requestParams)
+    return await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, query, requestParams)
+  }
+
+  async function countViewRows(query: Record<string, any>, requestParams: { signal?: AbortSignal }) {
+    if (query.search) {
+      const { pageInfo } = await searchViewRows({ ...query, limit: 1 }, requestParams)
+      return {
+        count: pageInfo?.totalRows ?? 0,
+        searchState: (pageInfo as Record<string, unknown> | undefined)?.[SEARCH_STATE_FIELD] as SearchState | undefined,
+      }
+    }
+    return await $api.dbViewRow.count(
+      NOCO,
+      base?.value?.id as string,
+      meta.value!.id as string,
+      viewMeta?.value?.id as string,
+      query,
+      requestParams,
+    )
+  }
+
   async function loadData(
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
       limit?: number
@@ -945,6 +1035,7 @@ export function useInfiniteData(args: {
     } = {},
     _shouldShowLoading?: boolean,
     path: Array<number> = [],
+    onPageInfo?: (pageInfo: PaginatedType | undefined) => void,
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value && !interfaceDataApi) return []
 
@@ -973,6 +1064,8 @@ export function useInfiniteData(args: {
       }
     }
 
+    if (searchGaveUp()) return []
+
     try {
       const response = interfaceDataApi
         ? await interfaceDataApi.fetchList({
@@ -986,11 +1079,7 @@ export function useInfiniteData(args: {
             nestedFiltersArr: jsonWhereFilterArr,
           })
         : !isPublic?.value
-        ? await $api.dbViewRow.list(
-            'noco',
-            base.value.id!,
-            meta.value!.id!,
-            viewMeta.value!.id!,
+        ? await listViewRows(
             {
               ...params,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter((s) => !s.id)) }),
@@ -1004,9 +1093,10 @@ export function useInfiniteData(args: {
                   }),
               includeSortAndFilterColumns: true,
               where: whereFilter,
+              ...searchQueryParams.value,
               include_row_color: true,
               include_button_filter_columns: true,
-            } as any,
+            },
             { signal: searchAbortSignal.value },
           )
         : await fetchSharedViewData(
@@ -1030,6 +1120,7 @@ export function useInfiniteData(args: {
         getEvaluatedRowMetaRowColorInfo,
         evaluateButtonVisibility,
       )
+      onPageInfo?.(response.pageInfo)
 
       if (!disableSmartsheet) {
         loadAggCommentsCount(data, path)
@@ -1040,6 +1131,10 @@ export function useInfiniteData(args: {
       // Superseded by a newer search term. Rethrow so callers reset their chunk state (they all
       // catch) instead of caching an empty chunk as loaded; the new term's fetch fills it.
       if (axios.isCancel(error)) {
+        throw error
+      }
+      if (isSearchLimitError(error)) {
+        await noteSearchLimit(error)
         throw error
       }
 
@@ -2103,8 +2198,53 @@ export function useInfiniteData(args: {
     return false
   }
 
-  async function syncCount(path: Array<number> = [], throwError = false, showToastMessage = true): Promise<void> {
-    if (!isPublic?.value && !interfaceDataApi && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
+  /**
+   * The first chunks of a search with the count from their pageInfo; undefined when the request
+   * failed. Two chunks: at the top the grid always prefetches the second, a search of its own.
+   */
+  async function loadSearchedFirstChunks(path: Array<number>) {
+    const dataCache = getDataCache(path)
+    let pageInfo: PaginatedType | undefined
+    const reset = () => SEARCH_FIRST_CHUNKS.forEach((chunkId) => (dataCache.chunkStates.value[chunkId] = undefined))
+    SEARCH_FIRST_CHUNKS.forEach((chunkId) => (dataCache.chunkStates.value[chunkId] = 'loading'))
+    try {
+      const rows = await loadData(
+        { offset: 0, limit: CHUNK_SIZE * SEARCH_FIRST_CHUNKS.length },
+        false,
+        path,
+        (p) => (pageInfo = p),
+      )
+      if (!pageInfo) {
+        reset()
+        return undefined
+      }
+      return {
+        rows,
+        count: pageInfo.totalRows ?? 0,
+        searchState: (pageInfo as Record<string, unknown>)[SEARCH_STATE_FIELD] as SearchState | undefined,
+      }
+    } catch (error) {
+      reset()
+      throw error
+    }
+  }
+
+  /**
+   * Resolves true when a search's first chunks came with the count. `withFirstChunk` reloads them
+   * even when loaded (an in-place refresh); otherwise only when the first is unloaded.
+   */
+  async function syncCount(
+    path: Array<number> = [],
+    throwError = false,
+    showToastMessage = true,
+    { withFirstChunk = false }: { withFirstChunk?: boolean } = {},
+  ): Promise<boolean> {
+    if (!isPublic?.value && !interfaceDataApi && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return false
+
+    // Taken now: a term typed meanwhile has its own signal and its own reload.
+    const signal = searchAbortSignal.value
+    const term = searchQueryParams.value.search
+    const superseded = () => !!signal?.aborted || searchQueryParams.value.search !== term
 
     const dataCache = getDataCache(path)
 
@@ -2112,30 +2252,46 @@ export function useInfiniteData(args: {
     const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
     try {
-      const { count } = interfaceDataApi
-        ? await interfaceDataApi.fetchCount({
-            where: whereFilter,
-            filtersArr: nestedFilters.value || [],
-            nestedFiltersArr: jsonWhereFilterArr,
-          })
-        : isPublic?.value
-        ? await fetchCount({
-            filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
-            where: whereFilter,
-          })
-        : await $api.dbViewRow.count(
-            NOCO,
-            base?.value?.id as string,
-            meta.value!.id as string,
-            viewMeta?.value?.id as string,
-            {
+      // A search reload: the first chunk carries the count, so the search runs once, not twice.
+      const firstChunk =
+        searchQueryParams.value.search &&
+        !path.length &&
+        !interfaceDataApi &&
+        !isPublic?.value &&
+        (withFirstChunk || !dataCache.chunkStates.value[0])
+          ? await loadSearchedFirstChunks(path)
+          : undefined
+
+      const countResult =
+        firstChunk ??
+        (interfaceDataApi
+          ? await interfaceDataApi.fetchCount({
               where: whereFilter,
-              ...(isUIAllowed('filterSync')
-                ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
-                : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
-            },
-            { signal: searchAbortSignal.value },
-          )
+              filtersArr: nestedFilters.value || [],
+              nestedFiltersArr: jsonWhereFilterArr,
+            })
+          : isPublic?.value
+          ? await fetchCount({
+              filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
+              where: whereFilter,
+            })
+          : await countViewRows(
+              {
+                where: whereFilter,
+                ...searchQueryParams.value,
+                ...(isUIAllowed('filterSync')
+                  ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+                  : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
+              },
+              { signal },
+            ))
+      if (superseded()) return false
+      const { count } = countResult
+      if (!path.length) {
+        searchState.value = searchQueryParams.value.search
+          ? (countResult as { searchState?: SearchState }).searchState
+          : undefined
+      }
 
       if (fetchTotalRowsWithSearchQuery.value) {
         const { count: _count } = interfaceDataApi
@@ -2162,8 +2318,9 @@ export function useInfiniteData(args: {
                     }
                   : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
               },
-              { signal: searchAbortSignal.value },
+              { signal },
             )
+        if (superseded()) return false
         if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
           totalRowsWithoutSearchQuery.value = Math.max(Math.min(200, _count as number), _count as number)
         } else {
@@ -2173,18 +2330,45 @@ export function useInfiniteData(args: {
 
       if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
         dataCache.totalRows.value = Math.min(200, count as number)
+      } else if (searchQueryParams.value.search) {
+        // A searched count stops at SEARCH_COUNT_CAP + 1 ("1,000+"); the grid scrolls the first SEARCH_COUNT_CAP.
+        dataCache.totalRows.value = Math.min(SEARCH_COUNT_CAP, count as number)
       } else {
         dataCache.totalRows.value = count as number
       }
 
-      dataCache.actualTotalRows.value = count as number
+      if (searchQueryParams.value.search) {
+        dataCache.actualTotalRows.value = dataCache.totalRows.value
+        totalRowsWithSearchQuery.value = count as number
+      } else {
+        dataCache.actualTotalRows.value = count as number
+        totalRowsWithSearchQuery.value = Math.max(dataCache.totalRows.value, dataCache.actualTotalRows.value)
+      }
 
-      totalRowsWithSearchQuery.value = Math.max(dataCache.totalRows.value, dataCache.actualTotalRows.value)
+      if (firstChunk) {
+        // With the count, so the grid never shows the rows ahead of their total.
+        const removed = upsertCachedRows(dataCache.cachedRows.value, firstChunk.rows, (row) =>
+          extractPkFromRow(row, meta.value?.columns as ColumnType[]),
+        )
+        // A chunk past the total stays unloaded, as a fetch would have left it.
+        SEARCH_FIRST_CHUNKS.forEach(
+          (chunkId) =>
+            (dataCache.chunkStates.value[chunkId] = chunkId * CHUNK_SIZE < Math.max(count as number, 1) ? 'loaded' : undefined),
+        )
+        invalidateChunksAt(dataCache.chunkStates.value, removed, CHUNK_SIZE, SEARCH_FIRST_CHUNKS)
+      }
 
       callbacks?.syncVisibleData?.()
+      return !!firstChunk
     } catch (error: any) {
       // Superseded by a newer search term — the count it would have written is already stale.
-      if (axios.isCancel(error)) return
+      if (axios.isCancel(error)) return false
+
+      if (isSearchLimitError(error)) {
+        await noteSearchLimit(error)
+        if (throwError) throw error
+        return false
+      }
 
       // Interface page deleted mid-flight — page-delete navigations race the
       // debounced count sync, the server rightly 404s, and this canvas is
@@ -2199,6 +2383,7 @@ export function useInfiniteData(args: {
       if (throwError) {
         throw error
       }
+      return false
     }
   }
 

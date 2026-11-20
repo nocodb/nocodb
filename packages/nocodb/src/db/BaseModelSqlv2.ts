@@ -2261,7 +2261,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               });
               const data = await pBaseModel.list(
                 {
-                  fieldsSet: readLoader.args?.fieldsSet,
+                  // parents are matched back by the referenced column, so fetch it
+                  fieldsSet:
+                    readLoader.args?.fieldsSet &&
+                    new Set([...readLoader.args.fieldsSet, pCol.title]),
                   customConditions: await lookupLinkFilters(
                     pBaseModel,
                     readLoader.args?.lookupColumn,
@@ -2351,7 +2354,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 });
                 const data = await pBaseModel.list(
                   {
-                    fieldsSet: readLoader.args?.fieldsSet,
+                    // parents are matched back by the referenced column, so fetch it
+                    fieldsSet:
+                      readLoader.args?.fieldsSet &&
+                      new Set([...readLoader.args.fieldsSet, pCol.title]),
                     customConditions: await lookupLinkFilters(
                       pBaseModel,
                       readLoader.args?.lookupColumn,

@@ -33,6 +33,7 @@ import {
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
+import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import {
   getNcSystemColumnUidts,
   mapNcSystemColumns,
@@ -297,6 +298,7 @@ export class MetaDiffsService {
         const uidt = ncSystemUidts?.[cn];
         return uidt && !existingSystemUidts.has(uidt) ? uidt : undefined;
       };
+      const tableColumns = [...oldMeta.columns];
 
       for (const column of colListRef[table.tn]) {
         const oldColIdx = oldMeta.columns.findIndex(
@@ -318,8 +320,12 @@ export class MetaDiffsService {
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
 
         const systemUidt = getSystemUidt(column.cn);
-        // a display value column stays a regular field
-        if (systemUidt && !oldCol.pv) {
+        // a display value column, or one other fields depend on, stays a regular field
+        if (
+          systemUidt &&
+          !oldCol.pv &&
+          !(await this.hasTypeDependents(context, oldCol, tableColumns))
+        ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_SYSTEM_FIELD,
             msg: `Column is a NocoDB system field(${column.cn})`,
@@ -897,6 +903,60 @@ export class MetaDiffsService {
         ({ column: _column, model: _model, ...rest }: any) => rest,
       ),
     }));
+  }
+
+  // Fields set up for the column's current type: a uidt change deletes its
+  // QR/Barcode columns (Column.update) and retypes formulas, lookups, rollups
+  // and filters over it.
+  private async hasTypeDependents(
+    context: NcContext,
+    column: Column,
+    tableColumns: Column[],
+  ) {
+    const ncMeta = Noco.ncMeta;
+    const dependentRefs: Array<[MetaTable, string]> = [
+      [MetaTable.COL_QRCODE, 'fk_qr_value_column_id'],
+      [MetaTable.COL_BARCODE, 'fk_barcode_value_column_id'],
+      [MetaTable.COL_LOOKUP, 'fk_lookup_column_id'],
+      [MetaTable.COL_ROLLUP, 'fk_rollup_column_id'],
+      [MetaTable.FILTER_EXP, 'fk_column_id'],
+    ];
+    for (const [table, fk] of dependentRefs) {
+      const rows = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        table,
+        { condition: { [fk]: column.id }, limit: 1 },
+      );
+      if (rows.length) return true;
+    }
+
+    // lookups and rollups in other bases, through this table's links
+    for (const linkCol of tableColumns) {
+      if (!isLinksOrLTAR(linkCol.uidt)) continue;
+      const relatedBaseId = (
+        await linkCol.getColOptions<LinkToAnotherRecordColumn>()
+      )?.fk_related_base_id;
+      if (!relatedBaseId || relatedBaseId === context.base_id) continue;
+      for (const [table, fk] of dependentRefs.slice(2, 4)) {
+        const rows = await ncMeta.metaList2(
+          context.workspace_id,
+          relatedBaseId,
+          table,
+          { condition: { [fk]: column.id }, limit: 1 },
+        );
+        if (rows.length) return true;
+      }
+    }
+
+    return (
+      (
+        await getFormulasReferredTheColumn(context, {
+          column,
+          columns: tableColumns,
+        })
+      ).length > 0
+    );
   }
 
   async metaDiff(context: NcContext, param: { baseId: string }) {

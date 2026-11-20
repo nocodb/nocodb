@@ -1,5 +1,8 @@
-// Page behind an open modal goes inert so find-in-page stays in the modal; popup containers stay live for its dropdowns.
+// Page behind an expanded long text editor goes inert so find-in-page stays in it; popup containers stay live for its dropdowns.
 const PAGE_CONTAINER_SELECTOR = '#__nuxt, .ant-drawer, .ant-modal-wrap'
+
+// Only the expanded long text / rich text / AI text editors; other modals leave the page as it is.
+const SCOPED_MODAL_SELECTOR = '.nc-long-text-expanded-modal, .nc-long-text-expanded'
 
 interface OpenModal {
   wrap: HTMLElement
@@ -72,7 +75,7 @@ export default defineNuxtPlugin(() => {
       if (!isOpen(modal.wrap)) unmark(modal)
     }
 
-    for (const wrap of Array.from(document.querySelectorAll<HTMLElement>('.ant-modal-wrap'))) {
+    for (const wrap of Array.from(document.querySelectorAll<HTMLElement>(`.ant-modal-wrap:is(${SCOPED_MODAL_SELECTOR})`))) {
       if (isOpen(wrap) && !openModals.some((modal) => modal.wrap === wrap)) markBackground(wrap)
     }
   }

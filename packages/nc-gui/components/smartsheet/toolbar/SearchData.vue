@@ -442,6 +442,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
     if (e.defaultPrevented) return
     // An open record or expanded long text is DOM, not canvas: leave Ctrl/Cmd+F to the browser's find
     if (isExpandedFormOpenExist() || isExpandedCellInputExist()) return
+    // A modal is open over this search (modalInert plugin made it inert): the browser's find searches the modal
+    if (globalSearchWrapperRef.value?.closest('[inert]')) return
     // Interface record sheet: only a search inside the sheet (LTAR viz) keeps the shortcut
     const recordSheet = document.querySelector('.nc-interface-record-form-sheet-layer')
     if (recordSheet && !recordSheet.contains(globalSearchWrapperRef.value ?? null)) return

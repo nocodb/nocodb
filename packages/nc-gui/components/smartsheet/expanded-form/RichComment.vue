@@ -129,13 +129,20 @@ const editor = useEditor({
   editorProps: {
     attributes: { 'role': 'textbox', 'aria-label': t('general.comment') },
     handleKeyDown(this, view, event) {
-      if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
+      if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.metaKey && !event.altKey) {
         const { state } = view
         const { selection } = state
 
         if (!selection.empty) {
           return true
         }
+
+        // Enter sends, so don't split the paragraph first (lists, quotes and open mention/emoji pickers keep Enter).
+        const isSuggestionOpen = state.plugins.some(
+          (plugin) => (plugin.getState(state) as { active?: boolean } | undefined)?.active,
+        )
+        const isInBlock = ['bulletList', 'orderedList', 'blockquote', 'codeBlock'].some((name) => editor.value?.isActive(name))
+        if (!props.readOnly && !isSuggestionOpen && !isInBlock) return true
       }
     },
   },

@@ -285,7 +285,8 @@ export interface DataPayload extends BaseSocketPayload {
 
 export interface CommentPayload extends BaseSocketPayload {
   id: string; // rowId
-  action: 'add' | 'update' | 'delete';
+  /** `reaction`: payload is `{ id: commentId, reactions }`. */
+  action: 'add' | 'update' | 'delete' | 'reaction';
   payload: Record<string, any>;
 }
 

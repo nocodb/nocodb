@@ -1,4 +1,13 @@
-import type { AttachmentType, ColumnType, CommentNotificationPreference, CommentType, MetaType, TableType } from 'nocodb-sdk'
+import dayjs from 'dayjs'
+import type {
+  AttachmentType,
+  ColumnType,
+  CommentMeta,
+  CommentNotificationPreference,
+  CommentType,
+  MetaType,
+  TableType,
+} from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
 export interface CommentTypeExtended extends CommentType {
@@ -8,6 +17,81 @@ export interface CommentTypeExtended extends CommentType {
   resolved_display_name_short?: string
   created_by_meta?: MetaType
   resolved_by_meta?: MetaType
+}
+
+export interface CommentReactionItem {
+  reaction?: string
+  created_by?: string
+}
+
+export interface CommentReactionSummaryItem {
+  emoji: string
+  count: number
+  hasReacted: boolean
+  names: string[]
+}
+
+/** A top-level comment and its replies, oldest first. */
+export interface CommentThread {
+  root: CommentTypeExtended
+  replies: CommentTypeExtended[]
+}
+
+export interface CommentThreadSummary {
+  loading: boolean
+  text?: string
+  /** Comments in the thread when the summary was written. */
+  count?: number
+}
+
+/** Pin, to-do and annotation state of a comment — `meta` arrives parsed or as JSON. */
+export function getCommentMeta(comment?: CommentType | null): CommentMeta {
+  const meta = comment?.meta
+  if (!meta) return {}
+  if (ncIsString(meta)) {
+    try {
+      return JSON.parse(meta) ?? {}
+    } catch {
+      return {}
+    }
+  }
+  return meta as CommentMeta
+}
+
+/**
+ * Top-level comments with their replies. A reply whose parent is gone starts its own thread; a reply to a
+ * reply (stored before replies were flattened server-side) joins the thread at the top of its chain.
+ */
+export function buildCommentThreads(comments: CommentTypeExtended[]): CommentThread[] {
+  const byId = new Map(comments.filter((c) => c.id).map((c) => [c.id!, c]))
+  const threadByRootId = new Map<string, CommentThread>()
+  const threads: CommentThread[] = []
+
+  function rootOf(comment: CommentTypeExtended) {
+    let current = comment
+    const seen = new Set<string>()
+
+    while (current.parent_comment_id && byId.has(current.parent_comment_id) && !seen.has(current.parent_comment_id)) {
+      seen.add(current.id!)
+      current = byId.get(current.parent_comment_id)!
+    }
+
+    return current
+  }
+
+  for (const comment of comments) {
+    if (rootOf(comment) !== comment) continue
+    const thread = { root: comment, replies: [] }
+    if (comment.id) threadByRootId.set(comment.id, thread)
+    threads.push(thread)
+  }
+
+  for (const comment of comments) {
+    const root = rootOf(comment)
+    if (root !== comment) threadByRootId.get(root.id!)?.replies.push(comment)
+  }
+
+  return threads
 }
 
 const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
@@ -58,6 +142,249 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }, {} as Record<string, any>)
   })
 
+  /**
+   * Reactions, pin, to-do, read state and thread summary run on EE base ops
+   * that interface surfaces and shared-base sessions don't have.
+   */
+  const isCommentExtrasEnabled = computed(() => isEeUI && !ifaceSidebar && !isSharedBase.value && !!user.value?.id)
+
+  const threads = computed(() => buildCommentThreads(comments.value))
+
+  const reactions = ref<Record<string, CommentReactionItem[]>>({})
+
+  /** When the caller last had this record's comments open — null until they have. */
+  const lastReadAt = ref<string | null>(null)
+
+  const threadSummaries = ref<Record<string, CommentThreadSummary>>({})
+
+  let readStateSeq = 0
+
+  function isCommentUnread(comment: CommentTypeExtended) {
+    if (!lastReadAt.value || !comment.created_at || comment.created_by === user.value?.id) return false
+    if (comment.id?.startsWith('temp-')) return false
+    return dayjs(comment.created_at).isAfter(dayjs(lastReadAt.value))
+  }
+
+  /** Row whose comments are on screen — set before the record object may be. */
+  let commentsRowId: string | undefined
+
+  async function loadReactions(rowId = commentsRowId) {
+    if (!isCommentExtrasEnabled.value || !isUIAllowed('commentList')) return
+
+    if (!rowId) return
+
+    try {
+      const res = (await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentReactionList',
+        row_id: rowId,
+        fk_model_id: meta.value.id as string,
+      })) as Record<string, CommentReactionItem[]>
+
+      if (rowId === commentsRowId) reactions.value = res ?? {}
+    } catch {
+      // Reactions are decoration: the comments stay usable without them.
+    }
+  }
+
+  function getReactionSummary(commentId?: string): CommentReactionSummaryItem[] {
+    const grouped = new Map<string, CommentReactionSummaryItem>()
+
+    for (const item of (commentId && reactions.value[commentId]) || []) {
+      if (!item.reaction) continue
+
+      const entry = grouped.get(item.reaction) ?? { emoji: item.reaction, count: 0, hasReacted: false, names: [] }
+      entry.count++
+
+      if (item.created_by === user.value?.id) entry.hasReacted = true
+
+      const reactor = baseUsers.value.find((u) => u.id === item.created_by)
+      if (reactor) entry.names.push(extractUserDisplayNameOrEmail(reactor))
+
+      grouped.set(item.reaction, entry)
+    }
+
+    return [...grouped.values()]
+  }
+
+  async function toggleReaction(commentId: string, emoji: string) {
+    if (!isCommentExtrasEnabled.value || !user.value?.id || commentId.startsWith('temp-')) return
+
+    const previous = reactions.value[commentId] ?? []
+    const mine = previous.find((r) => r.reaction === emoji && r.created_by === user.value!.id)
+
+    reactions.value = {
+      ...reactions.value,
+      [commentId]: mine ? previous.filter((r) => r !== mine) : [...previous, { reaction: emoji, created_by: user.value.id }],
+    }
+
+    try {
+      const res = (await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        { operation: 'commentReactionToggle' },
+        { commentId, fk_model_id: meta.value.id as string, reaction: emoji },
+      )) as { reactions?: CommentReactionItem[] }
+
+      if (res?.reactions) reactions.value = { ...reactions.value, [commentId]: res.reactions }
+
+      $e('a:comment:reaction:toggle', { added: !mine })
+    } catch (e: unknown) {
+      reactions.value = { ...reactions.value, [commentId]: previous }
+      message.error(await extractSdkResponseErrorMsg(e as Error))
+    }
+  }
+
+  function replaceComment(updated?: CommentType | null) {
+    if (!updated?.id) return
+
+    comments.value = comments.value.map((c) => (c.id === updated.id ? { ...c, meta: updated.meta } : c))
+  }
+
+  /** One pin per record: pinning a comment unpins the previous one. */
+  async function pinComment(commentId: string, pinned: boolean) {
+    if (!isCommentExtrasEnabled.value) return
+
+    const previous = comments.value
+
+    comments.value = comments.value.map((c) => {
+      const commentMeta = getCommentMeta(c)
+
+      if (c.id === commentId) {
+        return {
+          ...c,
+          meta: { ...commentMeta, pinned: pinned ? { by: user.value!.id, at: new Date().toISOString() } : null },
+        }
+      }
+
+      return pinned && commentMeta.pinned ? { ...c, meta: { ...commentMeta, pinned: null } } : c
+    })
+
+    try {
+      await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        { operation: 'commentPin' },
+        { commentId, fk_model_id: meta.value.id as string, pinned },
+      )
+
+      $e('a:comment:pin:toggle', { pinned })
+    } catch (e: unknown) {
+      comments.value = previous
+      message.error(await extractSdkResponseErrorMsg(e as Error))
+    }
+  }
+
+  /** `task: null` removes the to-do; `done` alone ticks or unticks it. */
+  async function setCommentTask(
+    commentId: string,
+    payload: { task?: { assignee?: string; due?: string | null } | null; done?: boolean },
+  ) {
+    if (!isCommentExtrasEnabled.value) return
+
+    try {
+      const res = (await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        { operation: 'commentTaskSet' },
+        { commentId, fk_model_id: meta.value.id as string, ...payload },
+      )) as CommentType
+
+      replaceComment(res)
+
+      $e('a:comment:task:update', {
+        action: payload.task === null ? 'remove' : payload.task ? 'assign' : payload.done ? 'complete' : 'reopen',
+      })
+    } catch (e: unknown) {
+      message.error(await extractSdkResponseErrorMsg(e as Error))
+    }
+  }
+
+  /** Fetches when the caller last read this record's comments, then stamps the visit. */
+  async function loadReadState() {
+    const seq = ++readStateSeq
+
+    lastReadAt.value = null
+
+    if (!isCommentExtrasEnabled.value || !isUIAllowed('commentList')) return
+
+    const rowId = extractPkFromRow(row.value?.row, meta.value?.columns as ColumnType[])
+    if (!rowId) return
+
+    try {
+      const res = (await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentNotificationPreferenceGet',
+        row_id: rowId,
+        fk_model_id: meta.value.id as string,
+      })) as { last_read_at?: string | null }
+
+      if (seq !== readStateSeq) return
+
+      lastReadAt.value = res?.last_read_at ?? null
+
+      // The list may still be loading; records that stay empty write nothing.
+      await until(() => comments.value.length > 0).toBe(true, { timeout: 5000 })
+
+      if (seq === readStateSeq) await markCommentsRead(rowId)
+    } catch {
+      // Without a read state nothing is flagged as new.
+    }
+  }
+
+  async function markCommentsRead(_rowId?: string) {
+    // Nothing to have read: no row is written for records without comments.
+    if (!isCommentExtrasEnabled.value || !comments.value.length) return
+
+    const rowId = _rowId ?? extractPkFromRow(row.value?.row, meta.value?.columns as ColumnType[])
+    if (!rowId || !meta.value?.id) return
+
+    try {
+      await $api.internal.postOperation(
+        meta.value.fk_workspace_id!,
+        meta.value.base_id!,
+        { operation: 'commentReadMark' },
+        { fk_model_id: meta.value.id as string, row_id: rowId },
+      )
+    } catch {
+      // Best effort: the next visit stamps it again.
+    }
+  }
+
+  /** The reader has caught up: nothing on screen counts as new any more. */
+  function acknowledgeUnread() {
+    if (!isCommentExtrasEnabled.value) return
+
+    lastReadAt.value = new Date().toISOString()
+    markCommentsRead()
+  }
+
+  async function summarizeThread(rootId: string) {
+    if (!isCommentExtrasEnabled.value || threadSummaries.value[rootId]?.loading) return
+
+    threadSummaries.value = { ...threadSummaries.value, [rootId]: { loading: true } }
+
+    try {
+      const res = (await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        { operation: 'aiCommentThreadSummarize' },
+        { commentId: rootId, modelId: meta.value.id as string },
+      )) as { text?: string; count?: number }
+
+      threadSummaries.value = { ...threadSummaries.value, [rootId]: { loading: false, text: res?.text, count: res?.count } }
+
+      $e('a:comment:thread:summarize')
+    } catch (e: unknown) {
+      const { [rootId]: _failed, ...rest } = threadSummaries.value
+      threadSummaries.value = rest
+      message.error(await extractSdkResponseErrorMsg(e as Error))
+    }
+  }
+
+  function dismissThreadSummary(rootId: string) {
+    const { [rootId]: _dismissed, ...rest } = threadSummaries.value
+    threadSummaries.value = rest
+  }
+
   const loadComments = async (_rowId?: string, ignoreLoadingIndicator = true) => {
     // Interface consumers lack base ACL — the adapter's op is grant/toggle gated.
     if ((!ifaceSidebar && !isUIAllowed('commentList')) || (!row.value && !_rowId)) return
@@ -93,6 +420,10 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           resolved_by_meta: resolvedUser?.meta,
         }
       })
+
+      commentsRowId = rowId
+
+      loadReactions(rowId)
     } catch (e: unknown) {
       message.error(
         await extractSdkResponseErrorMsg(
@@ -410,6 +741,12 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   // mounted) — the bell must follow the row, not its mount.
   watch(primaryKey, (pk, prev) => {
     if (mountedNotificationBells > 0 && pk && pk !== prev) loadCommentNotificationPreference().catch(() => undefined)
+
+    // First load (no previous record) keeps what loadComments already fetched.
+    if (prev && pk !== prev) {
+      reactions.value = {}
+      threadSummaries.value = {}
+    }
   })
 
   return {
@@ -427,6 +764,21 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     loadCommentNotificationPreference,
     trackNotificationBell,
     setCommentNotificationPreference,
+    isCommentExtrasEnabled,
+    threads,
+    reactions,
+    getReactionSummary,
+    toggleReaction,
+    pinComment,
+    setCommentTask,
+    lastReadAt,
+    isCommentUnread,
+    loadReadState,
+    markCommentsRead,
+    acknowledgeUnread,
+    threadSummaries,
+    summarizeThread,
+    dismissThreadSummary,
   }
 })
 

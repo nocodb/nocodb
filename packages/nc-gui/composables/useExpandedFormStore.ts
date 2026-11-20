@@ -123,7 +123,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const { getMetaByKey } = useMetas()
 
     const activeView = inject(ActiveViewInj, ref())
-    const { comments, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading } =
+    const { comments, reactions, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading } =
       useProvideRowComments(meta, row)
 
     const { isUIAllowed } = useRoles()
@@ -1116,13 +1116,23 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
               if (primaryKey.value && `${id}` === `${primaryKey.value}`) {
                 const commentId = payload.id
+
+                if (action === 'reaction') {
+                  reactions.value = { ...reactions.value, [commentId]: payload.reactions ?? [] }
+                  return
+                }
+
                 const user = baseUsers.value.find((u) => u.id === payload.created_by)
+                const resolvedUser = payload.resolved_by ? baseUsers.value.find((u) => u.id === payload.resolved_by) : undefined
                 const finalPayload = {
                   ...payload,
                   created_display_name: user?.display_name,
                   created_display_name_short: extractUserDisplayNameOrEmail(user),
                   created_by_email: user?.email,
                   created_by_meta: user?.meta,
+                  resolved_display_name: resolvedUser?.display_name,
+                  resolved_display_name_short: extractUserDisplayNameOrEmail(resolvedUser),
+                  resolved_by_meta: resolvedUser?.meta,
                 }
 
                 if (action === 'add') {

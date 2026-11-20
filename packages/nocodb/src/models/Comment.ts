@@ -164,12 +164,15 @@ export default class Comment implements CommentType {
     // injected ids back onto the comment.
     if (commentObj.attachments?.length) {
       await Comment.reconcileAttachments(context, commentObj, ncMeta);
+      // Part of the insert, not an edit: keep updated_at so it doesn't show as edited.
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,
         MetaTable.COMMENTS,
         prepareForDb({ attachments: commentObj.attachments }, ['attachments']),
         commentObj.id,
+        {},
+        true,
       );
     }
 
@@ -220,6 +223,66 @@ export default class Comment implements CommentType {
     }
 
     return updated;
+  }
+
+  /**
+   * Rewrites the `meta` of a record's comments under a row lock, so concurrent
+   * pin and to-do changes cannot overwrite each other. `patch` returns the new
+   * meta for a comment, or undefined to leave it as it is. Not an edit: the
+   * comment's `updated_at` is untouched.
+   */
+  public static async patchRecordMeta(
+    context: NcContext,
+    param: {
+      fk_model_id: string;
+      row_id: string;
+      patch: (comment: Comment) => Record<string, any> | undefined;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Comment[]> {
+    const nested = !!ncMeta.knexConnection.isTransaction;
+    const trx = await ncMeta.startTransaction();
+
+    try {
+      const rows = await trx
+        .knexConnection(MetaTable.COMMENTS)
+        .where({
+          base_id: context.base_id,
+          fk_model_id: param.fk_model_id,
+          row_id: param.row_id,
+        })
+        .where(function () {
+          this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+        })
+        .forUpdate();
+
+      const changed: Comment[] = [];
+
+      for (const row of rows) {
+        const comment = new Comment(row);
+        const meta = param.patch(comment);
+        if (meta === undefined) continue;
+
+        await trx.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COMMENTS,
+          prepareForDb({ meta }, ['meta']),
+          comment.id,
+          {},
+          true,
+        );
+
+        changed.push(new Comment({ ...row, meta }));
+      }
+
+      if (!nested) await trx.commit();
+
+      return changed;
+    } catch (e) {
+      if (!nested) await trx.rollback();
+      throw e;
+    }
   }
 
   public static async resolve(

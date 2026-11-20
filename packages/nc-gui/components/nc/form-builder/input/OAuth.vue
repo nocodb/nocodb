@@ -9,6 +9,7 @@ const props = defineProps<{
   element: FormBuilderElement
   haveValue?: boolean
   formData?: Record<string, any>
+  disabled?: boolean
 }>()
 
 const emits = defineEmits(['update:value'])
@@ -22,6 +23,7 @@ const OAuthConfig = computed(() => {
 })
 
 const handleOAuth = async () => {
+  if (props.disabled) return
   const result = await performOAuthDance(OAuthConfig.value, props.formData)
 
   if (!result) return
@@ -33,7 +35,7 @@ const handleOAuth = async () => {
 <template>
   <div class="flex flex-col gap-3">
     <WorkspaceIntegrationsFormsEditOrAddPerUserToggle v-if="isEeUI" />
-    <NcButton type="primary" class="self-start" @click="handleOAuth">
+    <NcButton type="primary" class="self-start" :disabled="disabled" @click="handleOAuth">
       <div class="flex items-center gap-2">
         <div class="font-bold">Authenticate With {{ OAuthConfig.provider }}</div>
         <template v-if="haveValue">

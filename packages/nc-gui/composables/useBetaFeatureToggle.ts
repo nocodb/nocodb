@@ -310,6 +310,16 @@ const FEATURES = [
     version: 1,
     isEE: true,
   },
+  {
+    // Also needs NC_GLOBAL_SEARCH on the server (appInfo.globalSearchEnabled).
+    id: 'global_search',
+    title: 'Global search',
+    description: 'Search every field of a grid or gallery view, and every record in a project from Cmd+K.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 // Retired flags: FEATURES entries commented out above, but kept in FEATURE_FLAG

@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import axios from 'axios'
 import {
   type ColumnType,
   CommonAggregations,
@@ -31,7 +32,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const { gridViewCols, updateGridViewColumn } = useViewColumnsOrThrow()
 
-    const { nestedFilters } = useSmartsheetStoreOrThrow()
+    const { nestedFilters, searchQueryParams, searchAbortSignal } = useSmartsheetStoreOrThrow()
 
     const { isUIAllowed } = useRoles()
 
@@ -127,26 +128,49 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         .then(async () => {
           if (!view.value?.type || view.value?.type !== ViewTypes.GRID) return
 
+          // A searched aggregate is a search on the server: skip it when nothing is aggregated.
+          const term = searchQueryParams.value.search
+          if (
+            term &&
+            !fields?.length &&
+            !Object.values(gridViewCols.value).some((f) => f.aggregation && f.aggregation !== CommonAggregations.None)
+          ) {
+            return
+          }
+
           try {
             const data = !isPublic.value
-              ? await internalGet(meta.value.fk_workspace_id!, meta.value.base_id!, {
-                  operation: 'dataAggregate',
-                  tableId: meta.value.id,
-                  viewId: view.value.id,
-                  baseId: meta.value.base_id!,
-                  where: where?.value,
-                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                  ...(fields ? { aggregation: fields } : {}),
-                })
+              ? await internalGet(
+                  meta.value.fk_workspace_id!,
+                  meta.value.base_id!,
+                  {
+                    operation: 'dataAggregate',
+                    tableId: meta.value.id,
+                    viewId: view.value.id,
+                    baseId: meta.value.base_id!,
+                    where: where?.value,
+                    ...searchQueryParams.value,
+                    // A batched call is not a search on the server, so it would ignore `search`.
+                    ...(searchQueryParams.value.search ? { _batch: false } : {}),
+                    ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                    ...(fields ? { aggregation: fields } : {}),
+                  },
+                  term ? { signal: searchAbortSignal.value } : undefined,
+                )
               : await fetchAggregatedData({
                   where: where?.value,
                   filtersArr: nestedFilters.value,
                   ...(fields ? { aggregation: fields } : {}),
                 })
 
+            // An older term's totals.
+            if (term !== searchQueryParams.value.search) return
             Object.assign(aggregations.value, data)
             reloadVisibleDataHook?.trigger()
           } catch (error) {
+            if (axios.isCancel(error)) return
+            // The grid's own request for this search already says so.
+            if (term && [408, 429].includes((error as any)?.response?.status)) return
             console.log(error)
             if (!silent) message.error(await extractSdkResponseErrorMsgv2(error as any))
           }

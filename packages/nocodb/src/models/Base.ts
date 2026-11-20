@@ -120,7 +120,10 @@ export default class Base implements BaseType {
     return instance;
   }
 
-  public static async populateManagedAppInfo(_base: Base): Promise<void> {
+  public static async populateManagedAppInfo(
+    _base: Base,
+    _ncMeta = Noco.ncMeta,
+  ): Promise<void> {
     return;
   }
 
@@ -370,7 +373,7 @@ export default class Base implements BaseType {
     const base = this.castType(baseData, context);
 
     if (base && base.managed_app_id) {
-      await this.populateManagedAppInfo(base);
+      await this.populateManagedAppInfo(base, ncMeta);
     }
 
     return base;
@@ -457,7 +460,7 @@ export default class Base implements BaseType {
       const base = this.castType(baseData, context);
 
       if (base.managed_app_id) {
-        await this.populateManagedAppInfo(base);
+        await this.populateManagedAppInfo(base, ncMeta);
       }
 
       await base.getSources(includeConfig, ncMeta);

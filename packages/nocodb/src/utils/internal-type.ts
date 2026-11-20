@@ -1,9 +1,11 @@
+import type { GlobalSearchModeStatus } from '~/db/search/searchIndexMeta';
 import type {
   FactoryPort,
   FactoryPreview,
   FactoryRepoType,
   FactorySessionView,
   FactoryStreamState,
+  SearchIndexStatus,
 } from 'nocodb-sdk';
 import type {
   AbuseReportDetailType,
@@ -42,6 +44,8 @@ import type {
 
 export type InternalGETResponseType = Promise<
   | void
+  | SearchIndexStatus
+  | GlobalSearchModeStatus
   | AbuseReportListType
   | AbuseReportDetailType
   | RowColoringInfo
@@ -108,6 +112,8 @@ export type InternalGETResponseType = Promise<
 
 export type InternalPOSTResponseType = Promise<
   | void
+  | SearchIndexStatus
+  | GlobalSearchModeStatus
   | AbuseReportType
   | { id: string; blocked: boolean }
   | boolean

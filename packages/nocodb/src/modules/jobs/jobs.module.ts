@@ -59,6 +59,7 @@ import { JobsController } from '~/modules/jobs/jobs.controller';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 
 // Fallback Queue (CE only supports fallback queue)
+import { SearchIndexBuildProcessor } from '~/modules/jobs/jobs/search-index-build/search-index-build.processor';
 import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs.service';
 import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
@@ -102,6 +103,7 @@ export const JobsModuleMetadata = {
     AttachmentCleanUpProcessor,
     AttachmentUrlUploadProcessor,
     DataImportProcessor,
+    SearchIndexBuildProcessor,
 
     // Migration Jobs
     InitMigrationJobs,

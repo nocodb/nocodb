@@ -91,6 +91,23 @@ import {
   LTARColsUpdater,
 } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
+import { capSearchCountQuery, getSearchFilters } from '~/db/search';
+import {
+  isSearchIndexJunction,
+  isSearchIndexTracked,
+  SEARCH_INDEX_SLACK_MS,
+} from '~/db/search/searchIndex';
+import {
+  SEARCH_DIRTY_CAP,
+  searchIndexQueue,
+} from '~/db/search/searchIndexQueue';
+import { junctionLinkedRows } from '~/db/search/searchIndexFields';
+import { isSearchIndexingEnabled } from '~/db/search/searchIndexMeta';
+import {
+  execPgWithGuard,
+  getQueryGuard,
+  shouldGuardQuery,
+} from '~/db/queryGuard';
 import {
   ncIsStringHasValue,
   ncLikeContainsPattern,
@@ -974,6 +991,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       customConditions?: Filter[];
       apiVersion?: NcApiVersion;
       linksAsLtar?: boolean | string;
+      search?: string;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
@@ -1033,6 +1051,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasColObjMap,
       throwErrorIfInvalidParams,
     );
+    const searchFilters = await getSearchFilters(this, args);
     // Resolve RLS (Row-Level Security) conditions
     const rlsConditions = ignoreRlsOpt ? [] : await this.getRlsConditions();
     const rlsFilterGroup = rlsConditions.length
@@ -1087,6 +1106,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
+          ...searchFilters,
         ],
         qb,
         undefined,
@@ -1123,6 +1143,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
+          ...searchFilters,
         ],
         qb,
         undefined,
@@ -1227,6 +1248,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       limit?;
       filterArr?: Filter[];
       customConditions?: Filter[];
+      search?: string;
     } = {},
     ignoreViewFilterAndSort = false,
     throwErrorIfInvalidParams = false,
@@ -1278,6 +1300,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams,
     );
 
+    const searchFilters = await getSearchFilters(this, args);
+
     // Resolve RLS conditions for count
     const rlsConditionsCount = await this.getRlsConditions();
     const rlsFilterGroupCount = rlsConditionsCount.length
@@ -1320,6 +1344,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
+          ...searchFilters,
         ],
         qb,
         undefined,
@@ -1348,6 +1373,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
+          ...searchFilters,
         ],
         qb,
         undefined,
@@ -1355,12 +1381,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
-    qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
-      as: 'count',
-    }).first();
-    debugCount(qb.toQuery());
+    const countQb = searchFilters.length
+      ? capSearchCountQuery(
+          this.dbDriver,
+          qb,
+          sanitize(this.model.primaryKey?.column_name),
+        )
+      : qb
+          .count(sanitize(this.model.primaryKey?.column_name) || '*', {
+            as: 'count',
+          })
+          .first();
+    debugCount(countQb.toQuery());
     return (
-      await this.execAndParse(qb, null, {
+      await this.execAndParse(countQb, null, {
         raw: true,
         first: true,
         queryTimeout: getDataQueryTimeout(),
@@ -3154,7 +3188,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         .update(updateObjForDriver)
         .where(wherePkClause);
 
+      // Any field can be a custom link's foreign key.
+      const trackOldParents = await this.searchIndexOldParents(
+        [this.extractPksValues(prevData, true)],
+        Object.keys(updateObj),
+      );
+
       await this.execAndParse(query, null, { raw: true });
+      await trackOldParents?.();
 
       const newId = this.extractPksValues(
         {
@@ -3163,6 +3204,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         },
         true,
       );
+      // Queued before the readback, which can throw after the write.
+      await this.trackSearchIndexWritten([newId]);
 
       const readNewData = (model: BaseModelSqlv2) =>
         model.readByPk(
@@ -3183,6 +3226,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           prevData,
         });
         await this.afterLinkUpdate([prevData], [newData], cookie);
+        this.forgetSearchIndexWritten([newId]);
       } else {
         await this.afterUpdate(prevData, newData, cookie, updateObj);
       }
@@ -3597,6 +3641,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } catch (e) {
         await trx?.rollback();
         throw e;
+      }
+
+      // Committed: queued before the readback, which can throw after the write.
+      if (rowId !== null && rowId !== undefined) {
+        await this.trackSearchIndexWritten([rowId]);
       }
 
       for (const op of postCommitOps) {
@@ -4979,6 +5028,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           triggerUpdateHooks: triggerLinkUpdateHooks && !skip_hooks,
         });
 
+      const trackOldParents = await this.searchIndexOldParents(
+        updatePkValues,
+        toBeUpdated.flatMap((o) => Object.keys(o.d)),
+      );
+
       transaction = await this.dbDriver.transaction();
       try {
         if (
@@ -5016,6 +5070,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         transaction = null;
         throw ex;
       }
+      // Committed: queue before the readbacks below, which can throw.
+      await this.trackSearchIndexWritten(updatePkValues);
+      await trackOldParents();
 
       // sqlite: after the commit, so field and link writes aren't atomic
       if (writeLinks && this.isSqlite) {
@@ -5085,6 +5142,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await this.afterBulkUpdate(prevData, newData, cookie);
         }
       }
+      if (raw || skip_hooks) await this.trackSearchIndexChange(datas);
       profiler.end();
       return raw || hookReader === this
         ? newData
@@ -5228,6 +5286,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
+      // Before the modified time is taken: an update-all is indexed by it.
+      const searchIndexSince = new Date();
       await this.prepareNocoData(updateData, false, cookie);
 
       const pkValues = this.extractPksValues(updateData);
@@ -5411,9 +5471,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
 
+        // Past the mark cap, by `since`: an id list would ride in the job.
+        const searchIndexPks =
+          args.skipValidationAndHooks || skip_hooks
+            ? undefined
+            : bulkUpdateHookPks
+            ? bulkUpdateHookPks.length <= SEARCH_DIRTY_CAP
+              ? bulkUpdateHookPks
+              : undefined
+            : await this.searchIndexAffectedPks(qb);
+
         qb.update(updateDataForDriver);
 
         await this.execAndParse(qb, null, { raw: true });
+
+        if (!args.skipValidationAndHooks && !skip_hooks) {
+          // Too many to list: the rows this update stamped.
+          if (searchIndexPks) await this.trackSearchIndexIds(searchIndexPks);
+          else await this.trackSearchIndexSince(searchIndexSince);
+        }
 
         if (bulkUpdateHookPks?.length) {
           // Write is already committed here — a failed emission must not 500
@@ -5481,6 +5557,36 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
     if (hooks.some((hook) => hook.active)) return true;
     return this.hasActiveBulkUpdateHooks();
+  }
+
+  /** Rows a bulkUpdateAll will touch, for the search index; undefined = too many, track by `since`. */
+  protected async searchIndexAffectedPks(
+    qb: Knex.QueryBuilder,
+  ): Promise<Array<string | number> | undefined> {
+    const pk = this.model.primaryKey;
+    if (
+      !isSearchIndexTracked(this.model) ||
+      this.model.primaryKeys?.length !== 1
+    ) {
+      return undefined;
+    }
+    try {
+      const rows: Record<string, string | number>[] = await this.execAndParse(
+        qb
+          .clone()
+          .clear('select')
+          .clear('order')
+          .select(this.dbDriver.raw('?? as ??', [pk.column_name, '__pk']))
+          .limit(SEARCH_DIRTY_CAP + 1),
+        null,
+        { raw: true },
+      );
+      if (!rows || rows.length > SEARCH_DIRTY_CAP) return undefined;
+      return rows.map((r) => r.__pk).filter((v) => v != null);
+    } catch (e) {
+      logger.error(e.message, e.stack);
+      return undefined;
+    }
   }
 
   // Collect the primary-key values of every row matching the (pre-update) query
@@ -6232,6 +6338,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     insertData: Record<string, any>;
     req: NcRequest;
   }): Promise<void> {
+    await this.trackSearchIndexChange(data);
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
     const filteredAuditData = removeBlankPropsAndMask(insertData || data, [
@@ -6297,6 +6404,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: Record<string, any>[],
     req: NcRequest,
   ): Promise<void> {
+    await this.trackSearchIndexChange(data);
     await this.handleHooks('after.bulkInsert', null, data, req);
     let parentAuditId;
 
@@ -6374,6 +6482,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest,
     eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
+    await this.trackSearchIndexChange(data);
     const id = this.extractPksValues(data);
 
     // disable external source audit in cloud
@@ -6405,6 +6514,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
     rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
+    if (data?.length) await this.trackSearchIndexChange(data);
     await this.handleHooks('after.bulkDelete', null, data, req);
 
     // bulkAll chunks rows into 100-row batches and calls afterBulkDelete per
@@ -6469,6 +6579,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req,
     isBulkAllOperation = false,
   ): Promise<void> {
+    if (data?.length) await this.trackSearchIndexChange(data);
     const isBulk = data?.length > 1;
     // Streamed restore calls afterBulkRestore per chunk. First chunk creates
     // the parent audit; later chunks reuse req.ncParentAuditId so the whole
@@ -6545,6 +6656,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest,
     isBulkAllOperation = false,
   ): Promise<void> {
+    // bulkUpdateAll passes a count and tracks its rows itself.
+    if (Array.isArray(newData) || !isBulkAllOperation) {
+      await this.trackSearchIndexChange(
+        Array.isArray(newData) ? newData : null,
+        prevData,
+      );
+    }
     if (!isBulkAllOperation && Array.isArray(newData)) {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
@@ -6675,6 +6793,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest,
     updateObj?: Record<string, any>,
   ): Promise<void> {
+    await this.trackSearchIndexChange(newData, prevData);
     // TODO this is a temporary fix for the audit log / DOMPurify causes issue for long text
     const id = this.extractPksValues(newData);
 
@@ -6873,6 +6992,257 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   // todo: handle composite primary key
   public extractPksValues(data: Record<string, any>, asString = false) {
     return dataWrapper(data).extractPksValue(this.model, asString);
+  }
+
+  /**
+   * Queue rows for the search index; a no-op unless the table is indexed.
+   * null, or any row without a readable pk, refreshes the whole table.
+   * `prev`: the rows before an update, for the links a junction row had.
+   * Resolves once search can find the rows; never rejects.
+   */
+  public async trackSearchIndexChange(
+    rows: Record<string, any>[] | Record<string, any> | null,
+    prev?: Record<string, any>[] | Record<string, any> | null,
+  ) {
+    const junction = isSearchIndexJunction(this.model);
+    const tracked = this.isSearchIndexTrackedTable();
+    if (!junction && !tracked) return;
+    if (junction && prev) {
+      await this.trackSearchIndexJunction(Array.isArray(prev) ? prev : [prev]);
+    }
+    const list = rows ? (Array.isArray(rows) ? rows : [rows]) : null;
+    const ids = list ? this.searchIndexIdsOf(list) : null;
+    // Tracked by the write itself before its readback: queue only.
+    if (
+      ids?.length &&
+      ids.every((id) => this.searchIndexWritten.has(`${id}`))
+    ) {
+      for (const id of ids) this.searchIndexWritten.delete(`${id}`);
+      if (tracked) {
+        searchIndexQueue.enqueue(this.context, this.model.id, ids, {
+          marked: true,
+        });
+      }
+      return;
+    }
+    if (junction) await this.trackSearchIndexJunction(list);
+    if (tracked) await searchIndexQueue.track(this.context, this.model, ids);
+  }
+
+  /** Indexed or read by other indexes; an auto-created junction never is. */
+  private isSearchIndexTrackedTable() {
+    return !this.model.mm && isSearchIndexTracked(this.model);
+  }
+
+  /**
+   * Junction rows are links: a write to them re-indexes the rows they link
+   * or unlink in each table whose link field reads the junction.
+   */
+  private async trackSearchIndexJunction(
+    rows: Array<Record<string, any> | string | number> | null,
+  ) {
+    if (!isSearchIndexingEnabled()) return;
+    try {
+      const sides = await junctionLinkedRows(this, rows, isSearchIndexTracked);
+      for (const { model, ids } of sides) {
+        const side = await Model.getBaseModelSQL(this.context, {
+          model,
+          dbDriver: this.dbDriver,
+        });
+        if (ids) await side.trackSearchIndexIds(ids);
+        else await side.trackSearchIndexChange(null);
+      }
+    } catch (e) {
+      logger.error(e.message, e.stack);
+    }
+  }
+
+  /** Rows whose links changed, by pk. */
+  public async trackSearchIndexIds(ids: Array<string | number>) {
+    if (!ids?.length) return;
+    if (isSearchIndexJunction(this.model)) {
+      await this.trackSearchIndexJunction(ids);
+    }
+    if (!this.isSearchIndexTrackedTable()) return;
+    await searchIndexQueue.track(this.context, this.model, ids);
+  }
+
+  /** Rows this write's after hook reports again: marked once, here. */
+  private searchIndexWritten = new Set<string>();
+
+  /**
+   * Rows just written, tracked before a readback that can throw; the after
+   * hook for the same rows then only queues them.
+   */
+  public async trackSearchIndexWritten(ids: Array<string | number>) {
+    if (!ids?.length) return;
+    const junction = isSearchIndexJunction(this.model);
+    const tracked = this.isSearchIndexTrackedTable();
+    if (!junction && !tracked) return;
+    if (junction) await this.trackSearchIndexJunction(ids);
+    if (tracked) await searchIndexQueue.track(this.context, this.model, ids);
+    for (const id of ids) this.searchIndexWritten.add(`${id}`);
+  }
+
+  /** For a write whose after hook doesn't report its rows again. */
+  public forgetSearchIndexWritten(ids: Array<string | number>) {
+    for (const id of ids) this.searchIndexWritten.delete(`${id}`);
+  }
+
+  /**
+   * Rows a bulk insert just committed, before its hook readback. Resolves to
+   * the ids marked for the after hook: forget them once the hooks have run.
+   */
+  public async trackSearchIndexInserted(
+    rows: Record<string, any>[],
+  ): Promise<Array<string | number> | undefined> {
+    const ids = this.searchIndexIdsOf(rows);
+    if (!ids?.length) {
+      await this.trackSearchIndexChange(rows);
+      return undefined;
+    }
+    await this.trackSearchIndexWritten(ids);
+    return ids;
+  }
+
+  /** The rows' pks, or null when any row has none readable. */
+  private searchIndexIdsOf(
+    rows: Record<string, any>[] | Record<string, any>,
+  ): Array<string | number> | null {
+    const ids: Array<string | number> = [];
+    for (const row of Array.isArray(rows) ? rows : [rows]) {
+      const id =
+        row && typeof row === 'object'
+          ? this.extractPksValues(row, true)
+          : undefined;
+      if (id == null || id === '' || id === 'N/A') return null;
+      ids.push(id);
+    }
+    return ids;
+  }
+
+  /** Rows a bulk write stamped at or after `since`, ids unknown. */
+  public async trackSearchIndexSince(since: Date) {
+    if (isSearchIndexJunction(this.model)) {
+      await this.trackSearchIndexJunction(null);
+    }
+    if (!this.isSearchIndexTrackedTable()) return;
+    await searchIndexQueue.track(this.context, this.model, {
+      since: new Date(since.getTime() - SEARCH_INDEX_SLACK_MS).toISOString(),
+    });
+  }
+
+  /**
+   * Belongs-to parents that rows are about to move away from: their search
+   * cells still show the moved rows, and the reverse walk only reaches the
+   * new parent. Read before the write; call the result after it.
+   */
+  public async searchIndexOldParents(
+    rowIds: Array<string | number>,
+    columnNames: Iterable<string>,
+  ): Promise<() => Promise<void>> {
+    const noop = async () => {};
+    if (!isSearchIndexingEnabled()) return noop;
+    const pk = this.model.primaryKey;
+    if (!rowIds?.length || !pk || this.model.primaryKeys?.length !== 1) {
+      return noop;
+    }
+    const columns = await this.model.getColumns();
+    const names = new Set(columnNames);
+    const moves: Array<{
+      fk: Column;
+      parent: IBaseModelSqlV2;
+      parentKey: Column;
+    }> = [];
+    for (const link of columns) {
+      const options = link.colOptions as LinkToAnotherRecordColumn;
+      if (
+        link.uidt !== UITypes.LinkToAnotherRecord ||
+        !options ||
+        options.type === RelationTypes.HAS_MANY ||
+        options.type === RelationTypes.MANY_TO_MANY ||
+        isMMOrMMLike(link)
+      ) {
+        continue;
+      }
+      // A custom link's foreign key is any field, not a ForeignKey column.
+      const fk = columns.find((c) => c.id === options.fk_child_column_id);
+      if (!fk || fk.pk || !names.has(fk.column_name)) continue;
+      const parent = await options.getRelatedTable();
+      if (
+        !parent ||
+        parent.id === this.model.id ||
+        parent.source_id !== this.model.source_id ||
+        !isSearchIndexTracked(parent)
+      ) {
+        continue;
+      }
+      await parent.getColumns();
+      const parentKey = await options.getParentColumn();
+      if (!parentKey) continue;
+      moves.push({
+        fk,
+        parentKey,
+        parent: await Model.getBaseModelSQL(this.context, {
+          model: parent,
+          dbDriver: this.dbDriver,
+        }),
+      });
+    }
+    if (!moves.length) return noop;
+    try {
+      const rows: Record<string, string | number>[] = await this.execAndParse(
+        this.dbDriver(this.tnPath)
+          .select(moves.map((m) => m.fk.column_name))
+          .whereIn(pk.column_name, rowIds),
+        null,
+        { raw: true },
+      );
+      return async () => {
+        for (const { fk, parent, parentKey } of moves) {
+          const keys = [
+            ...new Set(
+              (rows ?? [])
+                .map((r) => r[fk.column_name])
+                .filter((v) => v != null),
+            ),
+          ];
+          if (!keys.length) continue;
+          // Runs after the write committed, sometimes un-awaited: never throw.
+          // The reconcile picks up rows missed here.
+          try {
+            const parentPk = parent.model.primaryKey;
+            if (!parentPk || parentKey.id === parentPk.id) {
+              await parent.trackSearchIndexIds(keys);
+              continue;
+            }
+            // The foreign key holds the parent's key field: map it to pks.
+            const parents: Record<string, string | number>[] =
+              await parent.execAndParse(
+                this.dbDriver(parent.tnPath)
+                  .select(parentPk.column_name)
+                  .whereIn(parentKey.column_name, keys),
+                null,
+                { raw: true },
+              );
+            await parent.trackSearchIndexIds(
+              (parents ?? []).map((r) => r[parentPk.column_name]),
+            );
+          } catch (e) {
+            logger.warn(
+              `Search index: old parents in ${parent.model.id} of ${
+                this.model.id
+              } rows ${rowIds.slice(0, 20).join(',')}${
+                rowIds.length > 20 ? ` (+${rowIds.length - 20})` : ''
+              } not tracked: ${e?.message}`,
+            );
+          }
+        }
+      };
+    } catch (e) {
+      logger.error(e.message, e.stack);
+      return noop;
+    }
   }
 
   protected async errorDelete(
@@ -8442,6 +8812,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     trx = trx || this.dbDriver;
 
     query = this.sanitizeQuery(query);
+
+    let guard = getQueryGuard();
+    if (
+      guard &&
+      this.isPg &&
+      trx === this.dbDriver &&
+      !(trx as Knex).isTransaction
+    ) {
+      // A cancel opens its own connection; never point that at a customer's database.
+      if (guard.signal && !(await this.getSource())?.isMeta()) {
+        guard = { ...guard, signal: undefined };
+      }
+      if (shouldGuardQuery(guard, query)) {
+        const timeouts = [guard.statementTimeoutMs, timeout].filter(
+          (t) => t > 0,
+        );
+        return await execPgWithGuard(trx, query, {
+          ...guard,
+          statementTimeoutMs: timeouts.length
+            ? Math.min(...timeouts)
+            : undefined,
+        });
+      }
+    }
 
     // pg cancels the statement server-side and frees the connection. SET LOCAL
     // reverts at commit so the pooled connection stays clean; skipped inside a
@@ -11381,6 +11775,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     ids: Array<string>,
     linkColumnIds: string[] = [],
   ) {
+    await this.trackSearchIndexIds(ids);
     if (collectLinkBroadcast(this, ids, linkColumnIds)) return;
     this.broadcastLinkUpdateAwaited(ids, linkColumnIds).catch((e) => {
       logger.error(e);

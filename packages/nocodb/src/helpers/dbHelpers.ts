@@ -81,6 +81,8 @@ export function getSourceIntrospectionSchema(
 export type QueryWithCte = {
   builder: string | Knex.QueryBuilder;
   applyCte: (qb: Knex.QueryBuilder) => void;
+  /** PG only: the builder yields a JSON array (as text) of many values. */
+  aggregated?: boolean;
 };
 
 export function concatKnexRaw(knex: CustomKnex, raws: Knex.Raw[]) {

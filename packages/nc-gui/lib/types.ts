@@ -426,6 +426,10 @@ interface CmdCommand {
   lead?: boolean
   /** Only listed when the query is non-empty. */
   searchOnly?: boolean
+  /** A fallback listed only while this level's chip is the active context. */
+  atLevel?: CmdLevel
+  /** A fallback listed first, above the matches and every other section. */
+  top?: boolean
   /** A status row (loading, load error): shown but not selectable or runnable. */
   disabled?: boolean
   /** Spinner in place of the icon; used with `disabled` for rows still loading. */
@@ -458,6 +462,8 @@ interface CmdCommand {
   searchesChildren?: boolean
   /** On a searching sub page: called with the typed query as it settles, to fetch the children. */
   onQuery?: (query: string) => void
+  /** Searching sub page: true while the query's children are on the way; the page shows a loader. */
+  pending?: (query?: string) => boolean
   /** The sub page's breadcrumb and placeholder, when the row's title doesn't fit them. */
   pageTitle?: string
   /** With `run` and `children`: Enter runs it, → or the chevron opens the children. */

@@ -10,6 +10,7 @@ import {
   Query,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 import {
@@ -28,6 +29,7 @@ import {
   VIEW_KEY,
 } from 'src/middlewares/extract-ids/extract-ids.helpers';
 import type { InternalApiModule } from '~/utils/internal-type';
+import { QueryGuardInterceptor } from '~/interceptors/query-guard/query-guard.interceptor';
 import { sourceRestrictions } from '~/utils/acl';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
@@ -69,6 +71,8 @@ import { RootScopes } from '~/utils/globals';
 const BATCH_BLOCKED_OPERATIONS: ReadonlySet<string> = new Set<string>([
   ...Object.keys(sourceRestrictions[SourceRestriction.DATA_READONLY]),
   ...Object.keys(sourceRestrictions[SourceRestriction.SCHEMA_READONLY]),
+  // Search limits come from QueryGuardInterceptor, which a batch sub-op never passes.
+  'baseRecordSearch',
 ]);
 
 /**
@@ -85,6 +89,7 @@ export const BODY_TABLE_ID_KEYS: Readonly<
 };
 
 @Controller()
+@UseInterceptors(QueryGuardInterceptor)
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class InternalController {
   constructor(

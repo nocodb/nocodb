@@ -10,6 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { QueryGuardInterceptor } from '~/interceptors/query-guard/query-guard.interceptor';
 import { PublicDatasService } from '~/services/public-datas.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -18,6 +19,7 @@ import { Column, View } from '~/models';
 import { AttachmentsService } from '~/services/attachments.service';
 import { NcError } from '~/helpers/catchError';
 
+@UseInterceptors(QueryGuardInterceptor)
 @UseGuards(PublicApiLimiterGuard)
 @Controller()
 export class PublicDatasController {

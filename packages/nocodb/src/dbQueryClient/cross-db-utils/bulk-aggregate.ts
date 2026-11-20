@@ -10,6 +10,7 @@ import type { NcContext } from '~/interface/config';
 import type { BulkAggregateCtx, DBQueryClient } from '~/dbQueryClient/types';
 import { applyAggregation } from '~/dbQueryClient/cross-db-utils/applyAggregation';
 import conditionV2 from '~/db/conditionV2';
+import { getSearchFilters } from '~/db/search';
 import { Filter, Model } from '~/models';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -142,6 +143,7 @@ export const bulkAggregate =
     });
 
     const { where, aggregation } = baseModel._getListArgs(args);
+    const searchFilters = await getSearchFilters(baseModel, args);
 
     // Loads the column map `resolveAggregateColumns` reads.
     const columns = await baseModel.model.getColumns();
@@ -439,6 +441,7 @@ export const bulkAggregate =
                 is_group: true,
                 logical_op: 'and',
               }),
+              ...searchFilters,
             ],
             innerQb,
           );
@@ -584,6 +587,7 @@ export const bulkAggregate =
               is_group: true,
               logical_op: 'and',
             }),
+            ...searchFilters,
             new Filter({
               children: aggFilter,
               is_group: true,

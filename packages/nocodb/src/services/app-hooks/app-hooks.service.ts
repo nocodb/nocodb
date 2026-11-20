@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import type { AppEvents } from 'nocodb-sdk';
 import type {
+  AbuseReportAdminEvent,
   ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
@@ -33,12 +34,11 @@ import type {
   MapViewUpdateEvent,
   MetaDiffEvent,
   OrgUserAddEvent,
+  OrgUserBlockEvent,
   OrgUserDeleteEvent,
   OrgUserInviteEvent,
   OrgUserRemoveEvent,
   OrgUserUpdateEvent,
-  OrgUserBlockEvent,
-  AbuseReportAdminEvent,
   OrgWorkspaceEvent,
   PluginEvent,
   PluginTestEvent,
@@ -73,10 +73,10 @@ import type {
   UserEmailVerificationEvent,
   UserInviteEvent,
   UserPasswordChangeEvent,
-  UserSessionsRevokeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
   UserProfileUpdateEvent,
+  UserSessionsRevokeEvent,
   UserSigninEvent,
   UserSigninFailedEvent,
   UserSignoutEvent,
@@ -198,6 +198,10 @@ export class AppHooksService {
       | AppEvents.COLUMN_DELETE
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RELATION_DELETE | AppEvents.RELATION_CREATE,
+    listener: (data: RelationEvent) => void,
   ): () => void;
 
   on(

@@ -63,7 +63,7 @@ import {
 import { getViewExposedColumnIds } from '~/helpers/viewVisibleColumns';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { parseFilterArrJson } from '~/helpers/filterArrJsonHelper';
-import { defaultGroupByLimitConfig } from '~/helpers/extractLimitAndOffset';
+import { assertBulkFilterListWithinLimit } from '~/helpers/bulkEntryLimit';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   getRelatedLinksColumn,
@@ -78,31 +78,6 @@ import { PublicMetasService } from '~/services/public-metas.service';
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
   return paths.map((url) => url.replace(/[/.?#]+/g, '_'));
-}
-
-// Each bulk entry costs a full query, and these routes are anonymous — without a
-// cap one 50MB body (the json-body middleware limit) buys tens of thousands of
-// them. 200 leaves 2x headroom over the largest batch the UI sends
-// (GROUP_CHUNK_SIZE = 100 in useInfiniteGroups).
-//
-// useViewGroupBy sizes its batch by `limitGroup` instead, which has a lower clamp
-// only — so raising NC_DB_QUERY_LIMIT_GROUP_BY_GROUP past the cap would 400 every
-// shared-view request and blame this file. Track it rather than couple to it.
-const MAX_PUBLIC_BULK_ENTRIES = Math.max(
-  200,
-  defaultGroupByLimitConfig.limitGroup,
-);
-
-function assertBulkFilterListWithinLimit(bulkFilterList: unknown): void {
-  if (!Array.isArray(bulkFilterList) || !bulkFilterList.length) {
-    NcError.badRequest('Invalid bulkFilterList');
-  }
-
-  if ((bulkFilterList as unknown[]).length > MAX_PUBLIC_BULK_ENTRIES) {
-    NcError.badRequest(
-      `bulkFilterList exceeds the maximum of ${MAX_PUBLIC_BULK_ENTRIES} entries`,
-    );
-  }
 }
 
 // Response-shape keys a public/shared-view caller must not control:
@@ -1037,6 +1012,8 @@ export class PublicDatasService {
     // a one-bit oracle per non-exposed column, plus `sort` as a reordering
     // channel. `/mm/` and `/hm/` already strip; this picker route didn't.
     await restrictNestedLinkQueryForColumn(context, column, param.query);
+    // Public nested lists never take the all-fields search.
+    delete param.query?.search;
 
     // `extractOnlyPrimaries` already restricts this AST to pk/pv/display, but
     // strip getHiddenColumn/nested here too — every public getAst call site does.
@@ -1317,6 +1294,8 @@ export class PublicDatasService {
     // related column is the same one-bit oracle the authenticated paths close.
     // Mutates `param.query`, which both the data fetch and the count read from.
     await restrictNestedLinkQueryForColumn(context, column, param.query);
+    // Public nested lists never take the all-fields search.
+    delete param.query?.search;
 
     const key = `List`;
     const requestObj: any = {
@@ -1436,6 +1415,8 @@ export class PublicDatasService {
     // related column is the same one-bit oracle the authenticated paths close.
     // Mutates `param.query`, which both the data fetch and the count read from.
     await restrictNestedLinkQueryForColumn(context, column, param.query);
+    // Public nested lists never take the all-fields search.
+    delete param.query?.search;
 
     const key = `List`;
     const requestObj: any = {

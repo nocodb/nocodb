@@ -38,6 +38,7 @@ import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DataImportService } from '~/services/data-import.service';
 import { ButtonsService } from '~/services/buttons.service';
+import { SearchIndexService } from '~/services/search-index.service';
 
 @Injectable()
 export class UiPostOperations
@@ -68,11 +69,15 @@ export class UiPostOperations
     protected extensionsService: ExtensionsService,
     protected dataImportService: DataImportService,
     protected buttonsService: ButtonsService,
+    protected searchIndexService: SearchIndexService,
   ) {}
   operations = [
     'tableUpdate' as const,
     'tableDelete' as const,
     'tableReorder' as const,
+    'searchIndexBuild' as const,
+    'searchIndexDrop' as const,
+    'searchIndexSetMode' as const,
     'columnAdd' as const,
     'columnUpdate' as const,
     'columnDelete' as const,
@@ -204,6 +209,19 @@ export class UiPostOperations
           table: payload,
           user: req.user,
           req,
+        });
+      case 'searchIndexBuild':
+        return await this.searchIndexService.build(context, {
+          tableId: req.query.tableId,
+        });
+      case 'searchIndexDrop':
+        return await this.searchIndexService.drop(context, {
+          tableId: req.query.tableId,
+        });
+      case 'searchIndexSetMode':
+        return await this.searchIndexService.setMode(context, {
+          tableId: req.query.tableId,
+          mode: payload?.mode,
         });
       case 'tableDelete':
         return await this.tablesService.tableDelete(context, {

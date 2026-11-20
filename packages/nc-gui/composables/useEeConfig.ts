@@ -187,6 +187,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockListView = computed(() => true)
 
+  const blockGlobalSearch = computed(() => true)
+
   const blockMapView = computed(() => true)
 
   // AutoNumber field is EE-only — always blocked in CE
@@ -401,6 +403,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showEnvironmentPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseListView = (..._args: any[]) => {}
+
+  const showUpgradeToUseGlobalSearch = (..._args: any[]) => {}
 
   const showUpgradeToUseMapView = (..._args: any[]) => {}
 
@@ -716,6 +720,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseBaseVariables,
     blockListView,
     showUpgradeToUseListView,
+    blockGlobalSearch,
+    showUpgradeToUseGlobalSearch,
     blockMapView,
     showUpgradeToUseMapView,
     blockDateDependency,

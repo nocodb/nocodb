@@ -52,6 +52,7 @@ import type { RenderTagProps } from '../utils/types'
 import { getSafe2DContext } from '../utils/safeCanvas'
 import type { MarkdownLoader } from '../loaders/markdownLoader'
 import type { RowDropTarget } from './useRowReOrder'
+import { cellMatchesSearch } from '~/utils/allFieldsSearchUtils'
 import type { GridRemoteFieldMap, GridRemoteFocus, GridRemoteFocusMap, GridRemoteRecordMap } from '~/lib/types'
 
 export function useCanvasRender({
@@ -275,6 +276,20 @@ export function useCanvasRender({
   }
 
   const { isDark, getColor } = useTheme()
+
+  const searchHighlight = useSmartsheetStore()?.searchHighlight
+
+  /** Tints a cell whose loaded value shows the toolbar search term. */
+  function paintSearchMatch(
+    ctx: CanvasRenderingContext2D,
+    column: CanvasGridColumn,
+    value: unknown,
+    rect: { x: number; y: number; width: number; height: number },
+  ) {
+    if (!cellMatchesSearch(searchHighlight?.value, column.columnObj, value)) return
+    ctx.fillStyle = getColor(themeV4Colors.yellow['100'], themeV4Colors.yellow['900'], 0.7)
+    ctx.fillRect(rect.x, rect.y, rect.width, rect.height)
+  }
 
   function renderInterfaceFieldMenuButton(ctx: CanvasRenderingContext2D, x: number, centerY: number) {
     const w = 22
@@ -2113,6 +2128,10 @@ export function useCanvasRender({
           renderRedBorders.push({ rowIndex: rowIdx, column })
         }
 
+        if (!isActive && !isCellInRange && !recordSelected) {
+          paintSearchMatch(ctx, column, value, { x: xOffset - _scrollLeft, y: yOffset, width, height: _rowH })
+        }
+
         renderCell(ctx, column.columnObj, {
           value,
           x: xOffset - _scrollLeft,
@@ -2237,6 +2256,10 @@ export function useCanvasRender({
 
             if (isColumnRequiredAndNull(column.columnObj, row.row)) {
               renderRedBorders.push({ rowIndex: rowIdx, column })
+            }
+
+            if (!isActive && !isCellInRange && !recordSelected) {
+              paintSearchMatch(ctx, column, value, { x: xOffset, y: yOffset, width, height: _rowH })
             }
 
             renderCell(ctx, column.columnObj, {

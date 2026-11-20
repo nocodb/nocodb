@@ -21,6 +21,7 @@ import type {
 import type PQueue from 'p-queue';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
+import { withoutSearchIndexState } from '~/db/search/searchIndexKeys';
 import { NcContext } from '~/interface/config';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
@@ -282,6 +283,8 @@ export default class Model implements TableType {
     ]);
 
     insertObj.mm = !!insertObj.mm;
+    if (insertObj.meta)
+      insertObj.meta = withoutSearchIndexState(insertObj.meta);
 
     const condition: Record<string, any> = {
       base_id: baseId,
@@ -1511,5 +1514,57 @@ export default class Model implements TableType {
     );
 
     return res;
+  }
+
+  /** The stored `meta` text, uncached; undefined when the table is gone. */
+  static async readRawMeta(
+    context: NcContext,
+    tableId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ meta: string | null } | undefined> {
+    const row = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      tableId,
+      ['meta'],
+      modelOrViewNotDeletedXcCondition,
+    );
+    if (!row) return undefined;
+    const meta = row.meta ?? null;
+    return {
+      meta:
+        meta === null || typeof meta === 'string' ? meta : JSON.stringify(meta),
+    };
+  }
+
+  /**
+   * Write `meta` (and `extra` columns with it) only while the stored text is
+   * still `expected`; false when another writer got there first.
+   */
+  static async updateMetaIfUnchanged(
+    context: NcContext,
+    tableId: string,
+    meta: Record<string, unknown>,
+    expected: string | null,
+    extra: Pick<TableReqType, 'description'> = {},
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const updateObj = { ...extractProps(extra, ['description']), meta };
+    const updated = await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      prepareForDb(updateObj),
+      { id: tableId, meta: expected },
+      modelOrViewXcCondition,
+    );
+    if (!Number(updated)) return false;
+    await NocoCache.update(
+      context,
+      `${CacheScope.MODEL}:${tableId}`,
+      prepareForResponse(updateObj),
+    );
+    return true;
   }
 }

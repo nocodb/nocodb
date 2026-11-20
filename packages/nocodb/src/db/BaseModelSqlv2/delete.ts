@@ -786,6 +786,9 @@ export class BaseModelDelete {
           bulkAuditEvent,
           rowAuditEvent,
         );
+      } else if (records.length) {
+        // The after hook queues them otherwise; without it their cells stay.
+        await this.baseModel.trackSearchIndexChange(records);
       }
     }
 

@@ -18,6 +18,7 @@ import {
   UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type {
   ColumnType,
   FormulaColumnReqType,
@@ -67,6 +68,8 @@ import {
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { cleanupDeletedSearchIndex } from '~/db/search/searchIndex';
+import { replaceClientModelMeta } from '~/db/search/searchIndexMeta';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
@@ -122,7 +125,23 @@ export class TablesService {
     // if meta/description present update and return
     // todo: allow user to update meta  and other prop in single api call
     if ('meta' in param.table || 'description' in param.table) {
-      await Model.updateMeta(context, param.tableId, param.table);
+      const description =
+        'description' in param.table
+          ? { description: param.table.description }
+          : undefined;
+      // A compare-and-swap that keeps the stored search keys: an index
+      // write in between is neither lost nor overwritten. Writes the
+      // description with it, or throws having saved neither.
+      if ('meta' in param.table) {
+        await replaceClientModelMeta(
+          context,
+          param.tableId,
+          param.table.meta,
+          description,
+        );
+      } else {
+        await Model.updateMeta(context, param.tableId, description);
+      }
 
       this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
         table: param.table,
@@ -716,6 +735,33 @@ export class TablesService {
       }
 
       result = await table.delete(ncMeta);
+
+      if (result && table.type === ModelTypes.TABLE && source.isMeta()) {
+        const deleted = table;
+        const cleanup = async () => {
+          try {
+            await cleanupDeletedSearchIndex(
+              context,
+              deleted,
+              await NcConnectionMgrv2.get(source),
+            );
+          } catch (e) {
+            this.logger.warn(
+              `Search index cleanup failed for ${deleted.id}: ${e?.message}`,
+            );
+          }
+        };
+        const connection: Knex | Knex.Transaction = ncMeta.knexConnection;
+        // Its dependents update writes rows this transaction holds locked.
+        if (connection?.isTransaction) {
+          void (connection as Knex.Transaction).executionPromise.then(
+            cleanup,
+            () => undefined,
+          );
+        } else {
+          await cleanup();
+        }
+      }
     } catch (e) {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(

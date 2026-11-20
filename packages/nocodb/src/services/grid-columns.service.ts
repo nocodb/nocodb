@@ -65,6 +65,8 @@ export class GridColumnsService {
       await assertNotLockedViewOnLaneProduction(
         context,
         oldGridViewColumn.fk_view_id,
+        undefined,
+        ncMeta,
       );
     }
 

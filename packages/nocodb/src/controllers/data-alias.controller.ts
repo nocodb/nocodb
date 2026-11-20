@@ -11,8 +11,10 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { QueryGuardInterceptor } from '~/interceptors/query-guard/query-guard.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -22,6 +24,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
+@UseInterceptors(QueryGuardInterceptor)
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class DataAliasController {
   constructor(private readonly datasService: DatasService) {}

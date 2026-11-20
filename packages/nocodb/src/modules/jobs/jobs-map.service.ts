@@ -12,6 +12,7 @@ import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-
 import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
 import { AttachmentUrlUploadProcessor } from '~/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
 import { DataImportProcessor } from '~/modules/jobs/jobs/data-import/data-import.processor';
+import { SearchIndexBuildProcessor } from '~/modules/jobs/jobs/search-index-build/search-index-build.processor';
 import { JobTypes } from '~/interface/Jobs';
 
 @Injectable()
@@ -30,6 +31,7 @@ export class JobsMap {
     protected readonly dataExportCleanUpProcessor: DataExportCleanUpProcessor,
     protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
     protected readonly dataImportProcessor: DataImportProcessor,
+    protected readonly searchIndexBuildProcessor: SearchIndexBuildProcessor,
   ) {}
 
   protected get _jobMap(): {
@@ -90,6 +92,21 @@ export class JobsMap {
       },
       [JobTypes.DataImport]: {
         this: this.dataImportProcessor,
+      },
+      [JobTypes.SearchIndexBuild]: {
+        this: this.searchIndexBuildProcessor,
+      },
+      [JobTypes.SearchIndexFlush]: {
+        this: this.searchIndexBuildProcessor,
+        fn: 'flush',
+      },
+      [JobTypes.SearchIndexFieldSync]: {
+        this: this.searchIndexBuildProcessor,
+        fn: 'fieldSync',
+      },
+      [JobTypes.SearchIndexReconcile]: {
+        this: this.searchIndexBuildProcessor,
+        fn: 'reconcile',
       },
     };
   }

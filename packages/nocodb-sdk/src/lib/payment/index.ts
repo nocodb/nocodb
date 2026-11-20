@@ -214,6 +214,9 @@ export enum PlanFeatureTypes {
 
   /** Shared form views can require the submitter to sign in. */
   FEATURE_FORM_REQUIRE_SIGNIN = 'feature_form_require_signin',
+
+  /** Search across every field of a table, and across a workspace's records in ⌘K. */
+  FEATURE_GLOBAL_SEARCH = 'feature_global_search',
 }
 
 export enum PlanAddonTypes {
@@ -666,6 +669,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to keep integration credentials in your own secrets manager.',
   [PlanFeatureTypes.FEATURE_COMPUTE_LITE]:
     'to run sandboxes on your own servers with nc-compute-lite.',
+  [PlanFeatureTypes.FEATURE_GLOBAL_SEARCH]:
+    'to search all fields and records across your workspace.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

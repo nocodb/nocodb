@@ -164,9 +164,6 @@ const isFullHeight = computed(() => {
 
 const isVisible = ref(false)
 
-// Cmd+F in the expanded editor should find text in the editor, not the page behind it
-useInertBackground(isVisible, inputWrapperRef)
-
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 
 const aiWarningRef = ref<HTMLDivElement>()

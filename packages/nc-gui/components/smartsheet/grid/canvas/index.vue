@@ -3212,12 +3212,15 @@ const callAddNewRow = (context: { row: number; col: number; path: Array<number> 
 
   const { cachedRows } = dataCache
 
+  // A row inserted into a group takes the group's values, as the group's own add-record does
+  const overwrite = isGroupBy.value ? getGroupDefaultData(findGroupByPath(cachedGroups.value, context?.path), context?.path) : {}
+
   const row = cachedRows.value.get(direction === 'above' ? context.row : context.row + 1)
   if (row) {
     const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-    addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId!, {}, context?.path)
+    addEmptyRow(context.row + (direction === 'above' ? 0 : 1), false, rowId!, overwrite, context?.path)
   } else {
-    addEmptyRow(undefined, false, undefined, {}, context?.path)
+    addEmptyRow(undefined, false, undefined, overwrite, context?.path)
   }
 }
 

@@ -392,6 +392,21 @@ export default class Model implements TableType {
     return modelRes;
   }
 
+  // Drop the cached model lists so the next read reloads them from the DB.
+  // Used after bulk inserts (schema sync), where a list read racing the
+  // inserts can cache an incomplete list.
+  public static async clearListCache(
+    context: NcContext,
+    { base_id, source_id }: { base_id: string; source_id?: string },
+  ) {
+    await NocoCache.del(context, [
+      `${CacheScope.MODEL}:${base_id}:list`,
+      ...(source_id
+        ? [`${CacheScope.MODEL}:${base_id}:${source_id}:list`]
+        : []),
+    ]);
+  }
+
   public static async list(
     context: NcContext,
     {

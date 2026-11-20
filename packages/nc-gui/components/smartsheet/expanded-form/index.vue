@@ -411,9 +411,14 @@ const save = async () => {
     if (!props.skipReload) {
       // The form already holds the saved row, so its own view-data listener skips it
       const reloadParams = { inPlace: true, skipLoadingRowId: primaryKey.value || undefined }
-      // The grid provides one hook for both
-      if (reloadTrigger !== reloadViewDataTrigger) await reloadTrigger?.trigger(reloadParams)
-      await reloadViewDataTrigger?.trigger(reloadParams)
+      try {
+        // The grid provides one hook for both
+        if (reloadTrigger !== reloadViewDataTrigger) await reloadTrigger?.trigger(reloadParams)
+        await reloadViewDataTrigger?.trigger(reloadParams)
+      } catch {
+        // The record is already saved; only the view is stale.
+        message.warning(t('msg.warning.recordSavedButReloadFailed'))
+      }
     }
 
     isUnsavedFormExist.value = false

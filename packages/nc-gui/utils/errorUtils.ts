@@ -12,6 +12,10 @@ export async function extractSdkResponseErrorMsg(e: Error & { response?: any }) 
   let msg
   let errors: any[] | null = null
 
+  // No NocoDB message usually means a proxy or gateway answered; the status tells them apart.
+  const status = e.response.status
+  const fallbackMsg = status ? `Some internal error occurred (HTTP ${status})` : 'Some internal error occurred'
+
   if (e.response.data instanceof Blob) {
     try {
       const parsedData = JSON.parse(await e.response.data.text())
@@ -19,12 +23,12 @@ export async function extractSdkResponseErrorMsg(e: Error & { response?: any }) 
       msg = parsedData.message || parsedData.msg
       errors = parsedData.errors
     } catch {
-      msg = 'Some internal error occurred'
+      msg = fallbackMsg
     }
   } else {
     // V2 format: prioritize 'message' field over 'msg'
     // V1 format: falls back to 'msg' field
-    msg = e.response?.data?.message || e.response?.data?.msg || 'Some internal error occurred'
+    msg = e.response?.data?.message || e.response?.data?.msg || fallbackMsg
     errors = e.response.data?.errors
   }
 

@@ -8418,6 +8418,7 @@
       "numberImportedAs": "Row {row}, \"{column}\": \"{value}\" will be imported as {stored}.",
       "collabStaleEditsDiscarded": "This changed while you were offline. It now shows the latest version; the edits you made while offline weren't saved.",
       "collabStaleReloadFailed": "This changed while you were offline, and the latest version couldn't be loaded. Reopen it to keep editing.",
+      "recordSavedButReloadFailed": "Record saved, but the view could not refresh. Reload to see the latest data.",
       "collabScriptLiveElsewhere": "Someone else is now editing this script live, so your latest changes weren't saved. Try again once they're done, or reload the page to edit with them.",
       "collabScriptLiveElsewhereCopied": "Someone else is now editing this script live, so your latest changes weren't saved. They're copied to your clipboard. Try again once they're done, or reload the page to edit with them.",
       "interfaceBrokenPageRefs": "Published. {count} page link(s) point to pages that no longer exist, aren't published, or aren't in this base.",

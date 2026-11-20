@@ -19,17 +19,14 @@ export function getIntrospectedColumnMeta(
   uidt: UITypes | string,
   column: { dtxs?: string | number | null; meta?: any },
 ) {
-  if (
-    uidt !== UITypes.Decimal ||
-    column.meta?.precision !== undefined ||
-    column.dtxs === null ||
-    column.dtxs === undefined ||
-    column.dtxs === ''
-  ) {
+  if (uidt !== UITypes.Decimal || column.meta?.precision !== undefined) {
     return column.meta;
   }
 
-  const scale = Number(column.dtxs);
+  // No scale (e.g. pg unconstrained `numeric`, float types): default to 2.
+  const hasScale =
+    column.dtxs !== null && column.dtxs !== undefined && column.dtxs !== '';
+  const scale = hasScale ? Number(column.dtxs) : 2;
   if (!Number.isInteger(scale) || scale < 0) return column.meta;
 
   return {

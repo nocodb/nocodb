@@ -33,6 +33,12 @@ import {
   resolvePkAfterSync,
 } from '~/services/meta-diffs/pk-preservation';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
+import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
+import {
+  getNcSystemColumnUidts,
+  mapNcSystemColumns,
+  NC_CONVERTIBLE_SYSTEM_UIDTS,
+} from '~/helpers/populateMeta';
 import NcHelp from '~/utils/NcHelp';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
@@ -48,6 +54,7 @@ export enum MetaDiffType {
   TABLE_COLUMN_ADD = 'TABLE_COLUMN_ADD',
   TABLE_COLUMN_TYPE_CHANGE = 'TABLE_COLUMN_TYPE_CHANGE',
   TABLE_COLUMN_PROPS_CHANGED = 'TABLE_COLUMN_PROPS_CHANGED',
+  TABLE_COLUMN_SYSTEM_FIELD = 'TABLE_COLUMN_SYSTEM_FIELD',
   TABLE_COLUMN_REMOVE = 'TABLE_COLUMN_REMOVE',
   VIEW_NEW = 'VIEW_NEW',
   VIEW_REMOVE = 'VIEW_REMOVE',
@@ -94,6 +101,15 @@ type MetaDiffChange = {
       model?: Model;
       id?: string;
       cn: string;
+      // set when the column is a NocoDB system column of a NocoDB-created table
+      systemUidt?: UITypes;
+    }
+  | {
+      type: MetaDiffType.TABLE_COLUMN_SYSTEM_FIELD;
+      id?: string;
+      cn: string;
+      column: Column;
+      uidt: UITypes;
     }
   | {
       type:
@@ -271,6 +287,20 @@ export class MetaDiffsService {
 
       await oldMeta.getColumns();
 
+      // A NocoDB-created table: its system columns become system fields, unless
+      // the table already has a system field of that type.
+      const ncSystemUidts = getNcSystemColumnUidts(
+        colListRef[table.tn].map((c) => c.cn),
+      );
+      const existingSystemUidts = new Set(
+        oldMeta.columns.filter((c) => c.system).map((c) => c.uidt),
+      );
+      const getSystemUidt = (cn: string) => {
+        const uidt = ncSystemUidts?.[cn];
+        return uidt && !existingSystemUidts.has(uidt) ? uidt : undefined;
+      };
+      const tableColumns = [...oldMeta.columns];
+
       for (const column of colListRef[table.tn]) {
         const oldColIdx = oldMeta.columns.findIndex(
           (c) => c.column_name === column.cn,
@@ -283,11 +313,31 @@ export class MetaDiffsService {
             msg: `New column(${column.cn})`,
             cn: column.cn,
             id: oldMeta.id,
+            systemUidt: getSystemUidt(column.cn),
           });
           continue;
         }
 
         const [oldCol] = oldMeta.columns.splice(oldColIdx, 1);
+
+        const systemUidt = getSystemUidt(column.cn);
+        // An already-synced field converts only to Order or Meta; a display value
+        // column, or one other fields depend on, stays a regular field.
+        if (
+          systemUidt &&
+          NC_CONVERTIBLE_SYSTEM_UIDTS.has(systemUidt) &&
+          !oldCol.pv &&
+          !(await this.hasTypeDependents(context, oldCol, tableColumns))
+        ) {
+          tableProp.detectedChanges.push({
+            type: MetaDiffType.TABLE_COLUMN_SYSTEM_FIELD,
+            msg: `Column is a NocoDB system field(${column.cn})`,
+            cn: oldCol.column_name,
+            id: oldMeta.id,
+            column: oldCol,
+            uidt: systemUidt,
+          });
+        }
 
         if (
           oldCol.dt !== column.dt ||
@@ -858,6 +908,60 @@ export class MetaDiffsService {
     }));
   }
 
+  // Fields set up for the column's current type: a uidt change deletes its
+  // QR/Barcode columns (Column.update) and retypes formulas, lookups, rollups
+  // and filters over it.
+  private async hasTypeDependents(
+    context: NcContext,
+    column: Column,
+    tableColumns: Column[],
+  ) {
+    const ncMeta = Noco.ncMeta;
+    const dependentRefs: Array<[MetaTable, string]> = [
+      [MetaTable.COL_QRCODE, 'fk_qr_value_column_id'],
+      [MetaTable.COL_BARCODE, 'fk_barcode_value_column_id'],
+      [MetaTable.COL_LOOKUP, 'fk_lookup_column_id'],
+      [MetaTable.COL_ROLLUP, 'fk_rollup_column_id'],
+      [MetaTable.FILTER_EXP, 'fk_column_id'],
+    ];
+    for (const [table, fk] of dependentRefs) {
+      const rows = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        table,
+        { condition: { [fk]: column.id }, limit: 1 },
+      );
+      if (rows.length) return true;
+    }
+
+    // lookups and rollups in other bases, through this table's links
+    for (const linkCol of tableColumns) {
+      if (!isLinksOrLTAR(linkCol.uidt)) continue;
+      const relatedBaseId = (
+        await linkCol.getColOptions<LinkToAnotherRecordColumn>()
+      )?.fk_related_base_id;
+      if (!relatedBaseId || relatedBaseId === context.base_id) continue;
+      for (const [table, fk] of dependentRefs.slice(2, 4)) {
+        const rows = await ncMeta.metaList2(
+          context.workspace_id,
+          relatedBaseId,
+          table,
+          { condition: { [fk]: column.id }, limit: 1 },
+        );
+        if (rows.length) return true;
+      }
+    }
+
+    return (
+      (
+        await getFormulasReferredTheColumn(context, {
+          column,
+          columns: tableColumns,
+        })
+      ).length > 0
+    );
+  }
+
   async metaDiff(context: NcContext, param: { baseId: string }) {
     const base = await Base.getWithInfo(context, param.baseId);
     let changes = [];
@@ -963,6 +1067,7 @@ export class MetaDiffsService {
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
+              mapNcSystemColumns(columns);
               mapDefaultDisplayValue(columns);
 
               const model = await Model.insert(context, base.id, source.id, {
@@ -977,7 +1082,10 @@ export class MetaDiffsService {
               });
 
               for (const column of columns) {
-                const uidt = getColumnUiType(source, column);
+                const uidt =
+                  column.system && column.uidt
+                    ? column.uidt
+                    : getColumnUiType(source, column);
                 await Column.insert(context, {
                   uidt,
                   fk_model_id: model.id,
@@ -997,6 +1105,7 @@ export class MetaDiffsService {
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
 
+              mapNcSystemColumns(columns);
               mapDefaultDisplayValue(columns);
 
               const model = await Model.insert(context, base.id, source.id, {
@@ -1007,7 +1116,10 @@ export class MetaDiffsService {
               });
 
               for (const column of columns) {
-                const uidt = getColumnUiType(source, column);
+                const uidt =
+                  column.system && column.uidt
+                    ? column.uidt
+                    : getColumnUiType(source, column);
                 await Column.insert(context, {
                   uidt,
                   fk_model_id: model.id,
@@ -1034,7 +1146,12 @@ export class MetaDiffsService {
                 })
               )?.data?.list?.map((c) => ({ ...c, column_name: c.cn }));
               const column = columns.find((c) => c.cn === change.cn);
-              column.uidt = getColumnUiType(source, column);
+              if (change.systemUidt) {
+                column.uidt = change.systemUidt;
+                column.system = true;
+              } else {
+                column.uidt = getColumnUiType(source, column);
+              }
               column.meta = getIntrospectedColumnMeta(column.uidt, column);
               //todo: inflection
               column.title = getColumnNameAlias(column.cn, source);
@@ -1107,6 +1224,13 @@ export class MetaDiffsService {
                 ),
               });
             }
+            break;
+          case MetaDiffType.TABLE_COLUMN_SYSTEM_FIELD:
+            // meta only: the DB type is unchanged
+            await Column.update(context, change.column.id, {
+              uidt: change.uidt,
+              system: true,
+            });
             break;
           case MetaDiffType.TABLE_COLUMN_REMOVE:
           case MetaDiffType.VIEW_COLUMN_REMOVE:

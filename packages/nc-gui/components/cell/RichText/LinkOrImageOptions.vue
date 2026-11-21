@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import { type Node, getMarkRange } from '@tiptap/core'
+import { type Node, getMarkRange, isNodeSelection, posToDOMRect } from '@tiptap/core'
 import type { Mark } from '@tiptap/pm/model'
 
 const props = defineProps<Props>()
@@ -31,6 +31,9 @@ const isImageOptionsVisible = ref(false)
 const isImageEditMode = ref(false) // Track if we're in edit mode
 const isAddImageMode = ref(false) // Track if we're adding a new image
 
+// The toolbar button that opened the add-image form; the form opens next to it, not at the cursor
+const addImageAnchor = ref<HTMLElement | null>(null)
+
 const revalidatePosition = ref(false)
 
 // This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
@@ -57,6 +60,8 @@ const checkLinkMarkOrImageNode = (editor: Editor) => {
   if (isImageRenderEnabled.value && propsEditor.value?.storage?.image?.addImageMode) {
     // Reset the flag so it doesn't trigger again
     propsEditor.value.storage.image.addImageMode = false
+    addImageAnchor.value = propsEditor.value.storage.image.addImageAnchor ?? null
+    propsEditor.value.storage.image.addImageAnchor = null
 
     // Enter add image mode
     isImageEditMode.value = true
@@ -235,12 +240,33 @@ const openLink = () => {
   }
 }
 
-const onMountLinkOptions = (e: any) => {
+// Same as BubbleMenu's default, except the add-image form, which sits by its toolbar button
+function getReferenceClientRect() {
+  if (isAddImageMode.value && addImageAnchor.value?.isConnected) {
+    return addImageAnchor.value.getBoundingClientRect()
+  }
+
+  const { view, state } = editor.value
+  const { from, to } = state.selection
+
+  if (isNodeSelection(state.selection)) {
+    let node = view.nodeDOM(from) as HTMLElement | null
+    // A node view's wrapper spans the line; anchor to what it renders
+    const wrapper = node?.hasAttribute?.('data-node-view-wrapper') ? node : node?.querySelector?.('[data-node-view-wrapper]')
+    if (wrapper) node = wrapper.firstElementChild as HTMLElement | null
+    if (node) return node.getBoundingClientRect()
+  }
+
+  return posToDOMRect(view, from, to)
+}
+
+// Only the link bar stretches across the editor; the image bar and form keep their own width
+const onShowLinkOptions = (e: any) => {
   if (e?.popper?.style) {
     if (props.isComment) {
       e.popper.style.left = '-10%'
     }
-    e.popper.style.width = '95%'
+    e.popper.style.width = isImageOptionsVisible.value ? '' : '95%'
   }
 }
 
@@ -257,7 +283,8 @@ const tabIndex = computed(() => {
       duration: 100,
       maxWidth: 400,
       placement: isImageOptionsVisible && isImageRenderEnabled && (isImageEditMode || isAddImageMode) ? 'auto-start' : 'auto',
-      onMount: onMountLinkOptions,
+      onShow: onShowLinkOptions,
+      getReferenceClientRect,
     }"
     :should-show="(checkLinkMarkOrImageNode as any)"
   >

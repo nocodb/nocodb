@@ -1,5 +1,6 @@
 import type { UserType } from 'nocodb-sdk'
 import { decode as decodeHtmlEntities } from 'html-entities'
+import { imgTagsToMarkdown } from '~/helpers/tiptap-markdown/util/imgTag'
 
 type MarkdownStyle = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'link' | 'mention'
 
@@ -220,15 +221,6 @@ const blockMarkers: BlockMarker[] = [
   { open: '+ ', type: 'list-item' },
   { open: /^\d+\. /, type: 'numbered-list-item' },
 ]
-
-const imgTagRegex = /<img\b[^>]*>/gi
-
-const imgTagAttr = (tag: string, name: string) =>
-  decodeHtmlEntities(tag.match(new RegExp(`\\s${name}\\s*=\\s*"([^"]*)"`, 'i'))?.[1] ?? '')
-
-/** A resized image is stored as an <img> tag; draw it as the markdown image it replaces. */
-const imgTagsToMarkdown = (line: string) =>
-  line.replace(imgTagRegex, (tag) => `![${imgTagAttr(tag, 'alt')}](${imgTagAttr(tag, 'src')})`)
 
 const tableRowRegex = /^\s*\|.*\|\s*$/
 

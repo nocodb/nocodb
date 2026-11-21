@@ -27,8 +27,10 @@ export const imageToHTML = (attrs: { src?: string; alt?: string; title?: string;
   } width="${attrs.width}">`
 
 const parseWidth = (el: HTMLElement) => {
-  const width = parseInt(el.getAttribute('width') || el.style.width || '', 10)
-  return Number.isFinite(width) && width > 0 ? width : null
+  // Pixels only: `100%` would otherwise be read as 100px
+  const raw = (el.getAttribute('width') || el.style.width || '').trim()
+  if (!/^\d+(px)?$/i.test(raw)) return null
+  return parseInt(raw, 10) || null
 }
 
 export const Image = TiptapImage.extend<ImageOptions, { markdown: MarkdownNodeSpec }>({

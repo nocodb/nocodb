@@ -14,6 +14,8 @@ const width = computed<number | null>(() => dragWidth.value ?? props.node.attrs.
 
 const showHandles = computed(() => props.editor.isEditable && (props.selected || dragWidth.value !== null))
 
+let stopDrag: (() => void) | null = null
+
 /** `direction` is 1 for the right handle, -1 for the left one. */
 function onResizeStart(e: PointerEvent, direction: 1 | -1) {
   e.preventDefault()
@@ -31,6 +33,7 @@ function onResizeStart(e: PointerEvent, direction: 1 | -1) {
   const onUp = () => {
     window.removeEventListener('pointermove', onMove)
     window.removeEventListener('pointerup', onUp)
+    stopDrag = null
 
     if (dragWidth.value !== null && dragWidth.value !== props.node.attrs.width) {
       props.updateAttributes({ width: dragWidth.value })
@@ -40,7 +43,14 @@ function onResizeStart(e: PointerEvent, direction: 1 | -1) {
 
   window.addEventListener('pointermove', onMove)
   window.addEventListener('pointerup', onUp)
+  stopDrag = () => {
+    window.removeEventListener('pointermove', onMove)
+    window.removeEventListener('pointerup', onUp)
+  }
 }
+
+// The image can go away mid-drag (a co-editor deletes it, the cell closes)
+onBeforeUnmount(() => stopDrag?.())
 </script>
 
 <template>
@@ -81,6 +91,11 @@ function onResizeStart(e: PointerEvent, direction: 1 | -1) {
 
 .nc-rich-image-handle {
   @apply absolute bottom-1 w-2.5 h-2.5 rounded-sm;
+
+  // A bigger hit area on touch screens
+  @media (pointer: coarse) {
+    @apply w-4 h-4;
+  }
 
   background: var(--nc-bg-default);
   border: 1.5px solid var(--nc-border-brand);

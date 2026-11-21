@@ -4,6 +4,7 @@ import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
 import { mdImageAsText, mdLinkRuleSetupExt } from '.'
 import { parseUserMention } from '~/helpers/tiptap-markdown/extensions'
+import { imgTagsToMarkdown } from '~/helpers/tiptap-markdown/util/imgTag'
 
 declare module 'markdown-it-task-lists' {
   import type { PluginWithOptions } from 'markdown-it'
@@ -245,7 +246,8 @@ export class NcMarkdownParser {
 
     // If content is a string, parse it and sanitize to prevent XSS
     if (ncIsString(content)) {
-      return sanitizeRichTextHtml(parser.md.render(NcMarkdownParser.preprocessMarkdown(content)))
+      // The sanitizer drops <img>; a resized image is one, so show it like every other image
+      return sanitizeRichTextHtml(parser.md.render(NcMarkdownParser.preprocessMarkdown(imgTagsToMarkdown(content))))
     }
 
     return content

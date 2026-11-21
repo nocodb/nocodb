@@ -26,7 +26,7 @@ import {
 } from '~/db/BaseModelSqlv2/mssql-insert-sql';
 import { withRecordIndex } from '~/db/BaseModelSqlv2/with-record-index';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
-import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
+import { handleConstraintError } from '~/helpers/constraintErrorHandler';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
 import { captureNestedLinkHooks } from '~/db/BaseModelSqlv2/add-remove-links';
@@ -243,7 +243,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         insertData: insertObj || data,
       });
       await baseModel.errorInsert(e, data, request);
-      await handleNotNullConstraintError({ error: e, baseModel });
+      await handleConstraintError({ error: e, baseModel });
       throw e;
     }
   };
@@ -751,7 +751,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         baseModel: baseModel,
         insertData: datas?.[0],
       });
-      await handleNotNullConstraintError({ error: e, baseModel });
+      await handleConstraintError({ error: e, baseModel });
       // await baseModel.errorInsertb(e, data, null);
       throw e;
     }

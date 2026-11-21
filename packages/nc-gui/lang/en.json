@@ -6695,6 +6695,13 @@
     "noUrl": "No URL",
     "imageUrl": "Image URL",
     "altText": "Alt Text",
+    "alt": "Alt",
+    "imageSize": {
+      "small": "S",
+      "medium": "M",
+      "large": "L",
+      "fit": "Fit"
+    },
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "zoomTo50Percent": "Zoom to 50%",
@@ -7815,6 +7822,7 @@
     "copyImageUrl": "Copy image URL",
     "editImage": "Edit image",
     "removeImage": "Remove image",
+    "resetImageSize": "Reset size",
     "panMode": "Pan mode",
     "selectionMode": "Selection mode",
     "addNote": "Add note",

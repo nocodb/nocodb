@@ -1,5 +1,6 @@
 import type { UserType } from 'nocodb-sdk'
 import { decode as decodeHtmlEntities } from 'html-entities'
+import { imgTagsToMarkdown } from '~/helpers/tiptap-markdown/util/imgTag'
 
 type MarkdownStyle = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'link' | 'mention'
 
@@ -291,7 +292,8 @@ export const parseMarkdown = (
     currentUser?: Partial<UserType | User> | null
   },
 ): Block[] => {
-  const lines = text.split('\n')
+  // Whole text at once, so lines inside a code fence are known
+  const lines = imgTagsToMarkdown(text).split('\n')
   const blocks: Block[] = []
   const { users = [], currentUser = null } = options || {}
 

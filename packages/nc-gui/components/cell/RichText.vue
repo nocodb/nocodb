@@ -6,12 +6,12 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import { NcMarkdownParser, richTextTableExtensions, suggestion } from '~/helpers/tiptap'
+import { ResizableImage } from '~/helpers/tiptap/functionality/resizableImage'
 import { Markdown } from '~/helpers/tiptap-markdown'
 import { getI18n } from '~/plugins/a.i18n'
 
 import {
   HardBreak,
-  Image,
   Italic,
   Link,
   Paragraph,
@@ -187,7 +187,7 @@ const getTiptapExtensions = () => {
     Italic,
 
     // Nodes
-    Image,
+    ResizableImage,
     Paragraph,
     HardBreak,
     TaskList,

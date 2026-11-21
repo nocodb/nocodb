@@ -1,9 +1,5 @@
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 
-export const VIEW_PRINT_RECORD_LIMIT = 2000
-
-const VIEW_PRINT_PAGE_SIZE = 200
-
 /**
  * Print for the open grid view. Provided by the smartsheet, so the toolbar's view menu
  * can open the settings and the print host can load the rows with the view's
@@ -58,8 +54,8 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
       try {
         const { rows, total } = await loadAllPrintRows(
           (offset, limit) => fetchRows(query, offset, limit),
-          Math.min(range.end - range.start + 1, VIEW_PRINT_RECORD_LIMIT),
-          VIEW_PRINT_PAGE_SIZE,
+          Math.min(range.end - range.start + 1, PRINT_RECORD_LIMIT),
+          PRINT_FETCH_PAGE_SIZE,
           range.start - 1,
         )
 

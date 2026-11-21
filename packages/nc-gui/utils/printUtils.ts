@@ -63,6 +63,12 @@ export const DEFAULT_PRINT_SETTINGS: PrintSettings = {
   wrapText: false,
 }
 
+/** Most records one print holds; a larger view prints in ranges. */
+export const PRINT_RECORD_LIMIT = 10_000
+
+/** The list APIs' default max page size. */
+export const PRINT_FETCH_PAGE_SIZE = 1000
+
 export const PRINT_PAGE_MARGIN_IN = 0.4
 
 export const PRINT_ROW_NUMBER_WIDTH_PX = 40

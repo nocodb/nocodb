@@ -1,3 +1,6 @@
+import type { ColumnType, FilterType, SortType } from 'nocodb-sdk'
+import { stringifyFilterOrSortArr } from './dataUtils'
+
 export type PrintPaperSize =
   | 'letter'
   | 'tabloid'
@@ -203,17 +206,22 @@ export function splitPrintColumnBands<T>(columns: { column: T; width: number }[]
 }
 
 export type PrintItem<Row> =
-  | { type: 'group'; level: number; value: unknown; count: number }
+  | { type: 'group'; level: number; value: unknown; count: number; partial: boolean }
   | { type: 'row'; row: Row; rowNumber: number }
 
 /**
  * Flattens rows that are already sorted by the group fields into group headers and rows.
- * Row numbers restart in each innermost group, as in the grid.
+ * Row numbers restart in each innermost group, as in the grid; ungrouped, they count from `firstRowNumber`.
+ * A group open at a cut edge may have more records than were loaded, so it is marked partial.
  */
-export function buildPrintItems<Row>(rows: Row[], groupValueGetters: ((row: Row) => unknown)[]): PrintItem<Row>[] {
+export function buildPrintItems<Row>(
+  rows: Row[],
+  groupValueGetters: ((row: Row) => unknown)[],
+  { firstRowNumber = 1, cutBefore = false, cutAfter = false } = {},
+): PrintItem<Row>[] {
   const items: PrintItem<Row>[] = []
-  const openHeaders: { type: 'group'; level: number; value: unknown; count: number; key: string }[] = []
-  let rowNumber = 0
+  const openHeaders: { type: 'group'; level: number; value: unknown; count: number; partial: boolean; key: string }[] = []
+  let rowNumber = groupValueGetters.length ? 0 : firstRowNumber - 1
 
   for (const row of rows) {
     const keys = groupValueGetters.map((getValue) => groupKey(getValue(row)))
@@ -222,7 +230,14 @@ export function buildPrintItems<Row>(rows: Row[], groupValueGetters: ((row: Row)
     if (firstChanged !== -1) {
       openHeaders.length = firstChanged
       for (let level = firstChanged; level < keys.length; level++) {
-        const header = { type: 'group' as const, level, value: groupValueGetters[level]!(row), count: 0, key: keys[level]! }
+        const header = {
+          type: 'group' as const,
+          level,
+          value: groupValueGetters[level]!(row),
+          count: 0,
+          partial: cutBefore && !items.length,
+          key: keys[level]!,
+        }
         openHeaders.push(header)
         items.push(header)
       }
@@ -234,8 +249,12 @@ export function buildPrintItems<Row>(rows: Row[], groupValueGetters: ((row: Row)
     items.push({ type: 'row', row, rowNumber: ++rowNumber })
   }
 
+  if (cutAfter) for (const header of openHeaders) header.partial = true
+
   return items.map((item) =>
-    item.type === 'group' ? { type: 'group', level: item.level, value: item.value, count: item.count } : item,
+    item.type === 'group'
+      ? { type: 'group', level: item.level, value: item.value, count: item.count, partial: item.partial }
+      : item,
   )
 }
 
@@ -249,23 +268,100 @@ export interface PrintRowsPage {
   pageInfo?: { totalRows?: number; isLastPage?: boolean }
 }
 
-/** Pages through `fetchPage` until every matching row, or `limit` rows, are loaded. */
+/** Pages through `fetchPage` from row `start` until every matching row, or `limit` rows, are loaded. */
 export async function loadAllPrintRows(
   fetchPage: (offset: number, limit: number) => Promise<PrintRowsPage>,
   limit: number,
   pageSize: number,
+  start = 0,
 ) {
   const rows: Record<string, any>[] = []
   let total = 0
 
   while (rows.length < limit) {
-    const { list, pageInfo } = await fetchPage(rows.length, Math.min(pageSize, limit - rows.length))
+    const { list, pageInfo } = await fetchPage(start + rows.length, Math.min(pageSize, limit - rows.length))
 
     rows.push(...list)
-    total = pageInfo?.totalRows ?? rows.length
+    total = pageInfo?.totalRows ?? start + rows.length
 
-    if (!list.length || pageInfo?.isLastPage || rows.length >= total) break
+    if (!list.length || pageInfo?.isLastPage || start + rows.length >= total) break
   }
 
-  return { rows, total: Math.max(total, rows.length) }
+  return { rows, total: Math.max(total, start + rows.length) }
+}
+
+export interface PrintListQuery {
+  sorts: SortType[]
+  nestedFilters: FilterType[]
+  where?: string
+  groupBy: { column: ColumnType; sort: string }[]
+}
+
+/**
+ * The grid's own list params. Grouped, the group fields sort first and every sort follows, since an explicit
+ * sort list replaces the view's saved one; ungrouped, synced sorts and filters are left to the server.
+ */
+export function buildPrintListParams(
+  query: PrintListQuery,
+  { sortSync, filterSync }: { sortSync: boolean; filterSync: boolean },
+) {
+  const sortArr = query.groupBy.length
+    ? [...query.groupBy.map((g) => ({ fk_column_id: g.column.id, direction: g.sort })), ...query.sorts]
+    : sortSync
+    ? null
+    : query.sorts.filter((s) => !s.id)
+
+  return {
+    ...(sortArr ? { sortArrJson: stringifyFilterOrSortArr(sortArr) } : {}),
+    ...(filterSync ? {} : { filterArrJson: stringifyFilterOrSortArr(query.nestedFilters.filter((f) => !f.id)) }),
+    ...(query.where ? { where: query.where } : {}),
+  }
+}
+
+/** Records to print, by position in the view: 1-based and inclusive. */
+export interface PrintRange {
+  start: number
+  end: number
+}
+
+/** Keeps a range inside the view and within the per-print limit. */
+export function clampPrintRange(range: Partial<PrintRange>, total: number, limit: number): PrintRange {
+  const last = Math.max(total, 1)
+  const start = Math.min(Math.max(Math.floor(range.start || 1), 1), last)
+  const end = Math.min(Math.max(Math.floor(range.end || start), start), last, start + limit - 1)
+
+  return { start, end }
+}
+
+/** Starts after the last printed batch, or from the top once the view has been printed through. */
+export function getDefaultPrintRange(total: number, limit: number, lastPrintedEnd?: number | null): PrintRange {
+  const start = lastPrintedEnd && lastPrintedEnd < total ? lastPrintedEnd + 1 : 1
+
+  return clampPrintRange({ start, end: start + limit - 1 }, total, limit)
+}
+
+export function isFullPrintRange(range: PrintRange, total: number) {
+  return range.start === 1 && range.end >= total
+}
+
+/** Becomes the browser's suggested PDF name, so each batch saves under its own name. */
+export function getPrintDocumentTitle(title: string, range: PrintRange, total: number) {
+  return isFullPrintRange(range, total) ? title : `${title} ${range.start}-${range.end}`
+}
+
+const PRINT_RANGE_STORAGE_PREFIX = 'nc-print-range-end:'
+
+export function loadLastPrintedEnd(storageKey: string) {
+  try {
+    const value = Number(localStorage.getItem(PRINT_RANGE_STORAGE_PREFIX + storageKey))
+    return Number.isInteger(value) && value > 0 ? value : null
+  } catch {
+    return null
+  }
+}
+
+export function saveLastPrintedEnd(storageKey: string, end: number) {
+  try {
+    localStorage.setItem(PRINT_RANGE_STORAGE_PREFIX + storageKey, String(end))
+  } catch {}
 }

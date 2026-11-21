@@ -4134,7 +4134,13 @@
       },
       "showTitle": "Add view name as title",
       "showRowNumbers": "Include row numbers",
-      "wrapText": "Wrap long text onto multiple lines"
+      "wrapText": "Wrap long text onto multiple lines",
+      "records": "Records",
+      "rangeFrom": "First record",
+      "rangeTo": "Last record",
+      "countingRecords": "Counting records…",
+      "rangeHint": "{total} records in this view · up to {limit} per print",
+      "recordRange": "Records {start}–{end} of {total}"
     },
     "interfaceExportCsv": "Export data as CSV",
     "interfacePrintRecordCount": "{count} record | {count} records",
@@ -9043,8 +9049,6 @@
       "interfacePrintNotWhileEditing": "Printing is not supported while editing",
       "interfaceImportNotWhileEditing": "Switch to Preview to import a CSV",
       "interfaceImportNotWhilePreviewingAs": "Import is turned off while previewing as someone else",
-      "interfacePrintPreparing": "Preparing records for printing…",
-      "interfacePrintTruncated": "Showing the first {limit} of {total} records. Narrow the selection to print the rest.",
       "interfaceImportNotOnSqlView": "CSV import isn't available for SQL views",
       "interfaceImportReadonlySource": "CSV import isn't available because this data source is read-only",
       "interfaceCsvExportAccess": "Owners and creators can always export. Members with access to the project can also export this table from the project.",

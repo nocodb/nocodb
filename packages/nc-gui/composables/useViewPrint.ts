@@ -1,4 +1,4 @@
-import type { ColumnType, FilterType, SortType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 
 export const VIEW_PRINT_RECORD_LIMIT = 2000
 
@@ -13,8 +13,6 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
   (meta: Ref<TableType | undefined>, view: Ref<ViewType | undefined>) => {
     const { $api } = useNuxtApp()
 
-    const { t } = useI18n()
-
     const { isUIAllowed } = useRoles()
 
     const { base } = storeToRefs(useBase())
@@ -26,6 +24,7 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
     const printState = ref<{
       rows: Record<string, any>[]
       totalRows: number
+      rangeStart: number
       settings: PrintSettings
       groupColumns: ColumnType[]
     } | null>(null)
@@ -36,52 +35,43 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
       isSettingsOpen.value = true
     }
 
-    async function print(
-      settings: PrintSettings,
-      {
-        sorts,
-        nestedFilters,
-        where,
-        groupBy,
-      }: {
-        sorts: SortType[]
-        nestedFilters: FilterType[]
-        where?: string
-        groupBy: { column: ColumnType; sort: string }[]
-      },
-    ) {
+    function fetchRows(query: PrintListQuery, offset: number, limit: number) {
+      // The server applies the view's saved filters, sorts and hidden fields.
+      const params = buildPrintListParams(query, { sortSync: isUIAllowed('sortSync'), filterSync: isUIAllowed('filterSync') })
+
+      return $api.dbViewRow.list('noco', base.value!.id!, meta.value!.id!, view.value!.id!, { ...params, offset, limit })
+    }
+
+    /** How many records the print can choose from. */
+    async function countRecords(query: PrintListQuery) {
+      if (!base.value?.id || !meta.value?.id || !view.value?.id) return 0
+
+      const { list, pageInfo } = await fetchRows(query, 0, 1)
+      return pageInfo?.totalRows ?? list.length
+    }
+
+    async function print(settings: PrintSettings, range: PrintRange, query: PrintListQuery) {
       if (isPreparing.value || !base.value?.id || !meta.value?.id || !view.value?.id) return
 
       isPreparing.value = true
-      isSettingsOpen.value = false
-
-      message.toast(t('msg.info.interfacePrintPreparing'))
 
       try {
-        // Mirrors the grid's own fetch; the server applies the view's saved filters, sorts and hidden fields.
-        // An explicit sort list replaces the view's saved one, so grouped prints send the group fields first, then every sort.
-        const sortArr = groupBy.length
-          ? [...groupBy.map((g) => ({ fk_column_id: g.column.id, direction: g.sort })), ...sorts]
-          : isUIAllowed('sortSync')
-          ? null
-          : sorts.filter((s) => !s.id)
-
-        const params = {
-          ...(sortArr ? { sortArrJson: stringifyFilterOrSortArr(sortArr) } : {}),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.filter((f) => !f.id)) }),
-          ...(where ? { where } : {}),
-        }
-
         const { rows, total } = await loadAllPrintRows(
-          (offset, limit) => {
-            const query = { ...params, offset, limit }
-            return $api.dbViewRow.list('noco', base.value!.id!, meta.value!.id!, view.value!.id!, query)
-          },
-          VIEW_PRINT_RECORD_LIMIT,
+          (offset, limit) => fetchRows(query, offset, limit),
+          Math.min(range.end - range.start + 1, VIEW_PRINT_RECORD_LIMIT),
           VIEW_PRINT_PAGE_SIZE,
+          range.start - 1,
         )
 
-        printState.value = { rows, totalRows: total, settings, groupColumns: groupBy.map((g) => g.column) }
+        printState.value = {
+          rows,
+          totalRows: total,
+          rangeStart: range.start,
+          settings,
+          groupColumns: query.groupBy.map((g) => g.column),
+        }
+
+        isSettingsOpen.value = false
 
         await nextTick()
 
@@ -97,7 +87,7 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
       printState.value = null
     })
 
-    return { isSettingsOpen, isPreparing, printState, storageKey, openSettings, print }
+    return { isSettingsOpen, isPreparing, printState, storageKey, openSettings, countRecords, print }
   },
   'view-print',
 )

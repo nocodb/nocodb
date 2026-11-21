@@ -6,21 +6,30 @@ interface Props {
   loading?: boolean
   /** Used until the user prints once with their own choices. */
   defaults?: PrintSettings
+  /** Records the print can choose from; null while counting. */
+  recordCount?: number | null
+  /** Most records one print can hold. */
+  recordLimit: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   defaults: () => DEFAULT_PRINT_SETTINGS,
+  recordCount: null,
 })
 
 const emits = defineEmits<{
   'update:visible': [visible: boolean]
-  'print': [settings: PrintSettings]
+  'print': [settings: PrintSettings, range: PrintRange]
 }>()
 
 const { t } = useI18n()
 
 const settings = ref<PrintSettings>(loadPrintSettings(props.storageKey, props.defaults))
+
+const rangeStart = ref<number | null>(1)
+
+const rangeEnd = ref<number | null>(1)
 
 const isOpen = computed({
   get: () => props.visible,
@@ -58,17 +67,49 @@ const fontSizeOptions = computed(() =>
   })),
 )
 
+const isCounting = computed(() => props.recordCount === null)
+
+const range = computed(() =>
+  clampPrintRange(
+    { start: rangeStart.value ?? undefined, end: rangeEnd.value ?? undefined },
+    props.recordCount ?? 0,
+    props.recordLimit,
+  ),
+)
+
+function resetRange() {
+  if (props.recordCount === null) return
+
+  const { start, end } = getDefaultPrintRange(props.recordCount, props.recordLimit, loadLastPrintedEnd(props.storageKey))
+  rangeStart.value = start
+  rangeEnd.value = end
+}
+
+function applyRange() {
+  rangeStart.value = range.value.start
+  rangeEnd.value = range.value.end
+}
+
 function onPrint() {
+  if (isCounting.value || !props.recordCount) return
+
+  applyRange()
   savePrintSettings(props.storageKey, settings.value)
-  emits('print', { ...settings.value })
+  saveLastPrintedEnd(props.storageKey, range.value.end)
+  emits('print', { ...settings.value }, { ...range.value })
 }
 
 watch(
   () => [props.visible, props.storageKey] as const,
   ([visible]) => {
-    if (visible) settings.value = loadPrintSettings(props.storageKey, props.defaults)
+    if (!visible) return
+
+    settings.value = loadPrintSettings(props.storageKey, props.defaults)
+    resetRange()
   },
 )
+
+watch(() => props.recordCount, resetRange, { immediate: true })
 </script>
 
 <template>
@@ -133,6 +174,50 @@ watch(
           </label>
         </div>
 
+        <div class="nc-print-settings-field" data-testid="nc-print-settings-records">
+          <span>{{ $t('labels.printSettings.records') }}</span>
+          <div class="flex items-center gap-2">
+            <a-input-number
+              v-model:value="rangeStart"
+              :min="1"
+              :max="Math.max(props.recordCount ?? 1, 1)"
+              :precision="0"
+              :controls="false"
+              :disabled="isCounting"
+              class="nc-print-settings-range-input"
+              :aria-label="$t('labels.printSettings.rangeFrom')"
+              data-testid="nc-print-settings-range-start"
+              @blur="applyRange"
+              @press-enter="applyRange"
+            />
+            <span class="text-nc-content-gray-subtle">{{ $t('labels.to') }}</span>
+            <a-input-number
+              v-model:value="rangeEnd"
+              :min="1"
+              :max="Math.max(props.recordCount ?? 1, 1)"
+              :precision="0"
+              :controls="false"
+              :disabled="isCounting"
+              class="nc-print-settings-range-input"
+              :aria-label="$t('labels.printSettings.rangeTo')"
+              data-testid="nc-print-settings-range-end"
+              @blur="applyRange"
+              @press-enter="applyRange"
+            />
+          </div>
+          <span class="text-bodySm text-nc-content-gray-muted" data-testid="nc-print-settings-range-hint">
+            <template v-if="isCounting">{{ $t('labels.printSettings.countingRecords') }}</template>
+            <template v-else>
+              {{
+                $t('labels.printSettings.rangeHint', {
+                  total: (props.recordCount ?? 0).toLocaleString(),
+                  limit: props.recordLimit.toLocaleString(),
+                })
+              }}
+            </template>
+          </span>
+        </div>
+
         <div class="flex flex-col gap-3">
           <div class="flex items-center">
             <NcSwitch v-model:checked="settings.showTitle" size="small" data-testid="nc-print-settings-show-title">
@@ -161,7 +246,7 @@ watch(
           type="primary"
           size="small"
           :loading="props.loading"
-          :disabled="props.loading"
+          :disabled="props.loading || isCounting || !props.recordCount"
           data-testid="nc-print-settings-print"
           @click="onPrint"
         >
@@ -175,5 +260,9 @@ watch(
 <style lang="scss" scoped>
 .nc-print-settings-field {
   @apply flex flex-col gap-2 text-bodyDefaultSm text-nc-content-gray min-w-0;
+}
+
+.nc-print-settings-range-input {
+  @apply flex-1 min-w-0 rounded-lg;
 }
 </style>

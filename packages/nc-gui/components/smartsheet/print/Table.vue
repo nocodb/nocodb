@@ -8,6 +8,8 @@ interface Props {
   columns: ColumnType[]
   rows: Record<string, any>[]
   totalRows: number
+  /** Position of the first printed row in the view, 1-based. */
+  rangeStart?: number
   settings: PrintSettings
   /** Grid widths by column id; columns without one print at the default width. */
   columnWidths?: Record<string, string | number | undefined>
@@ -16,11 +18,29 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  rangeStart: 1,
   columnWidths: () => ({}),
   groupColumns: () => [],
 })
 
-const isTruncated = computed(() => props.totalRows > props.rows.length)
+const { t } = useI18n()
+
+const range = computed<PrintRange>(() => ({
+  start: props.rangeStart,
+  end: props.rangeStart + Math.max(props.rows.length - 1, 0),
+}))
+
+const isPartial = computed(() => !isFullPrintRange(range.value, props.totalRows))
+
+const recordSummary = computed(() =>
+  isPartial.value
+    ? t('labels.printSettings.recordRange', {
+        start: range.value.start.toLocaleString(),
+        end: range.value.end.toLocaleString(),
+        total: props.totalRows.toLocaleString(),
+      })
+    : t('labels.interfacePrintRecordCount', { count: props.totalRows }, props.totalRows),
+)
 
 const fontSizePx = computed(() => PRINT_FONT_SIZES_PX[props.settings.fontSize])
 
@@ -49,6 +69,11 @@ const items = computed(() =>
   buildPrintItems(
     props.rows,
     props.groupColumns.map((column) => (row: Record<string, any>) => row[column.title!]),
+    {
+      firstRowNumber: props.rangeStart,
+      cutBefore: range.value.start > 1,
+      cutAfter: range.value.end < props.totalRows,
+    },
   ),
 )
 
@@ -70,6 +95,10 @@ function bandSpan(band: ColumnType[]) {
 
 let pageStyle: HTMLStyleElement | null = null
 
+const pageTitle = document.title
+
+document.title = getPrintDocumentTitle(props.title || pageTitle, range.value, props.totalRows)
+
 watch(
   () => props.settings,
   (settings) => {
@@ -84,6 +113,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  document.title = pageTitle
   pageStyle?.remove()
   pageStyle = null
 })
@@ -99,13 +129,13 @@ onBeforeUnmount(() => {
     >
       <div v-if="props.settings.showTitle" class="nc-print-view-header">
         <div class="nc-print-view-title">{{ props.title }}</div>
-        <div class="nc-print-view-meta">
+        <div class="nc-print-view-meta" data-testid="nc-print-view-records">
           <span v-if="props.subtitle">{{ props.subtitle }} · </span>
-          {{ $t('labels.interfacePrintRecordCount', { count: props.totalRows }, props.totalRows) }}
+          {{ recordSummary }}
         </div>
       </div>
-      <div v-if="isTruncated" class="nc-print-view-meta nc-print-view-truncated">
-        {{ $t('msg.info.interfacePrintTruncated', { limit: props.rows.length, total: props.totalRows }) }}
+      <div v-else-if="isPartial" class="nc-print-view-meta nc-print-view-range" data-testid="nc-print-view-records">
+        {{ recordSummary }}
       </div>
 
       <table
@@ -140,7 +170,7 @@ onBeforeUnmount(() => {
                 <span v-else>
                   <SmartsheetPlainCell :column="props.groupColumns[item.level]!" :model-value="item.value" />
                 </span>
-                <span class="nc-print-view-group-count">{{ item.count }}</span>
+                <span class="nc-print-view-group-count">{{ item.partial ? `${item.count}+` : item.count }}</span>
               </td>
             </tr>
             <tr v-else>
@@ -198,7 +228,7 @@ onBeforeUnmount(() => {
       margin-top: 2px;
     }
 
-    .nc-print-view-truncated {
+    .nc-print-view-range {
       margin-bottom: 8px;
     }
 

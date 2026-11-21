@@ -53,6 +53,9 @@ const filteredColumns = ref<
 
 const selectedFields = ref<Record<string, boolean>>({})
 
+// All field ids in the order the user dragged them; empty until the first drag, kept across searches
+const arrangedIds = ref<string[]>([])
+
 const isLoadingModel = ref(false)
 
 const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
@@ -61,6 +64,42 @@ const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_rel
 const relatedBaseId = computed(() => (column.value.colOptions as any)?.fk_related_base_id || meta.value?.base_id)
 
 const relatedModel = ref<TableType | null>()
+
+interface ViewColumn {
+  fk_column_id?: string
+  order?: number
+  show?: boolean | number
+}
+
+// Columns of the view whose field order the list follows; unset → related table's default view
+const orderViewColumns = ref<ViewColumn[]>()
+
+const isSelfLink = computed(() => fkRelatedModelId.value === meta.value?.id && relatedBaseId.value === meta.value?.base_id)
+
+// Self link → the view on screen; link limited to a view → that view
+const orderViewId = computed<string | undefined>(() =>
+  isSelfLink.value ? activeView.value?.id : (column.value.colOptions as any)?.fk_target_view_id || undefined,
+)
+
+const fieldPositionById = computed(() => {
+  const map: Record<string, { order: number; hidden: boolean }> = {}
+
+  if (orderViewColumns.value) {
+    for (const vc of orderViewColumns.value) {
+      if (vc.fk_column_id) map[vc.fk_column_id] = { order: vc.order ?? Infinity, hidden: !vc.show }
+    }
+    return map
+  }
+
+  for (const c of getMetaByKey(relatedBaseId.value, relatedModel.value?.id)?.columns || []) {
+    const colMeta = parseProp(c.meta)
+    map[c.id!] = {
+      order: colMeta.defaultViewColOrder ?? Infinity,
+      hidden: colMeta.defaultViewColVisibility === false,
+    }
+  }
+  return map
+})
 
 const clearAll = () => {
   Object.keys(selectedFields.value).forEach((k) => (selectedFields.value[k] = false))
@@ -120,6 +159,72 @@ const getRollupColPayload = (selectedColumn: ColumnType) => {
   }
 }
 
+// Evenly spaced view orders that place `count` new fields right of the link field
+const getNewColumnOrders = async (count: number): Promise<number[] | undefined> => {
+  if (!activeView.value?.id || !count) return
+
+  try {
+    const viewColumns = (await fetchViewColumns(meta.value!.base_id!, activeView.value.id)).sort(
+      (a, b) => (a.order ?? 0) - (b.order ?? 0),
+    )
+
+    const linkIndex = viewColumns.findIndex((c) => c.fk_column_id === column.value?.id)
+    if (linkIndex === -1) return
+
+    const lower = viewColumns[linkIndex]!.order ?? 0
+    const next = viewColumns[linkIndex + 1]
+    const upper = next ? next.order ?? 0 : lower + count + 1
+    // Neighbours share an order (legacy data): no gap to place into, append instead
+    if (upper <= lower) return
+
+    return Array.from({ length: count }, (_, i) => lower + ((upper - lower) * (i + 1)) / (count + 1))
+  } catch (e) {
+    // Fall back to appending at the end
+    console.error(e)
+  }
+}
+
+async function fetchViewColumns(baseId: string, viewId: string): Promise<ViewColumn[]> {
+  return (
+    await $api.internal.getOperation(meta.value!.fk_workspace_id!, baseId, {
+      operation: 'viewColumnList',
+      viewId,
+    })
+  ).list
+}
+
+// Visible fields in view order, then hidden ones
+function compareFieldPosition(a: ColumnType, b: ColumnType) {
+  const pa = fieldPositionById.value[a.id!] ?? { order: Infinity, hidden: false }
+  const pb = fieldPositionById.value[b.id!] ?? { order: Infinity, hidden: false }
+  if (pa.hidden !== pb.hidden) return pa.hidden ? 1 : -1
+  return pa.order === pb.order ? 0 : pa.order - pb.order
+}
+
+// All field ids in list order, including ones a search hides
+function listOrderIds() {
+  if (arrangedIds.value.length) return arrangedIds.value
+  return [...(getMetaByKey(relatedBaseId.value, relatedModel.value?.id)?.columns || [])]
+    .sort(compareFieldPosition)
+    .map((c) => c.id!)
+}
+
+function listRank(id: string, ids: string[]) {
+  const i = ids.indexOf(id)
+  return i === -1 ? ids.length : i
+}
+
+// Draggable sees only the searched subset: place the moved field next to its new neighbour in the full order
+function onListChange({ moved }: { moved?: { element: { id: string }; newIndex: number } }) {
+  if (!moved) return
+  const ids = listOrderIds().filter((id) => id !== moved.element.id)
+  const nextId = filteredColumns.value[moved.newIndex + 1]?.id
+  const prevId = filteredColumns.value[moved.newIndex - 1]?.id
+  const at = nextId ? ids.indexOf(nextId) : prevId ? ids.indexOf(prevId) + 1 : ids.length
+  ids.splice(at === -1 ? ids.length : at, 0, moved.element.id)
+  arrangedIds.value = ids
+}
+
 const createLookupsOrRollup = async () => {
   try {
     isLoading.value = true
@@ -131,17 +236,25 @@ const createLookupsOrRollup = async () => {
 
     const currIndex = meta.value?.columns?.length ?? 0
 
-    for (const [k] of Object.entries(selectedFields.value).filter(([, v]) => v)) {
+    // Keep the order the user arranged in the list, including fields a search hides
+    const orderIds = listOrderIds()
+    const selectedIds = Object.entries(selectedFields.value)
+      .filter(([, v]) => v)
+      .map(([k]) => k)
+      .sort((a, b) => listRank(a, orderIds) - listRank(b, orderIds))
+
+    const columnOrders = await getNewColumnOrders(selectedIds.length)
+
+    for (const [i, k] of selectedIds.entries()) {
       const selectedColumn = getMetaByKey(relatedBaseId.value, relatedModel.value?.id)?.columns.find((c) => c.id === k)
-      const index = filteredColumns.value.findIndex((c) => c.id === k)
       const tempCol = {
         uidt: props.type,
         fk_relation_column_id: column.value.id,
         table_name: meta.value?.table_name,
         view_id: activeView.value?.id,
-        order: currIndex + index,
+        order: currIndex + i,
         column_order: {
-          order: currIndex + index,
+          order: columnOrders?.[i] ?? currIndex + i,
           view_id: activeView.value?.id,
         },
         ...(props.type === UITypes.Lookup ? getLookupColPayload(selectedColumn) : getRollupColPayload(selectedColumn)),
@@ -185,23 +298,31 @@ const createLookupsOrRollup = async () => {
 }
 
 watch(
-  [relatedModel, searchField, value, () => props.type, availableRollupPerColumn],
+  [relatedModel, searchField, value, () => props.type, availableRollupPerColumn, fieldPositionById],
   async () => {
     if (relatedModel.value) {
       const columns = getMetaByKey(relatedBaseId.value, relatedModel.value.id)?.columns || []
-      filteredColumns.value = columns.filter((c: any) => {
-        if (props.type === UITypes.Lookup) {
-          return (
-            getValidLookupColumn({
-              column: c,
-            }) && searchCompare([c?.title], searchField.value)
-          )
-        }
+      filteredColumns.value = columns
+        .filter((c: any) => {
+          if (props.type === UITypes.Lookup) {
+            return (
+              getValidLookupColumn({
+                column: c,
+              }) && searchCompare([c?.title], searchField.value)
+            )
+          }
 
-        return (
-          getValidRollupColumn(c) && availableRollupPerColumn.value[c.id]?.length && searchCompare([c?.title], searchField.value)
+          return (
+            getValidRollupColumn(c) &&
+            availableRollupPerColumn.value[c.id]?.length &&
+            searchCompare([c?.title], searchField.value)
+          )
+        })
+        .sort((a, b) =>
+          arrangedIds.value.length
+            ? listRank(a.id!, arrangedIds.value) - listRank(b.id!, arrangedIds.value)
+            : compareFieldPosition(a, b),
         )
-      })
     }
   },
   {
@@ -209,9 +330,33 @@ watch(
   },
 )
 
-onMounted(async () => {
-  relatedModel.value = await getMeta({ baseId: relatedBaseId.value as string, tableIdOrTitle: fkRelatedModelId.value })
-})
+// Load on every open: this component mounts with the column menu, not the dialog
+watch(
+  value,
+  async (open) => {
+    if (!open) return
+
+    arrangedIds.value = []
+    isLoadingModel.value = true
+    try {
+      const [model, viewColumns] = await Promise.all([
+        getMeta({ baseId: relatedBaseId.value as string, tableIdOrTitle: fkRelatedModelId.value }),
+        orderViewId.value
+          ? fetchViewColumns(relatedBaseId.value as string, orderViewId.value).catch((e) => {
+              // Fall back to the default view order
+              console.error(e)
+              return undefined
+            })
+          : undefined,
+      ])
+      orderViewColumns.value = viewColumns
+      relatedModel.value = model
+    } finally {
+      isLoadingModel.value = false
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -268,6 +413,7 @@ onMounted(async () => {
           ghost-class="nc-lookup-menu-items-ghost"
           @start="isDragging = true"
           @end="isDragging = false"
+          @change="onListChange"
         >
           <template #item="{ element: field }">
             <div

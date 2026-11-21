@@ -87,6 +87,7 @@ const refTables = computed(() => {
       }
     })
     .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
+    .sort((a, b) => (a.column.title ?? '').localeCompare(b.column.title ?? '', undefined, { sensitivity: 'base' }))
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })
 

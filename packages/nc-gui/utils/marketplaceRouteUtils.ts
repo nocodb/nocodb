@@ -1,3 +1,5 @@
+import { ncAppUrl } from './appBaseUrl'
+
 /**
  * The store sits above workspaces and orgs, so every store address is absolute
  * and carries no workspace id: `/marketplace`, `/marketplace/@handle`,

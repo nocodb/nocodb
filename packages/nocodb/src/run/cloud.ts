@@ -13,7 +13,11 @@ import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
 import { mayBeAppHost } from '~/helpers/appOrigin';
 import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
-import { getBasePath, stripBasePathMiddleware } from '~/helpers/basePath';
+import {
+  getBasePath,
+  stripBasePathMiddleware,
+  toAppUrl,
+} from '~/helpers/basePath';
 
 handleUncaughtErrors(process);
 
@@ -39,7 +43,10 @@ let httpServer: http.Server | null = null;
 async function createServer(isMaster: boolean): Promise<http.Server> {
   const server = express();
   server.disable('x-powered-by');
-  server.use(stripBasePathMiddleware());
+  // App hosts serve their own routes; the console subpath doesn't apply there.
+  server.use(
+    stripBasePathMiddleware(undefined, (req) => mayBeAppHost(req.headers.host)),
+  );
   server.use(cors());
 
   // Add static file serving for the dashboard
@@ -56,6 +63,8 @@ async function createServer(isMaster: boolean): Promise<http.Server> {
   const ncGuiStatic = express.static(ncGuiPath, {
     ...ncStaticOptions,
     index: servesRawShell ? 'index.html' : false,
+    // Its `/x` → `/x/` redirect is root-relative and would leave the subpath
+    redirect: servesRawShell,
   });
   const ncGuiCompression = ncStaticCompression();
   server.use(process.env.NC_DASHBOARD_URL ?? '/', (req, res, next) => {
@@ -79,7 +88,7 @@ async function createServer(isMaster: boolean): Promise<http.Server> {
       }`;
 
       // Perform the redirect
-      res.redirect(redirectUrl);
+      res.redirect(toAppUrl(redirectUrl));
     });
   }
 

@@ -398,6 +398,13 @@ export function movePrintRangeStart(range: PrintRange, start: number, total: num
   return clampPrintRange({ start, end }, total, limit)
 }
 
+/** When settings change the per-print limit, a range that filled the old limit fills the new one; a narrower range is only clamped. */
+export function followPrintRangeLimit(range: PrintRange, prevLimit: number, limit: number, total: number): PrintRange {
+  const wasFull = range.end - range.start + 1 === prevLimit
+
+  return clampPrintRange(wasFull ? { start: range.start, end: range.start + limit - 1 } : range, total, limit)
+}
+
 /** Starts after the last printed batch, or from the top once the view has been printed through. */
 export function getDefaultPrintRange(total: number, limit: number, lastPrintedEnd?: number | null): PrintRange {
   const start = lastPrintedEnd && lastPrintedEnd < total ? lastPrintedEnd + 1 : 1

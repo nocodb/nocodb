@@ -131,9 +131,18 @@ watch(
 
 watch(() => props.recordCount, resetRange, { immediate: true })
 
-// Wider settings fit fewer records, so the chosen range shrinks to match.
-watch(recordLimit, () => {
-  if (!isCounting.value) applyRange()
+watch(recordLimit, (limit, prevLimit) => {
+  if (isCounting.value) return
+
+  const current = { start: rangeStart.value ?? appliedRange.start, end: rangeEnd.value ?? appliedRange.end }
+  const isUnchanged = current.start === appliedRange.start && current.end === appliedRange.end
+
+  // An edit not yet applied is only clamped.
+  setRange(
+    isUnchanged
+      ? followPrintRangeLimit(appliedRange, prevLimit, limit, props.recordCount ?? 0)
+      : clampPrintRange(current, props.recordCount ?? 0, limit),
+  )
 })
 </script>
 

@@ -3655,8 +3655,8 @@ const smartsheetEvents = async (event: SmartsheetStoreEvents, payload) => {
     selection.value.clear()
     activeCell.value.row = -1
     activeCell.value.column = -1
-    // A row the grid failed to save keeps its values and marker until fixed or deleted
-    if (!payload?.rowMeta?.saveError) removeRowIfNew(payload)
+    // A row the database rejected keeps its values and marker until fixed or deleted
+    if (payload?.rowMeta?.saveError?.reason !== 'serverRejected') removeRowIfNew(payload)
     triggerRefreshCanvas()
   } else if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     // This event is triggered when a field is updated

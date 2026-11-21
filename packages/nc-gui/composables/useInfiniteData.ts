@@ -1821,7 +1821,9 @@ export function useInfiniteData(args: {
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
       // Keep the rejected row and its values so it can be fixed; the next edit retries the insert.
-      if (currentRow.rowMeta.new) {
+      // Only a 4xx is a refusal; after a network error or 5xx the insert may have gone through.
+      const status = error?.response?.status
+      if (currentRow.rowMeta.new && status >= 400 && status < 500) {
         currentRow.rowMeta.saveError = serverRejectedSaveError(errorMessage, error?.response?.data)
         callbacks?.syncVisibleData?.()
       }

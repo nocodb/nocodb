@@ -2080,34 +2080,7 @@ export function useInfiniteData(args: {
     }
 
     await markRowFilterState(row, property, data, dataCache)
-    const changedFields = property ? [property] : Object.keys(row.row)
-
-    changedFields.push(
-      ...(meta.value
-        ?.columns!.filter((c) =>
-          [
-            UITypes.LastModifiedBy,
-            UITypes.LastModifiedTime,
-            UITypes.Formula,
-            UITypes.Lookup,
-            UITypes.Rollup,
-            UITypes.LinkToAnotherRecord,
-          ].includes(c.uidt as UITypes),
-        )
-        .map((c) => c.title!) || []),
-    )
-
-    if (isSortRelevantChange(changedFields, activeSorts.value, columnsById.value) || row.rowMeta.new) {
-      const needsResorting = willSortOrderChange({
-        row,
-        newData: data,
-        sorts: activeSorts.value,
-        path,
-      })
-
-      const savedRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
-      if (savedRow) savedRow.rowMeta.isRowOrderUpdated = needsResorting
-    }
+    markRowSortState(row, property, data, dataCache, path)
     callbacks?.syncVisibleData?.()
   }
 
@@ -2576,6 +2549,43 @@ export function useInfiniteData(args: {
     }
   }
 
+  /** Flags a saved row whose sort position changed (shown as the "row moved" hint) */
+  function markRowSortState(
+    row: Row,
+    property: string | undefined,
+    data: Record<string, any>,
+    dataCache: ReturnType<typeof getDataCache>,
+    path: Array<number>,
+  ) {
+    const changedFields = property ? [property] : Object.keys(row.row)
+
+    changedFields.push(
+      ...(meta.value
+        ?.columns!.filter((c) =>
+          [
+            UITypes.LastModifiedBy,
+            UITypes.LastModifiedTime,
+            UITypes.Formula,
+            UITypes.Lookup,
+            UITypes.Rollup,
+            UITypes.LinkToAnotherRecord,
+          ].includes(c.uidt as UITypes),
+        )
+        .map((c) => c.title!) || []),
+    )
+
+    if (!isSortRelevantChange(changedFields, activeSorts.value, columnsById.value) && !row.rowMeta.new) return
+
+    const needsResorting = willSortOrderChange({
+      row,
+      newData: data,
+      path,
+    })
+
+    const savedRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
+    if (savedRow) savedRow.rowMeta.isRowOrderUpdated = needsResorting
+  }
+
   async function replayOfflineEdit(edit: OfflineEdit): Promise<OfflineEditReplayResult> {
     const dataCaches = isGroupBy.value ? Array.from(groupDataCache.value.values()) : [getDataCache()]
     const found = findCachedRowByPk(dataCaches, edit.pk)
@@ -2601,8 +2611,9 @@ export function useInfiniteData(args: {
 
     if (!data) return 'dropped'
 
-    // Same hints a normal cell save sets (row left the filter or its group)
+    // Same hints a normal cell save sets (row left the filter, its group or its sort position)
     await markRowFilterState(row, edit.property, data, found.dataCache)
+    markRowSortState(row, edit.property, data, found.dataCache, row.rowMeta.path ?? edit.path)
 
     return 'saved'
   }

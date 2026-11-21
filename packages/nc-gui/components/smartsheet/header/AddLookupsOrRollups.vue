@@ -53,6 +53,9 @@ const filteredColumns = ref<
 
 const selectedFields = ref<Record<string, boolean>>({})
 
+// All field ids in the order the user dragged them; empty until the first drag, kept across searches
+const arrangedIds = ref<string[]>([])
+
 const isLoadingModel = ref(false)
 
 const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
@@ -198,6 +201,30 @@ function compareFieldPosition(a: ColumnType, b: ColumnType) {
   return pa.order === pb.order ? 0 : pa.order - pb.order
 }
 
+// All field ids in list order, including ones a search hides
+function listOrderIds() {
+  if (arrangedIds.value.length) return arrangedIds.value
+  return [...(getMetaByKey(relatedBaseId.value, relatedModel.value?.id)?.columns || [])]
+    .sort(compareFieldPosition)
+    .map((c) => c.id!)
+}
+
+function listRank(id: string, ids: string[]) {
+  const i = ids.indexOf(id)
+  return i === -1 ? ids.length : i
+}
+
+// Draggable sees only the searched subset: place the moved field next to its new neighbour in the full order
+function onListChange({ moved }: { moved?: { element: { id: string }; newIndex: number } }) {
+  if (!moved) return
+  const ids = listOrderIds().filter((id) => id !== moved.element.id)
+  const nextId = filteredColumns.value[moved.newIndex + 1]?.id
+  const prevId = filteredColumns.value[moved.newIndex - 1]?.id
+  const at = nextId ? ids.indexOf(nextId) : prevId ? ids.indexOf(prevId) + 1 : ids.length
+  ids.splice(at === -1 ? ids.length : at, 0, moved.element.id)
+  arrangedIds.value = ids
+}
+
 const createLookupsOrRollup = async () => {
   try {
     isLoading.value = true
@@ -209,11 +236,12 @@ const createLookupsOrRollup = async () => {
 
     const currIndex = meta.value?.columns?.length ?? 0
 
-    // Keep the order the user arranged in the list
+    // Keep the order the user arranged in the list, including fields a search hides
+    const orderIds = listOrderIds()
     const selectedIds = Object.entries(selectedFields.value)
       .filter(([, v]) => v)
       .map(([k]) => k)
-      .sort((a, b) => filteredColumns.value.findIndex((c) => c.id === a) - filteredColumns.value.findIndex((c) => c.id === b))
+      .sort((a, b) => listRank(a, orderIds) - listRank(b, orderIds))
 
     const columnOrders = await getNewColumnOrders(selectedIds.length)
 
@@ -290,7 +318,11 @@ watch(
             searchCompare([c?.title], searchField.value)
           )
         })
-        .sort(compareFieldPosition)
+        .sort((a, b) =>
+          arrangedIds.value.length
+            ? listRank(a.id!, arrangedIds.value) - listRank(b.id!, arrangedIds.value)
+            : compareFieldPosition(a, b),
+        )
     }
   },
   {
@@ -304,6 +336,7 @@ watch(
   async (open) => {
     if (!open) return
 
+    arrangedIds.value = []
     isLoadingModel.value = true
     try {
       const [model, viewColumns] = await Promise.all([
@@ -380,6 +413,7 @@ watch(
           ghost-class="nc-lookup-menu-items-ghost"
           @start="isDragging = true"
           @end="isDragging = false"
+          @change="onListChange"
         >
           <template #item="{ element: field }">
             <div

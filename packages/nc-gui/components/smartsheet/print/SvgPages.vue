@@ -48,6 +48,8 @@ const { forcedTheme, clearColorCache } = useTheme()
 
 const pages = ref<string[]>([])
 
+const containerRef = ref<HTMLElement>()
+
 // The grid draws at 13px; the whole page is scaled to the chosen font size.
 const GRID_FONT_SIZE_PX = 13
 const HEADER_HEIGHT = 32
@@ -567,7 +569,30 @@ async function render() {
 
   pages.value = await dedupeImages(output)
   await nextTick()
+  await waitForImages()
   emit('ready')
+}
+
+const IMAGE_TIMEOUT_MS = 15000
+
+/**
+ * Icons, barcodes, QR codes and attachments are `<image>` elements that load asynchronously.
+ * The print dialog snapshots the page at once, so every image has to have loaded first.
+ */
+async function waitForImages() {
+  const images = [...(containerRef.value?.querySelectorAll('image') ?? [])]
+  if (!images.length) return
+
+  const loads = images.map(
+    (image) =>
+      new Promise<void>((resolve) => {
+        image.addEventListener('load', () => resolve(), { once: true })
+        image.addEventListener('error', () => resolve(), { once: true })
+      }),
+  )
+  await Promise.race([Promise.all(loads), new Promise((resolve) => setTimeout(resolve, IMAGE_TIMEOUT_MS))])
+  // Let the loaded images paint before the dialog takes its snapshot.
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
 }
 
 const pageStyle = document.createElement('style')
@@ -592,7 +617,7 @@ onBeforeUnmount(() => {
 
 <template>
   <Teleport to="body">
-    <div class="nc-print-view nc-print-svg-pages" data-testid="nc-print-view">
+    <div ref="containerRef" class="nc-print-view nc-print-svg-pages" data-testid="nc-print-view">
       <!-- eslint-disable-next-line vue/no-v-html -->
       <div v-for="(svg, index) in pages" :key="index" class="nc-print-svg-page" v-html="svg" />
     </div>
@@ -601,8 +626,13 @@ onBeforeUnmount(() => {
 
 <style lang="scss">
 @media screen {
+  // Rendered but out of sight: images inside `display: none` don't load until printing starts,
+  // and the print dialog would snapshot them blank.
   .nc-print-svg-pages {
-    display: none;
+    position: fixed;
+    top: 0;
+    left: -100000px;
+    pointer-events: none;
   }
 }
 

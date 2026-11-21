@@ -36,6 +36,19 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
       // The server applies the view's saved filters, sorts and hidden fields.
       const params = buildPrintListParams(query, { sortSync: isUIAllowed('sortSync'), filterSync: isUIAllowed('filterSync') })
 
+      // All-fields search runs only on the internal `dataList` operation; the v1 data API ignores `search`.
+      if (params.search) {
+        return $api.internal.getOperation(meta.value!.fk_workspace_id!, base.value!.id!, {
+          operation: 'dataList',
+          tableId: meta.value!.id!,
+          viewId: view.value!.id!,
+          baseId: base.value!.id!,
+          ...params,
+          offset,
+          limit,
+        })
+      }
+
       return $api.dbViewRow.list('noco', base.value!.id!, meta.value!.id!, view.value!.id!, { ...params, offset, limit })
     }
 

@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import DOMPurify from 'isomorphic-dompurify'
-import { type ColumnType, type TableType, UITypes, isNumericFieldType, isRichText, isSmartText } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type TableType,
+  UITypes,
+  isNumericFieldType,
+  isRichText,
+  isSmartText,
+  isValidHexColour,
+} from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
 interface Props {
@@ -106,7 +114,8 @@ const linkHref = computed(() => {
   if (props.column.uidt === UITypes.Email) return `mailto:${value}`
   if (props.column.uidt === UITypes.PhoneNumber) return `tel:${value.replace(/[^\d+]/g, '')}`
 
-  const url = /^[a-z][a-z\d+.-]*:/i.test(value) ? value : `https://${value}`
+  // As in the grid: a value without a scheme (even with a port, `example.com:8080`) links over https.
+  const url = addMissingUrlSchma(value)
   return /^https?:/i.test(url) ? url : undefined
 })
 
@@ -118,7 +127,7 @@ const colour = computed(() => {
   const format = columnMeta.value.displayFormat
   return {
     hex: hex.toUpperCase(),
-    showSwatch: format !== 'hex_only' && /^#?[0-9a-f]{3,8}$/i.test(hex),
+    showSwatch: format !== 'hex_only' && isValidHexColour(hex),
     showHex: format !== 'swatch_only',
     radius: columnMeta.value.swatchStyle === 'square' ? '3px' : '50%',
   }
@@ -127,11 +136,22 @@ const colour = computed(() => {
 const button = computed(() => {
   if (kind.value !== 'button') return null
 
-  const options = (props.column.colOptions ?? {}) as { label?: string; theme?: string }
-  const url = typeof props.modelValue?.url === 'string' ? props.modelValue.url.trim() : ''
-  const href = url ? (/^https?:\/\//i.test(url) ? url : `https://${url}`) : undefined
+  const options = (props.column.colOptions ?? {}) as { label?: string; theme?: string; color?: string }
+  const theme = options.theme || 'solid'
+  const url = typeof props.modelValue?.url === 'string' ? addMissingUrlSchma(props.modelValue.url) : ''
+  const href = /^https?:/i.test(url) ? url : undefined
 
-  return { label: options.label || props.modelValue?.label || '', theme: options.theme || 'solid', href }
+  // The field's colour, as the grid paints it. Entries that are theme variables (brand, gray) would
+  // resolve to dark-theme values on the white page, so those keep the print classes instead.
+  const colours = (buttonColorMap as Record<string, Record<string, { base: { background: string; text: string } }>>)[theme]?.[
+    options.color ?? ''
+  ]?.base
+  const style =
+    colours && !colours.background.startsWith('var(') && !colours.text.startsWith('var(')
+      ? { backgroundColor: colours.background, color: colours.text }
+      : undefined
+
+  return { label: options.label || props.modelValue?.label || '', theme, href, style }
 })
 
 function plainValue(value: any) {
@@ -193,7 +213,7 @@ function plainValue(value: any) {
       <span
         v-if="colour.showSwatch"
         class="nc-print-cell-swatch"
-        :style="{ backgroundColor: colour.hex.startsWith('#') ? colour.hex : `#${colour.hex}`, borderRadius: colour.radius }"
+        :style="{ backgroundColor: colour.hex, borderRadius: colour.radius }"
       />
       <span v-if="colour.showHex">{{ colour.hex }}</span>
     </span>
@@ -202,13 +222,16 @@ function plainValue(value: any) {
         v-if="button?.href"
         class="nc-print-button"
         :class="`nc-print-button-${button.theme}`"
+        :style="button.style"
         :href="button.href"
         target="_blank"
         rel="noopener noreferrer"
       >
         {{ button.label }}
       </a>
-      <span v-else-if="button?.label" class="nc-print-button" :class="`nc-print-button-${button.theme}`">{{ button.label }}</span>
+      <span v-else-if="button?.label" class="nc-print-button" :class="`nc-print-button-${button.theme}`" :style="button.style">{{
+        button.label
+      }}</span>
     </template>
     <SmartsheetPlainCell v-else :column="props.column" :model-value="props.modelValue" />
   </div>

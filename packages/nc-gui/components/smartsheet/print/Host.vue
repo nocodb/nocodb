@@ -17,7 +17,7 @@ const view = inject(ActiveViewInj, ref())
 
 const fields = inject(FieldsInj, ref([]))
 
-const { meta, sorts, nestedFilters, xWhere } = useSmartsheetStoreOrThrow()
+const { meta, sorts, nestedFilters, xWhere, searchQueryParams } = useSmartsheetStoreOrThrow()
 
 const { groupBy } = useViewGroupByOrThrow()
 
@@ -66,6 +66,7 @@ function currentQuery() {
     sorts: sorts.value,
     nestedFilters: nestedFilters.value,
     where: xWhere.value,
+    search: searchQueryParams.value,
     groupBy: printableGroupBy.value,
   }
 }
@@ -84,6 +85,9 @@ async function loadSummary(): Promise<PrintSummary> {
     viewId: view.value.id,
     baseId: table.base_id,
     where: xWhere.value,
+    ...searchQueryParams.value,
+    // A batched call is not a search on the server, so it would ignore `search`.
+    ...(searchQueryParams.value.search ? { _batch: false } : {}),
     ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
     aggregation: requested.map(({ column, type }) => ({ field: column.id!, type: type! })),
   })

@@ -127,10 +127,12 @@ export function useGridCellHandler(params: {
       const api = linkRecordExpand.value
       if (ltarColumn && state.row?.row && state.meta?.id && api?.isEnabled(ltarColumn)) {
         api.expand({ column: ltarColumn, row: state.row.row, relatedTableMeta: state.meta })
+        return true
       }
-      return
+      return false
     }
-    return openDetachedExpandedFormRaw(state)
+    openDetachedExpandedFormRaw(state)
+    return true
   }
 
   const smartTextStore = useSmartText()

@@ -767,6 +767,8 @@ interface CellRendererOptions {
     tagSegments?: Array<{ text: string; url?: string }>
     /** Called with the drawn box of each link piece in `tagSegments` */
     onTagLink?: (link: { x: number; width: number; url: string }) => void
+    /** Called by the hm/mm Link renderer with the boxes of the chips it drew */
+    onLinkChips?: (chips: NonNullable<CellRenderStore['ltar']>) => void
   }
   disabled?: {
     isInvalid: boolean
@@ -876,7 +878,8 @@ interface CellRenderer {
     markdownLoader: MarkdownLoader
     cellRenderStore: CellRenderStore
     isPublic?: boolean
-    openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
+    /** False when nothing opened (an Interface column with no detail page) */
+    openDetachedExpandedForm: (props: UseExpandedFormDetachedProps, ltarColumn?: ColumnType) => boolean
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
     openSmartText?: (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => void
     formula?: boolean

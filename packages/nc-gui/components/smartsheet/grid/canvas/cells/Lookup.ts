@@ -48,7 +48,8 @@ export const LookupCellRenderer: CellRenderer = {
     // clickable on a cell that no longer paints them.
     if (cellRenderStore) {
       cellRenderStore.links = []
-      cellRenderStore.lookupLinks = []
+      // A nested Lookup re-enters with the same store; only the top-level call owns the chips.
+      if (!props.isUnderLookup) cellRenderStore.lookupLinks = []
     }
 
     if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
@@ -284,7 +285,7 @@ export const LookupCellRenderer: CellRenderer = {
     }
 
     // Chips of a Lookup of a Link — recorded so handleClick can open the linked record.
-    const isLinkLookup = lookupColumn.uidt === UITypes.LinkToAnotherRecord && !!lkRelatedTableMeta
+    const isLinkLookup = !props.isUnderLookup && lookupColumn.uidt === UITypes.LinkToAnotherRecord && !!lkRelatedTableMeta
     const linkChips: NonNullable<CellRenderStore['lookupLinks']> = []
 
     const renderProps: CellRendererOptions = {
@@ -519,20 +520,18 @@ export const LookupCellRenderer: CellRenderer = {
       ) {
         renderResult = handleRenderVirtualCol()
       } else {
-        // The hm/mm renderer draws every chip in one call and records their boxes in `ltar`
-        if (isLinkLookup && cellRenderStore) cellRenderStore.ltar = []
-
-        renderResult = lookupRenderer({
-          ...renderProps,
-          tag: { ...renderProps.tag, renderAsTag: false },
-        })
-
-        if (isLinkLookup && ncIsArray(cellRenderStore?.ltar)) {
-          for (const chip of cellRenderStore.ltar) {
+        // The hm/mm renderer draws every chip in one call into its own store, so it hands the boxes back here
+        const onLinkChips = (chips: NonNullable<CellRenderStore['ltar']>) => {
+          for (const chip of chips) {
             if (!ncIsObject(chip.value) || !chip.width || !chip.height) continue
             linkChips.push({ x: chip.oldX!, y: chip.oldY!, width: chip.width, height: chip.height, value: chip.value })
           }
         }
+
+        renderResult = lookupRenderer({
+          ...renderProps,
+          tag: { ...renderProps.tag, renderAsTag: false, onLinkChips: isLinkLookup ? onLinkChips : undefined },
+        })
       }
     } else {
       if (isAttachment(lookupColumn) && ncIsObject(arrValue[0])) {
@@ -562,7 +561,7 @@ export const LookupCellRenderer: CellRenderer = {
       cellRenderStore.lookupLinks = linkChips
       cellRenderStore.lookupLinkMeta = lkRelatedTableMeta
 
-      if (selected && mousePosition && linkChips.some((box) => isBoxHovered(box, mousePosition))) {
+      if (!props.isPublic && selected && mousePosition && linkChips.some((box) => isBoxHovered(box, mousePosition))) {
         setCursor?.('pointer')
       }
     }
@@ -587,16 +586,15 @@ export const LookupCellRenderer: CellRenderer = {
 
     // Open the linked record behind a Lookup-of-Link chip, like a Link cell's chip
     const chips = cellRenderStore?.lookupLinks
-    if ((selected || isDoubleClick) && mousePosition && ncIsArray(chips) && chips.length) {
+    // Claims the click only when a record opens; otherwise a double-click still opens the overlay.
+    if (!isPublic && (selected || isDoubleClick) && mousePosition && ncIsArray(chips) && chips.length) {
       const chip = chips.find((box) => isBoxHovered(box, mousePosition))
       if (chip) {
-        if (isPublic) return true
-
         const relatedMeta = cellRenderStore?.lookupLinkMeta
         const rowId = relatedMeta ? extractPkFromRow(chip.value, (relatedMeta.columns || []) as ColumnType[]) : null
 
         if (relatedMeta && rowId) {
-          openDetachedExpandedForm(
+          return !!openDetachedExpandedForm(
             {
               isOpen: true,
               row: { row: chip.value, rowMeta: {}, oldRow: { ...chip.value } },
@@ -609,8 +607,6 @@ export const LookupCellRenderer: CellRenderer = {
             column.columnObj,
           )
         }
-
-        return true
       }
     }
 

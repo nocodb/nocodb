@@ -6737,7 +6737,7 @@
     "invalidLabel": "Anna kelvollinen painikkeen tunniste",
     "buttonConditionNotMet": "Ehdot eivät täyty",
     "formulaNotSupported": "Tämä toiminto ei ole käytettävissä tietokannassasi",
-    "configureTimelineRange": "Valitse aloitus- ja lopetuskentät työkalurivissä nähdäksesi tietueet aikajanalla. @ info: whatsthis",
+    "configureTimelineRange": "Valitse aloitus- ja lopetuskentät työkalurivissä nähdäksesi tietueet aikajanalla.",
     "dateFieldRequired": "Päivämäärä kenttä vaaditaan!",
     "controlOrgAppearance": "Hallinnoi organisaation nimeä ja ulkonäköä.",
     "addCompanyDomains": "Lisää yrityksen toimintoja rajoittaaksesi pääsyn ei-toivotuilta käyttäjiltä.",

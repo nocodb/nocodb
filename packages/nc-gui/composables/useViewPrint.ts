@@ -23,6 +23,7 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
       rangeStart: number
       settings: PrintSettings
       groupColumns: ColumnType[]
+      summary: PrintSummary
     } | null>(null)
 
     const storageKey = computed(() => `${base.value?.id ?? ''}:${view.value?.id ?? ''}`)
@@ -46,18 +47,27 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
       return pageInfo?.totalRows ?? list.length
     }
 
-    async function print(settings: PrintSettings, range: PrintRange, query: PrintListQuery) {
+    async function print(
+      settings: PrintSettings,
+      range: PrintRange,
+      query: PrintListQuery,
+      loadSummary: () => Promise<PrintSummary> = async () => ({}),
+    ) {
       if (isPreparing.value || !base.value?.id || !meta.value?.id || !view.value?.id) return
 
       isPreparing.value = true
 
       try {
-        const { rows, total } = await loadAllPrintRows(
-          (offset, limit) => fetchRows(query, offset, limit),
-          Math.min(range.end - range.start + 1, PRINT_RECORD_LIMIT),
-          PRINT_FETCH_PAGE_SIZE,
-          range.start - 1,
-        )
+        const [{ rows, total }, summary] = await Promise.all([
+          loadAllPrintRows(
+            (offset, limit) => fetchRows(query, offset, limit),
+            Math.min(range.end - range.start + 1, PRINT_RECORD_LIMIT),
+            PRINT_FETCH_PAGE_SIZE,
+            range.start - 1,
+          ),
+          // The footer summary is optional; a failed aggregate still prints the records.
+          loadSummary().catch(() => ({})),
+        ])
 
         printState.value = {
           rows,
@@ -65,6 +75,7 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
           rangeStart: range.start,
           settings,
           groupColumns: query.groupBy.map((g) => g.column),
+          summary,
         }
 
         isSettingsOpen.value = false

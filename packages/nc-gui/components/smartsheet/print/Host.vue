@@ -1,11 +1,23 @@
 <script setup lang="ts">
+import { CommonAggregations, type GridType } from 'nocodb-sdk'
+
 const viewPrint = useViewPrint()
+
+const { t } = useI18n()
+
+const { isUIAllowed } = useRoles()
+
+const { metas } = useMetas()
+
+const { isMysql, isPg } = useBase()
+
+const { internalGet } = useInternalBatch()
 
 const view = inject(ActiveViewInj, ref())
 
 const fields = inject(FieldsInj, ref([]))
 
-const { sorts, nestedFilters, xWhere } = useSmartsheetStoreOrThrow()
+const { meta, sorts, nestedFilters, xWhere } = useSmartsheetStoreOrThrow()
 
 const { groupBy } = useViewGroupByOrThrow()
 
@@ -27,6 +39,8 @@ const printableGroupBy = computed(() =>
   ),
 )
 
+const rowHeight = computed(() => (view.value?.view as GridType | undefined)?.row_height ?? null)
+
 function cellsPerRecord(settings: PrintSettings) {
   return countPrintCellsPerRecord(printColumns.value, columnWidths.value, settings)
 }
@@ -45,8 +59,45 @@ function currentQuery() {
   }
 }
 
+/** The grid footer's summaries, for the whole view. */
+async function loadSummary(): Promise<PrintSummary> {
+  const table = meta.value
+  const requested = printColumns.value
+    .map((column) => ({ column, type: gridViewCols.value[column.id!]?.aggregation }))
+    .filter(({ type }) => type && type !== CommonAggregations.None)
+  if (!requested.length || !table?.base_id || !view.value?.id) return {}
+
+  const data = await internalGet(table.fk_workspace_id!, table.base_id, {
+    operation: 'dataAggregate',
+    tableId: table.id,
+    viewId: view.value.id,
+    baseId: table.base_id,
+    where: xWhere.value,
+    ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+    aggregation: requested.map(({ column, type }) => ({ field: column.id!, type: type! })),
+  })
+
+  return Object.fromEntries(
+    requested.map(({ column, type }) => [
+      column.id!,
+      {
+        label: t(`aggregation.${type}`).replace('Percent ', ''),
+        value: String(
+          getFormattedAggrationValue(type!, data?.[column.title!], column, [], {
+            meta: table,
+            metas: metas.value,
+            isMysql,
+            isPg,
+            col: column,
+          }) ?? '',
+        ),
+      },
+    ]),
+  )
+}
+
 function onPrint(settings: PrintSettings, range: PrintRange) {
-  viewPrint?.print(settings, range, currentQuery())
+  viewPrint?.print(settings, range, currentQuery(), loadSummary)
 }
 
 watch(
@@ -91,6 +142,8 @@ watch(
       :settings="viewPrint.printState.value.settings"
       :column-widths="columnWidths"
       :group-columns="viewPrint.printState.value.groupColumns"
+      :row-height="rowHeight"
+      :summary="viewPrint.printState.value.summary"
     />
   </template>
 </template>

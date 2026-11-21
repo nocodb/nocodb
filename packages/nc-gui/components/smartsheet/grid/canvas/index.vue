@@ -23,6 +23,7 @@ import { cellMatchesSearch } from '../../../../utils/allFieldsSearchUtils'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
 import type { CanvasGroup, GridRemoteFocus } from '../../../../lib/types'
 import { useCanvasTable } from './composables/useCanvasTable'
+import { RESIZE_HANDLE_WIDTH } from './composables/useColumnResize'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered, renderSingleLineText } from './utils/canvas'
 import Tooltip from './components/Tooltip.vue'
@@ -355,6 +356,7 @@ const {
   autoFitColumnWidth,
   autoFitAllColumnWidths,
   isRowNumberResizeHandle,
+  rowNumberEdgeX,
   hoverRow,
   selection,
   makeCellEditable,
@@ -2609,6 +2611,24 @@ const handleMouseMove = (e: MouseEvent) => {
           mousePosition,
         })
       }
+    }
+
+    if (
+      rowNumberEdgeX.value !== null &&
+      !isLocked.value &&
+      isViewOperationsAllowed.value &&
+      isRowNumberResizeHandle(mousePosition.x)
+    ) {
+      tryShowTooltip({
+        rect: {
+          x: rowNumberEdgeX.value - RESIZE_HANDLE_WIDTH / 2,
+          y: 0,
+          width: RESIZE_HANDLE_WIDTH,
+          height: headerRowHeight.value,
+        },
+        text: t('tooltip.doubleClickToFitAllColumns'),
+        mousePosition,
+      })
     }
 
     // Now we check if the mouse is over the x positions of the fixed columns

@@ -1847,10 +1847,14 @@ export function useCanvasTable({
   const autoFitAllColumnWidths = (): boolean =>
     autoFitColumns(columns.value.filter((col) => col.id !== 'row_number').map((col) => col.id))
 
-  const isRowNumberResizeHandle = (x: number) => {
+  // x of the row-number column's right edge, where a double-click fits every column
+  const rowNumberEdgeX = computed(() => {
     const rowNumberCol = columns.value.find((col) => col.id === 'row_number')
-    return !!rowNumberCol && Math.abs(x - parseCellWidth(rowNumberCol.width)) <= RESIZE_HANDLE_WIDTH / 2
-  }
+    return rowNumberCol ? parseCellWidth(rowNumberCol.width) : null
+  })
+
+  const isRowNumberResizeHandle = (x: number) =>
+    rowNumberEdgeX.value !== null && Math.abs(x - rowNumberEdgeX.value) <= RESIZE_HANDLE_WIDTH / 2
 
   const {
     isDragging: isColumnReordering,
@@ -2465,6 +2469,7 @@ export function useCanvasTable({
     autoFitColumnWidth,
     autoFitAllColumnWidths,
     isRowNumberResizeHandle,
+    rowNumberEdgeX,
 
     // Mouse Selection
     onMouseUpSelectionHandler,

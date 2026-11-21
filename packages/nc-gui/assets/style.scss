@@ -1491,6 +1491,36 @@ svg.nc-virtual-cell-icon {
     margin: 1.5em 0;
   }
 
+  table {
+    width: 100%;
+    margin: 0.5rem 0;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  th,
+  td {
+    border: 1px solid var(--nc-border-gray-medium);
+    padding: 4px 8px;
+    vertical-align: top;
+    text-align: left;
+    overflow-wrap: anywhere;
+
+    p {
+      @apply !mb-0;
+    }
+  }
+
+  th {
+    font-weight: 600;
+    background-color: var(--nc-bg-gray-light);
+  }
+
+  // CellSelection from prosemirror-tables
+  .selectedCell {
+    background-color: var(--nc-bg-brand);
+  }
+
   pre {
     height: fit-content;
   }

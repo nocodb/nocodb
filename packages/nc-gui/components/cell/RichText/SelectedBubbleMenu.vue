@@ -117,6 +117,85 @@ const onDocClick = (e: MouseEvent) => {
   if (!hit) showColorPicker.value = false
 }
 onMounted(() => document.addEventListener('mousedown', onDocClick))
+
+// ── Table ──
+
+const isTableMenuOpen = ref(false)
+
+const isInTable = computed(() => !!editor.value?.isActive('table'))
+
+// Rows above the header, or deleting it, would leave a table markdown can't store.
+const isInHeaderRow = computed(() => !!editor.value?.isActive('tableHeader'))
+
+const tableActions = computed(() => {
+  const e = editor.value
+  if (!e || !isInTable.value) return []
+
+  return [
+    {
+      key: 'insertRowAbove',
+      icon: 'ncInsertRowAbove',
+      label: t('labels.insertRowAbove'),
+      disabled: isInHeaderRow.value,
+      run: () => e.chain().focus().addRowBefore().run(),
+    },
+    {
+      key: 'insertRowBelow',
+      icon: 'ncInsertRowBelow',
+      label: t('labels.insertRowBelow'),
+      run: () => e.chain().focus().addRowAfter().run(),
+    },
+    {
+      key: 'insertColumnLeft',
+      icon: 'ncInsertColumnLeft',
+      label: t('labels.insertColumnLeft'),
+      run: () => e.chain().focus().addColumnBefore().run(),
+    },
+    {
+      key: 'insertColumnRight',
+      icon: 'ncInsertColumnRight',
+      label: t('labels.insertColumnRight'),
+      run: () => e.chain().focus().addColumnAfter().run(),
+    },
+    { key: 'divider' },
+    {
+      key: 'deleteRow',
+      icon: 'delete',
+      label: t('labels.deleteRow'),
+      disabled: isInHeaderRow.value,
+      run: () => e.chain().focus().deleteRow().run(),
+    },
+    {
+      key: 'deleteColumn',
+      icon: 'delete',
+      label: t('labels.deleteColumn'),
+      disabled: !e.can().deleteColumn(),
+      run: () => e.chain().focus().deleteColumn().run(),
+    },
+    {
+      key: 'deleteTable',
+      icon: 'delete',
+      label: t('labels.deleteTable'),
+      danger: true,
+      run: () => e.chain().focus().deleteTable().run(),
+    },
+  ] as { key: string; icon?: IconMapKey; label?: string; disabled?: boolean; danger?: boolean; run?: () => void }[]
+})
+
+const onTableButtonClick = () => {
+  if (isInTable.value) return
+
+  editor.value?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+}
+
+const runTableAction = (run?: () => void) => {
+  isTableMenuOpen.value = false
+  run?.()
+}
+
+watch(isInTable, (inTable) => {
+  if (!inTable) isTableMenuOpen.value = false
+})
 onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
 
 // ── Helpers ──
@@ -243,7 +322,7 @@ interface BubbleMenuDivider {
 }
 
 interface BubbleMenuCustom {
-  type: 'colorPicker' | 'link' | 'image' | 'mention' | 'close'
+  type: 'colorPicker' | 'link' | 'image' | 'mention' | 'table' | 'close'
   key: string
 }
 
@@ -407,18 +486,7 @@ const menuEntries = computed<MenuEntry[]>(() => {
   }
 
   if (isOptionVisible(RichTextBubbleMenuOptions.table)) {
-    entries.push(
-      btn(
-        'table',
-        'table',
-        t('objects.table'),
-        'table',
-        () => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
-        {
-          disableOnCodeBlock: false,
-        },
-      ),
-    )
+    entries.push({ type: 'table', key: 'table' })
   }
 
   // ── Close ──
@@ -589,6 +657,49 @@ const menuEntries = computed<MenuEntry[]>(() => {
           <GeneralIcon icon="atSign" />
         </NcButton>
       </NcTooltip>
+
+      <!-- Table: inserts one, or edits the one the cursor is in -->
+      <NcDropdown
+        v-else-if="entry.type === 'table'"
+        v-model:visible="isTableMenuOpen"
+        :disabled="!isInTable"
+        overlay-class-name="nc-rich-text-table-menu"
+      >
+        <NcTooltip :placement="tooltipPlacement" :disabled="isTableMenuOpen">
+          <template #title> {{ $t('objects.table') }} </template>
+          <NcButton
+            size="small"
+            type="text"
+            :class="{ 'is-active': isInTable }"
+            :tabindex="tabIndex"
+            :aria-label="$t('objects.table')"
+            data-testid="nc-rich-text-table-btn"
+            @click="onTableButtonClick"
+          >
+            <GeneralIcon icon="table" />
+          </NcButton>
+        </NcTooltip>
+        <template #overlay>
+          <!-- mousedown.prevent keeps the editor focused, so actions apply at the cursor -->
+          <div @mousedown.prevent>
+            <NcMenu variant="small">
+              <template v-for="action in tableActions" :key="action.key">
+                <NcDivider v-if="action.key === 'divider'" />
+                <NcMenuItem
+                  v-else
+                  :disabled="action.disabled"
+                  :danger="action.danger"
+                  :data-testid="`nc-rich-text-table-${action.key}`"
+                  @click="runTableAction(action.run)"
+                >
+                  <GeneralIcon :icon="action.icon!" />
+                  {{ action.label }}
+                </NcMenuItem>
+              </template>
+            </NcMenu>
+          </div>
+        </template>
+      </NcDropdown>
 
       <!-- Close -->
       <div v-else-if="entry.type === 'close'" class="!sticky right-0 pr-0.5 bg-nc-bg-default">

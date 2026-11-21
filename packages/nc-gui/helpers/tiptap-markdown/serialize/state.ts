@@ -34,6 +34,12 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
     super.text(text, escape)
   }
 
+  // An unescaped pipe would end the table cell
+  override esc(str: string, startOfLine = false): string {
+    const escaped = super.esc(str, startOfLine)
+    return this.inTable ? escaped.replace(/\|/g, '\\|') : escaped
+  }
+
   override render(node: Node, parent: Node, index: number): void {
     super.render(node, parent, index)
     const top = this.inlines[this.inlines.length - 1]

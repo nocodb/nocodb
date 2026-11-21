@@ -100,7 +100,7 @@ onClickOutside(inputWrapperRef, (e) => {
 
   if (
     targetEl?.closest(
-      '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+      '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
     )
   ) {
     return

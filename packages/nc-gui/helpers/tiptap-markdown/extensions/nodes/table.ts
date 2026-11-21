@@ -21,10 +21,15 @@ export const Table = Node.create<any, { markdown: MarkdownNodeSpec }>({
               if (j) {
                 state.write(' | ')
               }
-              const cellContent = col.firstChild
-              if (cellContent.textContent.trim()) {
-                state.renderInline(cellContent)
-              }
+              // A cell holds one line: its paragraphs are joined with <br>, which loads back as line breaks
+              col.forEach((paragraph, _, k) => {
+                if (k) {
+                  state.write('<br>')
+                }
+                if (paragraph.textContent.trim()) {
+                  state.renderInline(paragraph)
+                }
+              })
             })
             state.write(' |')
             state.ensureNewLine()
@@ -51,18 +56,22 @@ function hasSpan(node) {
   return node.attrs.colspan > 1 || node.attrs.rowspan > 1
 }
 
+function hasOnlyParagraphs(cell) {
+  return childNodes(cell).every((child) => child.type.name === 'paragraph')
+}
+
 function isMarkdownSerializable(node) {
   const rows = childNodes(node)
   const firstRow = rows[0]
   const bodyRows = rows.slice(1)
 
-  if (childNodes(firstRow).some((cell) => cell.type.name !== 'tableHeader' || hasSpan(cell) || cell.childCount > 1)) {
+  if (childNodes(firstRow).some((cell) => cell.type.name !== 'tableHeader' || hasSpan(cell) || !hasOnlyParagraphs(cell))) {
     return false
   }
 
   if (
     bodyRows.some((row) =>
-      childNodes(row).some((cell) => cell.type.name === 'tableHeader' || hasSpan(cell) || cell.childCount > 1),
+      childNodes(row).some((cell) => cell.type.name === 'tableHeader' || hasSpan(cell) || !hasOnlyParagraphs(cell)),
     )
   ) {
     return false

@@ -52,6 +52,8 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
       range: PrintRange,
       query: PrintListQuery,
       loadSummary: () => Promise<PrintSummary> = async () => ({}),
+      // Lets a renderer that draws asynchronously finish before the print dialog opens.
+      waitForRender: () => Promise<void> = async () => {},
     ) {
       if (isPreparing.value || !base.value?.id || !meta.value?.id || !view.value?.id) return
 
@@ -82,6 +84,7 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
         saveLastPrintedEnd(storageKey.value, range.end)
 
         await nextTick()
+        await waitForRender()
 
         window.print()
       } catch (e: any) {

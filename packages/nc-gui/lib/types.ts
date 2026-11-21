@@ -211,8 +211,6 @@ interface Row {
       | {
           reason: 'serverRejected'
           message: string
-          // Field the server named as the cause, when it named one.
-          fields?: string[]
         }
   } & RowMetaRowColorInfo
 }

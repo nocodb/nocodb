@@ -34,8 +34,9 @@ export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
       case 'SQLITE_CONSTRAINT': {
         // never echo error.message: knex prefixes it with the SQL
         const reason = driverMessage(error);
+        // a composite key lists several columns: name none
         const column = reason.match(
-          /^(?:UNIQUE|NOT NULL) constraint failed: (?:[^\s.]+\.)?([^\s,]+)/,
+          /^(?:UNIQUE|NOT NULL) constraint failed: (?:[^\s.]+\.)?([^\s,]+)\s*$/,
         )?.[1];
         const violation = parseConstraintViolation(error);
         if (violation) {

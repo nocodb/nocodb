@@ -41,7 +41,7 @@ import {
 } from '~/utils/realtimeUtils'
 import type { ViewMembership } from '~/utils/realtimeUtils'
 import type { Row } from '#imports'
-import { serverRejectedSaveError, validateRowFilters } from '~/utils/dataUtils'
+import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
 import { isUniqueConstraintViolationError } from '~/utils/errorUtils'
 import { type OfflineEdit, type OfflineEditReplayResult, createOfflineEditQueue, isNetworkError } from '~/utils/offlineEditQueue'
@@ -1733,6 +1733,7 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     currentRow.rowMeta.saving = true
+    let previousSaveError: Row['rowMeta']['saveError']
 
     try {
       const { missingRequiredColumns, insertObj } = await populateInsertObject({
@@ -1761,6 +1762,7 @@ export function useInfiniteData(args: {
 
       // Clearing on the path that's about to call the API means a previously
       // failed row that just had its missing field filled gets a clean retry.
+      previousSaveError = currentRow.rowMeta.saveError
       if (currentRow.rowMeta.saveError) {
         currentRow.rowMeta.saveError = undefined
       }
@@ -1821,13 +1823,16 @@ export function useInfiniteData(args: {
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
       // Keep the rejected row and its values so it can be fixed; the next edit retries the insert.
-      // Only a 4xx is a refusal; after a network error or 5xx the insert may have gone through.
+      // Marked on a 4xx only, since after a network error or 5xx the insert may have gone through.
+      // v1/v2 report every mapped db error as 400, transient ones too; the retry is the same either way.
       const status = error?.response?.status
       if (currentRow.rowMeta.new && status >= 400 && status < 500) {
-        currentRow.rowMeta.saveError = serverRejectedSaveError(errorMessage, error?.response?.data)
+        currentRow.rowMeta.saveError = { reason: 'serverRejected', message: errorMessage }
         callbacks?.syncVisibleData?.()
       }
-      message.error(`Failed to insert row: ${errorMessage}`)
+      // A retry that fails the same way already has its marker; don't toast every edit.
+      const repeated = previousSaveError?.reason === 'serverRejected' && previousSaveError.message === errorMessage
+      if (!repeated) message.error(`Failed to insert row: ${errorMessage}`)
       throw error
     } finally {
       currentRow.rowMeta.saving = false

@@ -6212,6 +6212,11 @@ export interface CommentReqType {
   attachments?: AttachmentType[];
   /** Meta info for the comment (e.g. image annotation anchor) */
   meta?: MetaType;
+  /**
+   * Comment this one replies to. A reply to a reply joins the same thread.
+   * @example cmt043cx4r30343ff
+   */
+  parent_comment_id?: string;
 }
 
 /**
@@ -17812,6 +17817,45 @@ export class Api<
         }
       >({
         path: `/api/v1/health`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Checks the meta database and, when configured, the jobs and cache Redis. The throttler Redis is not checked: rate limiting fails open without it. Returns 503 when any check fails. Use it as a readiness probe; `/api/v1/health` is the liveness probe and checks only that the process is up.
+ * 
+ * @tags Utils
+ * @name AppReadiness
+ * @summary Get Application Readiness Status
+ * @request GET:/api/v1/health/ready
+ * @response `200` `{
+  status?: "ok" | "error",
+  \** One entry per dependency checked: `meta_db` always, `redis_job` and `redis_cache` when that Redis is configured. Roles that share a Redis URL share one check. *\
+  checks?: Record<string, "ok" | "error">,
+
+}` OK
+ * @response `503` `{
+  status?: "ok" | "error",
+  \** One entry per dependency checked: `meta_db` always, `redis_job` and `redis_cache` when that Redis is configured. Roles that share a Redis URL share one check. *\
+  checks?: Record<string, "ok" | "error">,
+
+}` A dependency is unreachable
+ */
+    appReadiness: (params: RequestParams = {}) =>
+      this.request<
+        {
+          status?: 'ok' | 'error';
+          /** One entry per dependency checked: `meta_db` always, `redis_job` and `redis_cache` when that Redis is configured. Roles that share a Redis URL share one check. */
+          checks?: Record<string, 'ok' | 'error'>;
+        },
+        {
+          status?: 'ok' | 'error';
+          /** One entry per dependency checked: `meta_db` always, `redis_job` and `redis_cache` when that Redis is configured. Roles that share a Redis URL share one check. */
+          checks?: Record<string, 'ok' | 'error'>;
+        }
+      >({
+        path: `/api/v1/health/ready`,
         method: 'GET',
         format: 'json',
         ...params,

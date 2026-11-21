@@ -176,7 +176,12 @@ function dayLabel(at: dayjs.Dayjs) {
 }
 
 function timeLabel(audit: AuditType) {
-  return dayjs(audit.created_at).format('h:mm A')
+  return timeAgo(audit.created_at!)
+}
+
+// The header names the agent too, so edits made through an agent group apart from direct ones.
+function agentId(audit: AuditType) {
+  return safeJsonParse(audit.details as string)?.agent?.id ?? null
 }
 
 const timeline = computed(() => {
@@ -201,7 +206,13 @@ const timeline = computed(() => {
     }
 
     const last = group?.audits[group.audits.length - 1]
-    if (group && last && last.user === audit.user && at.diff(dayjs(last.created_at), 'minute') <= GROUP_GAP_MINUTES) {
+    if (
+      group &&
+      last &&
+      last.user === audit.user &&
+      agentId(last) === agentId(audit) &&
+      at.diff(dayjs(last.created_at), 'minute') <= GROUP_GAP_MINUTES
+    ) {
       group.audits.push(audit)
     } else {
       group = { type: 'group', key: audit.id!, audits: [audit] }
@@ -219,9 +230,9 @@ function initialValueCount(audit: AuditType) {
 }
 
 function eventText(kind: TimelineEventKind) {
-  if (kind === 'created') return t('activity.createdRecord')
-  if (kind === 'trashed') return t('activity.movedRecordToTrash')
-  return t('activity.restoredRecordFromTrash')
+  if (kind === 'created') return t('labels.audit.createdThisRecord')
+  if (kind === 'trashed') return t('labels.audit.trashedThisRecord')
+  return t('labels.audit.restoredThisRecord')
 }
 
 function linkChanges(audit: AuditType) {
@@ -313,6 +324,7 @@ function linkChanges(audit: AuditType) {
                 <span class="min-w-0">
                   <span class="font-weight-600 text-nc-content-gray">{{ createdByAudit(item.audit) }}</span>
                   {{ eventText(item.kind) }}
+                  <span class="text-nc-content-gray-muted" aria-hidden="true">·</span>
                   <NcTooltip class="inline text-xs text-nc-content-gray-muted">
                     <template #title>{{ parseStringDateTime(item.audit.created_at) }}</template>
                     {{ timeLabel(item.audit) }}
@@ -321,6 +333,7 @@ function linkChanges(audit: AuditType) {
               </div>
               <template v-if="item.kind === 'created' && initialValueCount(item.audit)">
                 <button
+                  v-e="['c:audit:initial-values:toggle']"
                   type="button"
                   class="nc-audit-link-btn ml-8 mt-1 text-xs font-weight-600 text-nc-content-brand hover:text-nc-content-brand-hover"
                   @click="expandedInserts[item.key] = !expandedInserts[item.key]"

@@ -13,6 +13,8 @@ export interface AuditDiffLine {
   op: AuditDiffOp | 'changed'
   kind: AuditLineKind
   checked?: boolean
+  // An ordered item's own number ("2."), so numbered lists keep their numbering.
+  marker?: string
   segments: AuditDiffSegment[]
 }
 
@@ -67,14 +69,16 @@ const stripInlineMarkdown = (text: string) =>
   text
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/(\*\*|__)(.+?)\1/g, '$2')
-    .replace(/(\*|_)(.+?)\1/g, '$2')
+    // Emphasis only where the markers hug the text, so `my_var_name` and `2 * 3 * 4` survive.
+    .replace(/(^|[^\w*])(\*\*|__)(?=\S)(.+?)(?<=\S)\2(?![\w*])/g, '$1$3')
+    .replace(/(^|[^\w*])(\*|_)(?=\S)(.+?)(?<=\S)\2(?![\w*])/g, '$1$3')
     .replace(/~~(.+?)~~/g, '$1')
     .replace(/`([^`]+)`/g, '$1')
 
 interface ParsedLine {
   kind: AuditLineKind
   checked?: boolean
+  marker?: string
   text: string
 }
 
@@ -87,8 +91,8 @@ function parseLine(line: string, formatted: boolean): ParsedLine {
   if (m) return { kind: 'h', text: stripInlineMarkdown(m[1]) }
   m = line.match(/^\s*[-*+]\s+(.*)$/)
   if (m) return { kind: 'li', text: stripInlineMarkdown(m[1]) }
-  m = line.match(/^\s*\d+[.)]\s+(.*)$/)
-  if (m) return { kind: 'ol', text: stripInlineMarkdown(m[1]) }
+  m = line.match(/^\s*(\d+[.)])\s+(.*)$/)
+  if (m) return { kind: 'ol', marker: m[1], text: stripInlineMarkdown(m[2]) }
   m = line.match(/^>\s?(.*)$/)
   if (m) return { kind: 'quote', text: stripInlineMarkdown(m[1]) }
   return { kind: 'p', text: stripInlineMarkdown(line) }
@@ -98,7 +102,13 @@ function toLines(value: unknown, mode: 'plain' | 'formatted' | 'code'): ParsedLi
   if (value == null || value === '') return []
   let text: string
   if (mode === 'code') {
-    text = typeof value === 'string' ? value : JSON.stringify(value, null, 2)
+    let parsed = value
+    if (typeof value === 'string') {
+      try {
+        parsed = JSON.parse(value)
+      } catch {}
+    }
+    text = typeof parsed === 'string' ? parsed : JSON.stringify(parsed, null, 2)
   } else {
     text = String(value)
     if (mode === 'formatted' && /^\s*</.test(text)) text = htmlToMarkdownLines(text)
@@ -132,35 +142,42 @@ export function auditLineDiff(oldVal: unknown, newVal: unknown, mode: 'plain' | 
       const removed = chunk.value
       const added = next.value
       const pairs = Math.min(removed.length, added.length)
-      for (let j = 0; j < pairs; j++) {
-        const words = auditWordDiff(removed[j].text, added[j].text)
-        if (words && sameShape(removed[j], added[j])) {
-          out.push({ op: 'changed', kind: added[j].kind, checked: added[j].checked, segments: words })
-        } else {
+      // Lines that don't pair up stay together: the old block, then the new block.
+      const lone: { removed: ParsedLine[]; added: ParsedLine[] } = { removed: [], added: [] }
+      const flush = () => {
+        for (const l of lone.removed)
           out.push({
             op: 'removed',
-            kind: removed[j].kind,
-            checked: removed[j].checked,
-            segments: [{ text: removed[j].text, op: 'removed' }],
+            kind: l.kind,
+            checked: l.checked,
+            marker: l.marker,
+            segments: [{ text: l.text, op: 'removed' }],
           })
-          out.push({
-            op: 'added',
-            kind: added[j].kind,
-            checked: added[j].checked,
-            segments: [{ text: added[j].text, op: 'added' }],
-          })
+        for (const l of lone.added)
+          out.push({ op: 'added', kind: l.kind, checked: l.checked, marker: l.marker, segments: [{ text: l.text, op: 'added' }] })
+        lone.removed = []
+        lone.added = []
+      }
+      for (let j = 0; j < pairs; j++) {
+        const words = sameShape(removed[j], added[j]) ? auditWordDiff(removed[j].text, added[j].text) : null
+        if (words) {
+          flush()
+          out.push({ op: 'changed', kind: added[j].kind, checked: added[j].checked, marker: added[j].marker, segments: words })
+        } else {
+          lone.removed.push(removed[j])
+          lone.added.push(added[j])
         }
       }
-      for (const l of removed.slice(pairs))
-        out.push({ op: 'removed', kind: l.kind, checked: l.checked, segments: [{ text: l.text, op: 'removed' }] })
-      for (const l of added.slice(pairs))
-        out.push({ op: 'added', kind: l.kind, checked: l.checked, segments: [{ text: l.text, op: 'added' }] })
+      lone.removed.push(...removed.slice(pairs))
+      lone.added.push(...added.slice(pairs))
+      flush()
       i++
       continue
     }
 
     const op: AuditDiffOp = chunk.added ? 'added' : chunk.removed ? 'removed' : 'unchanged'
-    for (const l of chunk.value) out.push({ op, kind: l.kind, checked: l.checked, segments: [{ text: l.text, op }] })
+    for (const l of chunk.value)
+      out.push({ op, kind: l.kind, checked: l.checked, marker: l.marker, segments: [{ text: l.text, op }] })
   }
 
   return out

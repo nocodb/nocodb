@@ -4712,7 +4712,10 @@
       },
       "showFullText": "Show full text",
       "showInitialValues": "Show {count} initial values",
-      "hideInitialValues": "Hide initial values"
+      "hideInitialValues": "Hide initial values",
+      "createdThisRecord": "created this record",
+      "trashedThisRecord": "moved this record to trash",
+      "restoredThisRecord": "restored this record"
     },
     "hasRoleInBase": "Has {role} role in project",
     "systemUser": "System user",
@@ -7567,7 +7570,7 @@
     "uploadAttachment": "Upload Attachment",
     "changed": "changed",
     "createdARecord": "created a record.",
-    "updatedFields": "updated {fieldsChanged} fields",
+    "updatedFields": "updated {fieldsChanged} field | updated {fieldsChanged} fields",
     "updatedOneField": "updated 1 field",
     "recordWasCreated": "Record was created.",
     "edited": "(edited)",

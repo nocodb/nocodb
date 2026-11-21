@@ -116,7 +116,8 @@ const isAiGeneratedText = (key: string) => {
 type ChangeMode = 'files' | 'set' | 'lines' | 'words' | 'raw' | 'checkbox' | 'cell'
 
 const SET_TYPES = ['MultiSelect', 'User']
-const RAW_TYPES = ['URL', 'PhoneNumber', 'Email', 'SingleLineText']
+// Shown as text: links and geo data would otherwise render their cell actions (open, copy).
+const RAW_TYPES = ['URL', 'PhoneNumber', 'Email', 'SingleLineText', 'GeoData']
 
 function lineMode(key: string): 'plain' | 'formatted' | 'code' {
   if (typeOf(key) === 'JSON') return 'code'
@@ -282,7 +283,8 @@ function checkboxLabel(value: any) {
               class="nc-audit-line flex items-start gap-1.5"
               :class="[`nc-audit-line-${row.op}`, `nc-audit-kind-${row.kind}`]"
             >
-              <span v-if="row.kind === 'li' || row.kind === 'ol'" class="flex-none">•</span>
+              <span v-if="row.kind === 'ol'" class="flex-none tabular-nums">{{ row.marker }}</span>
+              <span v-else-if="row.kind === 'li'" class="flex-none">•</span>
               <span v-else-if="row.kind === 'task'" class="nc-audit-task" :class="{ 'nc-audit-task-checked': row.checked }">
                 <GeneralIcon v-if="row.checked" icon="ncCheck" class="w-2.5 h-2.5" />
               </span>
@@ -295,6 +297,7 @@ function checkboxLabel(value: any) {
         </div>
         <button
           v-if="changes[columnKey].canExpand"
+          v-e="['c:audit:full-text:toggle']"
           type="button"
           class="nc-audit-long-text-toggle mt-1 text-xs font-weight-600 text-nc-content-brand hover:text-nc-content-brand-hover"
           @click="toggleExpanded(columnKey)"
@@ -317,7 +320,9 @@ function checkboxLabel(value: any) {
         <template v-else-if="!isShowableValue(oldData[columnKey])">
           <span class="nc-audit-empty">{{ $t('general.empty') }}</span>
         </template>
-        <span v-else-if="changes[columnKey].mode === 'raw'" class="nc-audit-old break-all">{{ oldData[columnKey] }}</span>
+        <span v-else-if="changes[columnKey].mode === 'raw'" class="nc-audit-old [overflow-wrap:anywhere]">{{
+          oldData[columnKey]
+        }}</span>
         <div v-else class="nc-audit-mini-item-cell nc-audit-removal nc-audit-gone">
           <SmartsheetCell
             :column="cellColumn(columnKey)"
@@ -328,29 +333,34 @@ function checkboxLabel(value: any) {
           />
         </div>
 
-        <GeneralIcon
-          v-if="!isInitial"
-          icon="ncArrowRight"
-          class="w-3 h-3 flex-none text-nc-content-gray-subtle2"
-          aria-hidden="true"
-        />
-
-        <template v-if="changes[columnKey].mode === 'checkbox'">
-          <span>{{ checkboxLabel(newData[columnKey]) }}</span>
-        </template>
-        <template v-else-if="!isShowableValue(newData[columnKey])">
-          <span class="nc-audit-empty">{{ $t('general.empty') }}</span>
-        </template>
-        <span v-else-if="changes[columnKey].mode === 'raw'" class="break-all">{{ newData[columnKey] }}</span>
-        <div v-else class="nc-audit-mini-item-cell">
-          <SmartsheetCell
-            :column="cellColumn(columnKey)"
-            :model-value="newData[columnKey]"
-            :edit-enabled="false"
-            read-only
-            :class="{ 'min-w-[100px]': normalizeMeta(columnKey).is_progress }"
+        <!-- Arrow and new value wrap together, so a wrapped line starts with the arrow -->
+        <span class="inline-flex items-center gap-x-1.5 min-w-0">
+          <GeneralIcon
+            v-if="!isInitial"
+            icon="ncArrowRight"
+            class="w-3 h-3 flex-none text-nc-content-gray-subtle2"
+            aria-hidden="true"
           />
-        </div>
+
+          <template v-if="changes[columnKey].mode === 'checkbox'">
+            <span>{{ checkboxLabel(newData[columnKey]) }}</span>
+          </template>
+          <template v-else-if="!isShowableValue(newData[columnKey])">
+            <span class="nc-audit-empty">{{ $t('general.empty') }}</span>
+          </template>
+          <span v-else-if="changes[columnKey].mode === 'raw'" class="min-w-0 [overflow-wrap:anywhere]">{{
+            newData[columnKey]
+          }}</span>
+          <div v-else class="nc-audit-mini-item-cell min-w-0">
+            <SmartsheetCell
+              :column="cellColumn(columnKey)"
+              :model-value="newData[columnKey]"
+              :edit-enabled="false"
+              read-only
+              :class="{ 'min-w-[100px]': normalizeMeta(columnKey).is_progress }"
+            />
+          </div>
+        </span>
       </div>
     </div>
   </div>

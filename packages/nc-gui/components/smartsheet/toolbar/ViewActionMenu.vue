@@ -286,6 +286,18 @@ const isDownloadAllowed = computed(
     isPermissionAllowed(PermissionEntity.TABLE, table.value.id, PermissionKey.TABLE_DATA_DOWNLOAD, { ignorePlanBlock: true }),
 )
 
+// Only the open grid's toolbar menu sits inside the smartsheet that provides print.
+const viewPrint = useViewPrint()
+
+const isPrintAllowed = computed(
+  () => !!viewPrint && isDownloadAllowed.value && !isPublicView.value && view.value?.type === ViewTypes.GRID,
+)
+
+function onPrintClick() {
+  emits('closeModal')
+  viewPrint?.openSettings()
+}
+
 const copyViewConfigMenuItemStatus = computed(() => {
   return getCopyViewConfigBtnAccessStatus(view.value, 'view-action-menu')
 })
@@ -521,6 +533,12 @@ defineOptions({
 
           <LazySmartsheetToolbarExportSubActions />
         </NcSubMenu>
+        <NcMenuItem v-if="isPrintAllowed" data-testid="nc-view-action-print" @click="onPrintClick">
+          <div v-e="['c:view:print:open', { sidebar: props.inSidebar }]" class="nc-base-menu-item">
+            <GeneralIcon icon="ncPrinter" class="opacity-80" />
+            {{ $t('labels.printSettings.printView') }}
+          </div>
+        </NcMenuItem>
       </template>
 
       <template v-if="isUIAllowed('viewCreateOrEdit')">

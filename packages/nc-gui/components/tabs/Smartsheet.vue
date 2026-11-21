@@ -167,6 +167,8 @@ useProvideViewColumns(activeView, meta, (params) => reloadViewDataEventHook?.tri
 
 useProvideViewGroupBy(activeView, meta, xWhere)
 
+useProvideViewPrint(meta, activeView)
+
 useProvideSmartsheetLtarHelpers(meta)
 
 const grid = ref()
@@ -389,6 +391,7 @@ watch(isViewsLoading, async () => {
                   <div class="flex flex-1 min-h-0 w-3/4">
                     <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
                       <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+                      <SmartsheetPrintHost v-if="isGrid && meta && activeView" />
 
                       <template v-if="activeView && meta">
                         <SmartsheetGallery v-if="isGallery" />

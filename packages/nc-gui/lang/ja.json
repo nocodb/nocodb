@@ -6883,7 +6883,7 @@
         "moveDeletedField": "削除済みのフィールドを移動できません。最初に変更を保存するか破棄してください"
       },
       "removeSyncedFieldsDropsColumns": "これらのフィールドを削除すると、同期テーブル {fields}から列が削除されます。元に戻すことはできません。",
-      "removeSyncedLinkFieldDropsJunctionShadow": "format@@0フィールドには、ジャンクションと他のリンクで使用されなくなったシャドウテーブルも削除されます。",
+      "removeSyncedLinkFieldDropsJunctionShadow": "リンクフィールドには、ジャンクションと他のリンクで使用されなくなったシャドウテーブルも削除されます。",
       "fieldDeletedRemotely": "フィールドが別のユーザーによって削除されました。エディターが更新されました。",
       "fieldsDeletedRemotely": "{count} 項目は別のユーザーによって削除されました。エディターが更新されました。",
       "activeFieldDeletedRemotely": "編集したフィールドは別のユーザーによって削除されました。保存されていない変更は破棄されました。",

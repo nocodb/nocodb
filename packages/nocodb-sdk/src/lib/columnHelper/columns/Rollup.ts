@@ -132,6 +132,82 @@ export const getRollupFormulaDisplayValue = <T>(
     ? value.slice(0, 10)
     : value;
 
+/**
+ * The column a rollup's value renders as: for a formula rollup see
+ * `getRollupFormulaDisplayColumn`; otherwise the rolled-up field, with the
+ * rollup's own meta, as a Number/Decimal for functions that compute a number.
+ * Undefined when a non-formula rollup's rolled-up field is unknown.
+ */
+export const getRollupDisplayColumn = (
+  col: ColumnType,
+  rolledUpColumn?: ColumnType
+): ColumnType | undefined => {
+  const colOptions = col.colOptions as RollupType;
+  if (isRollupColOptions(colOptions) && isRollupFormula(colOptions)) {
+    return getRollupFormulaDisplayColumn(col, rolledUpColumn);
+  }
+  if (!rolledUpColumn) return undefined;
+
+  let childColumn = clone(rolledUpColumn);
+
+  // Resolve Formula fields with display_type (e.g., Currency, Decimal, Percent)
+  let isFormulaWithDisplayType = false;
+
+  if (childColumn.uidt === UITypes.Formula) {
+    const colMeta = parseProp(childColumn.meta);
+    if (colMeta?.display_type) {
+      isFormulaWithDisplayType = true;
+
+      // Resolve the formula's display_type into the effective child column, then
+      // layer the rollup-specific meta on top of the display format meta. Base the
+      // meta on display_column_meta.meta explicitly (not the effective column's
+      // meta) so it stays {} when display_column_meta has no `meta` key — otherwise
+      // the formula's own meta would leak in.
+      const displayColumnMeta = parseProp(colMeta.display_column_meta);
+      childColumn = getEffectiveDisplayColumn(colMeta, childColumn);
+      childColumn = {
+        ...childColumn,
+        meta: {
+          ...parseProp(displayColumnMeta?.meta),
+          ...getRollupColumnMeta(
+            col?.meta,
+            colMeta.display_type,
+            colOptions.rollup_function
+          ),
+        },
+      } as ColumnType;
+    }
+  }
+
+  const renderAsTextFun = getRenderAsTextFunForUiType(
+    (childColumn.uidt ?? UITypes.SingleLineText) as UITypes
+  );
+
+  // Only overwrite meta for non-formula display types — formula display types
+  // already have the correct meta (e.g., currency_code) set above
+  if (!isFormulaWithDisplayType) {
+    childColumn.meta = {
+      ...parseProp(childColumn?.meta),
+      ...getRollupColumnMeta(
+        col?.meta,
+        childColumn.uidt as UITypes,
+        colOptions.rollup_function
+      ),
+    };
+  }
+
+  if (renderAsTextFun.includes(colOptions.rollup_function)) {
+    const isInteger =
+      integerRollupFunctions.includes(colOptions.rollup_function) ||
+      (isIntegerUiType(childColumn) &&
+        integerPreservingRollupFunctions.includes(colOptions.rollup_function));
+
+    childColumn.uidt = isInteger ? UITypes.Number : UITypes.Decimal;
+  }
+
+  return childColumn;
+};
+
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     precision: precisionFormats[0],
@@ -195,68 +271,10 @@ export class RollupHelper extends AbstractColumnHelper {
         : ColumnHelper.parseValue(displayValue, displayParams);
     }
 
-    if (!childColumn) return value;
+    const displayColumn = getRollupDisplayColumn(col, childColumn);
+    if (!displayColumn) return value;
 
-    childColumn = clone(childColumn);
-
-    // Resolve Formula fields with display_type (e.g., Currency, Decimal, Percent)
-    let isFormulaWithDisplayType = false;
-
-    if (childColumn.uidt === UITypes.Formula) {
-      const colMeta = parseProp(childColumn.meta);
-      if (colMeta?.display_type) {
-        isFormulaWithDisplayType = true;
-
-        // Resolve the formula's display_type into the effective child column, then
-        // layer the rollup-specific meta on top of the display format meta. Base the
-        // meta on display_column_meta.meta explicitly (not the effective column's
-        // meta) so it stays {} when display_column_meta has no `meta` key — otherwise
-        // the formula's own meta would leak in.
-        const displayColumnMeta = parseProp(colMeta.display_column_meta);
-        childColumn = getEffectiveDisplayColumn(colMeta, childColumn);
-        childColumn = {
-          ...childColumn,
-          meta: {
-            ...parseProp(displayColumnMeta?.meta),
-            ...getRollupColumnMeta(
-              col?.meta,
-              colMeta.display_type,
-              colOptions.rollup_function
-            ),
-          },
-        } as ColumnType;
-      }
-    }
-
-    const renderAsTextFun = getRenderAsTextFunForUiType(
-      (childColumn.uidt ?? UITypes.SingleLineText) as UITypes
-    );
-
-    // Only overwrite meta for non-formula display types — formula display types
-    // already have the correct meta (e.g., currency_code) set above
-    if (!isFormulaWithDisplayType) {
-      childColumn.meta = {
-        ...parseProp(childColumn?.meta),
-        ...getRollupColumnMeta(
-          col?.meta,
-          childColumn.uidt as UITypes,
-          colOptions.rollup_function
-        ),
-      };
-    }
-
-    if (renderAsTextFun.includes(colOptions.rollup_function)) {
-      const isInteger =
-        integerRollupFunctions.includes(colOptions.rollup_function) ||
-        (isIntegerUiType(childColumn) &&
-          integerPreservingRollupFunctions.includes(
-            colOptions.rollup_function
-          ));
-
-      childColumn.uidt = isInteger ? UITypes.Number : UITypes.Decimal;
-    }
-
-    return ColumnHelper.parseValue(value, { ...params, col: childColumn! });
+    return ColumnHelper.parseValue(value, { ...params, col: displayColumn });
   }
 
   parsePlainCellValue(

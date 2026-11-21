@@ -214,14 +214,12 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     // narrowing for the realtime gate below.
     const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
-    const { blockGlobalSearch } = useEeConfig()
-
     const { isFeatureEnabled } = useBetaFeatureToggle()
 
     // Server-side search over every visible field: Postgres grid (ungrouped) and gallery views,
     // unless global search is off on the server or its experimental flag is off. Elsewhere the
-    // box searches one field, built into `xWhere` below. A plan without it still lists
-    // "All fields", with an upgrade badge.
+    // box searches one field, built into `xWhere` below. A plan without global search gets it
+    // too, on small tables only (`plan_limit` past that).
     const isAllFieldsSearchSupported = computed(
       () =>
         isEeUI &&
@@ -233,9 +231,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         baseStore.isPg((meta.value as TableType)?.source_id),
     )
 
-    const isAllFieldsSearch = computed(
-      () => isAllFieldsSearchSupported.value && !blockGlobalSearch.value && search.value.field === ALL_FIELDS_SEARCH_FIELD,
-    )
+    const isAllFieldsSearch = computed(() => isAllFieldsSearchSupported.value && search.value.field === ALL_FIELDS_SEARCH_FIELD)
 
     const allFieldsSearchTerm = computed(() => (isAllFieldsSearch.value ? search.value.query?.trim() || '' : ''))
 

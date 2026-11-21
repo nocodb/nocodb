@@ -1,90 +1,19 @@
 import { createToken, Lexer } from 'chevrotain';
 import { COMMON_TOKEN } from '../common-token';
 import {
-  CALENDAR_PERIOD_SUB_OPS,
-  DATE_RANGE_SUB_OP,
-} from '~/lib/filter/calendarDateRange';
+  COMPARISON_OPS,
+  COMPARISON_OPS_ALIAS,
+  GROUPBY_COMPARISON_OPS,
+} from './query-filter-ops';
 
-export const GROUPBY_COMPARISON_OPS = <const>[
-  // these are used for groupby
-  'gb_eq',
-  'gb_null',
-];
-
-export const COMPARISON_OPS = <const>[
-  'eq',
-  'neq',
-  'not',
-  'like',
-  'nlike',
-  'empty',
-  'notempty',
-  'null',
-  'notnull',
-  'checked',
-  'notchecked',
-  'blank',
-  'notblank',
-  'allof',
-  'anyof',
-  'nallof',
-  'nanyof',
-  'gt',
-  'lt',
-  'gte',
-  'lte',
-  'ge',
-  'le',
-  'in',
-  'isnot',
-  'is',
-  'isWithin',
-  'btw',
-  'nbtw',
-];
-
-export const COMPARISON_OPS_ALIAS = <const>[
-  'isblank',
-  'is_blank',
-  'isnotblank',
-  'is_not_blank',
-  'is_notblank',
-];
-
-export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
-  'pastWeek',
-  'pastMonth',
-  'pastYear',
-  'nextWeek',
-  'nextMonth',
-  'nextYear',
-  'pastNumberOfDays',
-  'nextNumberOfDays',
-  ...CALENDAR_PERIOD_SUB_OPS,
-  DATE_RANGE_SUB_OP,
-];
-
-// Sub-ops whose value is a number of days.
-export const DAY_COUNT_COMPARISON_SUB_OPS = <const>[
-  'daysAgo',
-  'daysFromNow',
-  'pastNumberOfDays',
-  'nextNumberOfDays',
-];
-
-export const COMPARISON_SUB_OPS = <const>[
-  'today',
-  'tomorrow',
-  'yesterday',
-  'oneWeekAgo',
-  'oneWeekFromNow',
-  'oneMonthAgo',
-  'oneMonthFromNow',
-  'daysAgo',
-  'daysFromNow',
-  'exactDate',
-  ...IS_WITHIN_COMPARISON_SUB_OPS,
-];
+export {
+  COMPARISON_OPS,
+  COMPARISON_OPS_ALIAS,
+  COMPARISON_SUB_OPS,
+  DAY_COUNT_COMPARISON_SUB_OPS,
+  GROUPBY_COMPARISON_OPS,
+  IS_WITHIN_COMPARISON_SUB_OPS,
+} from './query-filter-ops';
 
 export const TOKEN_OPERATOR = createToken({
   name: 'OPERATOR',

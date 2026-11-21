@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "升級以要求在表單中登入",
     "upgradeToUseFormRequireSigninSubtitle": "升級至 {plan} 方案，即可要求填答者在提交表單前登入。",
     "upgradeToUseSso": "升級使用 SSO",
-    "upgradeToUseSsoSubtitle": "升級至 {plan} 計劃，以設定單一登入 (SSO)，讓您的團隊使用您的身分提供者登入。"
+    "upgradeToUseSsoSubtitle": "升級至 {plan} 計劃，以設定單一登入 (SSO)，讓您的團隊使用您的身分提供者登入。",
+    "notifyOwnerToUpgrade": "點擊以通知工作區擁有者升級方案。",
+    "comparePlans": "比較方案",
+    "workspaceOnPlan": "{workspace} 目前使用 {plan}",
+    "planMenuWith": "此方案可享",
+    "planMenuRecordsStorage": "{records} 筆記錄與 {storage} GB 儲存空間",
+    "planMenuUnlimitedEditors": "編輯者數量不限",
+    "planMenuAutomationRuns": "每月 {runs} 次自動化執行",
+    "planMenuApiCalls": "每月 {calls} 次 API 呼叫",
+    "planMenuSnapshots": "{count} 個快照",
+    "railPitch": "Plus 可提供 {plusRecords} 筆記錄與不限數量的編輯者。",
+    "upgradeToPlan": "升級至 {plan}",
+    "askAdminTitle": "授權中未包含",
+    "askAdminSubtitle": "請管理員升級授權 {detail}",
+    "askAdminSubtitleGeneric": "目前的授權未包含此功能。請讓管理員升級。",
+    "notifyAdmin": "通知管理員",
+    "adminNotified": "已通知管理員",
+    "adminNotifiedSubtitle": "你的要求已傳送給管理員。",
+    "adminAlreadyNotified": "已通知管理員",
+    "adminAlreadyNotifiedSubtitle": "過去 24 小時內，你的管理員已收到此要求。",
+    "noAdminToNotify": "沒有可通知的使用中管理員。請聯絡管理此 NocoDB 執行個體的人員。",
+    "upgradeRequestDailyLimit": "你今天傳送的升級要求已達上限。請明天再試。",
+    "seatLimitTitle": "已達席次上限",
+    "licenseUpgradeRequested": "要求升級授權",
+    "forAddon": "用於 {addon} 外掛程式",
+    "seatLimitAdminSubtitle": "{limit} 個授權席次已全部占用。升級授權即可新增更多編輯者。",
+    "seatLimitMemberSubtitle": "{limit} 個授權席次已全部占用。請讓管理員新增更多席次。"
   },
   "general": {
     "scrollToBottom": "滾動到底部",
@@ -1206,9 +1232,9 @@
   },
   "datatype": {
     "ID": "ID",
-    "ForeignKey": "外键",
-    "SingleLineText": "單行文本",
-    "LongText": "長文本",
+    "ForeignKey": "外來鍵",
+    "SingleLineText": "單行文字",
+    "LongText": "長文字",
     "Attachment": "附件",
     "Checkbox": "核取方塊",
     "MultiSelect": "多選",
@@ -1232,7 +1258,7 @@
     "Count": "計數",
     "Lookup": "查閱",
     "DateTime": "日期時間",
-    "CreatedTime": "創建時間",
+    "CreatedTime": "建立時間",
     "LastModifiedTime": "最後修改時間",
     "AutoNumber": "自動編號",
     "Barcode": "條碼",
@@ -1244,7 +1270,25 @@
       "restrict": "嚴格",
       "setNull": "設置 null",
       "setDefault": "設為預設"
-    }
+    },
+    "LinkToAnotherRecord": "連結至其他記錄",
+    "Order": "排序",
+    "RichText": "格式化文字",
+    "SmartText": "智慧文字",
+    "Colour": "顏色",
+    "Geometry": "幾何圖形",
+    "JSON": "JSON",
+    "SpecificDBType": "特定資料庫類型",
+    "QrCode": "QR 碼",
+    "Links": "連結",
+    "User": "使用者",
+    "CreatedBy": "建立者",
+    "LastModifiedBy": "最後修改者",
+    "Deleted": "已刪除",
+    "Meta": "列中繼資料",
+    "UUID": "UUID",
+    "AIButton": "AI 按鈕",
+    "AIPrompt": "AI 文字"
   },
   "filterOperation": {
     "isEqual": "等於",
@@ -1291,7 +1335,17 @@
       "daysAgo": "多少天前",
       "daysFromNow": "距今多少天後",
       "exactDate": "精確日期",
-      "exactMonth": "精確月份"
+      "exactMonth": "精確月份",
+      "thisCalendarWeek": "本週",
+      "thisCalendarMonth": "本月",
+      "thisCalendarYear": "今年",
+      "lastCalendarWeek": "上週",
+      "lastCalendarMonth": "上個月",
+      "lastCalendarYear": "去年",
+      "nextCalendarWeek": "下週",
+      "nextCalendarMonth": "下個月",
+      "nextCalendarYear": "明年",
+      "dateRange": "日期範圍"
     }
   },
   "title": {
@@ -5873,7 +5927,29 @@
     "workspaceNoAccess": "工作區（無存取權）",
     "yAxis": "Y 軸",
     "workspaceSettings": "工作區設定",
-    "wrapLongText": "長文字自動換行"
+    "wrapLongText": "長文字自動換行",
+    "agentAccessData": "表格與記錄",
+    "agentAccessDataHint": "讀取可瀏覽與查詢它們。編輯還可建立、修改、連結與刪除記錄。",
+    "agentAccessDocs": "文件",
+    "agentAccessDocsHint": "此 base 的文件。授予編輯後即可修改它們。",
+    "agentAccessGithubHint": "在其儲存庫中讀取程式碼、推送分支並建立拉取請求",
+    "agentAccessCustom": "其中部分工具是逐一挑選的。選擇一個層級即可統一設定。",
+    "agentAccessOf": "{what} 存取權限",
+    "agentCodeStartBranch": "起始分支",
+    "agentCodeStartBranchOf": "{repo} 的執行所依據的分支",
+    "agentCodeBranchName": "分支名稱",
+    "agentCodeBranchNameHint": "每次執行都會有自己的分支。{issue} 與 {slug} 會自動填入。",
+    "agentCodePullRequests": "拉取請求",
+    "agentCodePrDraft": "草稿",
+    "agentCodePrReady": "可供審查",
+    "agentCodePrDraftHint": "以草稿形式建立。測試通過後才會請求審查者。",
+    "agentCodePrReadyHint": "建立後即可審查，並立即請求下方的審查者。",
+    "agentCodeReviewers": "審查者",
+    "agentCodeRemoveReviewer": "移除 {login}",
+    "agentCodeNoReviewers": "這些儲存庫中沒有其他人可以審查",
+    "agentCodeNoReviewersSet": "尚未設定審查者。",
+    "agentCodeNeverMerge": "Agent 從不合併，也從不推送到 {base}。合併一律由人完成。",
+    "agentCodeNeverMergeAny": "Agent 從不合併，也從不推送到執行所依據的分支。合併一律由人完成。"
   },
   "activity": {
     "useTemplate": "使用範本",
@@ -6065,7 +6141,18 @@
       "deleteStack": "刪除此類別",
       "stackedBy": "分類依據",
       "chooseGroupingField": "選擇一個分組欄位",
-      "autoCollapseEmptyStack": "自動折疊空堆疊"
+      "autoCollapseEmptyStack": "自動折疊空堆疊",
+      "createSingleSelectField": "新增單選欄位",
+      "createUserField": "新增使用者欄位",
+      "defaultStackToDo": "待辦",
+      "defaultStackInProgress": "進行中",
+      "defaultStackDone": "已完成",
+      "loadMoreStacks": "載入更多分組",
+      "linkTypeNotStackable": "只有當表格的資料來源為 PostgreSQL 時，多對一連結才能為 kanban 分組。請改用單選欄位、使用者欄位或從屬連結來分組。",
+      "chooseStackField": "選擇分組欄位",
+      "chooseStackFieldDesc": "選擇用來為此 board 分組的欄位。該欄位的每個值都會形成一個分組。",
+      "createSingleSelectFieldHint": "用來顯示每張卡片的狀態、階段或類型",
+      "createUserFieldHint": "用來顯示每張卡片的負責人或擁有者"
     },
     "map": {
       "googleMaps": "Google 地圖",
@@ -6179,7 +6266,9 @@
     "invitePeopleCount": "邀請 {count} 人 | 邀請 {count} 人",
     "inviteThemInstead": "改為邀請他們",
     "blockUser": "封鎖使用者",
-    "unblockUser": "解除封鎖使用者"
+    "unblockUser": "解除封鎖使用者",
+    "addDateRange": "新增日期範圍",
+    "searchComments": "搜尋留言"
   },
   "tooltip": {
     "shiftClickWeekStep": "按住 Shift 鍵向前移動 1 周",
@@ -6423,7 +6512,9 @@
     "dataSourceReadOnly": "此資料來源為唯讀。",
     "mentionFields": "提及欄位",
     "skipEnabledAfterDelay": "2 秒後啟用",
-    "clickToCopyDocumentId": "點擊以複製文件 ID"
+    "clickToCopyDocumentId": "點擊以複製文件 ID",
+    "workflowExecutionInterrupted": "本次執行在我們這邊意外停止。沒有任何內容遺失。重試即可從中斷的步驟繼續。",
+    "workflowExecutionOnHold": "此工作流程所屬的應用程式已暫停。應用程式恢復後，執行會從中斷處繼續。"
   },
   "placeholder": {
     "enterVerificationCode": "輸入 6 位數碼",
@@ -8301,7 +8392,9 @@
     "userDeleted": "{user} 從 {parent}刪除 {type} : {name}",
     "youDeletedNoParent": "您刪除了 {type}: {name}",
     "userDeletedNoParent": "{user} 刪除一個 {type}: {name}",
-    "someoneDeleted": "已刪除 {type} ： {name}"
+    "someoneDeleted": "已刪除 {type} ： {name}",
+    "restoreRequiresDocEdit": "還原此文件需要具備該文件的編輯權限",
+    "withSubPages": "（及 {count} 個子頁面） | （及 {count} 個子頁面）"
   },
   "payment": {
     "credits": {
@@ -8674,7 +8767,29 @@
       "other": {
         "where": "在你的用戶端中新增一個遠端 MCP 伺服器，填入以下資訊：",
         "auth": "從你的用戶端開始連線。瀏覽器會開啟 NocoDB，你在那裡登入、選擇用戶端可以存取的內容，然後選擇「授權」。"
+      },
+      "canDelete": "可以刪除資料或在 NocoDB 之外執行動作",
+      "lockedNotEditable": "此應用程式在登入時就要求了這些權限，無法在此變更。其選用工具可在下方切換。",
+      "copilot": {
+        "where": "在 VS Code 中開啟 Command Palette，執行 MCP: Add Server 並選擇 HTTP 。填入：",
+        "auth": "當 VS Code 要求驗證 NocoDB 時，選擇 Allow。在瀏覽器中登入 NocoDB ，然後選擇 Authorize。"
       }
+    },
+    "discoveryNote": "{client} 最多使用 100 個工具，因此此 URL 會直接列出 NocoDB 的讀取工具與記錄寫入工具，其餘工具則依需求查找。",
+    "windsurf": {
+      "subtitle": "適用於 Devin（原 Windsurf）中的 Cascade 代理。",
+      "addBody": "在 Devin（原 Windsurf）中開啟 Settings › Cascade › MCP servers，選擇 Add custom server，然後貼上此 URL ：",
+      "manualLabel": "把它加入 ~/.codeium/windsurf/mcp_config.json：",
+      "authBody": "選擇 nocodb 旁邊的 Connect。在瀏覽器中登入 NocoDB ，選擇 Devin 可存取的內容及其可使用的工具，然後選擇 Authorize。",
+      "tryBody": "在 Devin 中開啟 Cascade，並詢問「List my NocoDB tools」。"
+    },
+    "copilot": {
+      "subtitle": "適用於 VS Code 中的 GitHub Copilot。",
+      "addBody": "選擇 {link}，然後在 VS Code 開啟後選擇 Install。",
+      "addLink": "新增至 VS Code",
+      "manualLabel": "把它加入 .vscode/mcp.json，或執行 MCP: Open User Configuration 以便為所有 workspace 加入：",
+      "authBody": "當 VS Code 要求驗證 NocoDB 時，選擇 Allow。在瀏覽器中登入 NocoDB ，選擇 Copilot 可存取的內容及其可使用的工具，然後選擇 Authorize。",
+      "tryBody": "在 Agent 模式下開啟 Copilot Chat，並詢問「List my NocoDB tools」。"
     }
   },
   "roadmap": {

@@ -233,6 +233,13 @@ export class UtilsController {
     return await this.utilsService.appHealth();
   }
 
+  @Get('/api/v1/health/ready')
+  async appReadiness(@Res({ passthrough: true }) res: Response) {
+    const result = await this.utilsService.appReadiness();
+    res.status(result.status === 'ok' ? 200 : 503);
+    return result;
+  }
+
   @UseGuards(DataApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/db/meta/axiosRequestMake', '/api/v2/meta/axiosRequestMake'])
   @Acl('fetchViaUrl')

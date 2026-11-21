@@ -112,7 +112,8 @@ LOGICAL OPERATIONS:
   For a single field, 'in' is shorter:  (status,in,active,pending)~and(country,eq,USA)
 
 SPECIAL VALUES:
-  NULL value:         (field,eq,null)
+  NULL value:         (field,eq,null) — in a where string only; in a structured
+                      filter use operator blank or null (value 'null' is the text)
   Empty string:       (field,eq,'') or (field,eq,"")
   Value with comma:   (field,eq,"hello, world")
   Value with quotes:  (field,eq,"it's here") or (field,eq,'say "hello"')

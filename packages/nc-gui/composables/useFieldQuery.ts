@@ -17,6 +17,10 @@ export interface FieldQueryType {
   field: string
   query: string
   isValidFieldQuery?: boolean
+  // The user picked "All fields" themselves, so a plan_limit doesn't switch it to the display field.
+  allFieldsPicked?: boolean
+  // The box switched from "All fields" to the display field on plan_limit.
+  planLimitFallback?: boolean
 }
 
 export interface FieldQueryScope {

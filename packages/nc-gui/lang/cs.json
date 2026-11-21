@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Upgradujte, abyste mohli u formulářů vyžadovat přihlášení",
     "upgradeToUseFormRequireSigninSubtitle": "Upgradujte na tarif {plan}, abyste mohli od respondentů vyžadovat přihlášení před odesláním formuláře.",
     "upgradeToUseSso": "Upgradujte pro použití SSO",
-    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan} pro nastavení jednotného přihlášení (SSO) a umožněte svému týmu přihlašovat se pomocí vašeho poskytovatele identity."
+    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan} pro nastavení jednotného přihlášení (SSO) a umožněte svému týmu přihlašovat se pomocí vašeho poskytovatele identity.",
+    "notifyOwnerToUpgrade": "Kliknutím upozorníte vlastníka pracovního prostoru, aby přešel na vyšší tarif.",
+    "comparePlans": "Porovnat tarify",
+    "workspaceOnPlan": "{workspace} má tarif {plan}",
+    "planMenuWith": "Co získáte s tarifem",
+    "planMenuRecordsStorage": "{records} záznamů a {storage} GB úložiště",
+    "planMenuUnlimitedEditors": "Neomezený počet editorů",
+    "planMenuAutomationRuns": "{runs} běhů automatizací měsíčně",
+    "planMenuApiCalls": "{calls} volání API měsíčně",
+    "planMenuSnapshots": "{count} snímků",
+    "railPitch": "Plus vám dá {plusRecords} záznamů a neomezený počet editorů.",
+    "upgradeToPlan": "Přejít na {plan}",
+    "askAdminTitle": "Není součástí vaší licence",
+    "askAdminSubtitle": "Požádejte svého správce o rozšíření licence {detail}",
+    "askAdminSubtitleGeneric": "Tato funkce není součástí vaší současné licence. Požádejte svého správce o její rozšíření.",
+    "notifyAdmin": "Upozornit správce",
+    "adminNotified": "Správce upozorněn",
+    "adminNotifiedSubtitle": "Vaše žádost byla odeslána vašemu správci.",
+    "adminAlreadyNotified": "Správce už byl upozorněn",
+    "adminAlreadyNotifiedSubtitle": "Váš správce tuto žádost obdržel už během posledních 24 hodin.",
+    "noAdminToNotify": "Není koho upozornit – žádný aktivní správce. Obraťte se na toho, kdo spravuje tuto instanci NocoDB.",
+    "upgradeRequestDailyLimit": "Dnes jste odeslali maximální počet žádostí o vyšší tarif. Zkuste to zítra znovu.",
+    "seatLimitTitle": "Dosažen limit míst",
+    "licenseUpgradeRequested": "požádal o rozšíření licence",
+    "forAddon": "pro doplněk {addon}",
+    "seatLimitAdminSubtitle": "Všech {limit} licencovaných míst se používá. Rozšiřte licenci, abyste mohli přidat další editory.",
+    "seatLimitMemberSubtitle": "Všech {limit} licencovaných míst se používá. Požádejte svého správce o přidání dalších míst."
   },
   "general": {
     "scrollToBottom": "Přejít na konec",
@@ -1231,7 +1257,7 @@
     "Count": "Počet",
     "Lookup": "Vyhledávání",
     "DateTime": "Datum a čas",
-    "CreatedTime": "Vytvořit čas",
+    "CreatedTime": "Čas vytvoření",
     "LastModifiedTime": "Čas poslední úpravy",
     "AutoNumber": "Automatické číslo",
     "Barcode": "Čárový kód",
@@ -1243,7 +1269,25 @@
       "restrict": "Omezit",
       "setNull": "Nastavit NULL",
       "setDefault": "Nastavit výchozí"
-    }
+    },
+    "LinkToAnotherRecord": "Vazba na jiný záznam",
+    "Order": "Pořadí",
+    "RichText": "Formátovaný text",
+    "SmartText": "Chytrý text",
+    "Colour": "Barva",
+    "Geometry": "Geometrie",
+    "JSON": "JSON",
+    "SpecificDBType": "Konkrétní typ DB",
+    "QrCode": "QR kód",
+    "Links": "Vazby",
+    "User": "Uživatel",
+    "CreatedBy": "Vytvořil",
+    "LastModifiedBy": "Naposledy upravil",
+    "Deleted": "Smazáno",
+    "Meta": "Metadata řádku",
+    "UUID": "UUID",
+    "AIButton": "Tlačítko AI",
+    "AIPrompt": "Text AI"
   },
   "filterOperation": {
     "isEqual": "je rovno",
@@ -1290,7 +1334,17 @@
       "daysAgo": "počet dní zpět",
       "daysFromNow": "počet dní ode dneška",
       "exactDate": "přesné datum",
-      "exactMonth": "přesný měsíc"
+      "exactMonth": "přesný měsíc",
+      "thisCalendarWeek": "tento týden",
+      "thisCalendarMonth": "tento měsíc",
+      "thisCalendarYear": "tento rok",
+      "lastCalendarWeek": "minulý týden",
+      "lastCalendarMonth": "minulý měsíc",
+      "lastCalendarYear": "minulý rok",
+      "nextCalendarWeek": "příští týden",
+      "nextCalendarMonth": "příští měsíc",
+      "nextCalendarYear": "příští rok",
+      "dateRange": "rozsah dat"
     }
   },
   "title": {
@@ -5859,7 +5913,29 @@
     "workspaceNoAccess": "Pracovní prostor (bez přístupu)",
     "yAxis": "Osa Y",
     "workspaceSettings": "Nastavení pracovního prostoru",
-    "wrapLongText": "Zalomit dlouhý text"
+    "wrapLongText": "Zalomit dlouhý text",
+    "agentAccessData": "Tabulky a záznamy",
+    "agentAccessDataHint": "Čtení je prochází a dotazuje se na ně. Úpravy navíc záznamy vytvářejí, mění, propojují a mažou.",
+    "agentAccessDocs": "Dokumenty",
+    "agentAccessDocsHint": "Dokumenty této báze. S Úpravami je může měnit.",
+    "agentAccessGithubHint": "Čte kód, odesílá větve a otevírá pull requesty ve svých repozitářích",
+    "agentAccessCustom": "Některé z těchto nástrojů byly vybrány jednotlivě. Zvolte úroveň a nastavíte je všechny najednou.",
+    "agentAccessOf": "Přístup: {what}",
+    "agentCodeStartBranch": "Začít od větve",
+    "agentCodeStartBranchOf": "Větev, ze které vycházejí běhy {repo}",
+    "agentCodeBranchName": "Název větve",
+    "agentCodeBranchNameHint": "Každý běh dostane vlastní větev. {issue} a {slug} se doplní za vás.",
+    "agentCodePullRequests": "Pull requesty",
+    "agentCodePrDraft": "Koncept",
+    "agentCodePrReady": "Připraveno k recenzi",
+    "agentCodePrDraftHint": "Otevře se jako koncept. Recenzenti budou osloveni, jakmile projdou testy.",
+    "agentCodePrReadyHint": "Otevře se připravené k recenzi a hned osloví recenzenty uvedené níže.",
+    "agentCodeReviewers": "Recenzenti",
+    "agentCodeRemoveReviewer": "Odebrat {login}",
+    "agentCodeNoReviewers": "V těchto repozitářích nemůže recenzovat nikdo další",
+    "agentCodeNoReviewersSet": "Zatím žádní recenzenti.",
+    "agentCodeNeverMerge": "Agenti nikdy neslučují ani neodesílají do větve {base}. Sloučení vždy provádí člověk.",
+    "agentCodeNeverMergeAny": "Agenti nikdy neslučují ani neodesílají do větve, ze které běh vychází. Sloučení vždy provádí člověk."
   },
   "activity": {
     "useTemplate": "Použít šablonu",
@@ -6051,7 +6127,18 @@
       "deleteStack": "Odstranit zásobník",
       "stackedBy": "Seskupeno dle",
       "chooseGroupingField": "Výběr pole pro seskupení",
-      "autoCollapseEmptyStack": "Automaticky sbalit prázdný zásobník"
+      "autoCollapseEmptyStack": "Automaticky sbalit prázdný zásobník",
+      "createSingleSelectField": "Vytvořit nové pole Jednoduchý výběr",
+      "createUserField": "Vytvořit nové pole Uživatel",
+      "defaultStackToDo": "K udělání",
+      "defaultStackInProgress": "Probíhá",
+      "defaultStackDone": "Hotovo",
+      "loadMoreStacks": "Načíst další sloupce",
+      "linkTypeNotStackable": "Vazba více k jednomu může kanban seskupit do sloupců jen tehdy, když je zdrojem dat tabulky PostgreSQL. Seskupte místo toho podle pole Jednoduchý výběr, pole Uživatel nebo vazby patří k.",
+      "chooseStackField": "Vyberte pole pro seskupení",
+      "chooseStackFieldDesc": "Vyberte pole, podle kterého se tento board seskupí do sloupců. Každá jeho hodnota dostane vlastní sloupec.",
+      "createSingleSelectFieldHint": "pro zobrazení stavu, fáze nebo typu každé karty",
+      "createUserFieldHint": "pro zobrazení odpovědné osoby nebo vlastníka každé karty"
     },
     "map": {
       "googleMaps": "Google Mapy",
@@ -6165,7 +6252,9 @@
     "invitePeopleCount": "Pozvat {count} osobu | Pozvat {count} osob",
     "inviteThemInstead": "Pozvat je místo toho",
     "blockUser": "Zablokovat uživatele",
-    "unblockUser": "Odblokovat uživatele"
+    "unblockUser": "Odblokovat uživatele",
+    "addDateRange": "Přidat rozsah dat",
+    "searchComments": "Hledat v komentářích"
   },
   "tooltip": {
     "shiftClickWeekStep": "Drž Shift na krok o 1 týden",
@@ -6409,7 +6498,9 @@
     "dataSourceReadOnly": "Tento zdroj dat je jen pro čtení.",
     "mentionFields": "Zmínit pole",
     "skipEnabledAfterDelay": "Bude povoleno po 2 sekundách",
-    "clickToCopyDocumentId": "Kliknutím zkopírujete ID dokumentu"
+    "clickToCopyDocumentId": "Kliknutím zkopírujete ID dokumentu",
+    "workflowExecutionInterrupted": "Tento běh se na naší straně neočekávaně zastavil. Nic se neztratilo. Zkuste jej znovu, aby pokračoval od kroku, u kterého skončil.",
+    "workflowExecutionOnHold": "Aplikace, ke které tento pracovní postup patří, je pozastavena. Běh bude pokračovat tam, kde skončil, jakmile bude aplikace zase dostupná."
   },
   "placeholder": {
     "enterVerificationCode": "Zadejte 6místný kód",
@@ -8287,7 +8378,9 @@
     "userDeleted": "{user} odstranil {type} z {parent}: {name}",
     "youDeletedNoParent": "Odstranili jste {type}: {name}",
     "userDeletedNoParent": "{user} odstranil {type}: {name}",
-    "someoneDeleted": "{type} byl smazán: {name}"
+    "someoneDeleted": "{type} byl smazán: {name}",
+    "restoreRequiresDocEdit": "Obnovení tohoto dokumentu vyžaduje oprávnění k jeho úpravám",
+    "withSubPages": "(a {count} podstránka) | (a {count} podstránek)"
   },
   "payment": {
     "credits": {
@@ -8659,7 +8752,29 @@
       "other": {
         "where": "Přidejte ve svém klientovi vzdálený server MCP s těmito údaji:",
         "auth": "Zahajte připojení ze svého klienta. V prohlížeči se otevře NocoDB, kde se přihlásíte, vyberete, k čemu může klient přistupovat, a vyberete Autorizovat."
+      },
+      "canDelete": "Může mazat data nebo jednat mimo NocoDB",
+      "lockedNotEditable": "Tato aplikace si o tato oprávnění požádala při přihlášení a tady je změnit nelze. Její volitelné nástroje lze přepnout níže.",
+      "copilot": {
+        "where": "Ve VS Code otevřete Command Palette, spusťte MCP: Add Server a zvolte HTTP. Vyplňte:",
+        "auth": "Až VS Code požádá o ověření NocoDB, vyberte Allow. Přihlaste se k NocoDB v prohlížeči a vyberte Authorize."
       }
+    },
+    "discoveryNote": "{client} používá nejvýše 100 nástrojů, proto tato URL přímo vypisuje nástroje NocoDB pro čtení a zápis záznamů a zbytek dohledá na vyžádání.",
+    "windsurf": {
+      "subtitle": "Pro agenta Cascade v Devinu (dříve Windsurf).",
+      "addBody": "V Devinu (dříve Windsurf) otevřete Settings › Cascade › MCP servers, vyberte Add custom server a vložte tuto URL:",
+      "manualLabel": "Přidejte toto do ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Vedle nocodb vyberte Connect. Přihlaste se k NocoDB v prohlížeči, zvolte, k čemu má Devin přístup a které nástroje smí používat, a pak vyberte Authorize.",
+      "tryBody": "Otevřete Cascade v Devinu a zeptejte se „List my NocoDB tools“."
+    },
+    "copilot": {
+      "subtitle": "Pro GitHub Copilot ve VS Code.",
+      "addBody": "Vyberte {link} a po otevření VS Code vyberte Install.",
+      "addLink": "Přidat do VS Code",
+      "manualLabel": "Přidejte toto do .vscode/mcp.json, nebo spusťte MCP: Open User Configuration a přidejte to pro všechny workspacy:",
+      "authBody": "Až VS Code požádá o ověření NocoDB, vyberte Allow. Přihlaste se k NocoDB v prohlížeči, zvolte, k čemu má Copilot přístup a které nástroje smí používat, a pak vyberte Authorize.",
+      "tryBody": "Otevřete Copilot Chat v režimu Agent a zeptejte se „List my NocoDB tools“."
     }
   },
   "roadmap": {

@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "ഫോമുകളിൽ സൈൻ ഇൻ നിർബന്ധമാക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToUseFormRequireSigninSubtitle": "ഫോം സമർപ്പിക്കുന്നതിന് മുമ്പ് പ്രതികരിക്കുന്നവർ സൈൻ ഇൻ ചെയ്യണമെന്ന് നിർബന്ധമാക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseSso": "SSO ഉപയോഗിക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
-    "upgradeToUseSsoSubtitle": "സിംഗിൾ സൈൻ-ഓൺ (SSO) സജ്ജീകരിക്കാനും നിങ്ങളുടെ ടീമിന് നിങ്ങളുടെ ഐഡന്റിറ്റി ദാതാവ് ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യാനും {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
+    "upgradeToUseSsoSubtitle": "സിംഗിൾ സൈൻ-ഓൺ (SSO) സജ്ജീകരിക്കാനും നിങ്ങളുടെ ടീമിന് നിങ്ങളുടെ ഐഡന്റിറ്റി ദാതാവ് ഉപയോഗിച്ച് സൈൻ ഇൻ ചെയ്യാനും {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
+    "notifyOwnerToUpgrade": "പ്ലാൻ പുതുക്കാൻ വർക്ക്സ്പേസ് ഉടമയെ അറിയിക്കാൻ ക്ലിക്ക് ചെയ്യുക.",
+    "comparePlans": "പ്ലാനുകൾ താരതമ്യം ചെയ്യുക",
+    "workspaceOnPlan": "{workspace} {plan} ൽ ആണ്",
+    "planMenuWith": "ഇതിനൊപ്പം നിങ്ങൾക്ക് ലഭിക്കുന്നത്",
+    "planMenuRecordsStorage": "{records} റെക്കോർഡുകളും {storage} GB സംഭരണവും",
+    "planMenuUnlimitedEditors": "പരിധിയില്ലാത്ത എഡിറ്റർമാർ",
+    "planMenuAutomationRuns": "മാസം {runs} ഓട്ടോമേഷൻ പ്രവർത്തനങ്ങൾ",
+    "planMenuApiCalls": "മാസം {calls} API കോളുകൾ",
+    "planMenuSnapshots": "{count} സ്നാപ്പ്ഷോട്ടുകൾ",
+    "railPitch": "Plus നിങ്ങൾക്ക് {plusRecords} റെക്കോർഡുകളും പരിധിയില്ലാത്ത എഡിറ്റർമാരെയും നൽകുന്നു.",
+    "upgradeToPlan": "{plan} ലേക്ക് മാറുക",
+    "askAdminTitle": "നിങ്ങളുടെ ലൈസൻസിൽ ഉൾപ്പെട്ടിട്ടില്ല",
+    "askAdminSubtitle": "ലൈസൻസ് പുതുക്കാൻ നിങ്ങളുടെ അഡ്മിനോട് ആവശ്യപ്പെടുക {detail}",
+    "askAdminSubtitleGeneric": "ഈ സവിശേഷത നിങ്ങളുടെ നിലവിലെ ലൈസൻസിൽ ഇല്ല. പുതുക്കാൻ നിങ്ങളുടെ അഡ്മിനോട് ആവശ്യപ്പെടുക.",
+    "notifyAdmin": "അഡ്മിനെ അറിയിക്കുക",
+    "adminNotified": "അഡ്മിനെ അറിയിച്ചു",
+    "adminNotifiedSubtitle": "നിങ്ങളുടെ അഭ്യർഥന അഡ്മിന് അയച്ചു.",
+    "adminAlreadyNotified": "അഡ്മിനെ നേരത്തേ അറിയിച്ചിട്ടുണ്ട്",
+    "adminAlreadyNotifiedSubtitle": "കഴിഞ്ഞ 24 മണിക്കൂറിനുള്ളിൽ നിങ്ങളുടെ അഡ്മിന് ഈ അഭ്യർഥന ലഭിച്ചുകഴിഞ്ഞു.",
+    "noAdminToNotify": "അറിയിക്കാൻ സജീവമായ അഡ്മിൻ ആരുമില്ല. ഈ NocoDB ഇൻസ്റ്റൻസ് കൈകാര്യം ചെയ്യുന്നവരെ ബന്ധപ്പെടുക.",
+    "upgradeRequestDailyLimit": "ഇന്നത്തേക്കുള്ള പരമാവധി എണ്ണം പുതുക്കൽ അഭ്യർഥനകൾ നിങ്ങൾ അയച്ചുകഴിഞ്ഞു. നാളെ വീണ്ടും ശ്രമിക്കുക.",
+    "seatLimitTitle": "സീറ്റ് പരിധി എത്തി",
+    "licenseUpgradeRequested": "ലൈസൻസ് പുതുക്കാൻ അഭ്യർഥിച്ചു",
+    "forAddon": "{addon} ആഡ്-ഓണിനായി",
+    "seatLimitAdminSubtitle": "ലൈസൻസുള്ള {limit} സീറ്റുകളും ഉപയോഗത്തിലാണ്. കൂടുതൽ എഡിറ്റർമാരെ ചേർക്കാൻ ലൈസൻസ് പുതുക്കുക.",
+    "seatLimitMemberSubtitle": "ലൈസൻസുള്ള {limit} സീറ്റുകളും ഉപയോഗത്തിലാണ്. കൂടുതൽ സീറ്റുകൾ ചേർക്കാൻ നിങ്ങളുടെ അഡ്മിനോട് ആവശ്യപ്പെടുക."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1206,13 +1232,13 @@
   },
   "datatype": {
     "ID": "ഐഡി",
-    "ForeignKey": "ഫോറീൻ കീ",
-    "SingleLineText": "സിംപിള്‍ ലെെന്‍ ടെക്സ്റ്റ്",
-    "LongText": "ലോങ്ങ് ടെക്സ്റ്റ്",
+    "ForeignKey": "വിദേശ കീ",
+    "SingleLineText": "ഒറ്റ വരി വാചകം",
+    "LongText": "നീണ്ട വാചകം",
     "Attachment": "അറ്റാച്ച്മെന്റ്",
     "Checkbox": "ചെക്ക്ബോക്സ്",
-    "MultiSelect": "മൾട്ടി സെലക്ട്",
-    "SingleSelect": "സിംഗിള്‍ സെലക്ട്",
+    "MultiSelect": "ഒന്നിലധികം തിരഞ്ഞെടുപ്പ്",
+    "SingleSelect": "ഒറ്റ തിരഞ്ഞെടുപ്പ്",
     "Collaborator": "കോളാബറേറ്റർ",
     "Date": "തീയതി",
     "Year": "വർഷം",
@@ -1225,16 +1251,16 @@
     "Currency": "നാണയം",
     "Percent": "ശതമാനം",
     "Duration": "കാലാവധി",
-    "GeoData": "GeoData",
+    "GeoData": "ഭൂമിശാസ്ത്ര ഡാറ്റ",
     "Rating": "റേറ്റിംഗ്",
     "Formula": "സൂത്രം",
     "Rollup": "റോളപ്പ്",
     "Count": "എണ്ണം",
     "Lookup": "ലുക്കപ്പ്",
-    "DateTime": "തിയ്യതി സമയം",
-    "CreatedTime": "സൃഷ്ടിക്കാനുള്ള സമയം",
-    "LastModifiedTime": "അവസാനമായി മാറ്റിയ സമയം",
-    "AutoNumber": "ഓട്ടോ നമ്പർ",
+    "DateTime": "തീയതിയും സമയവും",
+    "CreatedTime": "സൃഷ്ടിച്ച സമയം",
+    "LastModifiedTime": "അവസാനം മാറ്റിയ സമയം",
+    "AutoNumber": "സ്വയം നമ്പർ",
     "Barcode": "ബാര്‍കോട്",
     "Button": "ബട്ടൺ",
     "Password": "പാസ് വേഡ്",
@@ -1244,7 +1270,25 @@
       "restrict": "നിയന്ത്രണം",
       "setNull": "സെറ്റ് NULL",
       "setDefault": "സ്വതേ സെറ്റ് ചെയ്യുക"
-    }
+    },
+    "LinkToAnotherRecord": "മറ്റൊരു റെക്കോർഡിലേക്കുള്ള ലിങ്ക്",
+    "Order": "ക്രമം",
+    "RichText": "അലങ്കൃത വാചകം",
+    "SmartText": "സ്മാർട്ട് വാചകം",
+    "Colour": "നിറം",
+    "Geometry": "ജ്യാമിതി",
+    "JSON": "JSON",
+    "SpecificDBType": "നിർദ്ദിഷ്ട DB തരം",
+    "QrCode": "QR കോഡ്",
+    "Links": "ലിങ്കുകൾ",
+    "User": "ഉപയോക്താവ്",
+    "CreatedBy": "സൃഷ്ടിച്ചത്",
+    "LastModifiedBy": "അവസാനം മാറ്റിയത്",
+    "Deleted": "മായ്ച്ചു",
+    "Meta": "വരിയുടെ മെറ്റാ ഡാറ്റ",
+    "UUID": "UUID",
+    "AIButton": "AI ബട്ടൺ",
+    "AIPrompt": "AI വാചകം"
   },
   "filterOperation": {
     "isEqual": "തുല്യമാണ്",
@@ -1291,7 +1335,17 @@
       "daysAgo": "എത്ര ദിവസം മുമ്പ്",
       "daysFromNow": "ഇന്നുമുതൽ എത്ര ദിവസം കഴിഞ്ഞ്",
       "exactDate": "കൃത്യമായ തീയതി",
-      "exactMonth": "കൃത്യമായ മാസം"
+      "exactMonth": "കൃത്യമായ മാസം",
+      "thisCalendarWeek": "ഈ ആഴ്ച",
+      "thisCalendarMonth": "ഈ മാസം",
+      "thisCalendarYear": "ഈ വർഷം",
+      "lastCalendarWeek": "കഴിഞ്ഞ ആഴ്ച",
+      "lastCalendarMonth": "കഴിഞ്ഞ മാസം",
+      "lastCalendarYear": "കഴിഞ്ഞ വർഷം",
+      "nextCalendarWeek": "അടുത്ത ആഴ്ച",
+      "nextCalendarMonth": "അടുത്ത മാസം",
+      "nextCalendarYear": "അടുത്ത വർഷം",
+      "dateRange": "തീയതി പരിധി"
     }
   },
   "title": {
@@ -5870,7 +5924,29 @@
     "workspaceNoAccess": "വർക്ക്സ്പേസ് (ആക്സസ് ഇല്ല)",
     "yAxis": "Y അക്ഷം",
     "workspaceSettings": "വർക്ക്സ്പേസ് ക്രമീകരണങ്ങൾ",
-    "wrapLongText": "നീണ്ട വാചകം മടക്കുക"
+    "wrapLongText": "നീണ്ട വാചകം മടക്കുക",
+    "agentAccessData": "പട്ടികകളും റെക്കോർഡുകളും",
+    "agentAccessDataHint": "വായന അവ പരിശോധിക്കുകയും അന്വേഷിക്കുകയും ചെയ്യുന്നു. എഡിറ്റ് റെക്കോർഡുകൾ ഉണ്ടാക്കുകയും മാറ്റുകയും ബന്ധിപ്പിക്കുകയും മായ്ക്കുകയും ചെയ്യുന്നു.",
+    "agentAccessDocs": "രേഖകൾ",
+    "agentAccessDocsHint": "ഈ base ലെ രേഖകൾ. എഡിറ്റ് നൽകിയാൽ അവ മാറ്റാനാകും.",
+    "agentAccessGithubHint": "സ്വന്തം റെപ്പോസിറ്ററികളിൽ കോഡ് വായിക്കുന്നു, ബ്രാഞ്ചുകൾ പുഷ് ചെയ്യുന്നു, പുൾ റിക്വസ്റ്റുകൾ തുറക്കുന്നു",
+    "agentAccessCustom": "ഈ ഉപകരണങ്ങളിൽ ചിലത് ഓരോന്നായി തിരഞ്ഞെടുത്തതാണ്. എല്ലാം ഒരുമിച്ച് ക്രമീകരിക്കാൻ ഒരു നില തിരഞ്ഞെടുക്കുക.",
+    "agentAccessOf": "{what} ലേക്കുള്ള പ്രവേശനം",
+    "agentCodeStartBranch": "ഈ ബ്രാഞ്ചിൽ നിന്ന് തുടങ്ങുക",
+    "agentCodeStartBranchOf": "{repo} ന്റെ പ്രവർത്തനങ്ങൾ തുടങ്ങുന്ന ബ്രാഞ്ച്",
+    "agentCodeBranchName": "ബ്രാഞ്ചിന്റെ പേര്",
+    "agentCodeBranchNameHint": "ഓരോ പ്രവർത്തനത്തിനും സ്വന്തം ബ്രാഞ്ച് ലഭിക്കും. {issue} ഉം {slug} ഉം നിങ്ങൾക്കായി പൂരിപ്പിക്കപ്പെടും.",
+    "agentCodePullRequests": "പുൾ റിക്വസ്റ്റുകൾ",
+    "agentCodePrDraft": "കരട്",
+    "agentCodePrReady": "പരിശോധനയ്ക്ക് തയ്യാർ",
+    "agentCodePrDraftHint": "കരടായി തുറക്കുന്നു. പരിശോധനകൾ വിജയിച്ചാൽ പരിശോധകരോട് ആവശ്യപ്പെടും.",
+    "agentCodePrReadyHint": "പരിശോധനയ്ക്ക് തയ്യാറായി തുറക്കുകയും താഴെയുള്ള പരിശോധകരോട് ഉടൻ ആവശ്യപ്പെടുകയും ചെയ്യുന്നു.",
+    "agentCodeReviewers": "പരിശോധകർ",
+    "agentCodeRemoveReviewer": "{login} നെ നീക്കുക",
+    "agentCodeNoReviewers": "ഈ റെപ്പോസിറ്ററികളിൽ മറ്റാർക്കും പരിശോധിക്കാനാകില്ല",
+    "agentCodeNoReviewersSet": "ഇതുവരെ പരിശോധകർ ഇല്ല.",
+    "agentCodeNeverMerge": "ഏജന്റുകൾ ഒരിക്കലും ലയിപ്പിക്കില്ല, {base} ലേക്ക് ഒരിക്കലും പുഷ് ചെയ്യില്ല. ലയനം എപ്പോഴും ഒരു വ്യക്തിയാണ് ചെയ്യുന്നത്.",
+    "agentCodeNeverMergeAny": "ഏജന്റുകൾ ഒരിക്കലും ലയിപ്പിക്കില്ല, പ്രവർത്തനം ആരംഭിക്കുന്ന ബ്രാഞ്ചിലേക്ക് ഒരിക്കലും പുഷ് ചെയ്യില്ല. ലയനം എപ്പോഴും ഒരു വ്യക്തിയാണ് ചെയ്യുന്നത്."
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6062,7 +6138,18 @@
       "deleteStack": "സ്റ്റാക്ക് ഇല്ലാതാക്കുക",
       "stackedBy": "സ്റ്റാക്ക് ചെയ്തത്",
       "chooseGroupingField": "ഗ്രൂപ്പിംഗ് ഫീൽഡ് തിരഞ്ഞെടുക്കുക",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "പുതിയ ഒറ്റ തിരഞ്ഞെടുപ്പ് ഫീൽഡ് ഉണ്ടാക്കുക",
+      "createUserField": "പുതിയ ഉപയോക്തൃ ഫീൽഡ് ഉണ്ടാക്കുക",
+      "defaultStackToDo": "ചെയ്യാനുള്ളത്",
+      "defaultStackInProgress": "നടക്കുന്നു",
+      "defaultStackDone": "പൂർത്തിയായി",
+      "loadMoreStacks": "കൂടുതൽ അടുക്കുകൾ ലോഡ് ചെയ്യുക",
+      "linkTypeNotStackable": "പട്ടികയുടെ ഡാറ്റാ ഉറവിടം PostgreSQL ആയിരിക്കുമ്പോൾ മാത്രമേ പല-ഒന്നിലേക്ക് ലിങ്കിന് ഒരു kanban അടുക്കുകളായി തിരിക്കാനാകൂ. പകരം ഒറ്റ തിരഞ്ഞെടുപ്പ് ഫീൽഡ്, ഉപയോക്തൃ ഫീൽഡ് അല്ലെങ്കിൽ belongs-to ലിങ്ക് ഉപയോഗിക്കുക.",
+      "chooseStackField": "അടുക്കാനുള്ള ഫീൽഡ് തിരഞ്ഞെടുക്കുക",
+      "chooseStackFieldDesc": "ഈ board അടുക്കുകളായി തിരിക്കുന്ന ഫീൽഡ് തിരഞ്ഞെടുക്കുക. അതിന്റെ ഓരോ മൂല്യത്തിനും സ്വന്തം അടുക്ക് ലഭിക്കും.",
+      "createSingleSelectFieldHint": "ഓരോ കാർഡിന്റെയും നില, ഘട്ടം അല്ലെങ്കിൽ തരം കാണിക്കാൻ",
+      "createUserFieldHint": "ഓരോ കാർഡിന്റെയും ചുമതലക്കാരനെയോ ഉടമയെയോ കാണിക്കാൻ"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6176,7 +6263,9 @@
     "invitePeopleCount": "{count} ആളെ ക്ഷണിക്കുക | {count} ആളുകളെ ക്ഷണിക്കുക",
     "inviteThemInstead": "പകരം അവരെ ക്ഷണിക്കുക",
     "blockUser": "ഉപയോക്താവിനെ ബ്ലോക്ക് ചെയ്യുക",
-    "unblockUser": "ഉപയോക്താവിന്റെ ബ്ലോക്ക് നീക്കുക"
+    "unblockUser": "ഉപയോക്താവിന്റെ ബ്ലോക്ക് നീക്കുക",
+    "addDateRange": "തീയതി പരിധി ചേർക്കുക",
+    "searchComments": "അഭിപ്രായങ്ങളിൽ തിരയുക"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6420,7 +6509,9 @@
     "dataSourceReadOnly": "ഈ ഡാറ്റ ഉറവിടം വായിക്കാൻ മാത്രമുള്ളതാണ്.",
     "mentionFields": "ഫീൽഡുകൾ പരാമർശിക്കുക",
     "skipEnabledAfterDelay": "2 സെക്കൻഡിനു ശേഷം സജീവമാകും",
-    "clickToCopyDocumentId": "ഡോക്യുമെന്റ് ID പകർത്താൻ ക്ലിക്ക് ചെയ്യുക"
+    "clickToCopyDocumentId": "ഡോക്യുമെന്റ് ID പകർത്താൻ ക്ലിക്ക് ചെയ്യുക",
+    "workflowExecutionInterrupted": "ഈ പ്രവർത്തനം ഞങ്ങളുടെ ഭാഗത്ത് അപ്രതീക്ഷിതമായി നിലച്ചു. ഒന്നും നഷ്ടപ്പെട്ടിട്ടില്ല. നിന്ന ഘട്ടത്തിൽ നിന്ന് തുടരാൻ വീണ്ടും ശ്രമിക്കുക.",
+    "workflowExecutionOnHold": "ഈ വർക്ക്ഫ്ലോ ഉൾപ്പെടുന്ന ആപ്പ് താൽക്കാലികമായി നിർത്തിവച്ചിരിക്കുന്നു. ആപ്പ് തിരികെ വരുമ്പോൾ പ്രവർത്തനം നിന്നിടത്തുനിന്ന് തുടരും."
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8298,7 +8389,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "ഈ രേഖ പുനഃസ്ഥാപിക്കാൻ അതിൽ എഡിറ്റ് അനുമതി വേണം",
+    "withSubPages": "(കൂടാതെ {count} ഉപപേജ്) | (കൂടാതെ {count} ഉപപേജുകൾ)"
   },
   "payment": {
     "credits": {
@@ -8671,7 +8764,29 @@
       "other": {
         "where": "നിങ്ങളുടെ ക്ലയന്റിൽ ഈ വിവരങ്ങളോടെ ഒരു റിമോട്ട് MCP സെർവർ ചേർക്കുക:",
         "auth": "നിങ്ങളുടെ ക്ലയന്റിൽ നിന്ന് കണക്ഷൻ ആരംഭിക്കുക. ബ്രൗസറിൽ NocoDB തുറക്കും, അവിടെ നിങ്ങൾ സൈൻ ഇൻ ചെയ്ത്, ക്ലയന്റിന് എന്തിലേക്ക് ആക്‌സസ് വേണമെന്ന് തിരഞ്ഞെടുത്ത്, അംഗീകരിക്കുക തിരഞ്ഞെടുക്കുന്നു."
+      },
+      "canDelete": "ഡാറ്റ മായ്ക്കാനോ NocoDB യുടെ പുറത്ത് പ്രവർത്തിക്കാനോ കഴിയും",
+      "lockedNotEditable": "ഈ ആപ്പ് സൈൻ ഇൻ ചെയ്തപ്പോൾ തന്നെ ഈ അനുമതികൾ ചോദിച്ചിരുന്നു, അവ ഇവിടെ മാറ്റാനാകില്ല. അതിന്റെ ഐച്ഛിക ഉപകരണങ്ങൾ താഴെ മാറ്റാം.",
+      "copilot": {
+        "where": "VS Code ൽ Command Palette തുറന്ന്, MCP: Add Server പ്രവർത്തിപ്പിച്ച് HTTP തിരഞ്ഞെടുക്കുക. പൂരിപ്പിക്കുക:",
+        "auth": "VS Code NocoDB പരിശോധിക്കാൻ ആവശ്യപ്പെടുമ്പോൾ Allow തിരഞ്ഞെടുക്കുക. ബ്രൗസറിൽ NocoDB ൽ സൈൻ ഇൻ ചെയ്ത് Authorize തിരഞ്ഞെടുക്കുക."
       }
+    },
+    "discoveryNote": "{client} പരമാവധി 100 ഉപകരണങ്ങളേ ഉപയോഗിക്കൂ, അതിനാൽ ഈ URL NocoDB യുടെ വായന ഉപകരണങ്ങളും റെക്കോർഡ് എഴുത്തും നേരിട്ട് പട്ടികപ്പെടുത്തുകയും ബാക്കിയുള്ളവ ആവശ്യപ്പെടുമ്പോൾ കണ്ടെത്തുകയും ചെയ്യുന്നു.",
+    "windsurf": {
+      "subtitle": "Devin (മുമ്പ് Windsurf) ലെ Cascade ഏജന്റിനായി.",
+      "addBody": "Devin (മുമ്പ് Windsurf) ൽ Settings › Cascade › MCP servers തുറന്ന്, Add custom server തിരഞ്ഞെടുത്ത് ഈ URL ഒട്ടിക്കുക:",
+      "manualLabel": "ഇത് ~/.codeium/windsurf/mcp_config.json ൽ ചേർക്കുക:",
+      "authBody": "nocodb ന് അടുത്തുള്ള Connect തിരഞ്ഞെടുക്കുക. ബ്രൗസറിൽ NocoDB ൽ സൈൻ ഇൻ ചെയ്ത്, Devin ന് എന്തിലേക്കൊക്കെ പ്രവേശനം വേണം, ഏതൊക്കെ ഉപകരണങ്ങൾ ഉപയോഗിക്കാം എന്ന് തിരഞ്ഞെടുത്ത ശേഷം Authorize തിരഞ്ഞെടുക്കുക.",
+      "tryBody": "Devin ൽ Cascade തുറന്ന് “List my NocoDB tools” എന്ന് ചോദിക്കുക."
+    },
+    "copilot": {
+      "subtitle": "VS Code ലെ GitHub Copilot നായി.",
+      "addBody": "{link} തിരഞ്ഞെടുക്കുക, പിന്നെ VS Code തുറക്കുമ്പോൾ Install തിരഞ്ഞെടുക്കുക.",
+      "addLink": "VS Code ൽ ചേർക്കുക",
+      "manualLabel": "ഇത് .vscode/mcp.json ൽ ചേർക്കുക, അല്ലെങ്കിൽ എല്ലാ workspace നും ചേർക്കാൻ MCP: Open User Configuration പ്രവർത്തിപ്പിക്കുക:",
+      "authBody": "VS Code NocoDB പരിശോധിക്കാൻ ആവശ്യപ്പെടുമ്പോൾ Allow തിരഞ്ഞെടുക്കുക. ബ്രൗസറിൽ NocoDB ൽ സൈൻ ഇൻ ചെയ്ത്, Copilot ന് എന്തിലേക്കൊക്കെ പ്രവേശനം വേണം, ഏതൊക്കെ ഉപകരണങ്ങൾ ഉപയോഗിക്കാം എന്ന് തിരഞ്ഞെടുത്ത ശേഷം Authorize തിരഞ്ഞെടുക്കുക.",
+      "tryBody": "Copilot Chat Agent മോഡിൽ തുറന്ന് “List my NocoDB tools” എന്ന് ചോദിക്കുക."
     }
   },
   "roadmap": {

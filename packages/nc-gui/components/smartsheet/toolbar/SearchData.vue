@@ -47,7 +47,7 @@ const { search, loadFieldQuery, isScoped: isScopedSearch } = useFieldQuery()
 
 const { isMobileMode, appInfo, loadAppInfo } = useGlobal()
 
-const { blockGlobalSearch, showUpgradeToUseGlobalSearch } = useEeConfig()
+const { showUpgradeToUseGlobalSearch } = useEeConfig()
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 const { getMetaByKey } = useMetas()
@@ -152,10 +152,7 @@ const columns = computed(() => {
 // Grouped grids load rows per group and keep single-field search for now.
 const isAllFieldsSearchAvailable = computed(() => isAllFieldsSearchSupported.value && !isGroupBy.value)
 
-// Listed with an upgrade badge on a plan without it, but never selected.
-const isAllFieldsUsable = computed(() => isAllFieldsSearchAvailable.value && !blockGlobalSearch.value)
-
-const isAllFieldsSelected = computed(() => isAllFieldsUsable.value && search.value.field === ALL_FIELDS_SEARCH_FIELD)
+const isAllFieldsSelected = computed(() => isAllFieldsSearchAvailable.value && search.value.field === ALL_FIELDS_SEARCH_FIELD)
 
 const allFieldsOption = computed(() => ({ id: ALL_FIELDS_SEARCH_FIELD, title: t('labels.allFields') } as ColumnType))
 
@@ -182,6 +179,7 @@ const searchCountTooltip = computed(() =>
 
 // Say why a search may be slow or missing rows.
 const searchStateMessage = computed(() => {
+  if (search.value.planLimitFallback && !isAllFieldsSelected.value) return t('msg.info.searchStatePlanLimitFallback')
   if (!isAllFieldsSelected.value) return ''
   switch (searchState.value) {
     case 'indexing':
@@ -198,6 +196,9 @@ const searchStateMessage = computed(() => {
       return t('msg.info.searchStateCatchingUp')
     case 'term_too_short':
       return t('msg.info.searchStateTermTooShort')
+    case 'plan_limit':
+      // A shared-view visitor has no plan to upgrade.
+      return isPublic.value ? t('msg.info.searchStatePlanLimitPublic') : t('msg.info.searchStatePlanLimit')
     default:
       return ''
   }
@@ -265,6 +266,17 @@ watch(searchState, async (state) => {
   if (!appInfo.value.globalSearchEnabled && search.value.query?.trim()) onPressEnter()
 })
 
+// "All fields" is the default, but the plan can't search this table that way: fall back to the
+// display value field so the default search still finds rows. An explicit "All fields" pick keeps it.
+watch([searchState, isAllFieldsSelected], ([state, allFields]) => {
+  if (state !== 'plan_limit' || !allFields || search.value.allFieldsPicked) return
+  const pvColumnId = columns.value?.find((column) => column.pv)?.id
+  if (!pvColumnId) return
+  search.value.field = pvColumnId
+  search.value.planLimitFallback = true
+  if (search.value.query?.trim()) onPressEnter()
+})
+
 function searchKey() {
   return `${search.value.field}:${search.value.query?.trim() ?? ''}`
 }
@@ -308,7 +320,7 @@ watch(searchKey, () => {
 
 // "All fields" is the default where available; elsewhere the box falls back to the display value field.
 watch(
-  [isAllFieldsUsable, () => search.value.field, columns],
+  [isAllFieldsSearchAvailable, () => search.value.field, columns],
   ([isAvailable, field]) => {
     if (!field && isAvailable) {
       search.value.field = ALL_FIELDS_SEARCH_FIELD
@@ -341,13 +353,9 @@ watchDebounced(
 )
 
 const onSelectOption = (column: ColumnType) => {
-  if (column.id === ALL_FIELDS_SEARCH_FIELD && blockGlobalSearch.value) {
-    isDropdownOpen.value = false
-    showUpgradeToUseGlobalSearch({ triggerSource: 'search-all-fields' })
-    return
-  }
-
   search.value.field = column.id as string
+  search.value.allFieldsPicked = column.id === ALL_FIELDS_SEARCH_FIELD
+  search.value.planLimitFallback = false
   isDropdownOpen.value = false
 
   if (search.value.query?.length) {
@@ -604,6 +612,17 @@ useSearchCommands({
                   data-testid="nc-search-state"
                 />
               </NcTooltip>
+              <NcButton
+                v-if="isAllFieldsSelected && searchState === 'plan_limit' && !isPublic"
+                size="xxsmall"
+                type="text"
+                class="flex-none"
+                data-testid="nc-search-plan-limit-upgrade"
+                @mousedown.prevent
+                @click="showUpgradeToUseGlobalSearch({ triggerSource: 'search-plan-limit' })"
+              >
+                {{ $t('general.upgrade') }}
+              </NcButton>
               <NcTooltip placement="bottom" class="flex">
                 <template #title>
                   {{ searchCountTooltip }}

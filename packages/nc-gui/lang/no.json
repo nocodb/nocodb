@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Oppgrader for å kreve innlogging på skjemaer",
     "upgradeToUseFormRequireSigninSubtitle": "Oppgrader til {plan}-abonnementet for å kreve at respondenter logger inn før de sender inn et skjema.",
     "upgradeToUseSso": "Oppgrader for å bruke SSO",
-    "upgradeToUseSsoSubtitle": "Oppgrader til {plan} -planen for å sette opp Single Sign-On (SSO) og la teamet ditt logge inn med identitetsleverandøren din."
+    "upgradeToUseSsoSubtitle": "Oppgrader til {plan} -planen for å sette opp Single Sign-On (SSO) og la teamet ditt logge inn med identitetsleverandøren din.",
+    "notifyOwnerToUpgrade": "Klikk for å be eieren av arbeidsområdet om å oppgradere abonnementet.",
+    "comparePlans": "Sammenlign abonnementer",
+    "workspaceOnPlan": "{workspace} er på {plan}",
+    "planMenuWith": "Dette får du med",
+    "planMenuRecordsStorage": "{records} poster og {storage} GB lagring",
+    "planMenuUnlimitedEditors": "Ubegrenset antall redaktører",
+    "planMenuAutomationRuns": "{runs} automatiseringskjøringer i måneden",
+    "planMenuApiCalls": "{calls} API-kall i måneden",
+    "planMenuSnapshots": "{count} øyeblikksbilder",
+    "railPitch": "Plus gir deg {plusRecords} poster og ubegrenset antall redaktører.",
+    "upgradeToPlan": "Oppgrader til {plan}",
+    "askAdminTitle": "Ikke med i lisensen din",
+    "askAdminSubtitle": "Be administratoren din om å oppgradere lisensen {detail}",
+    "askAdminSubtitleGeneric": "Denne funksjonen er ikke med i den nåværende lisensen din. Be administratoren din om å oppgradere.",
+    "notifyAdmin": "Varsle administratoren",
+    "adminNotified": "Administratoren er varslet",
+    "adminNotifiedSubtitle": "Forespørselen din er sendt til administratoren din.",
+    "adminAlreadyNotified": "Administratoren er allerede varslet",
+    "adminAlreadyNotifiedSubtitle": "Administratoren din har allerede mottatt denne forespørselen i løpet av de siste 24 timene.",
+    "noAdminToNotify": "Ingen aktiv administrator å varsle. Kontakt den som forvalter denne NocoDB-instansen.",
+    "upgradeRequestDailyLimit": "Du har sendt det maksimale antallet oppgraderingsforespørsler for i dag. Prøv igjen i morgen.",
+    "seatLimitTitle": "Grensen for plasser er nådd",
+    "licenseUpgradeRequested": "har bedt om en lisensoppgradering",
+    "forAddon": "for tillegget {addon}",
+    "seatLimitAdminSubtitle": "Alle {limit} lisensierte plasser er i bruk. Oppgrader lisensen din for å legge til flere redaktører.",
+    "seatLimitMemberSubtitle": "Alle {limit} lisensierte plasser er i bruk. Be administratoren din om å legge til flere plasser."
   },
   "general": {
     "scrollToBottom": "Rull til bunnen",
@@ -1204,13 +1230,13 @@
   },
   "datatype": {
     "ID": "Id.",
-    "ForeignKey": "Utenlandsk nøkkel",
-    "SingleLineText": "Enkel linje tekst",
+    "ForeignKey": "Fremmednøkkel",
+    "SingleLineText": "Tekst på én linje",
     "LongText": "Lang tekst",
     "Attachment": "Vedlegg",
     "Checkbox": "Avkrysningsboks.",
     "MultiSelect": "Flervalg",
-    "SingleSelect": "Enkelt Velg",
+    "SingleSelect": "Enkeltvalg",
     "Collaborator": "Samarbeidspartner",
     "Date": "Dato",
     "Year": "År",
@@ -1223,16 +1249,16 @@
     "Currency": "Valuta",
     "Percent": "Prosent",
     "Duration": "Varighet",
-    "GeoData": "GeoData",
+    "GeoData": "Geodata",
     "Rating": "Vurdering",
     "Formula": "Formel",
     "Rollup": "Rull opp",
     "Count": "Telle",
     "Lookup": "Se opp",
-    "DateTime": "Dato tid",
-    "CreatedTime": "Skape tid",
-    "LastModifiedTime": "Sist endret tid",
-    "AutoNumber": "Auto nummer",
+    "DateTime": "Dato og klokkeslett",
+    "CreatedTime": "Opprettet tidspunkt",
+    "LastModifiedTime": "Sist endret tidspunkt",
+    "AutoNumber": "Automatisk nummer",
     "Barcode": "Strekkode",
     "Button": "Knapp",
     "Password": "Passord",
@@ -1242,7 +1268,25 @@
       "restrict": "Begrense",
       "setNull": "Sett null",
       "setDefault": "Sett standard"
-    }
+    },
+    "LinkToAnotherRecord": "Kobling til en annen post",
+    "Order": "Rekkefølge",
+    "RichText": "Formatert tekst",
+    "SmartText": "Smart tekst",
+    "Colour": "Farge",
+    "Geometry": "Geometri",
+    "JSON": "JSON",
+    "SpecificDBType": "Spesifikk DB-type",
+    "QrCode": "QR-kode",
+    "Links": "Koblinger",
+    "User": "Bruker",
+    "CreatedBy": "Opprettet av",
+    "LastModifiedBy": "Sist endret av",
+    "Deleted": "Slettet",
+    "Meta": "Radmetadata",
+    "UUID": "UUID",
+    "AIButton": "AI-knapp",
+    "AIPrompt": "AI-tekst"
   },
   "filterOperation": {
     "isEqual": "er lik",
@@ -1289,7 +1333,17 @@
       "daysAgo": "antall dager siden",
       "daysFromNow": "antall dager fra nå",
       "exactDate": "nøyaktig dato",
-      "exactMonth": "nøyaktig måned"
+      "exactMonth": "nøyaktig måned",
+      "thisCalendarWeek": "denne uken",
+      "thisCalendarMonth": "denne måneden",
+      "thisCalendarYear": "i år",
+      "lastCalendarWeek": "forrige uke",
+      "lastCalendarMonth": "forrige måned",
+      "lastCalendarYear": "i fjor",
+      "nextCalendarWeek": "neste uke",
+      "nextCalendarMonth": "neste måned",
+      "nextCalendarYear": "neste år",
+      "dateRange": "datointervall"
     }
   },
   "title": {
@@ -5856,7 +5910,28 @@
     "workspaceNoAccess": "Arbeidsområde (ingen tilgang)",
     "yAxis": "Y-akse",
     "workspaceSettings": "Innstillinger for arbeidsområdet",
-    "wrapLongText": "Bryt lang tekst"
+    "wrapLongText": "Bryt lang tekst",
+    "agentAccessData": "Tabeller og poster",
+    "agentAccessDataHint": "Les blar gjennom og spør mot dem. Rediger oppretter i tillegg poster og endrer, kobler og sletter dem.",
+    "agentAccessDocs": "Dokumenter",
+    "agentAccessDocsHint": "Dokumentene i basen. Med Rediger får den endre dem.",
+    "agentAccessGithubHint": "Leser kode, pusher brancher og åpner pull requests i sine repositorier",
+    "agentAccessCustom": "Noen av disse verktøyene ble valgt ett og ett. Velg et nivå for å stille inn alle sammen.",
+    "agentAccessOf": "Tilgang til {what}",
+    "agentCodeStartBranch": "Start fra branch",
+    "agentCodeStartBranchOf": "Branch som kjøringer for {repo} starter fra",
+    "agentCodeBranchName": "Branchnavn",
+    "agentCodeBranchNameHint": "Hver kjøring får sin egen branch. {issue} og {slug} fylles ut for deg.",
+    "agentCodePrDraft": "Utkast",
+    "agentCodePrReady": "Klar for vurdering",
+    "agentCodePrDraftHint": "Åpnes som utkast. Vurdererne blir spurt når testene har gått gjennom.",
+    "agentCodePrReadyHint": "Åpnes klar for vurdering og spør vurdererne nedenfor med én gang.",
+    "agentCodeReviewers": "Vurderere",
+    "agentCodeRemoveReviewer": "Fjern {login}",
+    "agentCodeNoReviewers": "Ingen andre kan vurdere i disse repositoriene",
+    "agentCodeNoReviewersSet": "Ingen vurderere ennå.",
+    "agentCodeNeverMerge": "Agents merger aldri og pusher aldri til {base}. Det er alltid et menneske som merger.",
+    "agentCodeNeverMergeAny": "Agents merger aldri og pusher aldri til branchen en kjøring starter fra. Det er alltid et menneske som merger."
   },
   "activity": {
     "useTemplate": "Bruk mal",
@@ -6048,7 +6123,18 @@
       "deleteStack": "Slett stabel",
       "stackedBy": "Stablet av",
       "chooseGroupingField": "Velg et grupperingsfelt",
-      "autoCollapseEmptyStack": "Skjul automatisk tom stabel"
+      "autoCollapseEmptyStack": "Skjul automatisk tom stabel",
+      "createSingleSelectField": "Opprett et nytt Enkeltvalg-felt",
+      "createUserField": "Opprett et nytt Bruker-felt",
+      "defaultStackToDo": "Å gjøre",
+      "defaultStackInProgress": "Pågår",
+      "defaultStackDone": "Ferdig",
+      "loadMoreStacks": "Last inn flere stabler",
+      "linkTypeNotStackable": "En mange-til-én-kobling kan bare stable et kanban når datakilden til tabellen er PostgreSQL. Stable heller etter et Enkeltvalg-felt, et Bruker-felt eller en tilhører-kobling.",
+      "chooseStackField": "Velg et felt å stable etter",
+      "chooseStackFieldDesc": "Velg feltet som stabler dette boardet. Hver av verdiene får sin egen stabel.",
+      "createSingleSelectFieldHint": "for å vise status, fase eller type for hvert kort",
+      "createUserFieldHint": "for å vise ansvarlig eller eier for hvert kort"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6162,7 +6248,9 @@
     "invitePeopleCount": "Inviter {count} person | Inviter {count} personer",
     "inviteThemInstead": "Inviter dem i stedet",
     "blockUser": "Blokker bruker",
-    "unblockUser": "Opphev blokkering av bruker"
+    "unblockUser": "Opphev blokkering av bruker",
+    "addDateRange": "Legg til datointervall",
+    "searchComments": "Søk i kommentarer"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold skift til trinn i en uke",
@@ -6406,7 +6494,9 @@
     "dataSourceReadOnly": "Denne datakilden er skrivebeskyttet.",
     "mentionFields": "Nevn felter",
     "skipEnabledAfterDelay": "Aktiveres etter 2 sekunder",
-    "clickToCopyDocumentId": "Klikk for å kopiere dokument-ID"
+    "clickToCopyDocumentId": "Klikk for å kopiere dokument-ID",
+    "workflowExecutionInterrupted": "Denne kjøringen stoppet uventet hos oss. Ingenting gikk tapt. Prøv på nytt for å fortsette fra trinnet den sto på.",
+    "workflowExecutionOnHold": "Appen denne arbeidsflyten hører til, er satt på pause. Kjøringen fortsetter der den slapp så snart appen er tilbake."
   },
   "placeholder": {
     "enterVerificationCode": "Angi 6-sifret kode",
@@ -8284,7 +8374,9 @@
     "userDeleted": "{user} slettet en {type} fra {parent}: {name}",
     "youDeletedNoParent": "Du slettet en {type}: {name}",
     "userDeletedNoParent": "{user} slettet en {type}: {name}",
-    "someoneDeleted": "En {type} ble slettet: {name}"
+    "someoneDeleted": "En {type} ble slettet: {name}",
+    "restoreRequiresDocEdit": "Å gjenopprette dette dokumentet krever redigeringstilgang til det",
+    "withSubPages": "(og {count} underside) | (og {count} undersider)"
   },
   "payment": {
     "credits": {
@@ -8656,7 +8748,29 @@
       "other": {
         "where": "Legg til en ekstern MCP-server i klienten din med disse opplysningene:",
         "auth": "Start tilkoblingen fra klienten din. NocoDB åpnes i nettleseren, der du logger inn, velger hva klienten får tilgang til og velger Godkjenn."
+      },
+      "canDelete": "Kan slette data eller handle utenfor NocoDB",
+      "lockedNotEditable": "Denne appen ba om disse tillatelsene da den logget inn, og de kan ikke endres her. De valgfrie verktøyene dens kan slås av og på nedenfor.",
+      "copilot": {
+        "where": "Åpne Command Palette i VS Code, kjør MCP: Add Server og velg HTTP. Fyll ut:",
+        "auth": "Når VS Code ber om å autentisere NocoDB, velger du Allow. Logg inn på NocoDB i nettleseren, og velg Authorize."
       }
+    },
+    "discoveryNote": "{client} bruker maksimalt 100 verktøy, så denne URL-en viser leseverktøyene og postskrivingen til NocoDB direkte og finner resten ved behov.",
+    "windsurf": {
+      "subtitle": "For Cascade-agenten i Devin (tidligere Windsurf).",
+      "addBody": "Åpne Settings › Cascade › MCP servers i Devin (tidligere Windsurf), velg Add custom server og lim inn denne URL-en:",
+      "manualLabel": "Legg dette til i ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Velg Connect ved siden av nocodb. Logg inn på NocoDB i nettleseren, velg hva Devin får tilgang til og hvilke verktøy den kan bruke, og velg deretter Authorize.",
+      "tryBody": "Åpne Cascade i Devin og spør «List my NocoDB tools»."
+    },
+    "copilot": {
+      "subtitle": "For GitHub Copilot i VS Code.",
+      "addBody": "Velg {link}, og velg deretter Install når VS Code åpnes.",
+      "addLink": "Legg til i VS Code",
+      "manualLabel": "Legg dette til i .vscode/mcp.json, eller kjør MCP: Open User Configuration for å legge det til for alle workspaces:",
+      "authBody": "Når VS Code ber om å autentisere NocoDB, velger du Allow. Logg inn på NocoDB i nettleseren, velg hva Copilot får tilgang til og hvilke verktøy den kan bruke, og velg deretter Authorize.",
+      "tryBody": "Åpne Copilot Chat i Agent-modus og spør «List my NocoDB tools»."
     }
   },
   "roadmap": {

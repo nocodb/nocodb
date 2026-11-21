@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "फ़ॉर्म पर साइन-इन अनिवार्य करने के लिए अपग्रेड करें",
     "upgradeToUseFormRequireSigninSubtitle": "फ़ॉर्म सबमिट करने से पहले उत्तरदाताओं के लिए साइन इन अनिवार्य करने हेतु {plan} योजना में अपग्रेड करें।",
     "upgradeToUseSso": "SSO का उपयोग करने के लिए अपग्रेड करें",
-    "upgradeToUseSsoSubtitle": "सिंगल साइन-ऑन (SSO) सेट अप करने और अपनी टीम को आपके पहचान प्रदाता से साइन इन करने देने के लिए {plan} योजना में अपग्रेड करें।"
+    "upgradeToUseSsoSubtitle": "सिंगल साइन-ऑन (SSO) सेट अप करने और अपनी टीम को आपके पहचान प्रदाता से साइन इन करने देने के लिए {plan} योजना में अपग्रेड करें।",
+    "notifyOwnerToUpgrade": "कार्यस्थान के स्वामी को योजना अपग्रेड करने की सूचना देने के लिए क्लिक करें।",
+    "comparePlans": "योजनाओं की तुलना करें",
+    "workspaceOnPlan": "{workspace} {plan} पर है",
+    "planMenuWith": "इसके साथ आपको क्या मिलता है",
+    "planMenuRecordsStorage": "{records} रिकॉर्ड और {storage} GB संग्रहण",
+    "planMenuUnlimitedEditors": "असीमित संपादक",
+    "planMenuAutomationRuns": "प्रति माह {runs} स्वचालन रन",
+    "planMenuApiCalls": "प्रति माह {calls} API कॉल",
+    "planMenuSnapshots": "{count} स्नैपशॉट",
+    "railPitch": "Plus आपको {plusRecords} रिकॉर्ड और असीमित संपादक देता है।",
+    "upgradeToPlan": "{plan} में अपग्रेड करें",
+    "askAdminTitle": "आपके लाइसेंस में शामिल नहीं",
+    "askAdminSubtitle": "अपने व्यवस्थापक से लाइसेंस अपग्रेड करने को कहें {detail}",
+    "askAdminSubtitleGeneric": "यह सुविधा आपके मौजूदा लाइसेंस में शामिल नहीं है। अपने व्यवस्थापक से अपग्रेड करने को कहें।",
+    "notifyAdmin": "व्यवस्थापक को सूचित करें",
+    "adminNotified": "व्यवस्थापक को सूचित किया गया",
+    "adminNotifiedSubtitle": "आपका अनुरोध आपके व्यवस्थापक को भेज दिया गया है।",
+    "adminAlreadyNotified": "व्यवस्थापक को पहले ही सूचित किया जा चुका है",
+    "adminAlreadyNotifiedSubtitle": "आपके व्यवस्थापक को पिछले 24 घंटों में यह अनुरोध पहले ही मिल चुका है।",
+    "noAdminToNotify": "सूचित करने के लिए कोई सक्रिय व्यवस्थापक नहीं है। जो भी इस NocoDB इंस्टेंस को संभालता है, उनसे संपर्क करें।",
+    "upgradeRequestDailyLimit": "आपने आज के लिए अधिकतम संख्या में अपग्रेड अनुरोध भेज दिए हैं। कल फिर कोशिश करें।",
+    "seatLimitTitle": "सीट सीमा पूरी हो गई",
+    "licenseUpgradeRequested": "ने लाइसेंस अपग्रेड का अनुरोध किया है",
+    "forAddon": "{addon} ऐड-ऑन के लिए",
+    "seatLimitAdminSubtitle": "सभी {limit} लाइसेंस वाली सीटें उपयोग में हैं। और संपादक जोड़ने के लिए अपना लाइसेंस अपग्रेड करें।",
+    "seatLimitMemberSubtitle": "सभी {limit} लाइसेंस वाली सीटें उपयोग में हैं। अपने व्यवस्थापक से और सीटें जोड़ने को कहें।"
   },
   "general": {
     "scrollToBottom": "नीचे स्क्रॉल करें",
@@ -1207,11 +1233,11 @@
   "datatype": {
     "ID": "पहचान",
     "ForeignKey": "विदेशी कुंजी",
-    "SingleLineText": "एकल पंक्ति पाठ",
-    "LongText": "लंबे पाठ",
+    "SingleLineText": "एक पंक्ति का पाठ",
+    "LongText": "लंबा पाठ",
     "Attachment": "अनुरक्ति",
     "Checkbox": "चेक बॉक्स",
-    "MultiSelect": "बहु का चयन",
+    "MultiSelect": "बहु चयन",
     "SingleSelect": "एकल चयन",
     "Collaborator": "सहयोगी",
     "Date": "दिनांक",
@@ -1225,16 +1251,16 @@
     "Currency": "मुद्रा",
     "Percent": "प्रतिशत",
     "Duration": "अवधि",
-    "GeoData": "जियोडेटा",
+    "GeoData": "भौगोलिक डेटा",
     "Rating": "रेटिंग",
     "Formula": "सूत्र",
     "Rollup": "जमना",
     "Count": "गिनती करना",
     "Lookup": "देखो",
     "DateTime": "दिनांक और समय",
-    "CreatedTime": "निर्माण का समय",
-    "LastModifiedTime": "अंतिम संशोधित समय",
-    "AutoNumber": "वाहन नंबर",
+    "CreatedTime": "बनाने का समय",
+    "LastModifiedTime": "अंतिम संशोधन का समय",
+    "AutoNumber": "स्वतः संख्या",
     "Barcode": "बारकोड",
     "Button": "बटन",
     "Password": "पासवर्ड",
@@ -1244,7 +1270,25 @@
       "restrict": "रोके",
       "setNull": "Set NULL",
       "setDefault": "Set Default"
-    }
+    },
+    "LinkToAnotherRecord": "दूसरे रिकॉर्ड से लिंक",
+    "Order": "क्रम",
+    "RichText": "सज्जित पाठ",
+    "SmartText": "स्मार्ट पाठ",
+    "Colour": "रंग",
+    "Geometry": "ज्यामिति",
+    "JSON": "JSON",
+    "SpecificDBType": "विशिष्ट DB प्रकार",
+    "QrCode": "QR कोड",
+    "Links": "लिंक",
+    "User": "उपयोगकर्ता",
+    "CreatedBy": "किसने बनाया",
+    "LastModifiedBy": "अंतिम बार किसने बदला",
+    "Deleted": "हटाया गया",
+    "Meta": "पंक्ति मेटा डेटा",
+    "UUID": "UUID",
+    "AIButton": "AI बटन",
+    "AIPrompt": "AI पाठ"
   },
   "filterOperation": {
     "isEqual": "बराबर है",
@@ -1291,7 +1335,17 @@
       "daysAgo": "कितने दिन पहले",
       "daysFromNow": "आज से कितने दिन बाद",
       "exactDate": "सटीक दिनांक",
-      "exactMonth": "सटीक माह"
+      "exactMonth": "सटीक माह",
+      "thisCalendarWeek": "यह सप्ताह",
+      "thisCalendarMonth": "यह महीना",
+      "thisCalendarYear": "यह वर्ष",
+      "lastCalendarWeek": "पिछला सप्ताह",
+      "lastCalendarMonth": "पिछला महीना",
+      "lastCalendarYear": "पिछला वर्ष",
+      "nextCalendarWeek": "अगला सप्ताह",
+      "nextCalendarMonth": "अगला महीना",
+      "nextCalendarYear": "अगला वर्ष",
+      "dateRange": "दिनांक सीमा"
     }
   },
   "title": {
@@ -5870,7 +5924,29 @@
     "workspaceNoAccess": "कार्यस्थान (कोई पहुँच नहीं)",
     "yAxis": "Y अक्ष",
     "workspaceSettings": "कार्यस्थान सेटिंग्स",
-    "wrapLongText": "लंबे टेक्स्ट को लपेटें"
+    "wrapLongText": "लंबे टेक्स्ट को लपेटें",
+    "agentAccessData": "तालिकाएँ और रिकॉर्ड",
+    "agentAccessDataHint": "पठन उन्हें देखता है और क्वेरी करता है। संपादन रिकॉर्ड बनाता, बदलता, जोड़ता और मिटाता भी है।",
+    "agentAccessDocs": "दस्तावेज़",
+    "agentAccessDocsHint": "इस base के दस्तावेज़। संपादन मिलने पर यह उन्हें बदल सकता है।",
+    "agentAccessGithubHint": "अपने रिपॉज़िटरी में कोड पढ़ता है, शाखाएँ पुश करता है और पुल रिक्वेस्ट खोलता है",
+    "agentAccessCustom": "इनमें से कुछ टूल एक-एक करके चुने गए थे। सबको एक साथ तय करने के लिए कोई स्तर चुनें।",
+    "agentAccessOf": "{what} तक पहुँच",
+    "agentCodeStartBranch": "इस शाखा से शुरू करें",
+    "agentCodeStartBranchOf": "वह शाखा जहाँ से {repo} के रन शुरू होते हैं",
+    "agentCodeBranchName": "शाखा का नाम",
+    "agentCodeBranchNameHint": "हर रन को अपनी अलग शाखा मिलती है। {issue} और {slug} आपके लिए भर दिए जाते हैं।",
+    "agentCodePullRequests": "पुल रिक्वेस्ट",
+    "agentCodePrDraft": "ड्राफ़्ट",
+    "agentCodePrReady": "समीक्षा के लिए तैयार",
+    "agentCodePrDraftHint": "ड्राफ़्ट के रूप में खुलता है। परीक्षण पास होने पर समीक्षकों से कहा जाता है।",
+    "agentCodePrReadyHint": "समीक्षा के लिए तैयार खुलता है और नीचे दिए समीक्षकों से तुरंत कहता है।",
+    "agentCodeReviewers": "समीक्षक",
+    "agentCodeRemoveReviewer": "{login} को हटाएँ",
+    "agentCodeNoReviewers": "इन रिपॉज़िटरी में कोई और समीक्षा नहीं कर सकता",
+    "agentCodeNoReviewersSet": "अभी कोई समीक्षक नहीं।",
+    "agentCodeNeverMerge": "एजेंट कभी मर्ज नहीं करते और {base} पर कभी पुश नहीं करते। मर्ज हमेशा कोई व्यक्ति करता है।",
+    "agentCodeNeverMergeAny": "एजेंट कभी मर्ज नहीं करते और जिस शाखा से रन शुरू होता है उस पर कभी पुश नहीं करते। मर्ज हमेशा कोई व्यक्ति करता है।"
   },
   "activity": {
     "useTemplate": "टेम्पलेट का उपयोग करें",
@@ -6062,7 +6138,18 @@
       "deleteStack": "स्टैक हटाएं",
       "stackedBy": "द्वारा स्टैक किया गया",
       "chooseGroupingField": "समूहित करने का क्षेत्र चुनें",
-      "autoCollapseEmptyStack": "खाली स्टैक का स्वचालित पतन"
+      "autoCollapseEmptyStack": "खाली स्टैक का स्वचालित पतन",
+      "createSingleSelectField": "नया एकल चयन फ़ील्ड बनाएँ",
+      "createUserField": "नया उपयोगकर्ता फ़ील्ड बनाएँ",
+      "defaultStackToDo": "करना है",
+      "defaultStackInProgress": "चल रहा है",
+      "defaultStackDone": "पूरा हुआ",
+      "loadMoreStacks": "और ढेर लोड करें",
+      "linkTypeNotStackable": "बहु-से-एक लिंक किसी kanban को ढेरों में तभी बाँट सकता है जब तालिका का डेटा स्रोत PostgreSQL हो। इसके बजाय एकल चयन फ़ील्ड, उपयोगकर्ता फ़ील्ड या belongs-to लिंक से समूहीकरण करें।",
+      "chooseStackField": "समूहीकरण के लिए फ़ील्ड चुनें",
+      "chooseStackFieldDesc": "वह फ़ील्ड चुनें जिससे यह board ढेरों में बँटे। उसके हर मान को अपना अलग ढेर मिलेगा।",
+      "createSingleSelectFieldHint": "हर कार्ड की स्थिति, चरण या प्रकार दिखाने के लिए",
+      "createUserFieldHint": "हर कार्ड के ज़िम्मेदार या स्वामी को दिखाने के लिए"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6176,7 +6263,9 @@
     "invitePeopleCount": "{count} व्यक्ति को आमंत्रित करें | {count} लोगों को आमंत्रित करें",
     "inviteThemInstead": "इसके बजाय उन्हें आमंत्रित करें",
     "blockUser": "उपयोगकर्ता को ब्लॉक करें",
-    "unblockUser": "उपयोगकर्ता का ब्लॉक हटाएँ"
+    "unblockUser": "उपयोगकर्ता का ब्लॉक हटाएँ",
+    "addDateRange": "दिनांक सीमा जोड़ें",
+    "searchComments": "टिप्पणियों में खोजें"
   },
   "tooltip": {
     "shiftClickWeekStep": "1 सप्ताह की छलांग लगाने के लिए Shift दबाए रखें।",
@@ -6420,7 +6509,9 @@
     "dataSourceReadOnly": "यह डेटा स्रोत केवल पढ़ने के लिए है।",
     "mentionFields": "फ़ील्ड का उल्लेख करें",
     "skipEnabledAfterDelay": "2 सेकंड बाद चालू होगा",
-    "clickToCopyDocumentId": "दस्तावेज़ ID कॉपी करने के लिए क्लिक करें"
+    "clickToCopyDocumentId": "दस्तावेज़ ID कॉपी करने के लिए क्लिक करें",
+    "workflowExecutionInterrupted": "यह रन हमारी ओर से अप्रत्याशित रूप से रुक गया। कुछ भी नहीं खोया। जिस चरण पर था वहीं से जारी रखने के लिए इसे फिर से चलाएँ।",
+    "workflowExecutionOnHold": "जिस ऐप से यह वर्कफ़्लो जुड़ा है वह निलंबित है। ऐप के वापस आते ही रन वहीं से जारी रहेगा जहाँ रुका था।"
   },
   "placeholder": {
     "enterVerificationCode": "6-अंकीय कोड दर्ज करें",
@@ -8298,7 +8389,9 @@
     "userDeleted": "{user} {parent}से एक {type} हटाया गया: {name}",
     "youDeletedNoParent": "आपने एक {type}को हटा दिया: {name}",
     "userDeletedNoParent": "{user} {type}को हटाया: {name}",
-    "someoneDeleted": "एक {type} हटाया गया: {name}"
+    "someoneDeleted": "एक {type} हटाया गया: {name}",
+    "restoreRequiresDocEdit": "इस दस्तावेज़ को पुनर्स्थापित करने के लिए उस पर संपादन पहुँच चाहिए",
+    "withSubPages": "(और {count} उप-पृष्ठ) | (और {count} उप-पृष्ठ)"
   },
   "payment": {
     "credits": {
@@ -8671,7 +8764,29 @@
       "other": {
         "where": "अपने क्लाइंट में इन विवरणों के साथ एक रिमोट MCP सर्वर जोड़ें:",
         "auth": "कनेक्शन अपने क्लाइंट से शुरू करें। ब्राउज़र में NocoDB खुलता है, जहाँ आप साइन इन करते हैं, चुनते हैं कि क्लाइंट किस चीज़ तक पहुँच सकता है, और अधिकृत करें चुनते हैं।"
+      },
+      "canDelete": "डेटा मिटा सकता है या NocoDB के बाहर कार्य कर सकता है",
+      "lockedNotEditable": "इस ऐप ने साइन इन करते समय ये अनुमतियाँ माँगी थीं और इन्हें यहाँ बदला नहीं जा सकता। इसके वैकल्पिक टूल नीचे चालू-बंद किए जा सकते हैं।",
+      "copilot": {
+        "where": "VS Code में Command Palette खोलें, MCP: Add Server चलाएँ और HTTP चुनें। भरें:",
+        "auth": "जब VS Code NocoDB को प्रमाणित करने को कहे, तो Allow चुनें। ब्राउज़र में NocoDB में साइन इन करें और Authorize चुनें।"
       }
+    },
+    "discoveryNote": "{client} अधिकतम 100 टूल ही उपयोग करता है, इसलिए यह URL NocoDB के पठन टूल और रिकॉर्ड लेखन सीधे सूचीबद्ध करता है और बाकी को माँगे जाने पर ढूँढ़ता है।",
+    "windsurf": {
+      "subtitle": "Devin (पहले Windsurf) के Cascade एजेंट के लिए।",
+      "addBody": "Devin (पहले Windsurf) में Settings › Cascade › MCP servers खोलें, Add custom server चुनें और यह URL चिपकाएँ:",
+      "manualLabel": "इसे ~/.codeium/windsurf/mcp_config.json में जोड़ें:",
+      "authBody": "nocodb के बगल में Connect चुनें। ब्राउज़र में NocoDB में साइन इन करें, चुनें कि Devin किस तक पहुँच सकता है और कौन से टूल उपयोग कर सकता है, फिर Authorize चुनें।",
+      "tryBody": "Devin में Cascade खोलें और पूछें “List my NocoDB tools”।"
+    },
+    "copilot": {
+      "subtitle": "VS Code में GitHub Copilot के लिए।",
+      "addBody": "{link} चुनें, फिर VS Code खुलने पर Install चुनें।",
+      "addLink": "VS Code में जोड़ें",
+      "manualLabel": "इसे .vscode/mcp.json में जोड़ें, या हर workspace के लिए जोड़ने हेतु MCP: Open User Configuration चलाएँ:",
+      "authBody": "जब VS Code NocoDB को प्रमाणित करने को कहे, तो Allow चुनें। ब्राउज़र में NocoDB में साइन इन करें, चुनें कि Copilot किस तक पहुँच सकता है और कौन से टूल उपयोग कर सकता है, फिर Authorize चुनें।",
+      "tryBody": "Copilot Chat को Agent मोड में खोलें और पूछें “List my NocoDB tools”।"
     }
   },
   "roadmap": {

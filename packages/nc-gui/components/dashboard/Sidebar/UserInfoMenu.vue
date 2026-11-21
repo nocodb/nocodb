@@ -42,6 +42,22 @@ const themeIcon = computed(
     }[selectedTheme.value] as IconMapKey),
 )
 
+const { locale } = useI18n()
+
+const { isMondayFirst, setWeekStart } = useWeekStart()
+
+const weekStartLabel = computed(
+  () => getCalendarWeekdayLabels(locale.value, { weekStartsOn: isMondayFirst.value ? 1 : 0, format: 'short' })[0],
+)
+
+const toggleWeekStart = async () => {
+  try {
+    await setWeekStart(isMondayFirst.value ? 'sunday' : 'monday')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const isThemeConfigEnabled = computed(() => isThemeEnabled.value && isFeatureEnabled(FEATURE_FLAG.THEME_SETTINGS))
 
 const showTourMenu = computed(() => isFeatureEnabled(FEATURE_FLAG.PRODUCT_TOURS_MENU) && availableTours.value.length > 0)
@@ -197,6 +213,18 @@ const openKeyboardShortcutDialog = () => {
           </div>
         </template>
       </a-popover>
+
+      <!-- First day of week (date pickers) -->
+      <NcMenuItem
+        v-e="['c:user:week-start:toggle', { week_start: isMondayFirst ? 'sunday' : 'monday' }]"
+        inner-class="w-full"
+        data-testid="nc-sidebar-user-week-start"
+        @click="toggleWeekStart"
+      >
+        <GeneralIcon icon="calendar" class="menu-icon" />
+        <span class="menu-btn">{{ $t('labels.firstDayOfWeek') }}</span>
+        <span class="text-nc-content-gray-muted text-xs ml-auto">{{ weekStartLabel }}</span>
+      </NcMenuItem>
 
       <!-- Keyboard Shortcuts -->
       <NcMenuItem

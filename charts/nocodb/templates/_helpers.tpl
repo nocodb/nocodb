@@ -213,5 +213,9 @@ imagePullSecrets:
       name: {{ include "nocodb.secretName" . }}
       key: NC_SENTRY_DSN
       {{- end }}
+{{- with .Values.monitoring.sentry.environment }}
+- name: NC_SENTRY_ENVIRONMENT
+  value: {{ . | quote }}
+{{- end }}
 {{- end }}
 {{- end -}}

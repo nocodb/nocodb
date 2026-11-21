@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "שדרג כדי לדרוש התחברות בטפסים",
     "upgradeToUseFormRequireSigninSubtitle": "שדרג לתוכנית {plan} כדי לדרוש מהמשיבים להתחבר לפני שליחת טופס.",
     "upgradeToUseSso": "שדרג כדי להשתמש ב-SSO",
-    "upgradeToUseSsoSubtitle": "שדרג לתוכנית {plan} כדי להגדיר כניסה יחידה (SSO) ולאפשר לצוות שלך להתחבר באמצעות ספק הזהויות שלך."
+    "upgradeToUseSsoSubtitle": "שדרג לתוכנית {plan} כדי להגדיר כניסה יחידה (SSO) ולאפשר לצוות שלך להתחבר באמצעות ספק הזהויות שלך.",
+    "notifyOwnerToUpgrade": "לחצו כדי להודיע לבעלים של סביבת העבודה לשדרג את התוכנית.",
+    "comparePlans": "השוואת תוכניות",
+    "workspaceOnPlan": "{workspace} נמצאת ב-{plan}",
+    "planMenuWith": "מה מקבלים עם",
+    "planMenuRecordsStorage": "{records} רשומות ו-{storage} GB אחסון",
+    "planMenuUnlimitedEditors": "עורכים ללא הגבלה",
+    "planMenuAutomationRuns": "{runs} הרצות אוטומציה בחודש",
+    "planMenuApiCalls": "{calls} קריאות API בחודש",
+    "planMenuSnapshots": "{count} תמונות מצב",
+    "railPitch": "Plus מעניקה לכם {plusRecords} רשומות ועורכים ללא הגבלה.",
+    "upgradeToPlan": "שדרוג ל-{plan}",
+    "askAdminTitle": "לא כלול ברישיון שלכם",
+    "askAdminSubtitle": "בקשו מהמנהל שלכם לשדרג את הרישיון {detail}",
+    "askAdminSubtitleGeneric": "התכונה הזו אינה כלולה ברישיון הנוכחי שלכם. בקשו מהמנהל שלכם לשדרג.",
+    "notifyAdmin": "שליחת הודעה למנהל",
+    "adminNotified": "נשלחה הודעה למנהל",
+    "adminNotifiedSubtitle": "הבקשה שלכם נשלחה למנהל שלכם.",
+    "adminAlreadyNotified": "המנהל כבר קיבל הודעה",
+    "adminAlreadyNotifiedSubtitle": "המנהל שלכם כבר קיבל את הבקשה הזו ב-24 השעות האחרונות.",
+    "noAdminToNotify": "אין מנהל פעיל לשלוח לו הודעה. פנו למי שמנהל את מופע NocoDB הזה.",
+    "upgradeRequestDailyLimit": "שלחתם את המספר המרבי של בקשות שדרוג להיום. נסו שוב מחר.",
+    "seatLimitTitle": "הגעתם למגבלת המושבים",
+    "licenseUpgradeRequested": "ביקש שדרוג רישיון",
+    "forAddon": "עבור התוסף {addon}",
+    "seatLimitAdminSubtitle": "כל {limit} המושבים ברישיון בשימוש. שדרגו את הרישיון כדי להוסיף עורכים.",
+    "seatLimitMemberSubtitle": "כל {limit} המושבים ברישיון בשימוש. בקשו מהמנהל שלכם להוסיף מושבים."
   },
   "general": {
     "scrollToBottom": "גלול למטה",
@@ -1225,7 +1251,7 @@
     "Currency": "מַטְבֵּעַ",
     "Percent": "אָחוּז",
     "Duration": "משך זמן",
-    "GeoData": "נתוני מיקום",
+    "GeoData": "נתונים גאוגרפיים",
     "Rating": "דירוג",
     "Formula": "נוּסחָה",
     "Rollup": "צירוף",
@@ -1234,7 +1260,7 @@
     "DateTime": "תאריך ושעה",
     "CreatedTime": "זמן יצירה",
     "LastModifiedTime": "זמן שינוי אחרון",
-    "AutoNumber": "מספר אוטומטי",
+    "AutoNumber": "מספור אוטומטי",
     "Barcode": "ברקוד",
     "Button": "לַחְצָן",
     "Password": "סיסמה",
@@ -1244,7 +1270,25 @@
       "restrict": "הגבלה",
       "setNull": "הגדר כריק",
       "setDefault": "הגדר כברירת מחדל"
-    }
+    },
+    "LinkToAnotherRecord": "קישור לרשומה אחרת",
+    "Order": "סדר",
+    "RichText": "טקסט מעוצב",
+    "SmartText": "טקסט חכם",
+    "Colour": "צבע",
+    "Geometry": "גאומטריה",
+    "JSON": "JSON",
+    "SpecificDBType": "סוג מסד נתונים ספציפי",
+    "QrCode": "קוד QR",
+    "Links": "קישורים",
+    "User": "משתמש",
+    "CreatedBy": "נוצר על ידי",
+    "LastModifiedBy": "שונה לאחרונה על ידי",
+    "Deleted": "נמחק",
+    "Meta": "מטא-נתוני שורה",
+    "UUID": "UUID",
+    "AIButton": "כפתור בינה מלאכותית",
+    "AIPrompt": "טקסט בינה מלאכותית"
   },
   "filterOperation": {
     "isEqual": "שווה",
@@ -1291,7 +1335,17 @@
       "daysAgo": "מספר ימים אחורה",
       "daysFromNow": "מספר ימים מהיום",
       "exactDate": "תאריך מדויק",
-      "exactMonth": "חודש מדויק"
+      "exactMonth": "חודש מדויק",
+      "thisCalendarWeek": "השבוע הזה",
+      "thisCalendarMonth": "החודש הזה",
+      "thisCalendarYear": "השנה הזו",
+      "lastCalendarWeek": "השבוע שעבר",
+      "lastCalendarMonth": "החודש שעבר",
+      "lastCalendarYear": "השנה שעברה",
+      "nextCalendarWeek": "השבוע הבא",
+      "nextCalendarMonth": "החודש הבא",
+      "nextCalendarYear": "השנה הבאה",
+      "dateRange": "טווח תאריכים"
     }
   },
   "title": {
@@ -5872,7 +5926,29 @@
     "workspaceNoAccess": "מרחב עבודה (אין גישה)",
     "yAxis": "ציר Y",
     "workspaceSettings": "הגדרות מרחב העבודה",
-    "wrapLongText": "גלישת טקסט ארוך"
+    "wrapLongText": "גלישת טקסט ארוך",
+    "agentAccessData": "טבלאות ורשומות",
+    "agentAccessDataHint": "קריאה מאפשרת לעיין בהן ולשאול עליהן שאילתות. עריכה גם יוצרת, משנה, מקשרת ומוחקת רשומות.",
+    "agentAccessDocs": "מסמכים",
+    "agentAccessDocsHint": "המסמכים של ה-base. עריכה מאפשרת לו לשנות אותם.",
+    "agentAccessGithubHint": "קורא קוד, דוחף ענפים ופותח בקשות משיכה במאגרים שלו",
+    "agentAccessCustom": "חלק מהכלים האלה נבחרו אחד-אחד. בחרו רמה כדי להגדיר את כולם.",
+    "agentAccessOf": "גישה אל {what}",
+    "agentCodeStartBranch": "התחלה מהענף",
+    "agentCodeStartBranchOf": "הענף שממנו מתחילות ההרצות של {repo}",
+    "agentCodeBranchName": "שם הענף",
+    "agentCodeBranchNameHint": "כל הרצה מקבלת ענף משלה. {issue} ו-{slug} ממולאים עבורכם.",
+    "agentCodePullRequests": "בקשות משיכה",
+    "agentCodePrDraft": "טיוטה",
+    "agentCodePrReady": "מוכנה לסקירה",
+    "agentCodePrDraftHint": "נפתחת כטיוטה. הסוקרים מתבקשים לאחר שהבדיקות עוברות.",
+    "agentCodePrReadyHint": "נפתחת מוכנה לסקירה ומבקשת מיד מהסוקרים שלמטה.",
+    "agentCodeReviewers": "סוקרים",
+    "agentCodeRemoveReviewer": "הסרת {login}",
+    "agentCodeNoReviewers": "אף אחד אחר לא יכול לסקור במאגרים האלה",
+    "agentCodeNoReviewersSet": "אין עדיין סוקרים.",
+    "agentCodeNeverMerge": "סוכנים לעולם לא ממזגים ולעולם לא דוחפים אל {base}. את המיזוג תמיד מבצע אדם.",
+    "agentCodeNeverMergeAny": "סוכנים לעולם לא ממזגים ולעולם לא דוחפים אל הענף שממנו מתחילה הרצה. את המיזוג תמיד מבצע אדם."
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",
@@ -6064,7 +6140,18 @@
       "deleteStack": "מחיקת מחסנית",
       "stackedBy": "מקובץ לפי",
       "chooseGroupingField": "בחר שדה לקיבוץ",
-      "autoCollapseEmptyStack": "קיפול אוטומטי של ערימה ריקה"
+      "autoCollapseEmptyStack": "קיפול אוטומטי של ערימה ריקה",
+      "createSingleSelectField": "יצירת שדה בחירה יחידה חדש",
+      "createUserField": "יצירת שדה משתמש חדש",
+      "defaultStackToDo": "לביצוע",
+      "defaultStackInProgress": "בתהליך",
+      "defaultStackDone": "הושלם",
+      "loadMoreStacks": "טעינת ערימות נוספות",
+      "linkTypeNotStackable": "קישור רבים-לאחד יכול לקבץ לוח kanban לערימות רק כשמקור הנתונים של הטבלה הוא PostgreSQL . קבצו במקום זאת לפי שדה בחירה יחידה, שדה משתמש או קישור שייך-ל.",
+      "chooseStackField": "בחרו שדה לקיבוץ",
+      "chooseStackFieldDesc": "בחרו את השדה שמקבץ את ה-board הזה לערימות. כל ערך שלו יקבל ערימה משלו.",
+      "createSingleSelectFieldHint": "כדי להציג את הסטטוס, השלב או הסוג של כל כרטיס",
+      "createUserFieldHint": "כדי להציג את האחראי או הבעלים של כל כרטיס"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6178,7 +6265,9 @@
     "invitePeopleCount": "הזמן {count} אדם | הזמן {count} אנשים",
     "inviteThemInstead": "הזמן אותם במקום זאת",
     "blockUser": "חסום משתמש",
-    "unblockUser": "בטל חסימת משתמש"
+    "unblockUser": "בטל חסימת משתמש",
+    "addDateRange": "הוספת טווח תאריכים",
+    "searchComments": "חיפוש בתגובות"
   },
   "tooltip": {
     "shiftClickWeekStep": "החזק את מקש Shift כדי לעבור שבוע אחר שבוע",
@@ -6422,7 +6511,9 @@
     "dataSourceReadOnly": "מקור הנתונים הזה הוא לקריאה בלבד.",
     "mentionFields": "אזכור שדות",
     "skipEnabledAfterDelay": "יופעל אחרי 2 שניות",
-    "clickToCopyDocumentId": "לחצו כדי להעתיק את מזהה המסמך"
+    "clickToCopyDocumentId": "לחצו כדי להעתיק את מזהה המסמך",
+    "workflowExecutionInterrupted": "ההרצה הזו נעצרה באופן בלתי צפוי אצלנו. שום דבר לא אבד. נסו שוב כדי להמשיך מהשלב שבו הייתה.",
+    "workflowExecutionOnHold": "האפליקציה שאליה שייך תהליך העבודה הזה מושעית. ההרצה תמשיך מהנקודה שבה עצרה ברגע שהאפליקציה תחזור."
   },
   "placeholder": {
     "enterVerificationCode": "הזן קוד בן 6 ספרות",
@@ -8300,7 +8391,9 @@
     "userDeleted": "{user} נמחק {type} מאתר {parent}: {name}",
     "youDeletedNoParent": "מחקת את {type}: {name}",
     "userDeletedNoParent": "{user} נמחק: {type}: {name}",
-    "someoneDeleted": "הדף {type} נמחק: {name}"
+    "someoneDeleted": "הדף {type} נמחק: {name}",
+    "restoreRequiresDocEdit": "שחזור המסמך הזה דורש הרשאת עריכה אליו",
+    "withSubPages": "(ו-{count} תת-עמוד) | (ו-{count} תת-עמודים)"
   },
   "payment": {
     "credits": {
@@ -8673,7 +8766,29 @@
       "other": {
         "where": "הוסיפו בלקוח שלכם שרת MCP מרוחק עם הפרטים הבאים:",
         "auth": "התחילו את החיבור מהלקוח שלכם. NocoDB ייפתח בדפדפן, שם תתחברו, תבחרו למה מותר ללקוח לגשת ותבחרו אישור."
+      },
+      "canDelete": "יכול למחוק נתונים או לפעול מחוץ ל-NocoDB",
+      "lockedNotEditable": "האפליקציה הזו ביקשה את ההרשאות האלה בעת הכניסה, ואי אפשר לשנות אותן כאן. אפשר להפעיל את הכלים האופציונליים שלה למטה.",
+      "copilot": {
+        "where": "ב-VS Code, פתחו את Command Palette, הריצו MCP: Add Server ובחרו HTTP . מלאו:",
+        "auth": "כש-VS Code מבקש לאמת את NocoDB , בחרו Allow. היכנסו ל-NocoDB בדפדפן ובחרו Authorize."
       }
+    },
+    "discoveryNote": "{client} משתמש ב-100 כלים לכל היותר, ולכן ה-URL הזה מציג ישירות את כלי הקריאה וכתיבת הרשומות של NocoDB ומאתר את השאר לפי הצורך.",
+    "windsurf": {
+      "subtitle": "עבור סוכן Cascade ב-Devin (לשעבר Windsurf).",
+      "addBody": "ב-Devin (לשעבר Windsurf), פתחו את Settings › Cascade › MCP servers, בחרו Add custom server והדביקו את ה-URL הזה:",
+      "manualLabel": "הוסיפו את זה אל ‎~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "בחרו Connect לצד nocodb. היכנסו ל-NocoDB בדפדפן, בחרו למה Devin יכול לגשת ובאילו כלים הוא יכול להשתמש, ואז בחרו Authorize.",
+      "tryBody": "פתחו את Cascade ב-Devin ובקשו „List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "עבור GitHub Copilot ב-VS Code.",
+      "addBody": "בחרו {link}, ואז בחרו Install כש-VS Code נפתח.",
+      "addLink": "הוספה ל-VS Code",
+      "manualLabel": "הוסיפו את זה אל ‎.vscode/mcp.json, או הריצו MCP: Open User Configuration כדי להוסיף את זה לכל workspace:",
+      "authBody": "כש-VS Code מבקש לאמת את NocoDB , בחרו Allow. היכנסו ל-NocoDB בדפדפן, בחרו למה Copilot יכול לגשת ובאילו כלים הוא יכול להשתמש, ואז בחרו Authorize.",
+      "tryBody": "פתחו את Copilot Chat במצב Agent ובקשו „List my NocoDB tools”."
     }
   },
   "roadmap": {

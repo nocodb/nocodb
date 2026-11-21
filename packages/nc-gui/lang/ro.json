@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Fă upgrade pentru a solicita autentificarea la formulare",
     "upgradeToUseFormRequireSigninSubtitle": "Treci la planul {plan} pentru a le solicita respondenților să se autentifice înainte de a trimite un formular.",
     "upgradeToUseSso": "Actualizați pentru a utiliza SSO",
-    "upgradeToUseSsoSubtitle": "Actualizați la planul {plan} pentru a configura autentificarea unică (SSO) și a permite echipei dvs. să se conecteze cu furnizorul dvs. de identitate."
+    "upgradeToUseSsoSubtitle": "Actualizați la planul {plan} pentru a configura autentificarea unică (SSO) și a permite echipei dvs. să se conecteze cu furnizorul dvs. de identitate.",
+    "notifyOwnerToUpgrade": "Dă clic pentru a-i cere proprietarului spațiului de lucru să treacă la un plan superior.",
+    "comparePlans": "Compară planurile",
+    "workspaceOnPlan": "{workspace} are planul {plan}",
+    "planMenuWith": "Iată ce primești cu",
+    "planMenuRecordsStorage": "{records} înregistrări și {storage} GB spațiu de stocare",
+    "planMenuUnlimitedEditors": "Editori nelimitați",
+    "planMenuAutomationRuns": "{runs} rulări de automatizări pe lună",
+    "planMenuApiCalls": "{calls} apeluri API pe lună",
+    "planMenuSnapshots": "{count} instantanee",
+    "railPitch": "Plus îți oferă {plusRecords} înregistrări și editori nelimitați.",
+    "upgradeToPlan": "Treci la {plan}",
+    "askAdminTitle": "Nu este inclus în licența ta",
+    "askAdminSubtitle": "Cere-i administratorului tău să extindă licența {detail}",
+    "askAdminSubtitleGeneric": "Această funcționalitate nu este inclusă în licența ta actuală. Cere-i administratorului tău să o extindă.",
+    "notifyAdmin": "Anunță administratorul",
+    "adminNotified": "Administrator anunțat",
+    "adminNotifiedSubtitle": "Cererea ta a fost trimisă administratorului tău.",
+    "adminAlreadyNotified": "Administratorul a fost deja anunțat",
+    "adminAlreadyNotifiedSubtitle": "Administratorul tău a primit deja această cerere în ultimele 24 de ore.",
+    "noAdminToNotify": "Niciun administrator activ de anunțat. Contactează persoana care administrează această instanță NocoDB.",
+    "upgradeRequestDailyLimit": "Ai trimis numărul maxim de cereri de upgrade pentru azi. Încearcă din nou mâine.",
+    "seatLimitTitle": "Limita de locuri a fost atinsă",
+    "licenseUpgradeRequested": "a cerut o extindere a licenței",
+    "forAddon": "pentru suplimentul {addon}",
+    "seatLimitAdminSubtitle": "Toate cele {limit} locuri licențiate sunt ocupate. Extinde-ți licența pentru a adăuga mai mulți editori.",
+    "seatLimitMemberSubtitle": "Toate cele {limit} locuri licențiate sunt ocupate. Cere-i administratorului tău să adauge mai multe locuri."
   },
   "general": {
     "scrollToBottom": "Derulează până jos",
@@ -1205,12 +1231,12 @@
   "datatype": {
     "ID": "ID",
     "ForeignKey": "Cheie străină",
-    "SingleLineText": "Text cu un singur rând",
+    "SingleLineText": "Text pe un singur rând",
     "LongText": "Text lung",
     "Attachment": "Atașament",
     "Checkbox": "Casetă de selectare",
-    "MultiSelect": "Selectare multiplă",
-    "SingleSelect": "Selectare simplă",
+    "MultiSelect": "Selecție multiplă",
+    "SingleSelect": "Selecție unică",
     "Collaborator": "Colaborator",
     "Date": "Dată",
     "Year": "An",
@@ -1223,15 +1249,15 @@
     "Currency": "Monedă",
     "Percent": "Procent",
     "Duration": "Durată",
-    "GeoData": "GeoData",
+    "GeoData": "Date geografice",
     "Rating": "Evaluare",
     "Formula": "Formulă",
     "Rollup": "Rollup",
     "Count": "Numărătoare",
     "Lookup": "Căutare",
     "DateTime": "Dată și oră",
-    "CreatedTime": "Timp de creare",
-    "LastModifiedTime": "Ultima modificare a timpului",
+    "CreatedTime": "Ora creării",
+    "LastModifiedTime": "Ora ultimei modificări",
     "AutoNumber": "Număr automat",
     "Barcode": "Cod de bare",
     "Button": "Buton",
@@ -1242,7 +1268,25 @@
       "restrict": "Restricționează",
       "setNull": "Setează NULL",
       "setDefault": "Setează implicit"
-    }
+    },
+    "LinkToAnotherRecord": "Legătură către altă înregistrare",
+    "Order": "Ordine",
+    "RichText": "Text formatat",
+    "SmartText": "Text inteligent",
+    "Colour": "Culoare",
+    "Geometry": "Geometrie",
+    "JSON": "JSON",
+    "SpecificDBType": "Tip specific de BD",
+    "QrCode": "Cod QR",
+    "Links": "Legături",
+    "User": "Utilizator",
+    "CreatedBy": "Creat de",
+    "LastModifiedBy": "Ultima modificare de",
+    "Deleted": "Șters",
+    "Meta": "Metadate rând",
+    "UUID": "UUID",
+    "AIButton": "Buton IA",
+    "AIPrompt": "Text IA"
   },
   "filterOperation": {
     "isEqual": "este egal",
@@ -1289,7 +1333,17 @@
       "daysAgo": "număr de zile în urmă",
       "daysFromNow": "număr de zile de acum",
       "exactDate": "dată exactă",
-      "exactMonth": "lună exactă"
+      "exactMonth": "lună exactă",
+      "thisCalendarWeek": "săptămâna aceasta",
+      "thisCalendarMonth": "luna aceasta",
+      "thisCalendarYear": "anul acesta",
+      "lastCalendarWeek": "săptămâna trecută",
+      "lastCalendarMonth": "luna trecută",
+      "lastCalendarYear": "anul trecut",
+      "nextCalendarWeek": "săptămâna viitoare",
+      "nextCalendarMonth": "luna viitoare",
+      "nextCalendarYear": "anul viitor",
+      "dateRange": "interval de date"
     }
   },
   "title": {
@@ -5848,7 +5902,29 @@
     "workspaceNoAccess": "Spațiu de lucru (fără acces)",
     "yAxis": "Axa Y",
     "workspaceSettings": "Setările spațiului de lucru",
-    "wrapLongText": "Încadrează textul lung"
+    "wrapLongText": "Încadrează textul lung",
+    "agentAccessData": "Tabele și înregistrări",
+    "agentAccessDataHint": "Citirea le parcurge și le interoghează. Editarea creează, modifică, leagă și șterge înregistrări.",
+    "agentAccessDocs": "Documente",
+    "agentAccessDocsHint": "Documentele bazei. Cu Editare le poate modifica.",
+    "agentAccessGithubHint": "Citește cod, trimite ramuri și deschide pull request-uri în depozitele sale",
+    "agentAccessCustom": "Unele dintre aceste instrumente au fost alese unul câte unul. Alege un nivel pentru a le seta pe toate.",
+    "agentAccessOf": "Acces la {what}",
+    "agentCodeStartBranch": "Pornește de la ramura",
+    "agentCodeStartBranchOf": "Ramura din care pornesc rulările {repo}",
+    "agentCodeBranchName": "Numele ramurii",
+    "agentCodeBranchNameHint": "Fiecare rulare primește propria ramură. {issue} și {slug} se completează automat.",
+    "agentCodePullRequests": "Pull request-uri",
+    "agentCodePrDraft": "Ciornă",
+    "agentCodePrReady": "Gata pentru review",
+    "agentCodePrDraftHint": "Se deschide ca ciornă. Recenzenții sunt solicitați după ce trec testele.",
+    "agentCodePrReadyHint": "Se deschide gata pentru review și îi solicită imediat pe recenzenții de mai jos.",
+    "agentCodeReviewers": "Recenzenți",
+    "agentCodeRemoveReviewer": "Elimină {login}",
+    "agentCodeNoReviewers": "Nimeni altcineva nu poate face review în aceste depozite",
+    "agentCodeNoReviewersSet": "Încă niciun recenzent.",
+    "agentCodeNeverMerge": "Agenții nu fac niciodată merge și nu trimit niciodată în {base}. Merge-ul îl face întotdeauna o persoană.",
+    "agentCodeNeverMergeAny": "Agenții nu fac niciodată merge și nu trimit niciodată în ramura din care pornește o rulare. Merge-ul îl face întotdeauna o persoană."
   },
   "activity": {
     "useTemplate": "Folosește șablon",
@@ -6040,7 +6116,18 @@
       "deleteStack": "Șterge stiva",
       "stackedBy": "Stivuit de",
       "chooseGroupingField": "Alegeți un Câmp de Grupare",
-      "autoCollapseEmptyStack": "Auto colapsează stiva goală"
+      "autoCollapseEmptyStack": "Auto colapsează stiva goală",
+      "createSingleSelectField": "Creează un câmp nou Selecție unică",
+      "createUserField": "Creează un câmp nou Utilizator",
+      "defaultStackToDo": "De făcut",
+      "defaultStackInProgress": "În desfășurare",
+      "defaultStackDone": "Gata",
+      "loadMoreStacks": "Încarcă mai multe coloane",
+      "linkTypeNotStackable": "O legătură mulți-la-unu poate grupa un kanban în coloane doar când sursa de date a tabelului este PostgreSQL. Grupează în schimb după un câmp Selecție unică, un câmp Utilizator sau o legătură aparține-de.",
+      "chooseStackField": "Alege un câmp de grupare",
+      "chooseStackFieldDesc": "Alege câmpul care grupează acest board în coloane. Fiecare valoare a lui primește propria coloană.",
+      "createSingleSelectFieldHint": "pentru a afișa starea, etapa sau tipul fiecărui card",
+      "createUserFieldHint": "pentru a afișa responsabilul sau proprietarul fiecărui card"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6151,7 +6238,9 @@
     "invitePeopleCount": "Invită {count} persoană | Invită {count} persoane",
     "inviteThemInstead": "Invită-i pe ei în schimb",
     "blockUser": "Blochează utilizatorul",
-    "unblockUser": "Deblochează utilizatorul"
+    "unblockUser": "Deblochează utilizatorul",
+    "addDateRange": "Adaugă interval de date",
+    "searchComments": "Caută în comentarii"
   },
   "tooltip": {
     "shiftClickWeekStep": "Țineți treapta la pas cu 1 săptămână",
@@ -6395,7 +6484,9 @@
     "dataSourceReadOnly": "Această sursă de date este doar pentru citire.",
     "mentionFields": "Menționează câmpuri",
     "skipEnabledAfterDelay": "Va fi activat după 2 secunde",
-    "clickToCopyDocumentId": "Dă clic pentru a copia ID-ul documentului"
+    "clickToCopyDocumentId": "Dă clic pentru a copia ID-ul documentului",
+    "workflowExecutionInterrupted": "Această rulare s-a oprit neașteptat de partea noastră. Nu s-a pierdut nimic. Reîncearc-o pentru a continua de la pasul la care era.",
+    "workflowExecutionOnHold": "Aplicația de care aparține acest flux de lucru este suspendată. Rularea continuă de unde a rămas de îndată ce aplicația revine."
   },
   "placeholder": {
     "enterVerificationCode": "Introdu codul din 6 cifre",
@@ -8273,7 +8364,9 @@
     "userDeleted": "{user} a șters un {type} de la {parent}: {name}",
     "youDeletedNoParent": "Ați șters un {type}: {name}",
     "userDeletedNoParent": "{user} a șters un {type}: {name}",
-    "someoneDeleted": "A fost ștersă o {type} : {name}"
+    "someoneDeleted": "A fost ștersă o {type} : {name}",
+    "restoreRequiresDocEdit": "Restaurarea acestui document necesită acces de editare la el",
+    "withSubPages": "(și {count} subpagină) | (și {count} subpagini)"
   },
   "payment": {
     "credits": {
@@ -8645,7 +8738,29 @@
       "other": {
         "where": "Adăugați în clientul dvs. un server MCP la distanță cu aceste date:",
         "auth": "Porniți conexiunea din clientul dvs. NocoDB se deschide în browser, unde vă autentificați, alegeți la ce poate avea acces clientul și selectați Autorizează."
+      },
+      "canDelete": "Poate șterge date sau acționa în afara NocoDB",
+      "lockedNotEditable": "Această aplicație a cerut aceste permisiuni la conectare și nu pot fi schimbate aici. Instrumentele ei opționale pot fi comutate mai jos.",
+      "copilot": {
+        "where": "În VS Code, deschide Command Palette, rulează MCP: Add Server și alege HTTP. Completează:",
+        "auth": "Când VS Code cere autentificarea NocoDB, selectează Allow. Conectează-te la NocoDB în browser și selectează Authorize."
       }
+    },
+    "discoveryNote": "{client} folosește cel mult 100 de instrumente, așa că acest URL listează direct instrumentele de citire și scrierile de înregistrări ale NocoDB și le găsește pe celelalte la cerere.",
+    "windsurf": {
+      "subtitle": "Pentru agentul Cascade din Devin (fostul Windsurf).",
+      "addBody": "În Devin (fostul Windsurf), deschide Settings › Cascade › MCP servers, selectează Add custom server și lipește acest URL:",
+      "manualLabel": "Adaugă asta în ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Selectează Connect lângă nocodb. Conectează-te la NocoDB în browser, alege la ce poate accesa Devin și ce instrumente poate folosi, apoi selectează Authorize.",
+      "tryBody": "Deschide Cascade în Devin și cere „List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "Pentru GitHub Copilot în VS Code.",
+      "addBody": "Selectează {link}, apoi selectează Install când se deschide VS Code.",
+      "addLink": "Adaugă în VS Code",
+      "manualLabel": "Adaugă asta în .vscode/mcp.json sau rulează MCP: Open User Configuration pentru a o adăuga în toate workspace-urile:",
+      "authBody": "Când VS Code cere autentificarea NocoDB, selectează Allow. Conectează-te la NocoDB în browser, alege la ce poate accesa Copilot și ce instrumente poate folosi, apoi selectează Authorize.",
+      "tryBody": "Deschide Copilot Chat în modul Agent și cere „List my NocoDB tools”."
     }
   },
   "roadmap": {

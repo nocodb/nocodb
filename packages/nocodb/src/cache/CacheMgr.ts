@@ -681,7 +681,7 @@ export default abstract class CacheMgr {
       list = [];
       // Remove only the sentinel: concurrent appenders can all read NONE, and
       // deleting the whole set here would drop keys they already added.
-      await this.client.srem(listKey, 'NONE');
+      await this.srem(listKey, ['NONE']);
     }
 
     log(`${this.context}::appendToList: get key ${key}`);

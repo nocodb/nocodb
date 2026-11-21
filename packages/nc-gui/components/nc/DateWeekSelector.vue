@@ -255,6 +255,7 @@ const paginate = (action: 'next' | 'prev') => {
           <span
             v-for="(day, index) in days"
             :key="index"
+            data-testid="nc-date-week-day"
             class="flex w-8 h-8 items-center font-[400] justify-center text-nc-content-gray-muted"
             >{{ day }}</span
           >

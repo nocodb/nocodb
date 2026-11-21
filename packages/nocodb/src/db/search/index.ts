@@ -1,4 +1,5 @@
 import {
+  PlanFeatureTypes,
   SEARCH_COUNT_CAP,
   SEARCH_TERM_MAX_LENGTH,
   SEARCH_TIMEZONE_QUERY_PARAM,
@@ -30,16 +31,17 @@ import {
   searchPlanSettings,
 } from '~/db/queryGuard';
 import { NcError } from '~/helpers/catchError';
-import { assertGlobalSearchAllowed } from '~/helpers/globalSearchGate';
+import { getGlobalSearchAccess } from '~/helpers/globalSearchGate';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { Filter } from '~/models';
-import { liveSearchable } from '~/db/search/searchLive';
+import { liveSearchable, searchLiveOnlyMaxRows } from '~/db/search/searchLive';
 
 export type { SearchMatch, SearchProvider } from '~/db/search/types';
 export {
   liveSearchable,
   liveSearchFieldWeight,
   searchLiveMaxRows,
+  searchLiveOnlyMaxRows,
 } from '~/db/search/searchLive';
 
 const scanProvider = new ScanSearchProvider();
@@ -117,13 +119,25 @@ export async function getSearchFilters(
       'Searching all fields is available on PostgreSQL sources only',
     );
   }
-  await assertGlobalSearchAllowed(baseModel.context);
+  const access = await getGlobalSearchAccess(baseModel.context);
+  if (access === 'none') {
+    NcError.get(baseModel.context).featureNotSupported({
+      feature: PlanFeatureTypes.FEATURE_GLOBAL_SEARCH,
+    });
+  }
+  // A plan without global search reads small tables live and never the index.
+  const liveOnly = access === 'live';
+  const liveMaxRows = liveOnly ? searchLiveOnlyMaxRows() : undefined;
   // Some paths (shared views) arrive without columns: no primary key, and
   // the filters below would name no field.
   if (!baseModel.model.columns) await baseModel.model.getColumns();
 
   // Only a member's search starts a build, not a shared view or base visitor's.
-  if (!baseModel.context.is_public && !isSharedViewAccess(baseModel.context)) {
+  if (
+    !liveOnly &&
+    !baseModel.context.is_public &&
+    !isSharedViewAccess(baseModel.context)
+  ) {
     maybeAutoBuildSearchIndex(baseModel);
   }
 
@@ -138,28 +152,36 @@ export async function getSearchFilters(
   // No trigram (`ab`, `東京`): the index can't narrow it, so only a small table
   // is searched, read directly. A number or date (`12`) matches as one on
   // every table, never as text.
-  const scan = !kinds.pattern && textOnly && (await liveSearchable(baseModel));
+  const scan =
+    !kinds.pattern &&
+    textOnly &&
+    (await liveSearchable(baseModel, liveMaxRows));
   if (!scan && !kinds.pattern && textOnly) {
-    reportSearchState('term_too_short');
+    // Live-only: a longer term wouldn't help, the table is too large either way.
+    reportSearchState(liveOnly ? 'plan_limit' : 'term_too_short');
     return noRows(baseModel).filters;
   }
 
   const request = { term, timezone: getSearchTimezone(args), scan };
-  if (scan || availability !== 'ready') {
+  if (scan || liveOnly || availability !== 'ready') {
     // Same matches as the index, read from the table: slower, so small tables only.
-    if (!scan && !(await liveSearchable(baseModel))) {
+    if (!scan && !(await liveSearchable(baseModel, liveMaxRows))) {
+      // Live-only never builds an index, so the plan is why, whichever cap
+      // (plan rows, cells, `NC_SEARCH_LIVE_MAX_ROWS`) binds.
       reportSearchState(
-        (await searchIndexTooLarge(
-          baseModel.context,
-          baseModel.model,
-          baseModel.dbDriver,
-        ))
+        liveOnly
+          ? 'plan_limit'
+          : (await searchIndexTooLarge(
+              baseModel.context,
+              baseModel.model,
+              baseModel.dbDriver,
+            ))
           ? 'too_large'
           : 'too_large_unindexed',
       );
       return noRows(baseModel).filters;
     }
-    if (availability !== 'ready') reportSearchState(availability);
+    if (!liveOnly && availability !== 'ready') reportSearchState(availability);
     return (await indexProvider.matchUnindexed(baseModel, request)).filters;
   }
 

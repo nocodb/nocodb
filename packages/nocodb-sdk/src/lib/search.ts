@@ -10,6 +10,9 @@ dayjs.extend(customParseFormat);
 /** Above this many matches a searched count reports `SEARCH_COUNT_CAP + 1`, shown as "1,000+". */
 export const SEARCH_COUNT_CAP = 1000;
 
+/** Rows up to which a plan without global search searches all fields, read live; it never builds an index. */
+export const SEARCH_LIVE_ONLY_MAX_ROWS = 10_000;
+
 /** Longest search term accepted by the all-fields search. */
 export const SEARCH_TERM_MAX_LENGTH = 256;
 
@@ -190,7 +193,9 @@ export type SearchState =
   | 'unsupported'
   | 'catching_up'
   | 'term_too_short'
-  | 'disabled';
+  | 'disabled'
+  /** Too large to read live on a plan without global search (past {@link SEARCH_LIVE_ONLY_MAX_ROWS} or the server's live budget); no rows match. */
+  | 'plan_limit';
 
 /** The `pageInfo` key carrying a search's {@link SearchState}. */
 export const SEARCH_STATE_FIELD = 'searchState';

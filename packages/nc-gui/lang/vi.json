@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Nâng cấp để yêu cầu đăng nhập trên biểu mẫu",
     "upgradeToUseFormRequireSigninSubtitle": "Nâng cấp lên gói {plan} để yêu cầu người trả lời đăng nhập trước khi gửi biểu mẫu.",
     "upgradeToUseSso": "Nâng cấp để sử dụng SSO",
-    "upgradeToUseSsoSubtitle": "Nâng cấp lên gói {plan} để thiết lập Đăng nhập một lần (SSO) và cho phép nhóm của bạn đăng nhập bằng nhà cung cấp danh tính của bạn."
+    "upgradeToUseSsoSubtitle": "Nâng cấp lên gói {plan} để thiết lập Đăng nhập một lần (SSO) và cho phép nhóm của bạn đăng nhập bằng nhà cung cấp danh tính của bạn.",
+    "notifyOwnerToUpgrade": "Nhấp để nhắc chủ sở hữu không gian làm việc nâng cấp gói.",
+    "comparePlans": "So sánh các gói",
+    "workspaceOnPlan": "{workspace} đang dùng {plan}",
+    "planMenuWith": "Bạn nhận được gì với",
+    "planMenuRecordsStorage": "{records} bản ghi và {storage} GB dung lượng",
+    "planMenuUnlimitedEditors": "Không giới hạn người chỉnh sửa",
+    "planMenuAutomationRuns": "{runs} lượt chạy tự động hóa mỗi tháng",
+    "planMenuApiCalls": "{calls} lượt gọi API mỗi tháng",
+    "planMenuSnapshots": "{count} ảnh chụp",
+    "railPitch": "Plus cho bạn {plusRecords} bản ghi và không giới hạn người chỉnh sửa.",
+    "upgradeToPlan": "Nâng cấp lên {plan}",
+    "askAdminTitle": "Không có trong giấy phép của bạn",
+    "askAdminSubtitle": "Hãy đề nghị quản trị viên nâng cấp giấy phép {detail}",
+    "askAdminSubtitleGeneric": "Tính năng này không có trong giấy phép hiện tại của bạn. Hãy đề nghị quản trị viên nâng cấp.",
+    "notifyAdmin": "Thông báo cho quản trị viên",
+    "adminNotified": "Đã thông báo cho quản trị viên",
+    "adminNotifiedSubtitle": "Yêu cầu của bạn đã được gửi tới quản trị viên.",
+    "adminAlreadyNotified": "Đã thông báo cho quản trị viên",
+    "adminAlreadyNotifiedSubtitle": "Quản trị viên của bạn đã nhận được yêu cầu này trong 24 giờ qua.",
+    "noAdminToNotify": "Không có quản trị viên đang hoạt động để thông báo. Hãy liên hệ người quản lý bản cài đặt NocoDB này.",
+    "upgradeRequestDailyLimit": "Bạn đã gửi số yêu cầu nâng cấp tối đa trong ngày hôm nay. Hãy thử lại vào ngày mai.",
+    "seatLimitTitle": "Đã đạt giới hạn chỗ ngồi",
+    "licenseUpgradeRequested": "đã yêu cầu nâng cấp giấy phép",
+    "forAddon": "cho tiện ích bổ sung {addon}",
+    "seatLimitAdminSubtitle": "Cả {limit} chỗ ngồi có giấy phép đều đang được dùng. Hãy nâng cấp giấy phép để thêm người chỉnh sửa.",
+    "seatLimitMemberSubtitle": "Cả {limit} chỗ ngồi có giấy phép đều đang được dùng. Hãy đề nghị quản trị viên thêm chỗ ngồi."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1211,8 +1237,8 @@
     "LongText": "Văn bản dài",
     "Attachment": "Tập tin đính kèm",
     "Checkbox": "Hộp kiểm",
-    "MultiSelect": "Đa Chọn",
-    "SingleSelect": "Chọn một lần",
+    "MultiSelect": "Chọn nhiều",
+    "SingleSelect": "Chọn một",
     "Collaborator": "Cộng tác viên.",
     "Date": "Ngày",
     "Year": "Năm",
@@ -1225,15 +1251,15 @@
     "Currency": "Tiền tệ",
     "Percent": "Phần trăm",
     "Duration": "Khoảng thời gian",
-    "GeoData": "Dữ Liệu Địa lý",
+    "GeoData": "Dữ liệu địa lý",
     "Rating": "Xếp hạng",
     "Formula": "Công thức",
     "Rollup": "ROLLUP.",
     "Count": "Đếm",
     "Lookup": "Tra cứu",
     "DateTime": "Ngày giờ",
-    "CreatedTime": "Tạo thời gian",
-    "LastModifiedTime": "Thời gian sửa đổi lần cuối",
+    "CreatedTime": "Thời gian tạo",
+    "LastModifiedTime": "Thời gian sửa đổi gần nhất",
     "AutoNumber": "Số tự động",
     "Barcode": "Mã vạch.",
     "Button": "Cái nút",
@@ -1244,7 +1270,25 @@
       "restrict": "Hạn chế",
       "setNull": "Đặt null.",
       "setDefault": "Đặt mặc định"
-    }
+    },
+    "LinkToAnotherRecord": "Liên kết tới bản ghi khác",
+    "Order": "Thứ tự",
+    "RichText": "Văn bản định dạng",
+    "SmartText": "Văn bản thông minh",
+    "Colour": "Màu sắc",
+    "Geometry": "Hình học",
+    "JSON": "JSON",
+    "SpecificDBType": "Kiểu CSDL cụ thể",
+    "QrCode": "Mã QR",
+    "Links": "Liên kết",
+    "User": "Người dùng",
+    "CreatedBy": "Được tạo bởi",
+    "LastModifiedBy": "Sửa đổi gần nhất bởi",
+    "Deleted": "Đã xóa",
+    "Meta": "Siêu dữ liệu hàng",
+    "UUID": "UUID",
+    "AIButton": "Nút AI",
+    "AIPrompt": "Văn bản AI"
   },
   "filterOperation": {
     "isEqual": "bằng nhau",
@@ -1291,7 +1335,17 @@
       "daysAgo": "số ngày trước",
       "daysFromNow": "số ngày kể từ hôm nay",
       "exactDate": "ngày chính xác",
-      "exactMonth": "tháng chính xác"
+      "exactMonth": "tháng chính xác",
+      "thisCalendarWeek": "tuần này",
+      "thisCalendarMonth": "tháng này",
+      "thisCalendarYear": "năm nay",
+      "lastCalendarWeek": "tuần trước",
+      "lastCalendarMonth": "tháng trước",
+      "lastCalendarYear": "năm ngoái",
+      "nextCalendarWeek": "tuần sau",
+      "nextCalendarMonth": "tháng sau",
+      "nextCalendarYear": "năm sau",
+      "dateRange": "khoảng ngày"
     }
   },
   "title": {
@@ -5867,7 +5921,29 @@
     "workspaceNoAccess": "Không gian làm việc (không có quyền truy cập)",
     "yAxis": "Trục Y",
     "workspaceSettings": "Cài đặt không gian làm việc",
-    "wrapLongText": "Ngắt dòng văn bản dài"
+    "wrapLongText": "Ngắt dòng văn bản dài",
+    "agentAccessData": "Bảng và bản ghi",
+    "agentAccessDataHint": "Đọc cho phép duyệt và truy vấn chúng. Chỉnh sửa còn tạo, thay đổi, liên kết và xóa bản ghi.",
+    "agentAccessDocs": "Tài liệu",
+    "agentAccessDocsHint": "Tài liệu của base này. Với quyền Chỉnh sửa, nó được phép thay đổi chúng.",
+    "agentAccessGithubHint": "Đọc mã, đẩy nhánh và mở pull request trong các kho của nó",
+    "agentAccessCustom": "Một số công cụ này đã được chọn từng cái một. Hãy chọn một mức để đặt cho tất cả.",
+    "agentAccessOf": "Quyền truy cập {what}",
+    "agentCodeStartBranch": "Bắt đầu từ nhánh",
+    "agentCodeStartBranchOf": "Nhánh mà các lần chạy {repo} bắt đầu từ đó",
+    "agentCodeBranchName": "Tên nhánh",
+    "agentCodeBranchNameHint": "Mỗi lần chạy có nhánh riêng. {issue} và {slug} được điền sẵn cho bạn.",
+    "agentCodePullRequests": "Pull request",
+    "agentCodePrDraft": "Bản nháp",
+    "agentCodePrReady": "Sẵn sàng để duyệt",
+    "agentCodePrDraftHint": "Mở ở dạng bản nháp. Người duyệt được mời khi các bài kiểm thử đạt.",
+    "agentCodePrReadyHint": "Mở ở trạng thái sẵn sàng để duyệt và mời ngay những người duyệt bên dưới.",
+    "agentCodeReviewers": "Người duyệt",
+    "agentCodeRemoveReviewer": "Xóa {login}",
+    "agentCodeNoReviewers": "Không ai khác có thể duyệt trong các kho này",
+    "agentCodeNoReviewersSet": "Chưa có người duyệt.",
+    "agentCodeNeverMerge": "Các tác nhân không bao giờ hợp nhất và không bao giờ đẩy lên {base}. Việc hợp nhất luôn do con người thực hiện.",
+    "agentCodeNeverMergeAny": "Các tác nhân không bao giờ hợp nhất và không bao giờ đẩy lên nhánh mà lần chạy bắt đầu từ đó. Việc hợp nhất luôn do con người thực hiện."
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6059,7 +6135,18 @@
       "deleteStack": "Xóa ngăn xếp",
       "stackedBy": "Được sắp xếp bởi",
       "chooseGroupingField": "Chọn một trường nhóm",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "Tạo trường Chọn một mới",
+      "createUserField": "Tạo trường Người dùng mới",
+      "defaultStackToDo": "Cần làm",
+      "defaultStackInProgress": "Đang làm",
+      "defaultStackDone": "Xong",
+      "loadMoreStacks": "Tải thêm chồng",
+      "linkTypeNotStackable": "Liên kết nhiều-một chỉ có thể xếp chồng một kanban khi nguồn dữ liệu của bảng là PostgreSQL. Thay vào đó, hãy xếp chồng theo trường Chọn một, trường Người dùng hoặc liên kết thuộc-về.",
+      "chooseStackField": "Chọn trường để xếp chồng",
+      "chooseStackFieldDesc": "Chọn trường dùng để xếp chồng board này. Mỗi giá trị của nó sẽ có một chồng riêng.",
+      "createSingleSelectFieldHint": "để hiển thị trạng thái, giai đoạn hoặc loại của từng thẻ",
+      "createUserFieldHint": "để hiển thị người phụ trách hoặc chủ sở hữu của từng thẻ"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6173,7 +6260,9 @@
     "invitePeopleCount": "Mời {count} người | Mời {count} người",
     "inviteThemInstead": "Mời họ thay thế",
     "blockUser": "Chặn người dùng",
-    "unblockUser": "Bỏ chặn người dùng"
+    "unblockUser": "Bỏ chặn người dùng",
+    "addDateRange": "Thêm khoảng ngày",
+    "searchComments": "Tìm trong bình luận"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6417,7 +6506,9 @@
     "dataSourceReadOnly": "Nguồn dữ liệu này chỉ đọc.",
     "mentionFields": "Nhắc đến trường",
     "skipEnabledAfterDelay": "Sẽ được bật sau 2 giây",
-    "clickToCopyDocumentId": "Nhấp để sao chép ID tài liệu"
+    "clickToCopyDocumentId": "Nhấp để sao chép ID tài liệu",
+    "workflowExecutionInterrupted": "Lần chạy này đã dừng bất ngờ ở phía chúng tôi. Không có gì bị mất. Hãy thử lại để tiếp tục từ bước đang dở.",
+    "workflowExecutionOnHold": "Ứng dụng chứa quy trình này đang bị tạm ngưng. Lần chạy sẽ tiếp tục từ chỗ dừng ngay khi ứng dụng hoạt động trở lại."
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8295,7 +8386,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "Khôi phục tài liệu này cần quyền chỉnh sửa tài liệu đó",
+    "withSubPages": "(và {count} trang con) | (và {count} trang con)"
   },
   "payment": {
     "credits": {
@@ -8668,7 +8761,29 @@
       "other": {
         "where": "Thêm một máy chủ MCP từ xa trong ứng dụng khách của bạn với các thông tin sau:",
         "auth": "Bắt đầu kết nối từ ứng dụng khách của bạn. NocoDB sẽ mở trong trình duyệt, nơi bạn đăng nhập, chọn những gì ứng dụng khách được truy cập và chọn Ủy quyền."
+      },
+      "canDelete": "Có thể xóa dữ liệu hoặc hành động bên ngoài NocoDB",
+      "lockedNotEditable": "Ứng dụng này đã yêu cầu các quyền đó khi đăng nhập và không thể thay đổi tại đây. Các công cụ tùy chọn của nó có thể bật tắt ở bên dưới.",
+      "copilot": {
+        "where": "Trong VS Code, mở Command Palette, chạy MCP: Add Server và chọn HTTP. Điền:",
+        "auth": "Khi VS Code yêu cầu xác thực NocoDB, hãy chọn Allow. Đăng nhập NocoDB trên trình duyệt rồi chọn Authorize."
       }
+    },
+    "discoveryNote": "{client} dùng tối đa 100 công cụ, nên URL này liệt kê trực tiếp các công cụ đọc và ghi bản ghi của NocoDB, còn lại sẽ tìm khi có yêu cầu.",
+    "windsurf": {
+      "subtitle": "Dành cho tác nhân Cascade trong Devin (trước đây là Windsurf).",
+      "addBody": "Trong Devin (trước đây là Windsurf), mở Settings › Cascade › MCP servers, chọn Add custom server rồi dán URL này:",
+      "manualLabel": "Thêm nội dung này vào ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Chọn Connect bên cạnh nocodb. Đăng nhập NocoDB trên trình duyệt, chọn những gì Devin được truy cập và công cụ nào nó được dùng, rồi chọn Authorize.",
+      "tryBody": "Mở Cascade trong Devin và hỏi “List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "Dành cho GitHub Copilot trong VS Code.",
+      "addBody": "Chọn {link}, rồi chọn Install khi VS Code mở ra.",
+      "addLink": "Thêm vào VS Code",
+      "manualLabel": "Thêm nội dung này vào .vscode/mcp.json, hoặc chạy MCP: Open User Configuration để thêm cho mọi workspace:",
+      "authBody": "Khi VS Code yêu cầu xác thực NocoDB, hãy chọn Allow. Đăng nhập NocoDB trên trình duyệt, chọn những gì Copilot được truy cập và công cụ nào nó được dùng, rồi chọn Authorize.",
+      "tryBody": "Mở Copilot Chat ở chế độ Agent và hỏi “List my NocoDB tools”."
     }
   },
   "roadmap": {

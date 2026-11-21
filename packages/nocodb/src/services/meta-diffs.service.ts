@@ -1423,6 +1423,11 @@ export class MetaDiffsService {
 
     logger?.(`Virtual column changes applied`);
 
+    await Model.clearListCache(context, {
+      base_id: base.id,
+      source_id: source.id,
+    });
+
     logger?.(`Processing many to many relation changes`);
 
     // populate m2m relations

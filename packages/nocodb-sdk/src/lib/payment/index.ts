@@ -670,7 +670,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_COMPUTE_LITE]:
     'to run sandboxes on your own servers with nc-compute-lite.',
   [PlanFeatureTypes.FEATURE_GLOBAL_SEARCH]:
-    'to search all fields and records across your workspace.',
+    'to search all fields in tables of any size, and records across a base.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

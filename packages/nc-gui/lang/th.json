@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "อัปเกรดเพื่อกำหนดให้ต้องลงชื่อเข้าใช้ในแบบฟอร์ม",
     "upgradeToUseFormRequireSigninSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อกำหนดให้ผู้ตอบต้องลงชื่อเข้าใช้ก่อนส่งแบบฟอร์ม",
     "upgradeToUseSso": "อัปเกรดเพื่อใช้ SSO",
-    "upgradeToUseSsoSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อตั้งค่าการลงชื่อเข้าใช้ครั้งเดียว (SSO) และให้ทีมของคุณลงชื่อเข้าใช้ด้วยผู้ให้บริการข้อมูลประจำตัวของคุณ"
+    "upgradeToUseSsoSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อตั้งค่าการลงชื่อเข้าใช้ครั้งเดียว (SSO) และให้ทีมของคุณลงชื่อเข้าใช้ด้วยผู้ให้บริการข้อมูลประจำตัวของคุณ",
+    "notifyOwnerToUpgrade": "คลิกเพื่อแจ้งเจ้าของพื้นที่ทำงานให้อัปเกรดแพ็กเกจ",
+    "comparePlans": "เปรียบเทียบแพ็กเกจ",
+    "workspaceOnPlan": "{workspace} ใช้ {plan} อยู่",
+    "planMenuWith": "สิ่งที่คุณจะได้รับกับ",
+    "planMenuRecordsStorage": "{records} ระเบียน และพื้นที่เก็บข้อมูล {storage} GB",
+    "planMenuUnlimitedEditors": "ผู้แก้ไขไม่จำกัด",
+    "planMenuAutomationRuns": "รันระบบอัตโนมัติ {runs} ครั้งต่อเดือน",
+    "planMenuApiCalls": "เรียกใช้ API {calls} ครั้งต่อเดือน",
+    "planMenuSnapshots": "สแนปช็อต {count} รายการ",
+    "railPitch": "Plus ให้คุณ {plusRecords} ระเบียน และผู้แก้ไขไม่จำกัด",
+    "upgradeToPlan": "อัปเกรดเป็น {plan}",
+    "askAdminTitle": "ไม่รวมอยู่ในสัญญาอนุญาตของคุณ",
+    "askAdminSubtitle": "ขอให้ผู้ดูแลระบบอัปเกรดสัญญาอนุญาต {detail}",
+    "askAdminSubtitleGeneric": "ฟีเจอร์นี้ไม่รวมอยู่ในสัญญาอนุญาตปัจจุบันของคุณ โปรดขอให้ผู้ดูแลระบบอัปเกรด",
+    "notifyAdmin": "แจ้งผู้ดูแลระบบ",
+    "adminNotified": "แจ้งผู้ดูแลระบบเรียบร้อย",
+    "adminNotifiedSubtitle": "ส่งคำขอของคุณไปยังผู้ดูแลระบบแล้ว",
+    "adminAlreadyNotified": "แจ้งผู้ดูแลระบบแล้ว",
+    "adminAlreadyNotifiedSubtitle": "ผู้ดูแลระบบของคุณได้รับคำขอนี้ไปแล้วภายใน 24 ชั่วโมงที่ผ่านมา",
+    "noAdminToNotify": "ไม่มีผู้ดูแลระบบที่ใช้งานอยู่ให้แจ้ง โปรดติดต่อผู้ที่ดูแลอินสแตนซ์ NocoDB นี้",
+    "upgradeRequestDailyLimit": "คุณส่งคำขออัปเกรดครบจำนวนสูงสุดของวันนี้แล้ว โปรดลองใหม่ในวันพรุ่งนี้",
+    "seatLimitTitle": "ถึงขีดจำกัดที่นั่งแล้ว",
+    "licenseUpgradeRequested": "ได้ขออัปเกรดสัญญาอนุญาต",
+    "forAddon": "สำหรับส่วนเสริม {addon}",
+    "seatLimitAdminSubtitle": "ที่นั่งที่มีสัญญาอนุญาตทั้ง {limit} ที่นั่งถูกใช้งานหมดแล้ว อัปเกรดสัญญาอนุญาตเพื่อเพิ่มผู้แก้ไข",
+    "seatLimitMemberSubtitle": "ที่นั่งที่มีสัญญาอนุญาตทั้ง {limit} ที่นั่งถูกใช้งานหมดแล้ว โปรดขอให้ผู้ดูแลระบบเพิ่มที่นั่ง"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1206,13 +1232,13 @@
   },
   "datatype": {
     "ID": "id",
-    "ForeignKey": "กุญแจต่างประเทศ",
+    "ForeignKey": "คีย์นอก",
     "SingleLineText": "ข้อความบรรทัดเดียว",
     "LongText": "ข้อความยาว",
     "Attachment": "สิ่งที่แนบมา",
     "Checkbox": "ช่องทำเครื่องหมาย",
-    "MultiSelect": "หลายเลือก",
-    "SingleSelect": "เลือกเดียว",
+    "MultiSelect": "เลือกได้หลายรายการ",
+    "SingleSelect": "เลือกได้รายการเดียว",
     "Collaborator": "ผู้ทำงานร่วมกัน",
     "Date": "วันที่",
     "Year": "ปี",
@@ -1231,10 +1257,10 @@
     "Rollup": "ม้วน",
     "Count": "นับ",
     "Lookup": "การค้นหา",
-    "DateTime": "วันเวลา",
-    "CreatedTime": "สร้างเวลา",
+    "DateTime": "วันที่และเวลา",
+    "CreatedTime": "เวลาที่สร้าง",
     "LastModifiedTime": "เวลาที่แก้ไขล่าสุด",
-    "AutoNumber": "หมายเลขอัตโนมัติ",
+    "AutoNumber": "เลขอัตโนมัติ",
     "Barcode": "บาร์โค้ด",
     "Button": "ปุ่ม",
     "Password": "รหัสผ่าน",
@@ -1244,7 +1270,25 @@
       "restrict": "จำกัด",
       "setNull": "ตั้งค่า null",
       "setDefault": "ตั้งค่าเริ่มต้น"
-    }
+    },
+    "LinkToAnotherRecord": "ลิงก์ไปยังระเบียนอื่น",
+    "Order": "ลำดับ",
+    "RichText": "ข้อความแบบมีรูปแบบ",
+    "SmartText": "ข้อความอัจฉริยะ",
+    "Colour": "สี",
+    "Geometry": "เรขาคณิต",
+    "JSON": "JSON",
+    "SpecificDBType": "ชนิดฐานข้อมูลเฉพาะ",
+    "QrCode": "รหัส QR",
+    "Links": "ลิงก์",
+    "User": "ผู้ใช้",
+    "CreatedBy": "สร้างโดย",
+    "LastModifiedBy": "แก้ไขล่าสุดโดย",
+    "Deleted": "ถูกลบแล้ว",
+    "Meta": "ข้อมูลเมตาของแถว",
+    "UUID": "UUID",
+    "AIButton": "ปุ่ม AI",
+    "AIPrompt": "ข้อความ AI"
   },
   "filterOperation": {
     "isEqual": "เท่ากัน",
@@ -1291,7 +1335,17 @@
       "daysAgo": "จำนวนวันที่ผ่านมา",
       "daysFromNow": "จำนวนวันนับจากวันนี้",
       "exactDate": "วันที่แน่นอน",
-      "exactMonth": "เดือนที่แน่นอน"
+      "exactMonth": "เดือนที่แน่นอน",
+      "thisCalendarWeek": "สัปดาห์นี้",
+      "thisCalendarMonth": "เดือนนี้",
+      "thisCalendarYear": "ปีนี้",
+      "lastCalendarWeek": "สัปดาห์ที่แล้ว",
+      "lastCalendarMonth": "เดือนที่แล้ว",
+      "lastCalendarYear": "ปีที่แล้ว",
+      "nextCalendarWeek": "สัปดาห์หน้า",
+      "nextCalendarMonth": "เดือนหน้า",
+      "nextCalendarYear": "ปีหน้า",
+      "dateRange": "ช่วงวันที่"
     }
   },
   "title": {
@@ -5871,7 +5925,29 @@
     "workspaceNoAccess": "พื้นที่ทำงาน (ไม่มีสิทธิ์เข้าถึง)",
     "yAxis": "แกน Y",
     "workspaceSettings": "การตั้งค่าพื้นที่ทำงาน",
-    "wrapLongText": "ตัดขึ้นบรรทัดใหม่สำหรับข้อความยาว"
+    "wrapLongText": "ตัดขึ้นบรรทัดใหม่สำหรับข้อความยาว",
+    "agentAccessData": "ตารางและระเบียน",
+    "agentAccessDataHint": "อ่านคือเรียกดูและสอบถามข้อมูล แก้ไขจะสร้าง เปลี่ยน เชื่อมโยง และลบระเบียนได้ด้วย",
+    "agentAccessDocs": "เอกสาร",
+    "agentAccessDocsHint": "เอกสารของ base นี้ เมื่อให้สิทธิ์แก้ไข ก็จะเปลี่ยนแปลงเอกสารได้",
+    "agentAccessGithubHint": "อ่านโค้ด ส่งสาขา และเปิด pull request ในที่เก็บโค้ดของตัวเอง",
+    "agentAccessCustom": "เครื่องมือบางอย่างเหล่านี้ถูกเลือกทีละรายการ เลือกระดับหนึ่งเพื่อตั้งค่าทั้งหมดพร้อมกัน",
+    "agentAccessOf": "สิทธิ์เข้าถึง {what}",
+    "agentCodeStartBranch": "เริ่มจากสาขา",
+    "agentCodeStartBranchOf": "สาขาที่การรันของ {repo} เริ่มต้น",
+    "agentCodeBranchName": "ชื่อสาขา",
+    "agentCodeBranchNameHint": "การรันแต่ละครั้งจะได้สาขาของตัวเอง {issue} และ {slug} จะถูกเติมให้อัตโนมัติ",
+    "agentCodePullRequests": "คำขอรวมโค้ด",
+    "agentCodePrDraft": "ฉบับร่าง",
+    "agentCodePrReady": "พร้อมให้รีวิว",
+    "agentCodePrDraftHint": "เปิดเป็นฉบับร่าง ผู้รีวิวจะถูกเชิญเมื่อการทดสอบผ่าน",
+    "agentCodePrReadyHint": "เปิดในสถานะพร้อมให้รีวิวและเชิญผู้รีวิวด้านล่างทันที",
+    "agentCodeReviewers": "ผู้รีวิว",
+    "agentCodeRemoveReviewer": "นำ {login} ออก",
+    "agentCodeNoReviewers": "ไม่มีคนอื่นที่รีวิวในที่เก็บโค้ดเหล่านี้ได้",
+    "agentCodeNoReviewersSet": "ยังไม่มีผู้รีวิว",
+    "agentCodeNeverMerge": "เอเจนต์จะไม่ผสานและไม่ส่งขึ้น {base} เด็ดขาด การผสานทำโดยคนเสมอ",
+    "agentCodeNeverMergeAny": "เอเจนต์จะไม่ผสานและไม่ส่งขึ้นสาขาที่ใช้เริ่มการรันเด็ดขาด การผสานทำโดยคนเสมอ"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6063,7 +6139,18 @@
       "deleteStack": "ลบสแต็ก",
       "stackedBy": "ซ้อนโดย",
       "chooseGroupingField": "Choose a Grouping Field",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "สร้างฟิลด์เลือกได้รายการเดียวใหม่",
+      "createUserField": "สร้างฟิลด์ผู้ใช้ใหม่",
+      "defaultStackToDo": "ที่ต้องทำ",
+      "defaultStackInProgress": "กำลังดำเนินการ",
+      "defaultStackDone": "เสร็จแล้ว",
+      "loadMoreStacks": "โหลดกลุ่มเพิ่มเติม",
+      "linkTypeNotStackable": "ลิงก์แบบหลายต่อหนึ่งจะจัดกลุ่ม kanban ได้ก็ต่อเมื่อแหล่งข้อมูลของตารางเป็น PostgreSQL เท่านั้น ให้จัดกลุ่มด้วยฟิลด์เลือกได้รายการเดียว ฟิลด์ผู้ใช้ หรือลิงก์แบบเป็นของแทน",
+      "chooseStackField": "เลือกฟิลด์สำหรับจัดกลุ่ม",
+      "chooseStackFieldDesc": "เลือกฟิลด์ที่ใช้จัดกลุ่ม board นี้ แต่ละค่าของฟิลด์จะได้กลุ่มของตัวเอง",
+      "createSingleSelectFieldHint": "เพื่อแสดงสถานะ ขั้น หรือประเภทของแต่ละการ์ด",
+      "createUserFieldHint": "เพื่อแสดงผู้รับผิดชอบหรือเจ้าของของแต่ละการ์ด"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6177,7 +6264,9 @@
     "invitePeopleCount": "เชิญ {count} คน | เชิญ {count} คน",
     "inviteThemInstead": "เชิญพวกเขาแทน",
     "blockUser": "บล็อกผู้ใช้",
-    "unblockUser": "เลิกบล็อกผู้ใช้"
+    "unblockUser": "เลิกบล็อกผู้ใช้",
+    "addDateRange": "เพิ่มช่วงวันที่",
+    "searchComments": "ค้นหาในความคิดเห็น"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6421,7 +6510,9 @@
     "dataSourceReadOnly": "แหล่งข้อมูลนี้อ่านได้อย่างเดียว",
     "mentionFields": "กล่าวถึงฟิลด์",
     "skipEnabledAfterDelay": "จะเปิดใช้งานหลังจาก 2 วินาที",
-    "clickToCopyDocumentId": "คลิกเพื่อคัดลอก ID เอกสาร"
+    "clickToCopyDocumentId": "คลิกเพื่อคัดลอก ID เอกสาร",
+    "workflowExecutionInterrupted": "การรันนี้หยุดลงอย่างไม่คาดคิดจากฝั่งเรา ไม่มีข้อมูลใดสูญหาย ลองใหม่เพื่อทำต่อจากขั้นตอนที่ค้างไว้",
+    "workflowExecutionOnHold": "แอปที่เวิร์กโฟลว์นี้สังกัดอยู่ถูกระงับชั่วคราว การรันจะทำต่อจากจุดที่ค้างไว้ทันทีที่แอปกลับมาใช้งานได้"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8299,7 +8390,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "การกู้คืนเอกสารนี้ต้องมีสิทธิ์แก้ไขเอกสารดังกล่าว",
+    "withSubPages": "(และหน้าย่อย {count} หน้า) | (และหน้าย่อย {count} หน้า)"
   },
   "payment": {
     "credits": {
@@ -8672,7 +8765,29 @@
       "other": {
         "where": "เพิ่มเซิร์ฟเวอร์ MCP ระยะไกลในไคลเอ็นต์ของคุณด้วยรายละเอียดเหล่านี้:",
         "auth": "เริ่มการเชื่อมต่อจากไคลเอ็นต์ของคุณ NocoDB จะเปิดในเบราว์เซอร์ ที่นั่นคุณจะเข้าสู่ระบบ เลือกสิ่งที่อนุญาตให้ไคลเอ็นต์เข้าถึง แล้วเลือก อนุญาต"
+      },
+      "canDelete": "สามารถลบข้อมูลหรือทำงานนอก NocoDB ได้",
+      "lockedNotEditable": "แอปนี้ขอสิทธิ์เหล่านี้ตอนลงชื่อเข้าใช้ และเปลี่ยนที่นี่ไม่ได้ ส่วนเครื่องมือที่เลือกได้สามารถเปิดปิดด้านล่าง",
+      "copilot": {
+        "where": "ใน VS Code ให้เปิด Command Palette รัน MCP: Add Server แล้วเลือก HTTP จากนั้นกรอก:",
+        "auth": "เมื่อ VS Code ขอยืนยันตัวตนกับ NocoDB ให้เลือก Allow จากนั้นลงชื่อเข้าใช้ NocoDB ในเบราว์เซอร์แล้วเลือก Authorize"
       }
+    },
+    "discoveryNote": "{client} ใช้เครื่องมือได้มากสุด 100 รายการ URL นี้จึงแสดงเครื่องมืออ่านและเครื่องมือเขียนระเบียนของ NocoDB โดยตรง และค้นหาเครื่องมือที่เหลือเมื่อมีการร้องขอ",
+    "windsurf": {
+      "subtitle": "สำหรับเอเจนต์ Cascade ใน Devin (เดิมคือ Windsurf)",
+      "addBody": "ใน Devin (เดิมคือ Windsurf) ให้เปิด Settings › Cascade › MCP servers เลือก Add custom server แล้ววาง URL นี้:",
+      "manualLabel": "เพิ่มสิ่งนี้ลงใน ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "เลือก Connect ข้าง nocodb จากนั้นลงชื่อเข้าใช้ NocoDB ในเบราว์เซอร์ เลือกว่า Devin เข้าถึงอะไรได้และใช้เครื่องมือใดได้บ้าง แล้วเลือก Authorize",
+      "tryBody": "เปิด Cascade ใน Devin แล้วถามว่า “List my NocoDB tools”"
+    },
+    "copilot": {
+      "subtitle": "สำหรับ GitHub Copilot ใน VS Code",
+      "addBody": "เลือก {link} แล้วเลือก Install เมื่อ VS Code เปิดขึ้น",
+      "addLink": "เพิ่มลงใน VS Code",
+      "manualLabel": "เพิ่มสิ่งนี้ลงใน .vscode/mcp.json หรือรัน MCP: Open User Configuration เพื่อเพิ่มให้กับทุก workspace:",
+      "authBody": "เมื่อ VS Code ขอยืนยันตัวตนกับ NocoDB ให้เลือก Allow จากนั้นลงชื่อเข้าใช้ NocoDB ในเบราว์เซอร์ เลือกว่า Copilot เข้าถึงอะไรได้และใช้เครื่องมือใดได้บ้าง แล้วเลือก Authorize",
+      "tryBody": "เปิด Copilot Chat ในโหมด Agent แล้วถามว่า “List my NocoDB tools”"
     }
   },
   "roadmap": {

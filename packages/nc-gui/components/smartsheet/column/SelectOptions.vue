@@ -42,6 +42,13 @@ const {
 
 const isSyncedField = computed(() => !isDisplayFormat.value && isColumnSynced.value)
 
+const { isMetaReadOnly } = useRoles()
+
+// Titles map to the data source; color and order are NocoDB metadata and stay editable.
+const isTitleLocked = computed(
+  () => isSyncedField.value || (!isDisplayFormat.value && isMetaReadOnly.value && !!column.value?.id),
+)
+
 const validateInfos = computed(() => (isDisplayFormat.value ? {} : columnValidateInfos))
 
 // const { base } = storeToRefs(useBase())
@@ -615,7 +622,6 @@ defineExpose({
           v-if="!isDisplayFormat"
           v-model:checked="isAlphabetized"
           size="xsmall"
-          :disabled="isSyncedField"
           @change="(v) => $e('c:field:select:alphabetize:toggle', { enabled: v })"
         >
           {{ $t('labels.alphabetize') }}
@@ -643,7 +649,7 @@ defineExpose({
               v-model:visible="colorMenus[kanbanStackOption.index!]"
               :auto-close="false"
               overlay-class-name="nc-select-option-color-picker"
-              :disabled="isLoadingPredictOptions || isSyncedField"
+              :disabled="isLoadingPredictOptions"
               use-backdrop
             >
               <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
@@ -696,7 +702,7 @@ defineExpose({
               :placeholder="$t('placeholder.enterOptionName')"
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               data-testid="nc-kanban-stack-title-input"
-              :disabled="isLoadingPredictOptions || isSyncedField"
+              :disabled="isLoadingPredictOptions || isTitleLocked"
               @keydown="onKanbanStackInputKeydown"
               @change="() => {
                   kanbanStackOption!.status = undefined
@@ -720,7 +726,7 @@ defineExpose({
           :list="renderedOptions"
           item-key="id"
           handle=".nc-child-draggable-icon"
-          :disabled="isAlphabetized || isSyncedField"
+          :disabled="isAlphabetized"
           @change="onDragReorder"
         >
           <template #item="{ element, index }">
@@ -739,13 +745,7 @@ defineExpose({
                   <component :is="iconMap.dragVertical" small class="handle" />
                 </div>
 
-                <NcDropdown
-                  v-if="isColorCodeEnabled"
-                  v-model:visible="colorMenus[index]"
-                  :auto-close="false"
-                  :disabled="isSyncedField"
-                  use-backdrop
-                >
+                <NcDropdown v-if="isColorCodeEnabled" v-model:visible="colorMenus[index]" :auto-close="false" use-backdrop>
                   <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                     <div
                       class="h-6 w-6 rounded flex items-center"
@@ -791,14 +791,14 @@ defineExpose({
                   v-model:value="element.title"
                   class="caption !rounded-lg nc-select-col-option-select-option !bg-transparent"
                   :data-testid="`select-column-option-input-${index}`"
-                  :disabled="element.status === 'remove' || isSyncedField"
+                  :disabled="element.status === 'remove' || isTitleLocked"
                   @keydown.enter.prevent="element.title?.trim() && addNewOption()"
                   @change="optionChanged(element)"
                 />
               </div>
 
               <div
-                v-if="element.status !== 'remove' && !isSyncedField"
+                v-if="element.status !== 'remove' && !isTitleLocked"
                 :data-testid="`select-column-option-remove-${index}`"
                 class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="removeRenderedOption(index)"
@@ -806,7 +806,7 @@ defineExpose({
                 <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
               </div>
               <div
-                v-else-if="element.status === 'remove' && !isSyncedField"
+                v-else-if="element.status === 'remove' && !isTitleLocked"
                 :data-testid="`select-column-option-remove-undo-${index}`"
                 class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="undoRemoveRenderedOption(index)"
@@ -854,7 +854,7 @@ defineExpose({
       {{ displayFormatError || validateInfos.colOptions.help[0][0] }}
     </div>
     <div
-      v-if="!isKanbanStack && !isSyncedField"
+      v-if="!isKanbanStack && !isTitleLocked"
       class="nc-add-select-option-btn-wrapper flex shadow-sm"
       :class="{
         'mt-2': renderedOptions.length,
@@ -899,7 +899,7 @@ defineExpose({
         </NcButton>
       </NcTooltip>
     </div>
-    <div v-else-if="!kanbanStackOption?.id && !isSyncedField" class="mt-2 pl-1">
+    <div v-else-if="!kanbanStackOption?.id && !isTitleLocked" class="mt-2 pl-1">
       <NcTooltip v-if="isAiFeaturesEnabled && aiIntegrationAvailable" class="w-full" placement="bottom">
         <template #title>
           {{ $t('tooltip.autoSuggestSelectOptions') }}

@@ -83,8 +83,10 @@ livenessProbe:
   failureThreshold: 5
   successThreshold: 1
 ## @param readinessProbe App readiness probe
+## @param readinessProbe.path Set to /api/v1/health/ready on an image that serves it to stop routing traffic while the meta DB or Redis is unreachable
 readinessProbe:
   enabled: true
+  path: /api/v1/health
   initialDelaySeconds: 15
   periodSeconds: 10
   timeoutSeconds: 5
@@ -346,11 +348,13 @@ monitoring:
   ## @param monitoring.sentry.dsn Sentry DSN (eval; use existingSecret in prod)
   ## @param monitoring.sentry.existingSecret Secret holding the Sentry DSN
   ## @param monitoring.sentry.dsnKey Key in existingSecret for the DSN
+  ## @param monitoring.sentry.environment Sentry environment name (defaults to NODE_ENV)
   sentry:
     enabled: false
     dsn: ""
     existingSecret: ""
     dsnKey: NC_SENTRY_DSN
+    environment: ""
 
 ## @section Escape hatches
 ## @param extraEnvVars Extra env vars applied to app and worker

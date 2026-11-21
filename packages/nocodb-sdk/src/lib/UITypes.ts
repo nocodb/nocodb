@@ -838,9 +838,9 @@ export const readonlyMetaAllowedTypes = [
 ];
 
 export const partialUpdateAllowedTypes = [
-  // Single/Multi select is disabled for now since it involves updating type in some cases
-  // UITypes.SingleSelect,
-  // UITypes.MultiSelect,
+  // Option color/order only; titles stay locked (see columns.service)
+  UITypes.SingleSelect,
+  UITypes.MultiSelect,
   UITypes.Checkbox,
   UITypes.Number,
   UITypes.Decimal,

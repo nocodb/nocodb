@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Оновіть тариф, щоб вимагати вхід у формах",
     "upgradeToUseFormRequireSigninSubtitle": "Перейдіть на тариф {plan}, щоб респонденти входили в обліковий запис перед надсиланням форми.",
     "upgradeToUseSso": "Оновіть, аби використовувати SSO",
-    "upgradeToUseSsoSubtitle": "Оновіть до плану {plan}, щоб налаштувати єдиний вхід (SSO) і дозволити вашій команді входити через вашого постачальника ідентифікації."
+    "upgradeToUseSsoSubtitle": "Оновіть до плану {plan}, щоб налаштувати єдиний вхід (SSO) і дозволити вашій команді входити через вашого постачальника ідентифікації.",
+    "notifyOwnerToUpgrade": "Натисніть, щоб попросити власника робочого простору перейти на вищий тариф.",
+    "comparePlans": "Порівняти тарифи",
+    "workspaceOnPlan": "{workspace} має тариф {plan}",
+    "planMenuWith": "Що ви отримуєте з тарифом",
+    "planMenuRecordsStorage": "{records} записів і {storage} ГБ сховища",
+    "planMenuUnlimitedEditors": "Необмежена кількість редакторів",
+    "planMenuAutomationRuns": "{runs} запусків автоматизацій на місяць",
+    "planMenuApiCalls": "{calls} викликів API на місяць",
+    "planMenuSnapshots": "Знімків: {count}",
+    "railPitch": "Plus дає вам {plusRecords} записів і необмежену кількість редакторів.",
+    "upgradeToPlan": "Перейти на {plan}",
+    "askAdminTitle": "Не входить до вашої ліцензії",
+    "askAdminSubtitle": "Попросіть адміністратора розширити ліцензію {detail}",
+    "askAdminSubtitleGeneric": "Ця можливість не входить до вашої поточної ліцензії. Попросіть адміністратора розширити її.",
+    "notifyAdmin": "Сповістити адміністратора",
+    "adminNotified": "Адміністратора сповіщено",
+    "adminNotifiedSubtitle": "Ваш запит надіслано вашому адміністраторові.",
+    "adminAlreadyNotified": "Адміністратора вже сповіщено",
+    "adminAlreadyNotifiedSubtitle": "Ваш адміністратор уже отримав цей запит протягом останніх 24 годин.",
+    "noAdminToNotify": "Немає активного адміністратора для сповіщення. Зверніться до того, хто керує цим екземпляром NocoDB.",
+    "upgradeRequestDailyLimit": "Ви надіслали максимальну кількість запитів на підвищення тарифу за сьогодні. Спробуйте ще раз завтра.",
+    "seatLimitTitle": "Досягнуто ліміт місць",
+    "licenseUpgradeRequested": "запросив розширення ліцензії",
+    "forAddon": "для доповнення {addon}",
+    "seatLimitAdminSubtitle": "Усі {limit} ліцензованих місць зайнято. Розширте ліцензію, щоб додати більше редакторів.",
+    "seatLimitMemberSubtitle": "Усі {limit} ліцензованих місць зайнято. Попросіть адміністратора додати ще місць."
   },
   "general": {
     "scrollToBottom": "Прокрутити до кінця",
@@ -1231,10 +1257,10 @@
     "Rollup": "Накопичення",
     "Count": "Кількість",
     "Lookup": "Пошук",
-    "DateTime": "Дата і час",
+    "DateTime": "Дата й час",
     "CreatedTime": "Час створення",
     "LastModifiedTime": "Час останньої зміни",
-    "AutoNumber": "Автоматичне прирощування",
+    "AutoNumber": "Автонумерація",
     "Barcode": "Штрих-код",
     "Button": "Кнопка",
     "Password": "Пароль",
@@ -1244,7 +1270,25 @@
       "restrict": "Обмежити",
       "setNull": "Встановити NULL",
       "setDefault": "Встановити за замовчуванням"
-    }
+    },
+    "LinkToAnotherRecord": "Зв'язок з іншим записом",
+    "Order": "Порядок",
+    "RichText": "Форматований текст",
+    "SmartText": "Розумний текст",
+    "Colour": "Колір",
+    "Geometry": "Геометрія",
+    "JSON": "JSON",
+    "SpecificDBType": "Конкретний тип БД",
+    "QrCode": "QR-код",
+    "Links": "Зв'язки",
+    "User": "Користувач",
+    "CreatedBy": "Ким створено",
+    "LastModifiedBy": "Ким змінено востаннє",
+    "Deleted": "Видалено",
+    "Meta": "Метадані рядка",
+    "UUID": "UUID",
+    "AIButton": "Кнопка ШІ",
+    "AIPrompt": "Текст ШІ"
   },
   "filterOperation": {
     "isEqual": "дорівнює",
@@ -1291,7 +1335,17 @@
       "daysAgo": "кількість днів тому",
       "daysFromNow": "кількість днів від сьогодні",
       "exactDate": "точна дата",
-      "exactMonth": "точний місяць"
+      "exactMonth": "точний місяць",
+      "thisCalendarWeek": "цей тиждень",
+      "thisCalendarMonth": "цей місяць",
+      "thisCalendarYear": "цей рік",
+      "lastCalendarWeek": "минулий тиждень",
+      "lastCalendarMonth": "минулий місяць",
+      "lastCalendarYear": "минулий рік",
+      "nextCalendarWeek": "наступний тиждень",
+      "nextCalendarMonth": "наступний місяць",
+      "nextCalendarYear": "наступний рік",
+      "dateRange": "діапазон дат"
     }
   },
   "title": {
@@ -5873,7 +5927,29 @@
     "workspaceNoAccess": "Робочий простір (немає доступу)",
     "yAxis": "Вісь Y",
     "workspaceSettings": "Налаштування робочого простору",
-    "wrapLongText": "Переносити довгий текст"
+    "wrapLongText": "Переносити довгий текст",
+    "agentAccessData": "Таблиці та записи",
+    "agentAccessDataHint": "Читання дає змогу переглядати їх і робити запити. Редагування додатково створює, змінює, пов'язує та видаляє записи.",
+    "agentAccessDocs": "Документи",
+    "agentAccessDocsHint": "Документи цієї бази. З правом редагування він може їх змінювати.",
+    "agentAccessGithubHint": "Читає код, надсилає гілки й відкриває pull request'и у своїх репозиторіях",
+    "agentAccessCustom": "Деякі з цих інструментів вибиралися по одному. Виберіть рівень, щоб задати їх усі разом.",
+    "agentAccessOf": "Доступ: {what}",
+    "agentCodeStartBranch": "Починати з гілки",
+    "agentCodeStartBranchOf": "Гілка, з якої починаються запуски {repo}",
+    "agentCodeBranchName": "Назва гілки",
+    "agentCodeBranchNameHint": "Кожен запуск отримує власну гілку. {issue} та {slug} підставляються автоматично.",
+    "agentCodePullRequests": "Pull request'и",
+    "agentCodePrDraft": "Чернетка",
+    "agentCodePrReady": "Готово до рев'ю",
+    "agentCodePrDraftHint": "Відкривається як чернетка. Рецензентів запрошують, щойно тести пройдуть.",
+    "agentCodePrReadyHint": "Відкривається готовим до рев'ю і одразу запрошує рецензентів, указаних нижче.",
+    "agentCodeReviewers": "Рецензенти",
+    "agentCodeRemoveReviewer": "Вилучити {login}",
+    "agentCodeNoReviewers": "У цих репозиторіях більше ніхто не може робити рев'ю",
+    "agentCodeNoReviewersSet": "Рецензентів поки немає.",
+    "agentCodeNeverMerge": "Агенти ніколи не зливають і ніколи не надсилають у {base}. Злиття завжди робить людина.",
+    "agentCodeNeverMergeAny": "Агенти ніколи не зливають і ніколи не надсилають у гілку, з якої починається запуск. Злиття завжди робить людина."
   },
   "activity": {
     "useTemplate": "Використовувати шаблон",
@@ -6065,7 +6141,18 @@
       "deleteStack": "Видалити стек",
       "stackedBy": "Групувати по",
       "chooseGroupingField": "Виберіть поле групування",
-      "autoCollapseEmptyStack": "Автоматично згортати пустий стек"
+      "autoCollapseEmptyStack": "Автоматично згортати пустий стек",
+      "createSingleSelectField": "Створити нове поле «Одиничний вибір»",
+      "createUserField": "Створити нове поле «Користувач»",
+      "defaultStackToDo": "До виконання",
+      "defaultStackInProgress": "У роботі",
+      "defaultStackDone": "Готово",
+      "loadMoreStacks": "Завантажити ще стопки",
+      "linkTypeNotStackable": "Зв'язок «багато до одного» може розкладати kanban на стопки, лише коли джерелом даних таблиці є PostgreSQL. Групуйте натомість за полем «Одиничний вибір», полем «Користувач» або зв'язком «належить до».",
+      "chooseStackField": "Виберіть поле для групування",
+      "chooseStackFieldDesc": "Виберіть поле, за яким цей board розкладається на стопки. Кожне його значення отримає власну стопку.",
+      "createSingleSelectFieldHint": "щоб показувати статус, етап або тип кожної картки",
+      "createUserFieldHint": "щоб показувати виконавця або власника кожної картки"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6179,7 +6266,9 @@
     "invitePeopleCount": "Запросити {count} особу | Запросити {count} осіб",
     "inviteThemInstead": "Запросити їх натомість",
     "blockUser": "Заблокувати користувача",
-    "unblockUser": "Розблокувати користувача"
+    "unblockUser": "Розблокувати користувача",
+    "addDateRange": "Додати діапазон дат",
+    "searchComments": "Пошук у коментарях"
   },
   "tooltip": {
     "shiftClickWeekStep": "Утримуйте Shift для кроку на 1 тиждень",
@@ -6423,7 +6512,9 @@
     "dataSourceReadOnly": "Це джерело даних доступне лише для читання.",
     "mentionFields": "Згадати поля",
     "skipEnabledAfterDelay": "Буде увімкнено за 2 секунди",
-    "clickToCopyDocumentId": "Натисніть, щоб скопіювати ID документа"
+    "clickToCopyDocumentId": "Натисніть, щоб скопіювати ID документа",
+    "workflowExecutionInterrupted": "Цей запуск несподівано зупинився на нашому боці. Нічого не втрачено. Повторіть його, щоб продовжити з того кроку, на якому він був.",
+    "workflowExecutionOnHold": "Застосунок, до якого належить цей робочий процес, призупинено. Запуск продовжиться з того місця, де зупинився, щойно застосунок знову запрацює."
   },
   "placeholder": {
     "enterVerificationCode": "Введіть 6-значний код",
@@ -8301,7 +8392,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "Ви видалили {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "{type} було видалено: {name}"
+    "someoneDeleted": "{type} було видалено: {name}",
+    "restoreRequiresDocEdit": "Для відновлення цього документа потрібен доступ до його редагування",
+    "withSubPages": "(і {count} підсторінка) | (і {count} підсторінок)"
   },
   "payment": {
     "credits": {
@@ -8674,7 +8767,29 @@
       "other": {
         "where": "Додайте у своєму клієнті віддалений MCP-сервер із цими даними:",
         "auth": "Розпочніть підключення зі свого клієнта. У браузері відкриється NocoDB, де ви ввійдете, виберете, до чого матиме доступ клієнт, і виберете Авторизувати."
+      },
+      "canDelete": "Може видаляти дані або діяти поза межами NocoDB",
+      "lockedNotEditable": "Цей застосунок попросив ці дозволи під час входу, і тут їх змінити не можна. Його необов'язкові інструменти можна ввімкнути нижче.",
+      "copilot": {
+        "where": "У VS Code відкрийте Command Palette, виконайте MCP: Add Server і виберіть HTTP. Заповніть:",
+        "auth": "Коли VS Code попросить автентифікувати NocoDB, виберіть Allow. Увійдіть у NocoDB у браузері та виберіть Authorize."
       }
+    },
+    "discoveryNote": "{client} використовує щонайбільше 100 інструментів, тому цей URL одразу перелічує інструменти читання та запису записів NocoDB, а решту знаходить на запит.",
+    "windsurf": {
+      "subtitle": "Для агента Cascade у Devin (раніше Windsurf).",
+      "addBody": "У Devin (раніше Windsurf) відкрийте Settings › Cascade › MCP servers, виберіть Add custom server і вставте цей URL:",
+      "manualLabel": "Додайте це до ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Виберіть Connect поруч із nocodb. Увійдіть у NocoDB у браузері, виберіть, до чого Devin матиме доступ і якими інструментами зможе користуватися, а тоді виберіть Authorize.",
+      "tryBody": "Відкрийте Cascade у Devin і запитайте «List my NocoDB tools»."
+    },
+    "copilot": {
+      "subtitle": "Для GitHub Copilot у VS Code.",
+      "addBody": "Виберіть {link}, а потім виберіть Install, коли відкриється VS Code.",
+      "addLink": "Додати до VS Code",
+      "manualLabel": "Додайте це до .vscode/mcp.json або виконайте MCP: Open User Configuration, щоб додати це для всіх workspace:",
+      "authBody": "Коли VS Code попросить автентифікувати NocoDB, виберіть Allow. Увійдіть у NocoDB у браузері, виберіть, до чого Copilot матиме доступ і якими інструментами зможе користуватися, а тоді виберіть Authorize.",
+      "tryBody": "Відкрийте Copilot Chat у режимі Agent і запитайте «List my NocoDB tools»."
     }
   },
   "roadmap": {

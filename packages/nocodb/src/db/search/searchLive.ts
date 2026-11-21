@@ -1,3 +1,4 @@
+import { SEARCH_LIVE_ONLY_MAX_ROWS } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, Model } from '~/models';
 import { cellKindOf, isComputedField } from '~/db/search/searchIndexFields';
@@ -39,11 +40,21 @@ export async function searchLiveMaxRows(model: Model) {
   return Math.min(rows, searchEnvInt('NC_SEARCH_LIVE_MAX_ROWS', rows, 0));
 }
 
-/** Whether the table is small enough to search live, without its index. */
+/** Rows up to which a plan without global search reads a table live (`NC_SEARCH_LIVE_ONLY_MAX_ROWS` overrides it). */
+export function searchLiveOnlyMaxRows() {
+  return searchEnvInt(
+    'NC_SEARCH_LIVE_ONLY_MAX_ROWS',
+    SEARCH_LIVE_ONLY_MAX_ROWS,
+    0,
+  );
+}
+
+/** Whether the table is small enough to search live, without its index; `maxRows` caps it further. */
 export async function liveSearchable(
   baseModel: IBaseModelSqlV2,
+  maxRows = Infinity,
 ): Promise<boolean> {
-  const max = await searchLiveMaxRows(baseModel.model);
+  const max = Math.min(await searchLiveMaxRows(baseModel.model), maxRows);
   if (!max) return false;
   const knex = baseModel.dbDriver;
   const rows = knex(baseModel.tnPath)

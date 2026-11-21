@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Logger } from '@nestjs/common';
 import {
   hasInputCalls,
@@ -63,10 +64,12 @@ export type HookPayloadType = Omit<HookType, 'operation'> & {
   operation: string;
 };
 
-// Limits the saved hook delivery settings are clamped to.
+// Limits the saved hook delivery settings are clamped to. The timeout cap
+// stays at 30 s while the form doesn't expose timeout: every hook row holds
+// the column default of 60000, which nobody chose.
 export const WEBHOOK_TIMEOUT_DEFAULT_MS = 30_000;
 export const WEBHOOK_TIMEOUT_MIN_MS = 1_000;
-export const WEBHOOK_TIMEOUT_MAX_MS = 60_000;
+export const WEBHOOK_TIMEOUT_MAX_MS = 30_000;
 export const WEBHOOK_MAX_RETRIES = 10;
 export const WEBHOOK_RETRY_INTERVAL_DEFAULT_MS = 60_000;
 export const WEBHOOK_RETRY_INTERVAL_MIN_MS = 1_000;
@@ -141,6 +144,41 @@ export function getWebhookRetryDelay(e: any, retryInterval: number) {
     WEBHOOK_RETRY_INTERVAL_MAX_MS,
     Math.max(retryInterval, Number.isFinite(retryAfterMs) ? retryAfterMs : 0),
   );
+}
+
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
+// Fingerprint of what a URL delivery is built from; a queued retry is dropped
+// when it changes, so an edited URL or rotated header never gets the old request.
+export function getWebhookDeliveryConfigHash(
+  hook: Pick<Hook, 'notification' | 'url' | 'headers'>,
+) {
+  let notification = hook?.notification;
+  if (typeof notification === 'string') {
+    try {
+      notification = JSON.parse(notification);
+    } catch {
+      // hash the raw string
+    }
+  }
+  return createHash('sha256')
+    .update(
+      stableStringify({
+        notification: notification ?? null,
+        url: hook?.url ?? null,
+        headers: hook?.headers ?? null,
+      }),
+    )
+    .digest('hex');
 }
 
 export class WebhookInvoker {
@@ -300,7 +338,16 @@ export class WebhookInvoker {
       log,
       ncSiteUrl,
     }: {
-      hook: Pick<HookType, 'id' | 'timeout' | 'retries' | 'retry_interval'>;
+      hook: Pick<
+        Hook,
+        | 'id'
+        | 'timeout'
+        | 'retries'
+        | 'retry_interval'
+        | 'notification'
+        | 'url'
+        | 'headers'
+      >;
       error: any;
       reqPayload: WebhookRetryState['request'];
       attempt: number;
@@ -327,6 +374,7 @@ export class WebhookInvoker {
         headers: reqPayload.headers,
         data: reqPayload.data,
       },
+      configHash: getWebhookDeliveryConfigHash(hook),
       log,
     };
 
@@ -363,6 +411,29 @@ export class WebhookInvoker {
       ncSiteUrl?: string;
     },
   ) {
+    if (retry.configHash !== getWebhookDeliveryConfigHash(hook)) {
+      if (['ERROR', 'ALL'].includes(webhookLogLevel) || isEE) {
+        // no `error`, so the error-notification digest doesn't count it
+        const droppedLog = {
+          ...hook,
+          ...retry.log,
+          fk_hook_id: hook.id,
+          type: 'URL',
+          payload: JSON.stringify(this.extractReqPayloadForLog(retry.request)),
+          error_code: 'HOOK_CHANGED',
+          error_message: `Attempt ${retry.attempt} not sent: the webhook's URL, headers or body changed since the first attempt, so the remaining retries were dropped`,
+          execution_time: '0',
+        } as HookLogType;
+        await HookLog.insert(context, {
+          ...droppedLog,
+          test_call: false,
+        }).catch((e) => {
+          this.logger.error(e.message, e.stack);
+        });
+      }
+      return;
+    }
+
     const startTime = process.hrtime();
     const reqPayload = this.withTransportOptions(retry.request, hook);
     let hookLog: HookLogType;

@@ -353,6 +353,8 @@ const {
   startResize,
   findResizeHandleColumn,
   autoFitColumnWidth,
+  autoFitAllColumnWidths,
+  isRowNumberResizeHandle,
   hoverRow,
   selection,
   makeCellEditable,
@@ -1530,6 +1532,17 @@ async function handleMouseDown(e: MouseEvent) {
 
   // Handle all Column Header Operations
   if (y <= headerRowHeight.value) {
+    if (
+      clickType === MouseClickType.DOUBLE_CLICK &&
+      !isLocked.value &&
+      isViewOperationsAllowed.value &&
+      isRowNumberResizeHandle(x) &&
+      autoFitAllColumnWidths()
+    ) {
+      triggerRefreshCanvas()
+      return
+    }
+
     // If x less than 80px, use is hovering over the row meta column
     if (x > rowMetaColumnWidth.value) {
       if (!isViewOperationsAllowed.value) return

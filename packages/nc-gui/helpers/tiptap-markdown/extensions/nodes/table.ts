@@ -21,16 +21,21 @@ export const Table = Node.create<any, { markdown: MarkdownNodeSpec }>({
               if (j) {
                 state.write(' | ')
               }
-              const cellContent = col.firstChild
-              if (cellContent.textContent.trim()) {
-                state.renderInline(cellContent)
-              }
+              // A cell holds one line: its paragraphs are joined with <br>, which loads back as line breaks
+              col.forEach((paragraph, _, k) => {
+                if (k) {
+                  state.write('<br>')
+                }
+                if (paragraph.textContent.trim()) {
+                  state.renderInline(paragraph)
+                }
+              })
             })
             state.write(' |')
             state.ensureNewLine()
             if (!i) {
-              const delimiterRow = Array.from({ length: row.childCount })
-                .map(() => '---')
+              const delimiterRow = childNodes(row)
+                .map((cell) => alignDelimiter(cell.attrs.align))
                 .join(' | ')
               state.write(`| ${delimiterRow} |`)
               state.ensureNewLine()
@@ -47,8 +52,19 @@ export const Table = Node.create<any, { markdown: MarkdownNodeSpec }>({
   },
 })
 
+function alignDelimiter(align?: string | null) {
+  if (align === 'center') return ':---:'
+  if (align === 'right') return '---:'
+  if (align === 'left') return ':---'
+  return '---'
+}
+
 function hasSpan(node) {
   return node.attrs.colspan > 1 || node.attrs.rowspan > 1
+}
+
+function hasOnlyParagraphs(cell) {
+  return childNodes(cell).every((child) => child.type.name === 'paragraph')
 }
 
 function isMarkdownSerializable(node) {
@@ -56,13 +72,16 @@ function isMarkdownSerializable(node) {
   const firstRow = rows[0]
   const bodyRows = rows.slice(1)
 
-  if (childNodes(firstRow).some((cell) => cell.type.name !== 'tableHeader' || hasSpan(cell) || cell.childCount > 1)) {
+  // A first row of plain cells (a range pasted from a spreadsheet) becomes the header row, as on the server.
+  const firstRowCells = childNodes(firstRow)
+  const firstRowType = firstRowCells[0]?.type.name
+  if (firstRowCells.some((cell) => cell.type.name !== firstRowType || hasSpan(cell) || !hasOnlyParagraphs(cell))) {
     return false
   }
 
   if (
     bodyRows.some((row) =>
-      childNodes(row).some((cell) => cell.type.name === 'tableHeader' || hasSpan(cell) || cell.childCount > 1),
+      childNodes(row).some((cell) => cell.type.name === 'tableHeader' || hasSpan(cell) || !hasOnlyParagraphs(cell)),
     )
   ) {
     return false

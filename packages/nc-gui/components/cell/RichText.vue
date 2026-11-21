@@ -5,7 +5,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
-import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
+import { NcMarkdownParser, richTextTableExtensions, suggestion } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
 import { getI18n } from '~/plugins/a.i18n'
 
@@ -194,6 +194,7 @@ const getTiptapExtensions = () => {
     TaskItem.configure({
       nested: true,
     }),
+    ...richTextTableExtensions,
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
@@ -280,7 +281,7 @@ const editor = useEditor({
   onBlur: (e) => {
     if (
       !(e?.event?.relatedTarget as HTMLElement)?.closest(
-        '.bubble-menu, .nc-textarea-rich-editor, .nc-rich-text, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+        '.bubble-menu, .nc-textarea-rich-editor, .nc-rich-text, .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
       )
     ) {
       isFocused.value = false
@@ -539,7 +540,7 @@ useEventListener(
     if (
       targetEl?.classList?.contains('tiptap') ||
       !targetEl?.closest(
-        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content',
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
       )
     ) {
       isFocused.value = false
@@ -556,14 +557,14 @@ useEventListener(
     if (
       !targetEl &&
       (e.target as HTMLElement)?.closest(
-        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
       )
     )
       return
 
     if (
       !targetEl?.closest(
-        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content',
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
       )
     ) {
       isFocused.value = false
@@ -579,7 +580,7 @@ onClickOutside(editorDom, (e) => {
 
   if (
     !targetEl?.closest(
-      '.bubble-menu,.tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+      '.bubble-menu,.tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
     )
   ) {
     isFocused.value = false

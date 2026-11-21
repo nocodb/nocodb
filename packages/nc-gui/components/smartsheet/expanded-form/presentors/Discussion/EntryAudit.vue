@@ -30,20 +30,12 @@ const fieldsChanged = computed(() => {
   }
 })
 
-const meta = inject(MetaInj, ref())
-
 function safeGetFromAuditDetails(audit: AuditType, key: string) {
   try {
     return JSON.parse(audit.details || '')[key]
   } catch {
     return '-'
   }
-}
-
-function getLinkColumnType(audit: AuditType) {
-  const fieldId = safeGetFromAuditDetails(audit, 'link_field_id')
-  const col = meta.value?.columns?.find((c: any) => c.id === fieldId)
-  return (col?.colOptions as any)?.type || safeGetFromAuditDetails(audit, 'type')
 }
 
 /* formatting */
@@ -121,62 +113,60 @@ const createdBy = computed(() => {
         <p class="text-sm font-weight-500 mb-1 ml-6.5">{{ $t('activity.recordWasCreated') }}</p>
       </div>
     </template>
-    <template v-else-if="['DATA_UPDATE', 'DATA_CASCADE_UPDATE'].includes(props.auditGroup.audit?.op_type)">
-      <SmartsheetExpandedFormPresentorsDiscussionAuditInfoExpressive :audit="props.auditGroup.audit" />
-    </template>
-    <template v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(props.auditGroup.audit?.op_type)">
-      <div class="relative mb-2">
-        <GeneralIcon
-          icon="ncNode"
-          class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-elevated absolute top-1/2 left-0 rtl:(left-auto right-0 translate-x-1/2) transform -translate-y-1/2 -translate-x-1/2"
-        />
-        <div class="text-sm ml-6.5 inline-flex items-center flex-wrap gap-1">
-          <span class="text-small1 text-nc-content-gray-subtle2 font-weight-500"> {{ $t('activity.changed') }} </span>
-          <span
-            class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
-          >
-            <SmartsheetHeaderVirtualCellIcon
-              :column-meta="{ uidt: 'Links', colOptions: { type: getLinkColumnType(props.auditGroup.audit) } }"
-              class="!w-[16px] !h-[16px] !m-0"
-            />
-            <span class="text-small1 font-weight-500">
-              {{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}
-            </span>
-          </span>
-          <div
-            v-if="safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')?.length > 0"
-            class="flex gap-1 flex-wrap"
-          >
-            <span
-              class="!text-small p-0.5 font-weight-500 border-1 border-nc-red-200 rounded-md bg-nc-bg-red-light inline-flex items-center gap-1"
-            >
-              <span
-                v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')"
-                :key="entry.refRowId"
-                class="text-nc-content-brand font-weight-500 line-through px-1 bg-nc-bg-brand !rounded-md"
-              >
-                {{ entry.value }}
-              </span>
-            </span>
-          </div>
-          <div
-            v-if="safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')?.length > 0"
-            class="flex gap-1 flex-wrap"
-          >
-            <span
-              class="!text-small1 p-0.5 font-weight-500 border-1 border-nc-green-200 rounded-md bg-nc-bg-green-light inline-flex items-center gap-1"
-            >
-              <span
-                v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')"
-                :key="entry.refRowId"
-                class="text-nc-content-brand font-weight-500 px-1 bg-nc-bg-brand !rounded-md"
-              >
-                {{ entry.value }}
-              </span>
-            </span>
-          </div>
-        </div>
+    <div
+      v-else-if="['DATA_UPDATE', 'DATA_CASCADE_UPDATE'].includes(props.auditGroup.audit?.op_type)"
+      class="nc-audit-card ml-6.5 rtl:(mr-6.5 ml-0) flex flex-col gap-3"
+    >
+      <SmartsheetExpandedFormSidebarAuditMiniItem :audit="props.auditGroup.audit" />
+    </div>
+    <div
+      v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(props.auditGroup.audit?.op_type)"
+      class="nc-audit-card ml-6.5 rtl:(mr-6.5 ml-0)"
+    >
+      <div
+        class="!text-nc-content-gray-subtle2 uppercase !text-[10px] tracking-wide font-weight-500 nc-audit-mini-item-header truncate"
+      >
+        {{ safeGetFromAuditDetails(props.auditGroup.audit, 'link_field_title') }}
       </div>
-    </template>
+      <div class="mt-1 flex flex-wrap items-center gap-1.5 text-small1">
+        <span
+          v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links') || []"
+          :key="`a-${entry.refRowId}`"
+          class="nc-audit-record"
+        >
+          <span class="nc-audit-pm nc-audit-pm-plus">+</span>{{ entry.value }}
+        </span>
+        <span
+          v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks') || []"
+          :key="`r-${entry.refRowId}`"
+          class="nc-audit-record nc-audit-record-gone"
+        >
+          <span class="nc-audit-pm nc-audit-pm-minus">−</span><span class="line-through">{{ entry.value }}</span>
+        </span>
+      </div>
+    </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.nc-audit-card {
+  @apply rounded-lg border-1 border-nc-border-gray-light bg-nc-bg-gray-extralight py-2.5 px-3 min-w-0;
+}
+
+.nc-audit-record {
+  @apply inline-flex items-center gap-1 px-1.5 rounded-md border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-gray leading-5;
+}
+.nc-audit-record-gone {
+  opacity: 0.55;
+}
+
+.nc-audit-pm {
+  @apply flex-none text-xs font-bold;
+}
+.nc-audit-pm-plus {
+  @apply text-nc-content-green-dark;
+}
+.nc-audit-pm-minus {
+  @apply text-nc-content-red-dark;
+}
+</style>

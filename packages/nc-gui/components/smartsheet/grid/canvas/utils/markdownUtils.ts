@@ -236,7 +236,8 @@ const splitTableRow = (line: string): string[] => {
   for (let i = 0; i < body.length; i++) {
     const char = body[i]!
     if (char === '\\' && body[i + 1] === '|') {
-      current += '\\|'
+      // The cell text holds a plain pipe, as GFM does; a mention's `id|email|name` needs it bare
+      current += '|'
       i++
       continue
     }

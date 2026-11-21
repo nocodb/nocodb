@@ -83,7 +83,9 @@ export const FieldMention = TipTapMention.extend({
         serialize(state: any, node: any) {
           const user = node.attrs.id
           if (user?.id) {
-            state.write(`@(${user.id}|${user.email ?? ''}|${user.name ?? ''})`)
+            const mention = `@(${user.id}|${user.email ?? ''}|${user.name ?? ''})`
+            // A bare pipe would end the table cell; markdown-it drops the `\` before the mention is parsed.
+            state.write(state.inTable ? mention.replace(/\|/g, '\\|') : mention)
           }
         },
         parse: {

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
+import { selectedRect } from '@tiptap/pm/tables'
 import { RichTextBubbleMenuOptions } from '#imports'
 
 interface Props {
@@ -122,10 +123,32 @@ onMounted(() => document.addEventListener('mousedown', onDocClick))
 
 const isTableMenuOpen = ref(false)
 
+// Esc closes the table menu only, not the long-text modal or grid around the editor.
+useEventListener(
+  document,
+  'keydown',
+  (e: KeyboardEvent) => {
+    if (e.key !== 'Escape' || !isTableMenuOpen.value) return
+    e.preventDefault()
+    e.stopPropagation()
+    isTableMenuOpen.value = false
+  },
+  true,
+)
+
 const isInTable = computed(() => !!editor.value?.isActive('table'))
 
 // Rows above the header, or deleting it, would leave a table markdown can't store.
-const isInHeaderRow = computed(() => !!editor.value?.isActive('tableHeader'))
+// `selectedRect` also catches a cell selection that only starts in the header row.
+const isInHeaderRow = computed(() => {
+  const state = editor.value?.state
+  if (!state || !isInTable.value) return false
+  try {
+    return selectedRect(state).top === 0
+  } catch {
+    return false
+  }
+})
 
 const tableActions = computed(() => {
   const e = editor.value
@@ -185,7 +208,9 @@ const tableActions = computed(() => {
 const onTableButtonClick = () => {
   if (isInTable.value) return
 
-  editor.value?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+  // insertTable replaces the selection, so insert after it instead.
+  const to = editor.value?.state.selection.to
+  editor.value?.chain().focus().setTextSelection(to!).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
 }
 
 const runTableAction = (run?: () => void) => {
@@ -663,7 +688,7 @@ const menuEntries = computed<MenuEntry[]>(() => {
         v-else-if="entry.type === 'table'"
         v-model:visible="isTableMenuOpen"
         :disabled="!isInTable"
-        overlay-class-name="nc-rich-text-table-menu"
+        overlay-class-name="nc-rich-text-table-menu !z-1053"
       >
         <NcTooltip :placement="tooltipPlacement" :disabled="isTableMenuOpen">
           <template #title> {{ $t('objects.table') }} </template>

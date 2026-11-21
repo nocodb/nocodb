@@ -93,8 +93,21 @@ function cellContent(dom: HTMLElement, schema: Schema) {
   return Fragment.from(paragraphs.length ? paragraphs : schema.nodes.paragraph!.create())
 }
 
+// Column alignment from a pipe table's delimiter row (markdown-it writes it as `text-align`).
+const alignAttribute = {
+  align: {
+    default: null,
+    parseHTML: (el: HTMLElement) => el.style.textAlign || el.getAttribute('align') || null,
+    renderHTML: (attrs: { align?: string | null }) => (attrs.align ? { style: `text-align: ${attrs.align}` } : {}),
+  },
+}
+
 const RichTextTableCell = TableCell.extend({
   content: 'paragraph+',
+
+  addAttributes() {
+    return { ...this.parent?.(), ...alignAttribute }
+  },
 
   parseHTML() {
     return [{ tag: 'td', getContent: (dom, schema) => cellContent(dom as HTMLElement, schema) }]
@@ -103,6 +116,10 @@ const RichTextTableCell = TableCell.extend({
 
 const RichTextTableHeader = TableHeader.extend({
   content: 'paragraph+',
+
+  addAttributes() {
+    return { ...this.parent?.(), ...alignAttribute }
+  },
 
   parseHTML() {
     return [{ tag: 'th', getContent: (dom, schema) => cellContent(dom as HTMLElement, schema) }]

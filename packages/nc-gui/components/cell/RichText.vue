@@ -540,7 +540,7 @@ useEventListener(
     if (
       targetEl?.classList?.contains('tiptap') ||
       !targetEl?.closest(
-        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content',
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
       )
     ) {
       isFocused.value = false
@@ -557,14 +557,14 @@ useEventListener(
     if (
       !targetEl &&
       (e.target as HTMLElement)?.closest(
-        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
       )
     )
       return
 
     if (
       !targetEl?.closest(
-        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content',
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
       )
     ) {
       isFocused.value = false
@@ -580,7 +580,7 @@ onClickOutside(editorDom, (e) => {
 
   if (
     !targetEl?.closest(
-      '.bubble-menu,.tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+      '.bubble-menu,.tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content, .nc-rich-text-table-menu',
     )
   ) {
     isFocused.value = false

@@ -401,6 +401,21 @@ onBeforeUnmount(() => {
       text-decoration: underline;
     }
 
+    .nc-print-cell-colour-value {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nc-print-cell-swatch {
+      width: 16px;
+      height: 16px;
+      flex: none;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
     .nc-print-cell-button {
       text-align: center;
     }

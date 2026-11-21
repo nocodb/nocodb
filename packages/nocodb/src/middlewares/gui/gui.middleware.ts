@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import express from 'express';
 import type { NestMiddleware } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { getBasePath, rewriteIndexHtmlForBasePath } from '~/helpers/basePath';
 import { injectBrandingMeta } from '~/helpers/brandingHtml';
 import { setFrameGuardHeaders } from '~/helpers/frameGuard';
 import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
@@ -28,9 +29,9 @@ export class GuiMiddleware implements NestMiddleware {
     try {
       if (!fs.existsSync(path.join(distPath, 'index.html'))) return;
 
-      this.indexHtml = fs.readFileSync(
-        path.join(distPath, 'index.html'),
-        'utf-8',
+      this.indexHtml = rewriteIndexHtmlForBasePath(
+        fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8'),
+        getBasePath(),
       );
 
       const router = express.Router();

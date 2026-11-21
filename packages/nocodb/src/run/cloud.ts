@@ -13,6 +13,7 @@ import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
 import { mayBeAppHost } from '~/helpers/appOrigin';
 import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
+import { getBasePath, stripBasePathMiddleware } from '~/helpers/basePath';
 
 handleUncaughtErrors(process);
 
@@ -38,6 +39,7 @@ let httpServer: http.Server | null = null;
 async function createServer(isMaster: boolean): Promise<http.Server> {
   const server = express();
   server.disable('x-powered-by');
+  server.use(stripBasePathMiddleware());
   server.use(cors());
 
   // Add static file serving for the dashboard
@@ -49,10 +51,16 @@ async function createServer(isMaster: boolean): Promise<http.Server> {
   // is an app origin too and looks like any other host, so the test is "not the
   // console" rather than "under the apps domain" — anything else falls through
   // to Nest, which decides.
-  const ncGuiStatic = express.static(ncGuiPath, ncStaticOptions);
+  // Under a subpath the shell must be rewritten, so GuiMiddleware serves it.
+  const servesRawShell = getBasePath() === '/';
+  const ncGuiStatic = express.static(ncGuiPath, {
+    ...ncStaticOptions,
+    index: servesRawShell ? 'index.html' : false,
+  });
   const ncGuiCompression = ncStaticCompression();
   server.use(process.env.NC_DASHBOARD_URL ?? '/', (req, res, next) => {
     if (mayBeAppHost(req.headers.host)) return next();
+    if (!servesRawShell && req.path.endsWith('.html')) return next();
     return ncGuiCompression(req, res, () => ncGuiStatic(req, res, next));
   });
 

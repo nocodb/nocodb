@@ -240,7 +240,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
           },
     })
 
-    if (completeUrl) return `${window.location.origin}/${url.href}`
+    if (completeUrl) return new URL(url.href, window.location.origin).href
 
     return url.href
   }

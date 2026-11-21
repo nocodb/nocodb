@@ -18,8 +18,7 @@ export const marketplaceListingPath = (listing: { id: string; slug?: string | nu
   `${MARKETPLACE_PATH}/${listing.slug || listing.id}`
 
 /** Absolute, for the "share this listing" boxes in the publisher console. */
-export const marketplaceListingUrl = (listing: { id: string; slug?: string | null }) =>
-  new URL(marketplaceListingPath(listing), window.location.origin).href
+export const marketplaceListingUrl = (listing: { id: string; slug?: string | null }) => ncAppUrl(marketplaceListingPath(listing))
 
 /**
  * Whether a history entry is the storefront itself.

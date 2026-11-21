@@ -5,7 +5,7 @@
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts', 'tsx', 'jsx', 'node'],
   rootDir: 'src',
-  testRegex: '(Integration|Source)\\.spec\\.ts$',
+  testRegex: '(Integration|Source|helpers)\\.spec\\.ts$',
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',

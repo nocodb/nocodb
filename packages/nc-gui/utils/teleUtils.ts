@@ -60,7 +60,8 @@ export class SocketTele {
       let socketPath = url.pathname
       socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
 
-      this.socket = io(url.href, {
+      // The path carries the subpath; a path in the URL would be read as a namespace.
+      this.socket = io(url.origin, {
         extraHeaders: { 'xc-auth': token },
         path: socketPath,
       })

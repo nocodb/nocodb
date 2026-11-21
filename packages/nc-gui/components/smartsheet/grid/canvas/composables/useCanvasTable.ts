@@ -1786,11 +1786,16 @@ export function useCanvasTable({
     const abstractType = getAbstractType(metaCol, sqlUis.value)
     const originalFont = ctx.font
 
+    // mirrors the header layout in useCanvasRender
     ctx.font = '600 12px Inter'
-    let headerIconSpace = AUTO_FIT_HEADER_PADDING
-    if (metaCol.description?.length) headerIconSpace += 18
-    if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) headerIconSpace += 18
-    let width = ctx.measureText(column.title ?? '').width + headerIconSpace
+    let headerSpace = AUTO_FIT_HEADER_PADDING + (interfacePageDataApi ? 8 : 26)
+    if (metaCol.description?.length) headerSpace += 18
+    if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) headerSpace += 18
+    if (column.isDateDependencyField && !isPublicView.value) headerSpace += 18
+    const isRequired = column.virtual ? isVirtualColRequired(metaCol, meta.value?.columns || []) : metaCol.rqd && !metaCol.cdf
+    if (isRequired) headerSpace += 4
+    const headerText = interfacePageDataApi?.fieldConfigs?.value?.[metaCol.id!]?.label || column.title || ''
+    let width = ctx.measureText(headerText).width + headerSpace
 
     for (const row of getLoadedRows()) {
       const value = row.row?.[metaCol.title!]

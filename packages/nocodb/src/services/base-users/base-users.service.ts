@@ -1024,12 +1024,13 @@ export class BaseUsersService {
         param.user?.id,
       );
 
-      // create new base user if it doesn't exist
+      // create new base user if it doesn't exist; inherit keeps their access unchanged
       if (!existingBaseUserData?.is_mapped) {
         await BaseUser.insert(context, {
           ...baseUserData,
           base_id: param.baseId,
           fk_user_id: param.user?.id,
+          roles: ProjectRoles.INHERIT,
         });
         this.appHooksService.emit(AppEvents.PROJECT_UPDATE, {
           base: base,

@@ -161,11 +161,9 @@ const getNewColumnOrders = async (count: number): Promise<number[] | undefined> 
   if (!activeView.value?.id || !count) return
 
   try {
-    const viewColumns = [
-      ...(orderViewColumns.value && orderViewId.value === activeView.value.id
-        ? orderViewColumns.value
-        : await fetchViewColumns(meta.value!.base_id!, activeView.value.id)),
-    ].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    const viewColumns = (await fetchViewColumns(meta.value!.base_id!, activeView.value.id)).sort(
+      (a, b) => (a.order ?? 0) - (b.order ?? 0),
+    )
 
     const linkIndex = viewColumns.findIndex((c) => c.fk_column_id === column.value?.id)
     if (linkIndex === -1) return
@@ -173,6 +171,8 @@ const getNewColumnOrders = async (count: number): Promise<number[] | undefined> 
     const lower = viewColumns[linkIndex]!.order ?? 0
     const next = viewColumns[linkIndex + 1]
     const upper = next ? next.order ?? 0 : lower + count + 1
+    // Neighbours share an order (legacy data): no gap to place into, append instead
+    if (upper <= lower) return
 
     return Array.from({ length: count }, (_, i) => lower + ((upper - lower) * (i + 1)) / (count + 1))
   } catch (e) {
@@ -298,25 +298,32 @@ watch(
   },
 )
 
-onMounted(async () => {
-  isLoadingModel.value = true
-  try {
-    const [model, viewColumns] = await Promise.all([
-      getMeta({ baseId: relatedBaseId.value as string, tableIdOrTitle: fkRelatedModelId.value }),
-      orderViewId.value
-        ? fetchViewColumns(relatedBaseId.value as string, orderViewId.value).catch((e) => {
-            // Fall back to the default view order
-            console.error(e)
-            return undefined
-          })
-        : undefined,
-    ])
-    orderViewColumns.value = viewColumns
-    relatedModel.value = model
-  } finally {
-    isLoadingModel.value = false
-  }
-})
+// Load on every open: this component mounts with the column menu, not the dialog
+watch(
+  value,
+  async (open) => {
+    if (!open) return
+
+    isLoadingModel.value = true
+    try {
+      const [model, viewColumns] = await Promise.all([
+        getMeta({ baseId: relatedBaseId.value as string, tableIdOrTitle: fkRelatedModelId.value }),
+        orderViewId.value
+          ? fetchViewColumns(relatedBaseId.value as string, orderViewId.value).catch((e) => {
+              // Fall back to the default view order
+              console.error(e)
+              return undefined
+            })
+          : undefined,
+      ])
+      orderViewColumns.value = viewColumns
+      relatedModel.value = model
+    } finally {
+      isLoadingModel.value = false
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

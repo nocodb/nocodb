@@ -20,11 +20,14 @@ export const IMAGE_PASTE_REGEX = /!\[([^\]]*)\]\((\S+?)(?:\s+["']([^"']+)["'])?\
 const escapeAttr = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
+/** The stored width as whole pixels, or 0 when it isn't a positive number (a co-editor can send anything). */
+export const imagePixelWidth = (width: unknown) => Math.max(Math.round(Number(width)) || 0, 0)
+
 /** Markdown has no image size, so a resized image is written as an <img> tag. */
-export const imageToHTML = (attrs: { src?: string; alt?: string; title?: string; width?: number }) =>
+export const imageToHTML = (attrs: { src?: string; alt?: string; title?: string; width?: unknown }) =>
   `<img src="${escapeAttr(attrs.src || '')}" alt="${escapeAttr(attrs.alt || '')}"${
     attrs.title ? ` title="${escapeAttr(attrs.title)}"` : ''
-  } width="${attrs.width}">`
+  } width="${imagePixelWidth(attrs.width)}">`
 
 const parseWidth = (el: HTMLElement) => {
   // Pixels only: `100%` would otherwise be read as 100px
@@ -50,7 +53,7 @@ export const Image = TiptapImage.extend<ImageOptions, { markdown: MarkdownNodeSp
     return {
       markdown: {
         serialize(state, node, parent, index) {
-          if (node.attrs.width) {
+          if (imagePixelWidth(node.attrs.width)) {
             state.write(imageToHTML(node.attrs))
           } else {
             defaultMarkdownSerializer.nodes.image!(state, node, parent, index)

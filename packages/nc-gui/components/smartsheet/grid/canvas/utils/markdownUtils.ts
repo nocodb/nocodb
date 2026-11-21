@@ -292,7 +292,8 @@ export const parseMarkdown = (
     currentUser?: Partial<UserType | User> | null
   },
 ): Block[] => {
-  const lines = text.split('\n')
+  // Whole text at once, so lines inside a code fence are known
+  const lines = imgTagsToMarkdown(text).split('\n')
   const blocks: Block[] = []
   const { users = [], currentUser = null } = options || {}
 
@@ -300,7 +301,7 @@ export const parseMarkdown = (
   let inTable = false
 
   for (let i = 0; i < lines.length; i++) {
-    const line = imgTagsToMarkdown(lines[i]!)
+    const line = lines[i]!
     if (!line.trim()) {
       inTable = false
       continue

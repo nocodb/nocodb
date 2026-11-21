@@ -31,9 +31,7 @@ function onResizeStart(e: PointerEvent, direction: 1 | -1) {
   }
 
   const onUp = () => {
-    window.removeEventListener('pointermove', onMove)
-    window.removeEventListener('pointerup', onUp)
-    stopDrag = null
+    stopDrag?.()
 
     if (dragWidth.value !== null && dragWidth.value !== props.node.attrs.width) {
       props.updateAttributes({ width: dragWidth.value })
@@ -41,11 +39,20 @@ function onResizeStart(e: PointerEvent, direction: 1 | -1) {
     dragWidth.value = null
   }
 
+  // The browser took the pointer (touch scroll, system gesture): drop the drag
+  const onCancel = () => {
+    stopDrag?.()
+    dragWidth.value = null
+  }
+
   window.addEventListener('pointermove', onMove)
   window.addEventListener('pointerup', onUp)
+  window.addEventListener('pointercancel', onCancel)
   stopDrag = () => {
     window.removeEventListener('pointermove', onMove)
     window.removeEventListener('pointerup', onUp)
+    window.removeEventListener('pointercancel', onCancel)
+    stopDrag = null
   }
 }
 

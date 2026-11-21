@@ -29,7 +29,7 @@ import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
 import { getColumnReorderUpdates } from '../utils/headerUtils'
 import { extractUserKeys } from '../../../../cell/User/utils'
-import { clearTextCache, selectOptionBgColorCache, selectOptionTextColorCache } from '../utils/canvas'
+import { clearTextCache, getAbstractType, selectOptionBgColorCache, selectOptionTextColorCache } from '../utils/canvas'
 import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
@@ -51,7 +51,14 @@ import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useFreezeDivider } from './useFreezeDivider'
 import { useColumnReorder } from './useColumnReorder'
-import { normalizeWidth, useColumnResize } from './useColumnResize'
+import {
+  AUTO_FIT_CELL_PADDING,
+  AUTO_FIT_HEADER_PADDING,
+  AUTO_FIT_MAX_WIDTH,
+  AUTO_FIT_TEXT_TYPES,
+  normalizeWidth,
+  useColumnResize,
+} from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
@@ -1702,6 +1709,7 @@ export function useCanvasTable({
     handleMouseMove: resizeMouseMove,
     handleMouseDown: startResize,
     resizeableColumn,
+    findResizeHandleColumn,
     isResizing,
   } = useColumnResize(
     canvasRef,
@@ -1752,6 +1760,68 @@ export function useCanvasTable({
       }
     },
   )
+  // Every row loaded so far, across expanded groups when grouped
+  const getLoadedRows = (): Row[] => {
+    if (!isGroupBy.value) return [...getDataCache([]).cachedRows.value.values()]
+
+    const rows: Row[] = []
+    const walk = (groups: Map<number, CanvasGroup>) => {
+      for (const group of groups.values()) {
+        if (!group.isExpanded) continue
+        if (group.groups?.size) walk(group.groups)
+        else rows.push(...getDataCache(group.path).cachedRows.value.values())
+      }
+    }
+    walk(cachedGroups.value)
+    return rows
+  }
+
+  // Double-click on a column divider: fit the width to the header and the loaded cells' text
+  const autoFitColumnWidth = (columnId: string): boolean => {
+    const metaCol = metaColumnById.value[columnId]
+    const column = columns.value.find((c) => c.id === columnId)
+    const ctx = canvasRef.value?.getContext('2d')
+    if (!metaCol || !column || !ctx || !AUTO_FIT_TEXT_TYPES.has(metaCol.uidt as UITypes)) return false
+
+    const abstractType = getAbstractType(metaCol, sqlUis.value)
+    const originalFont = ctx.font
+
+    ctx.font = '600 12px Inter'
+    let headerIconSpace = AUTO_FIT_HEADER_PADDING
+    if (metaCol.description?.length) headerIconSpace += 18
+    if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) headerIconSpace += 18
+    let width = ctx.measureText(column.title ?? '').width + headerIconSpace
+
+    for (const row of getLoadedRows()) {
+      const value = row.row?.[metaCol.title!]
+      if (value === null || value === undefined || value === '') continue
+
+      const text = parsePlainCellValue(value, {
+        col: metaCol,
+        abstractType,
+        meta: meta.value as TableType,
+        metas: metas.value,
+        isMysql,
+        isXcdbBase: baseStore.isXcdbBase,
+        t,
+      })
+      const firstLine = `${text ?? ''}`.split('\n')[0]!
+      ctx.font = `${metaCol.pv ? 600 : 500} 13px Inter`
+      width = Math.max(width, ctx.measureText(firstLine).width + AUTO_FIT_CELL_PADDING)
+      if (width >= AUTO_FIT_MAX_WIDTH) break
+    }
+
+    ctx.font = originalFont
+
+    const fitWidth = Math.ceil(Math.min(width, AUTO_FIT_MAX_WIDTH))
+    handleColumnWidth(columnId, fitWidth, (normalizedWidth) => {
+      if (!gridViewCols.value[columnId]) return
+      gridViewCols.value[columnId]!.width = normalizedWidth
+      updateGridViewColumn(columnId, { width: normalizedWidth })
+    })
+    return true
+  }
+
   const {
     isDragging: isColumnReordering,
     dragStart: columnDragStart,
@@ -2361,6 +2431,8 @@ export function useCanvasTable({
     // Handler
     resizeMouseMove,
     startResize,
+    findResizeHandleColumn,
+    autoFitColumnWidth,
 
     // Mouse Selection
     onMouseUpSelectionHandler,

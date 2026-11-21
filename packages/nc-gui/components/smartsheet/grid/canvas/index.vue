@@ -351,6 +351,8 @@ const {
   isDragging,
   startDrag,
   startResize,
+  findResizeHandleColumn,
+  autoFitColumnWidth,
   hoverRow,
   selection,
   makeCellEditable,
@@ -1531,6 +1533,15 @@ async function handleMouseDown(e: MouseEvent) {
     // If x less than 80px, use is hovering over the row meta column
     if (x > rowMetaColumnWidth.value) {
       if (!isViewOperationsAllowed.value) return
+
+      if (clickType === MouseClickType.DOUBLE_CLICK && !isLocked.value) {
+        const handleColumn = findResizeHandleColumn(x)
+        if (handleColumn && autoFitColumnWidth(handleColumn.id)) {
+          triggerRefreshCanvas()
+          return
+        }
+      }
+
       // If the user is trying to resize the column
       // If the user is trying to resize column, we will set the resizeableColumn to column object
       // The below operation will not interfere with other column operations

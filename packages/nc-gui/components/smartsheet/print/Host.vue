@@ -41,12 +41,12 @@ const printableGroupBy = computed(() =>
 
 const useSvgRenderer = isSvgPrintRenderer()
 
-let resolveSvgReady: (() => void) | undefined
+let svgRender: { resolve: () => void; reject: (error: unknown) => void } | undefined
 
 function waitForRender() {
   if (!useSvgRenderer) return Promise.resolve()
-  return new Promise<void>((resolve) => {
-    resolveSvgReady = resolve
+  return new Promise<void>((resolve, reject) => {
+    svgRender = { resolve, reject }
   })
 }
 
@@ -159,7 +159,8 @@ watch(
       :row-height="rowHeight"
       :group-columns="viewPrint.printState.value.groupColumns"
       :summary="viewPrint.printState.value.summary"
-      @ready="resolveSvgReady?.()"
+      @ready="svgRender?.resolve()"
+      @error="svgRender?.reject($event)"
     />
     <SmartsheetPrintTable
       v-else-if="viewPrint.printState.value"

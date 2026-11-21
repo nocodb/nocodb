@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
   summary: () => ({}),
 })
 
-const emit = defineEmits<{ ready: [] }>()
+const emit = defineEmits<{ ready: []; error: [error: unknown] }>()
 
 const { t } = useI18n()
 
@@ -44,7 +44,10 @@ const { meta } = useSmartsheetStoreOrThrow()
 
 const { getMeta, metas } = useMetas()
 
-const { forcedTheme, clearColorCache } = useTheme()
+const { forcedTheme, isDark, clearColorCache } = useTheme()
+
+// Drawing switches the app to the light theme; a dark user sees this cover, in their colours, instead of the flash.
+const cover = ref<{ background: string; color: string } | null>(null)
 
 const pages = ref<string[]>([])
 
@@ -743,6 +746,15 @@ async function render() {
 
   // The grid's renderers pick colours from the active theme; print is always light.
   const previousTheme = forcedTheme.value
+  if (isDark.value) {
+    const rootStyle = getComputedStyle(document.documentElement)
+    cover.value = {
+      background: rootStyle.getPropertyValue('--nc-bg-default').trim(),
+      color: rootStyle.getPropertyValue('--nc-content-gray').trim(),
+    }
+    await nextTick()
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+  }
   forcedTheme.value = 'light'
   await nextTick()
   clearColorCache()
@@ -778,12 +790,12 @@ async function render() {
     forcedTheme.value = previousTheme
     await nextTick()
     clearColorCache()
+    cover.value = null
   }
 
   pages.value = await dedupeImages(output)
   await nextTick()
   await waitForImages()
-  emit('ready')
 }
 
 const IMAGE_TIMEOUT_MS = 15000
@@ -818,7 +830,11 @@ document.title = getPrintDocumentTitle(props.title || pageTitle, range.value, pr
 
 onMounted(() => {
   document.head.appendChild(pageStyle)
-  render()
+  // A renderer that throws must not leave Print waiting forever.
+  render().then(
+    () => emit('ready'),
+    (error) => emit('error', error),
+  )
 })
 
 onBeforeUnmount(() => {
@@ -830,6 +846,9 @@ onBeforeUnmount(() => {
 
 <template>
   <Teleport to="body">
+    <div v-if="cover" class="nc-print-svg-cover" :style="cover">
+      <GeneralLoader size="xlarge" />
+    </div>
     <div ref="containerRef" class="nc-print-view nc-print-svg-pages" data-testid="nc-print-view">
       <!-- eslint-disable-next-line vue/no-v-html -->
       <div v-for="(svg, index) in pages" :key="index" class="nc-print-svg-page" v-html="svg" />
@@ -845,6 +864,15 @@ onBeforeUnmount(() => {
   font-variant-numeric: normal;
   word-spacing: normal;
   letter-spacing: normal;
+}
+
+.nc-print-svg-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media screen {

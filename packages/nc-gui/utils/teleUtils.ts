@@ -57,11 +57,11 @@ export class SocketTele {
       if (this.socket) this.socket.disconnect()
 
       const url = new URL(ncSiteUrl || '', window.location.href.split(/[?#]/)[0])
-      let socketPath = url.pathname
-      socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
+      // The server's namespace is the site URL path with a trailing slash.
+      const namespace = url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`
+      const socketPath = `${namespace}socket.io`
 
-      // The path carries the subpath; a path in the URL would be read as a namespace.
-      this.socket = io(url.origin, {
+      this.socket = io(`${url.origin}${namespace}`, {
         extraHeaders: { 'xc-auth': token },
         path: socketPath,
       })

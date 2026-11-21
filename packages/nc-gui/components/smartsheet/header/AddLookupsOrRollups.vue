@@ -53,15 +53,6 @@ const filteredColumns = ref<
 
 const selectedFields = ref<Record<string, boolean>>({})
 
-// 'right' | 'left' | 'end' — relative to the link field in the current view
-const insertPosition = ref('right')
-
-const insertPositionOptions = computed(() => [
-  { value: 'right', label: t('labels.right'), tooltip: t('labels.rightOfField', { field: column.value?.title }) },
-  { value: 'left', label: t('labels.left'), tooltip: t('labels.leftOfField', { field: column.value?.title }) },
-  { value: 'end', label: t('labels.end'), tooltip: t('labels.endOfFieldList') },
-])
-
 const isLoadingModel = ref(false)
 
 const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
@@ -129,36 +120,30 @@ const getRollupColPayload = (selectedColumn: ColumnType) => {
   }
 }
 
-// Evenly spaced view orders for `count` new fields at the chosen position
+// Evenly spaced view orders that place `count` new fields right of the link field
 const getNewColumnOrders = async (count: number): Promise<number[] | undefined> => {
   if (!activeView.value?.id || !count) return
 
-  const viewColumns = (
-    await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
-      operation: 'viewColumnList',
-      viewId: activeView.value.id,
-    })
-  ).list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  try {
+    const viewColumns = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: activeView.value.id,
+      })
+    ).list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
-  const maxOrder = viewColumns.reduce((max, c) => Math.max(max, c.order ?? 0), 0)
-  const linkIndex = viewColumns.findIndex((c) => c.fk_column_id === column.value?.id)
+    const linkIndex = viewColumns.findIndex((c) => c.fk_column_id === column.value?.id)
+    if (linkIndex === -1) return
 
-  let lower = maxOrder
-  let upper = maxOrder + count + 1
+    const lower = viewColumns[linkIndex]!.order ?? 0
+    const next = viewColumns[linkIndex + 1]
+    const upper = next ? next.order ?? 0 : lower + count + 1
 
-  if (linkIndex !== -1 && insertPosition.value !== 'end') {
-    const linkOrder = viewColumns[linkIndex]!.order ?? 0
-    if (insertPosition.value === 'right') {
-      const next = viewColumns[linkIndex + 1]
-      lower = linkOrder
-      upper = next ? next.order ?? 0 : linkOrder + count + 1
-    } else {
-      lower = viewColumns[linkIndex - 1]?.order ?? 0
-      upper = linkOrder
-    }
+    return Array.from({ length: count }, (_, i) => lower + ((upper - lower) * (i + 1)) / (count + 1))
+  } catch (e) {
+    // Fall back to appending at the end
+    console.error(e)
   }
-
-  return Array.from({ length: count }, (_, i) => lower + ((upper - lower) * (i + 1)) / (count + 1))
 }
 
 const createLookupsOrRollup = async () => {
@@ -348,16 +333,6 @@ onMounted(async () => {
         <div v-else>
           <GeneralLoader size="xlarge" />
         </div>
-      </div>
-
-      <div class="flex w-full gap-2 items-center justify-between">
-        <span class="text-nc-content-gray-subtle text-[13px]">{{ $t('labels.addTo') }}</span>
-        <NcSegmented
-          v-model:value="insertPosition"
-          :options="insertPositionOptions"
-          :aria-label="$t('labels.addTo')"
-          data-testid="nc-lookup-add-position"
-        />
       </div>
 
       <div class="flex w-full gap-2 justify-end">

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Discord notify
-        uses: rjstone/discord-webhook-notify@v1
+        uses: rjstone/discord-webhook-notify@1399c1b2d57cc05894d506d2cfdc33c5f012b993 # v1
         with:
           severity: info
           details: 'Closed : ${{ github.event.issue.title }}(#${{ github.event.issue.number }}) :  ${{ github.event.issue.html_url }}'

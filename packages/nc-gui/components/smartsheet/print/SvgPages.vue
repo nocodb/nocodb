@@ -41,7 +41,7 @@ const pages = ref<string[]>([])
 // The grid draws at 13px; the whole page is scaled to the chosen font size.
 const GRID_FONT_SIZE_PX = 13
 const HEADER_HEIGHT = 32
-const TITLE_HEIGHT = 44
+const TITLE_HEIGHT = 52
 // Images, icons and rich text load asynchronously; wait at most this long for them.
 const LOADER_TIMEOUT_MS = 3000
 
@@ -134,18 +134,18 @@ function drawPage(ctx: CanvasRenderingContext2D, band: ColumnType[], rows: Recor
     renderSingleLineText(ctx, {
       x: 0,
       y: 0,
+      py: 0,
       text: props.title ?? '',
       fontFamily: '700 20px Inter',
       fillStyle: '#1f293a',
-      height: 26,
     })
     renderSingleLineText(ctx, {
       x: 0,
-      y: 24,
+      y: 28,
+      py: 0,
       text: recordSummary.value,
       fontFamily: '500 12px Inter',
       fillStyle: '#4a5268',
-      height: 16,
     })
     y = TITLE_HEIGHT
   }

@@ -77,17 +77,36 @@ const range = computed(() =>
   ),
 )
 
+// The range as last applied, so a new start can keep the batch size.
+let appliedRange: PrintRange = { start: 1, end: 1 }
+
+function setRange(next: PrintRange) {
+  appliedRange = next
+  rangeStart.value = next.start
+  rangeEnd.value = next.end
+}
+
 function resetRange() {
   if (props.recordCount === null) return
 
-  const { start, end } = getDefaultPrintRange(props.recordCount, props.recordLimit, loadLastPrintedEnd(props.storageKey))
-  rangeStart.value = start
-  rangeEnd.value = end
+  setRange(getDefaultPrintRange(props.recordCount, props.recordLimit, loadLastPrintedEnd(props.storageKey)))
 }
 
 function applyRange() {
-  rangeStart.value = range.value.start
-  rangeEnd.value = range.value.end
+  setRange(range.value)
+}
+
+function applyRangeStart() {
+  if (rangeStart.value === null) return applyRange()
+
+  setRange(
+    movePrintRangeStart(
+      { ...appliedRange, end: rangeEnd.value ?? appliedRange.end },
+      rangeStart.value,
+      props.recordCount ?? 0,
+      props.recordLimit,
+    ),
+  )
 }
 
 function onPrint() {
@@ -186,8 +205,8 @@ watch(() => props.recordCount, resetRange, { immediate: true })
               class="nc-print-settings-range-input"
               :aria-label="$t('labels.printSettings.rangeFrom')"
               data-testid="nc-print-settings-range-start"
-              @blur="applyRange"
-              @press-enter="applyRange"
+              @blur="applyRangeStart"
+              @press-enter="applyRangeStart"
             />
             <span class="text-nc-content-gray-subtle">{{ $t('labels.to') }}</span>
             <a-input-number

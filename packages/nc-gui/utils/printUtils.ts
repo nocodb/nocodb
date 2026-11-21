@@ -336,6 +336,13 @@ export function clampPrintRange(range: Partial<PrintRange>, total: number, limit
   return { start, end }
 }
 
+/** A start typed past the end moves the end along, so the batch keeps its size. */
+export function movePrintRangeStart(range: PrintRange, start: number, total: number, limit: number): PrintRange {
+  const end = start > range.end ? start + range.end - range.start : range.end
+
+  return clampPrintRange({ start, end }, total, limit)
+}
+
 /** Starts after the last printed batch, or from the top once the view has been printed through. */
 export function getDefaultPrintRange(total: number, limit: number, lastPrintedEnd?: number | null): PrintRange {
   const start = lastPrintedEnd && lastPrintedEnd < total ? lastPrintedEnd + 1 : 1

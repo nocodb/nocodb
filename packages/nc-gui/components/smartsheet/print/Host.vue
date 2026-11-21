@@ -27,7 +27,9 @@ const printableGroupBy = computed(() =>
   ),
 )
 
-const recordLimit = PRINT_RECORD_LIMIT
+function cellsPerRecord(settings: PrintSettings) {
+  return countPrintCellsPerRecord(printColumns.value, columnWidths.value, settings)
+}
 
 const recordCount = ref<number | null>(null)
 
@@ -75,7 +77,7 @@ watch(
       :storage-key="viewPrint.storageKey.value"
       :loading="viewPrint.isPreparing.value"
       :record-count="recordCount"
-      :record-limit="recordLimit"
+      :cells-per-record="cellsPerRecord"
       @print="onPrint"
     />
 

@@ -8,8 +8,8 @@ interface Props {
   defaults?: PrintSettings
   /** Records the print can choose from; null while counting. */
   recordCount?: number | null
-  /** Most records one print can hold. */
-  recordLimit: number
+  /** Cells one record prints with these settings; sets how many records fit in one print. */
+  cellsPerRecord: (settings: PrintSettings) => number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -69,11 +69,13 @@ const fontSizeOptions = computed(() =>
 
 const isCounting = computed(() => props.recordCount === null)
 
+const recordLimit = computed(() => getPrintRecordLimit(props.cellsPerRecord(settings.value)))
+
 const range = computed(() =>
   clampPrintRange(
     { start: rangeStart.value ?? undefined, end: rangeEnd.value ?? undefined },
     props.recordCount ?? 0,
-    props.recordLimit,
+    recordLimit.value,
   ),
 )
 
@@ -89,7 +91,7 @@ function setRange(next: PrintRange) {
 function resetRange() {
   if (props.recordCount === null) return
 
-  setRange(getDefaultPrintRange(props.recordCount, props.recordLimit, loadLastPrintedEnd(props.storageKey)))
+  setRange(getDefaultPrintRange(props.recordCount, recordLimit.value, loadLastPrintedEnd(props.storageKey)))
 }
 
 function applyRange() {
@@ -104,7 +106,7 @@ function applyRangeStart() {
       { ...appliedRange, end: rangeEnd.value ?? appliedRange.end },
       rangeStart.value,
       props.recordCount ?? 0,
-      props.recordLimit,
+      recordLimit.value,
     ),
   )
 }
@@ -128,6 +130,11 @@ watch(
 )
 
 watch(() => props.recordCount, resetRange, { immediate: true })
+
+// Wider settings fit fewer records, so the chosen range shrinks to match.
+watch(recordLimit, () => {
+  if (!isCounting.value) applyRange()
+})
 </script>
 
 <template>
@@ -229,7 +236,7 @@ watch(() => props.recordCount, resetRange, { immediate: true })
               {{
                 $t('labels.printSettings.rangeHint', {
                   total: (props.recordCount ?? 0).toLocaleString(),
-                  limit: props.recordLimit.toLocaleString(),
+                  limit: recordLimit.toLocaleString(),
                 })
               }}
             </template>

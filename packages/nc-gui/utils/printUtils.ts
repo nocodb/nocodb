@@ -66,6 +66,12 @@ export const DEFAULT_PRINT_SETTINGS: PrintSettings = {
 /** Most records one print holds; a larger view prints in ranges. */
 export const PRINT_RECORD_LIMIT = 10_000
 
+/**
+ * Most table cells one print renders, all before the browser's print dialog opens.
+ * Measured at about 9s and 450MB of heap per 100k cells; 950k cells crashed the tab.
+ */
+export const PRINT_CELL_BUDGET = 100_000
+
 /** The list APIs' default max page size. */
 export const PRINT_FETCH_PAGE_SIZE = 1000
 
@@ -209,6 +215,49 @@ export function splitPrintColumnBands<T>(columns: { column: T; width: number }[]
   bands.push(band)
 
   return bands
+}
+
+/** Printed widths for the columns, then the bands they split into across pages. */
+export function getPrintColumnBands<T extends { id?: string }>(
+  columns: T[],
+  columnWidths: Record<string, string | number | undefined | null>,
+  settings: PrintSettings,
+) {
+  const rowNumberWidth = settings.showRowNumbers ? PRINT_ROW_NUMBER_WIDTH_PX : 0
+  const availableWidth = getPrintableWidthPx(settings) - rowNumberWidth
+
+  const sized = columns.map((column) => ({
+    column,
+    width: getPrintColumnWidthPx(columnWidths[column.id!], settings),
+  }))
+
+  const columnsWithWidth =
+    settings.fieldSizing === 'fitToWidth'
+      ? fitPrintColumnWidths(sized, availableWidth)
+      : capPrintColumnWidths(sized, availableWidth)
+
+  return { rowNumberWidth, availableWidth, columnsWithWidth, bands: splitPrintColumnBands(columnsWithWidth, availableWidth) }
+}
+
+/** Cells one record prints: a row in every band, each repeating the first field and the row number. */
+export function countPrintCellsPerRecord<T extends { id?: string }>(
+  columns: T[],
+  columnWidths: Record<string, string | number | undefined | null>,
+  settings: PrintSettings,
+) {
+  const { bands } = getPrintColumnBands(columns, columnWidths, settings)
+
+  return bands.reduce((sum, band) => sum + band.length + (settings.showRowNumbers ? 1 : 0), 0)
+}
+
+/** Records one print can hold, so wide views stay within the cell budget. */
+export function getPrintRecordLimit(cellsPerRecord: number) {
+  if (cellsPerRecord <= 0) return PRINT_RECORD_LIMIT
+
+  const limit = Math.floor(PRINT_CELL_BUDGET / cellsPerRecord)
+  const rounded = limit >= 100 ? Math.floor(limit / 100) * 100 : Math.max(limit, 1)
+
+  return Math.min(rounded, PRINT_RECORD_LIMIT)
 }
 
 export type PrintItem<Row> =

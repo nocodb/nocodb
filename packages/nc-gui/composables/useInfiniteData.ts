@@ -43,7 +43,7 @@ import type { ViewMembership } from '~/utils/realtimeUtils'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
-import { isUniqueConstraintViolationError } from '~/utils/errorUtils'
+import { isUniqueConstraintViolationError, markErrorReported } from '~/utils/errorUtils'
 import { type OfflineEdit, type OfflineEditReplayResult, createOfflineEditQueue, isNetworkError } from '~/utils/offlineEditQueue'
 
 // Value-equality check for group-by cells. A naive `!==` reports a false change
@@ -1832,7 +1832,9 @@ export function useInfiniteData(args: {
       }
       // A retry that fails the same way already has its marker; don't toast every edit.
       const repeated = previousSaveError?.reason === 'serverRejected' && previousSaveError.message === errorMessage
-      if (!repeated) message.error(`Failed to insert row: ${errorMessage}`)
+      // The title keeps the prefix out of the 2-line clamped description, so the server's message fits.
+      if (!repeated) message.error({ title: t('msg.error.rowInsertFailed'), content: errorMessage })
+      markErrorReported(error)
       throw error
     } finally {
       currentRow.rowMeta.saving = false

@@ -85,7 +85,7 @@ const createdBy = computed(() => {
           {{ $t('activity.createdARecord') }}
         </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-nc-content-gray-subtle2">
-          {{ $t('activity.updatedFields', { fieldsChanged }, Number(fieldsChanged) || 2) }}
+          {{ $t('activity.updatedFieldCount', { fieldsChanged }, Number(fieldsChanged) || 2) }}
         </span>
         <span
           v-else-if="props.auditGroup.audit?.op_type === 'DATA_CASCADE_UPDATE'"

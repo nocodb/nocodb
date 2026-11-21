@@ -457,6 +457,12 @@ const handleCloseDropdown = (e: MouseEvent) => {
   }
 }
 
+// A linked-record chip that opens its record (expanded form / detail sheet) closes the
+// dropdown, else it stays on top of what opened. Capture phase: the chip stops propagation.
+function closeOnRecordChipClick(e: MouseEvent) {
+  if ((e.target as HTMLElement | null)?.closest('.chip.cursor-pointer')) dropdownVisible.value = false
+}
+
 const badgedVirtualColumns = [UITypes.Rollup, UITypes.Formula]
 const isBadgedVirtualColumn = computed(() => badgedVirtualColumns.includes(lookupColumn.value?.uidt as UITypes))
 
@@ -664,7 +670,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
             <GeneralIcon icon="search" class="text-nc-content-gray-muted" />
           </template>
         </a-input>
-        <div class="flex flex-wrap gap-2 items-start overflow-y-auto px-3 py-2">
+        <div class="flex flex-wrap gap-2 items-start overflow-y-auto px-3 py-2" @click.capture="closeOnRecordChipClick">
           <div v-if="search && !filteredArrValues.length" class="px-2 text-gray-500 flex flex-col items-center gap-6 text-center">
             <img
               src="~assets/img/placeholder/no-search-result-found.png"

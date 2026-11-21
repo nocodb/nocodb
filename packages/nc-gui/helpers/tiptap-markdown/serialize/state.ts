@@ -31,6 +31,10 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
     if (escape && atLineStart && this.options.preserveLeadingSpaces) {
       text = text.replace(/^[ \u00A0]+/, (spaces) => '&nbsp;'.repeat(spaces.length))
     }
+    // Unescaped output (code spans, mark delimiters, link URLs) never passes through esc()
+    if (!escape && this.inTable) {
+      text = text.replace(/\|/g, '\\|')
+    }
     super.text(text, escape)
   }
 

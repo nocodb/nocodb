@@ -10,7 +10,8 @@
     ":semanticPrefixFixDepsChoreOthers",
     ":separatePatchReleases",
     "group:monorepos",
-    "group:recommended"
+    "group:recommended",
+    "helpers:pinGitHubActionDigests"
   ],
   "baseBranches": [
     "develop"

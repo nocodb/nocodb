@@ -3379,6 +3379,10 @@ watch(
     const dataCache = getDataCache(path)
     const leftRow = dataCache?.cachedRows.value.get(oldRowIdx)
     const err = leftRow?.rowMeta?.saveError
+    if (err?.reason === 'serverRejected') {
+      message.error(t('msg.error.rowAbandonedRejected', { message: err.message }))
+      return
+    }
     if (err?.reason !== 'missingRequired') return
 
     const fields = (err.missingFields ?? []).filter(Boolean)
@@ -3651,7 +3655,8 @@ const smartsheetEvents = async (event: SmartsheetStoreEvents, payload) => {
     selection.value.clear()
     activeCell.value.row = -1
     activeCell.value.column = -1
-    removeRowIfNew(payload)
+    // A row the grid failed to save keeps its values and marker until fixed or deleted
+    if (!payload?.rowMeta?.saveError) removeRowIfNew(payload)
     triggerRefreshCanvas()
   } else if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     // This event is triggered when a field is updated

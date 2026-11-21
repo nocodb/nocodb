@@ -597,6 +597,19 @@ export const rowDefaultData = (columns: ColumnType[] = [], currentUser?: { id?: 
   return defaultData
 }
 
+/** Save-error marker for a new row the server refused to insert. */
+export const serverRejectedSaveError = (
+  message: string,
+  responseData?: { details?: { column?: unknown }; fieldName?: unknown },
+): NonNullable<Row['rowMeta']['saveError']> => {
+  const field = responseData?.details?.column ?? responseData?.fieldName
+  return {
+    reason: 'serverRejected',
+    message,
+    ...(typeof field === 'string' && field && field !== 'unknown' ? { fields: [field] } : {}),
+  }
+}
+
 export const isRowEmpty = (record: Pick<Row, 'row'>, col: ColumnType): boolean => {
   if (!record || !col || !col.title) return true
 

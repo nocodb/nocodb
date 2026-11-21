@@ -194,19 +194,26 @@ interface Row {
     smartTextDrafts?: Record<string, Record<string, any> | null>
     /**
      * Optimistic-row save failure marker. Set when a frontend pre-check
-     * (currently: missing required NOT-NULL fields) blocks the insert before
-     * the row reaches the backend. The row stays in the local cache with this
-     * flag so the canvas/grid can render a ⚠️ marker; clearing it (e.g. once
-     * the missing fields are filled) re-enables the auto-retry path.
+     * (missing required NOT-NULL fields) blocks the insert, or when the
+     * database rejects it (CHECK, foreign key, ...). The row stays in the
+     * local cache with this flag so the canvas/grid can render a ⚠️ marker;
+     * editing the row retries the insert.
      */
-    saveError?: {
-      reason: 'missingRequired'
-      // Column titles that were required-and-null on the failed insert.
-      // UI consumers can cross-reference against FieldsInj to decide whether
-      // any are hidden in the current view (in which case the marker should
-      // prompt the user to open the expanded form).
-      missingFields: string[]
-    }
+    saveError?:
+      | {
+          reason: 'missingRequired'
+          // Column titles that were required-and-null on the failed insert.
+          // UI consumers can cross-reference against FieldsInj to decide whether
+          // any are hidden in the current view (in which case the marker should
+          // prompt the user to open the expanded form).
+          missingFields: string[]
+        }
+      | {
+          reason: 'serverRejected'
+          message: string
+          // Field the server named as the cause, when it named one.
+          fields?: string[]
+        }
   } & RowMetaRowColorInfo
 }
 

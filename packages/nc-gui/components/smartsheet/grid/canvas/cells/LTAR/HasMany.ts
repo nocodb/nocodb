@@ -179,6 +179,7 @@ export const HasManyCellRenderer: CellRenderer = {
     }
 
     Object.assign(cellRenderStore, { ltar: returnData })
+    props.tag?.onLinkChips?.(returnData)
 
     if (flag && count < cells.length) {
       renderSingleLineText(ctx, {

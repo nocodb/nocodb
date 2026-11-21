@@ -190,6 +190,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     }
 
     Object.assign(cellRenderStore, { ltar: returnData })
+    props.tag?.onLinkChips?.(returnData)
 
     // Simple link picker (interface inline edit) reads as a select — one chevron on
     // hover/selection, in readonly too (expand-button parity: there it opens the

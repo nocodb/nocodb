@@ -115,6 +115,7 @@ const refTables = computed(() => {
         ...table,
       }
     })
+    .sort((a, b) => (a.column.title ?? '').localeCompare(b.column.title ?? '', undefined, { sensitivity: 'base' }))
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })
 

@@ -53,6 +53,15 @@ const filteredColumns = ref<
 
 const selectedFields = ref<Record<string, boolean>>({})
 
+// 'right' | 'left' | 'end' — relative to the link field in the current view
+const insertPosition = ref('right')
+
+const insertPositionOptions = computed(() => [
+  { value: 'right', label: t('labels.right'), tooltip: t('labels.rightOfField', { field: column.value?.title }) },
+  { value: 'left', label: t('labels.left'), tooltip: t('labels.leftOfField', { field: column.value?.title }) },
+  { value: 'end', label: t('labels.end'), tooltip: t('labels.endOfFieldList') },
+])
+
 const isLoadingModel = ref(false)
 
 const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
@@ -120,6 +129,38 @@ const getRollupColPayload = (selectedColumn: ColumnType) => {
   }
 }
 
+// Evenly spaced view orders for `count` new fields at the chosen position
+const getNewColumnOrders = async (count: number): Promise<number[] | undefined> => {
+  if (!activeView.value?.id || !count) return
+
+  const viewColumns = (
+    await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+      operation: 'viewColumnList',
+      viewId: activeView.value.id,
+    })
+  ).list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+  const maxOrder = viewColumns.reduce((max, c) => Math.max(max, c.order ?? 0), 0)
+  const linkIndex = viewColumns.findIndex((c) => c.fk_column_id === column.value?.id)
+
+  let lower = maxOrder
+  let upper = maxOrder + count + 1
+
+  if (linkIndex !== -1 && insertPosition.value !== 'end') {
+    const linkOrder = viewColumns[linkIndex]!.order ?? 0
+    if (insertPosition.value === 'right') {
+      const next = viewColumns[linkIndex + 1]
+      lower = linkOrder
+      upper = next ? next.order ?? 0 : linkOrder + count + 1
+    } else {
+      lower = viewColumns[linkIndex - 1]?.order ?? 0
+      upper = linkOrder
+    }
+  }
+
+  return Array.from({ length: count }, (_, i) => lower + ((upper - lower) * (i + 1)) / (count + 1))
+}
+
 const createLookupsOrRollup = async () => {
   try {
     isLoading.value = true
@@ -131,17 +172,24 @@ const createLookupsOrRollup = async () => {
 
     const currIndex = meta.value?.columns?.length ?? 0
 
-    for (const [k] of Object.entries(selectedFields.value).filter(([, v]) => v)) {
+    // Keep the order the user arranged in the list
+    const selectedIds = Object.entries(selectedFields.value)
+      .filter(([, v]) => v)
+      .map(([k]) => k)
+      .sort((a, b) => filteredColumns.value.findIndex((c) => c.id === a) - filteredColumns.value.findIndex((c) => c.id === b))
+
+    const columnOrders = await getNewColumnOrders(selectedIds.length)
+
+    for (const [i, k] of selectedIds.entries()) {
       const selectedColumn = getMetaByKey(relatedBaseId.value, relatedModel.value?.id)?.columns.find((c) => c.id === k)
-      const index = filteredColumns.value.findIndex((c) => c.id === k)
       const tempCol = {
         uidt: props.type,
         fk_relation_column_id: column.value.id,
         table_name: meta.value?.table_name,
         view_id: activeView.value?.id,
-        order: currIndex + index,
+        order: currIndex + i,
         column_order: {
-          order: currIndex + index,
+          order: columnOrders?.[i] ?? currIndex + i,
           view_id: activeView.value?.id,
         },
         ...(props.type === UITypes.Lookup ? getLookupColPayload(selectedColumn) : getRollupColPayload(selectedColumn)),
@@ -300,6 +348,16 @@ onMounted(async () => {
         <div v-else>
           <GeneralLoader size="xlarge" />
         </div>
+      </div>
+
+      <div class="flex w-full gap-2 items-center justify-between">
+        <span class="text-nc-content-gray-subtle text-[13px]">{{ $t('labels.addTo') }}</span>
+        <NcSegmented
+          v-model:value="insertPosition"
+          :options="insertPositionOptions"
+          :aria-label="$t('labels.addTo')"
+          data-testid="nc-lookup-add-position"
+        />
       </div>
 
       <div class="flex w-full gap-2 justify-end">

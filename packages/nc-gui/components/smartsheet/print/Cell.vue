@@ -73,7 +73,7 @@ const users = computed(() => {
     : [props.modelValue]
 
   return values.map((value: { id?: string; email?: string }) => {
-    const user = baseUsers.find((u) => u.id === value.id || u.email === value.email) ?? value
+    const user = baseUsers.find((u: { id?: string; email?: string }) => u.id === value.id || u.email === value.email) ?? value
     return extractUserDisplayNameOrEmail(user)
   })
 })

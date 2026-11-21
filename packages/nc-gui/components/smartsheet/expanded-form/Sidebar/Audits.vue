@@ -168,6 +168,11 @@ function isV0Audit(audit: AuditType) {
   return false
 }
 
+// MySQL/SQLite meta stores `YYYY-MM-DD HH:mm:ss` without a zone; it is UTC, as in `timeAgo`.
+function auditTime(value?: string) {
+  return dayjs(value && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value) ? `${value}+00:00` : value)
+}
+
 function dayLabel(at: dayjs.Dayjs) {
   const today = dayjs()
   if (at.isSame(today, 'day')) return t('labels.today')
@@ -190,7 +195,7 @@ const timeline = computed(() => {
   let group: Extract<TimelineItem, { type: 'group' }> | undefined
 
   for (const audit of visibleAudits.value) {
-    const at = dayjs(audit.created_at)
+    const at = auditTime(audit.created_at)
     const day = at.format('YYYY-MM-DD')
     if (day !== lastDay) {
       items.push({ type: 'day', key: `day-${day}`, label: dayLabel(at) })
@@ -211,7 +216,7 @@ const timeline = computed(() => {
       last &&
       last.user === audit.user &&
       agentId(last) === agentId(audit) &&
-      at.diff(dayjs(last.created_at), 'minute') <= GROUP_GAP_MINUTES
+      at.diff(auditTime(last.created_at), 'minute') <= GROUP_GAP_MINUTES
     ) {
       group.audits.push(audit)
     } else {
@@ -225,8 +230,10 @@ const timeline = computed(() => {
 
 const expandedInserts = ref<Record<string, boolean>>({})
 
+// The fields AuditMiniItem lists for the insert.
 function initialValueCount(audit: AuditType) {
-  return Object.keys(safeJsonParse(audit.details as string)?.column_meta || {}).length
+  const keys = Object.keys(safeJsonParse(audit.details as string)?.data || {})
+  return isSyncedTable.value ? keys.filter((key) => !isSyncSystemColumnTitle(key)).length : keys.length
 }
 
 function eventText(kind: TimelineEventKind) {
@@ -323,6 +330,13 @@ function linkChanges(audit: AuditType) {
                 </span>
                 <span class="min-w-0">
                   <span class="font-weight-600 text-nc-content-gray">{{ createdByAudit(item.audit) }}</span>
+                  <span v-if="auditAgent(item.audit, agents)" class="font-weight-500 text-nc-content-gray-muted">
+                    {{
+                      auditAgent(item.audit, agents)?.title
+                        ? $t('labels.agentPersonal.viaAgent', { agent: auditAgent(item.audit, agents)?.title })
+                        : $t('labels.agentPersonal.viaAnAgent')
+                    }}
+                  </span>
                   {{ eventText(item.kind) }}
                   <span class="text-nc-content-gray-muted" aria-hidden="true">·</span>
                   <NcTooltip class="inline text-xs text-nc-content-gray-muted">
@@ -341,7 +355,11 @@ function linkChanges(audit: AuditType) {
                   {{
                     expandedInserts[item.key]
                       ? $t('labels.audit.hideInitialValues')
-                      : $t('labels.audit.showInitialValues', { count: initialValueCount(item.audit) })
+                      : $t(
+                          'labels.audit.showInitialValues',
+                          { count: initialValueCount(item.audit) },
+                          initialValueCount(item.audit),
+                        )
                   }}
                 </button>
                 <div v-if="expandedInserts[item.key]" class="nc-audit-card ml-8 mt-1.5 flex flex-col gap-3">

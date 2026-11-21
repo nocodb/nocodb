@@ -36,8 +36,9 @@ export function auditWordDiff(oldVal: unknown, newVal: unknown): AuditDiffSegmen
   const b = newVal == null ? '' : String(newVal)
   if (!a.trim() || !b.trim()) return null
 
-  const parts = Diff.diffWords(a, b)
-  if (unchangedShare(parts, a, b) < 0.5) return null
+  // Capped: a full rewrite of a long text is slow to diff and fails the threshold anyway.
+  const parts = Diff.diffWords(a, b, { maxEditLength: 1500 })
+  if (!parts || unchangedShare(parts, a, b) < 0.5) return null
 
   return parts.map((p) => ({ text: p.value, op: p.added ? 'added' : p.removed ? 'removed' : 'unchanged' }))
 }
@@ -54,15 +55,13 @@ function decodeEntities(text: string) {
 
 /** Rich text may be stored as HTML; turn its blocks into markdown-style lines. */
 function htmlToMarkdownLines(html: string) {
-  return decodeEntities(
-    html
-      .replace(/<li[^>]*>\s*(<p[^>]*>)?/gi, '\n- ')
-      .replace(/<h([1-6])[^>]*>/gi, (_m, level) => `\n${'#'.repeat(Number(level))} `)
-      .replace(/<blockquote[^>]*>\s*(<p[^>]*>)?/gi, '\n> ')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/(p|li|h[1-6]|div|blockquote|ul|ol)>/gi, '\n')
-      .replace(/<[^>]+>/g, ''),
-  )
+  return html
+    .replace(/<li[^>]*>\s*(<p[^>]*>)?/gi, '\n- ')
+    .replace(/<h([1-6])[^>]*>/gi, (_m, level) => `\n${'#'.repeat(Number(level))} `)
+    .replace(/<blockquote[^>]*>\s*(<p[^>]*>)?/gi, '\n> ')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|li|h[1-6]|div|blockquote|ul|ol)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
 }
 
 const stripInlineMarkdown = (text: string) =>
@@ -75,6 +74,19 @@ const stripInlineMarkdown = (text: string) =>
     .replace(/~~(.+?)~~/g, '$1')
     .replace(/`([^`]+)`/g, '$1')
 
+// Escaped markdown characters are parked in the private-use range so emphasis stripping skips them.
+const ESCAPE_BASE = 0xe000
+
+// A formatted line's visible text: no markdown, mentions as `@name`, escapes and entities resolved.
+const cleanFormatted = (text: string) =>
+  decodeEntities(
+    stripInlineMarkdown(
+      text
+        .replace(/\\([\\`*_{}[\]()#+\-.!>~|])/g, (_m, c: string) => String.fromCharCode(ESCAPE_BASE + c.charCodeAt(0)))
+        .replace(/@\(([^|)]*)\|([^|)]*)\|([^)]*)\)/g, (_m, _id, email, name) => `@${name || email}`),
+    ).replace(/[\uE000-\uE07F]/g, (c) => String.fromCharCode(c.charCodeAt(0) - ESCAPE_BASE)),
+  )
+
 interface ParsedLine {
   kind: AuditLineKind
   checked?: boolean
@@ -86,16 +98,16 @@ function parseLine(line: string, formatted: boolean): ParsedLine {
   if (!formatted) return { kind: 'p', text: line }
 
   let m = line.match(/^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$/)
-  if (m) return { kind: 'task', checked: m[1].toLowerCase() === 'x', text: stripInlineMarkdown(m[2]) }
+  if (m) return { kind: 'task', checked: m[1].toLowerCase() === 'x', text: cleanFormatted(m[2]) }
   m = line.match(/^#{1,6}\s+(.*)$/)
-  if (m) return { kind: 'h', text: stripInlineMarkdown(m[1]) }
+  if (m) return { kind: 'h', text: cleanFormatted(m[1]) }
   m = line.match(/^\s*[-*+]\s+(.*)$/)
-  if (m) return { kind: 'li', text: stripInlineMarkdown(m[1]) }
+  if (m) return { kind: 'li', text: cleanFormatted(m[1]) }
   m = line.match(/^\s*(\d+[.)])\s+(.*)$/)
-  if (m) return { kind: 'ol', marker: m[1], text: stripInlineMarkdown(m[2]) }
+  if (m) return { kind: 'ol', marker: m[1], text: cleanFormatted(m[2]) }
   m = line.match(/^>\s?(.*)$/)
-  if (m) return { kind: 'quote', text: stripInlineMarkdown(m[1]) }
-  return { kind: 'p', text: stripInlineMarkdown(line) }
+  if (m) return { kind: 'quote', text: cleanFormatted(m[1]) }
+  return { kind: 'p', text: cleanFormatted(line) }
 }
 
 function toLines(value: unknown, mode: 'plain' | 'formatted' | 'code'): ParsedLine[] {
@@ -111,7 +123,7 @@ function toLines(value: unknown, mode: 'plain' | 'formatted' | 'code'): ParsedLi
     text = typeof parsed === 'string' ? parsed : JSON.stringify(parsed, null, 2)
   } else {
     text = String(value)
-    if (mode === 'formatted' && /^\s*</.test(text)) text = htmlToMarkdownLines(text)
+    if (mode === 'formatted') text = /^\s*</.test(text) ? htmlToMarkdownLines(text) : text.replace(/<br\s*\/?>/gi, '\n')
   }
 
   const lines = text.split('\n')
@@ -131,7 +143,20 @@ export function auditLineDiff(oldVal: unknown, newVal: unknown, mode: 'plain' | 
   const a = toLines(oldVal, mode)
   const b = toLines(newVal, mode)
 
-  const chunks = Diff.diffArrays(a, b, { comparator: (x, y) => x.text === y.text && sameShape(x, y) })
+  const chunks = Diff.diffArrays(a, b, {
+    comparator: (x, y) => x.text === y.text && sameShape(x, y),
+    maxEditLength: 1500,
+  })
+  const whole = (l: ParsedLine, op: 'added' | 'removed'): AuditDiffLine => ({
+    op,
+    kind: l.kind,
+    checked: l.checked,
+    marker: l.marker,
+    segments: [{ text: l.text, op }],
+  })
+  // Too many changed lines to diff: show the old value, then the new one.
+  if (!chunks) return [...a.map((l) => whole(l, 'removed')), ...b.map((l) => whole(l, 'added'))]
+
   const out: AuditDiffLine[] = []
 
   for (let i = 0; i < chunks.length; i++) {

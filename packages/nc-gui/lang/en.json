@@ -4711,7 +4711,8 @@
         "oneYear": "1 year"
       },
       "showFullText": "Show full text",
-      "showInitialValues": "Show {count} initial values",
+      "filesReordered": "Order changed",
+      "showInitialValues": "Show {count} initial value | Show {count} initial values",
       "hideInitialValues": "Hide initial values",
       "createdThisRecord": "created this record",
       "trashedThisRecord": "moved this record to trash",

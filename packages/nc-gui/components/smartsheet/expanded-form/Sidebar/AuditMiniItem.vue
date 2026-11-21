@@ -140,6 +140,29 @@ function listKey(item: any) {
 // A new record's first values: shown as plain values, not as changes from empty.
 const isInitial = computed(() => ['DATA_INSERT', 'DATA_BULK_INSERT'].includes(props.audit.op_type as string))
 
+// Keyed by the stored file: a client that omits ids gets new ones, and a rename changes the title.
+function fileKey(item: any) {
+  return item?.path ?? item?.url ?? item?.id ?? item?.title
+}
+
+function fileChanges(key: string) {
+  const oldFiles = listValue(oldData.value, key)
+  const newFiles = listValue(newData.value, key)
+  const diff = auditSetDiff(oldFiles, newFiles, fileKey)
+  const oldByKey = new Map(oldFiles.map((f) => [fileKey(f), f]))
+  const renamed = newFiles
+    .filter((f) => oldByKey.has(fileKey(f)) && oldByKey.get(fileKey(f))?.title !== f.title)
+    .map((f) => ({ item: f, from: oldByKey.get(fileKey(f))?.title }))
+  const oldOrder = oldFiles.map(fileKey)
+  const reordered =
+    !isInitial.value &&
+    !diff.added.length &&
+    !diff.removed.length &&
+    newFiles.length === oldFiles.length &&
+    newFiles.some((f, i) => fileKey(f) !== oldOrder[i])
+  return { mode: 'files' as ChangeMode, ...diff, renamed, reordered }
+}
+
 const changes = computed(() => {
   return Object.fromEntries(
     columnKeys.value.map((key) => {
@@ -147,9 +170,10 @@ const changes = computed(() => {
       const oldVal = textValue(oldData.value, key)
       const newVal = textValue(newData.value, key)
 
-      if (type === 'Attachment' || SET_TYPES.includes(type ?? '')) {
+      if (type === 'Attachment') return [key, fileChanges(key)]
+      if (SET_TYPES.includes(type ?? '')) {
         const diff = auditSetDiff(listValue(oldData.value, key), listValue(newData.value, key), listKey)
-        return [key, { mode: (type === 'Attachment' ? 'files' : 'set') as ChangeMode, ...diff }]
+        return [key, { mode: 'set' as ChangeMode, ...diff }]
       }
       if (type === 'LongText' || type === 'JSON') {
         const lines = isInitial.value
@@ -217,9 +241,28 @@ function checkboxLabel(value: any) {
     <div class="mt-1 text-small1 text-nc-content-gray">
       <!-- Attachments: one row per file added or removed -->
       <div v-if="changes[columnKey].mode === 'files'" class="flex flex-col gap-1">
+        <div v-for="(file, i) of changes[columnKey].renamed" :key="`renamed-${i}`" class="flex items-center gap-2 min-w-0">
+          <div class="flex items-center justify-center w-6 h-6 flex-none">
+            <LazyCellAttachmentPreviewImage
+              v-if="isImage(file.item.title, file.item.mimetype ?? file.item.type)"
+              :alt="file.item.title || `#${i}`"
+              class="nc-attachment rounded !w-6 !h-6 object-cover overflow-hidden"
+              :srcs="getPossibleAttachmentSrc(file.item, 'small')"
+            />
+            <CellAttachmentIconView v-else :item="file.item" class="!w-6 !h-6" />
+          </div>
+          <span class="flex flex-wrap items-center gap-x-1.5 min-w-0">
+            <span class="nc-audit-old [overflow-wrap:anywhere]">{{ file.from }}</span>
+            <GeneralIcon icon="ncArrowRight" class="w-3 h-3 flex-none text-nc-content-gray-subtle2" aria-hidden="true" />
+            <span class="[overflow-wrap:anywhere]">{{ file.item.title }}</span>
+          </span>
+        </div>
+        <div v-if="changes[columnKey].reordered" class="text-nc-content-gray-subtle">
+          {{ $t('labels.audit.filesReordered') }}
+        </div>
         <div
           v-for="(item, i) of [...changes[columnKey].added, ...changes[columnKey].removed]"
-          :key="`${listKey(item)}-${i}`"
+          :key="`${fileKey(item)}-${i}`"
           class="flex items-center gap-2 min-w-0"
           :class="{ 'nc-audit-gone': i >= changes[columnKey].added.length }"
         >

@@ -331,7 +331,7 @@ function linkChanges(audit: AuditType) {
                       : $t('labels.audit.showInitialValues', { count: initialValueCount(item.audit) })
                   }}
                 </button>
-                <div v-if="expandedInserts[item.key]" class="nc-audit-card ml-8 mt-1.5">
+                <div v-if="expandedInserts[item.key]" class="nc-audit-card ml-8 mt-1.5 flex flex-col gap-3">
                   <SmartsheetExpandedFormSidebarAuditMiniItem :audit="item.audit" />
                 </div>
               </template>

@@ -136,6 +136,9 @@ function listKey(item: any) {
   return item
 }
 
+// A new record's first values: shown as plain values, not as changes from empty.
+const isInitial = computed(() => ['DATA_INSERT', 'DATA_BULK_INSERT'].includes(props.audit.op_type as string))
+
 const changes = computed(() => {
   return Object.fromEntries(
     columnKeys.value.map((key) => {
@@ -148,9 +151,15 @@ const changes = computed(() => {
         return [key, { mode: (type === 'Attachment' ? 'files' : 'set') as ChangeMode, ...diff }]
       }
       if (type === 'LongText' || type === 'JSON') {
-        const lines = auditLineDiff(oldVal, newVal, lineMode(key))
-        const collapsed = lines.length > 6 ? collapseAuditLines(lines) : lines
+        const lines = isInitial.value
+          ? auditLineDiff(newVal, newVal, lineMode(key))
+          : auditLineDiff(oldVal, newVal, lineMode(key))
+        const collapsed = lines.length <= 6 ? lines : isInitial.value ? lines.slice(0, 6) : collapseAuditLines(lines)
         return [key, { mode: 'lines' as ChangeMode, lines, collapsed, canExpand: collapsed.length < lines.length }]
+      }
+      if (isInitial.value) {
+        if (RAW_TYPES.includes(type ?? '')) return [key, { mode: 'raw' as ChangeMode }]
+        return [key, { mode: (type === 'Checkbox' ? 'checkbox' : 'cell') as ChangeMode }]
       }
       if (type === 'SingleLineText') {
         const words = auditWordDiff(oldVal, newVal)
@@ -182,7 +191,7 @@ function checkboxLabel(value: any) {
 </script>
 
 <template>
-  <div v-for="columnKey of columnKeys" :key="columnKey" class="nc-audit-change">
+  <div v-for="columnKey of columnKeys" :key="columnKey" class="nc-audit-change" :class="{ 'nc-audit-initial': isInitial }">
     <div
       class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 uppercase !text-[10px] tracking-wide font-weight-500 nc-audit-mini-item-header"
     >
@@ -213,7 +222,11 @@ function checkboxLabel(value: any) {
           class="flex items-center gap-2 min-w-0"
           :class="{ 'nc-audit-gone': i >= changes[columnKey].added.length }"
         >
-          <span class="nc-audit-pm" :class="i >= changes[columnKey].added.length ? 'nc-audit-pm-minus' : 'nc-audit-pm-plus'">
+          <span
+            v-if="!isInitial"
+            class="nc-audit-pm"
+            :class="i >= changes[columnKey].added.length ? 'nc-audit-pm-minus' : 'nc-audit-pm-plus'"
+          >
             {{ i >= changes[columnKey].added.length ? '−' : '+' }}
           </span>
           <div class="flex items-center justify-center w-6 h-6 flex-none">
@@ -233,7 +246,7 @@ function checkboxLabel(value: any) {
       <!-- Multi select, User: what was added and what was removed -->
       <div v-else-if="changes[columnKey].mode === 'set'" class="flex flex-wrap items-center gap-x-3 gap-y-1">
         <div v-if="changes[columnKey].added.length" class="flex items-center gap-1 min-w-0">
-          <span class="nc-audit-pm nc-audit-pm-plus">+</span>
+          <span v-if="!isInitial" class="nc-audit-pm nc-audit-pm-plus">+</span>
           <div class="nc-audit-mini-item-cell">
             <SmartsheetCell
               :column="cellColumn(columnKey)"
@@ -297,7 +310,8 @@ function checkboxLabel(value: any) {
 
       <!-- Everything else: old → new -->
       <div v-else class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-        <template v-if="changes[columnKey].mode === 'checkbox'">
+        <template v-if="isInitial" />
+        <template v-else-if="changes[columnKey].mode === 'checkbox'">
           <span class="nc-audit-old">{{ checkboxLabel(oldData[columnKey]) }}</span>
         </template>
         <template v-else-if="!isShowableValue(oldData[columnKey])">
@@ -314,7 +328,12 @@ function checkboxLabel(value: any) {
           />
         </div>
 
-        <GeneralIcon icon="ncArrowRight" class="w-3 h-3 flex-none text-nc-content-gray-subtle2" aria-hidden="true" />
+        <GeneralIcon
+          v-if="!isInitial"
+          icon="ncArrowRight"
+          class="w-3 h-3 flex-none text-nc-content-gray-subtle2"
+          aria-hidden="true"
+        />
 
         <template v-if="changes[columnKey].mode === 'checkbox'">
           <span>{{ checkboxLabel(newData[columnKey]) }}</span>
@@ -379,6 +398,9 @@ function checkboxLabel(value: any) {
 }
 .nc-audit-line-unchanged {
   @apply text-nc-content-gray-subtle;
+}
+.nc-audit-initial .nc-audit-line-unchanged {
+  @apply text-nc-content-gray;
 }
 .nc-audit-line-added,
 .nc-audit-line-removed {

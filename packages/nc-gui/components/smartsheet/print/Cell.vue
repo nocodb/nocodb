@@ -36,6 +36,7 @@ const kind = computed(() => {
   if (uidt === UITypes.Rating) return 'rating'
   if (uidt === UITypes.Email || uidt === UITypes.URL || uidt === UITypes.PhoneNumber) return 'link'
   if (uidt === UITypes.LinkToAnotherRecord) return 'records'
+  if (uidt === UITypes.Button) return 'button'
 
   return 'text'
 })
@@ -97,6 +98,27 @@ const richTextHtml = computed(() => {
   return DOMPurify.sanitize(NcMarkdownParser.parse(String(props.modelValue), { enableMention: true }))
 })
 
+const linkHref = computed(() => {
+  if (kind.value !== 'link' || isEmpty.value) return undefined
+
+  const value = String(props.modelValue).trim()
+  if (props.column.uidt === UITypes.Email) return `mailto:${value}`
+  if (props.column.uidt === UITypes.PhoneNumber) return `tel:${value.replace(/[^\d+]/g, '')}`
+
+  const url = /^[a-z][a-z\d+.-]*:/i.test(value) ? value : `https://${value}`
+  return /^https?:/i.test(url) ? url : undefined
+})
+
+const button = computed(() => {
+  if (kind.value !== 'button') return null
+
+  const options = (props.column.colOptions ?? {}) as { label?: string; theme?: string }
+  const url = typeof props.modelValue?.url === 'string' ? props.modelValue.url.trim() : ''
+  const href = url ? (/^https?:\/\//i.test(url) ? url : `https://${url}`) : undefined
+
+  return { label: options.label || props.modelValue?.label || '', theme: options.theme || 'solid', href }
+})
+
 function plainValue(value: any) {
   return parsePlainCellValue(value, {
     col: props.column,
@@ -142,7 +164,29 @@ function plainValue(value: any) {
     <span v-else-if="kind === 'rating'" class="nc-print-cell-stars" :style="{ color: columnMeta.color ?? '#fcb401' }">
       {{ '★'.repeat(ratingIcons) }}
     </span>
+    <a
+      v-else-if="kind === 'link' && linkHref"
+      class="nc-print-cell-link"
+      :href="linkHref"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {{ plainValue(props.modelValue) }}
+    </a>
     <span v-else-if="kind === 'link'" class="nc-print-cell-link">{{ plainValue(props.modelValue) }}</span>
+    <template v-else-if="kind === 'button'">
+      <a
+        v-if="button?.href"
+        class="nc-print-button"
+        :class="`nc-print-button-${button.theme}`"
+        :href="button.href"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {{ button.label }}
+      </a>
+      <span v-else-if="button?.label" class="nc-print-button" :class="`nc-print-button-${button.theme}`">{{ button.label }}</span>
+    </template>
     <SmartsheetPlainCell v-else :column="props.column" :model-value="props.modelValue" />
   </div>
 </template>

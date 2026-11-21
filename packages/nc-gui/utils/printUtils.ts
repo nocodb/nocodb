@@ -157,6 +157,15 @@ export function getPrintableWidthPx(settings: PrintSettings) {
   return Math.floor((paperDimensionsIn(settings).width - 2 * PRINT_PAGE_MARGIN_IN) * CSS_PX_PER_IN)
 }
 
+/** Prints draw with the grid's cell renderers into SVG; `localStorage['nc-print-renderer'] = 'html'` falls back to the HTML table. */
+export function isSvgPrintRenderer() {
+  try {
+    return localStorage.getItem('nc-print-renderer') !== 'html'
+  } catch {
+    return true
+  }
+}
+
 /** Content height of one printed page, in CSS px. */
 export function getPrintableHeightPx(settings: PrintSettings) {
   return Math.floor((paperDimensionsIn(settings).height - 2 * PRINT_PAGE_MARGIN_IN) * CSS_PX_PER_IN)

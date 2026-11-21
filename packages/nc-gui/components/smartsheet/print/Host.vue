@@ -39,14 +39,7 @@ const printableGroupBy = computed(() =>
   ),
 )
 
-// Experimental renderer: `localStorage['nc-print-renderer'] = 'svg'`.
-const useSvgRenderer = (() => {
-  try {
-    return localStorage.getItem('nc-print-renderer') === 'svg'
-  } catch {
-    return false
-  }
-})()
+const useSvgRenderer = isSvgPrintRenderer()
 
 let resolveSvgReady: (() => void) | undefined
 
@@ -160,6 +153,8 @@ watch(
       :settings="viewPrint.printState.value.settings"
       :column-widths="columnWidths"
       :row-height="rowHeight"
+      :group-columns="viewPrint.printState.value.groupColumns"
+      :summary="viewPrint.printState.value.summary"
       @ready="resolveSvgReady?.()"
     />
     <SmartsheetPrintTable

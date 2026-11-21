@@ -15,11 +15,6 @@ const props = defineProps<{
 
 const tableMeta = inject(MetaInj, ref())
 
-// Interface panels hide field-type icons (interfaces abstract the schema
-// away) — same treatment as the interface kanban card labels. Presentation
-// flag, not the ops adapter (which public interface pages don't get).
-const ifaceSidebar = inject(IsInterfaceRecordSurfaceInj, false)
-
 const isSyncedTable = computed(() => !!(tableMeta.value as TableType | undefined)?.synced)
 
 const details = computed(() => {
@@ -189,21 +184,9 @@ function toggleLongText(key: string) {
 
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
-    <!-- Interface panels: 10px all-caps field labels, tighter label→value gap
-         (reference design); the classic expanded form keeps its 12px casing. -->
     <div
-      class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 text-xs font-weight-500 nc-audit-mini-item-header"
-      :class="{ 'uppercase !text-[10px] tracking-wide': ifaceSidebar }"
+      class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 uppercase !text-[10px] tracking-wide font-weight-500 nc-audit-mini-item-header"
     >
-      <SmartsheetHeaderIcon
-        v-if="!ifaceSidebar"
-        :column="{
-          uidt: meta[columnKey]?.type,
-          dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
-          meta: normalizeMeta(columnKey),
-        }"
-        class="!w-4 !h-4 !mx-0"
-      />
       <NcTooltip
         class="truncate"
         :class="{
@@ -221,7 +204,7 @@ function toggleLongText(key: string) {
         ({{ $t('labels.generatedByAi') }})
       </span>
     </div>
-    <div class="flex items-center gap-2 flex-wrap" :class="ifaceSidebar ? 'mt-1.5' : 'mt-3'">
+    <div class="flex items-center gap-2 flex-wrap mt-1.5">
       <template v-if="meta[columnKey]?.type === 'Attachment'">
         <div
           v-if="processOldDataFor(columnKey)?.length > 0"
@@ -324,7 +307,7 @@ function toggleLongText(key: string) {
         </div>
       </template>
       <template v-else-if="meta[columnKey]?.type === 'LongText'">
-        <div class="w-full">
+        <div class="w-full text-small1">
           <div
             class="relative"
             :class="{

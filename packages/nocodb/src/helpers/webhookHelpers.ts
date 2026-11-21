@@ -42,6 +42,7 @@ import type {
   Model,
   View,
 } from '~/models';
+import type { WebhookAddJob, WebhookRetryState } from '~/interface/Jobs';
 import { Filter, Source } from '~/models';
 import { populateUpdatePayloadDiff } from '~/utils';
 import { WebhookInvoker } from '~/utils/webhook-invoker';
@@ -588,11 +589,23 @@ export async function invokeWebhook(
     throwErrorOnFailure?: boolean;
     testHook?: boolean;
     ncSiteUrl?: string;
-    addJob?: (name: string, data: any) => Promise<void>;
+    addJob?: WebhookAddJob;
   },
 ) {
   // backward compatibility
   return new WebhookInvoker().invoke(context, param);
+}
+
+export async function retryWebhook(
+  context: NcContext,
+  param: {
+    hook: Hook;
+    retry: WebhookRetryState;
+    ncSiteUrl?: string;
+    addJob?: WebhookAddJob;
+  },
+) {
+  return new WebhookInvoker().retryUrlDelivery(context, param);
 }
 
 export function _transformSubmittedFormDataForEmail(

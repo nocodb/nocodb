@@ -1,6 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import type { Job } from 'bull';
-import { invokeWebhook } from '~/helpers/webhookHelpers';
+import { invokeWebhook, retryWebhook } from '~/helpers/webhookHelpers';
 import { Hook, Model, View } from '~/models';
 import { type HandleWebhookJobData } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -23,11 +23,24 @@ export class WebhookHandlerProcessor {
       user,
       hookName,
       ncSiteUrl,
+      retry,
     } = job.data;
 
     const hook = await Hook.get(context, hookId);
     if (!hook) {
       this.logger.error(`Hook not found for id: ${hookId}`);
+      return;
+    }
+
+    if (retry) {
+      // a hook deactivated since the failed attempt stops retrying
+      if (!hook.active) return;
+      await retryWebhook(context, {
+        hook,
+        retry,
+        ncSiteUrl,
+        addJob: this.jobsService.add.bind(this.jobsService),
+      });
       return;
     }
 

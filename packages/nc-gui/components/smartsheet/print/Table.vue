@@ -46,7 +46,7 @@ const fontSizePx = computed(() => PRINT_FONT_SIZES_PX[props.settings.fontSize])
 
 const isFitToWidth = computed(() => props.settings.fieldSizing === 'fitToWidth')
 
-const layout = computed(() => getPrintColumnBands(props.columns, props.columnWidths, props.settings))
+const layout = computed(() => getPrintColumnBands(props.columns, props.columnWidths, props.settings, range.value.end))
 
 const rowNumberWidth = computed(() => layout.value.rowNumberWidth)
 
@@ -258,6 +258,7 @@ onBeforeUnmount(() => {
       .nc-print-view-index {
         color: #6a7184;
         text-align: center;
+        white-space: nowrap;
       }
 
       .nc-print-view-heading,

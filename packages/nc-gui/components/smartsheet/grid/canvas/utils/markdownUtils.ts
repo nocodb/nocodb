@@ -221,6 +221,15 @@ const blockMarkers: BlockMarker[] = [
   { open: /^\d+\. /, type: 'numbered-list-item' },
 ]
 
+const imgTagRegex = /<img\b[^>]*>/gi
+
+const imgTagAttr = (tag: string, name: string) =>
+  decodeHtmlEntities(tag.match(new RegExp(`\\s${name}\\s*=\\s*"([^"]*)"`, 'i'))?.[1] ?? '')
+
+/** A resized image is stored as an <img> tag; draw it as the markdown image it replaces. */
+const imgTagsToMarkdown = (line: string) =>
+  line.replace(imgTagRegex, (tag) => `![${imgTagAttr(tag, 'alt')}](${imgTagAttr(tag, 'src')})`)
+
 const tableRowRegex = /^\s*\|.*\|\s*$/
 
 const tableDelimiterCellRegex = /^\s*:?-+:?\s*$/
@@ -299,7 +308,7 @@ export const parseMarkdown = (
   let inTable = false
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]!
+    const line = imgTagsToMarkdown(lines[i]!)
     if (!line.trim()) {
       inTable = false
       continue

@@ -7815,6 +7815,7 @@
     "copyImageUrl": "Copy image URL",
     "editImage": "Edit image",
     "removeImage": "Remove image",
+    "resetImageSize": "Reset size",
     "panMode": "Pan mode",
     "selectionMode": "Selection mode",
     "addNote": "Add note",

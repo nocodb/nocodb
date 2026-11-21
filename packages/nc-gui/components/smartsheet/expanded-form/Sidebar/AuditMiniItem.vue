@@ -1,17 +1,12 @@
 <script setup lang="ts">
-import {
-  type AttachmentType,
-  type AuditType,
-  type TableType,
-  checkboxIconListMap,
-  isAIPromptCol,
-  parseHelper,
-  ratingIconListMap,
-} from 'nocodb-sdk'
+import { type AuditType, type TableType, checkboxIconListMap, isAIPromptCol, parseHelper, ratingIconListMap } from 'nocodb-sdk'
+import type { AuditDiffRow } from '~/utils/auditDiff'
 
 const props = defineProps<{
   audit: AuditType
 }>()
+
+const { t } = useI18n()
 
 const tableMeta = inject(MetaInj, ref())
 
@@ -55,6 +50,10 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 /* meta processing */
 
+function typeOf(key: string): string | undefined {
+  return meta.value?.[key]?.type
+}
+
 function normalizeColOptions(key: string) {
   return {
     ...(meta.value?.[key]?.options ?? {}),
@@ -79,111 +78,111 @@ function normalizeMeta(key: string) {
   }
 }
 
-function processOldDataFor(key: string) {
-  const odata = oldData.value[key]
-  const ndata = newData.value[key]
-
-  if (meta.value?.[key]?.type === 'Attachment') {
-    // Attachment cell value can be string so we have to parse it
-    if (!ncIsArray(parseHelper(odata))) return []
-
-    return parseHelper(odata)?.filter((it: AttachmentType) => {
-      if (!ncIsArray(parseHelper(ndata))) return true
-
-      return !parseHelper(ndata)?.some((t: AttachmentType) => t.title === it.title)
-    })
+function cellColumn(key: string) {
+  return {
+    uidt: typeOf(key),
+    dt: typeOf(key) === 'Number' ? 'bigint' : undefined,
+    meta: normalizeMeta(key),
+    colOptions: normalizeColOptions(key),
   }
-  if (meta.value?.[key]?.type === 'MultiSelect') {
-    return odata?.filter?.((it: string) => !ndata?.includes?.(it)) ?? odata
-  }
-
-  return odata
 }
 
-function processNewDataFor(key: string) {
-  const odata = oldData.value[key]
-  const ndata = newData.value[key]
+/* values */
 
-  if (meta.value?.[key]?.type === 'Attachment') {
-    if (!ncIsArray(ndata)) return []
-
-    return ndata.filter((it: AttachmentType) => ncIsArray(odata) && !odata?.some((t: AttachmentType) => t.title === it.title))
-  }
-  if (meta.value?.[key]?.type === 'MultiSelect') {
-    return ndata?.filter?.((it: string) => !odata?.includes?.(it)) ?? ndata
-  }
-
-  return ndata
+// AI-generated long text stores `{ value, … }`; everything else is the raw value.
+function textValue(data: Record<string, any>, key: string) {
+  const val = data[key]
+  if (typeOf(key) === 'LongText' && meta.value?.[key]?.options?.ai) return val?.value ?? ''
+  return val
 }
-
-function safeJsonDiff(key: string) {
-  const odata = oldData.value[key]
-  const ndata = newData.value[key]
-
-  if (!odata && !ndata) {
-    return []
-  }
-
-  return diffTextBlocks(!odata ? '' : JSON.stringify(odata, null, 2), !ndata ? '' : JSON.stringify(ndata, null, 2))
-}
-
-function shouldUseNormalizedPadding(key: string) {
-  return !['Checkbox', 'SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type) && !normalizeMeta(key).is_progress
-}
-
-function shouldUseUniformPadding(key: string) {
-  return ['SingleSelect', 'MultiSelect'].includes(meta.value?.[key]?.type)
-}
-
-/* visibility */
 
 function isShowableValue(value: any) {
-  return ![undefined, null, ''].includes(value)
-}
-
-function shouldShowRaw(key: string) {
-  return ['URL', 'PhoneNumber', 'Email'].includes(meta.value?.[key]?.type)
+  return ![undefined, null, ''].includes(value) && !(Array.isArray(value) && value.length === 0)
 }
 
 const isAiGeneratedText = (key: string) => {
   return (
     isAIPromptCol({
-      uidt: meta.value?.[key]?.type,
-      dt: meta.value?.[key]?.type === 'Number' ? 'bigint' : undefined,
+      uidt: typeOf(key),
+      dt: typeOf(key) === 'Number' ? 'bigint' : undefined,
       meta: normalizeMeta(key),
     }) &&
     (!ncIsObject(newData.value[key]) || !newData.value[key]?.lastModifiedBy)
   )
 }
 
-/* long-text collapse — applies to plain LongText, RichText, and SmartText
- * (all share uidt='LongText'). Long values dominate the revision sidebar; show
- * a clamped preview with a toggle so other entries stay scannable. */
-const LONG_TEXT_LINE_LIMIT = 5
-const LONG_TEXT_CHAR_LIMIT = 300
+/* render mode per field */
 
-const longTextExpanded = ref<Record<string, boolean>>({})
+type ChangeMode = 'files' | 'set' | 'lines' | 'words' | 'raw' | 'checkbox' | 'cell'
 
-function getLongTextRaw(key: string): string {
-  const isAi = meta.value?.[key]?.options?.ai
-  const oldVal = (isAi ? oldData.value[key]?.value : oldData.value[key]) || ''
-  const newVal = (isAi ? newData.value[key]?.value : newData.value[key]) || ''
-  return `${oldVal}\n${newVal}`
+const SET_TYPES = ['MultiSelect', 'User']
+const RAW_TYPES = ['URL', 'PhoneNumber', 'Email', 'SingleLineText']
+
+function lineMode(key: string): 'plain' | 'formatted' | 'code' {
+  if (typeOf(key) === 'JSON') return 'code'
+  const opts = meta.value?.[key]?.options ?? {}
+  return opts.rich_mode || opts.richMode || opts.smart_mode || opts.smartMode ? 'formatted' : 'plain'
 }
 
-function isLongTextCollapsible(key: string): boolean {
-  if (meta.value?.[key]?.type !== 'LongText') return false
-  const combined = getLongTextRaw(key)
-  return combined.length > LONG_TEXT_CHAR_LIMIT || combined.split('\n').length > LONG_TEXT_LINE_LIMIT
+function listValue(data: Record<string, any>, key: string) {
+  const val = typeOf(key) === 'Attachment' ? parseHelper(data[key]) : data[key]
+  if (Array.isArray(val)) return val
+  if (typeof val === 'string' && val) return val.split(',').map((s) => s.trim())
+  return []
 }
 
-function toggleLongText(key: string) {
-  longTextExpanded.value = { ...longTextExpanded.value, [key]: !longTextExpanded.value[key] }
+function listKey(item: any) {
+  if (item && typeof item === 'object') return item.id ?? item.email ?? item.url ?? item.path ?? item.title
+  return item
+}
+
+const changes = computed(() => {
+  return Object.fromEntries(
+    columnKeys.value.map((key) => {
+      const type = typeOf(key)
+      const oldVal = textValue(oldData.value, key)
+      const newVal = textValue(newData.value, key)
+
+      if (type === 'Attachment' || SET_TYPES.includes(type ?? '')) {
+        const diff = auditSetDiff(listValue(oldData.value, key), listValue(newData.value, key), listKey)
+        return [key, { mode: (type === 'Attachment' ? 'files' : 'set') as ChangeMode, ...diff }]
+      }
+      if (type === 'LongText' || type === 'JSON') {
+        const lines = auditLineDiff(oldVal, newVal, lineMode(key))
+        const collapsed = lines.length > 6 ? collapseAuditLines(lines) : lines
+        return [key, { mode: 'lines' as ChangeMode, lines, collapsed, canExpand: collapsed.length < lines.length }]
+      }
+      if (type === 'SingleLineText') {
+        const words = auditWordDiff(oldVal, newVal)
+        if (words) return [key, { mode: 'words' as ChangeMode, words }]
+      }
+      if (RAW_TYPES.includes(type ?? '')) return [key, { mode: 'raw' as ChangeMode }]
+      if (type === 'Checkbox') return [key, { mode: 'checkbox' as ChangeMode }]
+      return [key, { mode: 'cell' as ChangeMode }]
+    }),
+  ) as Record<string, any>
+})
+
+const expanded = ref<Record<string, boolean>>({})
+
+function toggleExpanded(key: string) {
+  expanded.value = { ...expanded.value, [key]: !expanded.value[key] }
+}
+
+function visibleRows(key: string): AuditDiffRow[] {
+  const change = changes.value[key]
+  return expanded.value[key] ? change.lines : change.collapsed
+}
+
+function checkboxLabel(value: any) {
+  return value === true || value === 1 || value === '1' || value === 'true'
+    ? t('aggregation.checked')
+    : t('aggregation.unchecked')
 }
 </script>
 
 <template>
-  <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
+  <div v-for="columnKey of columnKeys" :key="columnKey" class="nc-audit-change">
     <div
       class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 uppercase !text-[10px] tracking-wide font-weight-500 nc-audit-mini-item-header"
     >
@@ -200,249 +199,211 @@ function toggleLongText(key: string) {
 
         {{ columnKey }}
       </NcTooltip>
-      <span v-if="isAiGeneratedText(columnKey)" class="whitespace-nowrap text-xs text-nc-content-purple-medium">
+      <span v-if="isAiGeneratedText(columnKey)" class="whitespace-nowrap text-xs normal-case text-nc-content-purple-medium">
         ({{ $t('labels.generatedByAi') }})
       </span>
     </div>
-    <div class="flex items-center gap-2 flex-wrap mt-1.5">
-      <template v-if="meta[columnKey]?.type === 'Attachment'">
+
+    <div class="mt-1 text-small1 text-nc-content-gray">
+      <!-- Attachments: one row per file added or removed -->
+      <div v-if="changes[columnKey].mode === 'files'" class="flex flex-col gap-1">
         <div
-          v-if="processOldDataFor(columnKey)?.length > 0"
-          class="border-1 border-nc-border-red rounded-md bg-nc-bg-red-light w-full p-0.5"
+          v-for="(item, i) of [...changes[columnKey].added, ...changes[columnKey].removed]"
+          :key="`${listKey(item)}-${i}`"
+          class="flex items-center gap-2 min-w-0"
+          :class="{ 'nc-audit-gone': i >= changes[columnKey].added.length }"
         >
-          <div class="flex flex-col items-start gap-0.5">
-            <div
-              v-for="(item, i) of processOldDataFor(columnKey)"
-              :key="item.url || item.title"
-              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-elevated w-full"
-            >
-              <div class="flex items-center gap-2 w-full">
-                <div class="flex items-center justify-center w-8 aspect-square">
-                  <LazyCellAttachmentPreviewImage
-                    v-if="isImage(item.title, item.mimetype ?? item.type)"
-                    :alt="item.title || `#${i}`"
-                    class="nc-attachment rounded !w-5.5 !h-5.5 object-cover overflow-hidden"
-                    :srcs="getPossibleAttachmentSrc(item, 'small')"
-                  />
-                  <div v-else class="nc-attachment flex items-center justify-center">
-                    <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
-                  </div>
-                </div>
-                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-nc-content-gray-subtle2">
-                  {{ item.title }}
-                </span>
-                <span class="text-xs font-weight-500 p-2 text-nc-content-gray-muted">
-                  {{ getReadableFileSize(item.size) }}
-                </span>
-              </div>
-            </div>
+          <span class="nc-audit-pm" :class="i >= changes[columnKey].added.length ? 'nc-audit-pm-minus' : 'nc-audit-pm-plus'">
+            {{ i >= changes[columnKey].added.length ? '−' : '+' }}
+          </span>
+          <div class="flex items-center justify-center w-6 h-6 flex-none">
+            <LazyCellAttachmentPreviewImage
+              v-if="isImage(item.title, item.mimetype ?? item.type)"
+              :alt="item.title || `#${i}`"
+              class="nc-attachment rounded !w-6 !h-6 object-cover overflow-hidden"
+              :srcs="getPossibleAttachmentSrc(item, 'small')"
+            />
+            <CellAttachmentIconView v-else :item="item" class="!w-6 !h-6" />
+          </div>
+          <span class="flex-1 truncate nc-audit-strike-target">{{ item.title }}</span>
+          <span class="text-xs text-nc-content-gray-muted">{{ getReadableFileSize(item.size) }}</span>
+        </div>
+      </div>
+
+      <!-- Multi select, User: what was added and what was removed -->
+      <div v-else-if="changes[columnKey].mode === 'set'" class="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <div v-if="changes[columnKey].added.length" class="flex items-center gap-1 min-w-0">
+          <span class="nc-audit-pm nc-audit-pm-plus">+</span>
+          <div class="nc-audit-mini-item-cell">
+            <SmartsheetCell
+              :column="cellColumn(columnKey)"
+              :model-value="changes[columnKey].added"
+              :edit-enabled="false"
+              read-only
+            />
           </div>
         </div>
-        <div
-          v-if="processNewDataFor(columnKey)?.length > 0"
-          class="border-1 border-nc-border-green rounded-md bg-nc-bg-green-light w-full p-0.5"
-        >
-          <div class="flex flex-col items-start gap-0.5">
-            <div
-              v-for="(item, i) of processNewDataFor(columnKey)"
-              :key="item.url || item.title"
-              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-elevated w-full"
-            >
-              <div class="flex items-center gap-2 w-full">
-                <div class="flex items-center justify-center w-8 aspect-square">
-                  <LazyCellAttachmentPreviewImage
-                    v-if="isImage(item.title, item.mimetype ?? item.type)"
-                    :alt="item.title || `#${i}`"
-                    class="nc-attachment rounded !w-5.5 !h-5.5 object-cover overflow-hidden"
-                    :srcs="getPossibleAttachmentSrc(item, 'small')"
-                  />
-                  <div v-else class="nc-attachment flex items-center justify-center">
-                    <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
-                  </div>
-                </div>
-                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-nc-content-gray-subtle2">
-                  {{ item.title }}
-                </span>
-                <span class="text-xs font-weight-500 p-2 text-nc-content-gray-muted">
-                  {{ getReadableFileSize(item.size) }}
-                </span>
-              </div>
-            </div>
+        <div v-if="changes[columnKey].removed.length" class="flex items-center gap-1 min-w-0 nc-audit-gone">
+          <span class="nc-audit-pm nc-audit-pm-minus">−</span>
+          <div class="nc-audit-mini-item-cell nc-audit-removal">
+            <SmartsheetCell
+              :column="cellColumn(columnKey)"
+              :model-value="changes[columnKey].removed"
+              :edit-enabled="false"
+              read-only
+            />
           </div>
         </div>
-      </template>
-      <template v-else-if="shouldShowRaw(columnKey)">
+      </div>
+
+      <!-- Long text, rich/smart text, JSON: line diff with context -->
+      <template v-else-if="changes[columnKey].mode === 'lines'">
         <div
-          v-if="isShowableValue(oldData[columnKey])"
-          class="text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 bg-nc-bg-red-light line-through break-all"
+          class="flex flex-col gap-0.5 break-words"
+          :class="{ 'font-mono text-xs whitespace-pre-wrap': lineMode(columnKey) === 'code' }"
         >
-          {{ oldData[columnKey] }}
-        </div>
-        <div
-          v-if="isShowableValue(newData[columnKey])"
-          class="text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 bg-nc-bg-green-light break-all"
-        >
-          {{ newData[columnKey] }}
-        </div>
-      </template>
-      <template v-else-if="meta[columnKey]?.type === 'SingleLineText'">
-        <div class="w-full">
-          <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
-            <span
-              v-if="block.op === 'removed'"
-              class="max-w-full text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 mr-1 bg-nc-bg-red-light line-through decoration-clone"
+          <template v-for="(row, i) of visibleRows(columnKey)" :key="i">
+            <div v-if="row.op === 'gap'" class="text-nc-content-gray-muted leading-4 select-none" aria-hidden="true">⋯</div>
+            <div
+              v-else
+              class="nc-audit-line flex items-start gap-1.5"
+              :class="[`nc-audit-line-${row.op}`, `nc-audit-kind-${row.kind}`]"
             >
-              {{ block.text }}
-            </span>
-            <span
-              v-else-if="block.op === 'added'"
-              class="max-w-full text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 mr-1 bg-nc-bg-green-light decoration-clone"
-            >
-              {{ block.text }}
-            </span>
-            <span v-else>
-              {{ block.text }}
-            </span>
+              <span v-if="row.kind === 'li' || row.kind === 'ol'" class="flex-none">•</span>
+              <span v-else-if="row.kind === 'task'" class="nc-audit-task" :class="{ 'nc-audit-task-checked': row.checked }">
+                <GeneralIcon v-if="row.checked" icon="ncCheck" class="w-2.5 h-2.5" />
+              </span>
+              <span class="min-w-0" :class="{ 'whitespace-pre-wrap': lineMode(columnKey) !== 'formatted' }">
+                <span v-for="(seg, j) of row.segments" :key="j" :class="`nc-audit-seg-${seg.op}`">{{ seg.text }}</span>
+                <template v-if="!row.segments.some((s) => s.text)">&nbsp;</template>
+              </span>
+            </div>
           </template>
         </div>
-      </template>
-      <template v-else-if="meta[columnKey]?.type === 'LongText'">
-        <div class="w-full text-small1">
-          <div
-            class="relative"
-            :class="{
-              'nc-audit-long-text-collapsed': isLongTextCollapsible(columnKey) && !longTextExpanded[columnKey],
-            }"
-          >
-            <template
-              v-for="(block, i) of diffTextBlocks(
-                meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
-                  ? oldData[columnKey]?.value || ''
-                  : oldData[columnKey] || '',
-                meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
-                  ? newData[columnKey]?.value || ''
-                  : newData[columnKey] || '',
-              )"
-              :key="i"
-            >
-              <span
-                v-if="block.op === 'removed'"
-                class="max-w-full text-nc-content-red-dark px-1 bg-nc-bg-red-light rounded-md line-through decoration-clone !leading-[18px]"
-                :class="{
-                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
-                }"
-              >
-                {{ block.text }}
-              </span>
-              <span
-                v-else-if="block.op === 'added'"
-                class="max-w-full text-nc-content-green-dark px-1 bg-nc-bg-green-light rounded-md decoration-clone !leading-[18px]"
-                :class="{
-                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
-                }"
-              >
-                {{ block.text }}
-              </span>
-              <span
-                v-else
-                class="max-w-full !leading-[18px]"
-                :class="{
-                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
-                }"
-              >
-                {{ block.text }}
-              </span>
-            </template>
-          </div>
-          <button
-            v-if="isLongTextCollapsible(columnKey)"
-            type="button"
-            class="nc-audit-long-text-toggle mt-1 text-xs font-weight-500 text-nc-content-gray-subtle2 hover:text-nc-content-gray-emphasis"
-            @click="toggleLongText(columnKey)"
-          >
-            {{ longTextExpanded[columnKey] ? $t('general.showLess') : $t('general.showMore') }}
-          </button>
-        </div>
-      </template>
-      <template v-else-if="meta[columnKey]?.type === 'JSON'">
-        <div class="overflow-x-auto nc-scrollbar-thin whitespace-nowrap">
-          <template v-for="(block, i) of safeJsonDiff(columnKey)" :key="i">
-            <pre
-              v-if="block.op === 'removed'"
-              class="text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 bg-nc-bg-red-light line-through decoration-clone inline"
-              >{{ block.text }}</pre
-            >
-            <pre
-              v-else-if="block.op === 'added'"
-              class="text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 bg-nc-bg-green-light decoration-clone inline"
-              >{{ block.text }}</pre
-            >
-            <pre v-else class="inline text-small1">{{ block.text }}</pre>
-          </template>
-        </div>
-      </template>
-      <template v-else>
-        <div
-          v-if="isShowableValue(processOldDataFor(columnKey))"
-          class="max-w-full nc-audit-mini-item-cell nc-audit-removal !text-nc-content-red-dark border-1 border-nc-red-200 rounded-md bg-nc-bg-red-light line-through"
-          :class="{
-            'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
-            '!p-0.25': shouldUseUniformPadding(columnKey),
-          }"
+        <button
+          v-if="changes[columnKey].canExpand"
+          type="button"
+          class="nc-audit-long-text-toggle mt-1 text-xs font-weight-600 text-nc-content-brand hover:text-nc-content-brand-hover"
+          @click="toggleExpanded(columnKey)"
         >
+          {{ expanded[columnKey] ? $t('general.showLess') : $t('labels.audit.showFullText') }}
+        </button>
+      </template>
+
+      <!-- Short text, mostly unchanged: words in place -->
+      <div v-else-if="changes[columnKey].mode === 'words'" class="break-words whitespace-pre-wrap">
+        <span v-for="(seg, j) of changes[columnKey].words" :key="j" :class="`nc-audit-seg-${seg.op}`">{{ seg.text }}</span>
+      </div>
+
+      <!-- Everything else: old → new -->
+      <div v-else class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+        <template v-if="changes[columnKey].mode === 'checkbox'">
+          <span class="nc-audit-old">{{ checkboxLabel(oldData[columnKey]) }}</span>
+        </template>
+        <template v-else-if="!isShowableValue(oldData[columnKey])">
+          <span class="nc-audit-empty">{{ $t('general.empty') }}</span>
+        </template>
+        <span v-else-if="changes[columnKey].mode === 'raw'" class="nc-audit-old break-all">{{ oldData[columnKey] }}</span>
+        <div v-else class="nc-audit-mini-item-cell nc-audit-removal nc-audit-gone">
           <SmartsheetCell
-            :column="{
-              uidt: meta[columnKey]?.type,
-              dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
-              meta: normalizeMeta(columnKey),
-              colOptions: normalizeColOptions(columnKey),
-            }"
-            :model-value="processOldDataFor(columnKey)"
+            :column="cellColumn(columnKey)"
+            :model-value="oldData[columnKey]"
             :edit-enabled="false"
             read-only
-            :class="{
-              'min-w-[100px]': normalizeMeta(columnKey).is_progress,
-            }"
-            class="!text-nc-content-red-dark"
+            :class="{ 'min-w-[100px]': normalizeMeta(columnKey).is_progress }"
           />
         </div>
-        <div
-          v-if="isShowableValue(processNewDataFor(columnKey))"
-          class="nc-audit-mini-item-cell nc-audit-addition border-1 border-nc-green-200 rounded-md bg-nc-bg-green-light"
-          :class="{
-            'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
-            '!p-0.25': shouldUseUniformPadding(columnKey),
-          }"
-        >
+
+        <GeneralIcon icon="ncArrowRight" class="w-3 h-3 flex-none text-nc-content-gray-subtle2" aria-hidden="true" />
+
+        <template v-if="changes[columnKey].mode === 'checkbox'">
+          <span>{{ checkboxLabel(newData[columnKey]) }}</span>
+        </template>
+        <template v-else-if="!isShowableValue(newData[columnKey])">
+          <span class="nc-audit-empty">{{ $t('general.empty') }}</span>
+        </template>
+        <span v-else-if="changes[columnKey].mode === 'raw'" class="break-all">{{ newData[columnKey] }}</span>
+        <div v-else class="nc-audit-mini-item-cell">
           <SmartsheetCell
-            :column="{
-              uidt: meta[columnKey]?.type,
-              dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
-              meta: normalizeMeta(columnKey),
-              colOptions: normalizeColOptions(columnKey),
-            }"
-            :model-value="processNewDataFor(columnKey)"
+            :column="cellColumn(columnKey)"
+            :model-value="newData[columnKey]"
             :edit-enabled="false"
             read-only
-            :class="{
-              'min-w-[100px]': normalizeMeta(columnKey).is_progress,
-            }"
-            class="!text-nc-content-green-dark"
+            :class="{ 'min-w-[100px]': normalizeMeta(columnKey).is_progress }"
           />
         </div>
-      </template>
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-// LongText / RichText / SmartText — clamp long values with a fade-out so the
-// revision sidebar stays scannable; expand via the inline toggle.
-.nc-audit-long-text-collapsed {
-  max-height: 6.5rem;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+.nc-audit-change {
+  @apply min-w-0;
+}
+
+// Old side of a replaced value: faded, struck through where it is text.
+.nc-audit-old {
+  @apply text-nc-content-gray-muted line-through;
+}
+.nc-audit-gone {
+  opacity: 0.55;
+  .nc-audit-strike-target {
+    @apply line-through;
+  }
+}
+.nc-audit-empty {
+  @apply text-nc-content-gray-muted italic;
+}
+
+.nc-audit-pm {
+  @apply flex-none w-2.5 text-center text-xs font-bold;
+}
+.nc-audit-pm-plus {
+  @apply text-nc-content-green-dark;
+}
+.nc-audit-pm-minus {
+  @apply text-nc-content-red-dark;
+}
+
+// In-text diff marks: background only, no padding, so spacing stays natural.
+.nc-audit-seg-added {
+  @apply bg-nc-bg-green-light text-nc-content-green-dark rounded-sm decoration-clone;
+}
+.nc-audit-seg-removed {
+  @apply bg-nc-bg-red-light text-nc-content-red-dark rounded-sm line-through decoration-clone;
+}
+
+.nc-audit-line {
+  @apply leading-5;
+}
+.nc-audit-line-unchanged {
+  @apply text-nc-content-gray-subtle;
+}
+.nc-audit-line-added,
+.nc-audit-line-removed {
+  .nc-audit-seg-added,
+  .nc-audit-seg-removed {
+    @apply bg-transparent;
+  }
+}
+.nc-audit-line-added {
+  @apply bg-nc-bg-green-light text-nc-content-green-dark rounded-sm;
+}
+.nc-audit-line-removed {
+  @apply bg-nc-bg-red-light text-nc-content-red-dark rounded-sm line-through;
+}
+.nc-audit-kind-h {
+  @apply font-weight-700;
+}
+.nc-audit-kind-quote {
+  @apply italic pl-2 border-l-2 border-nc-border-gray-medium;
+}
+.nc-audit-task {
+  @apply flex-none mt-[3px] w-3.5 h-3.5 rounded-[3px] border-1 border-nc-border-gray-dark flex items-center justify-center;
+}
+.nc-audit-task-checked {
+  @apply bg-nc-fill-primary border-nc-fill-primary text-white;
 }
 
 .nc-audit-long-text-toggle {
@@ -524,6 +485,9 @@ function toggleLongText(key: string) {
     text-decoration: line-through;
   }
 }
+.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-field) {
+  text-decoration: line-through;
+}
 .nc-audit-mini-item-cell :deep(.nc-cell-user) {
   .nc-cell-field > div {
     display: flex !important;
@@ -548,16 +512,6 @@ function toggleLongText(key: string) {
     @apply !border-1 !border-nc-border-gray-dark !py-0.5 !px-1 !bg-nc-bg-gray-light !rounded-[6px];
   }
 }
-.nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-user) {
-  .ant-tag > span > div + div {
-    @apply !text-nc-content-red-dark;
-  }
-}
-.nc-audit-mini-item-cell.nc-audit-addition :deep(.nc-cell-user) {
-  .ant-tag > span > div + div {
-    @apply !text-nc-content-green-dark;
-  }
-}
 </style>
 
 <style lang="scss">
@@ -567,7 +521,6 @@ function toggleLongText(key: string) {
   }
 }
 .nc-audit-mini-item-cell:has(.nc-cell-user .ant-tag + .ant-tag) {
-  @apply !p-1;
   .nc-cell-field > div {
     @apply gap-1;
   }

@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import { type AuditType, PlanLimitTypes, type TableType } from 'nocodb-sdk'
+import dayjs from 'dayjs'
+import type { IconMapKey } from '#imports'
+
+type TimelineEventKind = 'created' | 'trashed' | 'restored'
+
+type TimelineItem =
+  | { type: 'day'; key: string; label: string }
+  | { type: 'event'; key: string; audit: AuditType; kind: TimelineEventKind }
+  | { type: 'group'; key: string; audits: AuditType[] }
 
 const { user } = useGlobal()
 
@@ -81,8 +90,9 @@ function initLoadMoreAudits() {
 watch(
   consolidatedAudits,
   () => {
+    // Loading earlier pages keeps the reader's place; the next change scrolls again.
     if (shouldSkipAuditsScroll.value) {
-      shouldSkipAuditsScroll.value = true
+      shouldSkipAuditsScroll.value = false
       return
     }
     nextTick(() => {
@@ -111,6 +121,24 @@ function safeJsonParse(json: string) {
 // Op types whose audit detail is a per-field change set (DATA_UPDATE family).
 const UPDATE_OP_TYPES = ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE']
 
+const EVENT_OP_TYPES: Record<string, TimelineEventKind> = {
+  DATA_INSERT: 'created',
+  DATA_BULK_INSERT: 'created',
+  DATA_SOFT_DELETE: 'trashed',
+  DATA_BULK_SOFT_DELETE: 'trashed',
+  DATA_RESTORE: 'restored',
+  DATA_BULK_RESTORE: 'restored',
+}
+
+const EVENT_ICONS: Record<TimelineEventKind, IconMapKey> = {
+  created: 'ncPlus',
+  trashed: 'ncTrash',
+  restored: 'ncRotateCcw',
+}
+
+// One person's edits within this many minutes share a header.
+const GROUP_GAP_MINUTES = 10
+
 // On synced tables, an update that touched ONLY sync bookkeeping fields
 // (RemoteSyncedAt, SyncRunId, …) is pure sync noise — drop the whole entry so
 // the revision history only surfaces real data changes. Mixed entries still
@@ -138,6 +166,71 @@ function isV0Audit(audit: AuditType) {
   }
 
   return false
+}
+
+function dayLabel(at: dayjs.Dayjs) {
+  const today = dayjs()
+  if (at.isSame(today, 'day')) return t('labels.today')
+  if (at.isSame(today.subtract(1, 'day'), 'day')) return t('labels.chatYesterday')
+  return at.format(at.isSame(today, 'year') ? 'D MMM' : 'D MMM YYYY')
+}
+
+function timeLabel(audit: AuditType) {
+  return dayjs(audit.created_at).format('h:mm A')
+}
+
+const timeline = computed(() => {
+  const items: TimelineItem[] = []
+  let lastDay = ''
+  let group: Extract<TimelineItem, { type: 'group' }> | undefined
+
+  for (const audit of visibleAudits.value) {
+    const at = dayjs(audit.created_at)
+    const day = at.format('YYYY-MM-DD')
+    if (day !== lastDay) {
+      items.push({ type: 'day', key: `day-${day}`, label: dayLabel(at) })
+      lastDay = day
+      group = undefined
+    }
+
+    const kind = EVENT_OP_TYPES[audit.op_type as string]
+    if (kind && !isV0Audit(audit)) {
+      items.push({ type: 'event', key: audit.id!, audit, kind })
+      group = undefined
+      continue
+    }
+
+    const last = group?.audits[group.audits.length - 1]
+    if (group && last && last.user === audit.user && at.diff(dayjs(last.created_at), 'minute') <= GROUP_GAP_MINUTES) {
+      group.audits.push(audit)
+    } else {
+      group = { type: 'group', key: audit.id!, audits: [audit] }
+      items.push(group)
+    }
+  }
+
+  return items
+})
+
+const expandedInserts = ref<Record<string, boolean>>({})
+
+function initialValueCount(audit: AuditType) {
+  return Object.keys(safeJsonParse(audit.details as string)?.column_meta || {}).length
+}
+
+function eventText(kind: TimelineEventKind) {
+  if (kind === 'created') return t('activity.createdRecord')
+  if (kind === 'trashed') return t('activity.movedRecordToTrash')
+  return t('activity.restoredRecordFromTrash')
+}
+
+function linkChanges(audit: AuditType) {
+  const details = safeJsonParse(audit.details as string)
+  return {
+    title: details.link_field_title,
+    added: details.consolidated_ref_display_values_links ?? [],
+    removed: details.consolidated_ref_display_values_unlinks ?? [],
+  }
 }
 </script>
 
@@ -198,113 +291,120 @@ function isV0Audit(audit: AuditType) {
             {{ $t('general.loadEarlier') }}
           </NcButton>
         </div>
-        <div v-for="audit of visibleAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">
-          <div class="group gap-3 overflow-hidden px-3 py-2">
-            <div class="flex items-start justify-between">
-              <div class="flex items-start gap-3 flex-1 w-full">
+
+        <div class="flex flex-col gap-3 px-3 py-2">
+          <template v-for="item of timeline" :key="item.key">
+            <!-- Day separator -->
+            <div
+              v-if="item.type === 'day'"
+              class="nc-audit-day flex items-center gap-2.5 text-xs font-weight-600 text-nc-content-gray-subtle"
+            >
+              {{ item.label }}
+            </div>
+
+            <!-- Created / trashed / restored -->
+            <div v-else-if="item.type === 'event'" :class="`${item.audit.id}`" class="nc-audit-item nc-audit-event">
+              <div class="flex items-center gap-2 min-h-6 text-small1 text-nc-content-gray-subtle">
+                <span
+                  class="flex-none w-6 h-6 rounded-full border-1 border-nc-border-gray-medium bg-nc-bg-gray-light flex items-center justify-center"
+                >
+                  <GeneralIcon :icon="EVENT_ICONS[item.kind]" class="w-3 h-3 text-nc-content-gray-subtle" />
+                </span>
+                <span class="min-w-0">
+                  <span class="font-weight-600 text-nc-content-gray">{{ createdByAudit(item.audit) }}</span>
+                  {{ eventText(item.kind) }}
+                  <NcTooltip class="inline text-xs text-nc-content-gray-muted">
+                    <template #title>{{ parseStringDateTime(item.audit.created_at) }}</template>
+                    {{ timeLabel(item.audit) }}
+                  </NcTooltip>
+                </span>
+              </div>
+              <template v-if="item.kind === 'created' && initialValueCount(item.audit)">
+                <button
+                  type="button"
+                  class="nc-audit-link-btn ml-8 mt-1 text-xs font-weight-600 text-nc-content-brand hover:text-nc-content-brand-hover"
+                  @click="expandedInserts[item.key] = !expandedInserts[item.key]"
+                >
+                  {{
+                    expandedInserts[item.key]
+                      ? $t('labels.audit.hideInitialValues')
+                      : $t('labels.audit.showInitialValues', { count: initialValueCount(item.audit) })
+                  }}
+                </button>
+                <div v-if="expandedInserts[item.key]" class="nc-audit-card ml-8 mt-1.5">
+                  <SmartsheetExpandedFormSidebarAuditMiniItem :audit="item.audit" />
+                </div>
+              </template>
+            </div>
+
+            <!-- One person's run of edits -->
+            <div v-else class="nc-audit-item flex flex-col gap-1.5">
+              <div class="flex items-center gap-2 h-6 min-w-0">
                 <GeneralUserIcon
                   :user="{
-                    email: audit?.created_by_email || audit?.user,
-                    display_name: audit?.created_display_name,
-                    meta: audit?.created_by_meta,
+                    email: item.audits[0]?.created_by_email || item.audits[0]?.user,
+                    display_name: item.audits[0]?.created_display_name,
+                    meta: item.audits[0]?.created_by_meta,
                   }"
-                  class="mt-0.5"
                   size="medium"
                 />
-                <div class="flex h-[28px] items-center gap-2 w-[calc(100%_-_40px)]">
-                  <div class="truncate text-nc-content-gray font-medium !text-small !leading-[18px] overflow-hidden">
-                    {{ createdByAudit(audit) }}
-                    <span v-if="auditAgent(audit, agents)" class="font-normal text-nc-content-gray-muted">
-                      {{
-                        auditAgent(audit, agents)?.title
-                          ? $t('labels.agentPersonal.viaAgent', { agent: auditAgent(audit, agents)?.title })
-                          : $t('labels.agentPersonal.viaAnAgent')
-                      }}
-                    </span>
-                  </div>
-                  <div class="text-xs text-nc-content-gray-muted">
-                    <NcTooltip>
-                      <template #title>{{ parseStringDateTime(audit.created_at) }}</template>
-                      {{ timeAgo(audit.created_at!) }}
-                    </NcTooltip>
-                  </div>
+                <div class="truncate text-nc-content-gray font-weight-600 text-small1">
+                  {{ createdByAudit(item.audits[0]!) }}
+                  <span v-if="auditAgent(item.audits[0]!, agents)" class="font-weight-500 text-nc-content-gray-muted">
+                    {{
+                      auditAgent(item.audits[0]!, agents)?.title
+                        ? $t('labels.agentPersonal.viaAgent', { agent: auditAgent(item.audits[0]!, agents)?.title })
+                        : $t('labels.agentPersonal.viaAnAgent')
+                    }}
+                  </span>
                 </div>
+                <NcTooltip class="flex-none text-xs text-nc-content-gray-muted">
+                  <template #title>{{ parseStringDateTime(item.audits[0]!.created_at) }}</template>
+                  {{ timeLabel(item.audits[0]!) }}
+                </NcTooltip>
               </div>
-            </div>
-            <div v-if="isV0Audit(audit)" class="pl-9">
-              <div
-                v-if="audit.details"
-                v-dompurify-html="audit.details"
-                class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3"
-                @click="handleDompurifyLinkClick"
-              ></div>
-              <div v-else class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
-                {{ audit.description }}
-              </div>
-            </div>
-            <template v-else-if="['DATA_INSERT', 'DATA_BULK_INSERT'].includes(audit?.op_type)">
-              <div class="pl-9">{{ $t('activity.createdRecord') }}</div>
-              <div
-                v-if="safeJsonParse(audit.details)?.data && Object.keys(safeJsonParse(audit.details)?.column_meta || {}).length"
-                class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight"
-              >
-                <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
-              </div>
-            </template>
-            <div v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(audit?.op_type)" class="pl-9">
-              <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight py-2 px-3">
-                <div
-                  class="flex items-center gap-2 !text-nc-content-gray-subtle2 uppercase !text-[10px] tracking-wide nc-audit-mini-item-header mb-1.5"
-                >
-                  {{ safeJsonParse(audit.details).link_field_title }}
-                </div>
-                <div class="!border-none audit-link-container">
+
+              <div class="nc-audit-card ml-8 flex flex-col gap-3">
+                <template v-for="audit of item.audits" :key="audit.id">
+                  <div v-if="isV0Audit(audit)" :class="`${audit.id}`">
+                    <div v-if="audit.details" v-dompurify-html="audit.details" @click="handleDompurifyLinkClick"></div>
+                    <div v-else>{{ audit.description }}</div>
+                  </div>
+
                   <div
-                    v-if="safeJsonParse(audit.details).consolidated_ref_display_values_unlinks?.length > 0"
-                    class="audit-link-removal"
+                    v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(audit?.op_type)"
+                    :class="`${audit.id}`"
+                    class="nc-audit-change"
                   >
-                    <span
-                      v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_unlinks"
-                      :key="entry.refRowId"
-                      class="audit-link-item"
+                    <div
+                      class="!text-nc-content-gray-subtle2 uppercase !text-[10px] tracking-wide font-weight-500 nc-audit-mini-item-header truncate"
                     >
-                      {{ entry.value }}
-                    </span>
+                      {{ linkChanges(audit).title }}
+                    </div>
+                    <div class="mt-1 flex flex-wrap items-center gap-1.5 text-small1">
+                      <span v-for="entry of linkChanges(audit).added" :key="`a-${entry.refRowId}`" class="nc-audit-record">
+                        <span class="nc-audit-pm nc-audit-pm-plus">+</span>{{ entry.value }}
+                      </span>
+                      <span
+                        v-for="entry of linkChanges(audit).removed"
+                        :key="`r-${entry.refRowId}`"
+                        class="nc-audit-record nc-audit-record-gone"
+                      >
+                        <span class="nc-audit-pm nc-audit-pm-minus">−</span><span class="line-through">{{ entry.value }}</span>
+                      </span>
+                    </div>
                   </div>
-                  <div
-                    v-if="safeJsonParse(audit.details).consolidated_ref_display_values_links?.length > 0"
-                    class="audit-link-addition"
-                  >
-                    <span
-                      v-for="entry of safeJsonParse(audit.details).consolidated_ref_display_values_links"
-                      :key="entry.refRowId"
-                      class="audit-link-item"
-                    >
-                      {{ entry.value }}
-                    </span>
-                  </div>
-                </div>
+
+                  <template v-else-if="UPDATE_OP_TYPES.includes(audit?.op_type)">
+                    <div v-if="audit?.op_type === 'DATA_CASCADE_UPDATE'" class="text-xs text-nc-content-gray-muted -mb-2">
+                      {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
+                    </div>
+                    <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
+                  </template>
+                </template>
               </div>
             </div>
-            <template
-              v-else-if="
-                ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE'].includes(audit?.op_type)
-              "
-            >
-              <div v-if="audit?.op_type === 'DATA_CASCADE_UPDATE'" class="pl-9 text-xs text-nc-content-gray-muted mb-1">
-                {{ $t('labels.dateDependency.cascadeUpdateDescription') }}
-              </div>
-              <div class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight">
-                <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
-              </div>
-            </template>
-            <template v-else-if="['DATA_SOFT_DELETE', 'DATA_BULK_SOFT_DELETE'].includes(audit?.op_type)">
-              <div class="pl-9">{{ $t('activity.movedRecordToTrash') }}</div>
-            </template>
-            <template v-else-if="['DATA_RESTORE', 'DATA_BULK_RESTORE'].includes(audit?.op_type)">
-              <div class="pl-9">{{ $t('activity.restoredRecordFromTrash') }}</div>
-            </template>
-          </div>
+          </template>
         </div>
       </template>
     </div>
@@ -316,26 +416,43 @@ function isV0Audit(audit: AuditType) {
   @apply bg-nc-bg-red-dark rounded-md line-through;
 }
 
-.nc-audit-item {
-  @apply gap-3;
-}
-
 :deep(.green.lighten-4) {
   @apply bg-nc-bg-green-dark rounded-md !mr-3;
 }
-.audit-link-container {
-  @apply flex flex-row flex-wrap gap-2;
-  .audit-link-addition {
-    @apply flex gap-2 flex-wrap;
-    span {
-      @apply !text-[13px] px-1 py-0.5 text-nc-content-green-dark font-weight-500 border-1 border-green-200 rounded-md bg-nc-bg-green-light decoration-clone;
-    }
+
+.nc-audit-day {
+  &::before,
+  &::after {
+    content: '';
+    @apply flex-1 h-px bg-nc-border-gray-light;
   }
-  .audit-link-removal {
-    @apply flex gap-2 flex-wrap;
-    span {
-      @apply !text-[13px] px-1 py-0.5 text-nc-content-red-dark font-weight-500 border-1 border-red-200 rounded-md bg-nc-bg-red-light decoration-clone line-through;
-    }
-  }
+}
+
+.nc-audit-card {
+  @apply rounded-lg border-1 border-nc-border-gray-light bg-nc-bg-gray-extralight py-2.5 px-3 min-w-0;
+}
+
+.nc-audit-link-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.nc-audit-record {
+  @apply inline-flex items-center gap-1 px-1.5 rounded-md border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-gray leading-5;
+}
+.nc-audit-record-gone {
+  opacity: 0.55;
+}
+
+.nc-audit-pm {
+  @apply flex-none text-xs font-bold;
+}
+.nc-audit-pm-plus {
+  @apply text-nc-content-green-dark;
+}
+.nc-audit-pm-minus {
+  @apply text-nc-content-red-dark;
 }
 </style>

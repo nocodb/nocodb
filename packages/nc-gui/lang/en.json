@@ -4709,7 +4709,10 @@
         "twoMonths": "2 months",
         "sixMonths": "6 months",
         "oneYear": "1 year"
-      }
+      },
+      "showFullText": "Show full text",
+      "showInitialValues": "Show {count} initial values",
+      "hideInitialValues": "Hide initial values"
     },
     "hasRoleInBase": "Has {role} role in project",
     "systemUser": "System user",

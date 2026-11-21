@@ -17,7 +17,11 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { Filter } from '~/models';
-import type { WebhookAddJob, WebhookRetryState } from '~/interface/Jobs';
+import type {
+  RetryWebhookJobData,
+  WebhookAddJob,
+  WebhookRetryState,
+} from '~/interface/Jobs';
 import { getFilteredAgents } from '~/utils/ssrf';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getWebhookMaxBodySize } from '~/utils/nc-config/constants';
@@ -296,10 +300,7 @@ export class WebhookInvoker {
       log,
       ncSiteUrl,
     }: {
-      hook: Pick<
-        HookType,
-        'id' | 'fk_model_id' | 'timeout' | 'retries' | 'retry_interval'
-      >;
+      hook: Pick<HookType, 'id' | 'timeout' | 'retries' | 'retry_interval'>;
       error: any;
       reqPayload: WebhookRetryState['request'];
       attempt: number;
@@ -330,17 +331,13 @@ export class WebhookInvoker {
     };
 
     try {
-      await addJob(
-        JobTypes.HandleWebhook,
-        {
-          context,
-          hookId: hook.id,
-          modelId: hook.fk_model_id,
-          ncSiteUrl,
-          retry,
-        },
-        { delay },
-      );
+      const data: Omit<RetryWebhookJobData, 'jobName' | 'user'> = {
+        context,
+        hookId: hook.id,
+        ncSiteUrl,
+        retry,
+      };
+      await addJob(JobTypes.RetryWebhook, data, { delay });
     } catch (e) {
       this.logger.error(e.message, e.stack);
       return `attempt ${attempt} of ${total}, retry could not be queued`;

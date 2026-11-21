@@ -59,6 +59,7 @@ export enum JobTypes {
   UpdateWsStat = 'update-ws-stats',
   HealthCheck = 'health-check',
   HandleWebhook = 'handle-webhook',
+  RetryWebhook = 'retry-webhook',
   CleanUp = 'clean-up',
   DataExport = 'data-export',
   InterfaceDataExport = 'interface-data-export',
@@ -128,6 +129,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.ThumbnailGenerator,
   JobTypes.UseWorker,
   JobTypes.HandleWebhook,
+  JobTypes.RetryWebhook,
   JobTypes.ExecuteWorkflow,
   JobTypes.InitMigrationJobs,
   JobTypes.UpdateWsStat,
@@ -170,6 +172,7 @@ export const UNPOLLED_JOB_TYPES: ReadonlySet<string> = new Set([
   JobTypes.HealthCheck,
   JobTypes.ThumbnailGenerator,
   JobTypes.HandleWebhook,
+  JobTypes.RetryWebhook,
   JobTypes.HookErrorNotification,
   JobTypes.UpdateWsStat,
   JobTypes.UpdateUsageStats,
@@ -413,8 +416,14 @@ export interface HandleWebhookJobData extends JobData {
   ncSiteUrl: string;
   prevData;
   newData;
-  // set on a queued redelivery of a failed URL hook
-  retry?: WebhookRetryState;
+}
+
+// A separate job type so a worker that predates retries requeues it instead
+// of running it as a first delivery.
+export interface RetryWebhookJobData extends JobData {
+  hookId: string;
+  ncSiteUrl?: string;
+  retry: WebhookRetryState;
 }
 
 // A redelivery resends the exact request of the first attempt.

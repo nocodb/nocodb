@@ -180,21 +180,48 @@ export function getPrintColumnWidthPx(gridWidth: string | number | undefined | n
 }
 
 /** Actual size: a column wider than the page is capped at the page width. */
-export function capPrintColumnWidths<T>(columns: { column: T; width: number }[], availableWidth: number) {
-  return columns.map(({ column, width }) => ({ column, width: Math.min(width, availableWidth) }))
+export function capPrintColumnWidths<T>(
+  columns: { column: T; width: number }[],
+  availableWidth: number,
+  minWidths: (number | undefined)[] = [],
+) {
+  return columns.map(({ column, width }, index) => ({
+    column,
+    width: Math.min(Math.max(width, minWidths[index] ?? 0), availableWidth),
+  }))
 }
 
-/** Fit to page width: scales columns to fill the page, keeping each readable. */
-export function fitPrintColumnWidths<T>(columns: { column: T; width: number }[], availableWidth: number) {
+/**
+ * Fit to page width: scales columns to fill the page, keeping each readable. A column whose scaled
+ * width would fall below its minimum keeps the minimum, and the others share what is left.
+ */
+export function fitPrintColumnWidths<T>(
+  columns: { column: T; width: number }[],
+  availableWidth: number,
+  minWidths: (number | undefined)[] = [],
+) {
   const total = columns.reduce((sum, { width }) => sum + width, 0)
   if (!total) return columns
 
-  const scale = availableWidth / total
+  const mins = columns.map((_, index) => Math.min(availableWidth, Math.max(PRINT_MIN_FIT_COLUMN_WIDTH_PX, minWidths[index] ?? 0)))
+  const pinned = new Set<number>()
 
-  return columns.map(({ column, width }) => ({
-    column,
-    width: Math.max(PRINT_MIN_FIT_COLUMN_WIDTH_PX, Math.floor(width * scale)),
-  }))
+  for (;;) {
+    const flexible = columns.reduce((sum, { width }, index) => (pinned.has(index) ? sum : sum + width), 0)
+    const room = availableWidth - [...pinned].reduce((sum, index) => sum + mins[index]!, 0)
+    const scale = flexible > 0 ? Math.max(0, room) / flexible : 0
+    const newlyPinned = columns
+      .map((_, index) => index)
+      .filter((index) => !pinned.has(index) && columns[index]!.width * scale < mins[index]!)
+
+    if (!newlyPinned.length) {
+      return columns.map(({ column, width }, index) => ({
+        column,
+        width: pinned.has(index) ? mins[index]! : Math.floor(width * scale),
+      }))
+    }
+    newlyPinned.forEach((index) => pinned.add(index))
+  }
 }
 
 /** Columns that don't fit across the page continue on further pages, in view order. */
@@ -245,6 +272,8 @@ export function getPrintColumnBands<T extends { id?: string }>(
   columnWidths: Record<string, string | number | undefined | null>,
   settings: PrintSettings,
   lastRowNumber = 0,
+  /** Widths a column needs to show its values, by column id, at the printed font size. */
+  minWidths: Record<string, number> = {},
 ) {
   const rowNumberWidth = getPrintRowNumberWidthPx(lastRowNumber, settings)
   const availableWidth = getPrintableWidthPx(settings) - rowNumberWidth
@@ -254,10 +283,11 @@ export function getPrintColumnBands<T extends { id?: string }>(
     width: getPrintColumnWidthPx(columnWidths[column.id!], settings),
   }))
 
+  const mins = columns.map((column) => minWidths[column.id!])
   const columnsWithWidth =
     settings.fieldSizing === 'fitToWidth'
-      ? fitPrintColumnWidths(sized, availableWidth)
-      : capPrintColumnWidths(sized, availableWidth)
+      ? fitPrintColumnWidths(sized, availableWidth, mins)
+      : capPrintColumnWidths(sized, availableWidth, mins)
 
   return { rowNumberWidth, availableWidth, columnsWithWidth, bands: splitPrintColumnBands(columnsWithWidth, availableWidth) }
 }

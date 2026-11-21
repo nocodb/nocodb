@@ -20,6 +20,7 @@
   },
   "schedule": "at any time",
   "rangeStrategy": "bump",
+  "branchNameStrict": true,
   "packageRules": [
     {
       "matchPackagePatterns": ["*"],

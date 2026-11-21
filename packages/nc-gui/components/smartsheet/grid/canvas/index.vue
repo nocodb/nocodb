@@ -544,7 +544,8 @@ const {
 } = useFileDropToCreateRecords({
   meta,
   callAddEmptyRow,
-  updateOrSaveRow: saveRow,
+  // counts created vs failed records itself, so it needs the rejection
+  updateOrSaveRow: updateOrSaveRowProp,
 })
 
 const descriptionPopoverState = ref<{

@@ -4,10 +4,13 @@ interface Props {
   /** Remembers the last-used settings under this key. */
   storageKey: string
   loading?: boolean
+  /** Used until the user prints once with their own choices. */
+  defaults?: PrintSettings
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
+  defaults: () => DEFAULT_PRINT_SETTINGS,
 })
 
 const emits = defineEmits<{
@@ -17,7 +20,7 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 
-const settings = ref<PrintSettings>(loadPrintSettings(props.storageKey))
+const settings = ref<PrintSettings>(loadPrintSettings(props.storageKey, props.defaults))
 
 const isOpen = computed({
   get: () => props.visible,
@@ -63,7 +66,7 @@ function onPrint() {
 watch(
   () => [props.visible, props.storageKey] as const,
   ([visible]) => {
-    if (visible) settings.value = loadPrintSettings(props.storageKey)
+    if (visible) settings.value = loadPrintSettings(props.storageKey, props.defaults)
   },
 )
 </script>

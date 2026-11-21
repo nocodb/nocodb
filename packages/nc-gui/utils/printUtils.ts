@@ -89,8 +89,8 @@ const SETTING_VALUES: { [K in keyof PrintSettings]: readonly PrintSettings[K][] 
 }
 
 /** Keeps only known values, so a stale or hand-edited entry falls back to the defaults. */
-export function normalizePrintSettings(value: unknown): PrintSettings {
-  const settings = { ...DEFAULT_PRINT_SETTINGS }
+export function normalizePrintSettings(value: unknown, defaults: PrintSettings = DEFAULT_PRINT_SETTINGS): PrintSettings {
+  const settings = { ...defaults }
   if (!value || typeof value !== 'object') return settings
 
   for (const key of Object.keys(SETTING_VALUES) as (keyof PrintSettings)[]) {
@@ -103,12 +103,12 @@ export function normalizePrintSettings(value: unknown): PrintSettings {
   return settings
 }
 
-export function loadPrintSettings(storageKey: string): PrintSettings {
+export function loadPrintSettings(storageKey: string, defaults: PrintSettings = DEFAULT_PRINT_SETTINGS): PrintSettings {
   try {
     const raw = localStorage.getItem(PRINT_SETTINGS_STORAGE_PREFIX + storageKey)
-    return normalizePrintSettings(raw ? JSON.parse(raw) : null)
+    return normalizePrintSettings(raw ? JSON.parse(raw) : null, defaults)
   } catch {
-    return { ...DEFAULT_PRINT_SETTINGS }
+    return { ...defaults }
   }
 }
 

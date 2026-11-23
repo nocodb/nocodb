@@ -4035,6 +4035,7 @@
     "viewName": "View name",
     "columnName": "Field Name",
     "columnToScanFor": "Field to scan",
+    "pointCameraAtCode": "Point your camera at a QR code or barcode",
     "columnType": "Field Type",
     "databaseType": "Type in Database",
     "lengthValue": "Length/ value",

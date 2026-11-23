@@ -82,7 +82,7 @@ watch(
 
       <div class="relative min-h-60 rounded-lg overflow-hidden bg-nc-bg-gray-extralight flex items-center justify-center">
         <template v-if="cameraState === 'ready'">
-          <div v-show="isReaderLoaded" class="w-full">
+          <div v-show="isReaderLoaded" class="nc-form-scanner-reader w-full">
             <StreamBarcodeReader @decode="onDecode" @loaded="onReaderLoaded" />
           </div>
           <a-spin v-if="!isReaderLoaded" />
@@ -100,6 +100,21 @@ watch(
           </NcButton>
         </div>
       </div>
+
+      <div v-if="cameraState === 'ready' && isReaderLoaded" class="text-bodySm text-nc-content-gray-muted text-center">
+        {{ $t('labels.pointCameraAtCode') }}
+      </div>
     </div>
   </NcModal>
 </template>
+
+<style lang="scss" scoped>
+// the reader's video is inline (baseline gap) and its overlay stops at 99%, leaving a light strip at the bottom
+.nc-form-scanner-reader :deep(video) {
+  @apply block w-full max-w-full;
+}
+
+.nc-form-scanner-reader :deep(.overlay-element) {
+  @apply h-full;
+}
+</style>

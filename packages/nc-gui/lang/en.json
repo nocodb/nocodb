@@ -4176,6 +4176,17 @@
     "account": "Account",
     "language": "Language",
     "changeLanguage": "Change Language",
+    "firstDayOfWeek": "First day of week",
+    "preferencesPage": {
+      "themeSubtitle": "System follows your device's light or dark setting.",
+      "darkColours": "Dark mode colours",
+      "darkColoursSubtitle": "Pick the palette used when NocoDB is dark.",
+      "customize": "Customize",
+      "languageRegion": "Language & region",
+      "languageSubtitle": "Used for menus, labels and messages across NocoDB.",
+      "weekStartsOn": "Week starts on",
+      "weekStartsOnSubtitle": "Used by calendar views and date pickers."
+    },
     "personalAccessToken": "Personal Access Token",
     "airtableTokenViewHint": "Required for a shared base. Not needed for a shared view link.",
     "airtableSharedLink": "Shared base or view URL",

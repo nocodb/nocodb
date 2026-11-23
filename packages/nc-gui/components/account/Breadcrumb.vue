@@ -44,6 +44,13 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       })
       break
     }
+    case 'preferences': {
+      payload.push({
+        title: t('labels.preferences'),
+        active: true,
+      })
+      break
+    }
     case 'tokens': {
       payload.push({
         title: t('title.tokens'),

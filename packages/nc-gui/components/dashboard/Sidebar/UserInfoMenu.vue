@@ -13,12 +13,7 @@ const emits = defineEmits<{
 
 const { user, signOut, isMobileMode } = useGlobal()
 
-const { toggleTheme, isThemeEnabled, selectedTheme, isThemeConfigOpen } = useTheme()
-
-const openThemeConfig = () => {
-  isThemeConfigOpen.value = true
-  emits('closeMenu')
-}
+const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
 
 const { availableTours } = useTours()
 
@@ -41,8 +36,6 @@ const themeIcon = computed(
       system: 'ncSunMoon',
     }[selectedTheme.value] as IconMapKey),
 )
-
-const isThemeConfigEnabled = computed(() => isThemeEnabled.value && isFeatureEnabled(FEATURE_FLAG.THEME_SETTINGS))
 
 const showTourMenu = computed(() => isFeatureEnabled(FEATURE_FLAG.PRODUCT_TOURS_MENU) && availableTours.value.length > 0)
 
@@ -164,18 +157,6 @@ const openKeyboardShortcutDialog = () => {
         <span class="text-nc-content-gray-muted text-xs ml-auto">{{ themeLabel }}</span>
       </NcMenuItem>
 
-      <!-- Theme settings -->
-      <NcMenuItem
-        v-if="isThemeConfigEnabled"
-        v-e="['c:theme:config-open']"
-        data-testid="nc-sidebar-user-theme-config"
-        @click="openThemeConfig"
-      >
-        <GeneralIcon icon="palette" class="menu-icon" />
-        <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
-        <NcBadgeBeta />
-      </NcMenuItem>
-
       <!-- Language -->
       <a-popover
         key="language"
@@ -197,6 +178,20 @@ const openKeyboardShortcutDialog = () => {
           </div>
         </template>
       </a-popover>
+
+      <!-- Language, week start, dark colours -->
+      <nuxt-link
+        v-e="['c:user:preferences:open']"
+        class="!no-underline"
+        to="/account/preferences"
+        data-testid="nc-sidebar-user-preferences"
+        @click="saveBackRoute"
+      >
+        <NcMenuItem>
+          <GeneralIcon icon="ncSlidersHorizontal" class="menu-icon" />
+          <span class="menu-btn">{{ $t('labels.preferences') }}</span>
+        </NcMenuItem>
+      </nuxt-link>
 
       <!-- Keyboard Shortcuts -->
       <NcMenuItem
@@ -263,15 +258,6 @@ const openKeyboardShortcutDialog = () => {
           <GeneralIcon :icon="themeIcon" class="menu-icon" />
           <span class="menu-btn">{{ $t('general.appearance') }}</span>
           <span class="text-nc-content-gray-muted text-xs ml-auto">{{ themeLabel }}</span>
-        </NcMenuItem>
-        <NcMenuItem
-          v-if="isThemeConfigEnabled"
-          v-e="['c:theme:config-open']"
-          data-testid="nc-sidebar-user-theme-config"
-          @click="openThemeConfig"
-        >
-          <GeneralIcon icon="palette" class="menu-icon" />
-          <span class="menu-btn">{{ $t('title.themeSettings') }}</span>
         </NcMenuItem>
       </template>
 

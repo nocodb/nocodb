@@ -18,12 +18,21 @@ const columnWidths = computed(() =>
   Object.fromEntries(Object.values(gridViewCols.value).map((col) => [col.fk_column_id, col.width ?? undefined])),
 )
 
+// A hidden field comes back with the rows only when it is a saved group field.
+const printableGroupBy = computed(() =>
+  groupBy.value.filter(
+    (g) =>
+      fields.value.some((f) => f.id === g.column.id) ||
+      Object.values(gridViewCols.value).some((col) => col.fk_column_id === g.column.id && col.group_by),
+  ),
+)
+
 function onPrint(settings: PrintSettings) {
   viewPrint?.print(settings, {
     sorts: sorts.value,
     nestedFilters: nestedFilters.value,
     where: xWhere.value,
-    groupBy: groupBy.value,
+    groupBy: printableGroupBy.value,
   })
 }
 </script>

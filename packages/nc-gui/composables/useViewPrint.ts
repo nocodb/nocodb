@@ -73,12 +73,10 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
         }
 
         const { rows, total } = await loadAllPrintRows(
-          (offset, limit) =>
-            $api.dbViewRow.list('noco', base.value!.id!, meta.value!.id!, view.value!.id!, {
-              ...params,
-              offset,
-              limit,
-            } as any) as Promise<PrintRowsPage>,
+          (offset, limit) => {
+            const query = { ...params, offset, limit }
+            return $api.dbViewRow.list('noco', base.value!.id!, meta.value!.id!, view.value!.id!, query)
+          },
           VIEW_PRINT_RECORD_LIMIT,
           VIEW_PRINT_PAGE_SIZE,
         )

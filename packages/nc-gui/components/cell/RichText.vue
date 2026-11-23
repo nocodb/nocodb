@@ -98,7 +98,9 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { activeProjectId } = storeToRefs(basesStore)
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 // Resolved once, synchronously — the Yjs binding is a tiptap extension, so it is
 // fixed when the editor is constructed. A read-only editor never opens a session:
@@ -294,6 +296,47 @@ const setEditorContent = (contentMd: any) => {
   if (!editor.value) return
 
   editor.value.commands.setContent(contentMd, false)
+}
+
+const markdownMode = useRichTextMarkdownMode({
+  // Collab: the stored value lags the shared document, so read the editor.
+  readMarkdown: () => (collabOwnsPersistence.value ? editor.value?.storage.markdown.getMarkdown() : props.value) ?? '',
+  save: (markdown) => {
+    if (collabOwnsPersistence.value) setEditorContent(NcMarkdownParser.preprocessMarkdown(markdown, true))
+    else vModel.value = markdown
+  },
+  loadIntoEditor: (markdown) => {
+    setEditorContent(NcMarkdownParser.preprocessMarkdown(markdown, true))
+    hasLocalEdits.value = false
+  },
+})
+
+const { mode: editorMode, isMarkdownMode, source: markdownSource } = markdownMode
+
+// No Markdown edits while a collab session is still deciding who owns the cell.
+const isMarkdownEditable = computed(() => !props.readOnly && (!collab || collabRefused.value || collabOwnsPersistence.value))
+
+const editorModeOptions = computed(() => [
+  { value: 'rich', label: t('datatype.RichText') },
+  { value: 'markdown', label: t('general.markdown') },
+])
+
+function onEditorModeChange(next: string) {
+  if (next !== 'rich' && next !== 'markdown') return
+  $e('c:cell:rich-text:markdown:toggle', { mode: next })
+  markdownMode.setMode(next)
+  if (next === 'rich' && !props.readOnly) focusEditor()
+}
+
+function onMarkdownSourceInput(e: Event) {
+  if (!isMarkdownEditable.value || !(e.target instanceof HTMLTextAreaElement)) return
+  markdownMode.updateSource(e.target.value)
+}
+
+// Keys stay in the textarea, away from grid and modal shortcuts.
+function onMarkdownSourceKeydown(e: KeyboardEvent) {
+  e.stopPropagation()
+  if (e.key === 'Escape') emits('close')
 }
 
 const onFocusWrapper = () => {
@@ -508,6 +551,13 @@ if (props.syncValueChange && !collab) {
   })
 }
 
+watch(
+  () => props.value,
+  (value) => {
+    if (!collabOwnsPersistence.value) markdownMode.syncSource(value)
+  },
+)
+
 // Reset the local-edits flag whenever the editor loses focus so the next external value change is
 // applied even if the user had typed earlier.
 watch(isFocused, (focused) => {
@@ -607,7 +657,7 @@ onClickOutside(editorDom, (e) => {
     </div>
     <template v-else>
       <div
-        v-if="showMenu && !readOnly && !isFormField"
+        v-if="(showMenu && !readOnly && !isFormField) || fullMode"
         class="absolute top-0 right-0.5"
         :class="{
           'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
@@ -616,7 +666,15 @@ onClickOutside(editorDom, (e) => {
           'justify-end xs:hidden max-w-[calc(100%_-_2px)]': !isForm,
         }"
       >
-        <div class="nc-scrollbar-thin relative">
+        <div v-if="fullMode" class="nc-rich-text-mode-toggle flex-none flex items-center h-11 pl-1 pr-2">
+          <NcSegmented
+            :value="editorMode"
+            :options="editorModeOptions"
+            :aria-label="$t('labels.richTextEditorMode')"
+            @update:value="onEditorModeChange"
+          />
+        </div>
+        <div v-if="!readOnly && !isMarkdownMode" class="nc-scrollbar-thin relative">
           <CellRichTextSelectedBubbleMenu
             v-if="editor"
             :editor="editor"
@@ -626,6 +684,11 @@ onClickOutside(editorDom, (e) => {
             :enable-close-button="fullMode"
             @close="emits('close')"
           />
+        </div>
+        <div v-else class="flex items-center h-11 pr-0.5">
+          <NcButton type="text" size="small" :aria-label="$t('general.close')" @click="emits('close')">
+            <GeneralIcon icon="close" />
+          </NcButton>
         </div>
       </div>
       <CellRichTextSelectedBubbleMenuPopup
@@ -645,7 +708,21 @@ onClickOutside(editorDom, (e) => {
         />
       </template>
 
+      <textarea
+        v-if="isMarkdownMode"
+        :value="markdownSource"
+        :readonly="!isMarkdownEditable"
+        :aria-label="cellAriaLabel || $t('general.markdown')"
+        spellcheck="false"
+        class="nc-rich-text-markdown-source mt-2.5 flex-grow nc-scrollbar-thin"
+        data-testid="nc-rich-text-markdown-source"
+        @input="onMarkdownSourceInput"
+        @keydown="onMarkdownSourceKeydown"
+        @selectstart.capture.stop
+        @mousedown.stop
+      />
       <EditorContent
+        v-show="!isMarkdownMode"
         ref="editorDom"
         :editor="editor"
         class="nc-rich-text-content flex flex-col nc-textarea-rich-editor w-full"
@@ -807,6 +884,34 @@ onClickOutside(editorDom, (e) => {
     .ProseMirror {
       @apply bg-nc-bg-gray-extralight;
     }
+  }
+}
+
+.nc-rich-text-full .nc-rich-text-markdown-source {
+  @apply p-2 h-[min(797px,100dvh_-_170px)] w-[min(1256px,100vw_-_124px)] font-dmmono text-sm leading-6 rounded-lg outline-none
+    border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-gray;
+  resize: both;
+  white-space: pre-wrap;
+  min-height: 215px;
+  max-height: min(797px, calc(100vh - 170px));
+  min-width: 256px;
+  max-width: min(1256px, 100vw - 126px);
+
+  @supports (height: 100dvh) {
+    max-height: min(797px, calc(100dvh - 170px));
+  }
+
+  @media (max-width: 767px) {
+    min-width: 100%;
+    max-width: min(1256px, 100vw - 58px);
+  }
+
+  &:focus:not([readonly]) {
+    @apply border-nc-border-brand;
+  }
+
+  &[readonly] {
+    @apply bg-nc-bg-gray-extralight;
   }
 }
 

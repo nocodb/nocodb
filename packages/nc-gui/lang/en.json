@@ -1639,6 +1639,7 @@
     "agentMachines": "Machines"
   },
   "labels": {
+    "richTextEditorMode": "Editor mode",
     "filesTotalSize": "{count} file, total size: {size} | {count} files, total size: {size}",
     "uploadNFiles": "Upload {count} file | Upload {count} files",
     "saveMine": "Save mine",

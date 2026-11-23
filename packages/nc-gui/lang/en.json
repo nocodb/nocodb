@@ -9291,7 +9291,8 @@
       "sharedLinkGroupedByHidden": "Grouped by {fields}, which is hidden: the shared link shows the rows ungrouped.",
       "sharedLinkUtilizationHidden": "Utilization needs {fields} shown.",
       "sharedLinkNoTimeOff": "The shared link doesn't count time off.",
-      "sharedLinkGroupHidden": "The shared link shows the rows ungrouped while {fields} is hidden."
+      "sharedLinkGroupHidden": "The shared link shows the rows ungrouped while {fields} is hidden.",
+      "richTextMarkdownReadOnlyWhileCoEditing": "Others are editing this field. Markdown is read-only until they leave; switch to Rich text to edit."
     },
     "error": {
       "linkedRecordsNotCreated": "The record was saved, but these linked records could not be created: {details}. Those still shown in the link field are kept; Save again to retry them.",

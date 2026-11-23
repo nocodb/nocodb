@@ -313,8 +313,44 @@ const markdownMode = useRichTextMarkdownMode({
 
 const { mode: editorMode, isMarkdownMode, source: markdownSource } = markdownMode
 
-// No Markdown edits while a collab session is still deciding who owns the cell.
-const isMarkdownEditable = computed(() => !props.readOnly && (!collab || collabRefused.value || collabOwnsPersistence.value))
+// Others in the session: each Markdown edit replaces the whole shared doc and would clobber theirs.
+const collabPeerCount = ref(0)
+if (collab?.awareness) {
+  const awareness = collab.awareness
+  const updatePeerCount = () => {
+    collabPeerCount.value = [...awareness.getStates().keys()].filter((id) => id !== awareness.clientID).length
+  }
+  updatePeerCount()
+  awareness.on('change', updatePeerCount)
+  onBeforeUnmount(() => awareness.off('change', updatePeerCount))
+}
+
+const isMarkdownBlockedByPeers = computed(() => collabOwnsPersistence.value && collabPeerCount.value > 0)
+
+// No Markdown edits while a collab session is still deciding who owns the cell, or while others edit it.
+const isMarkdownEditable = computed(
+  () => !props.readOnly && (!collab || collabRefused.value || collabOwnsPersistence.value) && !isMarkdownBlockedByPeers.value,
+)
+
+// While the server owns the cell, the textarea follows the shared doc.
+function syncMarkdownFromSharedDoc() {
+  if (!collabOwnsPersistence.value || !editor.value) return
+  const markdown = editor.value.storage.markdown.getMarkdown()
+  if (isMarkdownBlockedByPeers.value) markdownMode.resetSource(markdown)
+  else markdownMode.syncSource(markdown)
+}
+
+if (collab) {
+  watch(
+    editor,
+    (current, previous) => {
+      previous?.off('update', syncMarkdownFromSharedDoc)
+      current?.on('update', syncMarkdownFromSharedDoc)
+    },
+    { immediate: true },
+  )
+  onBeforeUnmount(() => editor.value?.off('update', syncMarkdownFromSharedDoc))
+}
 
 const editorModeOptions = computed(() => [
   { value: 'rich', label: t('datatype.RichText') },
@@ -721,6 +757,13 @@ onClickOutside(editorDom, (e) => {
         @selectstart.capture.stop
         @mousedown.stop
       />
+      <div
+        v-if="isMarkdownMode && isMarkdownBlockedByPeers"
+        class="nc-rich-text-markdown-peers-hint mt-1 text-bodySm text-nc-content-gray-muted"
+        data-testid="nc-rich-text-markdown-peers-hint"
+      >
+        {{ $t('msg.info.richTextMarkdownReadOnlyWhileCoEditing') }}
+      </div>
       <EditorContent
         v-show="!isMarkdownMode"
         ref="editorDom"

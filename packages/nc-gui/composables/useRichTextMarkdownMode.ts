@@ -49,5 +49,12 @@ export function useRichTextMarkdownMode(options: {
     source.value = markdown ?? ''
   }
 
-  return { mode, source, isMarkdownMode, setMode, updateSource, syncSource }
+  /** Show a value the user can't edit right now (e.g. others are co-editing), dropping local edits. */
+  function resetSource(markdown: string | null | undefined) {
+    if (!isMarkdownMode.value) return
+    source.value = markdown ?? ''
+    edited.value = false
+  }
+
+  return { mode, source, isMarkdownMode, setMode, updateSource, syncSource, resetSource }
 }

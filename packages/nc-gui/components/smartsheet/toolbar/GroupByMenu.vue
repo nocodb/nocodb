@@ -97,10 +97,11 @@ const syncedGroupByEntries = computed<Group[]>(() => {
   return tempGroupBy
 })
 
-// A shared link can't group by a hidden field (its groups would show the
-// field's values), so it shows the rows ungrouped — say so to the view's editors.
+// Outside grid and gallery, a shared link can't group by a hidden field, so it
+// shows the rows ungrouped — say so to the view's editors.
 const sharedLinkHiddenGroupFields = computed(() => {
   if (!view.value?.uuid || isPublic.value || canUpdateViewMeta?.value === false) return []
+  if ([ViewTypes.GRID, ViewTypes.GALLERY].includes(view.value.type as ViewTypes)) return []
   const shown = new Set((fields.value ?? []).filter((f) => f.show).map((f) => f.fk_column_id))
   return syncedGroupByEntries.value
     .map((g) => (g.fk_column_id ? metaColumnById.value?.[g.fk_column_id] : undefined))

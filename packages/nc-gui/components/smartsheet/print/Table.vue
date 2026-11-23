@@ -46,22 +46,13 @@ const fontSizePx = computed(() => PRINT_FONT_SIZES_PX[props.settings.fontSize])
 
 const isFitToWidth = computed(() => props.settings.fieldSizing === 'fitToWidth')
 
-const rowNumberWidth = computed(() => (props.settings.showRowNumbers ? PRINT_ROW_NUMBER_WIDTH_PX : 0))
+const layout = computed(() => getPrintColumnBands(props.columns, props.columnWidths, props.settings))
 
-const availableWidth = computed(() => getPrintableWidthPx(props.settings) - rowNumberWidth.value)
+const rowNumberWidth = computed(() => layout.value.rowNumberWidth)
 
-const columnsWithWidth = computed(() => {
-  const columns = props.columns.map((column) => ({
-    column,
-    width: getPrintColumnWidthPx(props.columnWidths[column.id!], props.settings),
-  }))
+const columnsWithWidth = computed(() => layout.value.columnsWithWidth)
 
-  return isFitToWidth.value
-    ? fitPrintColumnWidths(columns, availableWidth.value)
-    : capPrintColumnWidths(columns, availableWidth.value)
-})
-
-const bands = computed(() => splitPrintColumnBands(columnsWithWidth.value, availableWidth.value))
+const bands = computed(() => layout.value.bands)
 
 const widthById = computed(() => Object.fromEntries(columnsWithWidth.value.map(({ column, width }) => [column.id, width])))
 

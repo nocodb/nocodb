@@ -152,7 +152,7 @@ provide(IsCanvasInjectionInj, true)
 const {
   loadData,
   callAddEmptyRow,
-  updateOrSaveRow,
+  updateOrSaveRow: updateOrSaveRowProp,
   deleteRow,
   expandForm,
   clearCache,
@@ -178,6 +178,10 @@ const {
   refreshInPlace,
   refreshPartInPlace,
 } = props
+
+// Every grid save goes through here. A failed insert has already been toasted and marked on its row;
+// stop its rejection before Vue's error boundary adds a "Page Loading Error" toast.
+const saveRow: typeof updateOrSaveRowProp = swallowReportedErrors(updateOrSaveRowProp)
 
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
@@ -469,7 +473,7 @@ const {
   selectedHeaderColumnIds,
   updateRecordOrder,
   expandRows,
-  updateOrSaveRow,
+  updateOrSaveRow: saveRow,
   expandForm,
   bulkUpdateRows,
   bulkUpsertRows,
@@ -540,7 +544,8 @@ const {
 } = useFileDropToCreateRecords({
   meta,
   callAddEmptyRow,
-  updateOrSaveRow,
+  // counts created vs failed records itself, so it needs the rejection
+  updateOrSaveRow: updateOrSaveRowProp,
 })
 
 const descriptionPopoverState = ref<{
@@ -3023,7 +3028,7 @@ async function expandRows({
 }
 
 async function saveEmptyRow(rowObj: Row, before?: string, path: Array<number> = []) {
-  await updateOrSaveRow?.(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before, path)
+  await saveRow(rowObj, null, null, { metaValue: meta.value, viewMetaValue: view.value }, before, path)
 }
 
 function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | null = null, renderAtCurrentPosition = false) {
@@ -3260,7 +3265,7 @@ useGridCommands({
   getDataCache,
   getRows,
   bulkUpdateRows,
-  updateOrSaveRow,
+  updateOrSaveRow: saveRow,
   deleteRow,
   deleteRangeOfRows,
   expandForm,
@@ -3379,9 +3384,14 @@ watch(
     const dataCache = getDataCache(path)
     const leftRow = dataCache?.cachedRows.value.get(oldRowIdx)
     const err = leftRow?.rowMeta?.saveError
+    if (err?.reason === 'serverRejected') {
+      message.error({ title: t('msg.error.rowNotSaved'), content: err.message })
+      return
+    }
     if (err?.reason !== 'missingRequired') return
 
-    const fields = (err.missingFields ?? []).filter(Boolean)
+    // A field filled just before leaving is still listed until its insert responds
+    const fields = (err.missingFields ?? []).filter((f) => f && !isValidValue(leftRow?.row?.[f]))
     if (!fields.length) return
 
     message.error(
@@ -4302,9 +4312,7 @@ watch(
                     active
                     :read-only="readOnly || !isDataEditAllowed || !editEnabled.isCellEditable || editEnabled.isSyncedColumn"
                     :is-allowed="editEnabled.isCellEditable"
-                    @save="
-                      updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
-                    "
+                    @save="saveRow(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)"
                     @navigate="onNavigate"
                   />
                   <SmartsheetCell
@@ -4318,8 +4326,8 @@ watch(
                     :read-only="readOnly || !isDataEditAllowed || !editEnabled.isCellEditable || editEnabled.isSyncedColumn"
                     :is-allowed="editEnabled.isCellEditable"
                     @update:model-value="updateValue"
-                    @save="updateOrSaveRow?.(...$event)"
-                    @save-with-state="updateOrSaveRow?.(...$event)"
+                    @save="saveRow(...$event)"
+                    @save-with-state="saveRow(...$event)"
                     @navigate="onNavigate"
                   />
                 </template>

@@ -1383,7 +1383,7 @@ export function useCanvasRender({
       currentX += 24
     }
 
-    const hasSaveError = row.rowMeta?.saveError?.reason === 'missingRequired'
+    const saveError = row.rowMeta?.saveError
 
     /**
      * 4. Render save-error marker OR comment-count bubble OR expand icon —
@@ -1399,8 +1399,7 @@ export function useCanvasRender({
      * the user clicks the warning. Don't reorder the regions in
      * extractHoverMetaColRegions without re-testing this path.
      */
-    if (hasSaveError) {
-      const missingFields = row.rowMeta!.saveError!.missingFields ?? []
+    if (saveError) {
       const box = {
         x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
         y: yOffset + (rowHeight.value - 20) / 2,
@@ -1426,7 +1425,16 @@ export function useCanvasRender({
         hoveredBackground: getColor(themeV4Colors.yellow['100']),
         setCursor,
       })
-      if (isErrorHovered) {
+      if (isErrorHovered && saveError.reason === 'serverRejected') {
+        tryShowTooltip({
+          mousePosition,
+          text: saveError.message,
+          description: t('msg.error.rowRejectedClickToOpen'),
+          rect: box,
+          placement: 'right',
+        })
+      } else if (isErrorHovered && saveError.reason === 'missingRequired') {
+        const missingFields = saveError.missingFields ?? []
         const plural = missingFields.length === 1 ? '' : 's'
         const visibleTitles = new Set(columns.value.map((c) => c.title))
         const hiddenMissing = missingFields.filter((f) => !visibleTitles.has(f))

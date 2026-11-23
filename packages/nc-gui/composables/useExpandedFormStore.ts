@@ -551,6 +551,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           rowMeta: {
             ...row.value.rowMeta,
             new: false,
+            // The grid's failed-save marker, when the row was opened from it
+            saveError: undefined,
             // Links were persisted via the create payload — clear the buffer so the
             // record is no longer flagged as having unsaved relational changes (#14013).
             ltarState: {},
@@ -677,8 +679,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const formatSaveError = async (e: any, isNewRow = rowStore.isNew.value) => {
       if (!isNewRow && e?.response?.data?.error === NcErrorType.ERR_RECORD_NOT_FOUND) isRecordDeleted.value = true
 
-      const detail = await extractSdkResponseErrorMsg(e)
-      return isNewRow ? `Add row failed: ${detail}` : `${t('msg.error.rowUpdateFailed')}: ${detail}`
+      // Title + content: the toast clamps the content to 2 lines, so keep the prefix out of it.
+      return {
+        title: isNewRow ? t('msg.error.rowInsertFailed') : t('msg.error.rowUpdateFailed'),
+        content: await extractSdkResponseErrorMsg(e),
+      }
     }
 
     const clearColumns = () => {

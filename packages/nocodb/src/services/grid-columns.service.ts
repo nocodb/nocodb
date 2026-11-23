@@ -201,6 +201,11 @@ export class GridColumnsService {
         c,
       ]),
     );
+    if (!Object.keys(param.columnWidths).some((id) => ownColumns.has(id))) {
+      NcError.get(context).invalidRequestBody(
+        'columnWidths has no column of this view',
+      );
+    }
     for (const [gridViewColumnId, width] of Object.entries(
       param.columnWidths,
     )) {

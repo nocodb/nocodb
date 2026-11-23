@@ -101,6 +101,7 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
 
         window.print()
       } catch (e: any) {
+        printState.value = null
         message.error(await extractSdkResponseErrorMsg(e))
       } finally {
         isPreparing.value = false

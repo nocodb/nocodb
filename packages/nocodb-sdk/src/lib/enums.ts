@@ -267,6 +267,7 @@ export enum AppEvents {
   VAULT_SCOPE_UPDATE = 'vault.scope.update',
 
   ROW_USER_MENTION = 'row.user.mention',
+  ROW_USER_ASSIGN = 'row.user.assign',
   ROW_LMT_TOUCHED = 'row.lmt.touched',
   CALENDAR_CREATE = 'calendar.create',
   TIMELINE_CREATE = 'timeline.create',

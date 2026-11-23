@@ -57,6 +57,7 @@ import type {
   ResourceRestoreEvent,
   RowCommentEvent,
   RowMentionEvent,
+  RowUserAssignEvent,
   SharedBaseDeleteEvent,
   SharedBaseEvent,
   SharedViewUpdateEvent,
@@ -207,6 +208,10 @@ export class AppHooksService {
   on(
     event: AppEvents.ROW_USER_MENTION,
     listener: (data: RowMentionEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.ROW_USER_ASSIGN,
+    listener: (data: RowUserAssignEvent) => void,
   ): () => void;
   on(
     event:
@@ -397,6 +402,7 @@ export class AppHooksService {
     data: UserEmailVerificationEvent,
   ): void;
   emit(event: AppEvents.ROW_USER_MENTION, data: RowMentionEvent): void;
+  emit(event: AppEvents.ROW_USER_ASSIGN, data: RowUserAssignEvent): void;
 
   emit(event: AppEvents.EXTENSION_CREATE, data: any): void;
   emit(event: AppEvents.EXTENSION_UPDATE, data: any): void;

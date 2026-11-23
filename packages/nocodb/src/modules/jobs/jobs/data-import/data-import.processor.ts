@@ -4,6 +4,7 @@ import {
   isLinksOrLTAR,
   NcBaseErrorv2,
   NcErrorType,
+  parseProp,
   serializeExcelDateValue,
   serializeImportValue,
   UITypes,
@@ -763,9 +764,15 @@ export class DataImportProcessor {
           return [];
         }),
       ]);
+    // A User field set to notify added users counts as a listener too: the
+    // after-insert path sends them one notification per batch.
+    const hasNotifyUserField = (await model.getColumns()).some(
+      (c) => c.uidt === UITypes.User && parseProp(c.meta)?.notify,
+    );
     const skipHooks = !(
       hasRecordWorkflows ||
       hasRecordAgents ||
+      hasNotifyUserField ||
       insertHooks.some((hook) => hook.active)
     );
 

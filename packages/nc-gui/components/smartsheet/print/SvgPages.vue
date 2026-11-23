@@ -621,8 +621,9 @@ function drawPage(
             })
           if (LINK_TYPES.includes(cell.column.uidt as UITypes) || cell.column.uidt === UITypes.Button) {
             const href = linkHref(cell.column, value)
-            if (href)
-              links.push({ x: cx * k, y: y * k, width: cell.width * k, height: Math.min(line.height, GROUP_HEIGHT) * k, href })
+            // A wrapped link is clickable on every line.
+            const linkHeight = mode === 'text' ? line.height : Math.min(line.height, GROUP_HEIGHT)
+            if (href) links.push({ x: cx * k, y: y * k, width: cell.width * k, height: linkHeight * k, href })
           }
         }
         ctx.strokeStyle = '#d5dce8'

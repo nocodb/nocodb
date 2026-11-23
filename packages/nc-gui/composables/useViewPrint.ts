@@ -84,6 +84,8 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
           loadSummary().catch(() => ({})),
         ])
 
+        // Listen before the renderer mounts: it can fail during the mount itself.
+        const rendered = waitForRender()
         printState.value = {
           rows,
           totalRows: total,
@@ -96,7 +98,7 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
         isSettingsOpen.value = false
 
         await nextTick()
-        await waitForRender()
+        await rendered
 
         saveLastPrintedEnd(storageKey.value, range.end)
         window.print()

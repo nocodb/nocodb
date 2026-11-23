@@ -79,6 +79,9 @@ export const PRINT_PAGE_MARGIN_IN = 0.4
 
 export const PRINT_ROW_NUMBER_WIDTH_PX = 40
 
+/** Horizontal cell padding plus borders. */
+const PRINT_CELL_INSET_PX = 14
+
 export const PRINT_DEFAULT_COLUMN_WIDTH_PX = 200
 
 /** Fit to page width never shrinks a column below this; fields that still don't fit go on a further band. */
@@ -217,13 +220,24 @@ export function splitPrintColumnBands<T>(columns: { column: T; width: number }[]
   return bands
 }
 
+/** Wide enough for the largest row number, e.g. 10001 in a later batch. Digits are about 0.6em wide. */
+export function getPrintRowNumberWidthPx(lastRowNumber: number, settings: PrintSettings) {
+  if (!settings.showRowNumbers) return 0
+
+  const digits = String(Math.max(Math.floor(lastRowNumber), 1)).length
+  const fontSize = PRINT_FONT_SIZES_PX[settings.fontSize] ?? GRID_FONT_SIZE_PX
+
+  return Math.max(PRINT_ROW_NUMBER_WIDTH_PX, Math.ceil(digits * fontSize * 0.6) + PRINT_CELL_INSET_PX)
+}
+
 /** Printed widths for the columns, then the bands they split into across pages. */
 export function getPrintColumnBands<T extends { id?: string }>(
   columns: T[],
   columnWidths: Record<string, string | number | undefined | null>,
   settings: PrintSettings,
+  lastRowNumber = 0,
 ) {
-  const rowNumberWidth = settings.showRowNumbers ? PRINT_ROW_NUMBER_WIDTH_PX : 0
+  const rowNumberWidth = getPrintRowNumberWidthPx(lastRowNumber, settings)
   const availableWidth = getPrintableWidthPx(settings) - rowNumberWidth
 
   const sized = columns.map((column) => ({

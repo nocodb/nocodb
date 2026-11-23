@@ -4,6 +4,7 @@ import type Column from '~/models/Column';
 import {
   constraintViolationMessage,
   parseConstraintViolation,
+  unwrapDriverError,
 } from '~/helpers/db-error/constraint';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { ExtractedDbError } from '~/helpers/db-error/utils';
@@ -31,8 +32,10 @@ export function resolveViolatedColumn(
   if (!name) return;
 
   // mariadb names a column-level CHECK after its column
-  const exact = byName(name);
-  if (exact) return exact;
+  if (violation.mayBeColumnName) {
+    const exact = byName(name);
+    if (exact) return exact;
+  }
 
   // pg default names: <table>_<column>_check / <table>_<column>_fkey
   const prefix = `${tableName}_`.toLowerCase();
@@ -63,9 +66,11 @@ export async function handleConstraintError({
   error: any;
   baseModel: IBaseModelSqlV2;
 }): Promise<void> {
-  await handleNotNullConstraintError({ error, baseModel });
+  const dbError = unwrapDriverError(error);
 
-  const violation = parseConstraintViolation(error);
+  await handleNotNullConstraintError({ error: dbError, baseModel });
+
+  const violation = parseConstraintViolation(dbError);
   if (!violation) return;
 
   // The write may have hit a linked table (nested-link ops).
@@ -83,6 +88,19 @@ export async function handleConstraintError({
   );
   if (!column?.title) return;
 
+  const message = constraintViolationMessage(violation, column.title);
+  const details = {
+    column: column.title,
+    ...(violation.constraint && { constraint: violation.constraint }),
+  };
+
+  // Wrapped (external-source executor): keep the wrapper's error type and status.
+  if (dbError !== error) {
+    error.message = message;
+    error.details = { ...error.details, ...details };
+    throw error;
+  }
+
   const extracted = DBErrorExtractor.get().extractDbError(error, {
     ignoreDefault: true,
   });
@@ -90,11 +108,7 @@ export async function handleConstraintError({
 
   throw new ExtractedDbError({
     ...extracted,
-    message: constraintViolationMessage(violation, column.title),
-    details: {
-      ...extracted.details,
-      column: column.title,
-      ...(violation.constraint && { constraint: violation.constraint }),
-    },
+    message,
+    details: { ...extracted.details, ...details },
   });
 }

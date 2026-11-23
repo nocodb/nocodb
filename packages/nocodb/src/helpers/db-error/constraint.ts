@@ -13,9 +13,28 @@ export interface ConstraintViolation {
   value?: string;
   /** sqlite: `constraint` may be the CHECK's expression rather than a name. */
   mayBeExpression?: boolean;
+  /** mariadb: a column-level CHECK is named after its column. */
+  mayBeColumnName?: boolean;
 }
 
 const SQLITE_PREFIX = 'SQLITE_CONSTRAINT: ';
+
+/**
+ * The driver error behind a wrapped one: the external-source executor path
+ * rethrows the driver error as an API error with the original as `cause`.
+ */
+export function unwrapDriverError(error: any): any {
+  const cause = error?.cause;
+  if (
+    cause &&
+    typeof cause === 'object' &&
+    (cause.code !== undefined ||
+      typeof cause.errno === 'number' ||
+      typeof cause.number === 'number')
+  )
+    return cause;
+  return error;
+}
 
 /** The driver's own message, without the `<sql> - ` prefix knex adds. */
 export function driverMessage(error: any): string {
@@ -75,7 +94,12 @@ export function parseConstraintViolation(
         /CONSTRAINT `(.+)` failed for `[^`]*`\.`([^`]+)`/,
       );
       if (match)
-        return { type: 'check', constraint: match[1], table: match[2] };
+        return {
+          type: 'check',
+          constraint: match[1],
+          table: match[2],
+          mayBeColumnName: true,
+        };
     }
     if (code === 'ER_NO_REFERENCED_ROW_2' || code === 'ER_NO_REFERENCED_ROW') {
       const match = message.match(

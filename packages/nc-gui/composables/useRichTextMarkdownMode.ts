@@ -41,6 +41,8 @@ export function canEditMarkdown(state: MarkdownEditState): boolean {
  * Rich text / raw Markdown switch for the expanded Long Text editor.
  * Outside co-editing, Markdown edits are saved as typed; the rich editor is reloaded from them on the way back.
  */
+const MAX_UNECHOED_SAVES = 50
+
 export function useRichTextMarkdownMode(options: {
   /** The Markdown to show when entering Markdown mode. */
   readMarkdown: () => string
@@ -56,8 +58,8 @@ export function useRichTextMarkdownMode(options: {
   // Edited since entering Markdown mode: external updates stop overwriting the textarea.
   const edited = ref(false)
 
-  // Values saved from the textarea, to tell their echo from someone else's change.
-  const saved = new Set<string>()
+  // Saves from the textarea not yet echoed back, oldest first, to tell an echo from someone else's change.
+  const unechoed: string[] = []
 
   // A newer value from someone else, arrived after the last edit here.
   let newerExternal: string | undefined
@@ -70,7 +72,7 @@ export function useRichTextMarkdownMode(options: {
     if (next === 'markdown') {
       source.value = options.readMarkdown() ?? ''
       edited.value = false
-      saved.clear()
+      unechoed.length = 0
       newerExternal = undefined
     } else if (edited.value) {
       options.loadIntoEditor(newerExternal ?? source.value)
@@ -84,7 +86,9 @@ export function useRichTextMarkdownMode(options: {
     source.value = markdown
     edited.value = true
     newerExternal = undefined
-    saved.add(markdown)
+    unechoed.push(markdown)
+    // echoes may never come (e.g. debounced saves): bound the copies kept on a long cell
+    if (unechoed.length > MAX_UNECHOED_SAVES) unechoed.shift()
     options.save(markdown)
   }
 
@@ -97,8 +101,11 @@ export function useRichTextMarkdownMode(options: {
     const value = markdown ?? ''
     if (!edited.value) {
       source.value = value
-    } else if (value !== source.value && !saved.has(value)) {
-      newerExternal = value
+    } else {
+      // echoes arrive in order: this one and every earlier save are done
+      const echoed = unechoed.indexOf(value)
+      if (echoed !== -1) unechoed.splice(0, echoed + 1)
+      else if (value !== source.value) newerExternal = value
     }
   }
 

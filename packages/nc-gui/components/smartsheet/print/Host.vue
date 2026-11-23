@@ -27,7 +27,7 @@ const printableGroupBy = computed(() =>
   ),
 )
 
-const recordLimit = VIEW_PRINT_RECORD_LIMIT
+const recordLimit = PRINT_RECORD_LIMIT
 
 const recordCount = ref<number | null>(null)
 

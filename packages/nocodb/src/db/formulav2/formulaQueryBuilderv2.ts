@@ -181,7 +181,31 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           aliasToColumn[col.id] = async ({
             tableAlias,
             parentColumns,
+            userIds,
           }: TAliasToColumnParam) => {
+            // `{Copy}` of a User field: hand ARRAYCOUNT's stored-id request on
+            if (userIds) {
+              const tree = (
+                await col.getColOptions<FormulaColumn | ButtonColumn>()
+              ).getParsedTree();
+              if (tree?.type === JSEPNode.IDENTIFIER) {
+                const resolved = await aliasToColumn[
+                  (tree as IdentifierNode).name
+                ]?.({
+                  tableAlias,
+                  parentColumns: (
+                    parentColumns ?? CircularRefContext.make()
+                  ).cloneAndAdd({
+                    id: col.id,
+                    title: col.title,
+                    table: model.title,
+                  }),
+                  userIds,
+                });
+                if (resolved) return resolved;
+              }
+            }
+
             // Memoized per (column, tableAlias) — see formulaBuilderCache.
             // Keyed by tableAlias because leaf resolvers embed it. A hit cannot
             // mask a cycle: CircularRefContext throws during the first

@@ -37,6 +37,7 @@ const kind = computed(() => {
   if (uidt === UITypes.Email || uidt === UITypes.URL || uidt === UITypes.PhoneNumber) return 'link'
   if (uidt === UITypes.LinkToAnotherRecord) return 'records'
   if (uidt === UITypes.Button) return 'button'
+  if (uidt === UITypes.Colour) return 'colour'
 
   return 'text'
 })
@@ -109,6 +110,20 @@ const linkHref = computed(() => {
   return /^https?:/i.test(url) ? url : undefined
 })
 
+// Like the grid: a swatch and the hex code, unless the field shows only one of them.
+const colour = computed(() => {
+  if (kind.value !== 'colour' || isEmpty.value) return null
+
+  const hex = String(props.modelValue).trim()
+  const format = columnMeta.value.displayFormat
+  return {
+    hex: hex.toUpperCase(),
+    showSwatch: format !== 'hex_only' && /^#?[0-9a-f]{3,8}$/i.test(hex),
+    showHex: format !== 'swatch_only',
+    radius: columnMeta.value.swatchStyle === 'circle' ? '50%' : '3px',
+  }
+})
+
 const button = computed(() => {
   if (kind.value !== 'button') return null
 
@@ -174,6 +189,14 @@ function plainValue(value: any) {
       {{ plainValue(props.modelValue) }}
     </a>
     <span v-else-if="kind === 'link'" class="nc-print-cell-link">{{ plainValue(props.modelValue) }}</span>
+    <span v-else-if="kind === 'colour' && colour" class="nc-print-cell-colour-value">
+      <span
+        v-if="colour.showSwatch"
+        class="nc-print-cell-swatch"
+        :style="{ backgroundColor: colour.hex.startsWith('#') ? colour.hex : `#${colour.hex}`, borderRadius: colour.radius }"
+      />
+      <span v-if="colour.showHex">{{ colour.hex }}</span>
+    </span>
     <template v-else-if="kind === 'button'">
       <a
         v-if="button?.href"

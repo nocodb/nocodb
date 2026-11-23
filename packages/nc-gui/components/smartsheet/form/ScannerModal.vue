@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { StreamBarcodeReader } from 'vue-barcode-reader'
+import type { CodeScannerError } from '~/components/general/CodeScanner.vue'
 
 const props = defineProps<{
   visible: boolean
@@ -12,43 +12,15 @@ const emits = defineEmits<{
 
 const vVisible = useVModel(props, 'visible', emits)
 
-// checking: asking for camera access; ready: reader mounted; denied / unavailable: no camera to scan with
-const cameraState = ref<'checking' | 'ready' | 'denied' | 'unavailable'>('checking')
+// starting: waiting for the camera; ready: video is running; denied / unavailable: no camera to scan with
+const cameraState = ref<'starting' | 'ready' | CodeScannerError>('starting')
 
-const isReaderLoaded = ref(false)
+// Remounting the scanner asks for the camera again
+const scannerKey = ref(0)
 
-// the reader never reports a camera it couldn't open, so give up if the video doesn't start
-const { start: startLoadTimeout, stop: stopLoadTimeout } = useTimeoutFn(
-  () => {
-    if (cameraState.value === 'ready' && !isReaderLoaded.value) cameraState.value = 'unavailable'
-  },
-  10000,
-  { immediate: false },
-)
-
-function onReaderLoaded() {
-  stopLoadTimeout()
-  isReaderLoaded.value = true
-}
-
-async function checkCameraAccess() {
-  cameraState.value = 'checking'
-  isReaderLoaded.value = false
-
-  if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-    cameraState.value = 'unavailable'
-    return
-  }
-
-  try {
-    // The reader swallows getUserMedia errors, so ask first and release the stream for it
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    stream.getTracks().forEach((track) => track.stop())
-    cameraState.value = 'ready'
-    startLoadTimeout()
-  } catch (e: any) {
-    cameraState.value = e?.name === 'NotAllowedError' || e?.name === 'SecurityError' ? 'denied' : 'unavailable'
-  }
+function retry() {
+  cameraState.value = 'starting'
+  scannerKey.value++
 }
 
 function onDecode(value: string) {
@@ -58,14 +30,9 @@ function onDecode(value: string) {
   vVisible.value = false
 }
 
-watch(
-  vVisible,
-  (visible) => {
-    if (visible) checkCameraAccess()
-    else stopLoadTimeout()
-  },
-  { immediate: true },
-)
+watch(vVisible, (visible) => {
+  if (visible) cameraState.value = 'starting'
+})
 </script>
 
 <template>
@@ -81,40 +48,30 @@ watch(
       </div>
 
       <div class="relative min-h-60 rounded-lg overflow-hidden bg-nc-bg-gray-extralight flex items-center justify-center">
-        <template v-if="cameraState === 'ready'">
-          <div v-show="isReaderLoaded" class="nc-form-scanner-reader w-full">
-            <StreamBarcodeReader @decode="onDecode" @loaded="onReaderLoaded" />
-          </div>
-          <a-spin v-if="!isReaderLoaded" />
-        </template>
+        <div v-if="cameraState === 'starting' || cameraState === 'ready'" v-show="cameraState === 'ready'" class="w-full">
+          <GeneralCodeScanner :key="scannerKey" @detect="onDecode" @ready="cameraState = 'ready'" @error="cameraState = $event" />
+        </div>
 
-        <a-spin v-else-if="cameraState === 'checking'" />
+        <a-spin v-if="cameraState === 'starting'" class="!absolute" />
 
-        <div v-else class="flex flex-col items-center gap-3 p-6 text-center" data-testid="nc-form-scanner-error">
+        <div
+          v-if="cameraState === 'denied' || cameraState === 'unavailable'"
+          class="flex flex-col items-center gap-3 p-6 text-center"
+          data-testid="nc-form-scanner-error"
+        >
           <GeneralIcon icon="ncCamera" class="h-8 w-8 text-nc-content-gray-muted" />
           <div class="text-bodyDefaultSm text-nc-content-gray">
             {{ cameraState === 'denied' ? $t('labels.allowAccessToYourCamera') : $t('msg.error.cameraNotAvailable') }}
           </div>
-          <NcButton type="secondary" size="small" data-testid="nc-form-scanner-retry" @click="checkCameraAccess">
+          <NcButton type="secondary" size="small" data-testid="nc-form-scanner-retry" @click="retry">
             {{ $t('general.retry') }}
           </NcButton>
         </div>
       </div>
 
-      <div v-if="cameraState === 'ready' && isReaderLoaded" class="text-bodySm text-nc-content-gray-muted text-center">
+      <div v-if="cameraState === 'ready'" class="text-bodySm text-nc-content-gray-muted text-center">
         {{ $t('labels.pointCameraAtCode') }}
       </div>
     </div>
   </NcModal>
 </template>
-
-<style lang="scss" scoped>
-// the reader's video is inline (baseline gap) and its overlay stops at 99%, leaving a light strip at the bottom
-.nc-form-scanner-reader :deep(video) {
-  @apply block w-full max-w-full;
-}
-
-.nc-form-scanner-reader :deep(.overlay-element) {
-  @apply h-full;
-}
-</style>

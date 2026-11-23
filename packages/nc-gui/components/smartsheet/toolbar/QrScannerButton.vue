@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import { ref } from 'vue'
-import { StreamBarcodeReader } from 'vue-barcode-reader'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import type { CodeScannerError } from '~/components/general/CodeScanner.vue'
 
 const meta = inject(MetaInj, ref())
 
@@ -66,13 +66,22 @@ watch(fieldOptionsOfSupportedColumnsToScanFor, () => {
 
 const scannerIsReady = ref(false)
 
+const scannerError = ref<CodeScannerError | null>(null)
+
 const onLoaded = async () => {
   scannerIsReady.value = true
 }
 
+const onScannerClosed = () => {
+  scannerIsReady.value = false
+  scannerError.value = null
+}
+
 const showScannerField = computed(() => scannerIsReady.value && idOfSelectedColumnToScanFor.value !== '')
 const showPleaseSelectColumnMessage = computed(() => !idOfSelectedColumnToScanFor.value)
-const showScannerIsLoadingMessage = computed(() => !!idOfSelectedColumnToScanFor.value && !scannerIsReady.value)
+const showScannerIsLoadingMessage = computed(
+  () => !!idOfSelectedColumnToScanFor.value && !scannerIsReady.value && !scannerError.value,
+)
 
 const onDecode = async (codeValue: string) => {
   if (!showScannerField.value || codeValue === lastScannedCode.value) {
@@ -137,7 +146,7 @@ const onDecode = async (codeValue: string) => {
       :footer="null"
       wrap-class-name="nc-modal-generate-token"
       destroy-on-close
-      @cancel="scannerIsReady = false"
+      @cancel="onScannerClosed"
     >
       <div class="relative flex flex-col h-full">
         <div class="text-left text-wrap mt-2 text-xl mb-4">{{ $t('title.findRowByScanningCode') }}</div>
@@ -150,7 +159,12 @@ const onDecode = async (codeValue: string) => {
         </a-form-item>
 
         <div>
-          <StreamBarcodeReader v-show="showScannerField" @decode="onDecode" @loaded="onLoaded"></StreamBarcodeReader>
+          <div v-if="idOfSelectedColumnToScanFor && !scannerError" v-show="showScannerField">
+            <GeneralCodeScanner @detect="onDecode" @ready="onLoaded" @error="scannerError = $event" />
+          </div>
+          <div v-if="scannerError" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+            {{ scannerError === 'denied' ? $t('labels.allowAccessToYourCamera') : $t('msg.error.cameraNotAvailable') }}
+          </div>
           <div v-if="showPleaseSelectColumnMessage" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
             {{ $t('msg.info.codeScanner.selectColumn') }}
           </div>

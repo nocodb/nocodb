@@ -551,6 +551,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           rowMeta: {
             ...row.value.rowMeta,
             new: false,
+            // The grid's failed-save marker, when the row was opened from it
+            saveError: undefined,
             // Links were persisted via the create payload — clear the buffer so the
             // record is no longer flagged as having unsaved relational changes (#14013).
             ltarState: {},

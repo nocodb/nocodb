@@ -9415,6 +9415,8 @@
       "rowNotSavedYetClickToOpen": "This row hasn't been saved yet. Click to open it and fill the required field{plural}.",
       "rowNotSavedYetHiddenClickToOpen": "This row hasn't been saved yet. Click to open it and fill the hidden required field{plural}.",
       "rowAbandonedMissingRequired": "Row not saved. Required field{plural} '{fields}' missing.",
+      "rowRejectedClickToOpen": "This row hasn't been saved. Edit the value to retry, or click to open it.",
+      "rowAbandonedRejected": "Row not saved. {message}",
       "uniqueConstraintViolation": "This value already exists. Unique fields cannot have duplicate values.",
       "setFormDataFailed": "Failed to set form data",
       "formViewUpdateFailed": "Failed to update form view",

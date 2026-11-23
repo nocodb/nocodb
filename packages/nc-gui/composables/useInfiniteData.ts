@@ -41,7 +41,7 @@ import {
 } from '~/utils/realtimeUtils'
 import type { ViewMembership } from '~/utils/realtimeUtils'
 import type { Row } from '#imports'
-import { validateRowFilters } from '~/utils/dataUtils'
+import { serverRejectedSaveError, validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
 import { isUniqueConstraintViolationError } from '~/utils/errorUtils'
 import { type OfflineEdit, type OfflineEditReplayResult, createOfflineEditQueue, isNetworkError } from '~/utils/offlineEditQueue'
@@ -1820,6 +1820,11 @@ export function useInfiniteData(args: {
       return insertedData
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
+      // Keep the rejected row and its values so it can be fixed; the next edit retries the insert.
+      if (currentRow.rowMeta.new) {
+        currentRow.rowMeta.saveError = serverRejectedSaveError(errorMessage, error?.response?.data)
+        callbacks?.syncVisibleData?.()
+      }
       message.error(`Failed to insert row: ${errorMessage}`)
       throw error
     } finally {

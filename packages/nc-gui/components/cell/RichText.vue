@@ -135,6 +135,9 @@ const collabAuthoritative = ref(false)
  */
 const collabRefused = ref(false)
 
+// The session went stale: no Markdown edits until the stored value is reloaded.
+const collabReloadLocked = ref(false)
+
 /**
  * While a confirmed session is live the SERVER owns persistence — it derives
  * the markdown from the CRDT and writes the cell on a debounce. The client must
@@ -327,9 +330,15 @@ if (collab?.awareness) {
 
 const isMarkdownBlockedByPeers = computed(() => collabOwnsPersistence.value && collabPeerCount.value > 0)
 
-// No Markdown edits while a collab session is still deciding who owns the cell, or while others edit it.
-const isMarkdownEditable = computed(
-  () => !props.readOnly && (!collab || collabRefused.value || collabOwnsPersistence.value) && !isMarkdownBlockedByPeers.value,
+const isMarkdownEditable = computed(() =>
+  canEditMarkdown({
+    readOnly: !!props.readOnly,
+    hasCollab: !!collab,
+    collabRefused: collabRefused.value,
+    collabOwnsPersistence: collabOwnsPersistence.value,
+    hasPeers: collabPeerCount.value > 0,
+    reloadLocked: collabReloadLocked.value,
+  }),
 )
 
 // While the server owns the cell, the textarea follows the shared doc.
@@ -349,7 +358,11 @@ if (collab) {
     },
     { immediate: true },
   )
-  onBeforeUnmount(() => editor.value?.off('update', syncMarkdownFromSharedDoc))
+  onBeforeUnmount(() => {
+    editor.value?.off('update', syncMarkdownFromSharedDoc)
+    // closing with Escape skips the textarea's blur
+    reconcileMarkdownWithSharedDoc()
+  })
 }
 
 const editorModeOptions = computed(() => [
@@ -357,9 +370,22 @@ const editorModeOptions = computed(() => [
   { value: 'markdown', label: t('general.markdown') },
 ])
 
+// While co-editing the server stores the editor's version of the typed Markdown:
+// show that, and warn when words were dropped.
+function reconcileMarkdownWithSharedDoc() {
+  if (!collabOwnsPersistence.value || !editor.value || !isMarkdownMode.value) return
+  const stored = editor.value.storage.markdown.getMarkdown()
+  if (stored === markdownSource.value) return
+  if (markdownWordsMissingFrom(markdownSource.value, stored)) {
+    message.warning(t('msg.warning.richTextMarkdownNotRepresentable'))
+  }
+  markdownMode.resetSource(stored)
+}
+
 function onEditorModeChange(next: string) {
   if (next !== 'rich' && next !== 'markdown') return
   $e('c:cell:rich-text:markdown:toggle', { mode: next })
+  if (next === 'rich') reconcileMarkdownWithSharedDoc()
   markdownMode.setMode(next)
   if (next === 'rich' && !props.readOnly) focusEditor()
 }
@@ -544,6 +570,7 @@ if (collab) {
     stopFragmentWatch()
     collabAuthoritative.value = false
     collabRefused.value = true
+    collabReloadLocked.value = true
     hasLocalEdits.value = false
     editor.value?.setEditable(false)
     const discarded = collab.discardedLocalEdits.value ? editor.value?.storage.markdown.getMarkdown() : undefined
@@ -555,6 +582,8 @@ if (collab) {
       return
     }
     setEditorContent(stored ?? '')
+    markdownMode.resetSource(stored)
+    collabReloadLocked.value = false
     // Compared after the round-trip, so markdown formatting differences don't count.
     if (discarded !== undefined && textMissingFrom(discarded, editor.value?.storage.markdown.getMarkdown() ?? '')) {
       message.warning(getI18n().global.t('msg.warning.collabStaleEditsDiscarded'))
@@ -754,18 +783,19 @@ onClickOutside(editorDom, (e) => {
         :class="{ 'nc-rich-text-markdown-source--with-hint': isMarkdownBlockedByPeers }"
         data-testid="nc-rich-text-markdown-source"
         @input="onMarkdownSourceInput"
+        @blur="reconcileMarkdownWithSharedDoc"
         @keydown="onMarkdownSourceKeydown"
         @selectstart.capture.stop
         @mousedown.stop
       />
-      <div
+      <NcTooltip
         v-if="isMarkdownMode && isMarkdownBlockedByPeers"
+        show-on-truncate-only
         class="nc-rich-text-markdown-peers-hint mt-1 truncate text-bodySm text-nc-content-gray-muted"
-        :title="$t('msg.info.richTextMarkdownReadOnlyWhileCoEditing')"
         data-testid="nc-rich-text-markdown-peers-hint"
       >
         {{ $t('msg.info.richTextMarkdownReadOnlyWhileCoEditing') }}
-      </div>
+      </NcTooltip>
       <EditorContent
         v-show="!isMarkdownMode"
         ref="editorDom"

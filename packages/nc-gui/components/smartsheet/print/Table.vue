@@ -36,7 +36,9 @@ const columnsWithWidth = computed(() => {
     width: getPrintColumnWidthPx(props.columnWidths[column.id!], props.settings),
   }))
 
-  return isFitToWidth.value ? fitPrintColumnWidths(columns, availableWidth.value) : columns
+  return isFitToWidth.value
+    ? fitPrintColumnWidths(columns, availableWidth.value)
+    : capPrintColumnWidths(columns, availableWidth.value)
 })
 
 const bands = computed(() => splitPrintColumnBands(columnsWithWidth.value, availableWidth.value))

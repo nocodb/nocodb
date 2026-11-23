@@ -147,6 +147,19 @@ export function getPrintColumnWidthPx(gridWidth: string | number | undefined | n
   return Math.round((width * PRINT_FONT_SIZES_PX[settings.fontSize]) / GRID_FONT_SIZE_PX)
 }
 
+/**
+ * Actual size: caps widths so every band fits the page. The repeated first field takes at most half,
+ * and any other column at most what is left beside it.
+ */
+export function capPrintColumnWidths<T>(columns: { column: T; width: number }[], availableWidth: number) {
+  const firstWidth = Math.min(columns[0]?.width ?? 0, Math.floor(availableWidth / 2))
+
+  return columns.map(({ column, width }, index) => ({
+    column,
+    width: index ? Math.min(width, availableWidth - firstWidth) : firstWidth,
+  }))
+}
+
 /** Fit to page width: scales columns to fill the page, keeping each readable. */
 export function fitPrintColumnWidths<T>(columns: { column: T; width: number }[], availableWidth: number) {
   const total = columns.reduce((sum, { width }) => sum + width, 0)

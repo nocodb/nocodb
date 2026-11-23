@@ -84,6 +84,21 @@ watch(
                 </div>
               </NcMenuItem>
               <NcMenuItem
+                key="preferences"
+                class="item"
+                :class="{
+                  active: $route.params.page === 'preferences',
+                }"
+                data-testid="nc-account-sidebar-preferences"
+                @click="navigateTo('/account/preferences')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncSlidersHorizontal" class="!h-4 !w-4" />
+
+                  <div class="select-none">{{ $t('labels.preferences') }}</div>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
                 key="tokens"
                 class="item"
                 :class="{
@@ -147,17 +162,7 @@ watch(
                 <AccountBreadcrumb />
               </div>
 
-              <DashboardMiniSidebarTheme placement="bottom" render-as-btn class="mr-3" button-class="h-8 w-8" />
-
               <GeneralReleaseInfo />
-
-              <NcTooltip placement="bottom" class="mr-3">
-                <template #title>{{ $t('labels.community.communityTranslated') }}</template>
-
-                <div class="flex items-center">
-                  <GeneralLanguage button class="cursor-pointer text-2xl hover:text-nc-content-gray" />
-                </div>
-              </NcTooltip>
 
               <template v-if="signedIn">
                 <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">

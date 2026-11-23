@@ -319,7 +319,7 @@ const WEEKDAY_REFERENCE_SUNDAY_UTC = Date.UTC(2023, 0, 1)
  */
 const getCalendarWeekdayLabels = (
   locale: string,
-  { weekStartsOn = 1, format = 'short' }: { weekStartsOn?: 0 | 1; format?: 'short' | 'narrow' } = {},
+  { weekStartsOn = 1, format = 'short' }: { weekStartsOn?: 0 | 1; format?: 'short' | 'narrow' | 'long' } = {},
 ): string[] => {
   let formatter: Intl.DateTimeFormat
   try {

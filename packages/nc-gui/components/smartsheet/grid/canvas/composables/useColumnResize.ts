@@ -1,6 +1,8 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { parseCellWidth } from '../utils/cell'
 
+export const RESIZE_HANDLE_WIDTH = 8
+
 export function useColumnResize(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
   columns: ComputedRef<CanvasGridColumn[]>,
@@ -10,7 +12,6 @@ export function useColumnResize(
   onResize?: (columnId: string, width: number, leftX: number) => void,
   onResizeEnd?: (columnId: string, width: number) => void,
 ) {
-  const RESIZE_HANDLE_WIDTH = 8
   const isResizing = ref(false)
   const activeColumn = ref<{
     id: string

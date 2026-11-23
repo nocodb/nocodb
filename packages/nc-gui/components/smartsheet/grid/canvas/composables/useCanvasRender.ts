@@ -52,7 +52,7 @@ import type { RenderTagProps } from '../utils/types'
 import { getSafe2DContext } from '../utils/safeCanvas'
 import type { MarkdownLoader } from '../loaders/markdownLoader'
 import type { RowDropTarget } from './useRowReOrder'
-import { cellMatchesSearch } from '~/utils/allFieldsSearchUtils'
+import { RESIZE_HANDLE_WIDTH } from './useColumnResize'
 import type { GridRemoteFieldMap, GridRemoteFocus, GridRemoteFocusMap, GridRemoteRecordMap } from '~/lib/types'
 
 export function useCanvasRender({
@@ -1027,7 +1027,18 @@ export function useCanvasRender({
         ctx.lineTo(xOffset, _headerRowHeight)
         ctx.stroke()
 
-        if (isNearEdge && column.id !== 'row_number' && !isLocked.value && isViewOperationsAllowed.value) {
+        // the row-number edge has no drag, only double-click to fit every column, so its hit zone matches that handler
+        const isRowNumberEdgeHovered =
+          column.id === 'row_number' &&
+          mousePosition &&
+          mousePosition.y <= _headerRowHeight &&
+          Math.abs(xOffset - mousePosition.x) <= RESIZE_HANDLE_WIDTH / 2
+
+        if (
+          (column.id === 'row_number' ? isRowNumberEdgeHovered : isNearEdge) &&
+          !isLocked.value &&
+          isViewOperationsAllowed.value
+        ) {
           colResizeHoveredColIds.value.add(column.id)
           ctx.strokeStyle = getColor(themeV4Colors.blue['400'])
           ctx.lineWidth = 2

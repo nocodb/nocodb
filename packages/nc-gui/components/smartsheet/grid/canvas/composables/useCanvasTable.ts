@@ -52,7 +52,13 @@ import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useFreezeDivider } from './useFreezeDivider'
 import { useColumnReorder } from './useColumnReorder'
-import { AUTO_FIT_HEADER_PADDING, AUTO_FIT_MAX_WIDTH, normalizeWidth, useColumnResize } from './useColumnResize'
+import {
+  AUTO_FIT_HEADER_PADDING,
+  AUTO_FIT_MAX_WIDTH,
+  RESIZE_HANDLE_WIDTH,
+  normalizeWidth,
+  useColumnResize,
+} from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
@@ -1775,13 +1781,12 @@ export function useCanvasTable({
     return rows
   }
 
-  // Double-click on a column divider: fit the width to the header and the loaded cells' text
-  const autoFitColumnWidth = (columnId: string): boolean => {
+  // Width that fits the header and the loaded cells' text, or null when the type can't be measured
+  const measureFitWidth = (columnId: string, ctx: CanvasRenderingContext2D, rows: Row[]): number | null => {
     const metaCol = metaColumnById.value[columnId]
     const column = columns.value.find((c) => c.id === columnId)
-    const ctx = canvasRef.value?.getContext('2d')
     const fitColumn = column?.columnObj ?? metaCol
-    if (!metaCol || !column || !ctx || !fitColumn || !isAutoFitSupported(fitColumn)) return false
+    if (!metaCol || !column || !fitColumn || !isAutoFitSupported(fitColumn)) return null
 
     const fitContext = {
       abstractType: getAbstractType(metaCol, sqlUis.value),
@@ -1791,7 +1796,6 @@ export function useCanvasTable({
       isXcdbBase: baseStore.isXcdbBase,
       t,
     }
-    const originalFont = ctx.font
 
     // mirrors the header layout in useCanvasRender
     ctx.font = '600 12px Inter'
@@ -1804,7 +1808,7 @@ export function useCanvasTable({
     const headerText = interfacePageDataApi?.fieldConfigs?.value?.[metaCol.id!]?.label || column.title || ''
     let width = ctx.measureText(headerText).width + headerSpace
 
-    for (const row of getLoadedRows()) {
+    for (const row of rows) {
       const value = row.row?.[metaCol.title!]
       if (value === null || value === undefined || value === '') continue
 
@@ -1812,11 +1816,40 @@ export function useCanvasTable({
       if (width >= AUTO_FIT_MAX_WIDTH) break
     }
 
-    ctx.font = originalFont
+    return Math.ceil(Math.min(width, AUTO_FIT_MAX_WIDTH))
+  }
 
-    const fitWidth = Math.ceil(Math.min(width, AUTO_FIT_MAX_WIDTH))
-    handleColumnWidth(columnId, fitWidth, (normalizedWidth) => saveColumnWidth(columnId, normalizedWidth))
-    return true
+  // Fits each column to its header and loaded cells; returns false when none could be measured
+  const autoFitColumns = (columnIds: string[]): boolean => {
+    const ctx = canvasRef.value?.getContext('2d')
+    if (!ctx) return false
+
+    const rows = getLoadedRows()
+    const originalFont = ctx.font
+    let fitted = false
+
+    for (const columnId of columnIds) {
+      const fitWidth = measureFitWidth(columnId, ctx, rows)
+      if (fitWidth === null) continue
+
+      fitted = true
+      handleColumnWidth(columnId, fitWidth, (normalizedWidth) => saveColumnWidth(columnId, normalizedWidth))
+    }
+
+    ctx.font = originalFont
+    return fitted
+  }
+
+  // Double-click on a column divider
+  const autoFitColumnWidth = (columnId: string): boolean => autoFitColumns([columnId])
+
+  // Double-click on the row-number column's right edge
+  const autoFitAllColumnWidths = (): boolean =>
+    autoFitColumns(columns.value.filter((col) => col.id !== 'row_number').map((col) => col.id))
+
+  const isRowNumberResizeHandle = (x: number) => {
+    const rowNumberCol = columns.value.find((col) => col.id === 'row_number')
+    return !!rowNumberCol && Math.abs(x - parseCellWidth(rowNumberCol.width)) <= RESIZE_HANDLE_WIDTH / 2
   }
 
   const {
@@ -2430,6 +2463,8 @@ export function useCanvasTable({
     startResize,
     findResizeHandleColumn,
     autoFitColumnWidth,
+    autoFitAllColumnWidths,
+    isRowNumberResizeHandle,
 
     // Mouse Selection
     onMouseUpSelectionHandler,

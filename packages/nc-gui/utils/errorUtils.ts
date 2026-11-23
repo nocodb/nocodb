@@ -93,4 +93,26 @@ export function isUniqueConstraintViolationError(e: Error & { response?: any }):
   )
 }
 
+const reportedErrors = new WeakSet<object>()
+
+/** Marks an error already shown to the user, so a caller can stop it before Vue's error boundary. */
+export function markErrorReported(e: unknown) {
+  if (e && typeof e === 'object') reportedErrors.add(e)
+}
+
+export function isErrorReported(e: unknown): boolean {
+  return !!e && typeof e === 'object' && reportedErrors.has(e)
+}
+
+/** Wraps an async action so a rejection it already reported resolves; any other still rejects. */
+export function swallowReportedErrors<A extends unknown[], R>(fn: (...args: A) => Promise<R>) {
+  return async (...args: A): Promise<R | undefined> => {
+    try {
+      return await fn(...args)
+    } catch (e) {
+      if (!isErrorReported(e)) throw e
+    }
+  }
+}
+
 export { NcErrorType }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, isSelectTypeCol } from 'nocodb-sdk'
+import { isSelectTypeCol } from 'nocodb-sdk'
 
 const { formState, activeField, updateColMeta, isRequired } = useFormViewStoreOrThrow()
 
@@ -9,9 +9,6 @@ const updateSelectFieldLayout = (value: boolean) => {
   activeField.value.meta.isList = value
   updateColMeta(activeField.value)
 }
-
-const columnSupportsScanning = (elementType: UITypes) =>
-  [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
 </script>
 
 <template>
@@ -42,21 +39,6 @@ const columnSupportsScanning = (elementType: UITypes) =>
             data-testid="nc-form-input-required"
             @change="updateColMeta(activeField)"
           />
-        </div>
-
-        <div v-if="columnSupportsScanning(activeField.uidt)" class="!my-0 nc-form-input-enable-scanner-form-item">
-          <div class="flex items-center justify-between gap-3">
-            <div class="nc-form-input-enable-scanner text-nc-content-gray font-medium">
-              {{ $t('general.enableScanner') }}
-            </div>
-            <a-switch
-              v-model:checked="activeField.enable_scanner"
-              v-e="['a:form-view:field:mark-enable-scanner']"
-              data-testid="nc-form-input-enable-scanner"
-              size="small"
-              @change="updateColMeta(activeField)"
-            />
-          </div>
         </div>
 
         <SmartsheetFormFieldSettingsVisibility />

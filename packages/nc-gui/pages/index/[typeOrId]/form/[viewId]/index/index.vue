@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { ref } from 'vue'
 
 const {
   sharedFormView,
@@ -51,39 +49,6 @@ const validateField = async (title: string) => {
   } catch (_e: any) {
     return false
   }
-}
-
-const { t } = useI18n()
-
-// title of the field the scanner is filling; null while the scanner is closed
-const scanFieldTitle = ref<string | null>(null)
-
-const isScannerVisible = computed({
-  get: () => !!scanFieldTitle.value,
-  set: (visible: boolean) => {
-    if (!visible) scanFieldTitle.value = null
-  },
-})
-
-const scanField = computed(() => formColumns.value?.find((el: ColumnType) => el.title === scanFieldTitle.value))
-
-function onScanDecode(value: string) {
-  const title = scanFieldTitle.value
-  const column = scanField.value
-  if (!title || !column) return
-
-  let scannedValue: string | number = value
-  if (column.uidt === UITypes.Number) {
-    // a long numeric code (e.g. a 20-digit barcode) would lose digits as a number
-    if (!/^-?\d+$/.test(value.trim()) || !Number.isSafeInteger(Number(value.trim()))) {
-      message.error(t('msg.error.scannedValueNotANumber'))
-      return
-    }
-    scannedValue = Number(value.trim())
-  }
-
-  formState.value[title] = scannedValue
-  validateField(title)
 }
 
 const { message: templatedMessage } = useTemplatedMessage(
@@ -176,7 +141,6 @@ const { message: templatedMessage } = useTemplatedMessage(
         </template>
 
         <template v-else>
-          <SmartsheetFormScannerModal v-model:visible="isScannerVisible" :field="scanField" @decode="onScanDecode" />
           <GeneralOverlay class="bg-nc-bg-gray-extralight/75 rounded-3xl" :model-value="isLoading" inline transition>
             <div class="w-full h-full flex items-center justify-center">
               <a-spin size="large" />
@@ -249,19 +213,6 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 }
                               "
                             />
-                            <NcTooltip v-if="field.enable_scanner" :title="$t('activity.fillByCodeScan')" class="flex-none">
-                              <NcButton
-                                type="secondary"
-                                icon-only
-                                class="nc-btn-fill-form-column-by-scan !w-10 !h-10 !px-0"
-                                data-testid="nc-form-fill-by-scan"
-                                @click="scanFieldTitle = field.title"
-                              >
-                                <template #icon>
-                                  <component :is="iconMap.qrCodeScan" class="text-lg leading-none" />
-                                </template>
-                              </NcButton>
-                            </NcTooltip>
                           </LazySmartsheetDivDataCell>
                         </a-form-item>
                       </NcTooltip>
@@ -306,11 +257,6 @@ const { message: templatedMessage } = useTemplatedMessage(
 :deep(.nc-cell .nc-action-icon) {
   @apply !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center children:flex-none !cursor-pointer !transition;
 }
-.nc-btn-fill-form-column-by-scan {
-  @apply h-auto;
-  @apply ml-1;
-}
-
 .nc-shared-form-button {
   &.nc-button.ant-btn:focus {
     @apply shadow-focus;

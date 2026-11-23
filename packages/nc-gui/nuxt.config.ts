@@ -370,7 +370,6 @@ export default defineNuxtConfig({
         'validator',
         'validator/es/lib/isEmail',
         'vue-advanced-cropper',
-        'vue-qrcode-reader',
         'vuedraggable',
         'xlsx',
         'youtube-vue3',

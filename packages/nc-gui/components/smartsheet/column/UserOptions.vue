@@ -66,12 +66,13 @@ const updateIsMulti = (isChecked: boolean) => {
                 }
               "
             >
-              <div class="text-sm text-nc-content-gray select-none whitespace-nowrap">
+              <div class="text-sm text-nc-content-gray select-none">
                 {{ $t('labels.notifyUsersWithBaseAccessWhenAdded') }}
               </div>
             </NcSwitch>
             <LazyPaymentUpgradeBadge
               v-if="!vModel.meta.notify"
+              class="flex-none"
               :feature="PlanFeatureTypes.FEATURE_USER_FIELD_NOTIFY"
               :content="$t('upgrade.upgradeToNotifyUserFieldAssignees', { plan: getPlanTitle(PlanTitles.PLUS) })"
             />

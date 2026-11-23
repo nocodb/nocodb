@@ -866,6 +866,37 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
     }
 
+    // Several widths in one request and one undo step; keyed by field id like gridViewCols
+    const updateGridViewColumnWidths = async (widths: Record<string, string>) => {
+      const ids = Object.keys(widths)
+      if (ids.length < 2 || view.value?.type !== ViewTypes.GRID) {
+        await Promise.all(ids.map((id) => updateGridViewColumn(id, { width: widths[id] })))
+        return
+      }
+
+      try {
+        // ids of view-column rows; an interface's synthetic view has none and persists through its config below
+        const columnWidths = Object.fromEntries(
+          ids.flatMap((id) => (gridViewCols.value[id]?.id ? [[gridViewCols.value[id]!.id!, widths[id]!]] : [])),
+        )
+        if (!isPublic && canEditViewFields.value && Object.keys(columnWidths).length) {
+          await $api.internal.postOperation(
+            view.value!.fk_workspace_id!,
+            view.value!.base_id!,
+            { operation: 'gridColumnsBulkUpdateWidth', viewId: view.value!.id! },
+            { columnWidths },
+          )
+        }
+
+        for (const id of ids) {
+          if (gridViewCols.value?.[id]) gridViewCols.value[id]!.width = widths[id]
+          persistInterfaceGridColumn(id, { width: widths[id] })
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
     watch(
       sortedAndFilteredFields,
       (v) => {
@@ -964,6 +995,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       toggleFieldStyles,
       isViewColumnsLoading,
       updateGridViewColumn,
+      updateGridViewColumnWidths,
       gridViewCols,
       resizingColOldWith,
       isLocalMode,

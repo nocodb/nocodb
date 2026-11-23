@@ -94,6 +94,7 @@ export class UiPostOperations
     'viewColumnsBulkSetVisibility' as const,
     'viewColumnCreate' as const,
     'gridColumnUpdate' as const,
+    'gridColumnsBulkUpdateWidth' as const,
     'timelineColumnUpdate' as const,
     'ganttColumnUpdate' as const,
     'listColumnUpdate' as const,
@@ -340,6 +341,15 @@ export class UiPostOperations
           grid: payload,
           req,
         });
+      case 'gridColumnsBulkUpdateWidth':
+        return await this.gridColumnsService.gridColumnsBulkUpdateWidth(
+          context,
+          {
+            viewId: req.query.viewId,
+            columnWidths: payload?.columnWidths,
+            req,
+          },
+        );
       case 'viewColumnCreate':
         return await this.viewColumnsService.columnAdd(context, {
           viewId: req.query.viewId,

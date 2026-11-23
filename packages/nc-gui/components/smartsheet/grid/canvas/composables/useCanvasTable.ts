@@ -262,7 +262,7 @@ export function useCanvasTable({
   const { $api } = useNuxtApp()
   const { t } = useI18n()
   const { currentUser } = useUserSync()
-  const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
+  const { gridViewCols, metaColumnById, updateGridViewColumn, updateGridViewColumnWidths } = useViewColumnsOrThrow()
   const {
     eventBus,
     isDefaultView,
@@ -1695,13 +1695,17 @@ export function useCanvasTable({
     reloadVisibleDataHook?.trigger()
   }
 
-  // skips the save when the width didn't change (a click on the divider, or auto-fit to the current width)
-  const saveColumnWidth = (columnId: string, normalizedWidth: string) => {
-    const viewCol = gridViewCols.value[columnId]
-    if (!viewCol || parseCellWidth(viewCol.width) === parseCellWidth(normalizedWidth)) return
+  // Saves only widths that changed (a click on a divider changes none); several go as one request and one undo step
+  const saveColumnWidths = (widths: Record<string, string>) => {
+    const changed: Record<string, string> = {}
+    for (const [columnId, width] of Object.entries(widths)) {
+      const viewCol = gridViewCols.value[columnId]
+      if (!viewCol || parseCellWidth(viewCol.width) === parseCellWidth(width)) continue
 
-    viewCol.width = normalizedWidth
-    updateGridViewColumn(columnId, { width: normalizedWidth })
+      viewCol.width = width
+      changed[columnId] = width
+    }
+    if (Object.keys(changed).length) updateGridViewColumnWidths(changed)
   }
 
   // When resizing a column that's part of a multi-field selection (size > 1),
@@ -1760,9 +1764,11 @@ export function useCanvasTable({
       const coResizeIds = resizeMarker.value?.columnIds ?? resizeWidthOverride.value?.columnIds ?? getCoResizeColumnIds(columnId)
       resizeWidthOverride.value = null
       resizeMarker.value = null
+      const widths: Record<string, string> = {}
       for (const id of coResizeIds) {
-        handleColumnWidth(id, width, (normalizedWidth) => saveColumnWidth(id, normalizedWidth))
+        handleColumnWidth(id, width, (normalizedWidth) => (widths[id] = normalizedWidth))
       }
+      saveColumnWidths(widths)
     },
   )
   // Every row loaded so far, across expanded groups when grouped
@@ -1826,6 +1832,7 @@ export function useCanvasTable({
 
     const rows = getLoadedRows()
     const originalFont = ctx.font
+    const widths: Record<string, string> = {}
     let fitted = false
 
     for (const columnId of columnIds) {
@@ -1833,10 +1840,11 @@ export function useCanvasTable({
       if (fitWidth === null) continue
 
       fitted = true
-      handleColumnWidth(columnId, fitWidth, (normalizedWidth) => saveColumnWidth(columnId, normalizedWidth))
+      handleColumnWidth(columnId, fitWidth, (normalizedWidth) => (widths[columnId] = normalizedWidth))
     }
 
     ctx.font = originalFont
+    saveColumnWidths(widths)
     return fitted
   }
 

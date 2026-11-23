@@ -57,6 +57,7 @@ export const OperationName = {
   // View columns + visibility
   viewColumnUpdate: 'viewColumnUpdate',
   gridColumnUpdate: 'gridColumnUpdate',
+  gridColumnsBulkUpdateWidth: 'gridColumnsBulkUpdateWidth',
   formColumnUpdate: 'formColumnUpdate',
   timelineColumnUpdate: 'timelineColumnUpdate',
   ganttColumnUpdate: 'ganttColumnUpdate',

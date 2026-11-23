@@ -222,7 +222,8 @@ onBeforeUnmount(() => {
     overflow: visible !important;
     // The app theme (e.g. dark) sets the page background, which would print behind the dark text.
     background: #fff !important;
-    color-scheme: light;
+    // The dark theme sets `color-scheme: dark` inline on <html>, which would darken the page margins.
+    color-scheme: light !important;
   }
 
   .nc-print-view {
@@ -398,6 +399,35 @@ onBeforeUnmount(() => {
     .nc-print-cell-link {
       color: #3366ff;
       text-decoration: underline;
+    }
+
+    .nc-print-cell-button {
+      text-align: center;
+    }
+
+    .nc-print-button {
+      display: inline-block;
+      padding: 0 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .nc-print-button-solid {
+      background: #3366ff;
+      color: #fff;
+    }
+
+    .nc-print-button-light {
+      background: #ebf0ff;
+      color: #2952cc;
+    }
+
+    .nc-print-button-text {
+      color: #2952cc;
     }
 
     .nc-print-cell-checkbox {

@@ -45,9 +45,9 @@ const kind = computed(() => {
 const isNumeric = computed(
   () =>
     kind.value === 'text' &&
-    props.column.uidt !== UITypes.Year &&
+    ![UITypes.Year, UITypes.AutoNumber].includes(props.column.uidt as UITypes) &&
     (isNumericFieldType(props.column, sqlUi.value?.getAbstractType(props.column)) ||
-      [UITypes.Links, UITypes.Rollup, UITypes.Count, UITypes.AutoNumber].includes(props.column.uidt as UITypes)),
+      [UITypes.Rollup, UITypes.Count].includes(props.column.uidt as UITypes)),
 )
 
 const isEmpty = computed(() => props.modelValue === null || props.modelValue === undefined || props.modelValue === '')
@@ -120,7 +120,7 @@ const colour = computed(() => {
     hex: hex.toUpperCase(),
     showSwatch: format !== 'hex_only' && /^#?[0-9a-f]{3,8}$/i.test(hex),
     showHex: format !== 'swatch_only',
-    radius: columnMeta.value.swatchStyle === 'circle' ? '50%' : '3px',
+    radius: columnMeta.value.swatchStyle === 'square' ? '3px' : '50%',
   }
 })
 

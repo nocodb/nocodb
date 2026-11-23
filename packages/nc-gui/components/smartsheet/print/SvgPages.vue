@@ -113,10 +113,6 @@ function relatedMeta(column: ColumnType) {
   return {}
 }
 
-const layout = computed(() =>
-  getPrintColumnBands(props.columns, props.columnWidths, props.settings, props.rangeStart + props.rows.length - 1),
-)
-
 const pageWidth = computed(() => getPrintableWidthPx(props.settings))
 
 const pageHeight = computed(() => getPrintableHeightPx(props.settings))
@@ -225,30 +221,50 @@ function wrapText(column: ColumnType, value: unknown) {
 let probeContext: CanvasRenderingContext2D | null = null
 
 /**
- * How tall a cell draws when it may use as many lines as it needs: renders it into a context that
- * records the lowest point drawn. Works for every renderer — chips, markdown, lookups.
+ * Draws a cell into a context that records the area it paints, so a value's real size is known
+ * whatever renderer draws it — chips, markdown, lookups, right-aligned numbers.
  */
-function measureRenderedHeight(column: ColumnType, value: unknown, row: Record<string, any>, width: number) {
+function measureCellExtent(
+  column: ColumnType,
+  value: unknown,
+  row: Record<string, any>,
+  width: number,
+  height: number,
+  maxLines?: number,
+) {
   probeContext ??= document.createElement('canvas').getContext('2d')
   const probe = probeContext
-  if (!probe) return 0
+  const extent = { left: Infinity, right: -Infinity, bottom: 0 }
+  if (!probe) return extent
 
-  let bottom = 0
-  const track = (y: number) => {
-    const deviceY = probe.getTransform().d * y + probe.getTransform().f
-    // Anything reaching the bottom of the box is a background or clip, not content.
-    if (deviceY < MEASURE_HEIGHT - 2) bottom = Math.max(bottom, deviceY)
+  const track = (x1: number, x2: number, y: number) => {
+    const t = probe.getTransform()
+    const deviceY = t.d * y + t.f
+    // Anything reaching the edge of the box is a background or clip, not content.
+    if (deviceY >= height - 2 || x2 - x1 >= width - 2) return
+    extent.bottom = Math.max(extent.bottom, deviceY)
+    extent.left = Math.min(extent.left, t.a * x1 + t.e)
+    extent.right = Math.max(extent.right, t.a * x2 + t.e)
   }
   const recorder = new Proxy(probe, {
     get(target, key) {
       const member = Reflect.get(target, key, target)
       if (typeof member !== 'function') return member
       return (...args: any[]) => {
-        if (key === 'fillText' || key === 'strokeText') track(args[2] + 8)
-        else if (key === 'fillRect' || key === 'strokeRect' || key === 'roundRect') track(args[1] + args[3])
-        else if (key === 'drawImage' && args.length === 5) track(args[2] + args[4])
-        else if (key === 'drawImage' && args.length === 9) track(args[6] + args[8])
-        else if (key === 'arc') track(args[1] + args[2])
+        if (key === 'fillText' || key === 'strokeText') {
+          const textWidth = target.measureText(String(args[0])).width
+          const x =
+            target.textAlign === 'right' || target.textAlign === 'end'
+              ? args[1] - textWidth
+              : target.textAlign === 'center'
+              ? args[1] - textWidth / 2
+              : args[1]
+          track(x, x + textWidth, args[2] + 8)
+        } else if (key === 'fillRect' || key === 'strokeRect' || key === 'roundRect')
+          track(args[0], args[0] + args[2], args[1] + args[3])
+        else if (key === 'drawImage' && args.length === 5) track(args[1], args[1] + args[3], args[2] + args[4])
+        else if (key === 'drawImage' && args.length === 9) track(args[5], args[5] + args[7], args[6] + args[8])
+        else if (key === 'arc') track(args[0] - args[2], args[0] + args[2], args[1] + args[2])
         return member.apply(target, args)
       }
     },
@@ -265,7 +281,7 @@ function measureRenderedHeight(column: ColumnType, value: unknown, row: Record<s
     x: 0,
     y: 0,
     width,
-    height: MEASURE_HEIGHT,
+    height,
     readonly: true,
     spriteLoader,
     imageLoader,
@@ -274,11 +290,98 @@ function measureRenderedHeight(column: ColumnType, value: unknown, row: Record<s
     ...relatedMeta(column),
     rowMeta: {},
     mousePosition: { x: -1, y: -1 },
-    maxLines: MAX_WRAP_LINES,
+    ...(maxLines ? { maxLines } : {}),
   })
   probe.restore()
-  return bottom + 8
+  return extent
 }
+
+/** How tall a cell draws when it may use as many lines as it needs. */
+function measureRenderedHeight(column: ColumnType, value: unknown, row: Record<string, any>, width: number) {
+  return measureCellExtent(column, value, row, width, MEASURE_HEIGHT, MAX_WRAP_LINES).bottom + 8
+}
+
+/** Fields that never wrap: their column must be wide enough to show each value in full. */
+const FIT_VALUE_TYPES = [
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.Time,
+  UITypes.Year,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.AutoNumber,
+  UITypes.Rollup,
+  UITypes.Count,
+  UITypes.Links,
+  UITypes.PhoneNumber,
+  UITypes.Rating,
+  UITypes.GeoData,
+  UITypes.Formula,
+]
+
+/** At most this wide (grid units), so one long value can't take the page. */
+const MAX_FIT_VALUE_WIDTH = 220
+
+/** Rows sampled per column; enough to find the widest value without measuring a large print twice. */
+const FIT_VALUE_SAMPLE = 500
+
+const MEASURE_WIDTH = 1000
+
+/** A longer word (a URL, an id) still breaks, rather than widening its column further. */
+const MAX_WORD_WIDTH = 120
+
+function longestWordWidth(text: string, font = '500 13px Inter') {
+  measureContext ??= document.createElement('canvas').getContext('2d')
+  if (!measureContext) return 0
+  measureContext.font = font
+  let widest = 0
+  for (const word of text.slice(0, 2000).split(/\s+/)) {
+    if (word) widest = Math.max(widest, measureContext.measureText(word).width)
+  }
+  return widest
+}
+
+const contentMinWidths = computed(() => {
+  const k = scale.value
+  const widths: Record<string, number> = {}
+  const rows = props.rows.slice(0, FIT_VALUE_SAMPLE)
+
+  for (const column of props.columns) {
+    // Wide enough for the header's and (when wrapping) the values' longest word, so words don't break mid-way.
+    let needed = Math.min(MAX_WORD_WIDTH, longestWordWidth(column.title ?? '', '600 13px Inter') + 6)
+    if (props.settings.wrapText && WRAP_TEXT_TYPES.concat(UITypes.LongText).includes(column.uidt as UITypes)) {
+      for (const row of rows) {
+        const value = row[column.title!]
+        if (typeof value === 'string' && value) needed = Math.max(needed, Math.min(MAX_WORD_WIDTH, longestWordWidth(value)))
+      }
+    }
+    if (FIT_VALUE_TYPES.includes(column.uidt as UITypes)) {
+      for (const row of rows) {
+        const value = row[column.title!]
+        if (value === null || value === undefined || value === '') continue
+        const { left, right } = measureCellExtent(column, value, row, MEASURE_WIDTH, GROUP_HEIGHT)
+        if (right > left) needed = Math.max(needed, right - left)
+      }
+    }
+    if (needed) widths[column.id!] = Math.ceil(Math.min(MAX_FIT_VALUE_WIDTH, needed + CELL_PADDING * 2 + 2) * k)
+  }
+  return widths
+})
+
+const layout = computed(() =>
+  getPrintColumnBands(
+    props.columns,
+    props.columnWidths,
+    props.settings,
+    props.rangeStart + props.rows.length - 1,
+    contentMinWidths.value,
+  ),
+)
 
 /** Wrap long text: a row grows to show every wrapped value in full, up to most of a page. */
 function rowHeightFor(row: Record<string, any>, band: ColumnType[], widthById: Record<string, number>) {
@@ -740,6 +843,15 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss">
+// SVG text inherits the app's tabular numbers and word spacing, which canvas text doesn't:
+// without this, text prints wider than the grid's renderers measured it, so underlines fall short.
+.nc-print-svg-pages text {
+  font-feature-settings: normal;
+  font-variant-numeric: normal;
+  word-spacing: normal;
+  letter-spacing: normal;
+}
+
 @media screen {
   // Rendered but out of sight: images inside `display: none` don't load until printing starts,
   // and the print dialog would snapshot them blank.

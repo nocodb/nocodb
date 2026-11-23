@@ -384,6 +384,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         {
           aliasToColumn[col.id] = async ({
             tableAlias,
+            userIds,
           }: TAliasToColumnParam) => {
             baseUsers =
               baseUsers ??
@@ -410,6 +411,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               : `${
                   tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)
                 }.${await getColumnName(context, col, columns)}`;
+
+            if (userIds) {
+              return {
+                builder:
+                  typeof columnName === 'string'
+                    ? knex.raw('??', [columnName])
+                    : columnName,
+              };
+            }
 
             // Public responses redact user emails; a formula must not re-derive them.
             const userValue = (user: Partial<User>) =>
@@ -516,6 +526,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       (await aliasToColumn?.[(pt as IdentifierNode).name]?.({
         tableAlias,
         parentColumns: params.parentColumns,
+        userIds: pt.fnName === 'ARRAYCOUNT',
       })) || {}
     );
   };

@@ -23,6 +23,8 @@ export interface FormulaBaseParams {
 export type TAliasToColumnParam = {
   tableAlias?: string;
   parentColumns?: CircularRefContext;
+  // User fields resolve to their stored ids instead of emails / names
+  userIds?: boolean;
 };
 export type TAliasToColumn = Record<
   string,

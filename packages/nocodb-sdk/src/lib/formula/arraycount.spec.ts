@@ -1,6 +1,7 @@
 import { validateFormulaAndExtractTreeWithType } from './validate-extract-tree';
 import { FormulaDataTypes } from './enums';
 import UITypes from '../UITypes';
+import { SqlUiFactory } from '../sqlUi';
 import { UnifiedMetaType } from '~/lib/types';
 
 const col = (
@@ -52,7 +53,7 @@ const validate = (formula: string, client = 'pg') =>
   validateFormulaAndExtractTreeWithType({
     formula,
     columns: tables.projects,
-    clientOrSqlUi: client,
+    clientOrSqlUi: SqlUiFactory.create({ client }),
     getMeta,
   });
 

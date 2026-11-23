@@ -3,5 +3,5 @@
 </script>
 
 <template>
-  <div class="hidden" />
+  <NcSpanHidden />
 </template>

@@ -1706,6 +1706,8 @@ export function useCanvasTable({
       changed[columnId] = width
     }
     if (Object.keys(changed).length) updateGridViewColumnWidths(changed)
+    // redraw with the saved widths; the live resize override is already cleared
+    reloadVisibleDataHook?.trigger()
   }
 
   // When resizing a column that's part of a multi-field selection (size > 1),

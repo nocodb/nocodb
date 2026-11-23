@@ -359,7 +359,7 @@ export const LookupCellRenderer: CellRenderer = {
         : PlainCellRenderer.render(ctx, renderOptions)
     }
 
-    const maxLines = rowHeightTruncateLines(height, true)
+    const maxLines = props.maxLines ?? rowHeightTruncateLines(height, true)
     let line = 1
     let flag = false
     let count = 1

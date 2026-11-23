@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Experimental: draws print pages with the grid's canvas cell renderers into vector SVG,
 // so every field prints exactly as the grid shows it.
-import { type ColumnType, type TableType, UITypes, isLTAR, isRichText, isSmartText } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, isLTAR } from 'nocodb-sdk'
 import { Context as SvgContext } from 'svgcanvas'
 import { useGridCellHandler } from '../grid/canvas/cells'
 import type { ActionManager } from '../grid/canvas/loaders/ActionManager'
@@ -9,7 +9,7 @@ import { SpriteLoader } from '../grid/canvas/loaders/SpriteLoader'
 import { ImageWindowLoader } from '../grid/canvas/loaders/ImageLoader'
 import { MarkdownLoader } from '../grid/canvas/loaders/markdownLoader'
 import { TableMetaLoader } from '../grid/canvas/loaders/TableMetaLoader'
-import { renderMultiLineText, renderSingleLineText } from '../grid/canvas/utils/canvas'
+import { renderMultiLineText, renderSingleLineText, wrapTextToLines } from '../grid/canvas/utils/canvas'
 
 interface Props {
   title?: string
@@ -52,7 +52,7 @@ const containerRef = ref<HTMLElement>()
 
 // The grid draws at 13px; the whole page is scaled to the chosen font size.
 const GRID_FONT_SIZE_PX = 13
-const HEADER_HEIGHT = 32
+const GROUP_HEIGHT = 32
 const TITLE_HEIGHT = 52
 // Images, icons and rich text load asynchronously; wait at most this long for them.
 const LOADER_TIMEOUT_MS = 3000
@@ -168,61 +168,148 @@ const LINK_TYPES = [UITypes.URL, UITypes.Email, UITypes.PhoneNumber]
 
 const LINE_HEIGHT = 16
 
+const MAX_WRAP_LINES = 40
+
 const CELL_PADDING = 10
 
 let measureContext: CanvasRenderingContext2D | null = null
 
-function measureLines(text: string, width: number) {
+/** Lines a text takes at this width, split exactly as the grid's multi-line text splits it. */
+function measureLines(text: string, width: number, font = '500 13px Inter') {
   measureContext ??= document.createElement('canvas').getContext('2d')
   if (!measureContext || !text) return 1
 
-  measureContext.font = '500 13px Inter'
-  let lines = 0
-  for (const paragraph of text.split('\n')) {
-    let line = ''
-    lines++
-    for (const word of paragraph.split(/(\s+)/)) {
-      const next = line + word
-      if (line && measureContext.measureText(next).width > width) {
-        lines++
-        line = word.trimStart()
-      } else {
-        line = next
-      }
-    }
-  }
-  return lines
+  measureContext.font = font
+  return Math.max(
+    1,
+    wrapTextToLines(measureContext, { text, maxWidth: width, maxLines: MAX_WRAP_LINES, renderAsPreTag: true }).length,
+  )
 }
 
 function baseRowHeight() {
   return getPrintRowHeightPx(props.rowHeight, props.settings) / scale.value
 }
 
-/** Wrap long text: a row grows to fit its longest Long Text value (the grid wraps only those), up to most of a page. */
+/** Wrap long text: these draw through the grid's renderer with a raised line cap… */
+const WRAP_RENDERED_TYPES = [
+  UITypes.LongText,
+  UITypes.MultiSelect,
+  UITypes.User,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Lookup,
+]
+
+/** …and these as plain text, which the grid keeps on one line. */
+const WRAP_TEXT_TYPES = [UITypes.SingleLineText, UITypes.Email, UITypes.URL, UITypes.JSON, UITypes.Formula]
+
+const MAX_HEADER_LINES = 3
+
+const MEASURE_HEIGHT = 4000
+
+function wrapMode(column: ColumnType, value: unknown): 'rendered' | 'text' | null {
+  if (!props.settings.wrapText || value === null || value === undefined || value === '') return null
+  if (WRAP_RENDERED_TYPES.includes(column.uidt as UITypes)) return 'rendered'
+  if (!WRAP_TEXT_TYPES.includes(column.uidt as UITypes)) return null
+  // A formula that returns a number or date keeps its grid formatting.
+  if (column.uidt === UITypes.Formula && (typeof value !== 'string' || !Number.isNaN(Number(value)))) return null
+  return 'text'
+}
+
+function wrapText(column: ColumnType, value: unknown) {
+  if (column.uidt === UITypes.JSON && typeof value !== 'string') return JSON.stringify(value)
+  return String(value)
+}
+
+let probeContext: CanvasRenderingContext2D | null = null
+
+/**
+ * How tall a cell draws when it may use as many lines as it needs: renders it into a context that
+ * records the lowest point drawn. Works for every renderer — chips, markdown, lookups.
+ */
+function measureRenderedHeight(column: ColumnType, value: unknown, row: Record<string, any>, width: number) {
+  probeContext ??= document.createElement('canvas').getContext('2d')
+  const probe = probeContext
+  if (!probe) return 0
+
+  let bottom = 0
+  const track = (y: number) => {
+    const deviceY = probe.getTransform().d * y + probe.getTransform().f
+    // Anything reaching the bottom of the box is a background or clip, not content.
+    if (deviceY < MEASURE_HEIGHT - 2) bottom = Math.max(bottom, deviceY)
+  }
+  const recorder = new Proxy(probe, {
+    get(target, key) {
+      const member = Reflect.get(target, key, target)
+      if (typeof member !== 'function') return member
+      return (...args: any[]) => {
+        if (key === 'fillText' || key === 'strokeText') track(args[2] + 8)
+        else if (key === 'fillRect' || key === 'strokeRect' || key === 'roundRect') track(args[1] + args[3])
+        else if (key === 'drawImage' && args.length === 5) track(args[2] + args[4])
+        else if (key === 'drawImage' && args.length === 9) track(args[6] + args[8])
+        else if (key === 'arc') track(args[1] + args[2])
+        return member.apply(target, args)
+      }
+    },
+    set(target, key, newValue) {
+      return Reflect.set(target, key, newValue, target)
+    },
+  }) as CanvasRenderingContext2D
+
+  probe.save()
+  probe.setTransform(1, 0, 0, 1, 0, 0)
+  renderCell(recorder, column, {
+    value,
+    row,
+    x: 0,
+    y: 0,
+    width,
+    height: MEASURE_HEIGHT,
+    readonly: true,
+    spriteLoader,
+    imageLoader,
+    markdownLoader,
+    tableMetaLoader,
+    ...relatedMeta(column),
+    rowMeta: {},
+    mousePosition: { x: -1, y: -1 },
+    maxLines: MAX_WRAP_LINES,
+  })
+  probe.restore()
+  return bottom + 8
+}
+
+/** Wrap long text: a row grows to show every wrapped value in full, up to most of a page. */
 function rowHeightFor(row: Record<string, any>, band: ColumnType[], widthById: Record<string, number>) {
   const base = baseRowHeight()
   if (!props.settings.wrapText) return base
 
   const maxHeight = (pageHeight.value / scale.value) * 0.8
-  let lines = 1
+  let height = base
   for (const column of band) {
     const value = row[column.title!]
-    if (value === null || value === undefined || value === '' || column.uidt !== UITypes.LongText) continue
-    lines = Math.max(lines, measureLines(String(value), (widthById[column.id!] ?? 200) - CELL_PADDING * 2))
+    const width = widthById[column.id!] ?? 200
+    const mode = wrapMode(column, value)
+    if (mode === 'text') {
+      height = Math.max(height, measureLines(wrapText(column, value), width - CELL_PADDING * 2) * LINE_HEIGHT + CELL_PADDING + 2)
+    } else if (mode === 'rendered') {
+      height = Math.max(height, measureRenderedHeight(column, value, row, width))
+    }
   }
-  return Math.min(maxHeight, Math.max(base, lines * LINE_HEIGHT + CELL_PADDING))
+  return Math.min(maxHeight, height)
 }
 
-function isWrappedText(column: ColumnType, value: unknown) {
-  return (
-    props.settings.wrapText &&
-    column.uidt === UITypes.LongText &&
-    !isRichText(column) &&
-    !isSmartText(column) &&
-    value !== null &&
-    value !== undefined &&
-    value !== ''
-  )
+/** Long field names wrap onto up to three header lines. */
+function headerHeightFor(band: ColumnType[], widthById: Record<string, number>) {
+  let lines = 1
+  for (const column of band) {
+    lines = Math.max(
+      lines,
+      Math.min(MAX_HEADER_LINES, measureLines(column.title ?? '', (widthById[column.id!] ?? 200) - 16, '600 13px Inter')),
+    )
+  }
+  return lines === 1 ? GROUP_HEIGHT : lines * LINE_HEIGHT + 16
 }
 
 function linkHref(column: ColumnType, value: any) {
@@ -264,6 +351,7 @@ function drawPage(
   lines: PageLine[],
   withTitle: boolean,
   links: LinkArea[],
+  headerHeight: number,
 ) {
   const k = scale.value
   const rowNumberWidth = layout.value.rowNumberWidth / k
@@ -283,24 +371,40 @@ function drawPage(
   const tableWidth = cells.reduce((sum, cell) => sum + cell.width, 0)
 
   ctx.fillStyle = '#f4f4f5'
-  ctx.fillRect(0, y, tableWidth, HEADER_HEIGHT)
+  ctx.fillRect(0, y, tableWidth, headerHeight)
   let x = 0
   for (const cell of cells) {
-    renderSingleLineText(ctx, {
-      x: x + 8,
-      y,
-      text: cell.column ? cell.column.title! : '#',
-      maxWidth: cell.width - 16,
-      fontFamily: '600 13px Inter',
-      fillStyle: '#374151',
-      height: HEADER_HEIGHT,
-    })
+    const title = cell.column ? cell.column.title! : '#'
+    if (headerHeight === GROUP_HEIGHT) {
+      renderSingleLineText(ctx, {
+        x: x + 8,
+        y,
+        text: title,
+        maxWidth: cell.width - 16,
+        fontFamily: '600 13px Inter',
+        fillStyle: '#374151',
+        height: headerHeight,
+      })
+    } else {
+      renderMultiLineText(ctx, {
+        x: x + 8,
+        y,
+        py: 8,
+        text: title,
+        maxWidth: cell.width - 16,
+        fontFamily: '600 13px Inter',
+        fillStyle: '#374151',
+        height: headerHeight,
+        maxLines: MAX_HEADER_LINES,
+        lineHeight: LINE_HEIGHT,
+      })
+    }
     ctx.strokeStyle = '#d5dce8'
     ctx.lineWidth = 1
-    ctx.strokeRect(x + 0.5, y + 0.5, cell.width, HEADER_HEIGHT)
+    ctx.strokeRect(x + 0.5, y + 0.5, cell.width, headerHeight)
     x += cell.width
   }
-  y += HEADER_HEIGHT
+  y += headerHeight
 
   for (const line of lines) {
     if (line.type === 'group') {
@@ -372,23 +476,26 @@ function drawPage(
               maxWidth: cell.width - 12,
               fontFamily: '500 12px Inter',
               fillStyle: '#6a7184',
-              height: Math.min(line.height, HEADER_HEIGHT),
+              height: Math.min(line.height, GROUP_HEIGHT),
             })
           }
         } else {
           const value = line.row[cell.column.title!]
-          if (isWrappedText(cell.column, value)) {
-            // The grid's renderer caps lines at its row-height tiers; wrapped rows can be taller.
+          const mode = wrapMode(cell.column, value)
+          if (mode === 'text') {
+            // The grid draws these on one line; a wrapped print shows them in full.
+            const isLink = cell.column.uidt === UITypes.URL || cell.column.uidt === UITypes.Email
             renderMultiLineText(ctx, {
               x: cx + CELL_PADDING,
               y,
-              text: String(value),
+              text: wrapText(cell.column, value),
               maxWidth: cell.width - CELL_PADDING * 2,
               fontFamily: '500 13px Inter',
-              fillStyle: '#1f293a',
+              fillStyle: '#374151',
               height: line.height,
               maxLines: Math.max(1, Math.floor((line.height - CELL_PADDING) / LINE_HEIGHT)),
               lineHeight: LINE_HEIGHT,
+              underline: isLink,
               renderAsPreTag: true,
             })
           } else
@@ -409,11 +516,12 @@ function drawPage(
               rowMeta: {},
               mousePosition: { x: -1, y: -1 },
               isRootCell: true,
+              ...(mode === 'rendered' ? { maxLines: MAX_WRAP_LINES } : {}),
             })
           if (LINK_TYPES.includes(cell.column.uidt as UITypes) || cell.column.uidt === UITypes.Button) {
             const href = linkHref(cell.column, value)
             if (href)
-              links.push({ x: cx * k, y: y * k, width: cell.width * k, height: Math.min(line.height, HEADER_HEIGHT) * k, href })
+              links.push({ x: cx * k, y: y * k, width: cell.width * k, height: Math.min(line.height, GROUP_HEIGHT) * k, href })
           }
         }
         ctx.strokeStyle = '#d5dce8'
@@ -460,11 +568,11 @@ function drawPage(
 }
 
 /** Splits a band's lines into pages; the first page of each band carries the title. */
-function paginate(lines: PageLine[]) {
+function paginate(lines: PageLine[], headerHeight: number) {
   const available = pageHeight.value / scale.value
   const pages: { lines: PageLine[]; withTitle: boolean }[] = []
   let current: PageLine[] = []
-  let used = HEADER_HEIGHT + (props.settings.showTitle ? TITLE_HEIGHT : 0)
+  let used = headerHeight + (props.settings.showTitle ? TITLE_HEIGHT : 0)
   let withTitle = props.settings.showTitle
 
   for (let i = 0; i < lines.length; i++) {
@@ -474,7 +582,7 @@ function paginate(lines: PageLine[]) {
     if (current.length && used + needed > available) {
       pages.push({ lines: current, withTitle })
       current = []
-      used = HEADER_HEIGHT
+      used = headerHeight
       withTitle = false
     }
     current.push(line)
@@ -487,10 +595,10 @@ function paginate(lines: PageLine[]) {
 function bandLines(band: ColumnType[], widthById: Record<string, number>): PageLine[] {
   const lines: PageLine[] = items.value.map((item) =>
     item.type === 'group'
-      ? { type: 'group', item, height: HEADER_HEIGHT }
+      ? { type: 'group', item, height: GROUP_HEIGHT }
       : { type: 'row', row: item.row, rowNumber: item.rowNumber, height: rowHeightFor(item.row, band, widthById) },
   )
-  if (showSummary.value) lines.push({ type: 'summary', height: HEADER_HEIGHT })
+  if (showSummary.value) lines.push({ type: 'summary', height: GROUP_HEIGHT })
   return lines
 }
 
@@ -528,7 +636,12 @@ async function render() {
   const k = scale.value
   const output: string[] = []
   const widthById = Object.fromEntries(layout.value.columnsWithWidth.map(({ column, width }) => [column.id, width / k]))
-  const bands = layout.value.bands.map((band) => ({ band, pages: paginate(bandLines(band, widthById)) }))
+  const layoutBands = () =>
+    layout.value.bands.map((band) => {
+      const headerHeight = headerHeightFor(band, widthById)
+      return { band, headerHeight, pages: paginate(bandLines(band, widthById), headerHeight) }
+    })
+  let bands = layoutBands()
 
   // The grid's renderers pick colours from the active theme; print is always light.
   const previousTheme = forcedTheme.value
@@ -539,17 +652,19 @@ async function render() {
   try {
     // A first pass starts the image, icon and rich text loads; the real pass draws them.
     const warmup = new SvgContext({ width: pageWidth.value, height: pageHeight.value })
-    for (const { band, pages } of bands) {
+    for (const { band, pages, headerHeight } of bands) {
       for (const page of pages)
-        drawPage(warmup as unknown as CanvasRenderingContext2D, band, widthById, page.lines, page.withTitle, [])
+        drawPage(warmup as unknown as CanvasRenderingContext2D, band, widthById, page.lines, page.withTitle, [], headerHeight)
     }
     await waitForLoaders()
+    // Rich text and images measure their real size only once loaded.
+    bands = layoutBands()
 
-    for (const { band, pages } of bands) {
+    for (const { band, pages, headerHeight } of bands) {
       for (const page of pages) {
         const ctx = new SvgContext({ width: pageWidth.value, height: pageHeight.value })
         const links: LinkArea[] = []
-        drawPage(ctx as unknown as CanvasRenderingContext2D, band, widthById, page.lines, page.withTitle, links)
+        drawPage(ctx as unknown as CanvasRenderingContext2D, band, widthById, page.lines, page.withTitle, links, headerHeight)
         const anchors = links
           .map(
             (link) =>

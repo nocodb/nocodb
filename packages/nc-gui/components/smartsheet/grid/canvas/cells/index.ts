@@ -250,6 +250,7 @@ export function useGridCellHandler(params: {
       rowMeta = {},
       isRootCell = false,
       rowBgAlreadyApplied = false,
+      maxLines,
     }: Omit<CellRendererOptions, 'metas' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
@@ -443,6 +444,7 @@ export function useGridCellHandler(params: {
         rowMeta,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         isGroupHeader,
+        maxLines,
       })
 
       if (

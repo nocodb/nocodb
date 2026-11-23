@@ -95,7 +95,7 @@ watch(
           <div class="text-bodyDefaultSm text-nc-content-gray">
             {{ cameraState === 'denied' ? $t('labels.allowAccessToYourCamera') : $t('msg.error.cameraNotAvailable') }}
           </div>
-          <NcButton v-if="cameraState === 'denied'" type="secondary" size="small" @click="checkCameraAccess">
+          <NcButton type="secondary" size="small" data-testid="nc-form-scanner-retry" @click="checkCameraAccess">
             {{ $t('general.retry') }}
           </NcButton>
         </div>

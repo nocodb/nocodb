@@ -1639,6 +1639,7 @@
     "agentMachines": "Machines"
   },
   "labels": {
+    "richTextEditorMode": "Editor mode",
     "filesTotalSize": "{count} file, total size: {size} | {count} files, total size: {size}",
     "uploadNFiles": "Upload {count} file | Upload {count} files",
     "saveMine": "Save mine",
@@ -8467,6 +8468,7 @@
       "invalidNumberImportedAs": "Row {row}, \"{column}\": \"{value}\" is not a valid number and will be imported as {stored}.",
       "numberImportedAs": "Row {row}, \"{column}\": \"{value}\" will be imported as {stored}.",
       "collabStaleEditsDiscarded": "This changed while you were offline. It now shows the latest version; the edits you made while offline weren't saved.",
+      "richTextMarkdownNotRepresentable": "Some of this Markdown isn't supported by the rich text editor, so it wasn't saved. The editor now shows what was saved.",
       "collabStaleReloadFailed": "This changed while you were offline, and the latest version couldn't be loaded. Reopen it to keep editing.",
       "recordSavedButReloadFailed": "Record saved, but the view could not refresh. Reload to see the latest data.",
       "collabScriptLiveElsewhere": "Someone else is now editing this script live, so your latest changes weren't saved. Try again once they're done, or reload the page to edit with them.",
@@ -9330,7 +9332,8 @@
       "sharedLinkGroupedByHidden": "Grouped by {fields}, which is hidden: the shared link shows the rows ungrouped.",
       "sharedLinkUtilizationHidden": "Utilization needs {fields} shown.",
       "sharedLinkNoTimeOff": "The shared link doesn't count time off.",
-      "sharedLinkGroupHidden": "The shared link shows the rows ungrouped while {fields} is hidden."
+      "sharedLinkGroupHidden": "The shared link shows the rows ungrouped while {fields} is hidden.",
+      "richTextMarkdownReadOnlyWhileCoEditing": "Others are editing this field. Markdown is read-only until they leave; switch to Rich text to edit."
     },
     "error": {
       "linkedRecordsNotCreated": "The record was saved, but these linked records could not be created: {details}. Those still shown in the link field are kept; Save again to retry them.",

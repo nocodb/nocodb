@@ -98,7 +98,9 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { activeProjectId } = storeToRefs(basesStore)
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 // Resolved once, synchronously — the Yjs binding is a tiptap extension, so it is
 // fixed when the editor is constructed. A read-only editor never opens a session:
@@ -132,6 +134,9 @@ const collabAuthoritative = ref(false)
  * the blank over real text.
  */
 const collabRefused = ref(false)
+
+// The session went stale: no Markdown edits until the stored value is reloaded.
+const collabReloadLocked = ref(false)
 
 /**
  * While a confirmed session is live the SERVER owns persistence — it derives
@@ -294,6 +299,106 @@ const setEditorContent = (contentMd: any) => {
   if (!editor.value) return
 
   editor.value.commands.setContent(contentMd, false)
+}
+
+const markdownMode = useRichTextMarkdownMode({
+  // Collab: the stored value lags the shared document, so read the editor.
+  readMarkdown: () => (collabOwnsPersistence.value ? editor.value?.storage.markdown.getMarkdown() : props.value) ?? '',
+  save: (markdown) => {
+    if (collabOwnsPersistence.value) setEditorContent(NcMarkdownParser.preprocessMarkdown(markdown, true))
+    else vModel.value = markdown
+  },
+  loadIntoEditor: (markdown) => {
+    setEditorContent(NcMarkdownParser.preprocessMarkdown(markdown, true))
+    hasLocalEdits.value = false
+  },
+})
+
+const { mode: editorMode, isMarkdownMode, source: markdownSource } = markdownMode
+
+// Others in the session: each Markdown edit replaces the whole shared doc and would clobber theirs.
+const collabPeerCount = ref(0)
+if (collab?.awareness) {
+  const awareness = collab.awareness
+  const updatePeerCount = () => {
+    collabPeerCount.value = [...awareness.getStates().keys()].filter((id) => id !== awareness.clientID).length
+  }
+  updatePeerCount()
+  awareness.on('change', updatePeerCount)
+  onBeforeUnmount(() => awareness.off('change', updatePeerCount))
+}
+
+const isMarkdownBlockedByPeers = computed(() => collabOwnsPersistence.value && collabPeerCount.value > 0)
+
+const isMarkdownEditable = computed(() =>
+  canEditMarkdown({
+    readOnly: !!props.readOnly,
+    hasCollab: !!collab,
+    collabRefused: collabRefused.value,
+    collabOwnsPersistence: collabOwnsPersistence.value,
+    hasPeers: collabPeerCount.value > 0,
+    reloadLocked: collabReloadLocked.value,
+  }),
+)
+
+// While the server owns the cell, the textarea follows the shared doc.
+function syncMarkdownFromSharedDoc() {
+  if (!collabOwnsPersistence.value || !editor.value) return
+  const markdown = editor.value.storage.markdown.getMarkdown()
+  if (isMarkdownBlockedByPeers.value) markdownMode.resetSource(markdown)
+  else markdownMode.syncSource(markdown)
+}
+
+if (collab) {
+  watch(
+    editor,
+    (current, previous) => {
+      previous?.off('update', syncMarkdownFromSharedDoc)
+      current?.on('update', syncMarkdownFromSharedDoc)
+    },
+    { immediate: true },
+  )
+  onBeforeUnmount(() => {
+    editor.value?.off('update', syncMarkdownFromSharedDoc)
+    // closing with Escape skips the textarea's blur
+    reconcileMarkdownWithSharedDoc()
+  })
+}
+
+const editorModeOptions = computed(() => [
+  { value: 'rich', label: t('datatype.RichText'), tooltip: t('datatype.RichText'), icon: 'ncType' as const },
+  { value: 'markdown', label: t('general.markdown'), tooltip: t('general.markdown'), icon: 'ncCode' as const },
+])
+
+// While co-editing the server stores the editor's version of the typed Markdown:
+// show that, and warn when words were dropped.
+function reconcileMarkdownWithSharedDoc() {
+  if (!collabOwnsPersistence.value || !editor.value || !isMarkdownMode.value) return
+  const stored = editor.value.storage.markdown.getMarkdown()
+  if (stored === markdownSource.value) return
+  if (markdownWordsMissingFrom(markdownSource.value, stored)) {
+    message.warning(t('msg.warning.richTextMarkdownNotRepresentable'))
+  }
+  markdownMode.resetSource(stored)
+}
+
+function onEditorModeChange(next: string) {
+  if (next !== 'rich' && next !== 'markdown') return
+  $e('c:cell:rich-text:markdown:toggle', { mode: next })
+  if (next === 'rich') reconcileMarkdownWithSharedDoc()
+  markdownMode.setMode(next)
+  if (next === 'rich' && !props.readOnly) focusEditor()
+}
+
+function onMarkdownSourceInput(e: Event) {
+  if (!isMarkdownEditable.value || !(e.target instanceof HTMLTextAreaElement)) return
+  markdownMode.updateSource(e.target.value)
+}
+
+// Keys stay in the textarea, away from grid and modal shortcuts.
+function onMarkdownSourceKeydown(e: KeyboardEvent) {
+  e.stopPropagation()
+  if (e.key === 'Escape') emits('close')
 }
 
 const onFocusWrapper = () => {
@@ -465,6 +570,7 @@ if (collab) {
     stopFragmentWatch()
     collabAuthoritative.value = false
     collabRefused.value = true
+    collabReloadLocked.value = true
     hasLocalEdits.value = false
     editor.value?.setEditable(false)
     const discarded = collab.discardedLocalEdits.value ? editor.value?.storage.markdown.getMarkdown() : undefined
@@ -476,6 +582,8 @@ if (collab) {
       return
     }
     setEditorContent(stored ?? '')
+    markdownMode.resetSource(stored)
+    collabReloadLocked.value = false
     // Compared after the round-trip, so markdown formatting differences don't count.
     if (discarded !== undefined && textMissingFrom(discarded, editor.value?.storage.markdown.getMarkdown() ?? '')) {
       message.warning(getI18n().global.t('msg.warning.collabStaleEditsDiscarded'))
@@ -507,6 +615,13 @@ if (props.syncValueChange && !collab) {
     hasLocalEdits.value = false
   })
 }
+
+watch(
+  () => props.value,
+  (value) => {
+    if (!collabOwnsPersistence.value) markdownMode.syncSource(value)
+  },
+)
 
 // Reset the local-edits flag whenever the editor loses focus so the next external value change is
 // applied even if the user had typed earlier.
@@ -607,7 +722,7 @@ onClickOutside(editorDom, (e) => {
     </div>
     <template v-else>
       <div
-        v-if="showMenu && !readOnly && !isFormField"
+        v-if="(showMenu && !readOnly && !isFormField) || fullMode"
         class="absolute top-0 right-0.5"
         :class="{
           'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
@@ -616,7 +731,18 @@ onClickOutside(editorDom, (e) => {
           'justify-end xs:hidden max-w-[calc(100%_-_2px)]': !isForm,
         }"
       >
-        <div class="nc-scrollbar-thin relative">
+        <div
+          v-if="fullMode"
+          class="nc-rich-text-mode-toggle flex-none flex items-center h-11 pl-1 pr-2 border-r-1 border-nc-border-gray-light"
+        >
+          <NcSegmented
+            :value="editorMode"
+            :options="editorModeOptions"
+            :aria-label="$t('labels.richTextEditorMode')"
+            @update:value="onEditorModeChange"
+          />
+        </div>
+        <div v-if="!readOnly && !isMarkdownMode" class="nc-scrollbar-thin relative">
           <CellRichTextSelectedBubbleMenu
             v-if="editor"
             :editor="editor"
@@ -626,6 +752,11 @@ onClickOutside(editorDom, (e) => {
             :enable-close-button="fullMode"
             @close="emits('close')"
           />
+        </div>
+        <div v-else class="flex items-center h-11 pr-0.5">
+          <NcButton type="text" size="small" :aria-label="$t('general.close')" @click="emits('close')">
+            <GeneralIcon icon="close" />
+          </NcButton>
         </div>
       </div>
       <CellRichTextSelectedBubbleMenuPopup
@@ -645,7 +776,31 @@ onClickOutside(editorDom, (e) => {
         />
       </template>
 
+      <textarea
+        v-if="isMarkdownMode"
+        :value="markdownSource"
+        :readonly="!isMarkdownEditable"
+        :aria-label="cellAriaLabel || $t('general.markdown')"
+        spellcheck="false"
+        class="nc-rich-text-markdown-source mt-2.5 flex-grow nc-scrollbar-thin"
+        :class="{ 'nc-rich-text-markdown-source--with-hint': isMarkdownBlockedByPeers }"
+        data-testid="nc-rich-text-markdown-source"
+        @input="onMarkdownSourceInput"
+        @blur="reconcileMarkdownWithSharedDoc"
+        @keydown="onMarkdownSourceKeydown"
+        @selectstart.capture.stop
+        @mousedown.stop
+      />
+      <NcTooltip
+        v-if="isMarkdownMode && isMarkdownBlockedByPeers"
+        show-on-truncate-only
+        class="nc-rich-text-markdown-peers-hint mt-1 truncate text-bodySm text-nc-content-gray-muted"
+        data-testid="nc-rich-text-markdown-peers-hint"
+      >
+        {{ $t('msg.info.richTextMarkdownReadOnlyWhileCoEditing') }}
+      </NcTooltip>
       <EditorContent
+        v-show="!isMarkdownMode"
         ref="editorDom"
         :editor="editor"
         class="nc-rich-text-content flex flex-col nc-textarea-rich-editor w-full"
@@ -806,6 +961,45 @@ onClickOutside(editorDom, (e) => {
   &.readonly {
     .ProseMirror {
       @apply bg-nc-bg-gray-extralight;
+    }
+  }
+}
+
+.nc-rich-text-full .nc-rich-text-markdown-source {
+  @apply p-2 h-[min(797px,100dvh_-_170px)] w-[min(1256px,100vw_-_124px)] font-dmmono text-sm leading-6 rounded-lg outline-none
+    border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-gray;
+  resize: both;
+  white-space: pre-wrap;
+  min-height: 215px;
+  max-height: min(797px, calc(100vh - 170px));
+  min-width: 256px;
+  max-width: min(1256px, 100vw - 126px);
+
+  @supports (height: 100dvh) {
+    max-height: min(797px, calc(100dvh - 170px));
+  }
+
+  @media (max-width: 767px) {
+    min-width: 100%;
+    max-width: min(1256px, 100vw - 58px);
+  }
+
+  &:focus:not([readonly]) {
+    @apply border-nc-border-brand;
+  }
+
+  &[readonly] {
+    @apply bg-nc-bg-gray-extralight;
+  }
+
+  // room for the co-editing hint below (mt-1 + one line)
+  &.nc-rich-text-markdown-source--with-hint {
+    height: min(773px, calc(100vh - 194px));
+    max-height: min(773px, calc(100vh - 194px));
+
+    @supports (height: 100dvh) {
+      height: min(773px, calc(100dvh - 194px));
+      max-height: min(773px, calc(100dvh - 194px));
     }
   }
 }

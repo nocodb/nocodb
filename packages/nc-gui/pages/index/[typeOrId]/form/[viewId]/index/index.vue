@@ -1,8 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { ref } from 'vue'
-import { StreamBarcodeReader } from 'vue-barcode-reader'
 
 const {
   sharedFormView,
@@ -37,51 +34,6 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   }
 
   return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
-}
-
-const fieldTitleForCurrentScan = ref('')
-
-const scannerIsReady = ref(false)
-
-const showCodeScannerOverlay = ref(false)
-
-const onLoaded = async () => {
-  scannerIsReady.value = true
-}
-
-const showCodeScannerForFieldTitle = (fieldTitle: string) => {
-  showCodeScannerOverlay.value = true
-  fieldTitleForCurrentScan.value = fieldTitle
-}
-
-const findColumnByTitle = (title: string) => formColumns.value?.find((el: ColumnType) => el.title === title)
-
-const getScannedValueTransformerByFieldType = (fieldType: UITypes) => {
-  switch (fieldType) {
-    case UITypes.Number:
-      return (originalVal: string) => parseInt(originalVal)
-    default:
-      return (originalVal: string) => originalVal
-  }
-}
-
-const onDecode = async (scannedCodeValue: string) => {
-  if (!showCodeScannerOverlay.value) {
-    return
-  }
-  try {
-    const fieldForCurrentScan = findColumnByTitle(fieldTitleForCurrentScan.value)
-    if (fieldForCurrentScan == null) {
-      throw new Error(`Field with title ${fieldTitleForCurrentScan.value} not found`)
-    }
-    const transformedVal =
-      getScannedValueTransformerByFieldType(fieldForCurrentScan.uidt as UITypes)(scannedCodeValue) || scannedCodeValue
-    formState.value[fieldTitleForCurrentScan.value] = transformedVal
-    fieldTitleForCurrentScan.value = ''
-    showCodeScannerOverlay.value = false
-  } catch (error) {
-    console.error(error)
-  }
 }
 
 const validateField = async (title: string) => {
@@ -189,20 +141,6 @@ const { message: templatedMessage } = useTemplatedMessage(
         </template>
 
         <template v-else>
-          <a-modal
-            v-model:visible="showCodeScannerOverlay"
-            :closable="false"
-            width="28rem"
-            centered
-            :footer="null"
-            wrap-class-name="nc-modal-generate-token"
-            destroy-on-close
-            @cancel="scannerIsReady = false"
-          >
-            <div class="relative flex flex-col h-full">
-              <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
-            </div>
-          </a-modal>
           <GeneralOverlay class="bg-nc-bg-gray-extralight/75 rounded-3xl" :model-value="isLoading" inline transition>
             <div class="w-full h-full flex items-center justify-center">
               <a-spin size="large" />
@@ -275,16 +213,6 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 }
                               "
                             />
-                            <a-button
-                              v-if="field.enable_scanner"
-                              class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
-                              :alt="$t('activity.fillByCodeScan')"
-                              @click="showCodeScannerForFieldTitle(field.title)"
-                            >
-                              <div class="flex items-center gap-1">
-                                <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
-                              </div>
-                            </a-button>
                           </LazySmartsheetDivDataCell>
                         </a-form-item>
                       </NcTooltip>
@@ -329,11 +257,6 @@ const { message: templatedMessage } = useTemplatedMessage(
 :deep(.nc-cell .nc-action-icon) {
   @apply !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center children:flex-none !cursor-pointer !transition;
 }
-.nc-btn-fill-form-column-by-scan {
-  @apply h-auto;
-  @apply ml-1;
-}
-
 .nc-shared-form-button {
   &.nc-button.ant-btn:focus {
     @apply shadow-focus;

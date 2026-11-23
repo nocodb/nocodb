@@ -82,14 +82,6 @@ const FEATURES = [
     isEE: true,
   },
   // {
-  //   id: 'form_support_column_scanning',
-  //   title: 'Scanner for filling data in forms',
-  //   description: 'Enable scanner to fill data in forms.',
-  //   enabled: false,
-  //   version: 1,
-  //   isEngineering: true,
-  // },
-  // {
   //   id: 'extensions',
   //   title: 'Extensions beta features',
   //   description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
@@ -327,7 +319,6 @@ const FEATURES = [
 // the fixed state below. Revive one by uncommenting its entry and removing it here.
 const RETIRED_FEATURES = {
   extensions: ncIsPlaywright(), // e2e builds keep beta extensions available
-  form_support_column_scanning: false,
   view_actions: false,
   show_everyones_personal_views: false,
   ai_fill_handle: false,

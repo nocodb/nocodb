@@ -625,9 +625,6 @@ importers:
       vue-advanced-cropper:
         specifier: ^2.8.9
         version: 2.8.9(vue@3.5.43(typescript@5.8.3))
-      vue-barcode-reader:
-        specifier: ^1.0.3
-        version: 1.0.3
       vue-dompurify-html:
         specifier: ^5.3.0
         version: 5.3.0(vue@3.5.43(typescript@5.8.3))
@@ -791,9 +788,6 @@ importers:
       '@types/validator':
         specifier: ^13.12.2
         version: 13.15.1
-      '@types/vue-barcode-reader':
-        specifier: ^0.0.3
-        version: 0.0.3(typescript@5.8.3)
       '@unocss/nuxt':
         specifier: ^66.7.5
         version: 66.7.5(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(magic-string@1.4.3)(magicast@0.5.4)(oxc-parser@0.131.0)(rolldown@1.2.4)(rollup@4.60.4)(unplugin@3.4.0(@rsbuild/core@1.3.19)(@rspack/core@2.2.2(@swc/helpers@0.5.17))(esbuild@0.28.1)(rolldown@1.2.4)(rollup@4.60.4)(vite@8.2.4(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.31)))(vite@8.2.4(@types/node@22.15.23)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.89.0)(terser@5.40.0)(yaml@2.9.0))(webpack@5.106.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(esbuild@0.28.1)(lightningcss@1.33.0)(postcss@8.5.31))
@@ -8708,9 +8702,6 @@ packages:
   '@types/validator@13.15.10':
     resolution: {integrity: sha512-T8L6i7wCuyoK8A/ZeLYt1+q0ty3Zb9+qbSSvrIVitzT3YjZqkTZ40IbRsPanlB4h1QB3JVL1SYCdR6ngtFYcuA==}
 
-  '@types/vue-barcode-reader@0.0.3':
-    resolution: {integrity: sha512-klrzMKXdc1eHFnMQXl5QwTGuKki09hh+hxV0AlNjg72VpMRifEbW+roGbDK0LHCK+LTcz13Ebx2/bMKgQr0Ovw==}
-
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
 
@@ -9354,10 +9345,6 @@ packages:
   '@zkochan/js-yaml@0.0.7':
     resolution: {integrity: sha512-nrUSn7hzt7J6JWgWGz78ZYI8wj+gdIJdk0Ynjpp8l+trkn58Uqsf6RYrYkEK+3X18EX+TNdtJI0WxAtc+L84SQ==}
     hasBin: true
-
-  '@zxing/library@0.19.3':
-    resolution: {integrity: sha512-RUv5svewpDoD0ymXleOP8yVTO5BLkR0zn5coGC/Vs1671u0OBJ4xdtR8WVWf08OcvrieEMHdSfQY3ZKtqII/hg==}
-    engines: {node: '>= 10.4.0'}
 
   '@zxing/text-encoding@0.9.0':
     resolution: {integrity: sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA==}
@@ -17717,10 +17704,6 @@ packages:
       '@typescript/native-preview':
         optional: true
 
-  ts-custom-error@3.3.1:
-    resolution: {integrity: sha512-5OX1tzOjxWEgsr/YEUWSuPrQ00deKLh6D7OTWcvNHm12/7QPyRh8SYpyWvA4IZv8H/+GQWQEh/kwo95Q9OVW1A==}
-    engines: {node: '>=14.0.0'}
-
   ts-essentials@10.0.4:
     resolution: {integrity: sha512-lwYdz28+S4nicm+jFi6V58LaAIpxzhg9rLdgNC1VsdP/xiFBseGhF1M/shwCk6zMmwahBZdXcl34LVHrEang3A==}
     peerDependencies:
@@ -18653,9 +18636,6 @@ packages:
     engines: {node: '>=8', npm: '>=5'}
     peerDependencies:
       vue: 3.5.43
-
-  vue-barcode-reader@1.0.3:
-    resolution: {integrity: sha512-z4mv7+ai/8vECppBTb00tHnyFMMx6W1rAaQe+v214ihoaWK9iGrn8ZZsmgSxf3lwnrtGaibLdkonTtMrGsO+dA==}
 
   vue-bundle-renderer@2.4.0:
     resolution: {integrity: sha512-IxHopQZgzTGBiuGERrQrAS7Lr3dCv+qxvgirEgCUFGAD4gYNfiaGYzC1DDojeZmJAmehp9gG8+17PGuVP6Ab2Q==}
@@ -28823,12 +28803,6 @@ snapshots:
   '@types/validator@13.15.10':
     optional: true
 
-  '@types/vue-barcode-reader@0.0.3(typescript@5.8.3)':
-    dependencies:
-      vue: 3.5.43(typescript@5.8.3)
-    transitivePeerDependencies:
-      - typescript
-
   '@types/web-bluetooth@0.0.20': {}
 
   '@types/web-bluetooth@0.0.21': {}
@@ -29791,12 +29765,6 @@ snapshots:
   '@zkochan/js-yaml@0.0.7':
     dependencies:
       argparse: 2.0.1
-
-  '@zxing/library@0.19.3':
-    dependencies:
-      ts-custom-error: 3.3.1
-    optionalDependencies:
-      '@zxing/text-encoding': 0.9.0
 
   '@zxing/text-encoding@0.9.0':
     optional: true
@@ -40229,8 +40197,6 @@ snapshots:
     optionalDependencies:
       '@rspack/core': 2.2.2(@swc/helpers@0.5.17)
 
-  ts-custom-error@3.3.1: {}
-
   ts-essentials@10.0.4(typescript@5.8.3):
     optionalDependencies:
       typescript: 5.8.3
@@ -41137,10 +41103,6 @@ snapshots:
       debounce: 1.2.1
       easy-bem: 1.1.1
       vue: 3.5.43(typescript@5.8.3)
-
-  vue-barcode-reader@1.0.3:
-    dependencies:
-      '@zxing/library': 0.19.3
 
   vue-bundle-renderer@2.4.0:
     dependencies:

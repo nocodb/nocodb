@@ -261,19 +261,6 @@ const openKeyboardShortcutDialog = () => {
         </NcMenuItem>
       </template>
 
-      <nuxt-link
-        v-e="['c:user:preferences:open']"
-        class="!no-underline"
-        to="/account/preferences"
-        data-testid="nc-sidebar-user-preferences"
-        @click="saveBackRoute"
-      >
-        <NcMenuItem>
-          <GeneralIcon icon="ncSlidersHorizontal" class="menu-icon" />
-          <span class="menu-btn">{{ $t('labels.preferences') }}</span>
-        </NcMenuItem>
-      </nuxt-link>
-
       <NcMenuItem @click="openExperimentationMenu">
         <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
         <span class="menu-btn">{{ $t('general.featurePreview') }}</span>

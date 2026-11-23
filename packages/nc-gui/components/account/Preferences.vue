@@ -278,3 +278,10 @@ async function onSelectWeekStart(value: string) {
   background: var(--pref-btn);
 }
 </style>
+
+<style lang="scss">
+// Mobile options are taller than their text; keep the label centred.
+.nc-pref-language-dropdown .ant-select-item-option {
+  @apply items-center;
+}
+</style>

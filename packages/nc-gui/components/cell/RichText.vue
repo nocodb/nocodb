@@ -731,7 +731,10 @@ onClickOutside(editorDom, (e) => {
           'justify-end xs:hidden max-w-[calc(100%_-_2px)]': !isForm,
         }"
       >
-        <div v-if="fullMode" class="nc-rich-text-mode-toggle flex-none flex items-center h-11 pl-1 pr-2">
+        <div
+          v-if="fullMode"
+          class="nc-rich-text-mode-toggle flex-none flex items-center h-11 pl-1 pr-2 border-r-1 border-nc-border-gray-light"
+        >
           <NcSegmented
             :value="editorMode"
             :options="editorModeOptions"

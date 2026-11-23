@@ -211,6 +211,7 @@ export const AILongTextCellRenderer: CellRenderer = {
       maxWidth: width - padding * 2,
       fillStyle: getColor(themeV4Colors.gray['600']),
       height,
+      maxLines: props.maxLines,
     })
 
     if ((selected || value?.isStale) && (!isReadonlyCol || value)) {

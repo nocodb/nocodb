@@ -727,6 +727,8 @@ interface ViewActionState {
 
 interface CellRendererOptions {
   value: any
+  /** Lines (or rows of chips) to draw at most, overriding the cap the row height implies. Print uses it to show a value in full. */
+  maxLines?: number
   row: any
   pk: any
   column: ColumnType

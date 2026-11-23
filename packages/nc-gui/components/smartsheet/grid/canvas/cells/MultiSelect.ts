@@ -18,7 +18,14 @@ interface TagLayout extends RenderRectangleProps {
 function layoutTags(
   ctx: Parameters<typeof renderSingleLineText>[0],
   options: string[],
-  { x: _x, y: _y, width: _width, height, padding }: { x: number; y: number; width: number; height: number; padding: number },
+  {
+    x: _x,
+    y: _y,
+    width: _width,
+    height,
+    padding,
+    maxLines,
+  }: { x: number; y: number; width: number; height: number; padding: number; maxLines?: number },
 ) {
   const maxWidth = _width - padding * 4 - tagPadding * 2
   const tags: TagLayout[] = []
@@ -31,7 +38,11 @@ function layoutTags(
     const { text: truncatedText, width: optionWidth } = renderSingleLineText(ctx, { text, maxWidth, render: false })
 
     if (x + optionWidth + tagPadding * 2 > _x + _width - padding * 2) {
-      if (y + tagHeight * 2 + tagSpacingY > _y + height || !tags.length || line >= rowHeightTruncateLines(height, true)) {
+      if (
+        y + tagHeight * 2 + tagSpacingY > _y + height ||
+        !tags.length ||
+        line >= (maxLines ?? rowHeightTruncateLines(height, true))
+      ) {
         return { tags, x, y, overflow: true, maxWidth }
       }
 
@@ -61,7 +72,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
     const optionsMap = extra?.optionsMap
     const isColorCodeEnabled = extra?.isColorCodeEnabled !== false
 
-    const layout = layoutTags(ctx, selectedOptions, { x: _x, y: _y, width: _width, height, padding })
+    const layout = layoutTags(ctx, selectedOptions, { x: _x, y: _y, width: _width, height, padding, maxLines: props.maxLines })
     let { x, y } = layout
 
     for (const tag of layout.tags) {

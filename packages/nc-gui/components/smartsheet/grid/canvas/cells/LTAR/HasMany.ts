@@ -87,7 +87,7 @@ export const HasManyCellRenderer: CellRenderer = {
         : PlainCellRenderer.render(ctx, options)
     }
 
-    const maxLines = rowHeightTruncateLines(height, true)
+    const maxLines = props.maxLines ?? rowHeightTruncateLines(height, true)
     let line = 1
     let flag = false
     const count = 1

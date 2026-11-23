@@ -92,6 +92,7 @@ export const LongTextCellRenderer: CellRenderer = {
         user,
         getColor,
         markdownLoader,
+        maxLines: props.maxLines,
       })
 
       // Restore context after clipping
@@ -116,6 +117,7 @@ export const LongTextCellRenderer: CellRenderer = {
         height,
         cellRenderStore: props.cellRenderStore,
         renderAsPreTag: true,
+        maxLines: props.maxLines,
       })
 
       if (!props.tag?.renderAsTag && selected) {

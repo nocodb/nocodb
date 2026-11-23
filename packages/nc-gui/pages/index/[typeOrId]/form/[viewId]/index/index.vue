@@ -250,7 +250,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                             <NcTooltip v-if="field.enable_scanner" :title="$t('activity.fillByCodeScan')" class="flex-none">
                               <NcButton
                                 type="secondary"
-                                class="nc-btn-fill-form-column-by-scan"
+                                icon-only
+                                class="nc-btn-fill-form-column-by-scan !w-10 !h-10 !px-0"
                                 data-testid="nc-form-fill-by-scan"
                                 @click="scanFieldTitle = field.title"
                               >

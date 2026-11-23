@@ -10,8 +10,6 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-const future = ref(false)
-
 const initialIsMulti = ref()
 
 const validators = {}
@@ -45,15 +43,15 @@ const updateIsMulti = (isChecked: boolean) => {
   <div class="flex flex-col gap-4">
     <a-form-item>
       <div v-if="vModel.meta" class="flex items-center gap-1">
-        <NcSwitch :checked="vModel.meta.is_multi" data-testid="user-column-allow-multiple" @change="updateIsMulti">
+        <NcSwitch :checked="vModel.meta.is_multi" size="xxsmall" data-testid="user-column-allow-multiple" @change="updateIsMulti">
           <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.allowAddingMultipleUsers') }}</div>
         </NcSwitch>
       </div>
     </a-form-item>
-    <a-form-item v-if="future">
+    <a-form-item v-if="isEeUI">
       <div v-if="vModel.meta" class="flex items-center gap-1">
-        <NcSwitch v-model:checked="vModel.meta.notify" data-testid="user-column-notify-user">
-          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.notifyUsersWithBaseAccessWhenAdded') }}</div>
+        <NcSwitch v-model:checked="vModel.meta.notify" size="xxsmall" data-testid="user-column-notify-user">
+          <div class="text-sm text-nc-content-gray select-none whitespace-nowrap">{{ $t('labels.notifyUsersWithBaseAccessWhenAdded') }}</div>
         </NcSwitch>
       </div>
     </a-form-item>

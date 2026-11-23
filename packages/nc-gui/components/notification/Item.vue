@@ -30,6 +30,7 @@ function onItemClick() {
     <NotificationItemMentionEvent v-else-if="['mention'].includes(item.type)" :item="item" />
     <NotificationItemCommentEvent v-else-if="item.type === 'comment'" :item="item" />
     <NotificationItemRowMentionEvent v-else-if="AppEvents.ROW_USER_MENTION === item.type" :item="item" />
+    <NotificationItemRowUserAssignEvent v-else-if="AppEvents.ROW_USER_ASSIGN === item.type" :item="item" />
     <NotificationItemDocMentionEvent v-else-if="item.type === 'doc_mention'" :item="item" />
     <NotificationItemWorkspaceUpgradeRequest v-else-if="item.type === AppEvents.WORKSPACE_UPGRADE_REQUEST" :item="item" />
     <NotificationItemWorkspaceTeamInvite v-else-if="item.type === AppEvents.WORKSPACE_TEAM_INVITE" :item="item" />

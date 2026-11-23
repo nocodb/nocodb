@@ -318,6 +318,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.INTEGRATION_UPDATE:
         break;
       case AppEvents.ROW_USER_MENTION:
+      case AppEvents.ROW_USER_ASSIGN:
         break;
 
       case AppEvents.SOURCE_CREATE:

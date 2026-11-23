@@ -84,6 +84,17 @@ export interface RowMentionEvent extends NcBaseEvent {
   mentions: string[];
 }
 
+export interface RowUserAssignEvent extends NcBaseEvent {
+  model: TableType;
+  user?: UserType;
+  // one entry per newly added user; a bulk write is grouped per user
+  assignments: {
+    userId: string;
+    rowIds: string[];
+    columnIds: string[];
+  }[];
+}
+
 export interface ProjectUserUpdateEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
@@ -601,6 +612,7 @@ export type AppEventPayload =
   | SortEvent
   | RowCommentEvent
   | RowMentionEvent
+  | RowUserAssignEvent
   | WebhookTriggerEvent
   | ColumnEvent
   | ResourceRestoreEvent

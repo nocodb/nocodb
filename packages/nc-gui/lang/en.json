@@ -4677,7 +4677,7 @@
     "prompt": "Prompt",
     "advancedLink": "Advanced Link",
     "allowAddingMultipleUsers": "Allow adding multiple users",
-    "notifyUsersWithBaseAccessWhenAdded": "Notify users with project access when they're added",
+    "notifyUsersWithBaseAccessWhenAdded": "Notify users with base access when they're added",
     "addAiIntegration": "Add AI integration",
     "legacy": "(Legacy)",
     "generateTextUsingAi": "Generate text using AI",

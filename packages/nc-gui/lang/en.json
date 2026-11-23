@@ -98,6 +98,7 @@
     "updateToExtendRecordHistory": "Upgrade to extend your history",
     "updateToExtendRecordHistorySubtitle": "The {activePlan} plan allows up to {period} of audit history. Upgrade to the {plan} plan to increase your audit history period.",
     "upgradeToAddLimitRecordSelection": "To limit record selection using filters, please upgrade to the {plan} plan.",
+    "upgradeToNotifyUserFieldAssignees": "To notify users when they are added to a User field, please upgrade to the {plan} plan.",
     "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToSortAndLimitLookupValues": "To sort and limit the values shown in a lookup field, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Upgrade to add",

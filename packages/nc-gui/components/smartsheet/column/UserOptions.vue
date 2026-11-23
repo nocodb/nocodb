@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes } from 'nocodb-sdk'
+import { ColumnHelper, PlanFeatureTypes, PlanTitles, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -9,6 +9,8 @@ const props = defineProps<{
 const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
+
+const { getPlanTitle } = useEeConfig()
 
 const initialIsMulti = ref()
 
@@ -49,11 +51,33 @@ const updateIsMulti = (isChecked: boolean) => {
       </div>
     </a-form-item>
     <a-form-item v-if="isEeUI">
-      <div v-if="vModel.meta" class="flex items-center gap-1">
-        <NcSwitch v-model:checked="vModel.meta.notify" size="xxsmall" data-testid="user-column-notify-user">
-          <div class="text-sm text-nc-content-gray select-none whitespace-nowrap">{{ $t('labels.notifyUsersWithBaseAccessWhenAdded') }}</div>
-        </NcSwitch>
-      </div>
+      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_USER_FIELD_NOTIFY">
+        <template #default="{ click }">
+          <div v-if="vModel.meta" class="flex items-center gap-1">
+            <NcSwitch
+              :checked="vModel.meta.notify"
+              size="xxsmall"
+              data-testid="user-column-notify-user"
+              @change="
+                (value) => {
+                  if (value && click(PlanFeatureTypes.FEATURE_USER_FIELD_NOTIFY)) return
+
+                  vModel.meta.notify = value
+                }
+              "
+            >
+              <div class="text-sm text-nc-content-gray select-none whitespace-nowrap">
+                {{ $t('labels.notifyUsersWithBaseAccessWhenAdded') }}
+              </div>
+            </NcSwitch>
+            <LazyPaymentUpgradeBadge
+              v-if="!vModel.meta.notify"
+              :feature="PlanFeatureTypes.FEATURE_USER_FIELD_NOTIFY"
+              :content="$t('upgrade.upgradeToNotifyUserFieldAssignees', { plan: getPlanTitle(PlanTitles.PLUS) })"
+            />
+          </div>
+        </template>
+      </PaymentUpgradeBadgeProvider>
     </a-form-item>
     <a-alert v-if="initialIsMulti && isEdit && !vModel.meta.is_multi" type="warning" show-icon>
       <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>

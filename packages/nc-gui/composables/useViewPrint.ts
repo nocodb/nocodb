@@ -72,6 +72,7 @@ const [useProvideViewPrint, useViewPrint] = useInjectionState(
         }
 
         isSettingsOpen.value = false
+        saveLastPrintedEnd(storageKey.value, range.end)
 
         await nextTick()
 

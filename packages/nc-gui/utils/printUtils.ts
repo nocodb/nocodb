@@ -207,7 +207,8 @@ export function splitPrintColumnBands<T>(columns: { column: T; width: number }[]
 
 export type PrintItem<Row> =
   | { type: 'group'; level: number; value: unknown; count: number; partial: boolean }
-  | { type: 'row'; row: Row; rowNumber: number }
+  /** Null in a group the batch starts inside, where the row's place in its group isn't known. */
+  | { type: 'row'; row: Row; rowNumber: number | null }
 
 /**
  * Flattens rows that are already sorted by the group fields into group headers and rows.
@@ -222,8 +223,9 @@ export function buildPrintItems<Row>(
   const items: PrintItem<Row>[] = []
   const openHeaders: { type: 'group'; level: number; value: unknown; count: number; partial: boolean; key: string }[] = []
   let rowNumber = groupValueGetters.length ? 0 : firstRowNumber - 1
+  let isNumbered = !(cutBefore && groupValueGetters.length)
 
-  for (const row of rows) {
+  for (const [index, row] of rows.entries()) {
     const keys = groupValueGetters.map((getValue) => groupKey(getValue(row)))
     const firstChanged = keys.findIndex((key, level) => openHeaders[level]?.key !== key)
 
@@ -235,18 +237,19 @@ export function buildPrintItems<Row>(
           level,
           value: groupValueGetters[level]!(row),
           count: 0,
-          partial: cutBefore && !items.length,
+          partial: cutBefore && index === 0,
           key: keys[level]!,
         }
         openHeaders.push(header)
         items.push(header)
       }
       rowNumber = 0
+      isNumbered ||= index > 0
     }
 
     for (const header of openHeaders) header.count++
 
-    items.push({ type: 'row', row, rowNumber: ++rowNumber })
+    items.push({ type: 'row', row, rowNumber: isNumbered ? ++rowNumber : null })
   }
 
   if (cutAfter) for (const header of openHeaders) header.partial = true

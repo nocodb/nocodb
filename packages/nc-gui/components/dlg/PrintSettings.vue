@@ -95,7 +95,6 @@ function onPrint() {
 
   applyRange()
   savePrintSettings(props.storageKey, settings.value)
-  saveLastPrintedEnd(props.storageKey, range.value.end)
   emits('print', { ...settings.value }, { ...range.value })
 }
 

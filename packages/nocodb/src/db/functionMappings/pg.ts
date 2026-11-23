@@ -1110,6 +1110,32 @@ END`,
     };
   },
 
+  ARRAYCOUNT: async (args: MapFnArgs) => {
+    const { knex, pt } = args;
+    const arg = pt.arguments[0];
+    if (!arg.isDataArray && arg.dataType !== FormulaDataTypes.ARRAY) {
+      return commonFns.ARRAYCOUNT(args);
+    }
+    // a list of User / Attachment values counts the users / files in it
+    const sourceUidt = (<CallExpressionNode>arg).referencedColumn?.uidt;
+    if (sourceUidt === UITypes.User || sourceUidt === UITypes.Attachment) {
+      const source = (
+        sourceUidt === UITypes.User
+          ? await getArraySourceUserUnnested(arg, args)
+          : await getArraySourceAttachmentUnnested(arg, args)
+      ).builder;
+      return {
+        builder: knex.raw(`(SELECT COUNT(*)::int FROM ( ?? ) as _tbl1)`, [
+          source,
+        ]),
+      };
+    }
+    const source = (await getArraySource(arg, args)).builder;
+    return {
+      builder: knex.raw(`COALESCE(cardinality(??), 0)`, [source]),
+    };
+  },
+
   LAST_MODIFIED_TIME: async (args: MapFnArgs) => {
     const { pt, knex } = args;
 

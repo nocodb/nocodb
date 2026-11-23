@@ -65,9 +65,11 @@ const isScannerVisible = computed({
   },
 })
 
+const scanField = computed(() => formColumns.value?.find((el: ColumnType) => el.title === scanFieldTitle.value))
+
 function onScanDecode(value: string) {
   const title = scanFieldTitle.value
-  const column = formColumns.value?.find((el: ColumnType) => el.title === title)
+  const column = scanField.value
   if (!title || !column) return
 
   let scannedValue: string | number = value
@@ -174,7 +176,7 @@ const { message: templatedMessage } = useTemplatedMessage(
         </template>
 
         <template v-else>
-          <SmartsheetFormScannerModal v-model:visible="isScannerVisible" @decode="onScanDecode" />
+          <SmartsheetFormScannerModal v-model:visible="isScannerVisible" :field="scanField" @decode="onScanDecode" />
           <GeneralOverlay class="bg-nc-bg-gray-extralight/75 rounded-3xl" :model-value="isLoading" inline transition>
             <div class="w-full h-full flex items-center justify-center">
               <a-spin size="large" />

@@ -11,7 +11,11 @@ import {
 } from 'request-filtering-agent';
 import type { Duplex } from 'stream';
 import { isCloud } from '~/utils/constants';
-import { isBlockedIp } from '~/helpers/dbSsrfLookup';
+import {
+  isBlockedIp,
+  NAT64_LOCAL_USE,
+  normaliseEmbeddedIpv4,
+} from '~/helpers/dbSsrfLookup';
 
 export type FilteredAgents = {
   httpAgent?: RequestFilteringHttpAgent | RequestFilteringHttpsAgent;
@@ -115,9 +119,15 @@ const METADATA_IPS = new Set(
   ].map((ip) => ipaddr.parse(ip).toNormalizedString()),
 );
 
+// Unwraps IPv4 carried in IPv6 (mapped, NAT64, 6to4, IPv4-compatible) first,
+// as isBlockedIp does.
 export function isLinkLocalOrMetadataIp(addr: string): boolean {
   if (!ipaddr.isValid(addr)) return isIP(addr) !== 0;
-  const parsed = ipaddr.process(addr);
+  const raw = ipaddr.parse(addr);
+  // local-use NAT64 can't be unwrapped reliably; isBlockedIp blocks it too
+  if (raw.kind() === 'ipv6' && (raw as ipaddr.IPv6).match(NAT64_LOCAL_USE))
+    return true;
+  const parsed = normaliseEmbeddedIpv4(raw);
   return (
     parsed.range() === 'linkLocal' ||
     METADATA_IPS.has(parsed.toNormalizedString())

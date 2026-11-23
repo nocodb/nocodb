@@ -43,7 +43,7 @@ const BLOCKED_RANGES = new Set<string>([
 // RFC 8215 local-use NAT64. ipaddr.js reports it as plain `unicast`, and RFC 6052
 // puts the embedded IPv4 at a different offset for every prefix length ≥ /48, so
 // block the /48 outright rather than guessing which one is in use.
-const NAT64_LOCAL_USE = ipaddr.parseCIDR('64:ff9b:1::/48') as [
+export const NAT64_LOCAL_USE = ipaddr.parseCIDR('64:ff9b:1::/48') as [
   ipaddr.IPv6,
   number,
 ];
@@ -52,7 +52,7 @@ const NAT64_LOCAL_USE = ipaddr.parseCIDR('64:ff9b:1::/48') as [
  * Normalise IPv6 forms that embed an IPv4 so the IPv4 blocklist catches an
  * internal target wrapped in an IPv6 transition encoding (CWE-918).
  */
-function normaliseEmbeddedIpv4(parsed: ipaddr.IPv4 | ipaddr.IPv6) {
+export function normaliseEmbeddedIpv4(parsed: ipaddr.IPv4 | ipaddr.IPv6) {
   if (parsed.kind() !== 'ipv6') return parsed;
 
   const v6 = parsed as ipaddr.IPv6;

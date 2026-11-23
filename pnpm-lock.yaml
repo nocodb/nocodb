@@ -46,7 +46,6 @@ overrides:
   tar-fs@<2.1.2: '>=3.0.7'
   highlight.js@<9.18.5: '>=11.11.1'
   multer@1.4.4-lts.1: '>=2.0.2'
-  vue-i18n@<9.14.5: '>=9.14.5'
   knex@<3.1.0: '>=3.1.0'
   cookie: 1.1.1
   '@azure/identity@<4.2.1': '>=4.2.1'
@@ -4667,7 +4666,7 @@ packages:
     peerDependencies:
       petite-vue-i18n: '*'
       vue: 3.5.43
-      vue-i18n: '>=9.14.5'
+      vue-i18n: '*'
     peerDependenciesMeta:
       petite-vue-i18n:
         optional: true
@@ -4681,7 +4680,7 @@ packages:
       '@intlify/shared': ^9.0.0 || ^10.0.0 || ^11.0.0
       '@vue/compiler-dom': ^3.0.0
       vue: 3.5.43
-      vue-i18n: '>=9.14.5'
+      vue-i18n: ^9.0.0 || ^10.0.0 || ^11.0.0
     peerDependenciesMeta:
       '@intlify/shared':
         optional: true

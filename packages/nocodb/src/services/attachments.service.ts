@@ -13,7 +13,11 @@ import { imageSize } from 'image-size';
 import { imageSizeFromFile } from 'image-size/fromFile';
 import type { AttachmentReqType, FileType, NcContext } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { getFilteredAgents, isInternalUrl } from '~/utils/ssrf';
+import {
+  getFilteredAgents,
+  internalAttachmentUrlBlockedMessage,
+  isInternalUrl,
+} from '~/utils/ssrf';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { DataTableService } from '~/services/data-table.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -326,7 +330,7 @@ export class AttachmentsService {
 
           if (!url.startsWith('data:')) {
             if (await isInternalUrl(url, OperationSource.ATTACHMENTS)) {
-              NcError.badRequest('URL not allowed: private/link-local address');
+              NcError.badRequest(internalAttachmentUrlBlockedMessage());
             }
 
             if (!param.skipHead) {
@@ -431,6 +435,7 @@ export class AttachmentsService {
                     // The sharp requires image to be passed as buffer.);
                     buffer: mimeType.includes('image'),
                   },
+                  source: OperationSource.ATTACHMENTS,
                 },
               );
 

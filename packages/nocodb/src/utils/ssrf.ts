@@ -24,6 +24,14 @@ export function internalDbHostBlockedMessage(): string {
   return `${INTERNAL_DB_HOST_BLOCKED}. To connect to a database on a private network, set NC_ALLOW_LOCAL_EXTERNAL_DBS=true on the NocoDB server.`;
 }
 
+export const INTERNAL_ATTACHMENT_URL_BLOCKED =
+  'URL not allowed: private/link-local address';
+
+export function internalAttachmentUrlBlockedMessage(): string {
+  if (isCloud) return INTERNAL_ATTACHMENT_URL_BLOCKED;
+  return `${INTERNAL_ATTACHMENT_URL_BLOCKED}. To allow attachment URLs on a private network, set NC_ALLOW_LOCAL_ATTACHMENTS=true on the NocoDB server.`;
+}
+
 /**
  * Single source of truth for whether SSRF protection is active for a given
  * outbound source. Cloud always enforces; self-hosted honors env-var bypasses.
@@ -56,6 +64,12 @@ export function isSsrfProtectionEnabled({
   if (
     source === OperationSource.DATA_IMPORT &&
     process.env.NC_ALLOW_LOCAL_DATA_IMPORT === 'true'
+  )
+    return false;
+
+  if (
+    source === OperationSource.ATTACHMENTS &&
+    process.env.NC_ALLOW_LOCAL_ATTACHMENTS === 'true'
   )
     return false;
 

@@ -31,6 +31,9 @@ const recordLimit = VIEW_PRINT_RECORD_LIMIT
 
 const recordCount = ref<number | null>(null)
 
+// Only the latest open's count applies.
+let countSeq = 0
+
 function currentQuery() {
   return {
     sorts: sorts.value,
@@ -47,12 +50,15 @@ function onPrint(settings: PrintSettings, range: PrintRange) {
 watch(
   () => viewPrint?.isSettingsOpen.value,
   async (isOpen) => {
+    const seq = ++countSeq
     if (!isOpen || !viewPrint) return
 
     recordCount.value = null
     try {
-      recordCount.value = await viewPrint.countRecords(currentQuery())
+      const count = await viewPrint.countRecords(currentQuery())
+      if (seq === countSeq) recordCount.value = count
     } catch (e: any) {
+      if (seq !== countSeq) return
       viewPrint.isSettingsOpen.value = false
       message.error(await extractSdkResponseErrorMsg(e))
     }

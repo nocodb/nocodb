@@ -11,6 +11,8 @@ export interface ConstraintViolation {
   table?: string;
   /** Offending value, when the driver reports it. */
   value?: string;
+  /** sqlite: `constraint` may be the CHECK's expression rather than a name. */
+  mayBeExpression?: boolean;
 }
 
 const SQLITE_PREFIX = 'SQLITE_CONSTRAINT: ';
@@ -102,7 +104,8 @@ export function parseConstraintViolation(
   if (code === 'SQLITE_CONSTRAINT') {
     const message = driverMessage(error);
     const check = message.match(/^CHECK constraint failed: (.+)$/s)?.[1];
-    if (check) return { type: 'check', constraint: check.trim() };
+    if (check)
+      return { type: 'check', constraint: check.trim(), mayBeExpression: true };
     if (/^FOREIGN KEY constraint failed/.test(message)) {
       return { type: 'foreign_key' };
     }

@@ -43,6 +43,7 @@ export function resolveViolatedColumn(
   }
 
   // sqlite reports an unnamed CHECK by its expression: use the one column it mentions
+  if (!violation.mayBeExpression) return;
   const mentioned = physical.filter((c) =>
     new RegExp(`(^|\\W)${escapeRegExp(c.column_name)}(\\W|$)`).test(name),
   );

@@ -165,17 +165,9 @@ export function getPrintColumnWidthPx(gridWidth: string | number | undefined | n
   return Math.round((width * PRINT_FONT_SIZES_PX[settings.fontSize]) / GRID_FONT_SIZE_PX)
 }
 
-/**
- * Actual size: caps widths so every band fits the page. The repeated first field takes at most half,
- * and any other column at most what is left beside it.
- */
+/** Actual size: a column wider than the page is capped at the page width. */
 export function capPrintColumnWidths<T>(columns: { column: T; width: number }[], availableWidth: number) {
-  const firstWidth = Math.min(columns[0]?.width ?? 0, Math.floor(availableWidth / 2))
-
-  return columns.map(({ column, width }, index) => ({
-    column,
-    width: index ? Math.min(width, availableWidth - firstWidth) : firstWidth,
-  }))
+  return columns.map(({ column, width }) => ({ column, width: Math.min(width, availableWidth) }))
 }
 
 /** Fit to page width: scales columns to fill the page, keeping each readable. */
@@ -191,33 +183,36 @@ export function fitPrintColumnWidths<T>(columns: { column: T; width: number }[],
   }))
 }
 
-/**
- * Columns that don't fit across the page continue on further pages.
- * Each band repeats the first column so its rows can still be told apart.
- */
+/** Columns that don't fit across the page continue on further pages, in view order. */
 export function splitPrintColumnBands<T>(columns: { column: T; width: number }[], availableWidth: number): T[][] {
-  const [first, ...rest] = columns
-  if (!first) return []
-
   const bands: T[][] = []
-  const firstWidth = Math.min(first.width, availableWidth)
-  let band: T[] = [first.column]
-  let used = firstWidth
+  let band: T[] = []
+  let used = 0
 
-  for (const { column, width } of rest) {
-    if (band.length > 1 && used + width > availableWidth) {
+  for (const { column, width } of columns) {
+    if (band.length && used + width > availableWidth) {
       bands.push(band)
-      band = [first.column]
-      used = firstWidth
+      band = []
+      used = 0
     }
 
     band.push(column)
     used += width
   }
 
-  bands.push(band)
+  if (band.length) bands.push(band)
 
   return bands
+}
+
+/** Grid row heights by a grid view's `row_height` (short, medium, tall, extra tall), at the grid's 13px text. */
+const GRID_ROW_HEIGHTS_PX = [32, 60, 90, 120]
+
+/** A printed row's height at the chosen font size, from the view's row height setting. */
+export function getPrintRowHeightPx(rowHeight: number | null | undefined, settings: PrintSettings) {
+  const gridHeight = GRID_ROW_HEIGHTS_PX[rowHeight ?? 0] ?? GRID_ROW_HEIGHTS_PX[0]!
+
+  return Math.round((gridHeight * PRINT_FONT_SIZES_PX[settings.fontSize]) / GRID_FONT_SIZE_PX)
 }
 
 /** Wide enough for the largest row number, e.g. 10001 in a later batch. Digits are about 0.6em wide. */
@@ -253,7 +248,7 @@ export function getPrintColumnBands<T extends { id?: string }>(
   return { rowNumberWidth, availableWidth, columnsWithWidth, bands: splitPrintColumnBands(columnsWithWidth, availableWidth) }
 }
 
-/** Cells one record prints: a row in every band, each repeating the first field and the row number. */
+/** Cells one record prints: a row in every band, each with its own row number. */
 export function countPrintCellsPerRecord<T extends { id?: string }>(
   columns: T[],
   columnWidths: Record<string, string | number | undefined | null>,
@@ -391,6 +386,9 @@ export function buildPrintListParams(
 }
 
 /** Records to print, by position in the view: 1-based and inclusive. */
+/** Footer summary cells by column id, e.g. `{ label: 'Sum', value: '1,250' }`. */
+export type PrintSummary = Record<string, { label: string; value: string }>
+
 export interface PrintRange {
   start: number
   end: number

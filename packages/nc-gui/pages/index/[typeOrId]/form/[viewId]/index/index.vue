@@ -247,16 +247,18 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 }
                               "
                             />
-                            <a-button
-                              v-if="field.enable_scanner"
-                              class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
-                              :alt="$t('activity.fillByCodeScan')"
-                              @click="scanFieldTitle = field.title"
-                            >
-                              <div class="flex items-center gap-1">
-                                <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
-                              </div>
-                            </a-button>
+                            <NcTooltip v-if="field.enable_scanner" :title="$t('activity.fillByCodeScan')" class="flex-none">
+                              <NcButton
+                                type="secondary"
+                                class="nc-btn-fill-form-column-by-scan"
+                                data-testid="nc-form-fill-by-scan"
+                                @click="scanFieldTitle = field.title"
+                              >
+                                <template #icon>
+                                  <component :is="iconMap.qrCodeScan" class="text-lg leading-none" />
+                                </template>
+                              </NcButton>
+                            </NcTooltip>
                           </LazySmartsheetDivDataCell>
                         </a-form-item>
                       </NcTooltip>

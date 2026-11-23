@@ -156,6 +156,10 @@ async function onSelectWeekStart(value: string) {
                 <div class="nc-settings-item-content flex-1">
                   <div class="nc-settings-item-title">{{ $t('labels.language') }}</div>
                   <div class="nc-settings-item-subtitle">{{ $t('labels.preferencesPage.languageSubtitle') }}</div>
+                  <div class="nc-settings-item-subtitle flex items-center gap-1" data-testid="nc-pref-language-note">
+                    <GeneralIcon icon="ncAutoAwesome" class="w-3.5 h-3.5 flex-none" />
+                    {{ $t('labels.community.communityTranslated') }}
+                  </div>
                 </div>
                 <NcSelect
                   :value="locale"

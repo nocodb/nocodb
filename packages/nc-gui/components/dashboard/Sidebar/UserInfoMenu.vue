@@ -157,6 +157,28 @@ const openKeyboardShortcutDialog = () => {
         <span class="text-nc-content-gray-muted text-xs ml-auto">{{ themeLabel }}</span>
       </NcMenuItem>
 
+      <!-- Language -->
+      <a-popover
+        key="language"
+        class="lang-menu !py-1.5"
+        placement="rightBottom"
+        overlay-class-name="nc-lang-menu-overlay !z-1050"
+      >
+        <NcMenuItem inner-class="w-full">
+          <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
+            <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
+            {{ $t('labels.changeLanguage') }}
+            <div class="flex-1" />
+            <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
+          </div>
+        </NcMenuItem>
+        <template #content>
+          <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
+            <LazyGeneralLanguageMenu />
+          </div>
+        </template>
+      </a-popover>
+
       <!-- Language, week start, dark colours -->
       <nuxt-link
         v-e="['c:user:preferences:open']"

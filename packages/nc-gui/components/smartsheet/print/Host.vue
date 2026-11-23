@@ -39,6 +39,24 @@ const printableGroupBy = computed(() =>
   ),
 )
 
+// Experimental renderer: `localStorage['nc-print-renderer'] = 'svg'`.
+const useSvgRenderer = (() => {
+  try {
+    return localStorage.getItem('nc-print-renderer') === 'svg'
+  } catch {
+    return false
+  }
+})()
+
+let resolveSvgReady: (() => void) | undefined
+
+function waitForRender() {
+  if (!useSvgRenderer) return Promise.resolve()
+  return new Promise<void>((resolve) => {
+    resolveSvgReady = resolve
+  })
+}
+
 const rowHeight = computed(() => (view.value?.view as GridType | undefined)?.row_height ?? null)
 
 function cellsPerRecord(settings: PrintSettings) {
@@ -97,7 +115,7 @@ async function loadSummary(): Promise<PrintSummary> {
 }
 
 function onPrint(settings: PrintSettings, range: PrintRange) {
-  viewPrint?.print(settings, range, currentQuery(), loadSummary)
+  viewPrint?.print(settings, range, currentQuery(), loadSummary, waitForRender)
 }
 
 watch(
@@ -132,8 +150,20 @@ watch(
       @print="onPrint"
     />
 
+    <SmartsheetPrintSvgPages
+      v-if="viewPrint.printState.value && useSvgRenderer"
+      :title="view?.title"
+      :columns="printColumns"
+      :rows="viewPrint.printState.value.rows"
+      :total-rows="viewPrint.printState.value.totalRows"
+      :range-start="viewPrint.printState.value.rangeStart"
+      :settings="viewPrint.printState.value.settings"
+      :column-widths="columnWidths"
+      :row-height="rowHeight"
+      @ready="resolveSvgReady?.()"
+    />
     <SmartsheetPrintTable
-      v-if="viewPrint.printState.value"
+      v-else-if="viewPrint.printState.value"
       :title="view?.title"
       :columns="printColumns"
       :rows="viewPrint.printState.value.rows"

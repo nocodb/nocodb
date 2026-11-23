@@ -157,6 +157,11 @@ export function getPrintableWidthPx(settings: PrintSettings) {
   return Math.floor((paperDimensionsIn(settings).width - 2 * PRINT_PAGE_MARGIN_IN) * CSS_PX_PER_IN)
 }
 
+/** Content height of one printed page, in CSS px. */
+export function getPrintableHeightPx(settings: PrintSettings) {
+  return Math.floor((paperDimensionsIn(settings).height - 2 * PRINT_PAGE_MARGIN_IN) * CSS_PX_PER_IN)
+}
+
 /** A column's printed width at the chosen font size, from its grid width (e.g. `"240px"`). */
 export function getPrintColumnWidthPx(gridWidth: string | number | undefined | null, settings: PrintSettings) {
   const parsed = typeof gridWidth === 'number' ? gridWidth : parseInt(gridWidth ?? '', 10)

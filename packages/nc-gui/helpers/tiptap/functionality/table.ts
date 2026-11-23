@@ -5,6 +5,7 @@ import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
 import { Fragment, DOMParser as PMDOMParser, type Schema } from '@tiptap/pm/model'
 import { CellSelection } from '@tiptap/pm/tables'
+import { ncIsString } from 'nocodb-sdk'
 
 // Rich Text cells store GFM pipe tables: a header row, text-only cells, no merged cells.
 // A table outside that shape is saved as HTML, so the editor keeps every table inside it.
@@ -93,12 +94,20 @@ function cellContent(dom: HTMLElement, schema: Schema) {
   return Fragment.from(paragraphs.length ? paragraphs : schema.nodes.paragraph!.create())
 }
 
+// Becomes an inline style, so only these values: stored HTML and collab updates can carry any string
+const ALIGNS = ['left', 'center', 'right']
+
+const toAlign = (value: unknown) => (ncIsString(value) && ALIGNS.includes(value.trim()) ? value.trim() : null)
+
 // Column alignment from a pipe table's delimiter row (markdown-it writes it as `text-align`).
 const alignAttribute = {
   align: {
     default: null,
-    parseHTML: (el: HTMLElement) => el.style.textAlign || el.getAttribute('align') || null,
-    renderHTML: (attrs: { align?: string | null }) => (attrs.align ? { style: `text-align: ${attrs.align}` } : {}),
+    parseHTML: (el: HTMLElement) => toAlign(el.style.textAlign) ?? toAlign(el.getAttribute('align')),
+    renderHTML: (attrs: { align?: string | null }) => {
+      const align = toAlign(attrs.align)
+      return align ? { style: `text-align: ${align}` } : {}
+    },
   },
 }
 

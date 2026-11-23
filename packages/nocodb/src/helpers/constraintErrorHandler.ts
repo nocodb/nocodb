@@ -31,12 +31,6 @@ export function resolveViolatedColumn(
   const name = violation.constraint;
   if (!name) return;
 
-  // mariadb names a column-level CHECK after its column
-  if (violation.mayBeColumnName) {
-    const exact = byName(name);
-    if (exact) return exact;
-  }
-
   // pg default names: <table>_<column>_check / <table>_<column>_fkey
   const prefix = `${tableName}_`.toLowerCase();
   const pgDefault = name.match(/^(.+)_(?:check|fkey)$/)?.[1];

@@ -13,8 +13,6 @@ export interface ConstraintViolation {
   value?: string;
   /** sqlite: `constraint` may be the CHECK's expression rather than a name. */
   mayBeExpression?: boolean;
-  /** mariadb: a column-level CHECK is named after its column. */
-  mayBeColumnName?: boolean;
 }
 
 const SQLITE_PREFIX = 'SQLITE_CONSTRAINT: ';
@@ -93,13 +91,14 @@ export function parseConstraintViolation(
       const match = message.match(
         /CONSTRAINT `(.+)` failed for `[^`]*`\.`([^`]+)`/,
       );
-      if (match)
-        return {
-          type: 'check',
-          constraint: match[1],
-          table: match[2],
-          mayBeColumnName: true,
-        };
+      if (match) {
+        const [, constraint, table] = match;
+        // mariadb names a column-level CHECK `<table>.<column>`
+        const column = constraint.startsWith(`${table}.`)
+          ? constraint.slice(table.length + 1)
+          : undefined;
+        return { type: 'check', constraint, table, column };
+      }
     }
     if (code === 'ER_NO_REFERENCED_ROW_2' || code === 'ER_NO_REFERENCED_ROW') {
       const match = message.match(

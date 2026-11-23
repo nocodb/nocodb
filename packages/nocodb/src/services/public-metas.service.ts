@@ -66,14 +66,15 @@ export class PublicMetasService {
   >(context: NcContext, view: T): Promise<T> {
     if (!view?.model?.columns) return view;
 
-    const { allowedCols } = await resolveViewVisibleColumns(context, {
-      model: view.model,
-      view,
-    });
+    const { allowedCols, groupByColumnIds } = await resolveViewVisibleColumns(
+      context,
+      { model: view.model, view },
+    );
     const exposedIds = new Set<string>(view.model.columns.map((c) => c.id));
     for (const [id, allowed] of Object.entries(allowedCols ?? {})) {
       if (allowed) exposedIds.add(id);
     }
+    for (const id of groupByColumnIds) exposedIds.add(id);
 
     const columnsById = Object.fromEntries(
       Object.entries(view.model.columnsById ?? {}).filter(([id]) =>
@@ -138,8 +139,8 @@ export class PublicMetasService {
 
     await view.model.getColumns();
 
-    // Grouping by a field the share doesn't expose is refused on the data path
-    // (its group keys are the field's values) — drop it so the link shows the
+    // Grouping by a field the share doesn't expose (e.g. a timeline's hidden
+    // group field) is refused on the data path — drop it so the link shows the
     // rows ungrouped instead of nothing. Copies: the columns may be cached.
     const isGroupedBy = (c: object) =>
       'group_by' in c && !!(c as { group_by?: unknown }).group_by;
@@ -191,8 +192,14 @@ export class PublicMetasService {
       }
     }
 
+    // A grid/gallery group field renders in the group headers even when hidden.
+    const isGridGroupBy = (c: object) =>
+      (c instanceof GridViewColumn || c instanceof GalleryViewColumn) &&
+      !!c.group_by;
     const isShown = (columnId: string) =>
-      view.columns.some((vc) => vc.fk_column_id === columnId && vc.show);
+      view.columns.some(
+        (vc) => vc.fk_column_id === columnId && (vc.show || isGridGroupBy(vc)),
+      );
 
     // A hidden required column stays out: a shared form submits shown fields
     // only. A Lookup/Rollup brings its link only when the share shows it.
@@ -207,8 +214,7 @@ export class PublicMetasService {
         if (!column) return false;
 
         return (
-          ((c instanceof GridViewColumn || c instanceof GalleryViewColumn) &&
-            c.group_by) ||
+          isGridGroupBy(c) ||
           c.show ||
           column.pk ||
           view.model.columns.some(

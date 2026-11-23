@@ -17,6 +17,20 @@ const cameraState = ref<'checking' | 'ready' | 'denied' | 'unavailable'>('checki
 
 const isReaderLoaded = ref(false)
 
+// the reader never reports a camera it couldn't open, so give up if the video doesn't start
+const { start: startLoadTimeout, stop: stopLoadTimeout } = useTimeoutFn(
+  () => {
+    if (cameraState.value === 'ready' && !isReaderLoaded.value) cameraState.value = 'unavailable'
+  },
+  10000,
+  { immediate: false },
+)
+
+function onReaderLoaded() {
+  stopLoadTimeout()
+  isReaderLoaded.value = true
+}
+
 async function checkCameraAccess() {
   cameraState.value = 'checking'
   isReaderLoaded.value = false
@@ -31,6 +45,7 @@ async function checkCameraAccess() {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     stream.getTracks().forEach((track) => track.stop())
     cameraState.value = 'ready'
+    startLoadTimeout()
   } catch (e: any) {
     cameraState.value = e?.name === 'NotAllowedError' || e?.name === 'SecurityError' ? 'denied' : 'unavailable'
   }
@@ -47,6 +62,7 @@ watch(
   vVisible,
   (visible) => {
     if (visible) checkCameraAccess()
+    else stopLoadTimeout()
   },
   { immediate: true },
 )
@@ -67,7 +83,7 @@ watch(
       <div class="relative min-h-60 rounded-lg overflow-hidden bg-nc-bg-gray-extralight flex items-center justify-center">
         <template v-if="cameraState === 'ready'">
           <div v-show="isReaderLoaded" class="w-full">
-            <StreamBarcodeReader @decode="onDecode" @loaded="isReaderLoaded = true" />
+            <StreamBarcodeReader @decode="onDecode" @loaded="onReaderLoaded" />
           </div>
           <a-spin v-if="!isReaderLoaded" />
         </template>

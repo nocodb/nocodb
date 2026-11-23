@@ -72,7 +72,8 @@ function onScanDecode(value: string) {
 
   let scannedValue: string | number = value
   if (column.uidt === UITypes.Number) {
-    if (!/^-?\d+$/.test(value.trim())) {
+    // a long numeric code (e.g. a 20-digit barcode) would lose digits as a number
+    if (!/^-?\d+$/.test(value.trim()) || !Number.isSafeInteger(Number(value.trim()))) {
       message.error(t('msg.error.scannedValueNotANumber'))
       return
     }

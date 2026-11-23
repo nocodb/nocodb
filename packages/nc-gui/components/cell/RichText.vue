@@ -751,6 +751,7 @@ onClickOutside(editorDom, (e) => {
         :aria-label="cellAriaLabel || $t('general.markdown')"
         spellcheck="false"
         class="nc-rich-text-markdown-source mt-2.5 flex-grow nc-scrollbar-thin"
+        :class="{ 'nc-rich-text-markdown-source--with-hint': isMarkdownBlockedByPeers }"
         data-testid="nc-rich-text-markdown-source"
         @input="onMarkdownSourceInput"
         @keydown="onMarkdownSourceKeydown"
@@ -759,7 +760,8 @@ onClickOutside(editorDom, (e) => {
       />
       <div
         v-if="isMarkdownMode && isMarkdownBlockedByPeers"
-        class="nc-rich-text-markdown-peers-hint mt-1 text-bodySm text-nc-content-gray-muted"
+        class="nc-rich-text-markdown-peers-hint mt-1 truncate text-bodySm text-nc-content-gray-muted"
+        :title="$t('msg.info.richTextMarkdownReadOnlyWhileCoEditing')"
         data-testid="nc-rich-text-markdown-peers-hint"
       >
         {{ $t('msg.info.richTextMarkdownReadOnlyWhileCoEditing') }}
@@ -955,6 +957,17 @@ onClickOutside(editorDom, (e) => {
 
   &[readonly] {
     @apply bg-nc-bg-gray-extralight;
+  }
+
+  // room for the co-editing hint below (mt-1 + one line)
+  &.nc-rich-text-markdown-source--with-hint {
+    height: min(773px, calc(100vh - 194px));
+    max-height: min(773px, calc(100vh - 194px));
+
+    @supports (height: 100dvh) {
+      height: min(773px, calc(100dvh - 194px));
+      max-height: min(773px, calc(100dvh - 194px));
+    }
   }
 }
 

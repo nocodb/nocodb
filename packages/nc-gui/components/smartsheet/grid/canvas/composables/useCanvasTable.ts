@@ -1689,6 +1689,15 @@ export function useCanvasTable({
     reloadVisibleDataHook?.trigger()
   }
 
+  // skips the save when the width didn't change (a click on the divider, or auto-fit to the current width)
+  const saveColumnWidth = (columnId: string, normalizedWidth: string) => {
+    const viewCol = gridViewCols.value[columnId]
+    if (!viewCol || parseCellWidth(viewCol.width) === parseCellWidth(normalizedWidth)) return
+
+    viewCol.width = normalizedWidth
+    updateGridViewColumn(columnId, { width: normalizedWidth })
+  }
+
   // When resizing a column that's part of a multi-field selection (size > 1),
   // apply the resize to every selected column. Otherwise just the dragged one.
   const getCoResizeColumnIds = (resizedColumnId: string): Set<string> => {
@@ -1746,11 +1755,7 @@ export function useCanvasTable({
       resizeWidthOverride.value = null
       resizeMarker.value = null
       for (const id of coResizeIds) {
-        handleColumnWidth(id, width, (normalizedWidth) => {
-          if (!gridViewCols.value[id]) return
-          gridViewCols.value[id]!.width = normalizedWidth
-          updateGridViewColumn(id, { width: normalizedWidth })
-        })
+        handleColumnWidth(id, width, (normalizedWidth) => saveColumnWidth(id, normalizedWidth))
       }
     },
   )
@@ -1810,11 +1815,7 @@ export function useCanvasTable({
     ctx.font = originalFont
 
     const fitWidth = Math.ceil(Math.min(width, AUTO_FIT_MAX_WIDTH))
-    handleColumnWidth(columnId, fitWidth, (normalizedWidth) => {
-      if (!gridViewCols.value[columnId]) return
-      gridViewCols.value[columnId]!.width = normalizedWidth
-      updateGridViewColumn(columnId, { width: normalizedWidth })
-    })
+    handleColumnWidth(columnId, fitWidth, (normalizedWidth) => saveColumnWidth(columnId, normalizedWidth))
     return true
   }
 

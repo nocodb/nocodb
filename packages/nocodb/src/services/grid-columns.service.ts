@@ -195,14 +195,34 @@ export class GridColumnsService {
       ).forUpdate();
 
     // ids of other views are skipped
-    const ownColumnIds = new Set(
-      (await GridViewColumn.list(context, view.id, ncMeta)).map((c) => c.id),
+    const ownColumns = new Map(
+      (await GridViewColumn.list(context, view.id, ncMeta)).map((c) => [
+        c.id,
+        c,
+      ]),
     );
     for (const [gridViewColumnId, width] of Object.entries(
       param.columnWidths,
     )) {
-      if (!ownColumnIds.has(gridViewColumnId)) continue;
+      const oldGridViewColumn = ownColumns.get(gridViewColumnId);
+      if (!oldGridViewColumn) continue;
       await GridViewColumn.update(context, gridViewColumnId, { width }, ncMeta);
+
+      // one audit row per changed column, as gridColumnUpdate writes
+      if (param.req && oldGridViewColumn.width !== width) {
+        this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
+          oldViewColumn: oldGridViewColumn,
+          viewColumn: { width },
+          column: await Column.get(
+            context,
+            { colId: oldGridViewColumn.fk_column_id },
+            ncMeta,
+          ),
+          view,
+          req: param.req,
+          context,
+        });
+      }
     }
 
     NocoSocket.broadcastEvent(

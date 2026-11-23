@@ -165,33 +165,8 @@ export function useColumnResize(
   }
 }
 
-// Types drawn as plain text, so measuring their display text gives the width they need
-export const AUTO_FIT_TEXT_TYPES = new Set<UITypes>([
-  UITypes.SingleLineText,
-  UITypes.LongText,
-  UITypes.Email,
-  UITypes.URL,
-  UITypes.PhoneNumber,
-  UITypes.Number,
-  UITypes.Decimal,
-  UITypes.Currency,
-  UITypes.Percent,
-  UITypes.Duration,
-  UITypes.Date,
-  UITypes.DateTime,
-  UITypes.Time,
-  UITypes.Year,
-  UITypes.CreatedTime,
-  UITypes.LastModifiedTime,
-  UITypes.AutoNumber,
-  UITypes.ID,
-  UITypes.GeoData,
-])
-
 // header right side: dropdown chevron + right padding
 export const AUTO_FIT_HEADER_PADDING = 24
-// cell padding on both sides
-export const AUTO_FIT_CELL_PADDING = 20
 export const AUTO_FIT_MAX_WIDTH = 500
 
 // Column width constraints

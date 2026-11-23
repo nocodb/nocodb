@@ -8,7 +8,11 @@ import {
   StorageSharedKeyCredential,
 } from '@azure/storage-blob';
 import type { ContainerClient } from '@azure/storage-blob';
-import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import type {
+  FileCreateByUrlOptions,
+  IStorageAdapterV2,
+  XcFile,
+} from '~/types/nc-plugin';
 import {
   fetchSourceFile,
   generateTempFilePath,
@@ -166,9 +170,12 @@ export default class AzureBlob implements IStorageAdapterV2 {
   public async fileCreateByUrl(
     destPath: string,
     url: string,
-    { fetchOptions: { buffer } = { buffer: false } } = {},
+    {
+      fetchOptions: { buffer } = { buffer: false },
+      source,
+    }: FileCreateByUrlOptions = {},
   ): Promise<{ url: string; data: any }> {
-    return fetchSourceFile(url, { buffer }, async (response) => {
+    return fetchSourceFile(url, { buffer, source }, async (response) => {
       try {
         const blob = this.blob(destPath);
         const blobHTTPHeaders = {

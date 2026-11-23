@@ -1,4 +1,5 @@
 import type { Readable } from 'stream';
+import type { OperationSource } from 'nocodb-sdk';
 
 import type IStorageAdapter from './IStorageAdapter';
 
@@ -13,22 +14,22 @@ import type IStorageAdapter from './IStorageAdapter';
     The methods are not used in current codebase, but will be used in future.
 */
 
+export interface FileCreateByUrlOptions {
+  fetchOptions?: {
+    buffer?: boolean;
+  };
+  // SSRF source for the download; defaults to PLUGINS.
+  source?: OperationSource;
+}
+
 export default interface IStorageAdapterV2<
-  FileCreateByUrlOptions extends {
-    fetchOptions?: {
-      buffer?: boolean;
-    };
-  } = {
-    fetchOptions?: {
-      buffer?: boolean;
-    };
-  },
+  TFileCreateByUrlOptions extends FileCreateByUrlOptions = FileCreateByUrlOptions,
 > extends IStorageAdapter {
   name: string;
   fileCreateByUrl(
     destPath: string,
     url: string,
-    options?: FileCreateByUrlOptions,
+    options?: TFileCreateByUrlOptions,
   ): Promise<any>;
   fileCreateByStream(
     destPath: string,

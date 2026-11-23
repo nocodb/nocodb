@@ -5,7 +5,11 @@ import { Readable } from 'stream';
 import mkdirp from 'mkdirp';
 import { globStream } from 'glob';
 import { Logger } from '@nestjs/common';
-import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import type {
+  FileCreateByUrlOptions,
+  IStorageAdapterV2,
+  XcFile,
+} from '~/types/nc-plugin';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 import { NcError } from '~/helpers/ncError';
 import { fetchSourceFile } from '~/utils/pluginUtils';
@@ -31,13 +35,17 @@ export default class Local implements IStorageAdapterV2 {
   async fileCreateByUrl(
     key: string,
     url: string,
-    { fetchOptions: { buffer } = { buffer: false } },
+    {
+      fetchOptions: { buffer } = { buffer: false },
+      source,
+    }: FileCreateByUrlOptions = {},
   ): Promise<any> {
     const destPath = validateAndNormaliseLocalPath(key);
     return fetchSourceFile(
       url,
       {
         buffer,
+        source,
         headers: {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',

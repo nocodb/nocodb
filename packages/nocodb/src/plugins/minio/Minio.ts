@@ -1,7 +1,11 @@
 import fs from 'fs';
 import { Readable } from 'stream';
 import { Client as MinioClient } from 'minio';
-import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import type {
+  FileCreateByUrlOptions,
+  IStorageAdapterV2,
+  XcFile,
+} from '~/types/nc-plugin';
 import { NcError } from '~/helpers/ncError';
 import { fetchSourceFile } from '~/utils/pluginUtils';
 
@@ -172,9 +176,12 @@ export default class Minio implements IStorageAdapterV2 {
   async fileCreateByUrl(
     key: string,
     url: string,
-    { fetchOptions: { buffer } = { buffer: false } },
+    {
+      fetchOptions: { buffer } = { buffer: false },
+      source,
+    }: FileCreateByUrlOptions = {},
   ): Promise<any> {
-    return fetchSourceFile(url, { buffer }, async (response) => {
+    return fetchSourceFile(url, { buffer, source }, async (response) => {
       try {
         const uploadParams = {
           ACL: 'public-read',

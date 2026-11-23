@@ -69,7 +69,7 @@ watch(
 </script>
 
 <template>
-  <NcModal v-model:visible="vVisible" size="xs" wrap-class-name="nc-form-scanner-modal" destroy-on-close>
+  <NcModal v-model:visible="vVisible" size="xs" height="auto" wrap-class-name="nc-form-scanner-modal" destroy-on-close>
     <div class="flex flex-col gap-3" data-testid="nc-form-scanner-modal">
       <div class="flex items-center justify-between gap-2">
         <div class="text-bodyBold text-nc-content-gray-emphasis">{{ $t('activity.fillByCodeScan') }}</div>

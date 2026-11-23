@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType } from 'nocodb-sdk';
+import { AppEvents, EventType, ncIsObject, ViewTypes } from 'nocodb-sdk';
 import type { GridColumnReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
@@ -143,6 +143,110 @@ export class GridColumnsService {
     }
 
     return res;
+  }
+
+  // One request and one undo step for a multi-column resize or "fit all columns"
+  @TraceCommand(OperationName.gridColumnsBulkUpdateWidth)
+  async gridColumnsBulkUpdateWidth(
+    context: NcContext,
+    param: {
+      viewId: string;
+      // grid view-column id (NOT field id) → width, e.g. '240px'
+      columnWidths: Record<string, string | null>;
+      req?: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
+    ncMeta?: MetaService,
+  ) {
+    if (!ncIsObject(param.columnWidths)) {
+      NcError.get(context).invalidRequestBody('columnWidths is required');
+    }
+    for (const width of Object.values(param.columnWidths)) {
+      if (width !== null) {
+        validatePayload('swagger.json#/components/schemas/GridColumnReq', {
+          width,
+        });
+      }
+    }
+
+    const view = await View.get(context, param.viewId, false, ncMeta);
+    if (!view) {
+      NcError.get(context).viewNotFound(param.viewId);
+    }
+    if (view.type !== ViewTypes.GRID) {
+      NcError.get(context).invalidRequestBody('View is not a grid view');
+    }
+    await assertNotLockedViewOnLaneProduction(
+      context,
+      view.id,
+      undefined,
+      ncMeta,
+    );
+    assertViewConfigEditable(context, view, param.req);
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
+
+    // ids of other views are skipped
+    const ownColumns = new Map(
+      (await GridViewColumn.list(context, view.id, ncMeta)).map((c) => [
+        c.id,
+        c,
+      ]),
+    );
+    if (!Object.keys(param.columnWidths).some((id) => ownColumns.has(id))) {
+      NcError.get(context).invalidRequestBody(
+        'columnWidths has no column of this view',
+      );
+    }
+    for (const [gridViewColumnId, width] of Object.entries(
+      param.columnWidths,
+    )) {
+      const oldGridViewColumn = ownColumns.get(gridViewColumnId);
+      if (!oldGridViewColumn) continue;
+      await GridViewColumn.update(context, gridViewColumnId, { width }, ncMeta);
+
+      // one audit row per changed column, as gridColumnUpdate writes
+      if (param.req && oldGridViewColumn.width !== width) {
+        this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
+          oldViewColumn: oldGridViewColumn,
+          viewColumn: { width },
+          column: await Column.get(
+            context,
+            { colId: oldGridViewColumn.fk_column_id },
+            ncMeta,
+          ),
+          view,
+          req: param.req,
+          context,
+        });
+      }
+    }
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_column_refresh',
+          payload: { fk_view_id: view.id },
+        },
+      },
+      context.socket_id,
+    );
+
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
+
+    return true;
   }
 
   async gridColumnClearGroupBy(

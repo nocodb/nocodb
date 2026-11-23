@@ -23,6 +23,7 @@ import { cellMatchesSearch } from '../../../../utils/allFieldsSearchUtils'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
 import type { CanvasGroup, GridRemoteFocus } from '../../../../lib/types'
 import { useCanvasTable } from './composables/useCanvasTable'
+import { RESIZE_HANDLE_WIDTH } from './composables/useColumnResize'
 import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered, renderSingleLineText } from './utils/canvas'
 import Tooltip from './components/Tooltip.vue'
@@ -355,6 +356,11 @@ const {
   isDragging,
   startDrag,
   startResize,
+  findResizeHandleColumn,
+  autoFitColumnWidth,
+  autoFitAllColumnWidths,
+  isRowNumberResizeHandle,
+  rowNumberEdgeX,
   hoverRow,
   selection,
   makeCellEditable,
@@ -1533,9 +1539,29 @@ async function handleMouseDown(e: MouseEvent) {
 
   // Handle all Column Header Operations
   if (y <= headerRowHeight.value) {
+    if (
+      clickType === MouseClickType.DOUBLE_CLICK &&
+      !isLocked.value &&
+      isViewOperationsAllowed.value &&
+      isRowNumberResizeHandle(x) &&
+      autoFitAllColumnWidths()
+    ) {
+      triggerRefreshCanvas()
+      return
+    }
+
     // If x less than 80px, use is hovering over the row meta column
     if (x > rowMetaColumnWidth.value) {
       if (!isViewOperationsAllowed.value) return
+
+      if (clickType === MouseClickType.DOUBLE_CLICK && !isLocked.value) {
+        const handleColumn = findResizeHandleColumn(x)
+        if (handleColumn && autoFitColumnWidth(handleColumn.id)) {
+          triggerRefreshCanvas()
+          return
+        }
+      }
+
       // If the user is trying to resize the column
       // If the user is trying to resize column, we will set the resizeableColumn to column object
       // The below operation will not interfere with other column operations
@@ -2590,6 +2616,24 @@ const handleMouseMove = (e: MouseEvent) => {
           mousePosition,
         })
       }
+    }
+
+    if (
+      rowNumberEdgeX.value !== null &&
+      !isLocked.value &&
+      isViewOperationsAllowed.value &&
+      isRowNumberResizeHandle(mousePosition.x)
+    ) {
+      tryShowTooltip({
+        rect: {
+          x: rowNumberEdgeX.value - RESIZE_HANDLE_WIDTH / 2,
+          y: 0,
+          width: RESIZE_HANDLE_WIDTH,
+          height: headerRowHeight.value,
+        },
+        text: t('tooltip.doubleClickToFitAllColumns'),
+        mousePosition,
+      })
     }
 
     // Now we check if the mouse is over the x positions of the fixed columns

@@ -7579,6 +7579,7 @@
     "createAgent": "Create agent"
   },
   "tooltip": {
+    "doubleClickToFitAllColumns": "Double-click to fit all columns",
     "filterEqCaseSensitive": "Matches exact letter case. Use “is like” to ignore case.",
     "filterNeqCaseSensitive": "Matches exact letter case. Use “is not like” to ignore case.",
     "invitePending": "Hasn't accepted the invite yet",

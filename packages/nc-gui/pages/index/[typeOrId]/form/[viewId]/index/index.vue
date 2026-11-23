@@ -2,7 +2,6 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { ref } from 'vue'
-import { StreamBarcodeReader } from 'vue-barcode-reader'
 
 const {
   sharedFormView,
@@ -39,51 +38,6 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return !!(required || (columnObj && columnObj.rqd && !columnObj.cdf))
 }
 
-const fieldTitleForCurrentScan = ref('')
-
-const scannerIsReady = ref(false)
-
-const showCodeScannerOverlay = ref(false)
-
-const onLoaded = async () => {
-  scannerIsReady.value = true
-}
-
-const showCodeScannerForFieldTitle = (fieldTitle: string) => {
-  showCodeScannerOverlay.value = true
-  fieldTitleForCurrentScan.value = fieldTitle
-}
-
-const findColumnByTitle = (title: string) => formColumns.value?.find((el: ColumnType) => el.title === title)
-
-const getScannedValueTransformerByFieldType = (fieldType: UITypes) => {
-  switch (fieldType) {
-    case UITypes.Number:
-      return (originalVal: string) => parseInt(originalVal)
-    default:
-      return (originalVal: string) => originalVal
-  }
-}
-
-const onDecode = async (scannedCodeValue: string) => {
-  if (!showCodeScannerOverlay.value) {
-    return
-  }
-  try {
-    const fieldForCurrentScan = findColumnByTitle(fieldTitleForCurrentScan.value)
-    if (fieldForCurrentScan == null) {
-      throw new Error(`Field with title ${fieldTitleForCurrentScan.value} not found`)
-    }
-    const transformedVal =
-      getScannedValueTransformerByFieldType(fieldForCurrentScan.uidt as UITypes)(scannedCodeValue) || scannedCodeValue
-    formState.value[fieldTitleForCurrentScan.value] = transformedVal
-    fieldTitleForCurrentScan.value = ''
-    showCodeScannerOverlay.value = false
-  } catch (error) {
-    console.error(error)
-  }
-}
-
 const validateField = async (title: string) => {
   if (fieldMappings.value[title] === undefined) {
     console.warn('Missing mapping field for:', title)
@@ -97,6 +51,36 @@ const validateField = async (title: string) => {
   } catch (_e: any) {
     return false
   }
+}
+
+const { t } = useI18n()
+
+// title of the field the scanner is filling; null while the scanner is closed
+const scanFieldTitle = ref<string | null>(null)
+
+const isScannerVisible = computed({
+  get: () => !!scanFieldTitle.value,
+  set: (visible: boolean) => {
+    if (!visible) scanFieldTitle.value = null
+  },
+})
+
+function onScanDecode(value: string) {
+  const title = scanFieldTitle.value
+  const column = formColumns.value?.find((el: ColumnType) => el.title === title)
+  if (!title || !column) return
+
+  let scannedValue: string | number = value
+  if (column.uidt === UITypes.Number) {
+    if (!/^-?\d+$/.test(value.trim())) {
+      message.error(t('msg.error.scannedValueNotANumber'))
+      return
+    }
+    scannedValue = Number(value.trim())
+  }
+
+  formState.value[title] = scannedValue
+  validateField(title)
 }
 
 const { message: templatedMessage } = useTemplatedMessage(
@@ -189,20 +173,7 @@ const { message: templatedMessage } = useTemplatedMessage(
         </template>
 
         <template v-else>
-          <a-modal
-            v-model:visible="showCodeScannerOverlay"
-            :closable="false"
-            width="28rem"
-            centered
-            :footer="null"
-            wrap-class-name="nc-modal-generate-token"
-            destroy-on-close
-            @cancel="scannerIsReady = false"
-          >
-            <div class="relative flex flex-col h-full">
-              <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
-            </div>
-          </a-modal>
+          <SmartsheetFormScannerModal v-model:visible="isScannerVisible" @decode="onScanDecode" />
           <GeneralOverlay class="bg-nc-bg-gray-extralight/75 rounded-3xl" :model-value="isLoading" inline transition>
             <div class="w-full h-full flex items-center justify-center">
               <a-spin size="large" />
@@ -279,7 +250,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               v-if="field.enable_scanner"
                               class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
                               :alt="$t('activity.fillByCodeScan')"
-                              @click="showCodeScannerForFieldTitle(field.title)"
+                              @click="scanFieldTitle = field.title"
                             >
                               <div class="flex items-center gap-1">
                                 <component :is="iconMap.qrCodeScan" class="h-5 w-5" />

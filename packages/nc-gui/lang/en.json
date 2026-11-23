@@ -9400,6 +9400,8 @@
       "duplicateMappingFound": "Duplicate mapping found, please remove one of the mapping",
       "nullValueViolatesNotNull": "Null value violates not-null constraint",
       "sourceHasInvalidNumbers": "Source data contains some invalid numbers",
+      "cameraNotAvailable": "No camera is available. Scanning needs a device with a camera and a secure (https) page.",
+      "scannedValueNotANumber": "The scanned code isn't a whole number, so it can't fill this field",
       "sourceHasInvalidBoolean": "Source data contains some invalid boolean values",
       "formValidationFailed": "Form validation failed",
       "youHaveBeenSignedOut": "You have been signed out",

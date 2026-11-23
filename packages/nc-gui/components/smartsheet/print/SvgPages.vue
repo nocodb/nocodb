@@ -418,16 +418,11 @@ function headerHeightFor(band: ColumnType[], widthById: Record<string, number>) 
 function linkHref(column: ColumnType, value: any) {
   if (value === null || value === undefined || value === '') return null
 
-  if (column.uidt === UITypes.Button) {
-    const url = typeof value?.url === 'string' ? value.url.trim() : ''
-    if (!url) return null
-    return /^https?:\/\//i.test(url) ? url : `https://${url}`
-  }
+  if (column.uidt === UITypes.Email) return `mailto:${String(value).trim()}`
+  if (column.uidt === UITypes.PhoneNumber) return `tel:${String(value).replace(/[^\d+]/g, '')}`
 
-  const text = String(value).trim()
-  if (column.uidt === UITypes.Email) return `mailto:${text}`
-  if (column.uidt === UITypes.PhoneNumber) return `tel:${text.replace(/[^\d+]/g, '')}`
-  const url = /^[a-z][a-z\d+.-]*:/i.test(text) ? text : `https://${text}`
+  // As in the grid: a value without a scheme (even with a port, `example.com:8080`) links over https.
+  const url = addMissingUrlSchma(column.uidt === UITypes.Button ? value?.url : String(value))
   return /^https?:/i.test(url) ? url : null
 }
 

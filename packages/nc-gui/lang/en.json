@@ -4139,7 +4139,7 @@
       "rangeFrom": "First record",
       "rangeTo": "Last record",
       "countingRecords": "Counting records…",
-      "rangeHint": "{total} records in this view · up to {limit} per print",
+      "rangeHint": "{total} record in this view · up to {limit} per print | {total} records in this view · up to {limit} per print",
       "recordRange": "Records {start}–{end} of {total}"
     },
     "interfaceExportCsv": "Export data as CSV",

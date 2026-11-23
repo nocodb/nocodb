@@ -405,6 +405,8 @@ export interface PrintListQuery {
   sorts: SortType[]
   nestedFilters: FilterType[]
   where?: string
+  /** The grid's "All fields" search, which the grid sends apart from `where`. */
+  search?: { search?: string; searchTz?: string }
   groupBy: { column: ColumnType; sort: string }[]
 }
 
@@ -426,13 +428,14 @@ export function buildPrintListParams(
     ...(sortArr ? { sortArrJson: stringifyFilterOrSortArr(sortArr) } : {}),
     ...(filterSync ? {} : { filterArrJson: stringifyFilterOrSortArr(query.nestedFilters.filter((f) => !f.id)) }),
     ...(query.where ? { where: query.where } : {}),
+    ...query.search,
   }
 }
 
-/** Records to print, by position in the view: 1-based and inclusive. */
 /** Footer summary cells by column id, e.g. `{ label: 'Sum', value: '1,250' }`. */
 export type PrintSummary = Record<string, { label: string; value: string }>
 
+/** Records to print, by position in the view: 1-based and inclusive. */
 export interface PrintRange {
   start: number
   end: number

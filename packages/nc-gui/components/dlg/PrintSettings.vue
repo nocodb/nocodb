@@ -243,10 +243,14 @@ watch(recordLimit, (limit, prevLimit) => {
             <template v-if="isCounting">{{ $t('labels.printSettings.countingRecords') }}</template>
             <template v-else>
               {{
-                $t('labels.printSettings.rangeHint', {
-                  total: (props.recordCount ?? 0).toLocaleString(),
-                  limit: recordLimit.toLocaleString(),
-                })
+                $t(
+                  'labels.printSettings.rangeHint',
+                  {
+                    total: (props.recordCount ?? 0).toLocaleString(),
+                    limit: recordLimit.toLocaleString(),
+                  },
+                  props.recordCount ?? 0,
+                )
               }}
             </template>
           </span>

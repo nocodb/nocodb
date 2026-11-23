@@ -26,11 +26,8 @@ export function useColumnResize(
 
   let resizeRafId: number | null = null
 
-  const resizeableColumn = computed(() => {
-    if (!mousePosition.value) {
-      return null
-    }
-
+  // the column whose right-edge resize handle is at canvas x, if any
+  const findResizeHandleColumn = (x: number) => {
     const fixedCols = columns.value.filter((col) => col.fixed)
     let currentX = 0
 
@@ -38,7 +35,7 @@ export function useColumnResize(
       const width = parseCellWidth(column.width)
       const nextX = currentX + width
 
-      if (Math.abs(mousePosition.value.x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
+      if (Math.abs(x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
         if (!column.uidt) return null
 
         return { id: column.id, width, x: currentX }
@@ -58,14 +55,16 @@ export function useColumnResize(
       const width = parseCellWidth(column.width)
       const nextX = currentX + width
 
-      if (Math.abs(mousePosition.value.x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
+      if (Math.abs(x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
         return { id: column.id, width, x: currentX }
       }
       currentX = nextX
     }
 
     return null
-  })
+  }
+
+  const resizeableColumn = computed(() => (mousePosition.value ? findResizeHandleColumn(mousePosition.value.x) : null))
 
   const handleMouseMove = (e: MouseEvent) => {
     try {
@@ -158,12 +157,42 @@ export function useColumnResize(
     isResizing,
     activeColumn,
     resizeableColumn,
+    findResizeHandleColumn,
     handleMouseMove,
     handleMouseDown,
     RESIZE_HANDLE_WIDTH,
     cleanupResize,
   }
 }
+
+// Types drawn as plain text, so measuring their display text gives the width they need
+export const AUTO_FIT_TEXT_TYPES = new Set<UITypes>([
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.Time,
+  UITypes.Year,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.AutoNumber,
+  UITypes.ID,
+  UITypes.GeoData,
+])
+
+// header: icon + title inset (26) and the dropdown chevron + right padding (24)
+export const AUTO_FIT_HEADER_PADDING = 50
+// cell padding on both sides
+export const AUTO_FIT_CELL_PADDING = 20
+export const AUTO_FIT_MAX_WIDTH = 500
 
 // Column width constraints
 export const columnWidthLimit = {

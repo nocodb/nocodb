@@ -366,8 +366,8 @@ if (collab) {
 }
 
 const editorModeOptions = computed(() => [
-  { value: 'rich', label: t('datatype.RichText') },
-  { value: 'markdown', label: t('general.markdown') },
+  { value: 'rich', label: t('datatype.RichText'), tooltip: t('datatype.RichText'), icon: 'ncType' as const },
+  { value: 'markdown', label: t('general.markdown'), tooltip: t('general.markdown'), icon: 'ncCode' as const },
 ])
 
 // While co-editing the server stores the editor's version of the typed Markdown:

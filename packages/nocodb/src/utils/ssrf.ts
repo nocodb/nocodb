@@ -106,20 +106,27 @@ function allowsLocalAttachments(source?: OperationSource): boolean {
   return source === OperationSource.PUBLIC_ATTACHMENTS && mode === 'all';
 }
 
-const AWS_IMDS_V6 = ipaddr.parse('fd00:ec2::254').toNormalizedString();
+// Metadata endpoints outside link-local ranges. Only the exact address:
+// 100.64.0.0/10 also carries Tailscale and other private overlays.
+const METADATA_IPS = new Set(
+  [
+    'fd00:ec2::254', // AWS, IPv6
+    '100.100.100.200', // Alibaba Cloud
+  ].map((ip) => ipaddr.parse(ip).toNormalizedString()),
+);
 
-export function isLinkLocalIp(addr: string): boolean {
+export function isLinkLocalOrMetadataIp(addr: string): boolean {
   if (!ipaddr.isValid(addr)) return isIP(addr) !== 0;
   const parsed = ipaddr.process(addr);
   return (
     parsed.range() === 'linkLocal' ||
-    (parsed.kind() === 'ipv6' && parsed.toNormalizedString() === AWS_IMDS_V6)
+    METADATA_IPS.has(parsed.toNormalizedString())
   );
 }
 
 function linkLocalBlockedError(): NodeJS.ErrnoException {
   return Object.assign(
-    new Error('Connection to link-local addresses is not allowed'),
+    new Error('Connection to link-local or metadata addresses is not allowed'),
     { code: 'EACCES' },
   );
 }
@@ -129,7 +136,7 @@ const linkLocalFilteringLookup: LookupFunction = (hostname, options, cb) => {
   dnsCb.lookup(hostname, options, (err, address, family) => {
     if (err) return cb(err, address, family);
     const addresses = Array.isArray(address) ? address : [{ address }];
-    if (addresses.some((a) => isLinkLocalIp(a.address)))
+    if (addresses.some((a) => isLinkLocalOrMetadataIp(a.address)))
       return cb(linkLocalBlockedError(), '', 0);
     cb(null, address, family);
   });
@@ -141,7 +148,7 @@ function blockLinkLocal(
   options: net.TcpNetConnectOpts,
   connect: (options: net.TcpNetConnectOpts) => Duplex,
 ): Duplex {
-  if (options.host && isLinkLocalIp(options.host)) {
+  if (options.host && isLinkLocalOrMetadataIp(options.host)) {
     const socket = new net.Socket();
     process.nextTick(() => socket.destroy(linkLocalBlockedError()));
     return socket;
@@ -198,7 +205,7 @@ export async function isInternalUrl(
 
   if (!host) return false;
   const localAllowed = allowsLocalAttachments(source);
-  const isBlocked = localAllowed ? isLinkLocalIp : isBlockedIp;
+  const isBlocked = localAllowed ? isLinkLocalOrMetadataIp : isBlockedIp;
   if (isIP(host)) return isBlocked(host);
   if (host === 'localhost' || host.endsWith('.localhost')) return !localAllowed;
 

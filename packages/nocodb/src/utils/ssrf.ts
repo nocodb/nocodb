@@ -1,12 +1,15 @@
+import dnsCb from 'dns';
 import dns from 'dns/promises';
-import { isIP } from 'net';
+import net, { isIP, type LookupFunction } from 'net';
+import ipaddr from 'ipaddr.js';
 import { OperationSource } from 'nocodb-sdk';
 import {
   globalHttpAgent,
   globalHttpsAgent,
-  type RequestFilteringHttpAgent,
-  type RequestFilteringHttpsAgent,
+  RequestFilteringHttpAgent,
+  RequestFilteringHttpsAgent,
 } from 'request-filtering-agent';
+import type { Duplex } from 'stream';
 import { isCloud } from '~/utils/constants';
 import { isBlockedIp } from '~/helpers/dbSsrfLookup';
 
@@ -27,9 +30,22 @@ export function internalDbHostBlockedMessage(): string {
 export const INTERNAL_ATTACHMENT_URL_BLOCKED =
   'URL not allowed: private/link-local address';
 
-export function internalAttachmentUrlBlockedMessage(): string {
-  if (isCloud) return INTERNAL_ATTACHMENT_URL_BLOCKED;
+// Only signed-in users are told the server can be opened up.
+export function internalAttachmentUrlBlockedMessage(
+  source: OperationSource = OperationSource.ATTACHMENTS,
+): string {
+  if (isCloud || source !== OperationSource.ATTACHMENTS)
+    return INTERNAL_ATTACHMENT_URL_BLOCKED;
   return `${INTERNAL_ATTACHMENT_URL_BLOCKED}. To allow attachment URLs on a private network, set NC_ALLOW_LOCAL_ATTACHMENTS=true on the NocoDB server.`;
+}
+
+// The anonymous guest and shared-base principals carry no id.
+export function attachmentUrlSource(req?: {
+  user?: { id?: string };
+}): OperationSource {
+  return req?.user?.id
+    ? OperationSource.ATTACHMENTS
+    : OperationSource.PUBLIC_ATTACHMENTS;
 }
 
 /**
@@ -68,12 +84,6 @@ export function isSsrfProtectionEnabled({
     return false;
 
   if (
-    source === OperationSource.ATTACHMENTS &&
-    process.env.NC_ALLOW_LOCAL_ATTACHMENTS === 'true'
-  )
-    return false;
-
-  if (
     source === OperationSource.VAULTS &&
     process.env.NC_ALLOW_LOCAL_VAULTS === 'true'
   )
@@ -82,8 +92,88 @@ export function isSsrfProtectionEnabled({
   return true;
 }
 
+/**
+ * NC_ALLOW_LOCAL_ATTACHMENTS relaxes protection rather than turning it off:
+ * private ranges and loopback open, link-local (cloud metadata) stays blocked.
+ * `true` covers signed-in users; `all` also anonymous ones (public forms,
+ * shared bases).
+ */
+function allowsLocalAttachments(source?: OperationSource): boolean {
+  if (isCloud) return false;
+  const mode = process.env.NC_ALLOW_LOCAL_ATTACHMENTS;
+  if (source === OperationSource.ATTACHMENTS)
+    return mode === 'true' || mode === 'all';
+  return source === OperationSource.PUBLIC_ATTACHMENTS && mode === 'all';
+}
+
+const AWS_IMDS_V6 = ipaddr.parse('fd00:ec2::254').toNormalizedString();
+
+export function isLinkLocalIp(addr: string): boolean {
+  if (!ipaddr.isValid(addr)) return isIP(addr) !== 0;
+  const parsed = ipaddr.process(addr);
+  return (
+    parsed.range() === 'linkLocal' ||
+    (parsed.kind() === 'ipv6' && parsed.toNormalizedString() === AWS_IMDS_V6)
+  );
+}
+
+function linkLocalBlockedError(): NodeJS.ErrnoException {
+  return Object.assign(
+    new Error('Connection to link-local addresses is not allowed'),
+    { code: 'EACCES' },
+  );
+}
+
+// The agent's own lookup check runs on what this returns.
+const linkLocalFilteringLookup: LookupFunction = (hostname, options, cb) => {
+  dnsCb.lookup(hostname, options, (err, address, family) => {
+    if (err) return cb(err, address, family);
+    const addresses = Array.isArray(address) ? address : [{ address }];
+    if (addresses.some((a) => isLinkLocalIp(a.address)))
+      return cb(linkLocalBlockedError(), '', 0);
+    cb(null, address, family);
+  });
+};
+
+type ConnectionCallback = (err: Error | null, socket: Duplex) => void;
+
+function blockLinkLocal(
+  options: net.TcpNetConnectOpts,
+  connect: (options: net.TcpNetConnectOpts) => Duplex,
+): Duplex {
+  if (options.host && isLinkLocalIp(options.host)) {
+    const socket = new net.Socket();
+    process.nextTick(() => socket.destroy(linkLocalBlockedError()));
+    return socket;
+  }
+  return connect({ ...options, lookup: linkLocalFilteringLookup });
+}
+
+const PRIVATE_NETWORK_OPTIONS = { allowPrivateIPAddress: true };
+
+class LocalAttachmentHttpAgent extends RequestFilteringHttpAgent {
+  createConnection(options: net.TcpNetConnectOpts, cb?: ConnectionCallback) {
+    return blockLinkLocal(options, (o) => super.createConnection(o, cb));
+  }
+}
+
+class LocalAttachmentHttpsAgent extends RequestFilteringHttpsAgent {
+  createConnection(options: net.TcpNetConnectOpts, cb?: ConnectionCallback) {
+    return blockLinkLocal(options, (o) => super.createConnection(o, cb));
+  }
+}
+
+let localAttachmentAgents: FilteredAgents;
+
 // One agent per protocol: redirects can switch scheme (http → https).
-function buildAgents(): FilteredAgents {
+function buildAgents(source?: OperationSource): FilteredAgents {
+  if (allowsLocalAttachments(source)) {
+    localAttachmentAgents ??= {
+      httpAgent: new LocalAttachmentHttpAgent(PRIVATE_NETWORK_OPTIONS),
+      httpsAgent: new LocalAttachmentHttpsAgent(PRIVATE_NETWORK_OPTIONS),
+    };
+    return localAttachmentAgents;
+  }
   return { httpAgent: globalHttpAgent, httpsAgent: globalHttpsAgent };
 }
 
@@ -107,12 +197,14 @@ export async function isInternalUrl(
   }
 
   if (!host) return false;
-  if (isIP(host)) return isBlockedIp(host);
-  if (host === 'localhost' || host.endsWith('.localhost')) return true;
+  const localAllowed = allowsLocalAttachments(source);
+  const isBlocked = localAllowed ? isLinkLocalIp : isBlockedIp;
+  if (isIP(host)) return isBlocked(host);
+  if (host === 'localhost' || host.endsWith('.localhost')) return !localAllowed;
 
   try {
     const records = await dns.lookup(host, { all: true });
-    return records.some((record) => isBlockedIp(record.address));
+    return records.some((record) => isBlocked(record.address));
   } catch {
     return false;
   }
@@ -125,5 +217,5 @@ export function getFilteredAgents({
   source?: OperationSource;
 }): FilteredAgents {
   if (!isSsrfProtectionEnabled({ source })) return {};
-  return buildAgents();
+  return buildAgents(source);
 }

@@ -1036,6 +1036,9 @@ export enum OperationSource {
   DATA_IMPORT = 'data_import',
   // A customer's HashiCorp Vault or Conjur, often on a private network.
   VAULTS = 'vaults',
+  // Attachment URLs from anonymous requests (public forms, shared bases):
+  // only NC_ALLOW_LOCAL_ATTACHMENTS=all opens private addresses to them.
+  PUBLIC_ATTACHMENTS = 'public_attachments',
 }
 
 /**

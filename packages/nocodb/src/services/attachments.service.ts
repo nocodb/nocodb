@@ -14,6 +14,7 @@ import { imageSizeFromFile } from 'image-size/fromFile';
 import type { AttachmentReqType, FileType, NcContext } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import {
+  attachmentUrlSource,
   getFilteredAgents,
   internalAttachmentUrlBlockedMessage,
   isInternalUrl,
@@ -276,6 +277,7 @@ export class AttachmentsService {
     // downloads (isPreviewAllowed). Keep the serve-time guards.
 
     const userId = param.req?.user?.id || 'anonymous';
+    const ssrfSource = attachmentUrlSource(param.req);
 
     param.path = param.scope
       ? `${hash(userId)}`
@@ -329,18 +331,17 @@ export class AttachmentsService {
           let base64Buffer: Buffer;
 
           if (!url.startsWith('data:')) {
-            if (await isInternalUrl(url, OperationSource.ATTACHMENTS)) {
-              NcError.badRequest(internalAttachmentUrlBlockedMessage());
+            if (await isInternalUrl(url, ssrfSource)) {
+              NcError.badRequest(
+                internalAttachmentUrlBlockedMessage(ssrfSource),
+              );
             }
 
             if (!param.skipHead) {
               try {
                 response = await axios.head(url, {
                   maxRedirects: 5,
-                  ...getFilteredAgents({
-                    url,
-                    source: OperationSource.ATTACHMENTS,
-                  }),
+                  ...getFilteredAgents({ url, source: ssrfSource }),
                 });
               } catch (e) {
                 // Pre-signed GET URLs answer HEAD with 403/405: the GET below
@@ -435,7 +436,7 @@ export class AttachmentsService {
                     // The sharp requires image to be passed as buffer.);
                     buffer: mimeType.includes('image'),
                   },
-                  source: OperationSource.ATTACHMENTS,
+                  source: ssrfSource,
                 },
               );
 

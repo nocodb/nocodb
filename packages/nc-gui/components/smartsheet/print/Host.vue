@@ -27,14 +27,38 @@ const printableGroupBy = computed(() =>
   ),
 )
 
-function onPrint(settings: PrintSettings) {
-  viewPrint?.print(settings, {
+const recordLimit = VIEW_PRINT_RECORD_LIMIT
+
+const recordCount = ref<number | null>(null)
+
+function currentQuery() {
+  return {
     sorts: sorts.value,
     nestedFilters: nestedFilters.value,
     where: xWhere.value,
     groupBy: printableGroupBy.value,
-  })
+  }
 }
+
+function onPrint(settings: PrintSettings, range: PrintRange) {
+  viewPrint?.print(settings, range, currentQuery())
+}
+
+watch(
+  () => viewPrint?.isSettingsOpen.value,
+  async (isOpen) => {
+    if (!isOpen || !viewPrint) return
+
+    recordCount.value = null
+    try {
+      recordCount.value = await viewPrint.countRecords(currentQuery())
+    } catch (e: any) {
+      viewPrint.isSettingsOpen.value = false
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -44,6 +68,8 @@ function onPrint(settings: PrintSettings) {
       v-model:visible="viewPrint.isSettingsOpen.value"
       :storage-key="viewPrint.storageKey.value"
       :loading="viewPrint.isPreparing.value"
+      :record-count="recordCount"
+      :record-limit="recordLimit"
       @print="onPrint"
     />
 
@@ -53,6 +79,7 @@ function onPrint(settings: PrintSettings) {
       :columns="printColumns"
       :rows="viewPrint.printState.value.rows"
       :total-rows="viewPrint.printState.value.totalRows"
+      :range-start="viewPrint.printState.value.rangeStart"
       :settings="viewPrint.printState.value.settings"
       :column-widths="columnWidths"
       :group-columns="viewPrint.printState.value.groupColumns"

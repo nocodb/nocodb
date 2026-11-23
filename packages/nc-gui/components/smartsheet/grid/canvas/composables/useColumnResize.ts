@@ -188,8 +188,8 @@ export const AUTO_FIT_TEXT_TYPES = new Set<UITypes>([
   UITypes.GeoData,
 ])
 
-// header: icon + title inset (26) and the dropdown chevron + right padding (24)
-export const AUTO_FIT_HEADER_PADDING = 50
+// header right side: dropdown chevron + right padding
+export const AUTO_FIT_HEADER_PADDING = 24
 // cell padding on both sides
 export const AUTO_FIT_CELL_PADDING = 20
 export const AUTO_FIT_MAX_WIDTH = 500

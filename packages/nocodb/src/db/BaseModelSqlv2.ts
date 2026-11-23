@@ -151,7 +151,7 @@ import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
-import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
+import { handleConstraintError } from '~/helpers/constraintErrorHandler';
 import { readsHiddenTable } from '~/helpers/tableHelpers';
 import {
   formatPgDateTime,
@@ -3239,7 +3239,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return hookReader === this ? newData : await readNewData(this);
     } catch (e) {
       await this.errorUpdate(e, data, cookie);
-      await handleNotNullConstraintError({ error: e, baseModel: this });
+      await handleConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -3850,7 +3850,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       return response;
     } catch (e) {
-      await handleNotNullConstraintError({ error: e, baseModel: this });
+      await handleConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -4581,7 +4581,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return [...updatedDataList, ...insertedDataList];
     } catch (e) {
       await trx?.rollback();
-      await handleNotNullConstraintError({ error: e, baseModel: this });
+      await handleConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -5155,7 +5155,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         : await readUpdatedRecords(this);
     } catch (e) {
       if (transaction) await transaction.rollback();
-      await handleNotNullConstraintError({ error: e, baseModel: this });
+      await handleConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }

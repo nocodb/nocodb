@@ -1,5 +1,6 @@
 import { NcErrorType } from 'nocodb-sdk';
 import { DBError, DBErrorKind } from './utils';
+import { constraintViolationMessage } from './constraint';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 import { internalDbHostBlockedMessage } from '~/utils/ssrf';
@@ -185,10 +186,8 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
           message = `Check constraint violated${
             constraint ? ` ('${constraint}')` : ''
           }: ${hint}`;
-        } else if (constraint) {
-          message = `Check constraint '${constraint}' violated.`;
         } else {
-          message = error.message || 'Check constraint violation.';
+          message = constraintViolationMessage({ type: 'check', constraint });
         }
         if (constraint) _extra = { constraint };
         break;

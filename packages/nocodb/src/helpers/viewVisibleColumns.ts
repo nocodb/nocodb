@@ -1,6 +1,7 @@
 import { isOrderCol, ViewTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Model, View } from '~/models';
+import { isSharedViewAccess } from '~/helpers/accessSource';
 import {
   CalendarRange,
   DateDependency,
@@ -28,10 +29,16 @@ import { View as ViewModel } from '~/models';
  * separately they would drift, and either direction is a bug — too narrow breaks
  * a legitimate query on a shown column, too wide reopens the hidden-column
  * oracle.
+ *
+ * One deliberate gap: on a shared view a hidden grid/gallery group-by column is
+ * queryable (`groupByColumnIds`) but stays out of the row payload — its values
+ * are already public as the group headers.
  */
 export interface ViewVisibleColumns {
   /** `{ [columnId]: truthy }` for every column the view exposes. */
   allowedCols: Record<string, unknown>;
+  /** Grid/gallery group-by column ids, shown or hidden. */
+  groupByColumnIds: string[];
   /** Gallery/kanban cover image column id, if any. */
   coverImageId?: string;
   /** Kanban stack-by column id, if any. */
@@ -136,23 +143,25 @@ export async function resolveViewVisibleColumns(
     }
   }
 
+  // A shared link groups by a hidden field (headers show its values) but
+  // does not return it per row.
+  const groupByInPayload = !isSharedViewAccess(context);
+  const groupByColumnIds: string[] = [];
+
   let allowedCols: Record<string, unknown> = null;
   if (view) {
-    allowedCols = (await ViewModel.getColumns(context, view.id)).reduce<
-      Record<string, unknown>
-    >(
-      (o, c) => ({
-        ...o,
-        [c.fk_column_id]:
-          c.show ||
-          // The owner's grouping: group headers show it even when the field is hidden.
-          ((c instanceof GridViewColumn || c instanceof GalleryViewColumn) &&
-            c.group_by) ||
-          (c instanceof KanbanViewColumn &&
-            c.fk_column_id === kanbanGroupColumnId),
-      }),
-      {},
-    );
+    allowedCols = {};
+    for (const c of await ViewModel.getColumns(context, view.id)) {
+      const isGroupBy =
+        (c instanceof GridViewColumn || c instanceof GalleryViewColumn) &&
+        !!c.group_by;
+      if (isGroupBy) groupByColumnIds.push(c.fk_column_id);
+      allowedCols[c.fk_column_id] =
+        c.show ||
+        (isGroupBy && groupByInPayload) ||
+        (c instanceof KanbanViewColumn &&
+          c.fk_column_id === kanbanGroupColumnId);
+    }
     if (coverImageId) {
       allowedCols[coverImageId] = 1;
     }
@@ -169,6 +178,7 @@ export async function resolveViewVisibleColumns(
 
   return {
     allowedCols,
+    groupByColumnIds,
     coverImageId,
     kanbanGroupColumnId,
     dependencyFieldsForRangeView,
@@ -188,10 +198,10 @@ export async function getViewExposedColumnIds(
   context: NcContext,
   { model, view }: { model: Model; view?: View },
 ): Promise<Set<string>> {
-  const { allowedCols } = await resolveViewVisibleColumns(context, {
-    model,
-    view,
-  });
+  const { allowedCols, groupByColumnIds } = await resolveViewVisibleColumns(
+    context,
+    { model, view },
+  );
 
   if (!model.columns?.length) await model.getColumns();
 
@@ -201,5 +211,6 @@ export async function getViewExposedColumnIds(
       exposed.add(column.id);
     }
   }
+  for (const id of groupByColumnIds) exposed.add(id);
   return exposed;
 }

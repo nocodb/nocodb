@@ -66,14 +66,15 @@ export class PublicMetasService {
   >(context: NcContext, view: T): Promise<T> {
     if (!view?.model?.columns) return view;
 
-    const { allowedCols } = await resolveViewVisibleColumns(context, {
-      model: view.model,
-      view,
-    });
+    const { allowedCols, groupByColumnIds } = await resolveViewVisibleColumns(
+      context,
+      { model: view.model, view },
+    );
     const exposedIds = new Set<string>(view.model.columns.map((c) => c.id));
     for (const [id, allowed] of Object.entries(allowedCols ?? {})) {
       if (allowed) exposedIds.add(id);
     }
+    for (const id of groupByColumnIds) exposedIds.add(id);
 
     const columnsById = Object.fromEntries(
       Object.entries(view.model.columnsById ?? {}).filter(([id]) =>

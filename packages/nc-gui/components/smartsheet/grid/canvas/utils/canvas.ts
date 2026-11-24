@@ -16,6 +16,55 @@ const multiLineTextCache: LRUCache<string, { lines: string[]; width: number; las
   max: 1000,
 })
 
+/** All-fields search term to mark in the text of the cell being drawn; set only around a matching cell's render. */
+let searchMark: { term: string; fill: string } | null = null
+
+export function setCanvasSearchMark(mark: { term: string; fill: string } | null) {
+  searchMark = mark
+}
+
+/** Paints a box behind each occurrence of the search term in one drawn line of text. */
+function paintSearchMarks(
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  line: string,
+  x: number,
+  y: number,
+  textAlign: CanvasTextAlign,
+  verticalAlign: CanvasTextBaseline,
+  fontSize: number,
+) {
+  if (!searchMark || !line) return
+  const { term, fill } = searchMark
+  const lower = line.toLowerCase()
+  // Lower-casing can change the length of some characters, which would misplace the box.
+  if (lower.length !== line.length) return
+
+  let index = lower.indexOf(term)
+  if (index === -1) return
+
+  const lineWidth = ctx.measureText(line).width
+  const left = textAlign === 'right' || textAlign === 'end' ? x - lineWidth : textAlign === 'center' ? x - lineWidth / 2 : x
+  const boxHeight = fontSize + 4
+  const top =
+    verticalAlign === 'middle'
+      ? y - boxHeight / 2
+      : verticalAlign === 'top' || verticalAlign === 'hanging'
+      ? y - 2
+      : y - fontSize - 1
+
+  ctx.save()
+  ctx.fillStyle = fill
+  while (index !== -1) {
+    const start = ctx.measureText(line.slice(0, index)).width
+    const width = ctx.measureText(line.slice(index, index + term.length)).width
+    ctx.beginPath()
+    ctx.roundRect(left + start - 1, top, width + 2, boxHeight, 3)
+    ctx.fill()
+    index = lower.indexOf(term, index + term.length)
+  }
+  ctx.restore()
+}
+
 const abstractTypeCache: LRUCache<string, string> = new LRUCache({
   max: 1000,
 })
@@ -512,6 +561,8 @@ export const renderSingleLineText = (
       ctx.strokeStyle = fillStyle
     }
 
+    if (!isTagLabel) paintSearchMarks(ctx, truncatedText, x, y + yOffset, textAlign, verticalAlign, fontSize)
+
     ctx.fillText(truncatedText, x, y + yOffset)
 
     if (underline) {
@@ -639,8 +690,8 @@ const renderLines = (
     x,
     y,
     startX, // Optional startX for the first line
-    textAlign: _,
-    verticalAlign: _1,
+    textAlign,
+    verticalAlign,
     lineHeight,
     fontSize,
     fillStyle: _2,
@@ -663,6 +714,7 @@ const renderLines = (
   lines.forEach((line, index) => {
     const lineX = index === 0 && startX !== undefined ? startX : x // First line uses startX, others use x
     const lineY = y + index * lineHeight
+    paintSearchMarks(ctx, line, lineX, lineY, textAlign, verticalAlign, fontSize)
     ctx.fillText(line, lineX, lineY)
 
     if (underline) {

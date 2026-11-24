@@ -1549,7 +1549,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     watch(
       () => (isSelectStack.value ? null : `${groupingFieldColumn.value?.id}:${viewMeta.value?.id}`),
-      () => loadUsedStackKeys(),
+      () => {
+        // The previous field's keys would list as stacks, and load, until the new ones arrive
+        usedStackKeys.value = new Map()
+        loadUsedStackKeys()
+      },
       { immediate: true },
     )
 

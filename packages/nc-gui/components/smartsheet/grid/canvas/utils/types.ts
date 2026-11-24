@@ -22,6 +22,8 @@ export interface RenderSingleLineTextProps {
    */
   render?: boolean
   isTagLabel?: boolean
+  /** Never mark the all-fields search term in this text (avatar initials, emoji icons). */
+  noSearchMark?: boolean
 
   spriteLoader?: SpriteLoader
   cellRenderStore?: CellRenderStore

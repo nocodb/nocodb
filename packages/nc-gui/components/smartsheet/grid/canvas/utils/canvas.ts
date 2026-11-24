@@ -515,6 +515,7 @@ export const renderSingleLineText = (
     strikethrough,
     py = 10,
     isTagLabel = false,
+    noSearchMark = false,
   } = params
   let { maxWidth = Infinity } = params
 
@@ -561,7 +562,7 @@ export const renderSingleLineText = (
       ctx.strokeStyle = fillStyle
     }
 
-    if (!isTagLabel) paintSearchMarks(ctx, truncatedText, x, y + yOffset, textAlign, verticalAlign, fontSize)
+    if (!noSearchMark) paintSearchMarks(ctx, truncatedText, x, y + yOffset, textAlign, verticalAlign, fontSize)
 
     ctx.fillText(truncatedText, x, y + yOffset)
 

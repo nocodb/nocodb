@@ -291,7 +291,7 @@ export function useCanvasRender({
     rect: { x: number; y: number; width: number; height: number },
   ) {
     if (!cellMatchesSearch(searchHighlight?.value, column.columnObj, value)) return
-    ctx.fillStyle = getColor(themeV4Colors.yellow['100'], undefined, 0.7)
+    ctx.fillStyle = getColor(themeV4Colors.yellow['100'], themeV4Colors.yellow['50'], 0.7)
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height)
   }
 
@@ -300,8 +300,8 @@ export function useCanvasRender({
     const highlight = searchHighlight?.value
     if (!highlight || SEARCH_MARK_SKIP_TYPES.has(column.columnObj?.uidt as UITypes)) return false
     if (!cellMatchesSearch(highlight, column.columnObj, value)) return false
-    // The yellow variables flip in dark mode, so 200 there is a deep amber that keeps light text readable.
-    setCanvasSearchMark({ term: highlight.term, fill: getColor(themeV4Colors.yellow['300'], themeV4Colors.yellow['200']) })
+    // The yellow variables flip in dark mode; 100 there is a deep brown that keeps light and blue text readable.
+    setCanvasSearchMark({ term: highlight.term, fill: getColor(themeV4Colors.yellow['300'], themeV4Colors.yellow['100']) })
     return true
   }
 

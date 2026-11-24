@@ -93,17 +93,6 @@ import {
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { capSearchCountQuery, getSearchFilters } from '~/db/search';
 import {
-  isSearchIndexJunction,
-  isSearchIndexTracked,
-  SEARCH_INDEX_SLACK_MS,
-} from '~/db/search/searchIndex';
-import {
-  SEARCH_DIRTY_CAP,
-  searchIndexQueue,
-} from '~/db/search/searchIndexQueue';
-import { junctionLinkedRows } from '~/db/search/searchIndexFields';
-import { isSearchIndexingEnabled } from '~/db/search/searchIndexMeta';
-import {
   execPgWithGuard,
   getQueryGuard,
   shouldGuardQuery,
@@ -5481,11 +5470,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const searchIndexPks =
           args.skipValidationAndHooks || skip_hooks
             ? undefined
-            : bulkUpdateHookPks
-            ? bulkUpdateHookPks.length <= SEARCH_DIRTY_CAP
-              ? bulkUpdateHookPks
-              : undefined
-            : await this.searchIndexAffectedPks(qb);
+            : await this.searchIndexAffectedPks(qb, bulkUpdateHookPks);
 
         qb.update(updateDataForDriver);
 
@@ -5565,34 +5550,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return this.hasActiveBulkUpdateHooks();
   }
 
-  /** Rows a bulkUpdateAll will touch, for the search index; undefined = too many, track by `since`. */
+  /** Rows a bulkUpdateAll will touch, for the search index; undefined = track by `since`. */
   protected async searchIndexAffectedPks(
-    qb: Knex.QueryBuilder,
+    _qb: Knex.QueryBuilder,
+    _knownPks?: Array<string | number>,
   ): Promise<Array<string | number> | undefined> {
-    const pk = this.model.primaryKey;
-    if (
-      !isSearchIndexTracked(this.model) ||
-      this.model.primaryKeys?.length !== 1
-    ) {
-      return undefined;
-    }
-    try {
-      const rows: Record<string, string | number>[] = await this.execAndParse(
-        qb
-          .clone()
-          .clear('select')
-          .clear('order')
-          .select(this.dbDriver.raw('?? as ??', [pk.column_name, '__pk']))
-          .limit(SEARCH_DIRTY_CAP + 1),
-        null,
-        { raw: true },
-      );
-      if (!rows || rows.length > SEARCH_DIRTY_CAP) return undefined;
-      return rows.map((r) => r.__pk).filter((v) => v != null);
-    } catch (e) {
-      logger.error(e.message, e.stack);
-      return undefined;
-    }
+    return undefined;
   }
 
   // Collect the primary-key values of every row matching the (pre-update) query
@@ -7000,255 +6963,39 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return dataWrapper(data).extractPksValue(this.model, asString);
   }
 
-  /**
-   * Queue rows for the search index; a no-op unless the table is indexed.
-   * null, or any row without a readable pk, refreshes the whole table.
-   * `prev`: the rows before an update, for the links a junction row had.
-   * Resolves once search can find the rows; never rejects.
-   */
+  // Search index tracking is EE: the EE model overrides these no-ops.
+
+  /** Queue rows for the search index. */
   public async trackSearchIndexChange(
-    rows: Record<string, any>[] | Record<string, any> | null,
-    prev?: Record<string, any>[] | Record<string, any> | null,
-  ) {
-    const junction = isSearchIndexJunction(this.model);
-    const tracked = this.isSearchIndexTrackedTable();
-    if (!junction && !tracked) return;
-    if (junction && prev) {
-      await this.trackSearchIndexJunction(Array.isArray(prev) ? prev : [prev]);
-    }
-    const list = rows ? (Array.isArray(rows) ? rows : [rows]) : null;
-    const ids = list ? this.searchIndexIdsOf(list) : null;
-    // Tracked by the write itself before its readback: queue only.
-    if (
-      ids?.length &&
-      ids.every((id) => this.searchIndexWritten.has(`${id}`))
-    ) {
-      for (const id of ids) this.searchIndexWritten.delete(`${id}`);
-      if (tracked) {
-        searchIndexQueue.enqueue(this.context, this.model.id, ids, {
-          marked: true,
-        });
-      }
-      return;
-    }
-    if (junction) await this.trackSearchIndexJunction(list);
-    if (tracked) await searchIndexQueue.track(this.context, this.model, ids);
-  }
-
-  /** Indexed or read by other indexes; an auto-created junction never is. */
-  private isSearchIndexTrackedTable() {
-    return !this.model.mm && isSearchIndexTracked(this.model);
-  }
-
-  /**
-   * Junction rows are links: a write to them re-indexes the rows they link
-   * or unlink in each table whose link field reads the junction.
-   */
-  private async trackSearchIndexJunction(
-    rows: Array<Record<string, any> | string | number> | null,
-  ) {
-    if (!isSearchIndexingEnabled()) return;
-    try {
-      const sides = await junctionLinkedRows(this, rows, isSearchIndexTracked);
-      for (const { model, ids } of sides) {
-        const side = await Model.getBaseModelSQL(this.context, {
-          model,
-          dbDriver: this.dbDriver,
-        });
-        if (ids) await side.trackSearchIndexIds(ids);
-        else await side.trackSearchIndexChange(null);
-      }
-    } catch (e) {
-      logger.error(e.message, e.stack);
-    }
-  }
+    _rows: Record<string, any>[] | Record<string, any> | null,
+    _prev?: Record<string, any>[] | Record<string, any> | null,
+  ) {}
 
   /** Rows whose links changed, by pk. */
-  public async trackSearchIndexIds(ids: Array<string | number>) {
-    if (!ids?.length) return;
-    if (isSearchIndexJunction(this.model)) {
-      await this.trackSearchIndexJunction(ids);
-    }
-    if (!this.isSearchIndexTrackedTable()) return;
-    await searchIndexQueue.track(this.context, this.model, ids);
-  }
+  public async trackSearchIndexIds(_ids: Array<string | number>) {}
 
-  /** Rows this write's after hook reports again: marked once, here. */
-  private searchIndexWritten = new Set<string>();
-
-  /**
-   * Rows just written, tracked before a readback that can throw; the after
-   * hook for the same rows then only queues them.
-   */
-  public async trackSearchIndexWritten(ids: Array<string | number>) {
-    if (!ids?.length) return;
-    const junction = isSearchIndexJunction(this.model);
-    const tracked = this.isSearchIndexTrackedTable();
-    if (!junction && !tracked) return;
-    if (junction) await this.trackSearchIndexJunction(ids);
-    if (tracked) await searchIndexQueue.track(this.context, this.model, ids);
-    for (const id of ids) this.searchIndexWritten.add(`${id}`);
-  }
+  /** Rows just written, tracked before a readback that can throw. */
+  public async trackSearchIndexWritten(_ids: Array<string | number>) {}
 
   /** For a write whose after hook doesn't report its rows again. */
-  public forgetSearchIndexWritten(ids: Array<string | number>) {
-    for (const id of ids) this.searchIndexWritten.delete(`${id}`);
-  }
+  public forgetSearchIndexWritten(_ids: Array<string | number>) {}
 
-  /**
-   * Rows a bulk insert just committed, before its hook readback. Resolves to
-   * the ids marked for the after hook: forget them once the hooks have run.
-   */
+  /** Rows a bulk insert just committed; resolves to the ids to forget after its hooks. */
   public async trackSearchIndexInserted(
-    rows: Record<string, any>[],
+    _rows: Record<string, any>[],
   ): Promise<Array<string | number> | undefined> {
-    const ids = this.searchIndexIdsOf(rows);
-    if (!ids?.length) {
-      await this.trackSearchIndexChange(rows);
-      return undefined;
-    }
-    await this.trackSearchIndexWritten(ids);
-    return ids;
-  }
-
-  /** The rows' pks, or null when any row has none readable. */
-  private searchIndexIdsOf(
-    rows: Record<string, any>[] | Record<string, any>,
-  ): Array<string | number> | null {
-    const ids: Array<string | number> = [];
-    for (const row of Array.isArray(rows) ? rows : [rows]) {
-      const id =
-        row && typeof row === 'object'
-          ? this.extractPksValues(row, true)
-          : undefined;
-      if (id == null || id === '' || id === 'N/A') return null;
-      ids.push(id);
-    }
-    return ids;
+    return undefined;
   }
 
   /** Rows a bulk write stamped at or after `since`, ids unknown. */
-  public async trackSearchIndexSince(since: Date) {
-    if (isSearchIndexJunction(this.model)) {
-      await this.trackSearchIndexJunction(null);
-    }
-    if (!this.isSearchIndexTrackedTable()) return;
-    await searchIndexQueue.track(this.context, this.model, {
-      since: new Date(since.getTime() - SEARCH_INDEX_SLACK_MS).toISOString(),
-    });
-  }
+  public async trackSearchIndexSince(_since: Date) {}
 
-  /**
-   * Belongs-to parents that rows are about to move away from: their search
-   * cells still show the moved rows, and the reverse walk only reaches the
-   * new parent. Read before the write; call the result after it.
-   */
+  /** Belongs-to parents rows are about to move away from; call the result after the write. */
   public async searchIndexOldParents(
-    rowIds: Array<string | number>,
-    columnNames: Iterable<string>,
+    _rowIds: Array<string | number>,
+    _columnNames: Iterable<string>,
   ): Promise<() => Promise<void>> {
-    const noop = async () => {};
-    if (!isSearchIndexingEnabled()) return noop;
-    const pk = this.model.primaryKey;
-    if (!rowIds?.length || !pk || this.model.primaryKeys?.length !== 1) {
-      return noop;
-    }
-    const columns = await this.model.getColumns();
-    const names = new Set(columnNames);
-    const moves: Array<{
-      fk: Column;
-      parent: IBaseModelSqlV2;
-      parentKey: Column;
-    }> = [];
-    for (const link of columns) {
-      const options = link.colOptions as LinkToAnotherRecordColumn;
-      if (
-        link.uidt !== UITypes.LinkToAnotherRecord ||
-        !options ||
-        options.type === RelationTypes.HAS_MANY ||
-        options.type === RelationTypes.MANY_TO_MANY ||
-        isMMOrMMLike(link)
-      ) {
-        continue;
-      }
-      // A custom link's foreign key is any field, not a ForeignKey column.
-      const fk = columns.find((c) => c.id === options.fk_child_column_id);
-      if (!fk || fk.pk || !names.has(fk.column_name)) continue;
-      const parent = await options.getRelatedTable();
-      if (
-        !parent ||
-        parent.id === this.model.id ||
-        parent.source_id !== this.model.source_id ||
-        !isSearchIndexTracked(parent)
-      ) {
-        continue;
-      }
-      await parent.getColumns();
-      const parentKey = await options.getParentColumn();
-      if (!parentKey) continue;
-      moves.push({
-        fk,
-        parentKey,
-        parent: await Model.getBaseModelSQL(this.context, {
-          model: parent,
-          dbDriver: this.dbDriver,
-        }),
-      });
-    }
-    if (!moves.length) return noop;
-    try {
-      const rows: Record<string, string | number>[] = await this.execAndParse(
-        this.dbDriver(this.tnPath)
-          .select(moves.map((m) => m.fk.column_name))
-          .whereIn(pk.column_name, rowIds),
-        null,
-        { raw: true },
-      );
-      return async () => {
-        for (const { fk, parent, parentKey } of moves) {
-          const keys = [
-            ...new Set(
-              (rows ?? [])
-                .map((r) => r[fk.column_name])
-                .filter((v) => v != null),
-            ),
-          ];
-          if (!keys.length) continue;
-          // Runs after the write committed, sometimes un-awaited: never throw.
-          // The reconcile picks up rows missed here.
-          try {
-            const parentPk = parent.model.primaryKey;
-            if (!parentPk || parentKey.id === parentPk.id) {
-              await parent.trackSearchIndexIds(keys);
-              continue;
-            }
-            // The foreign key holds the parent's key field: map it to pks.
-            const parents: Record<string, string | number>[] =
-              await parent.execAndParse(
-                this.dbDriver(parent.tnPath)
-                  .select(parentPk.column_name)
-                  .whereIn(parentKey.column_name, keys),
-                null,
-                { raw: true },
-              );
-            await parent.trackSearchIndexIds(
-              (parents ?? []).map((r) => r[parentPk.column_name]),
-            );
-          } catch (e) {
-            logger.warn(
-              `Search index: old parents in ${parent.model.id} of ${
-                this.model.id
-              } rows ${rowIds.slice(0, 20).join(',')}${
-                rowIds.length > 20 ? ` (+${rowIds.length - 20})` : ''
-              } not tracked: ${e?.message}`,
-            );
-          }
-        }
-      };
-    } catch (e) {
-      logger.error(e.message, e.stack);
-      return noop;
-    }
+    return async () => {};
   }
 
   protected async errorDelete(

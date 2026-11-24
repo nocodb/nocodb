@@ -165,6 +165,8 @@ export default defineNuxtConfig({
   build: {},
 
   // disabling devtools since causing some significant performance issues when browser console open in development mode
+  // Re-enabling needs @nuxt/devtools >= 4: 3.4.x does `import Git from 'simple-git'`, and the
+  // simple-git@^4 override in the root package.json drops that default export.
   devtools: { enabled: false },
 
   vite: {

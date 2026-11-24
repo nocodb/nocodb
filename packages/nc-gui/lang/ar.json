@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "قم بالترقية لطلب تسجيل الدخول في النماذج",
     "upgradeToUseFormRequireSigninSubtitle": "قم بالترقية إلى خطة {plan} لمطالبة المستجيبين بتسجيل الدخول قبل إرسال النموذج.",
     "upgradeToUseSso": "الترقية لاستخدام SSO",
-    "upgradeToUseSsoSubtitle": "قم بالترقية إلى خطة {plan} لإعداد الدخول الموحّد (SSO) والسماح لفريقك بتسجيل الدخول باستخدام موفّر الهوية الخاص بك."
+    "upgradeToUseSsoSubtitle": "قم بالترقية إلى خطة {plan} لإعداد الدخول الموحّد (SSO) والسماح لفريقك بتسجيل الدخول باستخدام موفّر الهوية الخاص بك.",
+    "notifyOwnerToUpgrade": "انقر لإشعار مالك مساحة العمل بترقية الخطة.",
+    "comparePlans": "مقارنة الخطط",
+    "workspaceOnPlan": "تستخدم {workspace} خطة {plan}",
+    "planMenuWith": "ما تحصل عليه مع",
+    "planMenuRecordsStorage": "{records} سجل و {storage} غيغابايت تخزين",
+    "planMenuUnlimitedEditors": "محررون بلا حدود",
+    "planMenuAutomationRuns": "{runs} عملية تشغيل أتمتة شهريًا",
+    "planMenuApiCalls": "{calls} استدعاء API شهريًا",
+    "planMenuSnapshots": "{count} لقطة",
+    "railPitch": "تمنحك خطة Plus عدد {plusRecords} سجل ومحررين بلا حدود.",
+    "upgradeToPlan": "الترقية إلى {plan}",
+    "askAdminTitle": "غير مشمولة في ترخيصك",
+    "askAdminSubtitle": "اطلب من مسؤولك ترقية الترخيص {detail}",
+    "askAdminSubtitleGeneric": "هذه الميزة غير مشمولة في ترخيصك الحالي. اطلب من مسؤولك ترقيته.",
+    "notifyAdmin": "إشعار المسؤول",
+    "adminNotified": "تم إشعار المسؤول",
+    "adminNotifiedSubtitle": "تم إرسال طلبك إلى مسؤولك.",
+    "adminAlreadyNotified": "تم إشعار المسؤول مسبقًا",
+    "adminAlreadyNotifiedSubtitle": "تلقّى مسؤولك هذا الطلب بالفعل خلال الـ 24 ساعة الماضية.",
+    "noAdminToNotify": "لا يوجد مسؤول نشط لإشعاره. تواصل مع من يدير نسخة NocoDB هذه.",
+    "upgradeRequestDailyLimit": "لقد أرسلت أقصى عدد من طلبات الترقية لهذا اليوم. حاول مرة أخرى غدًا.",
+    "seatLimitTitle": "تم بلوغ حد المقاعد",
+    "licenseUpgradeRequested": "طلب ترقية الترخيص",
+    "forAddon": "للإضافة {addon}",
+    "seatLimitAdminSubtitle": "جميع المقاعد المرخّصة البالغ عددها {limit} قيد الاستخدام. رقِّ ترخيصك لإضافة المزيد من المحررين.",
+    "seatLimitMemberSubtitle": "جميع المقاعد المرخّصة البالغ عددها {limit} قيد الاستخدام. اطلب من مسؤولك إضافة المزيد من المقاعد."
   },
   "general": {
     "scrollToBottom": "التمرير إلى الأسفل",
@@ -1207,7 +1233,7 @@
   "datatype": {
     "ID": "هوية",
     "ForeignKey": "مفتاح خارجي",
-    "SingleLineText": "نص سطر واحد",
+    "SingleLineText": "نص من سطر واحد",
     "LongText": "نص طويل",
     "Attachment": "مرفق",
     "Checkbox": "خانة اختيار",
@@ -1217,7 +1243,7 @@
     "Date": "تاريخ",
     "Year": "سنة",
     "Time": "وقت",
-    "PhoneNumber": "هاتف",
+    "PhoneNumber": "رقم الهاتف",
     "Email": "بريد إلكتروني",
     "URL": "الرابط",
     "Number": "عدد",
@@ -1225,16 +1251,16 @@
     "Currency": "عملة",
     "Percent": "نسبة مؤية",
     "Duration": "مدة",
-    "GeoData": "بيانات الجغرافيا",
+    "GeoData": "بيانات جغرافية",
     "Rating": "تقييم",
     "Formula": "معادلة",
     "Rollup": "جمع البيانات",
     "Count": "العد",
     "Lookup": "مشاهدة بيانات",
-    "DateTime": "تاريخ وقت",
-    "CreatedTime": "إنشاء وقت",
+    "DateTime": "التاريخ والوقت",
+    "CreatedTime": "وقت الإنشاء",
     "LastModifiedTime": "وقت آخر تعديل",
-    "AutoNumber": "عدد تلقائي",
+    "AutoNumber": "رقم تلقائي",
     "Barcode": "رمز",
     "Button": "أيقونة",
     "Password": "كلمة مرور",
@@ -1244,7 +1270,25 @@
       "restrict": "تقييد",
       "setNull": "تعيين فارغ",
       "setDefault": "تعيين افتراضي"
-    }
+    },
+    "LinkToAnotherRecord": "رابط إلى سجل آخر",
+    "Order": "الترتيب",
+    "RichText": "نص منسّق",
+    "SmartText": "نص ذكي",
+    "Colour": "لون",
+    "Geometry": "هندسة",
+    "JSON": "JSON",
+    "SpecificDBType": "نوع قاعدة بيانات محدد",
+    "QrCode": "رمز QR",
+    "Links": "روابط",
+    "User": "مستخدم",
+    "CreatedBy": "أنشأه",
+    "LastModifiedBy": "آخر من عدّله",
+    "Deleted": "محذوف",
+    "Meta": "بيانات وصفية للصف",
+    "UUID": "UUID",
+    "AIButton": "زر ذكاء اصطناعي",
+    "AIPrompt": "نص ذكاء اصطناعي"
   },
   "filterOperation": {
     "isEqual": "يساوي",
@@ -1291,7 +1335,17 @@
       "daysAgo": "عدد الأيام الماضية",
       "daysFromNow": "عدد الأيام من اليوم",
       "exactDate": "تاريخ محدد",
-      "exactMonth": "شهر محدد"
+      "exactMonth": "شهر محدد",
+      "thisCalendarWeek": "هذا الأسبوع",
+      "thisCalendarMonth": "هذا الشهر",
+      "thisCalendarYear": "هذا العام",
+      "lastCalendarWeek": "الأسبوع الماضي",
+      "lastCalendarMonth": "الشهر الماضي",
+      "lastCalendarYear": "العام الماضي",
+      "nextCalendarWeek": "الأسبوع القادم",
+      "nextCalendarMonth": "الشهر القادم",
+      "nextCalendarYear": "العام القادم",
+      "dateRange": "نطاق زمني"
     }
   },
   "title": {
@@ -5873,7 +5927,29 @@
     "workspaceNoAccess": "مساحة العمل (لا يوجد وصول)",
     "yAxis": "المحور ص",
     "workspaceSettings": "إعدادات مساحة العمل",
-    "wrapLongText": "التفاف النص الطويل"
+    "wrapLongText": "التفاف النص الطويل",
+    "agentAccessData": "الجداول والسجلات",
+    "agentAccessDataHint": "القراءة تتصفحها وتستعلم عنها. التحرير ينشئ السجلات ويغيّرها ويربطها ويحذفها أيضًا.",
+    "agentAccessDocs": "المستندات",
+    "agentAccessDocsHint": "مستندات هذه القاعدة. يتيح له التحرير تغييرها.",
+    "agentAccessGithubHint": "يقرأ الشيفرة ويدفع الفروع ويفتح طلبات سحب في مستودعاته",
+    "agentAccessCustom": "بعض هذه الأدوات اختيرت واحدة تلو الأخرى. اختر مستوى لضبطها جميعًا.",
+    "agentAccessOf": "صلاحية الوصول إلى {what}",
+    "agentCodeStartBranch": "البدء من الفرع",
+    "agentCodeStartBranchOf": "الفرع الذي تبدأ منه عمليات تشغيل {repo}",
+    "agentCodeBranchName": "اسم الفرع",
+    "agentCodeBranchNameHint": "كل عملية تشغيل تحصل على فرعها الخاص. يُملأ {issue} و {slug} تلقائيًا.",
+    "agentCodePullRequests": "طلبات السحب",
+    "agentCodePrDraft": "مسودة",
+    "agentCodePrReady": "جاهز للمراجعة",
+    "agentCodePrDraftHint": "يُفتح كمسودة. تُطلب المراجعة من المراجعين بعد نجاح الاختبارات.",
+    "agentCodePrReadyHint": "يُفتح جاهزًا للمراجعة ويطلب من المراجعين أدناه فورًا.",
+    "agentCodeReviewers": "المراجعون",
+    "agentCodeRemoveReviewer": "إزالة {login}",
+    "agentCodeNoReviewers": "لا يمكن لأي شخص آخر المراجعة في هذه المستودعات",
+    "agentCodeNoReviewersSet": "لا يوجد مراجعون بعد.",
+    "agentCodeNeverMerge": "لا يدمج الوكلاء أبدًا ولا يدفعون أبدًا إلى {base}. الدمج يقوم به شخص دائمًا.",
+    "agentCodeNeverMergeAny": "لا يدمج الوكلاء أبدًا ولا يدفعون أبدًا إلى الفرع الذي تبدأ منه عملية التشغيل. الدمج يقوم به شخص دائمًا."
   },
   "activity": {
     "useTemplate": "استخدام القالب",
@@ -6065,7 +6141,18 @@
       "deleteStack": "حذف المكدس",
       "stackedBy": "مكدس بواسطة",
       "chooseGroupingField": "اختر حقل تجميع",
-      "autoCollapseEmptyStack": "الإنهيار التلقائي للمكدس الفارغ"
+      "autoCollapseEmptyStack": "الإنهيار التلقائي للمكدس الفارغ",
+      "createSingleSelectField": "إنشاء حقل اختيار واحد جديد",
+      "createUserField": "إنشاء حقل مستخدم جديد",
+      "defaultStackToDo": "للتنفيذ",
+      "defaultStackInProgress": "قيد التنفيذ",
+      "defaultStackDone": "منجز",
+      "loadMoreStacks": "تحميل المزيد من الأكوام",
+      "linkTypeNotStackable": "لا يمكن لرابط متعدد إلى واحد تقسيم لوحة kanban إلى أكوام إلا إذا كان مصدر بيانات الجدول هو PostgreSQL . استخدم بدلًا من ذلك حقل اختيار واحد أو حقل مستخدم أو رابط ينتمي إلى.",
+      "chooseStackField": "اختر حقل التجميع",
+      "chooseStackFieldDesc": "اختر الحقل الذي يقسّم هذا الـ board إلى أكوام. كل قيمة فيه تحصل على كومتها الخاصة.",
+      "createSingleSelectFieldHint": "لإظهار حالة كل بطاقة أو مرحلتها أو نوعها",
+      "createUserFieldHint": "لإظهار المسؤول عن كل بطاقة أو مالكها"
     },
     "map": {
       "googleMaps": "خرائط Google",
@@ -6179,7 +6266,9 @@
     "invitePeopleCount": "دعوة {count} شخص | دعوة {count} أشخاص",
     "inviteThemInstead": "ادعُهم بدلاً من ذلك",
     "blockUser": "حظر المستخدم",
-    "unblockUser": "إلغاء حظر المستخدم"
+    "unblockUser": "إلغاء حظر المستخدم",
+    "addDateRange": "إضافة نطاق زمني",
+    "searchComments": "البحث في التعليقات"
   },
   "tooltip": {
     "shiftClickWeekStep": "اضغط على التحويل لخطوة قبل 1 أسبوع",
@@ -6423,7 +6512,9 @@
     "dataSourceReadOnly": "مصدر البيانات هذا للقراءة فقط.",
     "mentionFields": "ذكر الحقول",
     "skipEnabledAfterDelay": "سيتم التفعيل بعد ثانيتين",
-    "clickToCopyDocumentId": "انقر لنسخ معرّف المستند"
+    "clickToCopyDocumentId": "انقر لنسخ معرّف المستند",
+    "workflowExecutionInterrupted": "توقّف هذا التشغيل بشكل غير متوقع من جهتنا. لم يُفقد أي شيء. أعد المحاولة ليُكمل من الخطوة التي كان عندها.",
+    "workflowExecutionOnHold": "التطبيق الذي ينتمي إليه سير العمل هذا موقوف مؤقتًا. سيُكمل التشغيل من حيث توقّف بمجرد عودة التطبيق."
   },
   "placeholder": {
     "enterVerificationCode": "أدخل الرمز المكون من 6 أرقام",
@@ -8301,7 +8392,9 @@
     "userDeleted": "{user} حذف {type} من {parent}: {name}",
     "youDeletedNoParent": "لقد حذفت {type}: {name}",
     "userDeletedNoParent": "{user} حذف {type}: {name}",
-    "someoneDeleted": "تم حذف {type} : {name}"
+    "someoneDeleted": "تم حذف {type} : {name}",
+    "restoreRequiresDocEdit": "تتطلب استعادة هذا المستند صلاحية تحريره",
+    "withSubPages": "(و {count} صفحة فرعية) | (و {count} صفحة فرعية)"
   },
   "payment": {
     "credits": {
@@ -8674,7 +8767,29 @@
       "other": {
         "where": "أضف خادم MCP بعيداً في عميلك بهذه البيانات:",
         "auth": "ابدأ الاتصال من عميلك. سيُفتح NocoDB في المتصفح، حيث تسجّل الدخول وتختار ما يمكن للعميل الوصول إليه ثم تختار تفويض."
+      },
+      "canDelete": "يمكنه حذف البيانات أو التصرف خارج NocoDB",
+      "lockedNotEditable": "طلب هذا التطبيق هذه الأذونات عند تسجيل دخوله، ولا يمكن تغييرها هنا. يمكن تبديل أدواته الاختيارية أدناه.",
+      "copilot": {
+        "where": "في VS Code، افتح Command Palette، وشغّل MCP: Add Server واختر HTTP . املأ:",
+        "auth": "عندما يطلب VS Code مصادقة NocoDB ، اختر Allow. سجّل الدخول إلى NocoDB في المتصفح ثم اختر Authorize."
       }
+    },
+    "discoveryNote": "يستخدم {client} 100 أداة كحد أقصى، لذا يسرد هذا الـ URL مباشرةً أدوات القراءة وكتابة السجلات في NocoDB ويجد الباقي عند الطلب.",
+    "windsurf": {
+      "subtitle": "لوكيل Cascade في Devin (المعروف سابقًا بـ Windsurf).",
+      "addBody": "في Devin (المعروف سابقًا بـ Windsurf)، افتح Settings › Cascade › MCP servers، واختر Add custom server والصق هذا الـ URL :",
+      "manualLabel": "أضف هذا إلى ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "اختر Connect بجوار nocodb. سجّل الدخول إلى NocoDB في المتصفح، واختر ما يمكن لـ Devin الوصول إليه والأدوات التي يمكنه استخدامها، ثم اختر Authorize.",
+      "tryBody": "افتح Cascade في Devin واسأل «List my NocoDB tools»."
+    },
+    "copilot": {
+      "subtitle": "لـ GitHub Copilot في VS Code.",
+      "addBody": "اختر {link}، ثم اختر Install عند فتح VS Code.",
+      "addLink": "إضافة إلى VS Code",
+      "manualLabel": "أضف هذا إلى .vscode/mcp.json، أو شغّل MCP: Open User Configuration لإضافته لكل workspace:",
+      "authBody": "عندما يطلب VS Code مصادقة NocoDB ، اختر Allow. سجّل الدخول إلى NocoDB في المتصفح، واختر ما يمكن لـ Copilot الوصول إليه والأدوات التي يمكنه استخدامها، ثم اختر Authorize.",
+      "tryBody": "افتح Copilot Chat في وضع Agent واسأل «List my NocoDB tools»."
     }
   },
   "roadmap": {

@@ -47,8 +47,6 @@ const { search, loadFieldQuery, isScoped: isScopedSearch } = useFieldQuery()
 
 const { isMobileMode, appInfo, loadAppInfo } = useGlobal()
 
-const { blockGlobalSearch, showUpgradeToUseGlobalSearch } = useEeConfig()
-
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 const { getMetaByKey } = useMetas()
 
@@ -152,10 +150,7 @@ const columns = computed(() => {
 // Grouped grids load rows per group and keep single-field search for now.
 const isAllFieldsSearchAvailable = computed(() => isAllFieldsSearchSupported.value && !isGroupBy.value)
 
-// Listed with an upgrade badge on a plan without it, but never selected.
-const isAllFieldsUsable = computed(() => isAllFieldsSearchAvailable.value && !blockGlobalSearch.value)
-
-const isAllFieldsSelected = computed(() => isAllFieldsUsable.value && search.value.field === ALL_FIELDS_SEARCH_FIELD)
+const isAllFieldsSelected = computed(() => isAllFieldsSearchAvailable.value && search.value.field === ALL_FIELDS_SEARCH_FIELD)
 
 const allFieldsOption = computed(() => ({ id: ALL_FIELDS_SEARCH_FIELD, title: t('labels.allFields') } as ColumnType))
 
@@ -180,29 +175,6 @@ const searchCountTooltip = computed(() =>
   ),
 )
 
-// Say why a search may be slow or missing rows.
-const searchStateMessage = computed(() => {
-  if (!isAllFieldsSelected.value) return ''
-  switch (searchState.value) {
-    case 'indexing':
-      return t('msg.info.searchStateIndexing')
-    case 'failed':
-      return t('msg.info.searchStateFailed')
-    case 'too_large_unindexed':
-      return t('msg.info.searchStateTooLargeUnindexed')
-    case 'too_large':
-      return t('msg.info.searchStateTooLarge')
-    case 'unsupported':
-      return t('msg.info.searchStateUnsupported')
-    case 'catching_up':
-      return t('msg.info.searchStateCatchingUp')
-    case 'term_too_short':
-      return t('msg.info.searchStateTermTooShort')
-    default:
-      return ''
-  }
-})
-
 // Arrows stay (disabled) at zero matches so the input doesn't change width.
 const isSearchNavigationShown = computed(
   () => isAllFieldsSelected.value && isSearchResultVisible.value && isGrid.value && !isGroupBy.value,
@@ -211,7 +183,7 @@ const isSearchNavigationShown = computed(
 // Next/previous steps through the grid's rows, which are all matches (all-fields search only).
 const isSearchNavigationVisible = computed(() => isSearchNavigationShown.value && totalRowsWithSearchQuery.value > 0)
 
-// "1/900" replaces "900 of 1,000" only after a step; a slash so it never reads as the count.
+// "1/900" replaces "900 matches" only after a step.
 const searchPositionLabel = computed(() =>
   isSearchStepping.value && isSearchNavigationVisible.value && searchCursorRow.value >= 0
     ? `${(searchCursorRow.value + 1).toLocaleString()}/${searchCountLabel.value}`
@@ -265,6 +237,17 @@ watch(searchState, async (state) => {
   if (!appInfo.value.globalSearchEnabled && search.value.query?.trim()) onPressEnter()
 })
 
+// "All fields" is the default, but the plan can't search this table that way: fall back to the
+// display value field so the default search still finds rows. An explicit "All fields" pick keeps it.
+watch([searchState, isAllFieldsSelected], ([state, allFields]) => {
+  if (state !== 'plan_limit' || !allFields || search.value.allFieldsPicked) return
+  const pvColumnId = columns.value?.find((column) => column.pv)?.id
+  if (!pvColumnId) return
+  search.value.field = pvColumnId
+  search.value.planLimitFallback = true
+  if (search.value.query?.trim()) onPressEnter()
+})
+
 function searchKey() {
   return `${search.value.field}:${search.value.query?.trim() ?? ''}`
 }
@@ -308,7 +291,7 @@ watch(searchKey, () => {
 
 // "All fields" is the default where available; elsewhere the box falls back to the display value field.
 watch(
-  [isAllFieldsUsable, () => search.value.field, columns],
+  [isAllFieldsSearchAvailable, () => search.value.field, columns],
   ([isAvailable, field]) => {
     if (!field && isAvailable) {
       search.value.field = ALL_FIELDS_SEARCH_FIELD
@@ -341,13 +324,9 @@ watchDebounced(
 )
 
 const onSelectOption = (column: ColumnType) => {
-  if (column.id === ALL_FIELDS_SEARCH_FIELD && blockGlobalSearch.value) {
-    isDropdownOpen.value = false
-    showUpgradeToUseGlobalSearch({ triggerSource: 'search-all-fields' })
-    return
-  }
-
   search.value.field = column.id as string
+  search.value.allFieldsPicked = column.id === ALL_FIELDS_SEARCH_FIELD
+  search.value.planLimitFallback = false
   isDropdownOpen.value = false
 
   if (search.value.query?.length) {
@@ -597,13 +576,11 @@ useSearchCommands({
               <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
             </NcTooltip>
             <template v-else>
-              <NcTooltip v-if="searchStateMessage" :title="searchStateMessage" placement="bottom" class="flex px-0.5">
-                <GeneralIcon
-                  icon="alertTriangle"
-                  class="flex-none h-3.5 w-3.5 text-nc-content-orange-medium"
-                  data-testid="nc-search-state"
-                />
-              </NcTooltip>
+              <SmartsheetToolbarSearchDataAllFieldsState
+                v-if="isEeUI"
+                :all-fields="isAllFieldsSelected"
+                :plan-limit-fallback="!!search.planLimitFallback"
+              />
               <NcTooltip placement="bottom" class="flex">
                 <template #title>
                   {{ searchCountTooltip }}
@@ -618,13 +595,12 @@ useSearchCommands({
                   data-testid="nc-search-count"
                 >
                   <span v-if="searchPositionLabel" class="text-nc-content-gray font-semibold">{{ searchPositionLabel }}</span>
-                  <i18n-t v-else keypath="title.countOfTotal" tag="span">
+                  <i18n-t v-else keypath="title.matchCount" :plural="totalRowsWithSearchQuery" tag="span">
                     <template #count>
                       <span :class="{ 'text-nc-content-gray font-semibold': totalRowsWithSearchQuery }">{{
                         searchCountLabel
                       }}</span>
                     </template>
-                    <template #total>{{ searchTotalLabel }}</template>
                   </i18n-t>
                 </span>
               </NcTooltip>

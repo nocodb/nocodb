@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Formlarda oturum açmayı zorunlu kılmak için yükseltin",
     "upgradeToUseFormRequireSigninSubtitle": "Yanıtlayanların bir formu göndermeden önce oturum açmasını zorunlu kılmak için {plan} planına yükseltin.",
     "upgradeToUseSso": "SSO kullanmak için yükseltin",
-    "upgradeToUseSsoSubtitle": "Çoklu Oturum Açma (SSO) kurmak ve ekibinizin kimlik sağlayıcınızla oturum açmasını sağlamak için {plan} planına yükseltin."
+    "upgradeToUseSsoSubtitle": "Çoklu Oturum Açma (SSO) kurmak ve ekibinizin kimlik sağlayıcınızla oturum açmasını sağlamak için {plan} planına yükseltin.",
+    "notifyOwnerToUpgrade": "Çalışma alanı sahibine planı yükseltmesi için bildirim göndermek üzere tıklayın.",
+    "comparePlans": "Planları karşılaştır",
+    "workspaceOnPlan": "{workspace} şu planda: {plan}",
+    "planMenuWith": "Şu planla neler elde edersiniz:",
+    "planMenuRecordsStorage": "{records} kayıt ve {storage} GB depolama",
+    "planMenuUnlimitedEditors": "Sınırsız düzenleyici",
+    "planMenuAutomationRuns": "Ayda {runs} otomasyon çalıştırması",
+    "planMenuApiCalls": "Ayda {calls} API çağrısı",
+    "planMenuSnapshots": "{count} anlık görüntü",
+    "railPitch": "Plus size {plusRecords} kayıt ve sınırsız düzenleyici sağlar.",
+    "upgradeToPlan": "{plan} planına yükselt",
+    "askAdminTitle": "Lisansınıza dahil değil",
+    "askAdminSubtitle": "Yöneticinizden lisansı yükseltmesini isteyin {detail}",
+    "askAdminSubtitleGeneric": "Bu özellik mevcut lisansınıza dahil değil. Yöneticinizden yükseltmesini isteyin.",
+    "notifyAdmin": "Yöneticiyi bilgilendir",
+    "adminNotified": "Yönetici bilgilendirildi",
+    "adminNotifiedSubtitle": "İsteğiniz yöneticinize gönderildi.",
+    "adminAlreadyNotified": "Yönetici zaten bilgilendirildi",
+    "adminAlreadyNotifiedSubtitle": "Yöneticiniz bu isteği son 24 saat içinde zaten aldı.",
+    "noAdminToNotify": "Bilgilendirilecek etkin yönetici yok. Bu NocoDB kurulumunu kim yönetiyorsa onunla iletişime geçin.",
+    "upgradeRequestDailyLimit": "Bugün için en fazla sayıda yükseltme isteği gönderdiniz. Yarın tekrar deneyin.",
+    "seatLimitTitle": "Koltuk sınırına ulaşıldı",
+    "licenseUpgradeRequested": "lisans yükseltmesi istedi",
+    "forAddon": "{addon} eklentisi için",
+    "seatLimitAdminSubtitle": "Lisanslı {limit} koltuğun tamamı kullanımda. Daha fazla düzenleyici eklemek için lisansınızı yükseltin.",
+    "seatLimitMemberSubtitle": "Lisanslı {limit} koltuğun tamamı kullanımda. Yöneticinizden daha fazla koltuk eklemesini isteyin."
   },
   "general": {
     "scrollToBottom": "En alta kaydır",
@@ -1207,12 +1233,12 @@
   "datatype": {
     "ID": "ID",
     "ForeignKey": "Yabancı anahtar",
-    "SingleLineText": "Tek satır metin",
+    "SingleLineText": "Tek satırlık metin",
     "LongText": "Uzun metin",
     "Attachment": "Ek dosya",
     "Checkbox": "Onay kutusu",
     "MultiSelect": "Çoklu seçim",
-    "SingleSelect": "Tek Seçim",
+    "SingleSelect": "Tekli seçim",
     "Collaborator": "Partner",
     "Date": "Tarih",
     "Year": "Yıl",
@@ -1225,16 +1251,16 @@
     "Currency": "Para birimi",
     "Percent": "Yüzde",
     "Duration": "Süre",
-    "GeoData": "GeoData",
+    "GeoData": "Coğrafi veri",
     "Rating": "Değerlendirme",
     "Formula": "Formül",
     "Rollup": "Referans hesapla",
     "Count": "Miktar",
     "Lookup": "Referans",
-    "DateTime": "Tarih saat",
-    "CreatedTime": "Oluşturma zamanı",
-    "LastModifiedTime": "Son değiştirilme",
-    "AutoNumber": "Otomatik Sayı",
+    "DateTime": "Tarih ve saat",
+    "CreatedTime": "Oluşturulma zamanı",
+    "LastModifiedTime": "Son değiştirilme zamanı",
+    "AutoNumber": "Otomatik numara",
     "Barcode": "Barkod",
     "Button": "Buton",
     "Password": "Şifre",
@@ -1244,7 +1270,25 @@
       "restrict": "Kısıtla",
       "setNull": "NULL olarak ayarla",
       "setDefault": "Varsayılan olarak ayarla"
-    }
+    },
+    "LinkToAnotherRecord": "Başka bir kayda bağlantı",
+    "Order": "Sıra",
+    "RichText": "Zengin metin",
+    "SmartText": "Akıllı metin",
+    "Colour": "Renk",
+    "Geometry": "Geometri",
+    "JSON": "JSON",
+    "SpecificDBType": "Belirli VT türü",
+    "QrCode": "QR kodu",
+    "Links": "Bağlantılar",
+    "User": "Kullanıcı",
+    "CreatedBy": "Oluşturan",
+    "LastModifiedBy": "Son değiştiren",
+    "Deleted": "Silindi",
+    "Meta": "Satır meta verileri",
+    "UUID": "UUID",
+    "AIButton": "YZ düğmesi",
+    "AIPrompt": "YZ metni"
   },
   "filterOperation": {
     "isEqual": "eşittir",
@@ -1291,7 +1335,17 @@
       "daysAgo": "gün önce",
       "daysFromNow": "gün sonra",
       "exactDate": "tam tarih",
-      "exactMonth": "tam ay"
+      "exactMonth": "tam ay",
+      "thisCalendarWeek": "bu hafta",
+      "thisCalendarMonth": "bu ay",
+      "thisCalendarYear": "bu yıl",
+      "lastCalendarWeek": "geçen hafta",
+      "lastCalendarMonth": "geçen ay",
+      "lastCalendarYear": "geçen yıl",
+      "nextCalendarWeek": "gelecek hafta",
+      "nextCalendarMonth": "gelecek ay",
+      "nextCalendarYear": "gelecek yıl",
+      "dateRange": "tarih aralığı"
     }
   },
   "title": {
@@ -5865,7 +5919,29 @@
     "workspaceNoAccess": "Çalışma alanı (erişim yok)",
     "yAxis": "Y ekseni",
     "workspaceSettings": "Çalışma alanı ayarları",
-    "wrapLongText": "Uzun metni kaydır"
+    "wrapLongText": "Uzun metni kaydır",
+    "agentAccessData": "Tablolar ve kayıtlar",
+    "agentAccessDataHint": "Okuma onlara göz atar ve sorgular. Düzenleme ayrıca kayıt oluşturur, değiştirir, bağlar ve siler.",
+    "agentAccessDocs": "Belgeler",
+    "agentAccessDocsHint": "Bu base'in belgeleri. Düzenleme ile onları değiştirebilir.",
+    "agentAccessGithubHint": "Kendi depolarında kod okur, dal gönderir ve pull request açar",
+    "agentAccessCustom": "Bu araçların bazıları tek tek seçildi. Hepsini birden ayarlamak için bir düzey seçin.",
+    "agentAccessOf": "Erişim: {what}",
+    "agentCodeStartBranch": "Şu daldan başla",
+    "agentCodeStartBranchOf": "{repo} çalıştırmalarının başladığı dal",
+    "agentCodeBranchName": "Dal adı",
+    "agentCodeBranchNameHint": "Her çalıştırma kendi dalını alır. {issue} ve {slug} sizin için doldurulur.",
+    "agentCodePullRequests": "Pull request'ler",
+    "agentCodePrDraft": "Taslak",
+    "agentCodePrReady": "İncelemeye hazır",
+    "agentCodePrDraftHint": "Taslak olarak açılır. Testler geçtiğinde inceleyenlere istek gönderilir.",
+    "agentCodePrReadyHint": "İncelemeye hazır olarak açılır ve aşağıdaki inceleyenlere hemen istek gönderir.",
+    "agentCodeReviewers": "İnceleyenler",
+    "agentCodeRemoveReviewer": "{login} kullanıcısını kaldır",
+    "agentCodeNoReviewers": "Bu depolarda başka kimse inceleme yapamaz",
+    "agentCodeNoReviewersSet": "Henüz inceleyen yok.",
+    "agentCodeNeverMerge": "Ajanlar hiçbir zaman birleştirme yapmaz ve {base} dalına gönderim yapmaz. Birleştirmeyi her zaman bir insan yapar.",
+    "agentCodeNeverMergeAny": "Ajanlar hiçbir zaman birleştirme yapmaz ve çalıştırmanın başladığı dala gönderim yapmaz. Birleştirmeyi her zaman bir insan yapar."
   },
   "activity": {
     "useTemplate": "Şablon kullan",
@@ -6057,7 +6133,18 @@
       "deleteStack": "Yığını Sil",
       "stackedBy": "Tarafından Yığılmış",
       "chooseGroupingField": "Gruplama Sütunu Seçin",
-      "autoCollapseEmptyStack": "Boş yığına otomatik daraltma"
+      "autoCollapseEmptyStack": "Boş yığına otomatik daraltma",
+      "createSingleSelectField": "Yeni bir Tekli seçim alanı oluştur",
+      "createUserField": "Yeni bir Kullanıcı alanı oluştur",
+      "defaultStackToDo": "Yapılacak",
+      "defaultStackInProgress": "Devam ediyor",
+      "defaultStackDone": "Tamamlandı",
+      "loadMoreStacks": "Daha fazla yığın yükle",
+      "linkTypeNotStackable": "Çoktan bire bağlantı, bir kanban'ı yalnızca tablonun veri kaynağı PostgreSQL olduğunda yığınlara ayırabilir. Bunun yerine Tekli seçim alanına, Kullanıcı alanına veya ait-olduğu bağlantısına göre yığınlayın.",
+      "chooseStackField": "Yığınlama alanını seçin",
+      "chooseStackFieldDesc": "Bu board'u yığınlara ayıran alanı seçin. Alanın her değeri kendi yığınını alır.",
+      "createSingleSelectFieldHint": "her kartın durumunu, aşamasını veya türünü göstermek için",
+      "createUserFieldHint": "her kartın sorumlusunu veya sahibini göstermek için"
     },
     "map": {
       "googleMaps": "Google Haritalar",
@@ -6171,7 +6258,9 @@
     "invitePeopleCount": "{count} kişiyi davet et | {count} kişiyi davet et",
     "inviteThemInstead": "Bunun yerine onları davet et",
     "blockUser": "Kullanıcıyı engelle",
-    "unblockUser": "Kullanıcının engelini kaldır"
+    "unblockUser": "Kullanıcının engelini kaldır",
+    "addDateRange": "Tarih aralığı ekle",
+    "searchComments": "Yorumlarda ara"
   },
   "tooltip": {
     "shiftClickWeekStep": "1 hafta ilerlemek için Shift tuşunu basılı tutun",
@@ -6415,7 +6504,9 @@
     "dataSourceReadOnly": "Bu veri kaynağı salt okunur.",
     "mentionFields": "Alanlardan bahset",
     "skipEnabledAfterDelay": "2 saniye sonra etkinleşecek",
-    "clickToCopyDocumentId": "Belge kimliğini kopyalamak için tıklayın"
+    "clickToCopyDocumentId": "Belge kimliğini kopyalamak için tıklayın",
+    "workflowExecutionInterrupted": "Bu çalıştırma bizim tarafımızda beklenmedik biçimde durdu. Hiçbir şey kaybolmadı. Kaldığı adımdan devam etmesi için yeniden deneyin.",
+    "workflowExecutionOnHold": "Bu iş akışının ait olduğu uygulama askıya alınmış. Uygulama geri geldiğinde çalıştırma kaldığı yerden devam eder."
   },
   "placeholder": {
     "enterVerificationCode": "6 haneli kodu girin",
@@ -8293,7 +8384,9 @@
     "userDeleted": "{user}, {parent}'den bir {type} sildi: {name}",
     "youDeletedNoParent": "Bir {type} sildiniz: {name}",
     "userDeletedNoParent": "{user} bir {type} sildi: {name}",
-    "someoneDeleted": "Bir {type} silindi: {name}"
+    "someoneDeleted": "Bir {type} silindi: {name}",
+    "restoreRequiresDocEdit": "Bu belgeyi geri yüklemek için belgeye düzenleme erişimi gerekir",
+    "withSubPages": "(ve {count} alt sayfa) | (ve {count} alt sayfa)"
   },
   "payment": {
     "credits": {
@@ -8666,7 +8759,29 @@
       "other": {
         "where": "İstemcinize şu bilgilerle uzak bir MCP sunucusu ekleyin:",
         "auth": "Bağlantıyı istemcinizden başlatın. NocoDB tarayıcıda açılır; orada oturum açar, istemcinin nelere erişebileceğini seçer ve Yetkilendir'i seçersiniz."
+      },
+      "canDelete": "Veri silebilir veya NocoDB dışında işlem yapabilir",
+      "lockedNotEditable": "Bu uygulama bu izinleri giriş yaparken istedi ve burada değiştirilemezler. İsteğe bağlı araçları aşağıdan açılıp kapatılabilir.",
+      "copilot": {
+        "where": "VS Code'da Command Palette'i açın, MCP: Add Server komutunu çalıştırın ve HTTP'yi seçin. Şunları doldurun:",
+        "auth": "VS Code NocoDB'nin kimliğini doğrulamak istediğinde Allow'u seçin. Tarayıcıda NocoDB'ye giriş yapın ve Authorize'ı seçin."
       }
+    },
+    "discoveryNote": "{client} en fazla 100 araç kullanır; bu yüzden bu URL, NocoDB'nin okuma araçlarını ve kayıt yazma işlemlerini doğrudan listeler, geri kalanını ise istendiğinde bulur.",
+    "windsurf": {
+      "subtitle": "Devin'deki (eski adıyla Windsurf) Cascade ajanı için.",
+      "addBody": "Devin'de (eski adıyla Windsurf) Settings › Cascade › MCP servers bölümünü açın, Add custom server'ı seçin ve bu URL'yi yapıştırın:",
+      "manualLabel": "Bunu ~/.codeium/windsurf/mcp_config.json dosyasına ekleyin:",
+      "authBody": "nocodb'nin yanındaki Connect'i seçin. Tarayıcıda NocoDB'ye giriş yapın, Devin'in nelere erişebileceğini ve hangi araçları kullanabileceğini seçin, ardından Authorize'ı seçin.",
+      "tryBody": "Devin'de Cascade'i açın ve “List my NocoDB tools” deyin."
+    },
+    "copilot": {
+      "subtitle": "VS Code'daki GitHub Copilot için.",
+      "addBody": "{link} seçeneğini seçin, ardından VS Code açıldığında Install'ı seçin.",
+      "addLink": "VS Code'a ekle",
+      "manualLabel": "Bunu .vscode/mcp.json dosyasına ekleyin veya her workspace için eklemek üzere MCP: Open User Configuration komutunu çalıştırın:",
+      "authBody": "VS Code NocoDB'nin kimliğini doğrulamak istediğinde Allow'u seçin. Tarayıcıda NocoDB'ye giriş yapın, Copilot'ın nelere erişebileceğini ve hangi araçları kullanabileceğini seçin, ardından Authorize'ı seçin.",
+      "tryBody": "Copilot Chat'i Agent modunda açın ve “List my NocoDB tools” deyin."
     }
   },
   "roadmap": {

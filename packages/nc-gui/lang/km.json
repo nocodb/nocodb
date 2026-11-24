@@ -304,7 +304,33 @@
     "upgradeToUseFormRequireSignin": "អាប់ក្រេដដើម្បីតម្រូវឱ្យចូលគណនីលើបែបបទ",
     "upgradeToUseFormRequireSigninSubtitle": "អាប់ក្រេដទៅផែនការ {plan} ដើម្បីតម្រូវឱ្យអ្នកឆ្លើយតបចូលគណនីមុនពេលដាក់ស្នើបែបបទ។",
     "upgradeToUseSso": "ដំឡើងកំណែដើម្បីប្រើ SSO",
-    "upgradeToUseSsoSubtitle": "ដំឡើងកំណែទៅគម្រោង {plan} ដើម្បីរៀបចំការចូលតែម្ដង (SSO) និងអនុញ្ញាតឱ្យក្រុមរបស់អ្នកចូលដោយប្រើអ្នកផ្ដល់អត្តសញ្ញាណរបស់អ្នក។"
+    "upgradeToUseSsoSubtitle": "ដំឡើងកំណែទៅគម្រោង {plan} ដើម្បីរៀបចំការចូលតែម្ដង (SSO) និងអនុញ្ញាតឱ្យក្រុមរបស់អ្នកចូលដោយប្រើអ្នកផ្ដល់អត្តសញ្ញាណរបស់អ្នក។",
+    "notifyOwnerToUpgrade": "ចុចដើម្បីជូនដំណឹងម្ចាស់កន្លែងធ្វើការឱ្យដំឡើងគម្រោង។",
+    "comparePlans": "ប្រៀបធៀបគម្រោង",
+    "workspaceOnPlan": "{workspace} កំពុងប្រើ {plan}",
+    "planMenuWith": "អ្វីដែលអ្នកទទួលបានជាមួយ",
+    "planMenuRecordsStorage": "{records} កំណត់ត្រា និងទំហំផ្ទុក {storage} GB",
+    "planMenuUnlimitedEditors": "អ្នកកែសម្រួលគ្មានដែនកំណត់",
+    "planMenuAutomationRuns": "{runs} ដំណើរការស្វ័យប្រវត្តិកម្មក្នុងមួយខែ",
+    "planMenuApiCalls": "{calls} ការហៅ API ក្នុងមួយខែ",
+    "planMenuSnapshots": "រូបថតបន្ទាន់ {count}",
+    "railPitch": "Plus ផ្ដល់ឱ្យអ្នកនូវ {plusRecords} កំណត់ត្រា និងអ្នកកែសម្រួលគ្មានដែនកំណត់។",
+    "upgradeToPlan": "ដំឡើងទៅ {plan}",
+    "askAdminTitle": "មិនមាននៅក្នុងអាជ្ញាបណ្ណរបស់អ្នក",
+    "askAdminSubtitle": "សូមស្នើអ្នកគ្រប់គ្រងរបស់អ្នកឱ្យដំឡើងអាជ្ញាបណ្ណ {detail}",
+    "askAdminSubtitleGeneric": "មុខងារនេះមិនមាននៅក្នុងអាជ្ញាបណ្ណបច្ចុប្បន្នរបស់អ្នកទេ។ សូមស្នើអ្នកគ្រប់គ្រងរបស់អ្នកឱ្យដំឡើង។",
+    "notifyAdmin": "ជូនដំណឹងអ្នកគ្រប់គ្រង",
+    "adminNotified": "បានជូនដំណឹងអ្នកគ្រប់គ្រង",
+    "adminNotifiedSubtitle": "សំណើរបស់អ្នកត្រូវបានផ្ញើទៅអ្នកគ្រប់គ្រងរបស់អ្នក។",
+    "adminAlreadyNotified": "បានជូនដំណឹងអ្នកគ្រប់គ្រងរួចហើយ",
+    "adminAlreadyNotifiedSubtitle": "អ្នកគ្រប់គ្រងរបស់អ្នកបានទទួលសំណើនេះរួចហើយក្នុងរយៈពេល 24 ម៉ោងចុងក្រោយ។",
+    "noAdminToNotify": "គ្មានអ្នកគ្រប់គ្រងសកម្មដើម្បីជូនដំណឹងទេ។ សូមទាក់ទងអ្នកដែលគ្រប់គ្រងឧទាហរណ៍ NocoDB នេះ។",
+    "upgradeRequestDailyLimit": "អ្នកបានផ្ញើសំណើដំឡើងច្រើនបំផុតសម្រាប់ថ្ងៃនេះហើយ។ សូមសាកល្បងម្ដងទៀតនៅថ្ងៃស្អែក។",
+    "seatLimitTitle": "ដល់ដែនកំណត់កៅអីហើយ",
+    "licenseUpgradeRequested": "បានស្នើសុំដំឡើងអាជ្ញាបណ្ណ",
+    "forAddon": "សម្រាប់កម្មវិធីបន្ថែម {addon}",
+    "seatLimitAdminSubtitle": "កៅអីមានអាជ្ញាបណ្ណទាំង {limit} កំពុងប្រើអស់ហើយ។ សូមដំឡើងអាជ្ញាបណ្ណរបស់អ្នក ដើម្បីបន្ថែមអ្នកកែសម្រួល។",
+    "seatLimitMemberSubtitle": "កៅអីមានអាជ្ញាបណ្ណទាំង {limit} កំពុងប្រើអស់ហើយ។ សូមស្នើអ្នកគ្រប់គ្រងរបស់អ្នកឱ្យបន្ថែមកៅអី។"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1205,8 +1231,8 @@
   },
   "datatype": {
     "ID": "ID",
-    "ForeignKey": "គោលដៅបរទេស",
-    "SingleLineText": "អត្ថបទបន្ទាត់តែមួយ",
+    "ForeignKey": "សោខាងក្រៅ",
+    "SingleLineText": "អត្ថបទមួយជួរ",
     "LongText": "អត្ថបទវែង",
     "Attachment": "ឯកសារភ្ជាប់",
     "Checkbox": "ប្រអប់សង្កត់",
@@ -1216,7 +1242,7 @@
     "Date": "កាលបរិច្ឆេទ",
     "Year": "ឆ្នាំ",
     "Time": "ពេលវេលា",
-    "PhoneNumber": "លេខទូរស័ព្ទ",
+    "PhoneNumber": "លេខទូរសព្ទ",
     "Email": "អ៊ីមែល",
     "URL": "URL",
     "Number": "ចំនួន",
@@ -1224,16 +1250,16 @@
     "Currency": "រូបិយប័ណ្ណ",
     "Percent": "ភាគរយ",
     "Duration": "រយៈពេល",
-    "GeoData": "GeoData",
+    "GeoData": "ទិន្នន័យភូមិសាស្ត្រ",
     "Rating": "ការវាយតម្លៃ",
     "Formula": "រូបមន្ត",
     "Rollup": "រំកិលឡើង",
     "Count": "រាប់",
     "Lookup": "ស្វែងរក",
-    "DateTime": "កាលបរិច្ឆេទ និង ពេលវេលា",
-    "CreatedTime": "បង្កើតពេលវេលា",
-    "LastModifiedTime": "ពេលវេលាកែប្រែចុងក្រោយ",
-    "AutoNumber": "លេខស្វ័យប្រវត្តិ",
+    "DateTime": "កាលបរិច្ឆេទ និងពេលវេលា",
+    "CreatedTime": "ពេលបង្កើត",
+    "LastModifiedTime": "ពេលកែប្រែចុងក្រោយ",
+    "AutoNumber": "លេខដោយស្វ័យប្រវត្តិ",
     "Barcode": "បាកូដ",
     "Button": "ប៊ូតុង",
     "Password": "លេខសំងាត់",
@@ -1243,7 +1269,25 @@
       "restrict": "កម្រប",
       "setNull": "កំណត់ NULL",
       "setDefault": "កំណត់លំនាំដើម"
-    }
+    },
+    "LinkToAnotherRecord": "តំណទៅកំណត់ត្រាផ្សេង",
+    "Order": "លំដាប់",
+    "RichText": "អត្ថបទមានទ្រង់ទ្រាយ",
+    "SmartText": "អត្ថបទឆ្លាតវៃ",
+    "Colour": "ពណ៌",
+    "Geometry": "ធរណីមាត្រ",
+    "JSON": "JSON",
+    "SpecificDBType": "ប្រភេទ DB ជាក់លាក់",
+    "QrCode": "កូដ QR",
+    "Links": "តំណ",
+    "User": "អ្នកប្រើ",
+    "CreatedBy": "បង្កើតដោយ",
+    "LastModifiedBy": "កែប្រែចុងក្រោយដោយ",
+    "Deleted": "បានលុប",
+    "Meta": "ទិន្នន័យមេតានៃជួរដេក",
+    "UUID": "UUID",
+    "AIButton": "ប៊ូតុង AI",
+    "AIPrompt": "អត្ថបទ AI"
   },
   "filterOperation": {
     "isEqual": "ស្មើគ្នា",
@@ -1290,7 +1334,17 @@
       "daysAgo": "ចំនួនថ្ងៃមុន",
       "daysFromNow": "ចំនួនថ្ងៃគិតពីថ្ងៃនេះ",
       "exactDate": "កាលបរិច្ឆេទជាក់លាក់",
-      "exactMonth": "ខែជាក់លាក់"
+      "exactMonth": "ខែជាក់លាក់",
+      "thisCalendarWeek": "សប្ដាហ៍នេះ",
+      "thisCalendarMonth": "ខែនេះ",
+      "thisCalendarYear": "ឆ្នាំនេះ",
+      "lastCalendarWeek": "សប្ដាហ៍មុន",
+      "lastCalendarMonth": "ខែមុន",
+      "lastCalendarYear": "ឆ្នាំមុន",
+      "nextCalendarWeek": "សប្ដាហ៍ក្រោយ",
+      "nextCalendarMonth": "ខែក្រោយ",
+      "nextCalendarYear": "ឆ្នាំក្រោយ",
+      "dateRange": "ចន្លោះកាលបរិច្ឆេទ"
     }
   },
   "title": {
@@ -5838,7 +5892,29 @@
     "workspaceNoAccess": "កន្លែងធ្វើការ (គ្មានសិទ្ធិចូល)",
     "yAxis": "អ័ក្ស Y",
     "workspaceSettings": "ការកំណត់កន្លែងធ្វើការ",
-    "wrapLongText": "រុំអត្ថបទវែង"
+    "wrapLongText": "រុំអត្ថបទវែង",
+    "agentAccessData": "តារាង និងកំណត់ត្រា",
+    "agentAccessDataHint": "ការអានមើល និងសួររកពួកវា។ ការកែសម្រួលក៏បង្កើត ផ្លាស់ប្ដូរ ភ្ជាប់ និងលុបកំណត់ត្រាផងដែរ។",
+    "agentAccessDocs": "ឯកសារ",
+    "agentAccessDocsHint": "ឯកសាររបស់ base នេះ។ ការកែសម្រួលអនុញ្ញាតឱ្យវាផ្លាស់ប្ដូរពួកវា។",
+    "agentAccessGithubHint": "អានកូដ រុញមែកធាង និងបើកសំណើទាញនៅក្នុងឃ្លាំងរបស់វា",
+    "agentAccessCustom": "ឧបករណ៍ខ្លះក្នុងចំណោមនេះត្រូវបានជ្រើសរើសម្ដងមួយៗ។ សូមជ្រើសរើសកម្រិតមួយ ដើម្បីកំណត់ទាំងអស់ជាមួយគ្នា។",
+    "agentAccessOf": "សិទ្ធិចូលប្រើ {what}",
+    "agentCodeStartBranch": "ចាប់ផ្ដើមពីមែកធាង",
+    "agentCodeStartBranchOf": "មែកធាងដែលដំណើរការរបស់ {repo} ចាប់ផ្ដើមពី",
+    "agentCodeBranchName": "ឈ្មោះមែកធាង",
+    "agentCodeBranchNameHint": "ដំណើរការនីមួយៗទទួលបានមែកធាងរៀងៗខ្លួន។ {issue} និង {slug} ត្រូវបានបំពេញជំនួសអ្នក។",
+    "agentCodePullRequests": "សំណើទាញ",
+    "agentCodePrDraft": "សេចក្ដីព្រាង",
+    "agentCodePrReady": "ត្រៀមសម្រាប់ត្រួតពិនិត្យ",
+    "agentCodePrDraftHint": "បើកជាសេចក្ដីព្រាង។ អ្នកត្រួតពិនិត្យត្រូវបានស្នើសុំនៅពេលការសាកល្បងជាប់។",
+    "agentCodePrReadyHint": "បើកក្នុងស្ថានភាពត្រៀមសម្រាប់ត្រួតពិនិត្យ ហើយស្នើសុំអ្នកត្រួតពិនិត្យខាងក្រោមភ្លាមៗ។",
+    "agentCodeReviewers": "អ្នកត្រួតពិនិត្យ",
+    "agentCodeRemoveReviewer": "ដក {login} ចេញ",
+    "agentCodeNoReviewers": "គ្មាននរណាម្នាក់ទៀតអាចត្រួតពិនិត្យនៅក្នុងឃ្លាំងទាំងនេះទេ",
+    "agentCodeNoReviewersSet": "មិនទាន់មានអ្នកត្រួតពិនិត្យទេ។",
+    "agentCodeNeverMerge": "ភ្នាក់ងារមិនដែលបញ្ចូលគ្នា និងមិនដែលរុញទៅ {base} ឡើយ។ ការបញ្ចូលគ្នាតែងតែធ្វើដោយមនុស្ស។",
+    "agentCodeNeverMergeAny": "ភ្នាក់ងារមិនដែលបញ្ចូលគ្នា និងមិនដែលរុញទៅមែកធាងដែលដំណើរការចាប់ផ្ដើមពីឡើយ។ ការបញ្ចូលគ្នាតែងតែធ្វើដោយមនុស្ស។"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6030,7 +6106,18 @@
       "deleteStack": "លុបចង្កៀង",
       "stackedBy": "គូរចង្កៀងតាម",
       "chooseGroupingField": "ជ្រើសអន្តរាគមន៍ ក្រុម",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "បង្កើតវាលជ្រើសរើសតែមួយថ្មី",
+      "createUserField": "បង្កើតវាលអ្នកប្រើថ្មី",
+      "defaultStackToDo": "ត្រូវធ្វើ",
+      "defaultStackInProgress": "កំពុងដំណើរការ",
+      "defaultStackDone": "រួចរាល់",
+      "loadMoreStacks": "ផ្ទុកគំនរបន្ថែម",
+      "linkTypeNotStackable": "តំណច្រើនទៅមួយអាចបែងចែក kanban ជាគំនរបានតែពេលប្រភពទិន្នន័យរបស់តារាងជា PostgreSQL ប៉ុណ្ណោះ។ សូមប្រើវាលជ្រើសរើសតែមួយ វាលអ្នកប្រើ ឬតំណ belongs-to ជំនួសវិញ។",
+      "chooseStackField": "ជ្រើសរើសវាលសម្រាប់ដាក់ជាគំនរ",
+      "chooseStackFieldDesc": "ជ្រើសរើសវាលដែលបែងចែក board នេះជាគំនរ។ តម្លៃនីមួយៗរបស់វានឹងមានគំនររៀងៗខ្លួន។",
+      "createSingleSelectFieldHint": "ដើម្បីបង្ហាញស្ថានភាព ដំណាក់កាល ឬប្រភេទនៃកាតនីមួយៗ",
+      "createUserFieldHint": "ដើម្បីបង្ហាញអ្នកទទួលបន្ទុក ឬម្ចាស់នៃកាតនីមួយៗ"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6144,7 +6231,9 @@
     "invitePeopleCount": "អញ្ជើញ {count} នាក់ | អញ្ជើញ {count} នាក់",
     "inviteThemInstead": "អញ្ជើញពួកគេជំនួសវិញ",
     "blockUser": "ទប់ស្កាត់អ្នកប្រើប្រាស់",
-    "unblockUser": "ដកការទប់ស្កាត់អ្នកប្រើប្រាស់"
+    "unblockUser": "ដកការទប់ស្កាត់អ្នកប្រើប្រាស់",
+    "addDateRange": "បន្ថែមចន្លោះកាលបរិច្ឆេទ",
+    "searchComments": "ស្វែងរកក្នុងមតិយោបល់"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6388,7 +6477,9 @@
     "dataSourceReadOnly": "ប្រភពទិន្នន័យនេះអានបានតែប៉ុណ្ណោះ។",
     "mentionFields": "រៀបរាប់វាល",
     "skipEnabledAfterDelay": "នឹងបើកដំណើរការបន្ទាប់ពី 2 វិនាទី",
-    "clickToCopyDocumentId": "ចុចដើម្បីចម្លង ID ឯកសារ"
+    "clickToCopyDocumentId": "ចុចដើម្បីចម្លង ID ឯកសារ",
+    "workflowExecutionInterrupted": "ដំណើរការនេះបានឈប់ដោយមិនរំពឹងទុកនៅខាងយើង។ គ្មានអ្វីបាត់បង់ទេ។ សាកល្បងម្ដងទៀត ដើម្បីបន្តពីជំហានដែលវាឈប់។",
+    "workflowExecutionOnHold": "កម្មវិធីដែលលំហូរការងារនេះស្ថិតនៅក្នុង ត្រូវបានផ្អាក។ ដំណើរការនឹងបន្តពីកន្លែងដែលវាឈប់ ភ្លាមៗនៅពេលកម្មវិធីដំណើរការវិញ។"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8264,7 +8355,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "ការស្ដារឯកសារនេះត្រូវការសិទ្ធិកែសម្រួលលើវា",
+    "withSubPages": "(និងទំព័ររង {count}) | (និងទំព័ររង {count})"
   },
   "payment": {
     "credits": {
@@ -8637,7 +8730,29 @@
       "other": {
         "where": "បន្ថែមម៉ាស៊ីនមេ MCP ពីចម្ងាយនៅក្នុងកម្មវិធីអតិថិជនរបស់អ្នក ដោយប្រើព័ត៌មានទាំងនេះ៖",
         "auth": "ចាប់ផ្ដើមការតភ្ជាប់ពីកម្មវិធីអតិថិជនរបស់អ្នក។ NocoDB នឹងបើកក្នុងកម្មវិធីរុករក ដែលអ្នកចូល ជ្រើសរើសអ្វីដែលកម្មវិធីអតិថិជនអាចចូលប្រើ រួចជ្រើសរើស អនុញ្ញាត។"
+      },
+      "canDelete": "អាចលុបទិន្នន័យ ឬធ្វើសកម្មភាពនៅខាងក្រៅ NocoDB",
+      "lockedNotEditable": "កម្មវិធីនេះបានស្នើសុំសិទ្ធិទាំងនេះពេលចូល ហើយមិនអាចផ្លាស់ប្ដូរនៅទីនេះបានទេ។ ឧបករណ៍ជាជម្រើសរបស់វាអាចបិទបើកនៅខាងក្រោម។",
+      "copilot": {
+        "where": "នៅក្នុង VS Code សូមបើក Command Palette ដំណើរការ MCP: Add Server ហើយជ្រើសរើស HTTP។ បំពេញ៖",
+        "auth": "ពេល VS Code ស្នើឱ្យផ្ទៀងផ្ទាត់ NocoDB សូមជ្រើសរើស Allow។ ចូលទៅ NocoDB ក្នុងកម្មវិធីរុករក រួចជ្រើសរើស Authorize។"
       }
+    },
+    "discoveryNote": "{client} ប្រើឧបករណ៍ច្រើនបំផុត 100 ប៉ុណ្ណោះ ដូច្នេះ URL នេះរាយឧបករណ៍អានរបស់ NocoDB និងការសរសេរកំណត់ត្រាដោយផ្ទាល់ ហើយរកឧបករណ៍ដែលនៅសល់តាមការស្នើសុំ។",
+    "windsurf": {
+      "subtitle": "សម្រាប់ភ្នាក់ងារ Cascade នៅក្នុង Devin (ពីមុន Windsurf)។",
+      "addBody": "នៅក្នុង Devin (ពីមុន Windsurf) សូមបើក Settings › Cascade › MCP servers ជ្រើសរើស Add custom server ហើយបិទភ្ជាប់ URL នេះ៖",
+      "manualLabel": "បន្ថែមវានេះទៅ ~/.codeium/windsurf/mcp_config.json ៖",
+      "authBody": "ជ្រើសរើស Connect នៅជាប់ nocodb។ ចូលទៅ NocoDB ក្នុងកម្មវិធីរុករក ជ្រើសរើសអ្វីដែល Devin អាចចូលប្រើ និងឧបករណ៍ណាដែលវាអាចប្រើ រួចជ្រើសរើស Authorize។",
+      "tryBody": "បើក Cascade នៅក្នុង Devin ហើយសួរថា “List my NocoDB tools”។"
+    },
+    "copilot": {
+      "subtitle": "សម្រាប់ GitHub Copilot នៅក្នុង VS Code។",
+      "addBody": "ជ្រើសរើស {link} រួចជ្រើសរើស Install នៅពេល VS Code បើក។",
+      "addLink": "បន្ថែមទៅ VS Code",
+      "manualLabel": "បន្ថែមវានេះទៅ .vscode/mcp.json ឬដំណើរការ MCP: Open User Configuration ដើម្បីបន្ថែមវាសម្រាប់គ្រប់ workspace ៖",
+      "authBody": "ពេល VS Code ស្នើឱ្យផ្ទៀងផ្ទាត់ NocoDB សូមជ្រើសរើស Allow។ ចូលទៅ NocoDB ក្នុងកម្មវិធីរុករក ជ្រើសរើសអ្វីដែល Copilot អាចចូលប្រើ និងឧបករណ៍ណាដែលវាអាចប្រើ រួចជ្រើសរើស Authorize។",
+      "tryBody": "បើក Copilot Chat ក្នុងរបៀប Agent ហើយសួរថា “List my NocoDB tools”។"
     }
   },
   "roadmap": {

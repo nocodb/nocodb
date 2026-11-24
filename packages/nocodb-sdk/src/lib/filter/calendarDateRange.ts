@@ -3,6 +3,10 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import type { Dayjs } from 'dayjs';
 import { isDateTimeStringHasTimezone } from '~/lib/timezoneUtils';
+import {
+  CALENDAR_PERIOD_SUB_OPS,
+  DATE_RANGE_SUB_OP,
+} from '~/lib/parser/queryFilter/query-filter-ops';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -19,23 +23,9 @@ export const parseDateInTimezone = (value: string, tz: string): Dayjs => {
     : dayjs.tz(value, tz);
 };
 
-// `isWithin` sub-ops bounded by calendar periods, not rolling windows from today.
-export const CALENDAR_PERIOD_SUB_OPS = [
-  'thisCalendarWeek',
-  'thisCalendarMonth',
-  'thisCalendarYear',
-  'lastCalendarWeek',
-  'lastCalendarMonth',
-  'lastCalendarYear',
-  'nextCalendarWeek',
-  'nextCalendarMonth',
-  'nextCalendarYear',
-] as const;
+export { CALENDAR_PERIOD_SUB_OPS, DATE_RANGE_SUB_OP };
 
 export type CalendarPeriodSubOp = (typeof CALENDAR_PERIOD_SUB_OPS)[number];
-
-// `isWithin` + `dateRange`: value is "from,to" (dates), both days inclusive.
-export const DATE_RANGE_SUB_OP = 'dateRange' as const;
 
 export const isCalendarPeriodSubOp = (
   subOp: unknown

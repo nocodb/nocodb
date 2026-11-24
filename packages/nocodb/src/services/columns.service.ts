@@ -138,6 +138,7 @@ import {
   Model,
   RollupColumn,
   Script,
+  SelectOption,
   Source,
   User,
   View,
@@ -248,6 +249,48 @@ const hasDuplicateOptionTitles = (
   return compare.some(
     (item, _i, arr) => arr.indexOf(item) !== arr.lastIndexOf(item),
   );
+};
+
+// Read-only/synced selects may only change option color and order: titles map
+// to the data source (enum labels, stored cell values). Returns the styles to
+// write, or null when the payload carries no options.
+const getSelectStyleOnlyUpdates = (
+  context: NcContext,
+  column: Pick<Column, 'title'>,
+  stored: SelectOption[],
+  incoming?: { id?: string; title?: any; color?: string; status?: string }[],
+): Pick<SelectOption, 'id' | 'color' | 'order'>[] | null => {
+  if (!Array.isArray(incoming)) return null;
+
+  const active = incoming.filter((o) => o && o.status !== 'remove');
+  const storedById = new Map(stored.map((o) => [o.id, o]));
+  const storedByTitle = new Map(stored.map((o) => [o.title, o]));
+  const matched = new Set<string>();
+  const reject = () =>
+    NcError.get(context).badRequest(
+      `Options of field '${column.title}' can only be recoloured or reordered: the field is read-only or synced`,
+    );
+
+  const updates = active.map((o, i) => {
+    const title = o.title == null ? o.title : String(o.title);
+    const match = o.id ? storedById.get(o.id) : storedByTitle.get(title);
+    // an id-keyed option may omit its title
+    const titleChanged = title !== undefined && match?.title !== title;
+    if (!match || titleChanged || matched.has(match.id)) {
+      reject();
+    }
+    matched.add(match.id);
+    return { id: match.id, color: o.color || match.color, order: i + 1 };
+  });
+
+  if (matched.size !== stored.length) {
+    reject();
+  }
+
+  return updates.filter((u) => {
+    const prev = storedById.get(u.id);
+    return prev.color !== u.color || prev.order !== u.order;
+  });
 };
 
 // Select option titles must be strings — the SQL-building below relies on
@@ -1204,7 +1247,22 @@ export class ColumnsService implements IColumnsService {
       NcError.get(context).systemFieldNonModifiable();
     }
 
-    if (isSyncedColumn && payloadHasNonMetaProps) {
+    // Synced selects may still restyle options; getSelectStyleOnlyUpdates
+    // rejects anything beyond color/order.
+    const isSyncedSelectStyleProp = (k: string) =>
+      [UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt) &&
+      (k === 'colOptions' ||
+        (k === 'uidt' && (param.column.uidt ?? column.uidt) === column.uidt));
+
+    if (
+      isSyncedColumn &&
+      Object.keys(param.column).some(
+        (k) =>
+          !META_ONLY_COLUMN_PROPS.has(k) &&
+          !submittedPropIsUnchanged(k) &&
+          !isSyncedSelectStyleProp(k),
+      )
+    ) {
       NcError.get(context).invalidRequestBody(
         'Synced fields cannot be modified directly. Only meta and description are editable on synced columns.',
       );
@@ -1342,6 +1400,29 @@ export class ColumnsService implements IColumnsService {
     const isMetaOnlyUpdateAllowed =
       (source?.is_schema_readonly || isSyncedColumn) &&
       partialUpdateAllowedTypes.includes(column.uidt);
+
+    // Checked before anything below can issue DDL (e.g. native PG enum casts).
+    let selectStyleUpdates: Pick<SelectOption, 'id' | 'color' | 'order'>[] =
+      null;
+    if (
+      isMetaOnlyUpdateAllowed &&
+      [UITypes.SingleSelect, UITypes.MultiSelect].includes(column.uidt)
+    ) {
+      if (param.column.uidt && param.column.uidt !== column.uidt) {
+        NcError.get(context).notImplemented(
+          `Updating ${column.uidt} => ${param.column.uidt}`,
+        );
+      }
+      // The type is locked here; a null uidt would otherwise reach the 501 branch.
+      param.column.uidt ??= column.uidt;
+      selectStyleUpdates = getSelectStyleOnlyUpdates(
+        context,
+        column,
+        (await SelectOption.read(context, column.id)).options,
+        (param.column as { colOptions?: { options?: any[] } }).colOptions
+          ?.options,
+      );
+    }
     // check if source is readonly and column type is not allowed
     if (
       (source?.is_schema_readonly || isSyncedColumn) &&
@@ -2016,6 +2097,14 @@ export class ColumnsService implements IColumnsService {
             // specific" would delete the junction rows and silently revert the
             // column to updated_at — the exact leak degrade-to-NULL prevents.
             await this.persistLmtTrackedSet(context, param.columnId, colBody);
+          }
+
+          if (selectStyleUpdates?.length) {
+            await SelectOption.updateStyles(
+              context,
+              column,
+              selectStyleUpdates,
+            );
           }
 
           if (

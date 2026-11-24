@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "फारमहरूमा साइन इन अनिवार्य गर्न अपग्रेड गर्नुहोस्",
     "upgradeToUseFormRequireSigninSubtitle": "फारम पेस गर्नुअघि उत्तरदाताहरूलाई साइन इन गर्न अनिवार्य बनाउन {plan} योजनामा अपग्रेड गर्नुहोस्।",
     "upgradeToUseSso": "SSO प्रयोग गर्न अपग्रेड गर्नुहोस्",
-    "upgradeToUseSsoSubtitle": "एकल साइन-अन (SSO) सेटअप गर्न र तपाईंको टोलीलाई तपाईंको पहिचान प्रदायकमार्फत साइन इन गर्न दिन {plan} योजनामा अपग्रेड गर्नुहोस्।"
+    "upgradeToUseSsoSubtitle": "एकल साइन-अन (SSO) सेटअप गर्न र तपाईंको टोलीलाई तपाईंको पहिचान प्रदायकमार्फत साइन इन गर्न दिन {plan} योजनामा अपग्रेड गर्नुहोस्।",
+    "notifyOwnerToUpgrade": "कार्यक्षेत्रका मालिकलाई योजना स्तरवृद्धि गर्न जानकारी दिन क्लिक गर्नुहोस्।",
+    "comparePlans": "योजनाहरू तुलना गर्नुहोस्",
+    "workspaceOnPlan": "{workspace} {plan} मा छ",
+    "planMenuWith": "यससँग तपाईंले पाउने कुरा",
+    "planMenuRecordsStorage": "{records} रेकर्ड र {storage} GB भण्डारण",
+    "planMenuUnlimitedEditors": "असीमित सम्पादक",
+    "planMenuAutomationRuns": "महिनामा {runs} स्वचालन रन",
+    "planMenuApiCalls": "महिनामा {calls} API कल",
+    "planMenuSnapshots": "{count} स्न्यापसट",
+    "railPitch": "Plus ले तपाईंलाई {plusRecords} रेकर्ड र असीमित सम्पादक दिन्छ।",
+    "upgradeToPlan": "{plan} मा स्तरवृद्धि गर्नुहोस्",
+    "askAdminTitle": "तपाईंको इजाजतपत्रमा समावेश छैन",
+    "askAdminSubtitle": "इजाजतपत्र स्तरवृद्धि गर्न आफ्नो प्रशासकलाई भन्नुहोस् {detail}",
+    "askAdminSubtitleGeneric": "यो सुविधा तपाईंको हालको इजाजतपत्रमा छैन। स्तरवृद्धि गर्न आफ्नो प्रशासकलाई भन्नुहोस्।",
+    "notifyAdmin": "प्रशासकलाई जानकारी दिनुहोस्",
+    "adminNotified": "प्रशासकलाई जानकारी दिइयो",
+    "adminNotifiedSubtitle": "तपाईंको अनुरोध तपाईंको प्रशासकलाई पठाइयो।",
+    "adminAlreadyNotified": "प्रशासकलाई पहिले नै जानकारी दिइएको छ",
+    "adminAlreadyNotifiedSubtitle": "विगत २४ घण्टामा तपाईंको प्रशासकले यो अनुरोध पहिले नै प्राप्त गरिसक्नुभएको छ।",
+    "noAdminToNotify": "जानकारी दिन सक्रिय प्रशासक छैन। यो NocoDB इन्स्ट्यान्स सम्हाल्ने व्यक्तिलाई सम्पर्क गर्नुहोस्।",
+    "upgradeRequestDailyLimit": "आजका लागि तपाईंले अधिकतम सङ्ख्यामा स्तरवृद्धि अनुरोध पठाइसक्नुभयो। भोलि फेरि प्रयास गर्नुहोस्।",
+    "seatLimitTitle": "सिटको सीमा पुग्यो",
+    "licenseUpgradeRequested": "ले इजाजतपत्र स्तरवृद्धिको अनुरोध गर्नुभयो",
+    "forAddon": "{addon} एड-अनका लागि",
+    "seatLimitAdminSubtitle": "इजाजतपत्र भएका सबै {limit} सिट प्रयोगमा छन्। थप सम्पादक थप्न आफ्नो इजाजतपत्र स्तरवृद्धि गर्नुहोस्।",
+    "seatLimitMemberSubtitle": "इजाजतपत्र भएका सबै {limit} सिट प्रयोगमा छन्। थप सिट थप्न आफ्नो प्रशासकलाई भन्नुहोस्।"
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1206,13 +1232,13 @@
   },
   "datatype": {
     "ID": "आईडी",
-    "ForeignKey": "फरेन कि",
-    "SingleLineText": "सिंगल लाइन टेक्स्ट",
-    "LongText": "लामो टेक्स्ट",
+    "ForeignKey": "विदेशी कुञ्जी",
+    "SingleLineText": "एक हरफको पाठ",
+    "LongText": "लामो पाठ",
     "Attachment": "संलग्नक",
     "Checkbox": "चेकबक्स",
-    "MultiSelect": "बहु चयन गर्नुहोस्",
-    "SingleSelect": "एकल चयन गर्नुहोस्",
+    "MultiSelect": "बहु छनोट",
+    "SingleSelect": "एकल छनोट",
     "Collaborator": "सहयोगी",
     "Date": "मिति",
     "Year": "वर्ष",
@@ -1225,16 +1251,16 @@
     "Currency": "मुद्रा",
     "Percent": "प्रतिशत",
     "Duration": "अवधि",
-    "GeoData": "जियोडेटा",
+    "GeoData": "भौगोलिक डेटा",
     "Rating": "रेटिंग",
     "Formula": "सूत्र",
     "Rollup": "रोलअप",
     "Count": "गणना",
     "Lookup": "लुकअप",
-    "DateTime": "मिति समय",
-    "CreatedTime": "समय सिर्जना गर्नुहोस्",
-    "LastModifiedTime": "पछिल्लो मिति समय संशोधित गरिएको",
-    "AutoNumber": "स्वतः संख्या",
+    "DateTime": "मिति र समय",
+    "CreatedTime": "सिर्जना गरिएको समय",
+    "LastModifiedTime": "अन्तिम परिमार्जनको समय",
+    "AutoNumber": "स्वतः नम्बर",
     "Barcode": "बारकोड",
     "Button": "बटन",
     "Password": "पासवर्ड",
@@ -1244,7 +1270,25 @@
       "restrict": "प्रतिबन्धित गर्नुहोस्",
       "setNull": "SET NULL कायम गर्नुहोस्",
       "setDefault": "सेट डिफल्ट राख्नुहोस्"
-    }
+    },
+    "LinkToAnotherRecord": "अर्को रेकर्डसँग लिङ्क",
+    "Order": "क्रम",
+    "RichText": "सजाइएको पाठ",
+    "SmartText": "स्मार्ट पाठ",
+    "Colour": "रङ",
+    "Geometry": "ज्यामिति",
+    "JSON": "JSON",
+    "SpecificDBType": "निश्चित DB प्रकार",
+    "QrCode": "QR कोड",
+    "Links": "लिङ्कहरू",
+    "User": "प्रयोगकर्ता",
+    "CreatedBy": "कसले सिर्जना गर्‍यो",
+    "LastModifiedBy": "अन्तिम पटक कसले परिमार्जन गर्‍यो",
+    "Deleted": "मेटाइएको",
+    "Meta": "पङ्क्तिको मेटा डेटा",
+    "UUID": "UUID",
+    "AIButton": "AI बटन",
+    "AIPrompt": "AI पाठ"
   },
   "filterOperation": {
     "isEqual": "बराबर छ",
@@ -1291,7 +1335,17 @@
       "daysAgo": "कति दिन अघि",
       "daysFromNow": "आजबाट कति दिन पछि",
       "exactDate": "ठ्याक्कै मिति",
-      "exactMonth": "ठ्याक्कै महिना"
+      "exactMonth": "ठ्याक्कै महिना",
+      "thisCalendarWeek": "यो हप्ता",
+      "thisCalendarMonth": "यो महिना",
+      "thisCalendarYear": "यो वर्ष",
+      "lastCalendarWeek": "गत हप्ता",
+      "lastCalendarMonth": "गत महिना",
+      "lastCalendarYear": "गत वर्ष",
+      "nextCalendarWeek": "आउँदो हप्ता",
+      "nextCalendarMonth": "आउँदो महिना",
+      "nextCalendarYear": "आउँदो वर्ष",
+      "dateRange": "मिति दायरा"
     }
   },
   "title": {
@@ -5870,7 +5924,29 @@
     "workspaceNoAccess": "कार्यक्षेत्र (पहुँच छैन)",
     "yAxis": "Y अक्ष",
     "workspaceSettings": "कार्यक्षेत्र सेटिङहरू",
-    "wrapLongText": "लामो पाठ बेर्नुहोस्"
+    "wrapLongText": "लामो पाठ बेर्नुहोस्",
+    "agentAccessData": "तालिका र रेकर्ड",
+    "agentAccessDataHint": "पढाइले तिनलाई हेर्छ र क्वेरी गर्छ। सम्पादनले रेकर्ड बनाउँछ, बदल्छ, जोड्छ र मेटाउँछ पनि।",
+    "agentAccessDocs": "कागजातहरू",
+    "agentAccessDocsHint": "यो base का कागजात। सम्पादन दिएमा यसले तिनलाई बदल्न सक्छ।",
+    "agentAccessGithubHint": "आफ्ना रिपोजिटरीमा कोड पढ्छ, शाखा पुस गर्छ र पुल रिक्वेस्ट खोल्छ",
+    "agentAccessCustom": "यीमध्ये केही उपकरण एक-एक गरी छानिएका थिए। सबैलाई एकैपटक मिलाउन एउटा तह छान्नुहोस्।",
+    "agentAccessOf": "{what} मा पहुँच",
+    "agentCodeStartBranch": "यो शाखाबाट सुरु गर्नुहोस्",
+    "agentCodeStartBranchOf": "{repo} का रन सुरु हुने शाखा",
+    "agentCodeBranchName": "शाखाको नाम",
+    "agentCodeBranchNameHint": "हरेक रनले आफ्नै शाखा पाउँछ। {issue} र {slug} तपाईंका लागि भरिन्छन्।",
+    "agentCodePullRequests": "पुल रिक्वेस्ट",
+    "agentCodePrDraft": "मस्यौदा",
+    "agentCodePrReady": "समीक्षाका लागि तयार",
+    "agentCodePrDraftHint": "मस्यौदाका रूपमा खुल्छ। परीक्षण पास भएपछि समीक्षकलाई अनुरोध गरिन्छ।",
+    "agentCodePrReadyHint": "समीक्षाका लागि तयार भएर खुल्छ र तलका समीक्षकलाई तुरुन्तै अनुरोध गर्छ।",
+    "agentCodeReviewers": "समीक्षकहरू",
+    "agentCodeRemoveReviewer": "{login} हटाउनुहोस्",
+    "agentCodeNoReviewers": "यी रिपोजिटरीमा अरू कसैले समीक्षा गर्न सक्दैन",
+    "agentCodeNoReviewersSet": "अहिलेसम्म समीक्षक छैनन्।",
+    "agentCodeNeverMerge": "एजेन्टहरूले कहिल्यै मर्ज गर्दैनन् र {base} मा कहिल्यै पुस गर्दैनन्। मर्ज सधैँ मान्छेले गर्छ।",
+    "agentCodeNeverMergeAny": "एजेन्टहरूले कहिल्यै मर्ज गर्दैनन् र रन सुरु हुने शाखामा कहिल्यै पुस गर्दैनन्। मर्ज सधैँ मान्छेले गर्छ।"
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6062,7 +6138,18 @@
       "deleteStack": "स्ट्याक हटाउनुहोस्",
       "stackedBy": "द्वारा स्ट्याक गरिएको",
       "chooseGroupingField": "समूहबद्ध गर्ने फिल्ड छान्नुहोस्",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "नयाँ एकल छनोट फाँट बनाउनुहोस्",
+      "createUserField": "नयाँ प्रयोगकर्ता फाँट बनाउनुहोस्",
+      "defaultStackToDo": "गर्नुपर्ने",
+      "defaultStackInProgress": "भइरहेको",
+      "defaultStackDone": "सकियो",
+      "loadMoreStacks": "थप थुप्रो लोड गर्नुहोस्",
+      "linkTypeNotStackable": "तालिकाको डेटा स्रोत PostgreSQL भएमा मात्र धेरै-देखि-एक लिङ्कले kanban लाई थुप्रोमा बाँड्न सक्छ। यसको सट्टा एकल छनोट फाँट, प्रयोगकर्ता फाँट वा belongs-to लिङ्कका आधारमा बाँड्नुहोस्।",
+      "chooseStackField": "थुप्रो बनाउने फाँट छान्नुहोस्",
+      "chooseStackFieldDesc": "यो board लाई थुप्रोमा बाँड्ने फाँट छान्नुहोस्। त्यसको प्रत्येक मानले आफ्नै थुप्रो पाउँछ।",
+      "createSingleSelectFieldHint": "प्रत्येक कार्डको स्थिति, चरण वा प्रकार देखाउन",
+      "createUserFieldHint": "प्रत्येक कार्डको जिम्मेवार व्यक्ति वा मालिक देखाउन"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6176,7 +6263,9 @@
     "invitePeopleCount": "{count} जनालाई निमन्त्रणा गर्नुहोस् | {count} जनालाई निमन्त्रणा गर्नुहोस्",
     "inviteThemInstead": "बरु उनीहरूलाई निमन्त्रणा गर्नुहोस्",
     "blockUser": "प्रयोगकर्तालाई ब्लक गर्नुहोस्",
-    "unblockUser": "प्रयोगकर्ताको ब्लक हटाउनुहोस्"
+    "unblockUser": "प्रयोगकर्ताको ब्लक हटाउनुहोस्",
+    "addDateRange": "मिति दायरा थप्नुहोस्",
+    "searchComments": "टिप्पणीहरूमा खोज्नुहोस्"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6420,7 +6509,9 @@
     "dataSourceReadOnly": "यो डेटा स्रोत पढ्न मात्र मिल्छ।",
     "mentionFields": "फिल्ड उल्लेख गर्नुहोस्",
     "skipEnabledAfterDelay": "2 सेकेन्डपछि सक्रिय हुनेछ",
-    "clickToCopyDocumentId": "कागजातको ID प्रतिलिपि गर्न क्लिक गर्नुहोस्"
+    "clickToCopyDocumentId": "कागजातको ID प्रतिलिपि गर्न क्लिक गर्नुहोस्",
+    "workflowExecutionInterrupted": "यो रन हाम्रो तर्फबाट अप्रत्याशित रूपमा रोकियो। केही पनि हराएको छैन। रोकिएकै चरणबाट अघि बढाउन फेरि प्रयास गर्नुहोस्।",
+    "workflowExecutionOnHold": "यो कार्यप्रवाह रहेको एप निलम्बित छ। एप फर्केपछि रन रोकिएकै ठाउँबाट जारी हुनेछ।"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8298,7 +8389,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "यो कागजात पुनर्स्थापना गर्न त्यसमा सम्पादन पहुँच चाहिन्छ",
+    "withSubPages": "(र {count} उपपृष्ठ) | (र {count} उपपृष्ठ)"
   },
   "payment": {
     "credits": {
@@ -8671,7 +8764,29 @@
       "other": {
         "where": "आफ्नो क्लाइन्टमा यी विवरणसहित टाढाको MCP सर्भर थप्नुहोस्:",
         "auth": "आफ्नो क्लाइन्टबाट जडान सुरु गर्नुहोस्। ब्राउजरमा NocoDB खुल्छ, जहाँ तपाईं साइन इन गर्नुहुन्छ, क्लाइन्टले केमा पहुँच पाउने हो छान्नुहुन्छ र अधिकृत गर्नुहोस् छान्नुहुन्छ।"
+      },
+      "canDelete": "डेटा मेटाउन वा NocoDB बाहिर काम गर्न सक्छ",
+      "lockedNotEditable": "यो एपले साइन इन गर्दा नै यी अनुमति मागेको थियो र तिनलाई यहाँ बदल्न मिल्दैन। यसका ऐच्छिक उपकरण तल खोल्न वा बन्द गर्न सकिन्छ।",
+      "copilot": {
+        "where": "VS Code मा Command Palette खोल्नुहोस्, MCP: Add Server चलाउनुहोस् र HTTP छान्नुहोस्। भर्नुहोस्:",
+        "auth": "VS Code ले NocoDB प्रमाणित गर्न भनेपछि Allow छान्नुहोस्। ब्राउजरमा NocoDB मा साइन इन गरेर Authorize छान्नुहोस्।"
       }
+    },
+    "discoveryNote": "{client} ले बढीमा १०० उपकरण प्रयोग गर्छ, त्यसैले यो URL ले NocoDB का पढ्ने उपकरण र रेकर्ड लेखन सीधै सूचीबद्ध गर्छ र बाँकी माग अनुसार खोज्छ।",
+    "windsurf": {
+      "subtitle": "Devin (पहिले Windsurf) को Cascade एजेन्टका लागि।",
+      "addBody": "Devin (पहिले Windsurf) मा Settings › Cascade › MCP servers खोल्नुहोस्, Add custom server छान्नुहोस् र यो URL टाँस्नुहोस्:",
+      "manualLabel": "यो ~/.codeium/windsurf/mcp_config.json मा थप्नुहोस्:",
+      "authBody": "nocodb को छेउमा रहेको Connect छान्नुहोस्। ब्राउजरमा NocoDB मा साइन इन गर्नुहोस्, Devin ले कुनमा पहुँच पाउने र कुन उपकरण प्रयोग गर्न पाउने छान्नुहोस्, त्यसपछि Authorize छान्नुहोस्।",
+      "tryBody": "Devin मा Cascade खोल्नुहोस् र “List my NocoDB tools” भनेर सोध्नुहोस्।"
+    },
+    "copilot": {
+      "subtitle": "VS Code मा GitHub Copilot का लागि।",
+      "addBody": "{link} छान्नुहोस्, त्यसपछि VS Code खुलेपछि Install छान्नुहोस्।",
+      "addLink": "VS Code मा थप्नुहोस्",
+      "manualLabel": "यो .vscode/mcp.json मा थप्नुहोस्, वा हरेक workspace का लागि थप्न MCP: Open User Configuration चलाउनुहोस्:",
+      "authBody": "VS Code ले NocoDB प्रमाणित गर्न भनेपछि Allow छान्नुहोस्। ब्राउजरमा NocoDB मा साइन इन गर्नुहोस्, Copilot ले कुनमा पहुँच पाउने र कुन उपकरण प्रयोग गर्न पाउने छान्नुहोस्, त्यसपछि Authorize छान्नुहोस्।",
+      "tryBody": "Copilot Chat लाई Agent मोडमा खोल्नुहोस् र “List my NocoDB tools” भनेर सोध्नुहोस्।"
     }
   },
   "roadmap": {

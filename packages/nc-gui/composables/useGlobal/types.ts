@@ -60,6 +60,7 @@ export interface AppInfo {
   giftUrl: string
   feedEnabled: boolean
   sentryDSN: string
+  sentryEnvironment: string | null
   isOnPrem: boolean
   licenseServerUrl?: string
   isPostgres: boolean

@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "برای الزامی کردن ورود در فرم‌ها ارتقا دهید",
     "upgradeToUseFormRequireSigninSubtitle": "برای الزامی کردن ورود پاسخ‌دهندگان پیش از ارسال فرم، به پلن {plan} ارتقا دهید.",
     "upgradeToUseSso": "برای استفاده از SSO ارتقا دهید",
-    "upgradeToUseSsoSubtitle": "برای راه‌اندازی ورود یکپارچه (SSO) و اجازه ورود تیم شما با ارائه‌دهنده هویت خود، به طرح {plan} ارتقا دهید."
+    "upgradeToUseSsoSubtitle": "برای راه‌اندازی ورود یکپارچه (SSO) و اجازه ورود تیم شما با ارائه‌دهنده هویت خود، به طرح {plan} ارتقا دهید.",
+    "notifyOwnerToUpgrade": "کلیک کنید تا به مالک فضای کاری برای ارتقای طرح اطلاع داده شود.",
+    "comparePlans": "مقایسه طرح‌ها",
+    "workspaceOnPlan": "{workspace} روی {plan} است",
+    "planMenuWith": "با این طرح چه چیزی به دست می‌آورید",
+    "planMenuRecordsStorage": "{records} رکورد و {storage} گیگابایت فضای ذخیره‌سازی",
+    "planMenuUnlimitedEditors": "ویرایشگران نامحدود",
+    "planMenuAutomationRuns": "{runs} اجرای خودکارسازی در ماه",
+    "planMenuApiCalls": "{calls} فراخوانی API در ماه",
+    "planMenuSnapshots": "{count} عکس لحظه‌ای",
+    "railPitch": "طرح Plus به شما {plusRecords} رکورد و ویرایشگران نامحدود می‌دهد.",
+    "upgradeToPlan": "ارتقا به {plan}",
+    "askAdminTitle": "در مجوز شما گنجانده نشده است",
+    "askAdminSubtitle": "از مدیر خود بخواهید مجوز را ارتقا دهد {detail}",
+    "askAdminSubtitleGeneric": "این قابلیت در مجوز فعلی شما گنجانده نشده است. از مدیر خود بخواهید آن را ارتقا دهد.",
+    "notifyAdmin": "اطلاع به مدیر",
+    "adminNotified": "مدیر مطلع شد",
+    "adminNotifiedSubtitle": "درخواست شما برای مدیرتان ارسال شد.",
+    "adminAlreadyNotified": "مدیر قبلاً مطلع شده است",
+    "adminAlreadyNotifiedSubtitle": "مدیر شما این درخواست را در ۲۴ ساعت گذشته دریافت کرده است.",
+    "noAdminToNotify": "مدیر فعالی برای اطلاع‌رسانی وجود ندارد. با کسی که این نمونه NocoDB را مدیریت می‌کند تماس بگیرید.",
+    "upgradeRequestDailyLimit": "امروز حداکثر تعداد درخواست ارتقا را ارسال کرده‌اید. فردا دوباره تلاش کنید.",
+    "seatLimitTitle": "به سقف صندلی‌ها رسیدید",
+    "licenseUpgradeRequested": "درخواست ارتقای مجوز داده است",
+    "forAddon": "برای افزونه {addon}",
+    "seatLimitAdminSubtitle": "هر {limit} صندلی دارای مجوز در حال استفاده است. برای افزودن ویرایشگر بیشتر، مجوز خود را ارتقا دهید.",
+    "seatLimitMemberSubtitle": "هر {limit} صندلی دارای مجوز در حال استفاده است. از مدیر خود بخواهید صندلی بیشتری اضافه کند."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1208,11 +1234,11 @@
     "ID": "شناسه (ID)",
     "ForeignKey": "کلید خارجی",
     "SingleLineText": "متن تک‌خطی",
-    "LongText": "متن طولانی",
+    "LongText": "متن بلند",
     "Attachment": "پیوست",
     "Checkbox": "چک‌باکس",
-    "MultiSelect": "چندگزینه‌ای",
-    "SingleSelect": "تک‌گزینه‌ای",
+    "MultiSelect": "انتخاب چندگانه",
+    "SingleSelect": "انتخاب تکی",
     "Collaborator": "همکار",
     "Date": "تاریخ",
     "Year": "سال",
@@ -1232,8 +1258,8 @@
     "Count": "شمردن",
     "Lookup": "جست‌وجو",
     "DateTime": "تاریخ و زمان",
-    "CreatedTime": "ایجاد زمان",
-    "LastModifiedTime": "زمان آخرین اصلاح",
+    "CreatedTime": "زمان ایجاد",
+    "LastModifiedTime": "زمان آخرین تغییر",
     "AutoNumber": "شماره خودکار",
     "Barcode": "بارکد",
     "Button": "دکمه",
@@ -1244,7 +1270,25 @@
       "restrict": "محدود کردن",
       "setNull": "تهی قرار دادن",
       "setDefault": "تنظیم پیش‌فرض"
-    }
+    },
+    "LinkToAnotherRecord": "پیوند به رکورد دیگر",
+    "Order": "ترتیب",
+    "RichText": "متن قالب‌بندی‌شده",
+    "SmartText": "متن هوشمند",
+    "Colour": "رنگ",
+    "Geometry": "هندسه",
+    "JSON": "JSON",
+    "SpecificDBType": "نوع پایگاه داده مشخص",
+    "QrCode": "کد QR",
+    "Links": "پیوندها",
+    "User": "کاربر",
+    "CreatedBy": "ایجادشده توسط",
+    "LastModifiedBy": "آخرین تغییر توسط",
+    "Deleted": "حذف‌شده",
+    "Meta": "فراداده ردیف",
+    "UUID": "UUID",
+    "AIButton": "دکمه هوش مصنوعی",
+    "AIPrompt": "متن هوش مصنوعی"
   },
   "filterOperation": {
     "isEqual": "برابر هستند",
@@ -1291,7 +1335,17 @@
       "daysAgo": "تعداد روز پیش",
       "daysFromNow": "تعداد روز از امروز",
       "exactDate": "تاریخ دقیق",
-      "exactMonth": "ماه دقیق"
+      "exactMonth": "ماه دقیق",
+      "thisCalendarWeek": "این هفته",
+      "thisCalendarMonth": "این ماه",
+      "thisCalendarYear": "امسال",
+      "lastCalendarWeek": "هفته گذشته",
+      "lastCalendarMonth": "ماه گذشته",
+      "lastCalendarYear": "سال گذشته",
+      "nextCalendarWeek": "هفته آینده",
+      "nextCalendarMonth": "ماه آینده",
+      "nextCalendarYear": "سال آینده",
+      "dateRange": "بازه تاریخ"
     }
   },
   "title": {
@@ -5872,7 +5926,29 @@
     "workspaceNoAccess": "فضای کار (بدون دسترسی)",
     "yAxis": "محور Y",
     "workspaceSettings": "تنظیمات فضای کار",
-    "wrapLongText": "شکستن متن بلند"
+    "wrapLongText": "شکستن متن بلند",
+    "agentAccessData": "جدول‌ها و رکوردها",
+    "agentAccessDataHint": "خواندن آن‌ها را مرور و جست‌وجو می‌کند. ویرایش علاوه بر آن رکوردها را ایجاد، تغییر، پیوند و حذف می‌کند.",
+    "agentAccessDocs": "سندها",
+    "agentAccessDocsHint": "سندهای این base. با ویرایش می‌تواند آن‌ها را تغییر دهد.",
+    "agentAccessGithubHint": "در مخزن‌های خود کد می‌خواند، شاخه‌ها را ارسال می‌کند و درخواست ادغام باز می‌کند",
+    "agentAccessCustom": "برخی از این ابزارها یکی‌یکی انتخاب شده‌اند. یک سطح انتخاب کنید تا همه با هم تنظیم شوند.",
+    "agentAccessOf": "دسترسی به {what}",
+    "agentCodeStartBranch": "شروع از شاخه",
+    "agentCodeStartBranchOf": "شاخه‌ای که اجراهای {repo} از آن آغاز می‌شوند",
+    "agentCodeBranchName": "نام شاخه",
+    "agentCodeBranchNameHint": "هر اجرا شاخه خودش را می‌گیرد. {issue} و {slug} برای شما پر می‌شوند.",
+    "agentCodePullRequests": "درخواست‌های ادغام",
+    "agentCodePrDraft": "پیش‌نویس",
+    "agentCodePrReady": "آماده بازبینی",
+    "agentCodePrDraftHint": "به‌صورت پیش‌نویس باز می‌شود. پس از موفقیت آزمون‌ها از بازبینی‌کننده‌ها درخواست می‌شود.",
+    "agentCodePrReadyHint": "آماده بازبینی باز می‌شود و بی‌درنگ از بازبینی‌کننده‌های زیر درخواست می‌کند.",
+    "agentCodeReviewers": "بازبینی‌کننده‌ها",
+    "agentCodeRemoveReviewer": "حذف {login}",
+    "agentCodeNoReviewers": "هیچ‌کس دیگری نمی‌تواند در این مخزن‌ها بازبینی کند",
+    "agentCodeNoReviewersSet": "هنوز بازبینی‌کننده‌ای نیست.",
+    "agentCodeNeverMerge": "عامل‌ها هرگز ادغام نمی‌کنند و هرگز به {base} ارسال نمی‌کنند. ادغام را همیشه یک انسان انجام می‌دهد.",
+    "agentCodeNeverMergeAny": "عامل‌ها هرگز ادغام نمی‌کنند و هرگز به شاخه‌ای که اجرا از آن آغاز می‌شود ارسال نمی‌کنند. ادغام را همیشه یک انسان انجام می‌دهد."
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6064,7 +6140,18 @@
       "deleteStack": "حذف دسته",
       "stackedBy": "دسته‌بندی با",
       "chooseGroupingField": "انتخاب فیلد گروه‌بندی",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "ایجاد فیلد انتخاب تکی جدید",
+      "createUserField": "ایجاد فیلد کاربر جدید",
+      "defaultStackToDo": "برای انجام",
+      "defaultStackInProgress": "در حال انجام",
+      "defaultStackDone": "انجام‌شده",
+      "loadMoreStacks": "بارگذاری دسته‌های بیشتر",
+      "linkTypeNotStackable": "پیوند چند‌به‌یک تنها زمانی می‌تواند یک kanban را به دسته‌ها تقسیم کند که منبع داده جدول PostgreSQL باشد. به‌جای آن بر اساس فیلد انتخاب تکی، فیلد کاربر یا پیوند متعلق‌به دسته‌بندی کنید.",
+      "chooseStackField": "یک فیلد برای دسته‌بندی انتخاب کنید",
+      "chooseStackFieldDesc": "فیلدی را انتخاب کنید که این board را به دسته‌ها تقسیم می‌کند. هر مقدار آن دسته خودش را می‌گیرد.",
+      "createSingleSelectFieldHint": "برای نمایش وضعیت، مرحله یا نوع هر کارت",
+      "createUserFieldHint": "برای نمایش مسئول یا مالک هر کارت"
     },
     "map": {
       "googleMaps": "گوگل‌مپ",
@@ -6178,7 +6265,9 @@
     "invitePeopleCount": "دعوت از {count} نفر | دعوت از {count} نفر",
     "inviteThemInstead": "در عوض آن‌ها را دعوت کنید",
     "blockUser": "مسدود کردن کاربر",
-    "unblockUser": "رفع مسدودیت کاربر"
+    "unblockUser": "رفع مسدودیت کاربر",
+    "addDateRange": "افزودن بازه تاریخ",
+    "searchComments": "جست‌وجو در نظرها"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6422,7 +6511,9 @@
     "dataSourceReadOnly": "این منبع داده فقط خواندنی است.",
     "mentionFields": "ذکر فیلدها",
     "skipEnabledAfterDelay": "پس از 2 ثانیه فعال می‌شود",
-    "clickToCopyDocumentId": "برای کپی شناسه سند کلیک کنید"
+    "clickToCopyDocumentId": "برای کپی شناسه سند کلیک کنید",
+    "workflowExecutionInterrupted": "این اجرا به‌طور غیرمنتظره از سمت ما متوقف شد. چیزی از دست نرفته است. دوباره تلاش کنید تا از همان مرحله ادامه یابد.",
+    "workflowExecutionOnHold": "برنامه‌ای که این گردش کار به آن تعلق دارد معلق شده است. به‌محض بازگشت برنامه، اجرا از همان‌جا که متوقف شده ادامه می‌یابد."
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8300,7 +8391,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "بازیابی این سند نیازمند دسترسی ویرایش به آن است",
+    "withSubPages": "(و {count} زیرصفحه) | (و {count} زیرصفحه)"
   },
   "payment": {
     "credits": {
@@ -8673,7 +8766,29 @@
       "other": {
         "where": "در کلاینت خود یک سرور MCP راه دور با این مشخصات اضافه کنید:",
         "auth": "اتصال را از کلاینت خود آغاز کنید. NocoDB در مرورگر باز می‌شود؛ آنجا وارد می‌شوید، انتخاب می‌کنید کلاینت به چه چیزی دسترسی داشته باشد و تأیید را انتخاب می‌کنید."
+      },
+      "canDelete": "می‌تواند داده‌ها را حذف کند یا بیرون از NocoDB عمل کند",
+      "lockedNotEditable": "این برنامه هنگام ورود این مجوزها را درخواست کرده و اینجا قابل تغییر نیستند. ابزارهای اختیاری آن را می‌توانید پایین‌تر روشن یا خاموش کنید.",
+      "copilot": {
+        "where": "در VS Code، Command Palette را باز کنید، MCP: Add Server را اجرا کنید و HTTP را انتخاب کنید. تکمیل کنید:",
+        "auth": "وقتی VS Code برای احراز هویت NocoDB درخواست داد، Allow را انتخاب کنید. در مرورگر به NocoDB وارد شوید و Authorize را انتخاب کنید."
       }
+    },
+    "discoveryNote": "{client} حداکثر از ۱۰۰ ابزار استفاده می‌کند، بنابراین این URL ابزارهای خواندن و نوشتن رکورد NocoDB را مستقیماً فهرست می‌کند و بقیه را در صورت درخواست پیدا می‌کند.",
+    "windsurf": {
+      "subtitle": "برای عامل Cascade در Devin (پیش‌تر Windsurf).",
+      "addBody": "در Devin (پیش‌تر Windsurf)، به Settings › Cascade › MCP servers بروید، Add custom server را انتخاب کنید و این URL را بچسبانید:",
+      "manualLabel": "این را به ‎~/.codeium/windsurf/mcp_config.json اضافه کنید:",
+      "authBody": "کنار nocodb گزینه Connect را انتخاب کنید. در مرورگر به NocoDB وارد شوید، انتخاب کنید Devin به چه چیزی دسترسی داشته باشد و چه ابزارهایی را بتواند استفاده کند، سپس Authorize را انتخاب کنید.",
+      "tryBody": "Cascade را در Devin باز کنید و بپرسید «List my NocoDB tools»."
+    },
+    "copilot": {
+      "subtitle": "برای GitHub Copilot در VS Code.",
+      "addBody": "{link} را انتخاب کنید، سپس وقتی VS Code باز شد Install را انتخاب کنید.",
+      "addLink": "افزودن به VS Code",
+      "manualLabel": "این را به ‎.vscode/mcp.json اضافه کنید، یا MCP: Open User Configuration را اجرا کنید تا برای همه workspace‌ها افزوده شود:",
+      "authBody": "وقتی VS Code برای احراز هویت NocoDB درخواست داد، Allow را انتخاب کنید. در مرورگر به NocoDB وارد شوید، انتخاب کنید Copilot به چه چیزی دسترسی داشته باشد و چه ابزارهایی را بتواند استفاده کند، سپس Authorize را انتخاب کنید.",
+      "tryBody": "Copilot Chat را در حالت Agent باز کنید و بپرسید «List my NocoDB tools»."
     }
   },
   "roadmap": {

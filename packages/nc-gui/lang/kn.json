@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "ಫಾರ್ಮ್‌ಗಳಲ್ಲಿ ಸೈನ್ ಇನ್ ಕಡ್ಡಾಯಗೊಳಿಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
     "upgradeToUseFormRequireSigninSubtitle": "ಫಾರ್ಮ್ ಸಲ್ಲಿಸುವ ಮೊದಲು ಪ್ರತಿಕ್ರಿಯೆದಾರರು ಸೈನ್ ಇನ್ ಮಾಡುವುದನ್ನು ಕಡ್ಡಾಯಗೊಳಿಸಲು {plan} ಪ್ಲ್ಯಾನ್‌ಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseSso": "SSO ಬಳಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
-    "upgradeToUseSsoSubtitle": "ಏಕೀಕೃತ ಸೈನ್-ಆನ್ (SSO) ಹೊಂದಿಸಲು ಮತ್ತು ನಿಮ್ಮ ತಂಡವು ನಿಮ್ಮ ಗುರುತಿನ ಪೂರೈಕೆದಾರರ ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ."
+    "upgradeToUseSsoSubtitle": "ಏಕೀಕೃತ ಸೈನ್-ಆನ್ (SSO) ಹೊಂದಿಸಲು ಮತ್ತು ನಿಮ್ಮ ತಂಡವು ನಿಮ್ಮ ಗುರುತಿನ ಪೂರೈಕೆದಾರರ ಮೂಲಕ ಸೈನ್ ಇನ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
+    "notifyOwnerToUpgrade": "ಯೋಜನೆಯನ್ನು ಉನ್ನತೀಕರಿಸುವಂತೆ ಕಾರ್ಯಕ್ಷೇತ್ರದ ಮಾಲೀಕರಿಗೆ ತಿಳಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ.",
+    "comparePlans": "ಯೋಜನೆಗಳನ್ನು ಹೋಲಿಸಿ",
+    "workspaceOnPlan": "{workspace} {plan} ನಲ್ಲಿದೆ",
+    "planMenuWith": "ಇದರೊಂದಿಗೆ ನಿಮಗೆ ಸಿಗುವುದು",
+    "planMenuRecordsStorage": "{records} ದಾಖಲೆಗಳು ಮತ್ತು {storage} GB ಸಂಗ್ರಹಣೆ",
+    "planMenuUnlimitedEditors": "ಅಮಿತ ಸಂಪಾದಕರು",
+    "planMenuAutomationRuns": "ತಿಂಗಳಿಗೆ {runs} ಸ್ವಯಂಚಾಲನೆ ಚಾಲನೆಗಳು",
+    "planMenuApiCalls": "ತಿಂಗಳಿಗೆ {calls} API ಕರೆಗಳು",
+    "planMenuSnapshots": "{count} ಸ್ನ್ಯಾಪ್‌ಶಾಟ್‌ಗಳು",
+    "railPitch": "Plus ನಿಮಗೆ {plusRecords} ದಾಖಲೆಗಳನ್ನು ಮತ್ತು ಅಮಿತ ಸಂಪಾದಕರನ್ನು ನೀಡುತ್ತದೆ.",
+    "upgradeToPlan": "{plan} ಗೆ ಉನ್ನತೀಕರಿಸಿ",
+    "askAdminTitle": "ನಿಮ್ಮ ಪರವಾನಗಿಯಲ್ಲಿ ಇಲ್ಲ",
+    "askAdminSubtitle": "ಪರವಾನಗಿಯನ್ನು ಉನ್ನತೀಕರಿಸಲು ನಿಮ್ಮ ನಿರ್ವಾಹಕರನ್ನು ಕೇಳಿ {detail}",
+    "askAdminSubtitleGeneric": "ಈ ವೈಶಿಷ್ಟ್ಯ ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಪರವಾನಗಿಯಲ್ಲಿ ಇಲ್ಲ. ಉನ್ನತೀಕರಿಸಲು ನಿಮ್ಮ ನಿರ್ವಾಹಕರನ್ನು ಕೇಳಿ.",
+    "notifyAdmin": "ನಿರ್ವಾಹಕರಿಗೆ ತಿಳಿಸಿ",
+    "adminNotified": "ನಿರ್ವಾಹಕರಿಗೆ ತಿಳಿಸಲಾಗಿದೆ",
+    "adminNotifiedSubtitle": "ನಿಮ್ಮ ವಿನಂತಿಯನ್ನು ನಿಮ್ಮ ನಿರ್ವಾಹಕರಿಗೆ ಕಳುಹಿಸಲಾಗಿದೆ.",
+    "adminAlreadyNotified": "ನಿರ್ವಾಹಕರಿಗೆ ಈಗಾಗಲೇ ತಿಳಿಸಲಾಗಿದೆ",
+    "adminAlreadyNotifiedSubtitle": "ಕಳೆದ 24 ಗಂಟೆಗಳಲ್ಲಿ ನಿಮ್ಮ ನಿರ್ವಾಹಕರಿಗೆ ಈ ವಿನಂತಿ ಈಗಾಗಲೇ ತಲುಪಿದೆ.",
+    "noAdminToNotify": "ತಿಳಿಸಲು ಸಕ್ರಿಯ ನಿರ್ವಾಹಕರು ಯಾರೂ ಇಲ್ಲ. ಈ NocoDB ನಿದರ್ಶನವನ್ನು ನಿರ್ವಹಿಸುವವರನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+    "upgradeRequestDailyLimit": "ಇಂದಿನ ಗರಿಷ್ಠ ಸಂಖ್ಯೆಯ ಉನ್ನತೀಕರಣ ವಿನಂತಿಗಳನ್ನು ನೀವು ಕಳುಹಿಸಿದ್ದೀರಿ. ನಾಳೆ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "seatLimitTitle": "ಸ್ಥಾನಗಳ ಮಿತಿ ತಲುಪಿದೆ",
+    "licenseUpgradeRequested": "ಪರವಾನಗಿ ಉನ್ನತೀಕರಣಕ್ಕೆ ವಿನಂತಿಸಿದ್ದಾರೆ",
+    "forAddon": "{addon} ಆಡ್-ಆನ್‌ಗಾಗಿ",
+    "seatLimitAdminSubtitle": "ಪರವಾನಗಿ ಹೊಂದಿದ ಎಲ್ಲಾ {limit} ಸ್ಥಾನಗಳು ಬಳಕೆಯಲ್ಲಿವೆ. ಹೆಚ್ಚು ಸಂಪಾದಕರನ್ನು ಸೇರಿಸಲು ನಿಮ್ಮ ಪರವಾನಗಿಯನ್ನು ಉನ್ನತೀಕರಿಸಿ.",
+    "seatLimitMemberSubtitle": "ಪರವಾನಗಿ ಹೊಂದಿದ ಎಲ್ಲಾ {limit} ಸ್ಥಾನಗಳು ಬಳಕೆಯಲ್ಲಿವೆ. ಹೆಚ್ಚು ಸ್ಥಾನಗಳನ್ನು ಸೇರಿಸಲು ನಿಮ್ಮ ನಿರ್ವಾಹಕರನ್ನು ಕೇಳಿ."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1206,13 +1232,13 @@
   },
   "datatype": {
     "ID": "ಐಡಿ",
-    "ForeignKey": "ವಿದೇಶಿ ಕೀ",
-    "SingleLineText": "ಒಂದು ಸಾಲಿಗೆಯ ಪಠ್ಯ",
-    "LongText": "ದೈರ್ಘ್ಯದ ಪಠ್ಯ",
+    "ForeignKey": "ವಿದೇಶಿ ಕೀಲಿ",
+    "SingleLineText": "ಒಂದು ಸಾಲಿನ ಪಠ್ಯ",
+    "LongText": "ಉದ್ದ ಪಠ್ಯ",
     "Attachment": "ಲಗತ್ತಿಕೆ",
     "Checkbox": "ಚೆಕ್ಕುಬಾಕ್ಸ್",
     "MultiSelect": "ಬಹು ಆಯ್ಕೆ",
-    "SingleSelect": "ಒಂದು ಆಯ್ಕೆ",
+    "SingleSelect": "ಏಕ ಆಯ್ಕೆ",
     "Collaborator": "ಸಹಾಶ್ರಯಿ",
     "Date": "ದಿನಾಂಕ",
     "Year": "ವರ್ಷ",
@@ -1225,15 +1251,15 @@
     "Currency": "ಕರೆನ್ಸಿ",
     "Percent": "ಶೇಕಡಾವಾರು",
     "Duration": "ಅವಧಿ",
-    "GeoData": "ಜಿಯೋಡಾಟಾ",
+    "GeoData": "ಭೌಗೋಳಿಕ ದತ್ತಾಂಶ",
     "Rating": "ರೇಟಿಂಗ್",
     "Formula": "ಸೂತ್ರ",
     "Rollup": "ರೋಲಪ್",
     "Count": "ಎಣಿಕೆ",
     "Lookup": "ಲೂಕಪ್",
-    "DateTime": "ದಿನಾಂಕ - ಸಮಯ",
-    "CreatedTime": "ಸೃಷ್ಟಿಸಿದ ಸಮಯ",
-    "LastModifiedTime": "ಕೊನೆಯ ತಿದ್ದುப்படಿಸಿದ ಸಮಯ",
+    "DateTime": "ದಿನಾಂಕ ಮತ್ತು ಸಮಯ",
+    "CreatedTime": "ರಚಿಸಿದ ಸಮಯ",
+    "LastModifiedTime": "ಕೊನೆಯ ಮಾರ್ಪಾಡಿನ ಸಮಯ",
     "AutoNumber": "ಸ್ವಯಂ ಸಂಖ್ಯೆ",
     "Barcode": "ಬಾರ್ಕೋಡ್",
     "Button": "ಬಟನ್",
@@ -1244,7 +1270,25 @@
       "restrict": "ನಿಷೇಧಿಸು",
       "setNull": "NULL ಹೊಂದಿಸು",
       "setDefault": "ಪೂರ್ವನಿಯೋಜಿತ ಹೊಂದಿಸಿ"
-    }
+    },
+    "LinkToAnotherRecord": "ಇನ್ನೊಂದು ದಾಖಲೆಗೆ ಕೊಂಡಿ",
+    "Order": "ಕ್ರಮ",
+    "RichText": "ಅಲಂಕೃತ ಪಠ್ಯ",
+    "SmartText": "ಚತುರ ಪಠ್ಯ",
+    "Colour": "ಬಣ್ಣ",
+    "Geometry": "ರೇಖಾಗಣಿತ",
+    "JSON": "JSON",
+    "SpecificDBType": "ನಿರ್ದಿಷ್ಟ DB ಪ್ರಕಾರ",
+    "QrCode": "QR ಸಂಕೇತ",
+    "Links": "ಕೊಂಡಿಗಳು",
+    "User": "ಬಳಕೆದಾರ",
+    "CreatedBy": "ರಚಿಸಿದವರು",
+    "LastModifiedBy": "ಕೊನೆಯದಾಗಿ ಮಾರ್ಪಡಿಸಿದವರು",
+    "Deleted": "ಅಳಿಸಲಾಗಿದೆ",
+    "Meta": "ಸಾಲಿನ ಮೆಟಾ ದತ್ತಾಂಶ",
+    "UUID": "UUID",
+    "AIButton": "AI ಗುಂಡಿ",
+    "AIPrompt": "AI ಪಠ್ಯ"
   },
   "filterOperation": {
     "isEqual": "ಸಮಾನವಾಗಿದೆ",
@@ -1291,7 +1335,17 @@
       "daysAgo": "ಎಷ್ಟು ದಿನಗಳ ಹಿಂದೆ",
       "daysFromNow": "ಇಂದಿನಿಂದ ಎಷ್ಟು ದಿನಗಳ ನಂತರ",
       "exactDate": "ನಿಖರ ದಿನಾಂಕ",
-      "exactMonth": "ನಿಖರ ತಿಂಗಳು"
+      "exactMonth": "ನಿಖರ ತಿಂಗಳು",
+      "thisCalendarWeek": "ಈ ವಾರ",
+      "thisCalendarMonth": "ಈ ತಿಂಗಳು",
+      "thisCalendarYear": "ಈ ವರ್ಷ",
+      "lastCalendarWeek": "ಕಳೆದ ವಾರ",
+      "lastCalendarMonth": "ಕಳೆದ ತಿಂಗಳು",
+      "lastCalendarYear": "ಕಳೆದ ವರ್ಷ",
+      "nextCalendarWeek": "ಮುಂದಿನ ವಾರ",
+      "nextCalendarMonth": "ಮುಂದಿನ ತಿಂಗಳು",
+      "nextCalendarYear": "ಮುಂದಿನ ವರ್ಷ",
+      "dateRange": "ದಿನಾಂಕ ವ್ಯಾಪ್ತಿ"
     }
   },
   "title": {
@@ -5870,7 +5924,29 @@
     "workspaceNoAccess": "ಕಾರ್ಯಕ್ಷೇತ್ರ (ಪ್ರವೇಶ ಇಲ್ಲ)",
     "yAxis": "Y ಅಕ್ಷ",
     "workspaceSettings": "ಕಾರ್ಯಕ್ಷೇತ್ರದ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
-    "wrapLongText": "ಉದ್ದದ ಪಠ್ಯವನ್ನು ಸುತ್ತಿಸಿ"
+    "wrapLongText": "ಉದ್ದದ ಪಠ್ಯವನ್ನು ಸುತ್ತಿಸಿ",
+    "agentAccessData": "ಟೇಬಲ್‌ಗಳು ಮತ್ತು ದಾಖಲೆಗಳು",
+    "agentAccessDataHint": "ಓದುವಿಕೆ ಅವುಗಳನ್ನು ವೀಕ್ಷಿಸುತ್ತದೆ ಮತ್ತು ಪ್ರಶ್ನಿಸುತ್ತದೆ. ಸಂಪಾದನೆ ದಾಖಲೆಗಳನ್ನು ರಚಿಸುತ್ತದೆ, ಬದಲಾಯಿಸುತ್ತದೆ, ಜೋಡಿಸುತ್ತದೆ ಮತ್ತು ಅಳಿಸುತ್ತದೆ.",
+    "agentAccessDocs": "ದಾಖಲೆಪತ್ರಗಳು",
+    "agentAccessDocsHint": "ಈ base ನ ದಾಖಲೆಪತ್ರಗಳು. ಸಂಪಾದನೆ ನೀಡಿದರೆ ಅವನ್ನು ಬದಲಾಯಿಸಬಹುದು.",
+    "agentAccessGithubHint": "ತನ್ನ ರೆಪೊಸಿಟರಿಗಳಲ್ಲಿ ಕೋಡ್ ಓದುತ್ತದೆ, ಶಾಖೆಗಳನ್ನು ಪುಶ್ ಮಾಡುತ್ತದೆ ಮತ್ತು ಪುಲ್ ರಿಕ್ವೆಸ್ಟ್‌ಗಳನ್ನು ತೆರೆಯುತ್ತದೆ",
+    "agentAccessCustom": "ಈ ಉಪಕರಣಗಳಲ್ಲಿ ಕೆಲವನ್ನು ಒಂದೊಂದಾಗಿ ಆರಿಸಲಾಗಿತ್ತು. ಎಲ್ಲವನ್ನೂ ಒಟ್ಟಿಗೆ ಹೊಂದಿಸಲು ಒಂದು ಹಂತವನ್ನು ಆರಿಸಿ.",
+    "agentAccessOf": "{what} ಪ್ರವೇಶ",
+    "agentCodeStartBranch": "ಈ ಶಾಖೆಯಿಂದ ಪ್ರಾರಂಭಿಸಿ",
+    "agentCodeStartBranchOf": "{repo} ನ ಚಾಲನೆಗಳು ಪ್ರಾರಂಭವಾಗುವ ಶಾಖೆ",
+    "agentCodeBranchName": "ಶಾಖೆಯ ಹೆಸರು",
+    "agentCodeBranchNameHint": "ಪ್ರತಿ ಚಾಲನೆಗೂ ತನ್ನದೇ ಶಾಖೆ ಸಿಗುತ್ತದೆ. {issue} ಮತ್ತು {slug} ನಿಮಗಾಗಿ ತುಂಬಲಾಗುತ್ತದೆ.",
+    "agentCodePullRequests": "ಪುಲ್ ರಿಕ್ವೆಸ್ಟ್‌ಗಳು",
+    "agentCodePrDraft": "ಕರಡು",
+    "agentCodePrReady": "ಪರಿಶೀಲನೆಗೆ ಸಿದ್ಧ",
+    "agentCodePrDraftHint": "ಕರಡಾಗಿ ತೆರೆಯುತ್ತದೆ. ಪರೀಕ್ಷೆಗಳು ಉತ್ತೀರ್ಣವಾದ ಮೇಲೆ ಪರಿಶೀಲಕರನ್ನು ಕೇಳಲಾಗುತ್ತದೆ.",
+    "agentCodePrReadyHint": "ಪರಿಶೀಲನೆಗೆ ಸಿದ್ಧವಾಗಿ ತೆರೆಯುತ್ತದೆ ಮತ್ತು ಕೆಳಗಿನ ಪರಿಶೀಲಕರನ್ನು ತಕ್ಷಣ ಕೇಳುತ್ತದೆ.",
+    "agentCodeReviewers": "ಪರಿಶೀಲಕರು",
+    "agentCodeRemoveReviewer": "{login} ಅನ್ನು ತೆಗೆದುಹಾಕಿ",
+    "agentCodeNoReviewers": "ಈ ರೆಪೊಸಿಟರಿಗಳಲ್ಲಿ ಬೇರೆ ಯಾರೂ ಪರಿಶೀಲಿಸಲಾಗದು",
+    "agentCodeNoReviewersSet": "ಇನ್ನೂ ಪರಿಶೀಲಕರು ಇಲ್ಲ.",
+    "agentCodeNeverMerge": "ಏಜೆಂಟ್‌ಗಳು ಎಂದಿಗೂ ವಿಲೀನಗೊಳಿಸುವುದಿಲ್ಲ ಮತ್ತು {base} ಗೆ ಎಂದಿಗೂ ಪುಶ್ ಮಾಡುವುದಿಲ್ಲ. ವಿಲೀನವನ್ನು ಯಾವಾಗಲೂ ಒಬ್ಬ ವ್ಯಕ್ತಿ ಮಾಡುತ್ತಾರೆ.",
+    "agentCodeNeverMergeAny": "ಏಜೆಂಟ್‌ಗಳು ಎಂದಿಗೂ ವಿಲೀನಗೊಳಿಸುವುದಿಲ್ಲ ಮತ್ತು ಚಾಲನೆ ಪ್ರಾರಂಭವಾಗುವ ಶಾಖೆಗೆ ಎಂದಿಗೂ ಪುಶ್ ಮಾಡುವುದಿಲ್ಲ. ವಿಲೀನವನ್ನು ಯಾವಾಗಲೂ ಒಬ್ಬ ವ್ಯಕ್ತಿ ಮಾಡುತ್ತಾರೆ."
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6062,7 +6138,18 @@
       "deleteStack": "ಸ್ಟ್ಯಾಕ್ ಅಳಿಸಿಹೊಡಿ",
       "stackedBy": "ಸ್ಟ್ಯಾಕ್ ಮೂಲಕ",
       "chooseGroupingField": "ಗುಂಪು ಡಿಂಗ್ ಕ್ಷೇತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "ಹೊಸ ಏಕ ಆಯ್ಕೆ ಕ್ಷೇತ್ರವನ್ನು ರಚಿಸಿ",
+      "createUserField": "ಹೊಸ ಬಳಕೆದಾರ ಕ್ಷೇತ್ರವನ್ನು ರಚಿಸಿ",
+      "defaultStackToDo": "ಮಾಡಬೇಕಿದೆ",
+      "defaultStackInProgress": "ನಡೆಯುತ್ತಿದೆ",
+      "defaultStackDone": "ಮುಗಿದಿದೆ",
+      "loadMoreStacks": "ಇನ್ನಷ್ಟು ಜೋಡಣೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಿ",
+      "linkTypeNotStackable": "ಟೇಬಲ್‌ನ ದತ್ತಾಂಶ ಮೂಲ PostgreSQL ಆಗಿದ್ದಾಗ ಮಾತ್ರ ಅನೇಕ-ಗೆ-ಒಂದು ಕೊಂಡಿ ಒಂದು kanban ಅನ್ನು ಜೋಡಣೆಗಳಾಗಿ ಬೇರ್ಪಡಿಸಬಲ್ಲದು. ಬದಲಿಗೆ ಏಕ ಆಯ್ಕೆ ಕ್ಷೇತ್ರ, ಬಳಕೆದಾರ ಕ್ಷೇತ್ರ ಅಥವಾ belongs-to ಕೊಂಡಿಯ ಆಧಾರದಲ್ಲಿ ಜೋಡಿಸಿ.",
+      "chooseStackField": "ಜೋಡಣೆಯ ಕ್ಷೇತ್ರವನ್ನು ಆರಿಸಿ",
+      "chooseStackFieldDesc": "ಈ board ಅನ್ನು ಜೋಡಣೆಗಳಾಗಿ ಬೇರ್ಪಡಿಸುವ ಕ್ಷೇತ್ರವನ್ನು ಆರಿಸಿ. ಅದರ ಪ್ರತಿ ಮೌಲ್ಯಕ್ಕೂ ತನ್ನದೇ ಜೋಡಣೆ ಸಿಗುತ್ತದೆ.",
+      "createSingleSelectFieldHint": "ಪ್ರತಿ ಕಾರ್ಡಿನ ಸ್ಥಿತಿ, ಹಂತ ಅಥವಾ ಪ್ರಕಾರವನ್ನು ತೋರಿಸಲು",
+      "createUserFieldHint": "ಪ್ರತಿ ಕಾರ್ಡಿನ ಹೊಣೆಗಾರ ಅಥವಾ ಮಾಲೀಕರನ್ನು ತೋರಿಸಲು"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6176,7 +6263,9 @@
     "invitePeopleCount": "{count} ವ್ಯಕ್ತಿಯನ್ನು ಆಹ್ವಾನಿಸಿ | {count} ಜನರನ್ನು ಆಹ್ವಾನಿಸಿ",
     "inviteThemInstead": "ಬದಲಿಗೆ ಅವರನ್ನು ಆಹ್ವಾನಿಸಿ",
     "blockUser": "ಬಳಕೆದಾರರನ್ನು ನಿರ್ಬಂಧಿಸಿ",
-    "unblockUser": "ಬಳಕೆದಾರರ ನಿರ್ಬಂಧ ತೆಗೆದುಹಾಕಿ"
+    "unblockUser": "ಬಳಕೆದಾರರ ನಿರ್ಬಂಧ ತೆಗೆದುಹಾಕಿ",
+    "addDateRange": "ದಿನಾಂಕ ವ್ಯಾಪ್ತಿ ಸೇರಿಸಿ",
+    "searchComments": "ಕಾಮೆಂಟ್‌ಗಳಲ್ಲಿ ಹುಡುಕಿ"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6420,7 +6509,9 @@
     "dataSourceReadOnly": "ಈ ಡೇಟಾ ಮೂಲ ಓದಲು ಮಾತ್ರ.",
     "mentionFields": "ಕ್ಷೇತ್ರಗಳನ್ನು ಉಲ್ಲೇಖಿಸಿ",
     "skipEnabledAfterDelay": "2 ಸೆಕೆಂಡ್‌ಗಳ ನಂತರ ಸಕ್ರಿಯವಾಗುತ್ತದೆ",
-    "clickToCopyDocumentId": "ದಾಖಲೆಯ ID ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ"
+    "clickToCopyDocumentId": "ದಾಖಲೆಯ ID ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
+    "workflowExecutionInterrupted": "ಈ ಚಾಲನೆ ನಮ್ಮ ಕಡೆಯಿಂದ ಅನಿರೀಕ್ಷಿತವಾಗಿ ನಿಂತಿದೆ. ಏನೂ ಕಳೆದುಹೋಗಿಲ್ಲ. ಅದು ನಿಂತ ಹಂತದಿಂದ ಮುಂದುವರಿಯಲು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "workflowExecutionOnHold": "ಈ ಕಾರ್ಯಹರಿವು ಸೇರಿರುವ ಅಪ್ಲಿಕೇಶನ್ ಅಮಾನತಿನಲ್ಲಿದೆ. ಅಪ್ಲಿಕೇಶನ್ ಮರಳಿದ ಕೂಡಲೇ ಚಾಲನೆ ನಿಂತಲ್ಲಿಂದಲೇ ಮುಂದುವರಿಯುತ್ತದೆ."
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8298,7 +8389,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "ಈ ದಾಖಲೆಯನ್ನು ಮರುಸ್ಥಾಪಿಸಲು ಅದರ ಸಂಪಾದನಾ ಅನುಮತಿ ಬೇಕು",
+    "withSubPages": "(ಮತ್ತು {count} ಉಪಪುಟ) | (ಮತ್ತು {count} ಉಪಪುಟಗಳು)"
   },
   "payment": {
     "credits": {
@@ -8671,7 +8764,29 @@
       "other": {
         "where": "ನಿಮ್ಮ ಕ್ಲೈಂಟ್‌ನಲ್ಲಿ ಈ ವಿವರಗಳೊಂದಿಗೆ ರಿಮೋಟ್ MCP ಸರ್ವರ್ ಸೇರಿಸಿ:",
         "auth": "ನಿಮ್ಮ ಕ್ಲೈಂಟ್‌ನಿಂದ ಸಂಪರ್ಕವನ್ನು ಪ್ರಾರಂಭಿಸಿ. ಬ್ರೌಸರ್‌ನಲ್ಲಿ NocoDB ತೆರೆಯುತ್ತದೆ, ಅಲ್ಲಿ ನೀವು ಸೈನ್ ಇನ್ ಮಾಡಿ, ಕ್ಲೈಂಟ್ ಏನನ್ನು ಪ್ರವೇಶಿಸಬಹುದು ಎಂಬುದನ್ನು ಆರಿಸಿ ಅಧಿಕೃತಗೊಳಿಸಿ ಆಯ್ಕೆಮಾಡಿ."
+      },
+      "canDelete": "ದತ್ತಾಂಶವನ್ನು ಅಳಿಸಬಹುದು ಅಥವಾ NocoDB ಯ ಹೊರಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸಬಹುದು",
+      "lockedNotEditable": "ಈ ಅಪ್ಲಿಕೇಶನ್ ಸೈನ್ ಇನ್ ಮಾಡುವಾಗಲೇ ಈ ಅನುಮತಿಗಳನ್ನು ಕೇಳಿತ್ತು, ಇಲ್ಲಿ ಅವನ್ನು ಬದಲಾಯಿಸಲಾಗದು. ಅದರ ಐಚ್ಛಿಕ ಉಪಕರಣಗಳನ್ನು ಕೆಳಗೆ ಬದಲಾಯಿಸಬಹುದು.",
+      "copilot": {
+        "where": "VS Code ನಲ್ಲಿ Command Palette ತೆರೆಯಿರಿ, MCP: Add Server ಚಲಾಯಿಸಿ ಮತ್ತು HTTP ಆರಿಸಿ. ಭರ್ತಿ ಮಾಡಿ:",
+        "auth": "VS Code NocoDB ಅನ್ನು ದೃಢೀಕರಿಸಲು ಕೇಳಿದಾಗ Allow ಆರಿಸಿ. ಬ್ರೌಸರ್‌ನಲ್ಲಿ NocoDB ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ ಮತ್ತು Authorize ಆರಿಸಿ."
       }
+    },
+    "discoveryNote": "{client} ಗರಿಷ್ಠ 100 ಉಪಕರಣಗಳನ್ನು ಬಳಸುತ್ತದೆ, ಹಾಗಾಗಿ ಈ URL NocoDB ಯ ಓದುವ ಉಪಕರಣಗಳನ್ನು ಮತ್ತು ದಾಖಲೆ ಬರೆಯುವಿಕೆಯನ್ನು ನೇರವಾಗಿ ಪಟ್ಟಿ ಮಾಡುತ್ತದೆ ಮತ್ತು ಉಳಿದವನ್ನು ಕೇಳಿದಾಗ ಹುಡುಕುತ್ತದೆ.",
+    "windsurf": {
+      "subtitle": "Devin (ಹಿಂದೆ Windsurf) ನ Cascade ಏಜೆಂಟ್‌ಗಾಗಿ.",
+      "addBody": "Devin (ಹಿಂದೆ Windsurf) ನಲ್ಲಿ Settings › Cascade › MCP servers ತೆರೆಯಿರಿ, Add custom server ಆರಿಸಿ ಮತ್ತು ಈ URL ಅನ್ನು ಅಂಟಿಸಿ:",
+      "manualLabel": "ಇದನ್ನು ~/.codeium/windsurf/mcp_config.json ಗೆ ಸೇರಿಸಿ:",
+      "authBody": "nocodb ಪಕ್ಕದ Connect ಆರಿಸಿ. ಬ್ರೌಸರ್‌ನಲ್ಲಿ NocoDB ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ, Devin ಯಾವುದನ್ನು ಪ್ರವೇಶಿಸಬಹುದು ಮತ್ತು ಯಾವ ಉಪಕರಣಗಳನ್ನು ಬಳಸಬಹುದು ಎಂದು ಆರಿಸಿ, ನಂತರ Authorize ಆರಿಸಿ.",
+      "tryBody": "Devin ನಲ್ಲಿ Cascade ತೆರೆದು “List my NocoDB tools” ಎಂದು ಕೇಳಿ."
+    },
+    "copilot": {
+      "subtitle": "VS Code ನಲ್ಲಿ GitHub Copilot ಗಾಗಿ.",
+      "addBody": "{link} ಆರಿಸಿ, ನಂತರ VS Code ತೆರೆದಾಗ Install ಆರಿಸಿ.",
+      "addLink": "VS Code ಗೆ ಸೇರಿಸಿ",
+      "manualLabel": "ಇದನ್ನು .vscode/mcp.json ಗೆ ಸೇರಿಸಿ, ಅಥವಾ ಪ್ರತಿ workspace ಗೂ ಸೇರಿಸಲು MCP: Open User Configuration ಚಲಾಯಿಸಿ:",
+      "authBody": "VS Code NocoDB ಅನ್ನು ದೃಢೀಕರಿಸಲು ಕೇಳಿದಾಗ Allow ಆರಿಸಿ. ಬ್ರೌಸರ್‌ನಲ್ಲಿ NocoDB ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ, Copilot ಯಾವುದನ್ನು ಪ್ರವೇಶಿಸಬಹುದು ಮತ್ತು ಯಾವ ಉಪಕರಣಗಳನ್ನು ಬಳಸಬಹುದು ಎಂದು ಆರಿಸಿ, ನಂತರ Authorize ಆರಿಸಿ.",
+      "tryBody": "Copilot Chat ಅನ್ನು Agent ಸ್ಥಿತಿಯಲ್ಲಿ ತೆರೆದು “List my NocoDB tools” ಎಂದು ಕೇಳಿ."
     }
   },
   "roadmap": {

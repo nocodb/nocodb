@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "업그레이드하여 입력폼에 로그인을 요구하세요",
     "upgradeToUseFormRequireSigninSubtitle": "{plan} 요금제로 업그레이드하면 응답자가 입력폼을 제출하기 전에 로그인하도록 요구할 수 있습니다.",
     "upgradeToUseSso": "SSO 사용을 위해 업그레이드하세요",
-    "upgradeToUseSsoSubtitle": "{plan} 플랜으로 업그레이드하여 싱글 사인온 (SSO)을 설정하고, 팀원이 ID 공급자로 로그인할 수 있게 하세요."
+    "upgradeToUseSsoSubtitle": "{plan} 플랜으로 업그레이드하여 싱글 사인온 (SSO)을 설정하고, 팀원이 ID 공급자로 로그인할 수 있게 하세요.",
+    "notifyOwnerToUpgrade": "클릭하면 워크스페이스 소유자에게 요금제 업그레이드를 알립니다.",
+    "comparePlans": "요금제 비교",
+    "workspaceOnPlan": "{workspace}의 요금제: {plan}",
+    "planMenuWith": "이 요금제로 받을 수 있는 혜택",
+    "planMenuRecordsStorage": "레코드 {records}개와 저장 공간 {storage} GB",
+    "planMenuUnlimitedEditors": "무제한 편집자",
+    "planMenuAutomationRuns": "월 {runs}회 자동화 실행",
+    "planMenuApiCalls": "월 {calls}회 API 호출",
+    "planMenuSnapshots": "스냅샷 {count}개",
+    "railPitch": "Plus에서는 레코드 {plusRecords}개와 무제한 편집자를 사용할 수 있습니다.",
+    "upgradeToPlan": "{plan}(으)로 업그레이드",
+    "askAdminTitle": "라이선스에 포함되지 않음",
+    "askAdminSubtitle": "관리자에게 라이선스 업그레이드를 요청하세요 {detail}",
+    "askAdminSubtitleGeneric": "이 기능은 현재 라이선스에 포함되어 있지 않습니다. 관리자에게 업그레이드를 요청하세요.",
+    "notifyAdmin": "관리자에게 알리기",
+    "adminNotified": "관리자에게 알렸습니다",
+    "adminNotifiedSubtitle": "요청이 관리자에게 전송되었습니다.",
+    "adminAlreadyNotified": "관리자에게 이미 알렸습니다",
+    "adminAlreadyNotifiedSubtitle": "관리자가 최근 24시간 내에 이미 이 요청을 받았습니다.",
+    "noAdminToNotify": "알릴 활성 관리자가 없습니다. 이 NocoDB 인스턴스를 관리하는 담당자에게 문의하세요.",
+    "upgradeRequestDailyLimit": "오늘 보낼 수 있는 업그레이드 요청 수를 모두 사용했습니다. 내일 다시 시도하세요.",
+    "seatLimitTitle": "좌석 한도에 도달했습니다",
+    "licenseUpgradeRequested": "님이 라이선스 업그레이드를 요청했습니다",
+    "forAddon": "{addon} 추가 기능용",
+    "seatLimitAdminSubtitle": "라이선스 좌석 {limit}개가 모두 사용 중입니다. 편집자를 더 추가하려면 라이선스를 업그레이드하세요.",
+    "seatLimitMemberSubtitle": "라이선스 좌석 {limit}개가 모두 사용 중입니다. 관리자에게 좌석 추가를 요청하세요."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1206,13 +1232,13 @@
   },
   "datatype": {
     "ID": "ID",
-    "ForeignKey": "외부 키",
+    "ForeignKey": "외래 키",
     "SingleLineText": "한 줄 텍스트",
     "LongText": "긴 텍스트",
     "Attachment": "첨부파일",
     "Checkbox": "체크박스",
-    "MultiSelect": "다중선택",
-    "SingleSelect": "단일선택",
+    "MultiSelect": "다중 선택",
+    "SingleSelect": "단일 선택",
     "Collaborator": "협업자",
     "Date": "날짜",
     "Year": "년도",
@@ -1225,16 +1251,16 @@
     "Currency": "통화",
     "Percent": "퍼센트",
     "Duration": "기간",
-    "GeoData": "위치데이터",
+    "GeoData": "지리 데이터",
     "Rating": "평점",
     "Formula": "수식",
     "Rollup": "롤업",
     "Count": "개수",
     "Lookup": "조회",
-    "DateTime": "날짜 시간",
-    "CreatedTime": "생성시간",
-    "LastModifiedTime": "최종수정시간",
-    "AutoNumber": "자동번호",
+    "DateTime": "날짜 및 시간",
+    "CreatedTime": "생성 시각",
+    "LastModifiedTime": "마지막 수정 시각",
+    "AutoNumber": "자동 번호",
     "Barcode": "바코드",
     "Button": "버튼",
     "Password": "비밀번호",
@@ -1244,7 +1270,25 @@
       "restrict": "제한",
       "setNull": "null 설정",
       "setDefault": "기본값 설정"
-    }
+    },
+    "LinkToAnotherRecord": "다른 레코드로 연결",
+    "Order": "순서",
+    "RichText": "서식 있는 텍스트",
+    "SmartText": "스마트 텍스트",
+    "Colour": "색상",
+    "Geometry": "지오메트리",
+    "JSON": "JSON",
+    "SpecificDBType": "특정 DB 유형",
+    "QrCode": "QR 코드",
+    "Links": "링크",
+    "User": "사용자",
+    "CreatedBy": "만든 사람",
+    "LastModifiedBy": "마지막 수정자",
+    "Deleted": "삭제됨",
+    "Meta": "행 메타데이터",
+    "UUID": "UUID",
+    "AIButton": "AI 버튼",
+    "AIPrompt": "AI 텍스트"
   },
   "filterOperation": {
     "isEqual": "같음",
@@ -1291,7 +1335,17 @@
       "daysAgo": "며칠 전",
       "daysFromNow": "오늘부터 며칠 후",
       "exactDate": "정확한 날짜",
-      "exactMonth": "정확한 월"
+      "exactMonth": "정확한 월",
+      "thisCalendarWeek": "이번 주",
+      "thisCalendarMonth": "이번 달",
+      "thisCalendarYear": "올해",
+      "lastCalendarWeek": "지난주",
+      "lastCalendarMonth": "지난달",
+      "lastCalendarYear": "작년",
+      "nextCalendarWeek": "다음 주",
+      "nextCalendarMonth": "다음 달",
+      "nextCalendarYear": "내년",
+      "dateRange": "기간"
     }
   },
   "title": {
@@ -5869,7 +5923,29 @@
     "workspaceNoAccess": "작업공간 (접근 권한 없음)",
     "yAxis": "Y축",
     "workspaceSettings": "작업공간 설정",
-    "wrapLongText": "긴 텍스트 줄바꿈"
+    "wrapLongText": "긴 텍스트 줄바꿈",
+    "agentAccessData": "테이블과 레코드",
+    "agentAccessDataHint": "읽기는 탐색과 조회를 할 수 있습니다. 편집은 레코드 생성, 변경, 연결, 삭제까지 합니다.",
+    "agentAccessDocs": "문서",
+    "agentAccessDocsHint": "이 base의 문서입니다. 편집을 허용하면 변경할 수 있습니다.",
+    "agentAccessGithubHint": "자신의 저장소에서 코드를 읽고 브랜치를 푸시하며 풀 리퀘스트를 엽니다",
+    "agentAccessCustom": "이 도구 중 일부는 하나씩 선택되었습니다. 수준을 고르면 모두 한 번에 설정됩니다.",
+    "agentAccessOf": "{what} 접근 권한",
+    "agentCodeStartBranch": "시작 브랜치",
+    "agentCodeStartBranchOf": "{repo} 실행이 시작되는 브랜치",
+    "agentCodeBranchName": "브랜치 이름",
+    "agentCodeBranchNameHint": "실행마다 전용 브랜치가 만들어집니다. {issue}와 {slug}는 자동으로 채워집니다.",
+    "agentCodePullRequests": "풀 리퀘스트",
+    "agentCodePrDraft": "초안",
+    "agentCodePrReady": "검토 준비 완료",
+    "agentCodePrDraftHint": "초안으로 열립니다. 테스트가 통과하면 검토자에게 요청합니다.",
+    "agentCodePrReadyHint": "검토 준비 상태로 열리고 아래 검토자에게 바로 요청합니다.",
+    "agentCodeReviewers": "검토자",
+    "agentCodeRemoveReviewer": "{login} 제거",
+    "agentCodeNoReviewers": "이 저장소에서는 다른 사람이 검토할 수 없습니다",
+    "agentCodeNoReviewersSet": "아직 검토자가 없습니다.",
+    "agentCodeNeverMerge": "에이전트는 병합하지 않으며 {base}에 푸시하지도 않습니다. 병합은 항상 사람이 합니다.",
+    "agentCodeNeverMergeAny": "에이전트는 병합하지 않으며 실행이 시작되는 브랜치에 푸시하지도 않습니다. 병합은 항상 사람이 합니다."
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6061,7 +6137,18 @@
       "deleteStack": "스택 삭제",
       "stackedBy": "스택 기준",
       "chooseGroupingField": "그룹화 필드 선택",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "새 단일 선택 필드 만들기",
+      "createUserField": "새 사용자 필드 만들기",
+      "defaultStackToDo": "할 일",
+      "defaultStackInProgress": "진행 중",
+      "defaultStackDone": "완료",
+      "loadMoreStacks": "스택 더 불러오기",
+      "linkTypeNotStackable": "테이블의 데이터 소스가 PostgreSQL 일 때만 다대일 링크로 kanban을 스택으로 나눌 수 있습니다. 대신 단일 선택 필드, 사용자 필드 또는 belongs-to 링크를 기준으로 스택하세요.",
+      "chooseStackField": "스택 기준 필드 선택",
+      "chooseStackFieldDesc": "이 board를 스택으로 나눌 필드를 선택하세요. 각 값마다 별도의 스택이 생깁니다.",
+      "createSingleSelectFieldHint": "각 카드의 상태, 단계 또는 유형을 표시하려면",
+      "createUserFieldHint": "각 카드의 담당자나 소유자를 표시하려면"
     },
     "map": {
       "googleMaps": "구글 지도",
@@ -6175,7 +6262,9 @@
     "invitePeopleCount": "{count}명 초대 | {count}명 초대",
     "inviteThemInstead": "대신 초대하기",
     "blockUser": "사용자 차단",
-    "unblockUser": "사용자 차단 해제"
+    "unblockUser": "사용자 차단 해제",
+    "addDateRange": "기간 추가",
+    "searchComments": "댓글 검색"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6419,7 +6508,9 @@
     "dataSourceReadOnly": "이 데이터 소스는 읽기 전용입니다.",
     "mentionFields": "필드 멘션",
     "skipEnabledAfterDelay": "2초 후에 활성화됩니다",
-    "clickToCopyDocumentId": "클릭하여 문서 ID 복사"
+    "clickToCopyDocumentId": "클릭하여 문서 ID 복사",
+    "workflowExecutionInterrupted": "이 실행은 당사 쪽에서 예기치 않게 중단되었습니다. 손실된 것은 없습니다. 다시 시도하면 중단된 단계부터 이어집니다.",
+    "workflowExecutionOnHold": "이 워크플로가 속한 앱이 일시 중단되었습니다. 앱이 복구되면 실행은 멈춘 지점부터 이어집니다."
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8297,7 +8388,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "이 문서를 복원하려면 해당 문서의 편집 권한이 필요합니다",
+    "withSubPages": "(및 하위 페이지 {count}개) | (및 하위 페이지 {count}개)"
   },
   "payment": {
     "credits": {
@@ -8670,7 +8763,29 @@
       "other": {
         "where": "다음 정보로 클라이언트에 원격 MCP 서버를 추가하세요:",
         "auth": "클라이언트에서 연결을 시작하세요. 브라우저에서 NocoDB 페이지가 열리고, 거기서 로그인한 뒤 클라이언트가 접근할 수 있는 범위를 선택하고 승인을 선택합니다."
+      },
+      "canDelete": "데이터를 삭제하거나 NocoDB 외부에서 동작할 수 있습니다",
+      "lockedNotEditable": "이 앱은 로그인할 때 이 권한을 요청했으며 여기서는 변경할 수 없습니다. 선택 가능한 도구는 아래에서 전환할 수 있습니다.",
+      "copilot": {
+        "where": "VS Code에서 Command Palette를 열고 MCP: Add Server를 실행한 뒤 HTTP 옵션을 선택하세요. 다음을 입력하세요:",
+        "auth": "VS Code가 NocoDB 인증을 요청하면 Allow를 선택하세요. 브라우저에서 NocoDB에 로그인한 뒤 Authorize를 선택하세요."
       }
+    },
+    "discoveryNote": "{client}은(는) 최대 100개의 도구만 사용하므로, 이 URL 에서는 NocoDB 읽기 도구와 레코드 쓰기를 바로 나열하고 나머지는 요청 시 찾습니다.",
+    "windsurf": {
+      "subtitle": "Devin(이전 Windsurf)의 Cascade 에이전트용입니다.",
+      "addBody": "Devin(이전 Windsurf)에서 Settings › Cascade › MCP servers를 열고 Add custom server를 선택한 뒤 이 URL 을 붙여 넣으세요:",
+      "manualLabel": "이 내용을 ~/.codeium/windsurf/mcp_config.json에 추가하세요:",
+      "authBody": "nocodb 옆의 Connect를 선택하세요. 브라우저에서 NocoDB 에 로그인하고 Devin이 접근할 수 있는 범위와 사용할 수 있는 도구를 고른 뒤 Authorize를 선택하세요.",
+      "tryBody": "Devin에서 Cascade를 열고 “List my NocoDB tools”라고 물어보세요."
+    },
+    "copilot": {
+      "subtitle": "VS Code의 GitHub Copilot용입니다.",
+      "addBody": "{link}을(를) 선택한 다음 VS Code가 열리면 Install을 선택하세요.",
+      "addLink": "VS Code에 추가",
+      "manualLabel": "이 내용을 .vscode/mcp.json에 추가하거나, MCP: Open User Configuration을 실행해 모든 workspace에 추가하세요:",
+      "authBody": "VS Code가 NocoDB 인증을 요청하면 Allow를 선택하세요. 브라우저에서 NocoDB에 로그인하고 Copilot이 접근할 수 있는 범위와 사용할 수 있는 도구를 고른 뒤 Authorize를 선택하세요.",
+      "tryBody": "Copilot Chat을 Agent 모드로 열고 “List my NocoDB tools”라고 물어보세요."
     }
   },
   "roadmap": {

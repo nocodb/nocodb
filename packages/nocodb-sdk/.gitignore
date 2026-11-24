@@ -9,3 +9,4 @@ coverage
 yarn.lock
 nc_swagger.json
 src/lib/Api.ts
+src/ee/lib/scripts/runtime/runtime.generated.ts

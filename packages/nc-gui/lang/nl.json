@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Upgrade om aanmelden verplicht te stellen voor formulieren",
     "upgradeToUseFormRequireSigninSubtitle": "Upgrade naar het {plan}-abonnement om respondenten te verplichten zich aan te melden voordat ze een formulier verzenden.",
     "upgradeToUseSso": "Upgrade om SSO te gebruiken",
-    "upgradeToUseSsoSubtitle": "Upgrade naar het {plan} plan om Single Sign-On (SSO) in te stellen en je team te laten inloggen met je identiteitsprovider."
+    "upgradeToUseSsoSubtitle": "Upgrade naar het {plan} plan om Single Sign-On (SSO) in te stellen en je team te laten inloggen met je identiteitsprovider.",
+    "notifyOwnerToUpgrade": "Klik om de eigenaar van de workspace te vragen het abonnement te upgraden.",
+    "comparePlans": "Abonnementen vergelijken",
+    "workspaceOnPlan": "{workspace} gebruikt {plan}",
+    "planMenuWith": "Dit krijg je met",
+    "planMenuRecordsStorage": "{records} records en {storage} GB opslag",
+    "planMenuUnlimitedEditors": "Onbeperkt aantal bewerkers",
+    "planMenuAutomationRuns": "{runs} automatiseringsuitvoeringen per maand",
+    "planMenuApiCalls": "{calls} API-aanroepen per maand",
+    "planMenuSnapshots": "{count} momentopnamen",
+    "railPitch": "Plus geeft je {plusRecords} records en een onbeperkt aantal bewerkers.",
+    "upgradeToPlan": "Upgraden naar {plan}",
+    "askAdminTitle": "Niet inbegrepen in je licentie",
+    "askAdminSubtitle": "Vraag je beheerder om de licentie te upgraden {detail}",
+    "askAdminSubtitleGeneric": "Deze functie zit niet in je huidige licentie. Vraag je beheerder om te upgraden.",
+    "notifyAdmin": "Beheerder op de hoogte brengen",
+    "adminNotified": "Beheerder op de hoogte gebracht",
+    "adminNotifiedSubtitle": "Je verzoek is naar je beheerder gestuurd.",
+    "adminAlreadyNotified": "Beheerder al op de hoogte gebracht",
+    "adminAlreadyNotifiedSubtitle": "Je beheerder heeft dit verzoek in de afgelopen 24 uur al ontvangen.",
+    "noAdminToNotify": "Geen actieve beheerder om op de hoogte te brengen. Neem contact op met degene die deze NocoDB-instantie beheert.",
+    "upgradeRequestDailyLimit": "Je hebt het maximale aantal upgradeverzoeken voor vandaag verstuurd. Probeer het morgen opnieuw.",
+    "seatLimitTitle": "Limiet voor plaatsen bereikt",
+    "licenseUpgradeRequested": "heeft om een licentie-upgrade gevraagd",
+    "forAddon": "voor de add-on {addon}",
+    "seatLimitAdminSubtitle": "Alle {limit} gelicentieerde plaatsen zijn in gebruik. Upgrade je licentie om meer bewerkers toe te voegen.",
+    "seatLimitMemberSubtitle": "Alle {limit} gelicentieerde plaatsen zijn in gebruik. Vraag je beheerder om meer plaatsen toe te voegen."
   },
   "general": {
     "scrollToBottom": "Scroll naar beneden",
@@ -1202,13 +1228,13 @@
   },
   "datatype": {
     "ID": "ID",
-    "ForeignKey": "Externe Key",
-    "SingleLineText": "Korte tekst",
+    "ForeignKey": "Externe sleutel",
+    "SingleLineText": "Tekst van één regel",
     "LongText": "Lange tekst",
     "Attachment": "Bijlage",
     "Checkbox": "Selectievakje",
-    "MultiSelect": "Meerkeuze selectie",
-    "SingleSelect": "Enkelvoudige selectie",
+    "MultiSelect": "Meervoudige keuze",
+    "SingleSelect": "Enkele keuze",
     "Collaborator": "Medewerker",
     "Date": "Datum",
     "Year": "Jaar",
@@ -1221,16 +1247,16 @@
     "Currency": "Munteenheid",
     "Percent": "Procent",
     "Duration": "Looptijd",
-    "GeoData": "GeoData",
+    "GeoData": "Geogegevens",
     "Rating": "Beoordeling",
     "Formula": "Formule",
     "Rollup": "Rollup",
     "Count": "Telling",
     "Lookup": "Zoekopdracht",
-    "DateTime": "Tijdstip",
-    "CreatedTime": "Maak Tijd",
-    "LastModifiedTime": "Laatst gewijzigd",
-    "AutoNumber": "Automatische nummering",
+    "DateTime": "Datum en tijd",
+    "CreatedTime": "Aanmaaktijd",
+    "LastModifiedTime": "Tijd van laatste wijziging",
+    "AutoNumber": "Automatisch nummer",
     "Barcode": "Barcode",
     "Button": "Knop",
     "Password": "Wachtwoord",
@@ -1240,7 +1266,25 @@
       "restrict": "Beperken",
       "setNull": "Maak NULL",
       "setDefault": "Standaard instellen"
-    }
+    },
+    "LinkToAnotherRecord": "Koppeling naar een ander record",
+    "Order": "Volgorde",
+    "RichText": "Opgemaakte tekst",
+    "SmartText": "Slimme tekst",
+    "Colour": "Kleur",
+    "Geometry": "Geometrie",
+    "JSON": "JSON",
+    "SpecificDBType": "Specifiek DB-type",
+    "QrCode": "QR-code",
+    "Links": "Koppelingen",
+    "User": "Gebruiker",
+    "CreatedBy": "Gemaakt door",
+    "LastModifiedBy": "Laatst gewijzigd door",
+    "Deleted": "Verwijderd",
+    "Meta": "Rijmetagegevens",
+    "UUID": "UUID",
+    "AIButton": "AI-knop",
+    "AIPrompt": "AI-tekst"
   },
   "filterOperation": {
     "isEqual": "is gelijk",
@@ -1286,7 +1330,17 @@
       "daysAgo": "aantal dagen geleden",
       "daysFromNow": "aantal dagen vanaf nu",
       "exactDate": "exacte datum",
-      "exactMonth": "exacte maand"
+      "exactMonth": "exacte maand",
+      "thisCalendarWeek": "deze week",
+      "thisCalendarMonth": "deze maand",
+      "thisCalendarYear": "dit jaar",
+      "lastCalendarWeek": "vorige week",
+      "lastCalendarMonth": "vorige maand",
+      "lastCalendarYear": "vorig jaar",
+      "nextCalendarWeek": "volgende week",
+      "nextCalendarMonth": "volgende maand",
+      "nextCalendarYear": "volgend jaar",
+      "dateRange": "datumbereik"
     }
   },
   "title": {
@@ -5826,7 +5880,27 @@
     "workspaceNoAccess": "Werkruimte (geen toegang)",
     "yAxis": "Y-as",
     "workspaceSettings": "Werkruimte-instellingen",
-    "wrapLongText": "Lange tekst laten doorlopen"
+    "wrapLongText": "Lange tekst laten doorlopen",
+    "agentAccessData": "Tabellen en records",
+    "agentAccessDataHint": "Lezen bladert erdoorheen en bevraagt ze. Bewerken maakt daarnaast records aan, wijzigt, koppelt en verwijdert ze.",
+    "agentAccessDocs": "Documenten",
+    "agentAccessDocsHint": "De documenten van de base. Met Bewerken mag hij ze wijzigen.",
+    "agentAccessGithubHint": "Leest code, pusht branches en opent pull requests in zijn repository's",
+    "agentAccessCustom": "Sommige van deze tools zijn stuk voor stuk gekozen. Kies een niveau om ze allemaal in één keer in te stellen.",
+    "agentAccessOf": "Toegang tot {what}",
+    "agentCodeStartBranch": "Starten vanaf branch",
+    "agentCodeStartBranchOf": "Branch waar uitvoeringen van {repo} vanaf starten",
+    "agentCodeBranchName": "Naam van de branch",
+    "agentCodeBranchNameHint": "Elke uitvoering krijgt een eigen branch. {issue} en {slug} worden voor je ingevuld.",
+    "agentCodePrDraft": "Concept",
+    "agentCodePrReady": "Klaar voor review",
+    "agentCodePrDraftHint": "Wordt als concept geopend. De reviewers worden gevraagd zodra de tests slagen.",
+    "agentCodePrReadyHint": "Wordt klaar voor review geopend en vraagt de reviewers hieronder meteen.",
+    "agentCodeRemoveReviewer": "{login} verwijderen",
+    "agentCodeNoReviewers": "Niemand anders kan reviewen in deze repository's",
+    "agentCodeNoReviewersSet": "Nog geen reviewers.",
+    "agentCodeNeverMerge": "Agents mergen nooit en pushen nooit naar {base}. Mergen doet altijd een mens.",
+    "agentCodeNeverMergeAny": "Agents mergen nooit en pushen nooit naar de branch waar een uitvoering vanaf start. Mergen doet altijd een mens."
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",
@@ -6018,7 +6092,18 @@
       "deleteStack": "Stapel verwijderen",
       "stackedBy": "Gestapeld door",
       "chooseGroupingField": "Kies een groepeerveld",
-      "autoCollapseEmptyStack": "Lege stapel automatisch inklappen"
+      "autoCollapseEmptyStack": "Lege stapel automatisch inklappen",
+      "createSingleSelectField": "Een nieuw veld Enkele keuze maken",
+      "createUserField": "Een nieuw Gebruikersveld maken",
+      "defaultStackToDo": "Te doen",
+      "defaultStackInProgress": "Bezig",
+      "defaultStackDone": "Klaar",
+      "loadMoreStacks": "Meer stapels laden",
+      "linkTypeNotStackable": "Een veel-op-een-koppeling kan een kanban alleen stapelen als de gegevensbron van de tabel PostgreSQL is. Stapel in plaats daarvan op een veld Enkele keuze, een Gebruikersveld of een hoort-bij-koppeling.",
+      "chooseStackField": "Kies een veld om op te stapelen",
+      "chooseStackFieldDesc": "Kies het veld waarop dit board wordt gestapeld. Elke waarde ervan krijgt een eigen stapel.",
+      "createSingleSelectFieldHint": "om de status, fase of het type van elke kaart te tonen",
+      "createUserFieldHint": "om de toegewezen persoon of eigenaar van elke kaart te tonen"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6129,7 +6214,9 @@
     "invitePeopleCount": "{count} persoon uitnodigen | {count} personen uitnodigen",
     "inviteThemInstead": "Nodig hen in plaats daarvan uit",
     "blockUser": "Gebruiker blokkeren",
-    "unblockUser": "Gebruiker deblokkeren"
+    "unblockUser": "Gebruiker deblokkeren",
+    "addDateRange": "Datumbereik toevoegen",
+    "searchComments": "Reacties zoeken"
   },
   "tooltip": {
     "shiftClickWeekStep": "Houd Shift voor stap 1 week",
@@ -6373,7 +6460,9 @@
     "dataSourceReadOnly": "Deze gegevensbron is alleen-lezen.",
     "mentionFields": "Velden vermelden",
     "skipEnabledAfterDelay": "Wordt na 2 seconden ingeschakeld",
-    "clickToCopyDocumentId": "Klik om de document-ID te kopiëren"
+    "clickToCopyDocumentId": "Klik om de document-ID te kopiëren",
+    "workflowExecutionInterrupted": "Deze uitvoering is aan onze kant onverwacht gestopt. Er is niets verloren gegaan. Probeer het opnieuw om verder te gaan vanaf de stap waar hij was.",
+    "workflowExecutionOnHold": "De app waartoe deze workflow behoort is opgeschort. De uitvoering gaat verder waar hij gebleven was zodra de app weer beschikbaar is."
   },
   "placeholder": {
     "enterVerificationCode": "6-cijferige code invoeren",
@@ -8251,7 +8340,9 @@
     "userDeleted": "{user} heeft een {type} verwijderd van {parent}: {name}",
     "youDeletedNoParent": "U heeft een {type}verwijderd: {name}",
     "userDeletedNoParent": "{user} heeft een {type}verwijderd: {name}",
-    "someoneDeleted": "Een {type} is verwijderd: {name}"
+    "someoneDeleted": "Een {type} is verwijderd: {name}",
+    "restoreRequiresDocEdit": "Voor het herstellen van dit document is bewerkingstoegang nodig",
+    "withSubPages": "(en {count} subpagina) | (en {count} subpagina's)"
   },
   "payment": {
     "credits": {
@@ -8623,7 +8714,29 @@
       "other": {
         "where": "Voeg in je client een externe MCP-server toe met deze gegevens:",
         "auth": "Start de verbinding vanuit je client. NocoDB wordt in de browser geopend; daar meld je je aan, kies je waartoe de client toegang krijgt en selecteer je Autoriseren."
+      },
+      "canDelete": "Kan gegevens verwijderen of buiten NocoDB handelen",
+      "lockedNotEditable": "Deze app heeft deze rechten bij het aanmelden gevraagd en ze kunnen hier niet worden gewijzigd. De optionele tools ervan kun je hieronder aan- en uitzetten.",
+      "copilot": {
+        "where": "Open in VS Code de Command Palette, voer MCP: Add Server uit en kies HTTP. Vul in:",
+        "auth": "Als VS Code vraagt om NocoDB te verifiëren, selecteer je Allow. Meld je in de browser aan bij NocoDB en selecteer Authorize."
       }
+    },
+    "discoveryNote": "{client} gebruikt hoogstens 100 tools, dus deze URL vermeldt de leestools en het schrijven van records van NocoDB rechtstreeks en zoekt de rest op aanvraag op.",
+    "windsurf": {
+      "subtitle": "Voor de Cascade-agent in Devin (voorheen Windsurf).",
+      "addBody": "Open in Devin (voorheen Windsurf) Settings › Cascade › MCP servers, selecteer Add custom server en plak deze URL:",
+      "manualLabel": "Voeg dit toe aan ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Selecteer Connect naast nocodb. Meld je in de browser aan bij NocoDB, kies waartoe Devin toegang krijgt en welke tools het mag gebruiken en selecteer daarna Authorize.",
+      "tryBody": "Open Cascade in Devin en vraag “List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "Voor GitHub Copilot in VS Code.",
+      "addBody": "Selecteer {link} en selecteer daarna Install wanneer VS Code opent.",
+      "addLink": "Toevoegen aan VS Code",
+      "manualLabel": "Voeg dit toe aan .vscode/mcp.json, of voer MCP: Open User Configuration uit om het voor elke workspace toe te voegen:",
+      "authBody": "Als VS Code vraagt om NocoDB te verifiëren, selecteer je Allow. Meld je in de browser aan bij NocoDB, kies waartoe Copilot toegang krijgt en welke tools het mag gebruiken en selecteer daarna Authorize.",
+      "tryBody": "Open Copilot Chat in de modus Agent en vraag “List my NocoDB tools”."
     }
   },
   "roadmap": {

@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Inovujte, aby ste mohli vo formulároch vyžadovať prihlásenie",
     "upgradeToUseFormRequireSigninSubtitle": "Inovujte na plán {plan}, aby ste od respondentov vyžadovali prihlásenie pred odoslaním formulára.",
     "upgradeToUseSso": "Upgradujte na používanie SSO",
-    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan}, aby ste nastavili jednotné prihlásenie (SSO) a umožnili svojmu tímu prihlasovať sa cez vášho poskytovateľa identity."
+    "upgradeToUseSsoSubtitle": "Upgradujte na plán {plan}, aby ste nastavili jednotné prihlásenie (SSO) a umožnili svojmu tímu prihlasovať sa cez vášho poskytovateľa identity.",
+    "notifyOwnerToUpgrade": "Kliknutím upozorníte vlastníka pracovného priestoru, aby prešiel na vyšší plán.",
+    "comparePlans": "Porovnať plány",
+    "workspaceOnPlan": "{workspace} má plán {plan}",
+    "planMenuWith": "Čo získate s plánom",
+    "planMenuRecordsStorage": "{records} záznamov a {storage} GB úložiska",
+    "planMenuUnlimitedEditors": "Neobmedzený počet editorov",
+    "planMenuAutomationRuns": "{runs} behov automatizácií mesačne",
+    "planMenuApiCalls": "{calls} volaní API mesačne",
+    "planMenuSnapshots": "{count} snímok",
+    "railPitch": "Plus vám dá {plusRecords} záznamov a neobmedzený počet editorov.",
+    "upgradeToPlan": "Prejsť na {plan}",
+    "askAdminTitle": "Nie je súčasťou vašej licencie",
+    "askAdminSubtitle": "Požiadajte svojho správcu o rozšírenie licencie {detail}",
+    "askAdminSubtitleGeneric": "Táto funkcia nie je súčasťou vašej súčasnej licencie. Požiadajte svojho správcu o jej rozšírenie.",
+    "notifyAdmin": "Upozorniť správcu",
+    "adminNotified": "Správca upozornený",
+    "adminNotifiedSubtitle": "Vaša žiadosť bola odoslaná vášmu správcovi.",
+    "adminAlreadyNotified": "Správca už bol upozornený",
+    "adminAlreadyNotifiedSubtitle": "Váš správca túto žiadosť dostal už za posledných 24 hodín.",
+    "noAdminToNotify": "Nie je koho upozorniť – žiadny aktívny správca. Obráťte sa na toho, kto spravuje túto inštanciu NocoDB.",
+    "upgradeRequestDailyLimit": "Dnes ste odoslali maximálny počet žiadostí o vyšší plán. Skúste to znova zajtra.",
+    "seatLimitTitle": "Dosiahnutý limit miest",
+    "licenseUpgradeRequested": "požiadal o rozšírenie licencie",
+    "forAddon": "pre doplnok {addon}",
+    "seatLimitAdminSubtitle": "Všetkých {limit} licencovaných miest sa používa. Rozšírte licenciu, aby ste mohli pridať ďalších editorov.",
+    "seatLimitMemberSubtitle": "Všetkých {limit} licencovaných miest sa používa. Požiadajte svojho správcu o pridanie ďalších miest."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1211,8 +1237,8 @@
     "LongText": "Dlhý text",
     "Attachment": "Príloha",
     "Checkbox": "Zaškrtávacie políčko",
-    "MultiSelect": "Multi Select",
-    "SingleSelect": "Single Select",
+    "MultiSelect": "Viacnásobný výber",
+    "SingleSelect": "Jednoduchý výber",
     "Collaborator": "Spolupracujúci subjekt",
     "Date": "Dátum",
     "Year": "Rok",
@@ -1225,14 +1251,14 @@
     "Currency": "Mena",
     "Percent": "Percentá",
     "Duration": "Trvanie",
-    "GeoData": "GeoData",
+    "GeoData": "Geodáta",
     "Rating": "Hodnotenie",
     "Formula": "Vzorec",
     "Rollup": "Rollup",
     "Count": "Počítajte",
     "Lookup": "Vyhľadávanie",
-    "DateTime": "Dátum Čas",
-    "CreatedTime": "Vytvoriť čas",
+    "DateTime": "Dátum a čas",
+    "CreatedTime": "Čas vytvorenia",
     "LastModifiedTime": "Čas poslednej úpravy",
     "AutoNumber": "Automatické číslo",
     "Barcode": "Čiarový kód",
@@ -1244,7 +1270,25 @@
       "restrict": "Obmedziť",
       "setNull": "Nastaviť NULL",
       "setDefault": "Nastavenie predvoleného nastavenia"
-    }
+    },
+    "LinkToAnotherRecord": "Väzba na iný záznam",
+    "Order": "Poradie",
+    "RichText": "Formátovaný text",
+    "SmartText": "Inteligentný text",
+    "Colour": "Farba",
+    "Geometry": "Geometria",
+    "JSON": "JSON",
+    "SpecificDBType": "Konkrétny typ DB",
+    "QrCode": "QR kód",
+    "Links": "Väzby",
+    "User": "Používateľ",
+    "CreatedBy": "Vytvoril",
+    "LastModifiedBy": "Naposledy upravil",
+    "Deleted": "Zmazané",
+    "Meta": "Metadáta riadka",
+    "UUID": "UUID",
+    "AIButton": "Tlačidlo AI",
+    "AIPrompt": "Text AI"
   },
   "filterOperation": {
     "isEqual": "sa rovná",
@@ -1291,7 +1335,17 @@
       "daysAgo": "počet dní dozadu",
       "daysFromNow": "počet dní odo dneška",
       "exactDate": "presný dátum",
-      "exactMonth": "presný mesiac"
+      "exactMonth": "presný mesiac",
+      "thisCalendarWeek": "tento týždeň",
+      "thisCalendarMonth": "tento mesiac",
+      "thisCalendarYear": "tento rok",
+      "lastCalendarWeek": "minulý týždeň",
+      "lastCalendarMonth": "minulý mesiac",
+      "lastCalendarYear": "minulý rok",
+      "nextCalendarWeek": "budúci týždeň",
+      "nextCalendarMonth": "budúci mesiac",
+      "nextCalendarYear": "budúci rok",
+      "dateRange": "rozsah dátumov"
     }
   },
   "title": {
@@ -5863,7 +5917,29 @@
     "workspaceNoAccess": "Pracovný priestor (bez prístupu)",
     "yAxis": "Os Y",
     "workspaceSettings": "Nastavenia pracovného priestoru",
-    "wrapLongText": "Zalomiť dlhý text"
+    "wrapLongText": "Zalomiť dlhý text",
+    "agentAccessData": "Tabuľky a záznamy",
+    "agentAccessDataHint": "Čítanie ich prechádza a dopytuje sa na ne. Úpravy navyše záznamy vytvárajú, menia, prepájajú a mažú.",
+    "agentAccessDocs": "Dokumenty",
+    "agentAccessDocsHint": "Dokumenty tejto bázy. S Úpravami ich môže meniť.",
+    "agentAccessGithubHint": "Číta kód, odosiela vetvy a otvára pull requesty vo svojich repozitároch",
+    "agentAccessCustom": "Niektoré z týchto nástrojov boli vybrané jednotlivo. Zvoľte úroveň a nastavíte ich všetky naraz.",
+    "agentAccessOf": "Prístup: {what}",
+    "agentCodeStartBranch": "Začať od vetvy",
+    "agentCodeStartBranchOf": "Vetva, z ktorej vychádzajú behy {repo}",
+    "agentCodeBranchName": "Názov vetvy",
+    "agentCodeBranchNameHint": "Každý beh dostane vlastnú vetvu. {issue} a {slug} sa doplnia za vás.",
+    "agentCodePullRequests": "Pull requesty",
+    "agentCodePrDraft": "Koncept",
+    "agentCodePrReady": "Pripravené na recenziu",
+    "agentCodePrDraftHint": "Otvorí sa ako koncept. Recenzenti budú oslovení, hneď ako prejdú testy.",
+    "agentCodePrReadyHint": "Otvorí sa pripravené na recenziu a hneď osloví recenzentov uvedených nižšie.",
+    "agentCodeReviewers": "Recenzenti",
+    "agentCodeRemoveReviewer": "Odstrániť {login}",
+    "agentCodeNoReviewers": "V týchto repozitároch nemôže recenzovať nikto ďalší",
+    "agentCodeNoReviewersSet": "Zatiaľ žiadni recenzenti.",
+    "agentCodeNeverMerge": "Agenti nikdy nezlučujú ani neodosielajú do vetvy {base}. Zlúčenie vždy robí človek.",
+    "agentCodeNeverMergeAny": "Agenti nikdy nezlučujú ani neodosielajú do vetvy, z ktorej beh vychádza. Zlúčenie vždy robí človek."
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6055,7 +6131,18 @@
       "deleteStack": "Odstrániť zásobník",
       "stackedBy": "Naskladané podľa",
       "chooseGroupingField": "Výber zoskupovacieho poľa",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "Vytvoriť nové pole Jednoduchý výber",
+      "createUserField": "Vytvoriť nové pole Používateľ",
+      "defaultStackToDo": "Na urobenie",
+      "defaultStackInProgress": "Prebieha",
+      "defaultStackDone": "Hotovo",
+      "loadMoreStacks": "Načítať ďalšie stĺpce",
+      "linkTypeNotStackable": "Väzba viac k jednému môže kanban zoskupiť do stĺpcov len vtedy, keď je zdrojom údajov tabuľky PostgreSQL. Zoskupte radšej podľa poľa Jednoduchý výber, poľa Používateľ alebo väzby patrí k.",
+      "chooseStackField": "Vyberte pole na zoskupenie",
+      "chooseStackFieldDesc": "Vyberte pole, podľa ktorého sa tento board zoskupí do stĺpcov. Každá jeho hodnota dostane vlastný stĺpec.",
+      "createSingleSelectFieldHint": "na zobrazenie stavu, fázy alebo typu každej karty",
+      "createUserFieldHint": "na zobrazenie zodpovednej osoby alebo vlastníka každej karty"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6169,7 +6256,9 @@
     "invitePeopleCount": "Pozvať {count} osobu | Pozvať {count} osôb",
     "inviteThemInstead": "Pozvať ich namiesto toho",
     "blockUser": "Zablokovať používateľa",
-    "unblockUser": "Odblokovať používateľa"
+    "unblockUser": "Odblokovať používateľa",
+    "addDateRange": "Pridať rozsah dátumov",
+    "searchComments": "Hľadať v komentároch"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6413,7 +6502,9 @@
     "dataSourceReadOnly": "Tento zdroj údajov je len na čítanie.",
     "mentionFields": "Spomenúť polia",
     "skipEnabledAfterDelay": "Povolí sa po 2 sekundách",
-    "clickToCopyDocumentId": "Kliknutím skopírujete ID dokumentu"
+    "clickToCopyDocumentId": "Kliknutím skopírujete ID dokumentu",
+    "workflowExecutionInterrupted": "Tento beh sa na našej strane neočakávane zastavil. Nič sa nestratilo. Skúste ho znova, aby pokračoval od kroku, pri ktorom skončil.",
+    "workflowExecutionOnHold": "Aplikácia, ku ktorej tento pracovný postup patrí, je pozastavená. Beh bude pokračovať tam, kde skončil, hneď ako bude aplikácia opäť dostupná."
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8291,7 +8382,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "Obnovenie tohto dokumentu vyžaduje oprávnenie na jeho úpravu",
+    "withSubPages": "(a {count} podstránka) | (a {count} podstránok)"
   },
   "payment": {
     "credits": {
@@ -8663,7 +8756,29 @@
       "other": {
         "where": "Pridajte vo svojom klientovi vzdialený server MCP s týmito údajmi:",
         "auth": "Spustite pripojenie zo svojho klienta. V prehliadači sa otvorí NocoDB, kde sa prihlásite, vyberiete, k čomu môže klient pristupovať, a vyberiete Autorizovať."
+      },
+      "canDelete": "Môže mazať údaje alebo konať mimo NocoDB",
+      "lockedNotEditable": "Táto aplikácia si o tieto povolenia požiadala pri prihlásení a tu sa zmeniť nedajú. Jej voliteľné nástroje možno prepnúť nižšie.",
+      "copilot": {
+        "where": "Vo VS Code otvorte Command Palette, spustite MCP: Add Server a zvoľte HTTP. Vyplňte:",
+        "auth": "Keď VS Code požiada o overenie NocoDB, vyberte Allow. Prihláste sa do NocoDB v prehliadači a vyberte Authorize."
       }
+    },
+    "discoveryNote": "{client} používa najviac 100 nástrojov, preto táto URL priamo vypisuje nástroje NocoDB na čítanie a zápis záznamov a zvyšok nájde na požiadanie.",
+    "windsurf": {
+      "subtitle": "Pre agenta Cascade v Devine (predtým Windsurf).",
+      "addBody": "V Devine (predtým Windsurf) otvorte Settings › Cascade › MCP servers, vyberte Add custom server a vložte túto URL:",
+      "manualLabel": "Pridajte toto do ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Vedľa nocodb vyberte Connect. Prihláste sa do NocoDB v prehliadači, zvoľte, k čomu má Devin prístup a ktoré nástroje smie používať, a potom vyberte Authorize.",
+      "tryBody": "Otvorte Cascade v Devine a spýtajte sa „List my NocoDB tools“."
+    },
+    "copilot": {
+      "subtitle": "Pre GitHub Copilot vo VS Code.",
+      "addBody": "Vyberte {link} a po otvorení VS Code vyberte Install.",
+      "addLink": "Pridať do VS Code",
+      "manualLabel": "Pridajte toto do .vscode/mcp.json alebo spustite MCP: Open User Configuration a pridajte to pre všetky workspacy:",
+      "authBody": "Keď VS Code požiada o overenie NocoDB, vyberte Allow. Prihláste sa do NocoDB v prehliadači, zvoľte, k čomu má Copilot prístup a ktoré nástroje smie používať, a potom vyberte Authorize.",
+      "tryBody": "Otvorte Copilot Chat v režime Agent a spýtajte sa „List my NocoDB tools“."
     }
   },
   "roadmap": {

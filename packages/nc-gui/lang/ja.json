@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "アップグレードしてフォームでログインを必須にする",
     "upgradeToUseFormRequireSigninSubtitle": "{plan} プランにアップグレードすると、フォーム送信前に回答者のログインを必須にできます。",
     "upgradeToUseSso": "SSO を使用するにはアップグレードしてください",
-    "upgradeToUseSsoSubtitle": "{plan} プランにアップグレードすると、シングルサインオン (SSO) を設定し、チームが ID プロバイダーでサインインできるようになります。"
+    "upgradeToUseSsoSubtitle": "{plan} プランにアップグレードすると、シングルサインオン (SSO) を設定し、チームが ID プロバイダーでサインインできるようになります。",
+    "notifyOwnerToUpgrade": "クリックすると、ワークスペースのオーナーにプランのアップグレードを通知します。",
+    "comparePlans": "プランを比較",
+    "workspaceOnPlan": "{workspace} は {plan} を利用中です",
+    "planMenuWith": "このプランで使えるもの",
+    "planMenuRecordsStorage": "{records} レコードと {storage} GB のストレージ",
+    "planMenuUnlimitedEditors": "編集者数は無制限",
+    "planMenuAutomationRuns": "月あたり {runs} 回の自動化実行",
+    "planMenuApiCalls": "月あたり {calls} API 呼び出し",
+    "planMenuSnapshots": "{count} 件のスナップショット",
+    "railPitch": "Plus なら {plusRecords} レコードと無制限の編集者を利用できます。",
+    "upgradeToPlan": "{plan} にアップグレード",
+    "askAdminTitle": "ライセンスに含まれていません",
+    "askAdminSubtitle": "ライセンスのアップグレードを管理者に依頼してください {detail}",
+    "askAdminSubtitleGeneric": "この機能は現在のライセンスには含まれていません。管理者にアップグレードを依頼してください。",
+    "notifyAdmin": "管理者に通知",
+    "adminNotified": "管理者に通知しました",
+    "adminNotifiedSubtitle": "リクエストを管理者に送信しました。",
+    "adminAlreadyNotified": "管理者には通知済みです",
+    "adminAlreadyNotifiedSubtitle": "管理者は過去24時間以内にこのリクエストをすでに受け取っています。",
+    "noAdminToNotify": "通知できる有効な管理者がいません。この NocoDB インスタンスの管理者にお問い合わせください。",
+    "upgradeRequestDailyLimit": "本日のアップグレード申請の上限に達しました。明日もう一度お試しください。",
+    "seatLimitTitle": "席数の上限に達しました",
+    "licenseUpgradeRequested": "がライセンスのアップグレードをリクエストしました",
+    "forAddon": "{addon} アドオン用",
+    "seatLimitAdminSubtitle": "ライセンス付きの {limit} 席がすべて使用中です。編集者を追加するにはライセンスをアップグレードしてください。",
+    "seatLimitMemberSubtitle": "ライセンス付きの {limit} 席がすべて使用中です。席の追加を管理者に依頼してください。"
   },
   "general": {
     "scrollToBottom": "一番下までスクロール",
@@ -1207,8 +1233,8 @@
   "datatype": {
     "ID": "ID",
     "ForeignKey": "外部キー",
-    "SingleLineText": "テキスト",
-    "LongText": "文章",
+    "SingleLineText": "1行テキスト",
+    "LongText": "長文テキスト",
     "Attachment": "ファイルを添付",
     "Checkbox": "チェックボックス",
     "MultiSelect": "複数選択",
@@ -1225,14 +1251,14 @@
     "Currency": "通貨",
     "Percent": "パーセント",
     "Duration": "間隔",
-    "GeoData": "GeoData",
+    "GeoData": "地理データ",
     "Rating": "レーティング",
     "Formula": "数式",
     "Rollup": "ロールアップ",
     "Count": "カウント",
     "Lookup": "ルックアップ",
-    "DateTime": "DateTime型",
-    "CreatedTime": "作成時刻",
+    "DateTime": "日時",
+    "CreatedTime": "作成日時",
     "LastModifiedTime": "最終更新日時",
     "AutoNumber": "自動採番",
     "Barcode": "バーコード",
@@ -1244,7 +1270,25 @@
       "restrict": "制約",
       "setNull": "NULLとする",
       "setDefault": "デフォルトとする"
-    }
+    },
+    "LinkToAnotherRecord": "他のレコードへのリンク",
+    "Order": "並び順",
+    "RichText": "リッチテキスト",
+    "SmartText": "スマートテキスト",
+    "Colour": "色",
+    "Geometry": "ジオメトリ",
+    "JSON": "JSON",
+    "SpecificDBType": "特定の DB 型",
+    "QrCode": "QR コード",
+    "Links": "リンク",
+    "User": "ユーザー",
+    "CreatedBy": "作成者",
+    "LastModifiedBy": "最終更新者",
+    "Deleted": "削除済み",
+    "Meta": "行メタデータ",
+    "UUID": "UUID",
+    "AIButton": "AI ボタン",
+    "AIPrompt": "AI テキスト"
   },
   "filterOperation": {
     "isEqual": "完全一致",
@@ -1291,7 +1335,17 @@
       "daysAgo": "指定日数前",
       "daysFromNow": "今日から指定日数後",
       "exactDate": "正確な日付",
-      "exactMonth": "正確な月"
+      "exactMonth": "正確な月",
+      "thisCalendarWeek": "今週",
+      "thisCalendarMonth": "今月",
+      "thisCalendarYear": "今年",
+      "lastCalendarWeek": "先週",
+      "lastCalendarMonth": "先月",
+      "lastCalendarYear": "昨年",
+      "nextCalendarWeek": "来週",
+      "nextCalendarMonth": "来月",
+      "nextCalendarYear": "来年",
+      "dateRange": "期間"
     }
   },
   "title": {
@@ -5871,7 +5925,29 @@
     "workspaceNoAccess": "ワークスペース（アクセス権なし）",
     "yAxis": "Y 軸",
     "workspaceSettings": "ワークスペース設定",
-    "wrapLongText": "長いテキストを折り返す"
+    "wrapLongText": "長いテキストを折り返す",
+    "agentAccessData": "テーブルとレコード",
+    "agentAccessDataHint": "読み取りでは閲覧とクエリができます。編集ではレコードの作成・変更・リンク・削除もできます。",
+    "agentAccessDocs": "ドキュメント",
+    "agentAccessDocsHint": "この base のドキュメント。編集を許すと変更できます。",
+    "agentAccessGithubHint": "自身のリポジトリでコードを読み、ブランチをプッシュし、プルリクエストを開きます",
+    "agentAccessCustom": "これらのツールの一部は個別に選ばれています。レベルを選ぶとまとめて設定できます。",
+    "agentAccessOf": "{what} へのアクセス",
+    "agentCodeStartBranch": "起点ブランチ",
+    "agentCodeStartBranchOf": "{repo} の実行の起点となるブランチ",
+    "agentCodeBranchName": "ブランチ名",
+    "agentCodeBranchNameHint": "実行ごとに専用のブランチが作られます。{issue} と {slug} は自動で入力されます。",
+    "agentCodePullRequests": "プルリクエスト",
+    "agentCodePrDraft": "ドラフト",
+    "agentCodePrReady": "レビュー可能",
+    "agentCodePrDraftHint": "ドラフトとして開きます。テストが通るとレビュアーに依頼します。",
+    "agentCodePrReadyHint": "レビュー可能な状態で開き、下のレビュアーにすぐ依頼します。",
+    "agentCodeReviewers": "レビュアー",
+    "agentCodeRemoveReviewer": "{login} を削除",
+    "agentCodeNoReviewers": "これらのリポジトリでレビューできる人は他にいません",
+    "agentCodeNoReviewersSet": "レビュアーはまだいません。",
+    "agentCodeNeverMerge": "エージェントはマージせず、{base} にプッシュもしません。マージは必ず人が行います。",
+    "agentCodeNeverMergeAny": "エージェントはマージせず、実行の起点となるブランチにプッシュもしません。マージは必ず人が行います。"
   },
   "activity": {
     "useTemplate": "テンプレートを使用",
@@ -6063,7 +6139,18 @@
       "deleteStack": "スタックを削除",
       "stackedBy": "スタック",
       "chooseGroupingField": "グループ化するフィールドを選択",
-      "autoCollapseEmptyStack": "空のスタックを自動的に折りたたむ"
+      "autoCollapseEmptyStack": "空のスタックを自動的に折りたたむ",
+      "createSingleSelectField": "新しい単一選択フィールドを作成",
+      "createUserField": "新しいユーザーフィールドを作成",
+      "defaultStackToDo": "未着手",
+      "defaultStackInProgress": "進行中",
+      "defaultStackDone": "完了",
+      "loadMoreStacks": "さらにスタックを読み込む",
+      "linkTypeNotStackable": "多対一のリンクで kanban をスタックに分けられるのは、テーブルのデータソースが PostgreSQL の場合だけです。代わりに単一選択フィールド、ユーザーフィールド、または belongs-to のリンクでスタックしてください。",
+      "chooseStackField": "スタックに使うフィールドを選択",
+      "chooseStackFieldDesc": "この board をスタックに分けるフィールドを選びます。その値ごとに個別のスタックができます。",
+      "createSingleSelectFieldHint": "各カードのステータス・段階・種類を表示するため",
+      "createUserFieldHint": "各カードの担当者やオーナーを表示するため"
     },
     "map": {
       "googleMaps": "Google マップ",
@@ -6177,7 +6264,9 @@
     "invitePeopleCount": "{count}人を招待 | {count}人を招待",
     "inviteThemInstead": "代わりに招待する",
     "blockUser": "ユーザーをブロック",
-    "unblockUser": "ユーザーのブロックを解除"
+    "unblockUser": "ユーザーのブロックを解除",
+    "addDateRange": "期間を追加",
+    "searchComments": "コメントを検索"
   },
   "tooltip": {
     "shiftClickWeekStep": "Shiftキーを押しながら1週間ずつステップ実行します",
@@ -6421,7 +6510,9 @@
     "dataSourceReadOnly": "このデータソースは読み取り専用です。",
     "mentionFields": "フィールドをメンション",
     "skipEnabledAfterDelay": "2 秒後に有効になります",
-    "clickToCopyDocumentId": "クリックしてドキュメント ID をコピー"
+    "clickToCopyDocumentId": "クリックしてドキュメント ID をコピー",
+    "workflowExecutionInterrupted": "この実行は当社側で予期せず停止しました。失われたものはありません。再試行すると、停止した手順から続行します。",
+    "workflowExecutionOnHold": "このワークフローが属するアプリは停止中です。アプリが復帰すると、実行は中断した箇所から再開します。"
   },
   "placeholder": {
     "enterVerificationCode": "6桁のコードを入力してください",
@@ -8299,7 +8390,9 @@
     "userDeleted": "{user} が {type} から {parent}を削除しました: {name}",
     "youDeletedNoParent": "{type}を削除しました : {name}",
     "userDeletedNoParent": "{user} が {type}を削除しました: {name}",
-    "someoneDeleted": "{type} が削除されました: {name}"
+    "someoneDeleted": "{type} が削除されました: {name}",
+    "restoreRequiresDocEdit": "このドキュメントを復元するには、そのドキュメントの編集権限が必要です",
+    "withSubPages": "(およびサブページ {count} 件) | (およびサブページ {count} 件)"
   },
   "payment": {
     "credits": {
@@ -8672,7 +8765,29 @@
       "other": {
         "where": "次の情報でクライアントにリモート MCP サーバーを追加します:",
         "auth": "接続はクライアント側から開始します。ブラウザーで NocoDB が開くので、そこでログインし、クライアントにアクセスを許可する範囲を選んで「承認」を選択します。"
+      },
+      "canDelete": "データを削除したり、NocoDB の外で動作したりできます",
+      "lockedNotEditable": "このアプリはサインイン時にこれらの権限を要求しており、ここでは変更できません。任意で有効にできるツールは下で切り替えられます。",
+      "copilot": {
+        "where": "VS Code で Command Palette を開き、MCP: Add Server を実行して HTTP を選びます。次を入力します:",
+        "auth": "VS Code が NocoDB の認証を求めたら Allow を選びます。ブラウザーで NocoDB にサインインし、Authorize を選びます。"
       }
+    },
+    "discoveryNote": "{client} が使えるツールは最大100個のため、この URL では NocoDB の読み取りツールとレコード書き込みを直接列挙し、それ以外は必要に応じて探します。",
+    "windsurf": {
+      "subtitle": "Devin（旧 Windsurf）の Cascade エージェント向け。",
+      "addBody": "Devin（旧 Windsurf）で Settings › Cascade › MCP servers を開き、Add custom server を選んでこの URL を貼り付けます:",
+      "manualLabel": "これを ~/.codeium/windsurf/mcp_config.json に追加します:",
+      "authBody": "nocodb の横の Connect を選びます。ブラウザーで NocoDB にサインインし、Devin がアクセスできる範囲と使用できるツールを選んでから Authorize を選びます。",
+      "tryBody": "Devin で Cascade を開き、「List my NocoDB tools」と尋ねます。"
+    },
+    "copilot": {
+      "subtitle": "VS Code の GitHub Copilot 向け。",
+      "addBody": "{link} を選び、VS Code が開いたら Install を選びます。",
+      "addLink": "VS Code に追加",
+      "manualLabel": "これを .vscode/mcp.json に追加するか、MCP: Open User Configuration を実行してすべての workspace に追加します:",
+      "authBody": "VS Code が NocoDB の認証を求めたら Allow を選びます。ブラウザーで NocoDB にサインインし、Copilot がアクセスできる範囲と使用できるツールを選んでから Authorize を選びます。",
+      "tryBody": "Copilot Chat を Agent モードで開き、「List my NocoDB tools」と尋ねます。"
     }
   },
   "roadmap": {

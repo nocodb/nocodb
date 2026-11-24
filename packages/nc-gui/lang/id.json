@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Tingkatkan untuk mewajibkan masuk pada formulir",
     "upgradeToUseFormRequireSigninSubtitle": "Tingkatkan ke paket {plan} untuk mewajibkan responden masuk sebelum mengirim formulir.",
     "upgradeToUseSso": "Tingkatkan untuk menggunakan SSO",
-    "upgradeToUseSsoSubtitle": "Tingkatkan ke paket {plan} untuk menyiapkan Single Sign-On (SSO) dan memungkinkan tim Anda masuk dengan penyedia identitas Anda."
+    "upgradeToUseSsoSubtitle": "Tingkatkan ke paket {plan} untuk menyiapkan Single Sign-On (SSO) dan memungkinkan tim Anda masuk dengan penyedia identitas Anda.",
+    "notifyOwnerToUpgrade": "Klik untuk memberi tahu pemilik ruang kerja agar meningkatkan paketnya.",
+    "comparePlans": "Bandingkan paket",
+    "workspaceOnPlan": "{workspace} memakai {plan}",
+    "planMenuWith": "Yang Anda dapatkan dengan",
+    "planMenuRecordsStorage": "{records} rekaman dan penyimpanan {storage} GB",
+    "planMenuUnlimitedEditors": "Editor tanpa batas",
+    "planMenuAutomationRuns": "{runs} proses otomatisasi per bulan",
+    "planMenuApiCalls": "{calls} panggilan API per bulan",
+    "planMenuSnapshots": "{count} snapshot",
+    "railPitch": "Plus memberi Anda {plusRecords} rekaman dan editor tanpa batas.",
+    "upgradeToPlan": "Tingkatkan ke {plan}",
+    "askAdminTitle": "Tidak termasuk dalam lisensi Anda",
+    "askAdminSubtitle": "Minta admin Anda meningkatkan lisensi {detail}",
+    "askAdminSubtitleGeneric": "Fitur ini tidak termasuk dalam lisensi Anda saat ini. Minta admin Anda untuk meningkatkannya.",
+    "notifyAdmin": "Beri tahu admin",
+    "adminNotified": "Admin telah diberi tahu",
+    "adminNotifiedSubtitle": "Permintaan Anda telah dikirim ke admin Anda.",
+    "adminAlreadyNotified": "Admin sudah diberi tahu",
+    "adminAlreadyNotifiedSubtitle": "Admin Anda sudah menerima permintaan ini dalam 24 jam terakhir.",
+    "noAdminToNotify": "Tidak ada admin aktif yang bisa diberi tahu. Hubungi siapa pun yang mengelola instance NocoDB ini.",
+    "upgradeRequestDailyLimit": "Anda telah mengirim permintaan peningkatan dalam jumlah maksimum untuk hari ini. Coba lagi besok.",
+    "seatLimitTitle": "Batas kursi tercapai",
+    "licenseUpgradeRequested": "telah meminta peningkatan lisensi",
+    "forAddon": "untuk add-on {addon}",
+    "seatLimitAdminSubtitle": "Seluruh {limit} kursi berlisensi sedang dipakai. Tingkatkan lisensi Anda untuk menambah editor.",
+    "seatLimitMemberSubtitle": "Seluruh {limit} kursi berlisensi sedang dipakai. Minta admin Anda menambah kursi."
   },
   "general": {
     "scrollToBottom": "Gulir ke bawah",
@@ -1205,12 +1231,12 @@
   "datatype": {
     "ID": "Indo",
     "ForeignKey": "Kunci asing",
-    "SingleLineText": "Teks baris tunggal",
-    "LongText": "Teks Panjang",
+    "SingleLineText": "Teks satu baris",
+    "LongText": "Teks panjang",
     "Attachment": "Lampiran",
     "Checkbox": "Centang",
-    "MultiSelect": "Multi Select.",
-    "SingleSelect": "Pilih tunggal",
+    "MultiSelect": "Pilihan ganda",
+    "SingleSelect": "Pilihan tunggal",
     "Collaborator": "Kolaborator",
     "Date": "Tanggal",
     "Year": "Tahun",
@@ -1223,15 +1249,15 @@
     "Currency": "Mata uang",
     "Percent": "Persen",
     "Duration": "Durasi",
-    "GeoData": "GeoData",
+    "GeoData": "Data geografis",
     "Rating": "Peringkat",
     "Formula": "Rumus",
     "Rollup": "Rollup.",
     "Count": "Menghitung",
     "Lookup": "Mencari",
-    "DateTime": "Tanggal Waktu",
-    "CreatedTime": "Buat waktu",
-    "LastModifiedTime": "Waktu yang dimodifikasi terakhir",
+    "DateTime": "Tanggal dan waktu",
+    "CreatedTime": "Waktu dibuat",
+    "LastModifiedTime": "Waktu terakhir diubah",
     "AutoNumber": "Nomor otomatis",
     "Barcode": "Barcode.",
     "Button": "Tombol",
@@ -1242,7 +1268,25 @@
       "restrict": "Membatasi",
       "setNull": "Atur null.",
       "setDefault": "Set standar"
-    }
+    },
+    "LinkToAnotherRecord": "Tautan ke rekaman lain",
+    "Order": "Urutan",
+    "RichText": "Teks kaya",
+    "SmartText": "Teks pintar",
+    "Colour": "Warna",
+    "Geometry": "Geometri",
+    "JSON": "JSON",
+    "SpecificDBType": "Tipe DB tertentu",
+    "QrCode": "Kode QR",
+    "Links": "Tautan",
+    "User": "Pengguna",
+    "CreatedBy": "Dibuat oleh",
+    "LastModifiedBy": "Terakhir diubah oleh",
+    "Deleted": "Dihapus",
+    "Meta": "Metadata baris",
+    "UUID": "UUID",
+    "AIButton": "Tombol AI",
+    "AIPrompt": "Teks AI"
   },
   "filterOperation": {
     "isEqual": "sama.",
@@ -1289,7 +1333,17 @@
       "daysAgo": "jumlah hari yang lalu",
       "daysFromNow": "jumlah hari dari sekarang",
       "exactDate": "tanggal tepat",
-      "exactMonth": "bulan tepat"
+      "exactMonth": "bulan tepat",
+      "thisCalendarWeek": "minggu ini",
+      "thisCalendarMonth": "bulan ini",
+      "thisCalendarYear": "tahun ini",
+      "lastCalendarWeek": "minggu lalu",
+      "lastCalendarMonth": "bulan lalu",
+      "lastCalendarYear": "tahun lalu",
+      "nextCalendarWeek": "minggu depan",
+      "nextCalendarMonth": "bulan depan",
+      "nextCalendarYear": "tahun depan",
+      "dateRange": "rentang tanggal"
     }
   },
   "title": {
@@ -5853,7 +5907,29 @@
     "workspaceNoAccess": "Ruang kerja (tidak ada akses)",
     "yAxis": "Sumbu Y",
     "workspaceSettings": "Pengaturan ruang kerja",
-    "wrapLongText": "Bungkus teks panjang"
+    "wrapLongText": "Bungkus teks panjang",
+    "agentAccessData": "Tabel dan rekaman",
+    "agentAccessDataHint": "Baca menelusuri dan mengkueri semuanya. Edit juga membuat, mengubah, menautkan, dan menghapus rekaman.",
+    "agentAccessDocs": "Dokumen",
+    "agentAccessDocsHint": "Dokumen pada base ini. Dengan Edit, ia boleh mengubahnya.",
+    "agentAccessGithubHint": "Membaca kode, mengirim branch, dan membuka pull request di repositorinya",
+    "agentAccessCustom": "Sebagian alat ini dipilih satu per satu. Pilih satu tingkat untuk mengatur semuanya.",
+    "agentAccessOf": "Akses {what}",
+    "agentCodeStartBranch": "Mulai dari branch",
+    "agentCodeStartBranchOf": "Branch tempat proses {repo} dimulai",
+    "agentCodeBranchName": "Nama branch",
+    "agentCodeBranchNameHint": "Setiap proses mendapat branch sendiri. {issue} dan {slug} diisikan untuk Anda.",
+    "agentCodePullRequests": "Pull request",
+    "agentCodePrDraft": "Draf",
+    "agentCodePrReady": "Siap ditinjau",
+    "agentCodePrDraftHint": "Dibuka sebagai draf. Peninjau diminta setelah pengujian lolos.",
+    "agentCodePrReadyHint": "Dibuka siap ditinjau dan langsung meminta peninjau di bawah ini.",
+    "agentCodeReviewers": "Peninjau",
+    "agentCodeRemoveReviewer": "Hapus {login}",
+    "agentCodeNoReviewers": "Tidak ada orang lain yang dapat meninjau di repositori ini",
+    "agentCodeNoReviewersSet": "Belum ada peninjau.",
+    "agentCodeNeverMerge": "Agen tidak pernah menggabungkan dan tidak pernah mengirim ke {base}. Penggabungan selalu dilakukan manusia.",
+    "agentCodeNeverMergeAny": "Agen tidak pernah menggabungkan dan tidak pernah mengirim ke branch asal sebuah proses. Penggabungan selalu dilakukan manusia."
   },
   "activity": {
     "useTemplate": "Gunakan templat",
@@ -6045,7 +6121,18 @@
       "deleteStack": "Hapus Tumpukan",
       "stackedBy": "Ditumpuk oleh",
       "chooseGroupingField": "Pilih Bidang Pengelompokan",
-      "autoCollapseEmptyStack": "Tumpukan kosong yang runtuh secara otomatis"
+      "autoCollapseEmptyStack": "Tumpukan kosong yang runtuh secara otomatis",
+      "createSingleSelectField": "Buat bidang Pilihan tunggal baru",
+      "createUserField": "Buat bidang Pengguna baru",
+      "defaultStackToDo": "Akan dikerjakan",
+      "defaultStackInProgress": "Sedang berjalan",
+      "defaultStackDone": "Selesai",
+      "loadMoreStacks": "Muat lebih banyak tumpukan",
+      "linkTypeNotStackable": "Tautan banyak-ke-satu hanya bisa menumpuk kanban jika sumber data tabelnya adalah PostgreSQL. Gunakan bidang Pilihan tunggal, bidang Pengguna, atau tautan milik-dari sebagai gantinya.",
+      "chooseStackField": "Pilih bidang penumpukan",
+      "chooseStackFieldDesc": "Pilih bidang yang menumpuk board ini. Setiap nilainya mendapat tumpukan sendiri.",
+      "createSingleSelectFieldHint": "untuk menampilkan status, tahap, atau jenis setiap kartu",
+      "createUserFieldHint": "untuk menampilkan penanggung jawab atau pemilik setiap kartu"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6159,7 +6246,9 @@
     "invitePeopleCount": "Undang {count} orang | Undang {count} orang",
     "inviteThemInstead": "Undang mereka saja",
     "blockUser": "Blokir pengguna",
-    "unblockUser": "Buka blokir pengguna"
+    "unblockUser": "Buka blokir pengguna",
+    "addDateRange": "Tambah rentang tanggal",
+    "searchComments": "Cari komentar"
   },
   "tooltip": {
     "shiftClickWeekStep": "Tahan Shift untuk melangkah sejauh 1 minggu",
@@ -6403,7 +6492,9 @@
     "dataSourceReadOnly": "Sumber data ini hanya baca.",
     "mentionFields": "Sebut bidang",
     "skipEnabledAfterDelay": "Akan aktif setelah 2 detik",
-    "clickToCopyDocumentId": "Klik untuk menyalin ID dokumen"
+    "clickToCopyDocumentId": "Klik untuk menyalin ID dokumen",
+    "workflowExecutionInterrupted": "Proses ini berhenti secara tak terduga di sisi kami. Tidak ada yang hilang. Coba lagi untuk melanjutkan dari langkah terakhirnya.",
+    "workflowExecutionOnHold": "Aplikasi yang memuat alur kerja ini sedang ditangguhkan. Proses akan dilanjutkan dari posisi terakhir begitu aplikasi aktif kembali."
   },
   "placeholder": {
     "enterVerificationCode": "Masukkan kode 6 digit",
@@ -8281,7 +8372,9 @@
     "userDeleted": "{user} menghapus {type} dari {parent}: {name}",
     "youDeletedNoParent": "Anda menghapus {type}: {name}",
     "userDeletedNoParent": "{user} dihapus a {type}: {name}",
-    "someoneDeleted": "A {type} telah dihapus: {name}"
+    "someoneDeleted": "A {type} telah dihapus: {name}",
+    "restoreRequiresDocEdit": "Memulihkan dokumen ini memerlukan akses edit ke dokumen tersebut",
+    "withSubPages": "(dan {count} subhalaman) | (dan {count} subhalaman)"
   },
   "payment": {
     "credits": {
@@ -8653,7 +8746,29 @@
       "other": {
         "where": "Tambahkan server MCP jarak jauh di klien Anda dengan detail berikut:",
         "auth": "Mulai koneksi dari klien Anda. NocoDB terbuka di browser, tempat Anda masuk, memilih apa yang boleh diakses klien, dan memilih Otorisasi."
+      },
+      "canDelete": "Dapat menghapus data atau bertindak di luar NocoDB",
+      "lockedNotEditable": "Aplikasi ini meminta izin tersebut saat masuk, dan izin itu tidak bisa diubah di sini. Alat opsionalnya bisa diaktifkan di bawah.",
+      "copilot": {
+        "where": "Di VS Code, buka Command Palette, jalankan MCP: Add Server lalu pilih HTTP. Isi:",
+        "auth": "Saat VS Code meminta autentikasi NocoDB, pilih Allow. Masuk ke NocoDB di peramban lalu pilih Authorize."
       }
+    },
+    "discoveryNote": "{client} memakai paling banyak 100 alat, jadi URL ini langsung mencantumkan alat baca dan penulisan rekaman NocoDB serta mencari sisanya saat diminta.",
+    "windsurf": {
+      "subtitle": "Untuk agen Cascade di Devin (dahulu Windsurf).",
+      "addBody": "Di Devin (dahulu Windsurf), buka Settings › Cascade › MCP servers, pilih Add custom server, lalu tempel URL ini:",
+      "manualLabel": "Tambahkan ini ke ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Pilih Connect di samping nocodb. Masuk ke NocoDB di peramban, pilih apa yang boleh diakses Devin dan alat apa yang boleh dipakainya, lalu pilih Authorize.",
+      "tryBody": "Buka Cascade di Devin lalu minta “List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "Untuk GitHub Copilot di VS Code.",
+      "addBody": "Pilih {link}, lalu pilih Install saat VS Code terbuka.",
+      "addLink": "Tambahkan ke VS Code",
+      "manualLabel": "Tambahkan ini ke .vscode/mcp.json, atau jalankan MCP: Open User Configuration untuk menambahkannya ke setiap workspace:",
+      "authBody": "Saat VS Code meminta autentikasi NocoDB, pilih Allow. Masuk ke NocoDB di peramban, pilih apa yang boleh diakses Copilot dan alat apa yang boleh dipakainya, lalu pilih Authorize.",
+      "tryBody": "Buka Copilot Chat dalam mode Agent lalu minta “List my NocoDB tools”."
     }
   },
   "roadmap": {

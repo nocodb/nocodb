@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Päivitä vaatiaksesi kirjautumista lomakkeisiin",
     "upgradeToUseFormRequireSigninSubtitle": "Päivitä {plan}-pakettiin, jos haluat vaatia vastaajilta kirjautumista ennen lomakkeen lähettämistä.",
     "upgradeToUseSso": "Päivitä käyttääksesi SSO:ta",
-    "upgradeToUseSsoSubtitle": "Päivitä {plan} tilaukseen, jotta voit ottaa käyttöön kertakirjautumisen (SSO) ja antaa tiimisi kirjautua sisään identiteetintarjoajallasi."
+    "upgradeToUseSsoSubtitle": "Päivitä {plan} tilaukseen, jotta voit ottaa käyttöön kertakirjautumisen (SSO) ja antaa tiimisi kirjautua sisään identiteetintarjoajallasi.",
+    "notifyOwnerToUpgrade": "Napsauta pyytääksesi työtilan omistajaa päivittämään tilauksen.",
+    "comparePlans": "Vertaa tilauksia",
+    "workspaceOnPlan": "{workspace} käyttää tilausta {plan}",
+    "planMenuWith": "Tämän saat tilauksella",
+    "planMenuRecordsStorage": "{records} tietuetta ja {storage} Gt tallennustilaa",
+    "planMenuUnlimitedEditors": "Rajattomasti muokkaajia",
+    "planMenuAutomationRuns": "{runs} automaatiosuoritusta kuukaudessa",
+    "planMenuApiCalls": "{calls} API-kutsua kuukaudessa",
+    "planMenuSnapshots": "{count} tilannevedosta",
+    "railPitch": "Plus antaa sinulle {plusRecords} tietuetta ja rajattomasti muokkaajia.",
+    "upgradeToPlan": "Päivitä tilaukseen {plan}",
+    "askAdminTitle": "Ei sisälly lisenssiisi",
+    "askAdminSubtitle": "Pyydä ylläpitäjääsi päivittämään lisenssi {detail}",
+    "askAdminSubtitleGeneric": "Tämä ominaisuus ei sisälly nykyiseen lisenssiisi. Pyydä ylläpitäjääsi päivittämään se.",
+    "notifyAdmin": "Ilmoita ylläpitäjälle",
+    "adminNotified": "Ylläpitäjälle ilmoitettu",
+    "adminNotifiedSubtitle": "Pyyntösi on lähetetty ylläpitäjällesi.",
+    "adminAlreadyNotified": "Ylläpitäjälle on jo ilmoitettu",
+    "adminAlreadyNotifiedSubtitle": "Ylläpitäjäsi on jo saanut tämän pyynnön viimeisten 24 tunnin aikana.",
+    "noAdminToNotify": "Ei aktiivista ylläpitäjää, jolle ilmoittaa. Ota yhteyttä tämän NocoDB-asennuksen hallinnoijaan.",
+    "upgradeRequestDailyLimit": "Olet lähettänyt tämän päivän enimmäismäärän päivityspyyntöjä. Yritä uudelleen huomenna.",
+    "seatLimitTitle": "Paikkaraja saavutettu",
+    "licenseUpgradeRequested": "on pyytänyt lisenssin päivitystä",
+    "forAddon": "lisäosaa {addon} varten",
+    "seatLimitAdminSubtitle": "Kaikki {limit} lisensoitua paikkaa ovat käytössä. Päivitä lisenssisi lisätäksesi muokkaajia.",
+    "seatLimitMemberSubtitle": "Kaikki {limit} lisensoitua paikkaa ovat käytössä. Pyydä ylläpitäjääsi lisäämään paikkoja."
   },
   "general": {
     "scrollToBottom": "Siirry alareunaan",
@@ -1206,13 +1232,13 @@
   },
   "datatype": {
     "ID": "Id",
-    "ForeignKey": "Ulkomaalainen avain",
-    "SingleLineText": "Yhden linjan teksti",
+    "ForeignKey": "Viiteavain",
+    "SingleLineText": "Yhden rivin teksti",
     "LongText": "Pitkä teksti",
     "Attachment": "Liite",
     "Checkbox": "Valintaruutu",
     "MultiSelect": "Monivalinta",
-    "SingleSelect": "Yksittäinen valinta",
+    "SingleSelect": "Yksittäisvalinta",
     "Collaborator": "Yhteistyökumppani",
     "Date": "Päivämäärä",
     "Year": "Vuosi",
@@ -1225,15 +1251,15 @@
     "Currency": "Valuutta",
     "Percent": "Prosentti",
     "Duration": "Kesto",
-    "GeoData": "GeoData",
+    "GeoData": "Sijaintitiedot",
     "Rating": "Luokitus",
     "Formula": "Kaava",
     "Rollup": "Rullaus",
     "Count": "Kreivi",
     "Lookup": "Katso ylös",
-    "DateTime": "Treffiaika",
-    "CreatedTime": "Luoda aikaa",
-    "LastModifiedTime": "Viimeksi muutettu aika",
+    "DateTime": "Päivämäärä ja aika",
+    "CreatedTime": "Luontiaika",
+    "LastModifiedTime": "Viimeisimmän muokkauksen aika",
     "AutoNumber": "Automaattinen numero",
     "Barcode": "Viivakoodi",
     "Button": "Painike",
@@ -1244,7 +1270,25 @@
       "restrict": "Rajoittaa",
       "setNull": "Asettaa nolla",
       "setDefault": "Aseta oletus"
-    }
+    },
+    "LinkToAnotherRecord": "Linkki toiseen tietueeseen",
+    "Order": "Järjestys",
+    "RichText": "Muotoiltu teksti",
+    "SmartText": "Älyteksti",
+    "Colour": "Väri",
+    "Geometry": "Geometria",
+    "JSON": "JSON",
+    "SpecificDBType": "Tietty DB-tyyppi",
+    "QrCode": "QR-koodi",
+    "Links": "Linkit",
+    "User": "Käyttäjä",
+    "CreatedBy": "Luonut",
+    "LastModifiedBy": "Viimeksi muokannut",
+    "Deleted": "Poistettu",
+    "Meta": "Rivin metatiedot",
+    "UUID": "UUID",
+    "AIButton": "Tekoälypainike",
+    "AIPrompt": "Tekoälyteksti"
   },
   "filterOperation": {
     "isEqual": "on yhtä kuin",
@@ -1291,7 +1335,17 @@
       "daysAgo": "päivien määrä sitten",
       "daysFromNow": "päivien määrä tästä eteenpäin",
       "exactDate": "tarkka päivämäärä",
-      "exactMonth": "tarkka kuukausi"
+      "exactMonth": "tarkka kuukausi",
+      "thisCalendarWeek": "tällä viikolla",
+      "thisCalendarMonth": "tässä kuussa",
+      "thisCalendarYear": "tänä vuonna",
+      "lastCalendarWeek": "viime viikolla",
+      "lastCalendarMonth": "viime kuussa",
+      "lastCalendarYear": "viime vuonna",
+      "nextCalendarWeek": "ensi viikolla",
+      "nextCalendarMonth": "ensi kuussa",
+      "nextCalendarYear": "ensi vuonna",
+      "dateRange": "päivämääräväli"
     }
   },
   "title": {
@@ -5870,7 +5924,29 @@
     "workspaceNoAccess": "Työtila (ei käyttöoikeutta)",
     "yAxis": "Y-akseli",
     "workspaceSettings": "Työtilan asetukset",
-    "wrapLongText": "Rivitä pitkä teksti"
+    "wrapLongText": "Rivitä pitkä teksti",
+    "agentAccessData": "Taulut ja tietueet",
+    "agentAccessDataHint": "Luku selaa ja kyselee niitä. Muokkaus lisäksi luo, muuttaa, linkittää ja poistaa tietueita.",
+    "agentAccessDocs": "Asiakirjat",
+    "agentAccessDocsHint": "Basen asiakirjat. Muokkaus antaa sen muuttaa niitä.",
+    "agentAccessGithubHint": "Lukee koodia, työntää haaroja ja avaa pull request -pyyntöjä repositorioissaan",
+    "agentAccessCustom": "Osa näistä työkaluista valittiin yksitellen. Valitse taso, niin kaikki asettuvat kerralla.",
+    "agentAccessOf": "Käyttöoikeus kohteeseen {what}",
+    "agentCodeStartBranch": "Aloita haarasta",
+    "agentCodeStartBranchOf": "Haara, josta {repo}-suoritukset alkavat",
+    "agentCodeBranchName": "Haaran nimi",
+    "agentCodeBranchNameHint": "Jokainen suoritus saa oman haaransa. {issue} ja {slug} täytetään puolestasi.",
+    "agentCodePullRequests": "Pull request -pyynnöt",
+    "agentCodePrDraft": "Luonnos",
+    "agentCodePrReady": "Valmis katselmoitavaksi",
+    "agentCodePrDraftHint": "Avautuu luonnoksena. Katselmoijia pyydetään, kun testit menevät läpi.",
+    "agentCodePrReadyHint": "Avautuu valmiina katselmoitavaksi ja pyytää alla olevia katselmoijia heti.",
+    "agentCodeReviewers": "Katselmoijat",
+    "agentCodeRemoveReviewer": "Poista {login}",
+    "agentCodeNoReviewers": "Kukaan muu ei voi katselmoida näissä repositorioissa",
+    "agentCodeNoReviewersSet": "Ei vielä katselmoijia.",
+    "agentCodeNeverMerge": "Agentit eivät koskaan yhdistä eivätkä työnnä haaraan {base}. Yhdistämisen tekee aina ihminen.",
+    "agentCodeNeverMergeAny": "Agentit eivät koskaan yhdistä eivätkä työnnä haaraan, josta suoritus alkaa. Yhdistämisen tekee aina ihminen."
   },
   "activity": {
     "useTemplate": "Käytä mallia",
@@ -6062,7 +6138,18 @@
       "deleteStack": "Poista pino",
       "stackedBy": "Pinottu by",
       "chooseGroupingField": "Valitse ryhmittelykenttä",
-      "autoCollapseEmptyStack": "Tiivistä automaattisesti tyhjä pino"
+      "autoCollapseEmptyStack": "Tiivistä automaattisesti tyhjä pino",
+      "createSingleSelectField": "Luo uusi Yksittäisvalinta-kenttä",
+      "createUserField": "Luo uusi Käyttäjä-kenttä",
+      "defaultStackToDo": "Tehtävä",
+      "defaultStackInProgress": "Työn alla",
+      "defaultStackDone": "Valmis",
+      "loadMoreStacks": "Lataa lisää pinoja",
+      "linkTypeNotStackable": "Monta yhteen -linkki voi pinota kanbanin vain, kun taulun tietolähde on PostgreSQL. Pinoa sen sijaan Yksittäisvalinta-kentän, Käyttäjä-kentän tai kuuluu-linkin mukaan.",
+      "chooseStackField": "Valitse pinoamiskenttä",
+      "chooseStackFieldDesc": "Valitse kenttä, jonka mukaan tämä board pinotaan. Jokainen sen arvo saa oman pinonsa.",
+      "createSingleSelectFieldHint": "näyttääksesi kunkin kortin tilan, vaiheen tai tyypin",
+      "createUserFieldHint": "näyttääksesi kunkin kortin vastuuhenkilön tai omistajan"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6176,7 +6263,9 @@
     "invitePeopleCount": "Kutsu {count} henkilö | Kutsu {count} henkilöä",
     "inviteThemInstead": "Kutsu heidät sen sijaan",
     "blockUser": "Estä käyttäjä",
-    "unblockUser": "Poista käyttäjän esto"
+    "unblockUser": "Poista käyttäjän esto",
+    "addDateRange": "Lisää päivämääräväli",
+    "searchComments": "Hae kommenteista"
   },
   "tooltip": {
     "shiftClickWeekStep": "Pidä siirrä vaiheeseen 1 viikko",
@@ -6420,7 +6509,9 @@
     "dataSourceReadOnly": "Tämä tietolähde on vain luku -tilassa.",
     "mentionFields": "Mainitse kenttiä",
     "skipEnabledAfterDelay": "Otetaan käyttöön 2 sekunnin kuluttua",
-    "clickToCopyDocumentId": "Kopioi asiakirjan tunnus napsauttamalla"
+    "clickToCopyDocumentId": "Kopioi asiakirjan tunnus napsauttamalla",
+    "workflowExecutionInterrupted": "Tämä suoritus pysähtyi odottamatta meidän päässämme. Mitään ei menetetty. Yritä uudelleen jatkaaksesi siitä vaiheesta, jossa se oli.",
+    "workflowExecutionOnHold": "Sovellus, johon tämä työnkulku kuuluu, on keskeytetty. Suoritus jatkuu siitä mihin se jäi heti kun sovellus on taas käytössä."
   },
   "placeholder": {
     "enterVerificationCode": "Syötä 6-numeroinen koodi",
@@ -8298,7 +8389,9 @@
     "userDeleted": "{user} Poistetaan {type} osoitteesta {parent}: {name}.",
     "youDeletedNoParent": "Poistit {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "{type} poistettiin: {name}"
+    "someoneDeleted": "{type} poistettiin: {name}",
+    "restoreRequiresDocEdit": "Tämän asiakirjan palauttaminen vaatii siihen muokkausoikeuden",
+    "withSubPages": "(ja {count} alisivu) | (ja {count} alisivua)"
   },
   "payment": {
     "credits": {
@@ -8670,7 +8763,29 @@
       "other": {
         "where": "Lisää asiakasohjelmaasi etä-MCP-palvelin näillä tiedoilla:",
         "auth": "Käynnistä yhteys asiakasohjelmastasi. NocoDB avautuu selaimeen, jossa kirjaudut sisään, valitset mihin asiakasohjelma pääsee käsiksi ja valitset Valtuuta."
+      },
+      "canDelete": "Voi poistaa tietoja tai toimia NocoDB:n ulkopuolella",
+      "lockedNotEditable": "Tämä sovellus pyysi näitä oikeuksia kirjautuessaan, eikä niitä voi muuttaa täällä. Sen valinnaiset työkalut voi kytkeä päälle alta.",
+      "copilot": {
+        "where": "Avaa VS Codessa Command Palette, suorita MCP: Add Server ja valitse HTTP. Täytä:",
+        "auth": "Kun VS Code pyytää todentamaan NocoDB:n, valitse Allow. Kirjaudu NocoDB:hen selaimessa ja valitse Authorize."
       }
+    },
+    "discoveryNote": "{client} käyttää enintään 100:aa työkalua, joten tämä URL luettelee suoraan NocoDB:n lukutyökalut ja tietueiden kirjoitukset ja etsii loput pyydettäessä.",
+    "windsurf": {
+      "subtitle": "Devinin (aiemmin Windsurf) Cascade-agentille.",
+      "addBody": "Avaa Devinissä (aiemmin Windsurf) Settings › Cascade › MCP servers, valitse Add custom server ja liitä tämä URL:",
+      "manualLabel": "Lisää tämä tiedostoon ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Valitse Connect kohdan nocodb vierestä. Kirjaudu NocoDB:hen selaimessa, valitse mihin Devin pääsee käsiksi ja mitä työkaluja se saa käyttää, ja valitse sitten Authorize.",
+      "tryBody": "Avaa Cascade Devinissä ja pyydä ”List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "GitHub Copilotille VS Codessa.",
+      "addBody": "Valitse {link} ja valitse sitten Install, kun VS Code avautuu.",
+      "addLink": "Lisää VS Codeen",
+      "manualLabel": "Lisää tämä tiedostoon .vscode/mcp.json tai suorita MCP: Open User Configuration lisätäksesi sen kaikkiin työtiloihin:",
+      "authBody": "Kun VS Code pyytää todentamaan NocoDB:n, valitse Allow. Kirjaudu NocoDB:hen selaimessa, valitse mihin Copilot pääsee käsiksi ja mitä työkaluja se saa käyttää, ja valitse sitten Authorize.",
+      "tryBody": "Avaa Copilot Chat Agent-tilassa ja pyydä ”List my NocoDB tools”."
     }
   },
   "roadmap": {

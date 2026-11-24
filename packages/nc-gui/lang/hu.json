@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Frissítsen, hogy bejelentkezést írhasson elő az űrlapokon",
     "upgradeToUseFormRequireSigninSubtitle": "Frissítsen a(z) {plan} csomagra, hogy a kitöltőknek be kelljen jelentkezniük az űrlap elküldése előtt.",
     "upgradeToUseSso": "Frissítés az SSO használatához",
-    "upgradeToUseSsoSubtitle": "A {plan} csomagra való frissítéssel beállíthatja az egyszeri bejelentkezést (SSO), és a csapata bejelentkezhet az identitásszolgáltatójával."
+    "upgradeToUseSsoSubtitle": "A {plan} csomagra való frissítéssel beállíthatja az egyszeri bejelentkezést (SSO), és a csapata bejelentkezhet az identitásszolgáltatójával.",
+    "notifyOwnerToUpgrade": "Kattints, hogy jelezd a munkaterület tulajdonosának a csomag bővítését.",
+    "comparePlans": "Csomagok összehasonlítása",
+    "workspaceOnPlan": "A(z) {workspace} csomagja: {plan}",
+    "planMenuWith": "Ezt kapod ezzel a csomaggal:",
+    "planMenuRecordsStorage": "{records} rekord és {storage} GB tárhely",
+    "planMenuUnlimitedEditors": "Korlátlan számú szerkesztő",
+    "planMenuAutomationRuns": "{runs} automatizálási futtatás havonta",
+    "planMenuApiCalls": "{calls} API-hívás havonta",
+    "planMenuSnapshots": "{count} pillanatkép",
+    "railPitch": "A Plus {plusRecords} rekordot és korlátlan számú szerkesztőt ad.",
+    "upgradeToPlan": "Váltás erre: {plan}",
+    "askAdminTitle": "Nem része a licencednek",
+    "askAdminSubtitle": "Kérd meg az adminisztrátorodat, hogy bővítse a licencet {detail}",
+    "askAdminSubtitleGeneric": "Ez a funkció nem része a jelenlegi licencednek. Kérd meg az adminisztrátorodat a bővítésre.",
+    "notifyAdmin": "Adminisztrátor értesítése",
+    "adminNotified": "Adminisztrátor értesítve",
+    "adminNotifiedSubtitle": "A kérésedet elküldtük az adminisztrátorodnak.",
+    "adminAlreadyNotified": "Az adminisztrátor már értesítve lett",
+    "adminAlreadyNotifiedSubtitle": "Az adminisztrátorod már megkapta ezt a kérést az elmúlt 24 órában.",
+    "noAdminToNotify": "Nincs értesíthető aktív adminisztrátor. Fordulj ahhoz, aki ezt a NocoDB-példányt kezeli.",
+    "upgradeRequestDailyLimit": "Mára elküldted a maximális számú bővítési kérelmet. Próbáld újra holnap.",
+    "seatLimitTitle": "Elérted a helyek korlátját",
+    "licenseUpgradeRequested": "licencbővítést kért",
+    "forAddon": "a(z) {addon} kiegészítőhöz",
+    "seatLimitAdminSubtitle": "Mind a(z) {limit} licencelt hely használatban van. Bővítsd a licencedet további szerkesztők hozzáadásához.",
+    "seatLimitMemberSubtitle": "Mind a(z) {limit} licencelt hely használatban van. Kérd meg az adminisztrátorodat, hogy adjon hozzá további helyeket."
   },
   "general": {
     "scrollToBottom": "Görgessen az aljára",
@@ -1211,8 +1237,8 @@
     "LongText": "Hosszú szöveg",
     "Attachment": "Melléklet",
     "Checkbox": "Jelölőnégyzet",
-    "MultiSelect": "Többszörös kijelölés",
-    "SingleSelect": "Egyszeres kijelölés",
+    "MultiSelect": "Többszörös választás",
+    "SingleSelect": "Egyszeres választás",
     "Collaborator": "Együttműködő",
     "Date": "Dátum",
     "Year": "Év",
@@ -1225,7 +1251,7 @@
     "Currency": "Pénznem",
     "Percent": "Százalék",
     "Duration": "Időtartam",
-    "GeoData": "GeoAdat",
+    "GeoData": "Földrajzi adatok",
     "Rating": "Értékelés",
     "Formula": "Képlet",
     "Rollup": "Összegző",
@@ -1234,7 +1260,7 @@
     "DateTime": "Dátum és idő",
     "CreatedTime": "Létrehozás ideje",
     "LastModifiedTime": "Utolsó módosítás ideje",
-    "AutoNumber": "Automatikus számozás",
+    "AutoNumber": "Automatikus szám",
     "Barcode": "Vonalkód",
     "Button": "Gomb",
     "Password": "Jelszó",
@@ -1244,7 +1270,25 @@
       "restrict": "Korlátozás",
       "setNull": "NULL beállítása",
       "setDefault": "Alapértelmezés beállítása"
-    }
+    },
+    "LinkToAnotherRecord": "Kapcsolat másik rekordhoz",
+    "Order": "Sorrend",
+    "RichText": "Formázott szöveg",
+    "SmartText": "Intelligens szöveg",
+    "Colour": "Szín",
+    "Geometry": "Geometria",
+    "JSON": "JSON",
+    "SpecificDBType": "Konkrét adatbázistípus",
+    "QrCode": "QR-kód",
+    "Links": "Kapcsolatok",
+    "User": "Felhasználó",
+    "CreatedBy": "Létrehozta",
+    "LastModifiedBy": "Utoljára módosította",
+    "Deleted": "Törölve",
+    "Meta": "Sor metaadatai",
+    "UUID": "UUID",
+    "AIButton": "MI-gomb",
+    "AIPrompt": "MI-szöveg"
   },
   "filterOperation": {
     "isEqual": "egyenlő",
@@ -1291,7 +1335,17 @@
       "daysAgo": "ennyi nappal ezelőtt",
       "daysFromNow": "ennyi nap múlva",
       "exactDate": "pontos dátum",
-      "exactMonth": "pontos hónap"
+      "exactMonth": "pontos hónap",
+      "thisCalendarWeek": "ez a hét",
+      "thisCalendarMonth": "ez a hónap",
+      "thisCalendarYear": "ez az év",
+      "lastCalendarWeek": "múlt hét",
+      "lastCalendarMonth": "múlt hónap",
+      "lastCalendarYear": "tavaly",
+      "nextCalendarWeek": "jövő hét",
+      "nextCalendarMonth": "jövő hónap",
+      "nextCalendarYear": "jövőre",
+      "dateRange": "dátumtartomány"
     }
   },
   "title": {
@@ -5866,7 +5920,29 @@
     "workspaceNoAccess": "Munkaterület (nincs hozzáférés)",
     "yAxis": "Y tengely",
     "workspaceSettings": "Munkaterület beállításai",
-    "wrapLongText": "Hosszú szöveg tördelése"
+    "wrapLongText": "Hosszú szöveg tördelése",
+    "agentAccessData": "Táblák és rekordok",
+    "agentAccessDataHint": "Az Olvasás böngészi és lekérdezi őket. A Szerkesztés ezen felül rekordokat hoz létre, módosít, kapcsol és töröl.",
+    "agentAccessDocs": "Dokumentumok",
+    "agentAccessDocsHint": "A bázis dokumentumai. A Szerkesztéssel módosíthatja őket.",
+    "agentAccessGithubHint": "Kódot olvas, ágakat tölt fel, és pull requesteket nyit a saját repóiban",
+    "agentAccessCustom": "Ezek közül néhány eszközt egyenként választottak ki. Válassz egy szintet, hogy mindet egyszerre beállítsd.",
+    "agentAccessOf": "Hozzáférés: {what}",
+    "agentCodeStartBranch": "Indulás erről az ágról",
+    "agentCodeStartBranchOf": "Az az ág, amelyről a(z) {repo} futtatásai indulnak",
+    "agentCodeBranchName": "Ág neve",
+    "agentCodeBranchNameHint": "Minden futtatás saját ágat kap. A(z) {issue} és {slug} kitöltése automatikus.",
+    "agentCodePullRequests": "Pull requestek",
+    "agentCodePrDraft": "Piszkozat",
+    "agentCodePrReady": "Kész az átnézésre",
+    "agentCodePrDraftHint": "Piszkozatként nyílik meg. Az átnézőket akkor kérjük fel, ha a tesztek lefutottak.",
+    "agentCodePrReadyHint": "Átnézésre készen nyílik meg, és azonnal felkéri az alább megadott átnézőket.",
+    "agentCodeReviewers": "Átnézők",
+    "agentCodeRemoveReviewer": "{login} eltávolítása",
+    "agentCodeNoReviewers": "Ezekben a repókban senki más nem tud átnézni",
+    "agentCodeNoReviewersSet": "Még nincsenek átnézők.",
+    "agentCodeNeverMerge": "Az ügynökök soha nem egyesítenek, és soha nem töltenek fel ide: {base}. Az egyesítést mindig ember végzi.",
+    "agentCodeNeverMergeAny": "Az ügynökök soha nem egyesítenek, és soha nem töltenek fel arra az ágra, amelyről egy futtatás indul. Az egyesítést mindig ember végzi."
   },
   "activity": {
     "useTemplate": "Sablon használata",
@@ -6058,7 +6134,18 @@
       "deleteStack": "Delete Stack",
       "stackedBy": "Stacked By",
       "chooseGroupingField": "Csoportosítási mező választása",
-      "autoCollapseEmptyStack": "Üres verem automatikus összeomlása"
+      "autoCollapseEmptyStack": "Üres verem automatikus összeomlása",
+      "createSingleSelectField": "Új Egyszeres választás mező létrehozása",
+      "createUserField": "Új Felhasználó mező létrehozása",
+      "defaultStackToDo": "Teendő",
+      "defaultStackInProgress": "Folyamatban",
+      "defaultStackDone": "Kész",
+      "loadMoreStacks": "További oszlopok betöltése",
+      "linkTypeNotStackable": "A több-az-egyhez kapcsolat csak akkor rendezheti oszlopokba a kanbant, ha a tábla adatforrása PostgreSQL. Csoportosíts inkább Egyszeres választás mező, Felhasználó mező vagy tartozik-hozzá kapcsolat szerint.",
+      "chooseStackField": "Válassz csoportosító mezőt",
+      "chooseStackFieldDesc": "Válaszd ki azt a mezőt, amely szerint ez a board oszlopokba rendeződik. Minden értéke saját oszlopot kap.",
+      "createSingleSelectFieldHint": "az egyes kártyák állapotának, fázisának vagy típusának megjelenítéséhez",
+      "createUserFieldHint": "az egyes kártyák felelősének vagy tulajdonosának megjelenítéséhez"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6172,7 +6259,9 @@
     "invitePeopleCount": "{count} személy meghívása | {count} személy meghívása",
     "inviteThemInstead": "Inkább őket hívd meg",
     "blockUser": "Felhasználó letiltása",
-    "unblockUser": "Felhasználó letiltásának feloldása"
+    "unblockUser": "Felhasználó letiltásának feloldása",
+    "addDateRange": "Dátumtartomány hozzáadása",
+    "searchComments": "Keresés a megjegyzésekben"
   },
   "tooltip": {
     "shiftClickWeekStep": "Tartsa a Shiftet 1 héttel a lépcsőzéshez",
@@ -6416,7 +6505,9 @@
     "dataSourceReadOnly": "Ez az adatforrás csak olvasható.",
     "mentionFields": "Mezők említése",
     "skipEnabledAfterDelay": "2 másodperc múlva engedélyezve lesz",
-    "clickToCopyDocumentId": "Kattints a dokumentumazonosító másolásához"
+    "clickToCopyDocumentId": "Kattints a dokumentumazonosító másolásához",
+    "workflowExecutionInterrupted": "Ez a futtatás váratlanul leállt a mi oldalunkon. Semmi nem veszett el. Próbáld újra, hogy onnan folytatódjon, ahol tartott.",
+    "workflowExecutionOnHold": "Az alkalmazás, amelyhez ez a munkafolyamat tartozik, fel van függesztve. A futtatás ott folytatódik, ahol abbamaradt, amint az alkalmazás ismét elérhető."
   },
   "placeholder": {
     "enterVerificationCode": "Adja meg a 6 számjegyű kódot",
@@ -8294,7 +8385,9 @@
     "userDeleted": "{user} törölte a {type} címet a {parent}címről : {name}",
     "youDeletedNoParent": "Töröltél egy {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} címet törölték: {name}"
+    "someoneDeleted": "A {type} címet törölték: {name}",
+    "restoreRequiresDocEdit": "A dokumentum visszaállításához szerkesztési hozzáférés kell hozzá",
+    "withSubPages": "(és {count} aloldal) | (és {count} aloldal)"
   },
   "payment": {
     "credits": {
@@ -8667,7 +8760,29 @@
       "other": {
         "where": "Adjon hozzá egy távoli MCP-kiszolgálót a kliensében ezekkel az adatokkal:",
         "auth": "Indítsa el a kapcsolatot a kliensből. A NocoDB megnyílik a böngészőben, ahol bejelentkezik, kiválasztja, mihez férhet hozzá a kliens, és az Engedélyezés lehetőséget választja."
+      },
+      "canDelete": "Törölhet adatokat, vagy a NocoDB-n kívül is cselekedhet",
+      "lockedNotEditable": "Ez az alkalmazás bejelentkezéskor kérte ezeket a jogosultságokat, és itt nem módosíthatók. A választható eszközei lent kapcsolhatók.",
+      "copilot": {
+        "where": "A VS Code-ban nyisd meg a Command Palette-et, futtasd az MCP: Add Server parancsot, és válaszd a HTTP lehetőséget. Töltsd ki:",
+        "auth": "Amikor a VS Code a NocoDB hitelesítését kéri, válaszd az Allow lehetőséget. Jelentkezz be a NocoDB-be a böngészőben, majd válaszd az Authorize lehetőséget."
       }
+    },
+    "discoveryNote": "A(z) {client} legfeljebb 100 eszközt használ, ezért ez az URL közvetlenül felsorolja a NocoDB olvasási eszközeit és a rekordírásokat, a többit pedig kérésre keresi meg.",
+    "windsurf": {
+      "subtitle": "A Devin (korábban Windsurf) Cascade ügynökéhez.",
+      "addBody": "A Devinben (korábban Windsurf) nyisd meg a Settings › Cascade › MCP servers menüt, válaszd az Add custom server lehetőséget, és illeszd be ezt az URL-t:",
+      "manualLabel": "Add hozzá ezt a ~/.codeium/windsurf/mcp_config.json fájlhoz:",
+      "authBody": "Válaszd a Connect lehetőséget a nocodb mellett. Jelentkezz be a NocoDB-be a böngészőben, válaszd ki, mihez férhet hozzá a Devin és mely eszközöket használhatja, majd válaszd az Authorize lehetőséget.",
+      "tryBody": "Nyisd meg a Cascade-et a Devinben, és kérdezd meg: „List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "A GitHub Copilothoz a VS Code-ban.",
+      "addBody": "Válaszd a(z) {link} lehetőséget, majd az Install gombot, amikor megnyílik a VS Code.",
+      "addLink": "Hozzáadás a VS Code-hoz",
+      "manualLabel": "Add hozzá ezt a .vscode/mcp.json fájlhoz, vagy futtasd az MCP: Open User Configuration parancsot, hogy minden workspace-hez hozzáadd:",
+      "authBody": "Amikor a VS Code a NocoDB hitelesítését kéri, válaszd az Allow lehetőséget. Jelentkezz be a NocoDB-be a böngészőben, válaszd ki, mihez férhet hozzá a Copilot és mely eszközöket használhatja, majd válaszd az Authorize lehetőséget.",
+      "tryBody": "Nyisd meg a Copilot Chatet Agent módban, és kérdezd meg: „List my NocoDB tools”."
     }
   },
   "roadmap": {

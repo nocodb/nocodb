@@ -23,7 +23,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   let initialized = false
 
-  const init = (dsn: string) => {
+  const init = (dsn: string, environment: string) => {
     // prevent multiple init
     if (initialized) return
     initialized = true
@@ -32,7 +32,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       app: vueApp,
       dsn,
       integrations: [Sentry.browserTracingIntegration({ router: nuxtApp.$router })],
-      environment: env,
+      environment,
       beforeSend(event) {
         if (process.env.NODE_ENV === 'production') {
           event.extra = event.extra || {}
@@ -59,7 +59,9 @@ export default defineNuxtPlugin((nuxtApp) => {
     ],
     ([enabled, sentryDSN]) => {
       try {
-        if (enabled && sentryDSN) init(sentryDSN)
+        if (enabled && sentryDSN) {
+          init(sentryDSN, (nuxtApp.$state as ReturnType<typeof useGlobal>).appInfo.value?.sentryEnvironment || env)
+        }
       } catch {
         // ignore
       }

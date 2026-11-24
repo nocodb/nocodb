@@ -18,6 +18,7 @@ import {
 } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
+import { checkReadiness } from '~/helpers/healthCheck';
 import { fetchForDataImport } from '~/helpers/dataImportFetch';
 import { Base, User } from '~/models';
 import Noco from '~/Noco';
@@ -136,6 +137,10 @@ export class UtilsService {
       timestamp: Date.now(),
       uptime: process.uptime(),
     };
+  }
+
+  async appReadiness() {
+    return checkReadiness();
   }
 
   async _axiosRequestMake(param: {
@@ -470,6 +475,7 @@ export class UtilsService {
         process.env.NC_DISABLE_ERR_REPORTS !== 'true'
           ? process.env.NC_SENTRY_DSN
           : null,
+      sentryEnvironment: process.env.NC_SENTRY_ENVIRONMENT || null,
       auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
       undoRedoEnabled: !NC_DISABLE_UNDO_REDO,
       ncSiteUrl: (param.req as any).ncSiteUrl,

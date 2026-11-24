@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Uaktualnij, aby wymagać logowania w formularzach",
     "upgradeToUseFormRequireSigninSubtitle": "Uaktualnij do planu {plan}, aby wymagać od respondentów zalogowania się przed wysłaniem formularza.",
     "upgradeToUseSso": "Uaktualnij aby używać SSO",
-    "upgradeToUseSsoSubtitle": "Uaktualnij do planu {plan}, aby skonfigurować logowanie jednokrotne (SSO) i umożliwić zespołowi logowanie się za pomocą dostawcy tożsamości."
+    "upgradeToUseSsoSubtitle": "Uaktualnij do planu {plan}, aby skonfigurować logowanie jednokrotne (SSO) i umożliwić zespołowi logowanie się za pomocą dostawcy tożsamości.",
+    "notifyOwnerToUpgrade": "Kliknij, aby poprosić właściciela przestrzeni roboczej o zmianę planu na wyższy.",
+    "comparePlans": "Porównaj plany",
+    "workspaceOnPlan": "{workspace} korzysta z planu {plan}",
+    "planMenuWith": "Co otrzymujesz z",
+    "planMenuRecordsStorage": "{records} rekordów i {storage} GB przestrzeni",
+    "planMenuUnlimitedEditors": "Nieograniczona liczba edytorów",
+    "planMenuAutomationRuns": "{runs} uruchomień automatyzacji miesięcznie",
+    "planMenuApiCalls": "{calls} wywołań API miesięcznie",
+    "planMenuSnapshots": "{count} migawek",
+    "railPitch": "Plus daje Ci {plusRecords} rekordów i nieograniczoną liczbę edytorów.",
+    "upgradeToPlan": "Przejdź na {plan}",
+    "askAdminTitle": "Nieobjęte Twoją licencją",
+    "askAdminSubtitle": "Poproś administratora o rozszerzenie licencji {detail}",
+    "askAdminSubtitleGeneric": "Ta funkcja nie jest objęta Twoją obecną licencją. Poproś administratora o jej rozszerzenie.",
+    "notifyAdmin": "Powiadom administratora",
+    "adminNotified": "Administrator powiadomiony",
+    "adminNotifiedSubtitle": "Twoja prośba została wysłana do administratora.",
+    "adminAlreadyNotified": "Administrator już powiadomiony",
+    "adminAlreadyNotifiedSubtitle": "Twój administrator otrzymał już tę prośbę w ciągu ostatnich 24 godzin.",
+    "noAdminToNotify": "Brak aktywnego administratora do powiadomienia. Skontaktuj się z osobą zarządzającą tą instancją NocoDB.",
+    "upgradeRequestDailyLimit": "Wysłano maksymalną liczbę próśb o zmianę planu na dziś. Spróbuj ponownie jutro.",
+    "seatLimitTitle": "Osiągnięto limit stanowisk",
+    "licenseUpgradeRequested": "poprosił(a) o rozszerzenie licencji",
+    "forAddon": "dla dodatku {addon}",
+    "seatLimitAdminSubtitle": "Wszystkie {limit} licencjonowanych stanowisk są zajęte. Rozszerz licencję, aby dodać więcej edytorów.",
+    "seatLimitMemberSubtitle": "Wszystkie {limit} licencjonowanych stanowisk są zajęte. Poproś administratora o dodanie kolejnych stanowisk."
   },
   "general": {
     "scrollToBottom": "Przewiń na dół",
@@ -1206,12 +1232,12 @@
   "datatype": {
     "ID": "Identyfikator",
     "ForeignKey": "Klucz obcy",
-    "SingleLineText": "Tekst jednolinijkowy",
+    "SingleLineText": "Tekst jednowierszowy",
     "LongText": "Długi tekst",
     "Attachment": "Załącznik",
     "Checkbox": "Pole wyboru",
-    "MultiSelect": "Wielokrotny wybór",
-    "SingleSelect": "Pojedynczy wybór",
+    "MultiSelect": "Wybór wielokrotny",
+    "SingleSelect": "Wybór pojedynczy",
     "Collaborator": "Współpracownik",
     "Date": "Data",
     "Year": "Rok",
@@ -1230,10 +1256,10 @@
     "Rollup": "Zestawienie",
     "Count": "Licznik",
     "Lookup": "Wyszukiwanie",
-    "DateTime": "Data i czas",
-    "CreatedTime": "Data utworzenia",
-    "LastModifiedTime": "Data ostatniej modyfikacji",
-    "AutoNumber": "Automatyczny numer",
+    "DateTime": "Data i godzina",
+    "CreatedTime": "Czas utworzenia",
+    "LastModifiedTime": "Czas ostatniej modyfikacji",
+    "AutoNumber": "Numer automatyczny",
     "Barcode": "Kod kreskowy",
     "Button": "Przycisk",
     "Password": "Hasło",
@@ -1243,7 +1269,25 @@
       "restrict": "Ograniczenie",
       "setNull": "Ustaw null",
       "setDefault": "Ustaw domyślnie"
-    }
+    },
+    "LinkToAnotherRecord": "Powiązanie z innym rekordem",
+    "Order": "Kolejność",
+    "RichText": "Tekst sformatowany",
+    "SmartText": "Inteligentny tekst",
+    "Colour": "Kolor",
+    "Geometry": "Geometria",
+    "JSON": "JSON",
+    "SpecificDBType": "Określony typ BD",
+    "QrCode": "Kod QR",
+    "Links": "Powiązania",
+    "User": "Użytkownik",
+    "CreatedBy": "Utworzone przez",
+    "LastModifiedBy": "Ostatnio zmodyfikowane przez",
+    "Deleted": "Usunięte",
+    "Meta": "Metadane wiersza",
+    "UUID": "UUID",
+    "AIButton": "Przycisk AI",
+    "AIPrompt": "Tekst AI"
   },
   "filterOperation": {
     "isEqual": "Jest równy",
@@ -1290,7 +1334,17 @@
       "daysAgo": "liczba dni temu",
       "daysFromNow": "liczba dni od dziś",
       "exactDate": "dokładna data",
-      "exactMonth": "dokładny miesiąc"
+      "exactMonth": "dokładny miesiąc",
+      "thisCalendarWeek": "ten tydzień",
+      "thisCalendarMonth": "ten miesiąc",
+      "thisCalendarYear": "ten rok",
+      "lastCalendarWeek": "zeszły tydzień",
+      "lastCalendarMonth": "zeszły miesiąc",
+      "lastCalendarYear": "zeszły rok",
+      "nextCalendarWeek": "przyszły tydzień",
+      "nextCalendarMonth": "przyszły miesiąc",
+      "nextCalendarYear": "przyszły rok",
+      "dateRange": "zakres dat"
     }
   },
   "title": {
@@ -5861,7 +5915,29 @@
     "workspaceNoAccess": "Obszar roboczy (brak dostępu)",
     "yAxis": "Oś Y",
     "workspaceSettings": "Ustawienia obszaru roboczego",
-    "wrapLongText": "Zawijaj długi tekst"
+    "wrapLongText": "Zawijaj długi tekst",
+    "agentAccessData": "Tabele i rekordy",
+    "agentAccessDataHint": "Odczyt pozwala je przeglądać i odpytywać. Edycja dodatkowo tworzy, zmienia, łączy i usuwa rekordy.",
+    "agentAccessDocs": "Dokumenty",
+    "agentAccessDocsHint": "Dokumenty tej bazy. Edycja pozwala mu je zmieniać.",
+    "agentAccessGithubHint": "Czyta kod, wypycha gałęzie i otwiera pull requesty w swoich repozytoriach",
+    "agentAccessCustom": "Niektóre z tych narzędzi wybrano pojedynczo. Wybierz poziom, aby ustawić je wszystkie.",
+    "agentAccessOf": "Dostęp: {what}",
+    "agentCodeStartBranch": "Zacznij od gałęzi",
+    "agentCodeStartBranchOf": "Gałąź, od której zaczynają się uruchomienia {repo}",
+    "agentCodeBranchName": "Nazwa gałęzi",
+    "agentCodeBranchNameHint": "Każde uruchomienie dostaje własną gałąź. {issue} i {slug} są uzupełniane automatycznie.",
+    "agentCodePullRequests": "Pull requesty",
+    "agentCodePrDraft": "Szkic",
+    "agentCodePrReady": "Gotowe do recenzji",
+    "agentCodePrDraftHint": "Otwiera się jako szkic. Recenzenci są proszeni, gdy testy przejdą pomyślnie.",
+    "agentCodePrReadyHint": "Otwiera się gotowe do recenzji i od razu prosi recenzentów wymienionych poniżej.",
+    "agentCodeReviewers": "Recenzenci",
+    "agentCodeRemoveReviewer": "Usuń {login}",
+    "agentCodeNoReviewers": "Nikt inny nie może recenzować w tych repozytoriach",
+    "agentCodeNoReviewersSet": "Brak recenzentów.",
+    "agentCodeNeverMerge": "Agenty nigdy nie scalają ani nie wypychają do {base}. Scalenia zawsze dokonuje człowiek.",
+    "agentCodeNeverMergeAny": "Agenty nigdy nie scalają ani nie wypychają do gałęzi, od której zaczyna się uruchomienie. Scalenia zawsze dokonuje człowiek."
   },
   "activity": {
     "useTemplate": "Użyj szablonu",
@@ -6053,7 +6129,18 @@
       "deleteStack": "Usuń stos",
       "stackedBy": "Ułożone według",
       "chooseGroupingField": "Wybierz pole grupowania",
-      "autoCollapseEmptyStack": "Automatycznie zwiń pusty stos"
+      "autoCollapseEmptyStack": "Automatycznie zwiń pusty stos",
+      "createSingleSelectField": "Utwórz nowe pole Wybór pojedynczy",
+      "createUserField": "Utwórz nowe pole Użytkownik",
+      "defaultStackToDo": "Do zrobienia",
+      "defaultStackInProgress": "W toku",
+      "defaultStackDone": "Gotowe",
+      "loadMoreStacks": "Wczytaj więcej stosów",
+      "linkTypeNotStackable": "Powiązanie wiele-do-jednego może grupować kanban w stosy tylko wtedy, gdy źródłem danych tabeli jest PostgreSQL. Zamiast tego pogrupuj według pola Wybór pojedynczy, pola Użytkownik lub powiązania należy-do.",
+      "chooseStackField": "Wybierz pole grupujące",
+      "chooseStackFieldDesc": "Wybierz pole, według którego ten board będzie grupowany w stosy. Każda jego wartość dostanie własny stos.",
+      "createSingleSelectFieldHint": "aby pokazać status, etap lub typ każdej karty",
+      "createUserFieldHint": "aby pokazać osobę odpowiedzialną lub właściciela każdej karty"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6167,7 +6254,9 @@
     "invitePeopleCount": "Zaproś {count} osobę | Zaproś {count} osób",
     "inviteThemInstead": "Zaproś ich zamiast tego",
     "blockUser": "Zablokuj użytkownika",
-    "unblockUser": "Odblokuj użytkownika"
+    "unblockUser": "Odblokuj użytkownika",
+    "addDateRange": "Dodaj zakres dat",
+    "searchComments": "Szukaj w komentarzach"
   },
   "tooltip": {
     "shiftClickWeekStep": "Przytrzymaj przejście do kroku o 1 tydzień",
@@ -6411,7 +6500,9 @@
     "dataSourceReadOnly": "To źródło danych jest tylko do odczytu.",
     "mentionFields": "Wspomnij pola",
     "skipEnabledAfterDelay": "Zostanie włączone po 2 sekundach",
-    "clickToCopyDocumentId": "Kliknij, aby skopiować identyfikator dokumentu"
+    "clickToCopyDocumentId": "Kliknij, aby skopiować identyfikator dokumentu",
+    "workflowExecutionInterrupted": "To uruchomienie zatrzymało się nieoczekiwanie po naszej stronie. Nic nie zostało utracone. Ponów je, aby kontynuować od kroku, na którym się zatrzymało.",
+    "workflowExecutionOnHold": "Aplikacja, do której należy ten przepływ pracy, jest zawieszona. Uruchomienie będzie kontynuowane od miejsca, w którym się zatrzymało, gdy aplikacja wróci."
   },
   "placeholder": {
     "enterVerificationCode": "Wprowadź 6-cyfrowy kod",
@@ -8289,7 +8380,9 @@
     "userDeleted": "{user} usunął {type} z {parent}: {name}",
     "youDeletedNoParent": "Usunąłeś {type}: {name}",
     "userDeletedNoParent": "{user} usunął {type}: {name}",
-    "someoneDeleted": "{type} został usunięty: {name}"
+    "someoneDeleted": "{type} został usunięty: {name}",
+    "restoreRequiresDocEdit": "Przywrócenie tego dokumentu wymaga uprawnień do jego edycji",
+    "withSubPages": "(i {count} podstrona) | (i {count} podstron)"
   },
   "payment": {
     "credits": {
@@ -8661,7 +8754,29 @@
       "other": {
         "where": "Dodaj w swoim kliencie zdalny serwer MCP z tymi danymi:",
         "auth": "Rozpocznij połączenie ze swojego klienta. W przeglądarce otworzy się NocoDB, gdzie zalogujesz się, wybierzesz, do czego klient ma dostęp, i wybierzesz Autoryzuj."
+      },
+      "canDelete": "Może usuwać dane lub działać poza NocoDB",
+      "lockedNotEditable": "Ta aplikacja poprosiła o te uprawnienia przy logowaniu i nie można ich tutaj zmienić. Jej opcjonalne narzędzia można przełączać poniżej.",
+      "copilot": {
+        "where": "W VS Code otwórz Command Palette, uruchom MCP: Add Server i wybierz HTTP. Wypełnij:",
+        "auth": "Gdy VS Code poprosi o uwierzytelnienie NocoDB, wybierz Allow. Zaloguj się do NocoDB w przeglądarce i wybierz Authorize."
       }
+    },
+    "discoveryNote": "{client} korzysta z maksymalnie 100 narzędzi, dlatego ten URL wymienia bezpośrednio narzędzia odczytu i zapisu rekordów NocoDB, a pozostałe odnajduje na żądanie.",
+    "windsurf": {
+      "subtitle": "Dla agenta Cascade w Devin (dawniej Windsurf).",
+      "addBody": "W Devin (dawniej Windsurf) otwórz Settings › Cascade › MCP servers, wybierz Add custom server i wklej ten URL:",
+      "manualLabel": "Dodaj to do ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Wybierz Connect obok nocodb. Zaloguj się do NocoDB w przeglądarce, wybierz, do czego Devin ma dostęp i z jakich narzędzi może korzystać, a następnie wybierz Authorize.",
+      "tryBody": "Otwórz Cascade w Devin i poproś „List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "Dla GitHub Copilot w VS Code.",
+      "addBody": "Wybierz {link}, a następnie wybierz Install, gdy otworzy się VS Code.",
+      "addLink": "Dodaj do VS Code",
+      "manualLabel": "Dodaj to do .vscode/mcp.json lub uruchom MCP: Open User Configuration, aby dodać to dla każdego workspace'u:",
+      "authBody": "Gdy VS Code poprosi o uwierzytelnienie NocoDB, wybierz Allow. Zaloguj się do NocoDB w przeglądarce, wybierz, do czego Copilot ma dostęp i z jakich narzędzi może korzystać, a następnie wybierz Authorize.",
+      "tryBody": "Otwórz Copilot Chat w trybie Agent i poproś „List my NocoDB tools”."
     }
   },
   "roadmap": {

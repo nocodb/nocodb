@@ -1196,7 +1196,7 @@
     "DateTime": "Ημερομηνία και ώρα",
     "CreatedTime": "Ώρα δημιουργίας",
     "LastModifiedTime": "Ώρα τελευταίας τροποποίησης",
-    "AutoNumber": "Αυτόματη αρίθμηση",
+    "AutoNumber": "Αυτόματος αριθμός",
     "Button": "Κουμπί",
     "Password": "Κωδικός πρόσβασης",
     "relationProperties": {
@@ -1205,7 +1205,25 @@
       "restrict": "Περιορισμός",
       "setNull": "Ορισμός NULL",
       "setDefault": "Ορισμός προεπιλογής"
-    }
+    },
+    "LinkToAnotherRecord": "Σύνδεση με άλλη εγγραφή",
+    "Order": "Σειρά",
+    "RichText": "Μορφοποιημένο κείμενο",
+    "SmartText": "Έξυπνο κείμενο",
+    "Colour": "Χρώμα",
+    "Geometry": "Γεωμετρία",
+    "JSON": "JSON",
+    "SpecificDBType": "Συγκεκριμένος τύπος ΒΔ",
+    "QrCode": "Κωδικός QR",
+    "Links": "Συνδέσεις",
+    "User": "Χρήστης",
+    "CreatedBy": "Δημιουργήθηκε από",
+    "LastModifiedBy": "Τελευταία τροποποίηση από",
+    "Deleted": "Διαγράφηκε",
+    "Meta": "Μεταδεδομένα γραμμής",
+    "UUID": "UUID",
+    "AIButton": "Κουμπί AI",
+    "AIPrompt": "Κείμενο AI"
   },
   "filterOperation": {
     "isChecked": "είναι επιλεγμένο",
@@ -1252,7 +1270,17 @@
       "daysAgo": "αριθμός ημερών πριν",
       "daysFromNow": "αριθμός ημερών από τώρα",
       "exactDate": "ακριβής ημερομηνία",
-      "exactMonth": "ακριβής μήνας"
+      "exactMonth": "ακριβής μήνας",
+      "thisCalendarWeek": "αυτή την εβδομάδα",
+      "thisCalendarMonth": "αυτόν τον μήνα",
+      "thisCalendarYear": "αυτόν τον χρόνο",
+      "lastCalendarWeek": "την προηγούμενη εβδομάδα",
+      "lastCalendarMonth": "τον προηγούμενο μήνα",
+      "lastCalendarYear": "τον προηγούμενο χρόνο",
+      "nextCalendarWeek": "την επόμενη εβδομάδα",
+      "nextCalendarMonth": "τον επόμενο μήνα",
+      "nextCalendarYear": "τον επόμενο χρόνο",
+      "dateRange": "εύρος ημερομηνιών"
     }
   },
   "title": {
@@ -5796,7 +5824,29 @@
     "retryNow": "Επανάληψη τώρα",
     "createSchema": "Δημιουργία σχήματος",
     "syncSource": "Πηγή συγχρονισμού",
-    "configureSources": "Διαμόρφωση πηγών"
+    "configureSources": "Διαμόρφωση πηγών",
+    "agentAccessData": "Πίνακες και εγγραφές",
+    "agentAccessDataHint": "Η Ανάγνωση τα περιηγείται και υποβάλλει ερωτήματα. Η Επεξεργασία επιπλέον δημιουργεί, αλλάζει, συνδέει και διαγράφει εγγραφές.",
+    "agentAccessDocs": "Έγγραφα",
+    "agentAccessDocsHint": "Τα έγγραφα της βάσης. Με την Επεξεργασία μπορεί να τα αλλάξει.",
+    "agentAccessGithubHint": "Διαβάζει κώδικα, στέλνει κλάδους και ανοίγει pull request στα αποθετήριά του",
+    "agentAccessCustom": "Ορισμένα από αυτά τα εργαλεία επιλέχθηκαν ένα προς ένα. Επιλέξτε ένα επίπεδο για να τα ορίσετε όλα μαζί.",
+    "agentAccessOf": "Πρόσβαση: {what}",
+    "agentCodeStartBranch": "Έναρξη από κλάδο",
+    "agentCodeStartBranchOf": "Κλάδος από τον οποίο ξεκινούν οι εκτελέσεις του {repo}",
+    "agentCodeBranchName": "Όνομα κλάδου",
+    "agentCodeBranchNameHint": "Κάθε εκτέλεση αποκτά τον δικό της κλάδο. Τα {issue} και {slug} συμπληρώνονται αυτόματα.",
+    "agentCodePullRequests": "Pull request",
+    "agentCodePrDraft": "Πρόχειρο",
+    "agentCodePrReady": "Έτοιμο για έλεγχο",
+    "agentCodePrDraftHint": "Ανοίγει ως πρόχειρο. Οι ελεγκτές ειδοποιούνται μόλις περάσουν οι δοκιμές.",
+    "agentCodePrReadyHint": "Ανοίγει έτοιμο για έλεγχο και ειδοποιεί αμέσως τους παρακάτω ελεγκτές.",
+    "agentCodeReviewers": "Ελεγκτές",
+    "agentCodeRemoveReviewer": "Κατάργηση {login}",
+    "agentCodeNoReviewers": "Κανείς άλλος δεν μπορεί να κάνει έλεγχο σε αυτά τα αποθετήρια",
+    "agentCodeNoReviewersSet": "Δεν υπάρχουν ακόμη ελεγκτές.",
+    "agentCodeNeverMerge": "Οι πράκτορες δεν κάνουν ποτέ merge και δεν στέλνουν ποτέ στο {base}. Το merge το κάνει πάντα άνθρωπος.",
+    "agentCodeNeverMergeAny": "Οι πράκτορες δεν κάνουν ποτέ merge και δεν στέλνουν ποτέ στον κλάδο από τον οποίο ξεκινά μια εκτέλεση. Το merge το κάνει πάντα άνθρωπος."
   },
   "activity": {
     "blockUser": "Αποκλεισμός χρήστη",
@@ -6048,7 +6098,18 @@
       "deleteStack": "Διαγραφή στοίβας",
       "stackedBy": "Στοίβαξη κατά",
       "chooseGroupingField": "Επιλέξτε πεδίο ομαδοποίησης",
-      "autoCollapseEmptyStack": "Αυτόματη σύμπτυξη κενής στοίβας"
+      "autoCollapseEmptyStack": "Αυτόματη σύμπτυξη κενής στοίβας",
+      "createSingleSelectField": "Δημιουργία νέου πεδίου Μονή επιλογή",
+      "createUserField": "Δημιουργία νέου πεδίου Χρήστης",
+      "defaultStackToDo": "Προς υλοποίηση",
+      "defaultStackInProgress": "Σε εξέλιξη",
+      "defaultStackDone": "Ολοκληρώθηκε",
+      "loadMoreStacks": "Φόρτωση περισσότερων στηλών",
+      "linkTypeNotStackable": "Μια σύνδεση πολλά προς ένα μπορεί να ομαδοποιήσει ένα kanban σε στήλες μόνο όταν η πηγή δεδομένων του πίνακα είναι PostgreSQL. Ομαδοποιήστε αντ' αυτού κατά πεδίο Μονή επιλογή, πεδίο Χρήστης ή σύνδεση ανήκει-σε.",
+      "chooseStackField": "Επιλέξτε πεδίο ομαδοποίησης",
+      "chooseStackFieldDesc": "Επιλέξτε το πεδίο που ομαδοποιεί αυτό το board σε στήλες. Κάθε τιμή του αποκτά τη δική της στήλη.",
+      "createSingleSelectFieldHint": "για να εμφανίζεται η κατάσταση, το στάδιο ή ο τύπος κάθε κάρτας",
+      "createUserFieldHint": "για να εμφανίζεται ο υπεύθυνος ή ο κάτοχος κάθε κάρτας"
     },
     "map": {
       "mappedBy": "Αντιστοίχιση κατά",
@@ -6098,7 +6159,9 @@
     "recordWasCreated": "Η εγγραφή δημιουργήθηκε.",
     "edited": "(επεξεργάστηκε)",
     "addComment": "Προσθήκη σχολίου",
-    "createAgent": "Δημιουργία πράκτορα"
+    "createAgent": "Δημιουργία πράκτορα",
+    "addDateRange": "Προσθήκη εύρους ημερομηνιών",
+    "searchComments": "Αναζήτηση στα σχόλια"
   },
   "tooltip": {
     "factoryGitApplyTruncated": "Αυτό το patch κόπηκε και μπορεί να σταματά στη μέση μιας αλλαγής, οπότε δεν θα εφαρμοζόταν καθαρά.",
@@ -8220,7 +8283,9 @@
     "userDeleted": "Ο χρήστης {user} διέγραψε {type} από {parent}: {name}",
     "youDeletedNoParent": "Διαγράψατε {type}: {name}",
     "userDeletedNoParent": "Ο χρήστης {user} διέγραψε {type}: {name}",
-    "someoneDeleted": "Διαγράφηκε {type}: {name}"
+    "someoneDeleted": "Διαγράφηκε {type}: {name}",
+    "restoreRequiresDocEdit": "Η επαναφορά αυτού του εγγράφου απαιτεί δικαίωμα επεξεργασίας του",
+    "withSubPages": "(και {count} υποσελίδα) | (και {count} υποσελίδες)"
   },
   "payment": {
     "billingOwner": {
@@ -9176,7 +9241,29 @@
       "other": {
         "where": "Προσθέστε έναν απομακρυσμένο διακομιστή MCP στον client σας με αυτά τα στοιχεία:",
         "auth": "Ξεκινήστε τη σύνδεση από τον client σας. Ανοίγει το NocoDB στο πρόγραμμα περιήγησης, όπου συνδέεστε, επιλέγετε σε τι μπορεί να έχει πρόσβαση ο client και επιλέγετε Εξουσιοδότηση."
+      },
+      "canDelete": "Μπορεί να διαγράψει δεδομένα ή να ενεργήσει εκτός του NocoDB",
+      "lockedNotEditable": "Αυτή η εφαρμογή ζήτησε αυτά τα δικαιώματα κατά τη σύνδεσή της και δεν μπορούν να αλλάξουν εδώ. Τα προαιρετικά εργαλεία της μπορείτε να τα ενεργοποιήσετε παρακάτω.",
+      "copilot": {
+        "where": "Στο VS Code ανοίξτε το Command Palette, εκτελέστε MCP: Add Server και επιλέξτε HTTP. Συμπληρώστε:",
+        "auth": "Όταν το VS Code ζητήσει έλεγχο ταυτότητας για το NocoDB, επιλέξτε Allow. Συνδεθείτε στο NocoDB στο πρόγραμμα περιήγησης και επιλέξτε Authorize."
       }
+    },
+    "discoveryNote": "Το {client} χρησιμοποιεί το πολύ 100 εργαλεία, οπότε αυτό το URL παραθέτει απευθείας τα εργαλεία ανάγνωσης και εγγραφής εγγραφών του NocoDB και βρίσκει τα υπόλοιπα κατόπιν αιτήματος.",
+    "windsurf": {
+      "subtitle": "Για τον πράκτορα Cascade στο Devin (πρώην Windsurf).",
+      "addBody": "Στο Devin (πρώην Windsurf) ανοίξτε Settings › Cascade › MCP servers, επιλέξτε Add custom server και επικολλήστε αυτό το URL:",
+      "manualLabel": "Προσθέστε αυτό στο ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Επιλέξτε Connect δίπλα στο nocodb. Συνδεθείτε στο NocoDB στο πρόγραμμα περιήγησης, επιλέξτε σε τι έχει πρόσβαση το Devin και ποια εργαλεία μπορεί να χρησιμοποιεί και μετά επιλέξτε Authorize.",
+      "tryBody": "Ανοίξτε το Cascade στο Devin και ζητήστε «List my NocoDB tools»."
+    },
+    "copilot": {
+      "subtitle": "Για το GitHub Copilot στο VS Code.",
+      "addBody": "Επιλέξτε {link} και μετά επιλέξτε Install όταν ανοίξει το VS Code.",
+      "addLink": "Προσθήκη στο VS Code",
+      "manualLabel": "Προσθέστε αυτό στο .vscode/mcp.json ή εκτελέστε MCP: Open User Configuration για να το προσθέσετε σε κάθε workspace:",
+      "authBody": "Όταν το VS Code ζητήσει έλεγχο ταυτότητας για το NocoDB, επιλέξτε Allow. Συνδεθείτε στο NocoDB στο πρόγραμμα περιήγησης, επιλέξτε σε τι έχει πρόσβαση το Copilot και ποια εργαλεία μπορεί να χρησιμοποιεί και μετά επιλέξτε Authorize.",
+      "tryBody": "Ανοίξτε το Copilot Chat σε λειτουργία Agent και ζητήστε «List my NocoDB tools»."
     }
   }
 }

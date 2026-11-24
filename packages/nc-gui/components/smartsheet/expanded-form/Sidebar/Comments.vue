@@ -88,7 +88,6 @@ const {
   getReactionSummary,
   toggleReaction,
   pinComment,
-  setCommentTask,
   isCommentUnread,
   loadReadState,
   markCommentsRead,
@@ -303,9 +302,6 @@ const reply = ref('')
 
 const replyInputRef = ref<any>()
 
-/** Comment whose to-do form is open. */
-const taskFormCommentId = ref<string | null>(null)
-
 const isJumpToUnreadDismissed = ref(false)
 
 /** First new comment below the visible part of the list; the jump button targets it. */
@@ -328,11 +324,6 @@ const deepLinkCommentId = ref<string | null>(null)
 const router = useRouter()
 
 const baseUsers = computed(() => (meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : []))
-
-/** To-dos go to people who can open this record. */
-const assignableUsers = computed(() =>
-  baseUsers.value.filter((u) => !u.deleted && getUserRole(u.email!) !== ProjectRoles.NO_ACCESS),
-)
 
 const debouncedLoadCommentEditedTooltip = useDebounceFn(loadCommentEditedTooltip, 1000)
 
@@ -515,11 +506,6 @@ function updateUnreadVisibility() {
   }
 }
 
-function userName(userId?: string | null) {
-  const found = baseUsers.value.find((u) => u.id === userId)
-  return found ? extractUserDisplayNameOrEmail(found) : t('labels.sharedSource')
-}
-
 function canSummarize(thread: CommentThread) {
   return (
     isCommentExtrasEnabled.value &&
@@ -641,20 +627,6 @@ function jumpToUnread() {
   revealComment(targetId)
 
   $e('c:comment:unread:navigate')
-}
-
-function toggleTaskDone(commentItem: CommentTypeExtended, done: boolean) {
-  setCommentTask(commentItem.id!, { done })
-}
-
-function saveTask(commentItem: CommentTypeExtended, value: { assignee: string; due: string | null }) {
-  taskFormCommentId.value = null
-  setCommentTask(commentItem.id!, { task: value })
-}
-
-function removeTask(commentItem: CommentTypeExtended) {
-  taskFormCommentId.value = null
-  setCommentTask(commentItem.id!, { task: null })
 }
 
 const copyComment = async (comment: CommentType) => {
@@ -1105,7 +1077,6 @@ watch(primaryKey, (_pk, prev) => {
   if (prev) markCommentsRead(`${prev}`)
   searchQuery.value = ''
   threadExpansion.value = {}
-  taskFormCommentId.value = null
   isJumpToUnreadDismissed.value = false
   cancelReply()
   loadReadState()
@@ -1548,16 +1519,6 @@ onBeforeUnmount(() => {
                                   }}
                                 </div>
                               </NcMenuItem>
-                              <NcMenuItem data-testid="nc-comment-task-menu" @click="taskFormCommentId = commentItem.id!">
-                                <div class="flex gap-2 items-center">
-                                  <GeneralIcon icon="ncCheckSquare" />
-                                  {{
-                                    getCommentMeta(commentItem).task
-                                      ? $t('activity.commentThread.editTodo')
-                                      : $t('activity.commentThread.assignTodo')
-                                  }}
-                                </div>
-                              </NcMenuItem>
                             </template>
                             <NcMenuItem
                               v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
@@ -1704,23 +1665,6 @@ onBeforeUnmount(() => {
                             {{ $t('general.view') }}
                           </span>
                         </div>
-
-                        <SmartsheetExpandedFormSidebarCommentTaskForm
-                          v-if="taskFormCommentId === commentItem.id"
-                          :task="getCommentMeta(commentItem).task"
-                          :users="assignableUsers"
-                          @save="saveTask(commentItem, $event)"
-                          @remove="removeTask(commentItem)"
-                          @cancel="taskFormCommentId = null"
-                        />
-                        <SmartsheetExpandedFormSidebarCommentTask
-                          v-else-if="isCommentExtrasEnabled && getCommentMeta(commentItem).task"
-                          :task="getCommentMeta(commentItem).task!"
-                          :assignee-name="userName(getCommentMeta(commentItem).task!.assignee)"
-                          :can-edit="hasEditPermission"
-                          @toggle="toggleTaskDone(commentItem, $event)"
-                          @edit="taskFormCommentId = commentItem.id!"
-                        />
 
                         <SmartsheetExpandedFormSidebarCommentReactions
                           v-if="isCommentExtrasEnabled"

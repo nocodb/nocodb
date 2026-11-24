@@ -44,7 +44,7 @@ export interface CommentThreadSummary {
   count?: number
 }
 
-/** Pin, to-do and annotation state of a comment — `meta` arrives parsed or as JSON. */
+/** Pin and annotation state of a comment — `meta` arrives parsed or as JSON. */
 export function getCommentMeta(comment?: CommentType | null): CommentMeta {
   const meta = comment?.meta
   if (!meta) return {}
@@ -143,7 +143,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   })
 
   /**
-   * Reactions, pin, to-do, read state and thread summary run on EE base ops
+   * Reactions, pin, read state and thread summary run on EE base ops
    * that interface surfaces and shared-base sessions don't have.
    */
   const isCommentExtrasEnabled = computed(() => isEeUI && !ifaceSidebar && !isSharedBase.value && !!user.value?.id)
@@ -234,12 +234,6 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
-  function replaceComment(updated?: CommentType | null) {
-    if (!updated?.id) return
-
-    comments.value = comments.value.map((c) => (c.id === updated.id ? { ...c, meta: updated.meta } : c))
-  }
-
   /** One pin per record: pinning a comment unpins the previous one. */
   async function pinComment(commentId: string, pinned: boolean) {
     if (!isCommentExtrasEnabled.value) return
@@ -270,31 +264,6 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       $e('a:comment:pin:toggle', { pinned })
     } catch (e: unknown) {
       comments.value = previous
-      message.error(await extractSdkResponseErrorMsg(e as Error))
-    }
-  }
-
-  /** `task: null` removes the to-do; `done` alone ticks or unticks it. */
-  async function setCommentTask(
-    commentId: string,
-    payload: { task?: { assignee?: string; due?: string | null } | null; done?: boolean },
-  ) {
-    if (!isCommentExtrasEnabled.value) return
-
-    try {
-      const res = (await $api.internal.postOperation(
-        meta.value!.fk_workspace_id!,
-        meta.value!.base_id!,
-        { operation: 'commentTaskSet' },
-        { commentId, fk_model_id: meta.value.id as string, ...payload },
-      )) as CommentType
-
-      replaceComment(res)
-
-      $e('a:comment:task:update', {
-        action: payload.task === null ? 'remove' : payload.task ? 'assign' : payload.done ? 'complete' : 'reopen',
-      })
-    } catch (e: unknown) {
       message.error(await extractSdkResponseErrorMsg(e as Error))
     }
   }
@@ -770,7 +739,6 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     getReactionSummary,
     toggleReaction,
     pinComment,
-    setCommentTask,
     lastReadAt,
     isCommentUnread,
     loadReadState,

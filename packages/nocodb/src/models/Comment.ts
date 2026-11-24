@@ -226,8 +226,8 @@ export default class Comment implements CommentType {
   }
 
   /**
-   * Rewrites the `meta` of a record's comments under a row lock, so concurrent
-   * pin and to-do changes cannot overwrite each other. `patch` returns the new
+   * Rewrites the `meta` of a record's comments under a row lock, so
+   * concurrent pin changes cannot overwrite each other. `patch` returns the new
    * meta for a comment, or undefined to leave it as it is. Not an edit: the
    * comment's `updated_at` is untouched.
    */

@@ -51,28 +51,15 @@ export interface CommentPin {
   at: string;
 }
 
-/** A comment assigned to someone as a to-do. */
-export interface CommentTask {
-  assignee: string;
-  assigned_by: string;
-  /** `YYYY-MM-DD` */
-  due?: string | null;
-  done?: boolean;
-  done_by?: string | null;
-  done_at?: string | null;
-}
-
 /** Shape stored under `CommentType.meta`. */
 export interface CommentMeta {
   annotation?: CommentImageAnnotation;
   /** Written by `commentPin` only. */
   pinned?: CommentPin | null;
-  /** Written by `commentTaskSet` only. */
-  task?: CommentTask | null;
 }
 
 /** `CommentMeta` keys a comment's author cannot set through create or edit. */
-export const COMMENT_META_RESERVED_KEYS = ['pinned', 'task'] as const;
+export const COMMENT_META_RESERVED_KEYS = ['pinned'] as const;
 
 /**
  * Stable key used to match an annotation to an attachment object.

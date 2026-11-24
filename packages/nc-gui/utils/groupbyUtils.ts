@@ -152,6 +152,14 @@ export const parseKey = (group: Group | CanvasGroup) => {
   return [key]
 }
 
+/**
+ * A `Links` group keyed by one linked record's display value (a single-record
+ * link, or a split group); its cell would read the key as a record or a count.
+ */
+export const isLinkRecordGroup = (group: Group) =>
+  group.column?.uidt === UITypes.Links &&
+  (isBtLikeV2Junction(group.column) || !!group.nestedIn?.[group.nestedIn.length - 1]?.split)
+
 /** A field that can hold several people or records: a multi-user User field or a many-to-many link. */
 export const isMultiValueGroupColumn = (col?: ColumnType) =>
   !!col && ((col.uidt === UITypes.User && !!parseProp(col.meta)?.is_multi) || isUtilizationMultiResourceLink(col))

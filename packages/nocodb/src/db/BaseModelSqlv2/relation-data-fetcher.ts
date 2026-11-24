@@ -1086,6 +1086,8 @@ export const relationDataFetcher = (param: {
         fieldsSet?: Set<string>;
         lookupColumn?: Column;
       } = {},
+      // V2 MO/OO: the first record per parent, post-processed like mmRead
+      singleRecord = false,
     ) {
       // skip duplicate id
       const parentIds = [...new Set(_parentIds)];
@@ -1102,7 +1104,7 @@ export const relationDataFetcher = (param: {
 
       // One entry per id: batch loaders reject a missing result.
       if (!mmTable) {
-        return _parentIds.map(() => []);
+        return _parentIds.map(() => (singleRecord ? null : []));
       }
 
       const vcn = (await relColOptions.getMMChildColumn()).column_name;
@@ -1144,6 +1146,8 @@ export const relationDataFetcher = (param: {
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
         fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
+        // postProcessData resolves the rows' relations, which load by pk
+        extractPkAndPv: singleRecord,
       });
 
       const view = relColOptions.fk_target_view_id
@@ -1184,12 +1188,16 @@ export const relationDataFetcher = (param: {
 
               if (mmListSoftDeleteFilter) query.where(mmListSoftDeleteFilter);
 
-              // get one extra record to check if there are more records in case of v3 api and nested
-              query.limit(
-                (+rest?.limit || 25) +
-                  (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
-              );
-              query.offset(+rest?.offset || 0);
+              if (singleRecord) {
+                query.limit(1);
+              } else {
+                // get one extra record to check if there are more records in case of v3 api and nested
+                query.limit(
+                  (+rest?.limit || 25) +
+                    (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+                );
+                query.offset(+rest?.offset || 0);
+              }
               return wrapUnionMember(baseModel, query);
             }),
             !needsUnionMemberWrap(baseModel),
@@ -1206,7 +1214,20 @@ export const relationDataFetcher = (param: {
         }),
         GROUP_COL,
       );
-      return _parentIds.map((id) => gs[id] || []);
+      if (!singleRecord) return _parentIds.map((id) => gs[id] || []);
+
+      // Resolves the record's own relations, e.g. a link that is its display value
+      const records = parentIds.map((id) => gs[id]?.[0]).filter(Boolean);
+      const processed = await postProcessData(refContext, {
+        data: records,
+        model: refTable,
+        query: args,
+        relationColumnId: colId,
+      });
+      const byParent = new Map(
+        records.map((r, i) => [String(r[GROUP_COL]), processed[i]]),
+      );
+      return _parentIds.map((id) => byParent.get(String(id)) ?? null);
     },
 
     async multipleMmListCount({ colId, parentIds }) {

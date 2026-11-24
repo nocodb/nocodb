@@ -8396,6 +8396,8 @@
       "columnWithTypeFoundButExpected": "Field {columnName} with {columnType} type is found but {expectedType} type is expected",
       "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\"",
       "firstParamArray": "First parameter need to be array. Either it is a link with Has Many / Many to Many relation, or either a Formula or Lookup that reference the link",
+      "firstParamMultiValueOrArray": "The first parameter of {calleeName} must be a MultiSelect or User field, or a list: a Has Many / Many to Many link, or a Lookup or Formula that references one",
+      "listArgUnavailable": "{calleeName} of a list is unavailable for your database; it can count a MultiSelect or User field",
       "navigateSuggestionsHint": "Use {key} to navigate suggestions",
       "firstArgumentMustBeDate": "The first argument of {calleeName} must be a date",
       "formulaTooComplex": "The formula is too long or too deeply nested",

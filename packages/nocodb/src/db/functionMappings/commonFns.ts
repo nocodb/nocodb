@@ -1036,6 +1036,24 @@ export default {
       ),
     };
   },
+  // MultiSelect / User values are comma-separated; blank counts as 0
+  ARRAYCOUNT: async ({ fn, knex, pt }: MapFnArgs) => {
+    const { builder } = await fn(pt.arguments[0]);
+    const clientType = knex.clientType();
+    // LEN ignores trailing spaces
+    const length = (sql: string) =>
+      clientType === 'mssql' ? `(LEN(${sql} + N'.') - 1)` : `LENGTH(${sql})`;
+    // Oracle reads '' as NULL
+    const nonBlank = clientType === 'oracledb' ? '?' : `NULLIF(?, '')`;
+    return {
+      builder: knex.raw(
+        `COALESCE(${length(nonBlank)} - ${length(
+          `REPLACE(?, ',', '')`,
+        )} + 1, 0)`,
+        [builder, builder],
+      ),
+    };
+  },
   URLENCODE: async ({ fn, knex, pt }: MapFnArgs) => {
     const specialCharacters = '% :/?#[]@$&+,;=';
     // The rendered source is followed by real bindings, so its own `?` must not count.

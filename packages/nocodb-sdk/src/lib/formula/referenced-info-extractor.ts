@@ -298,6 +298,7 @@ export const extractCallExpressionReferencedInfo = ({
     case 'FIND':
     case 'TEXTSPLIT':
     case 'ARRAYJOIN':
+    case 'ARRAYCOUNT':
     case 'SEARCH': {
       nodeArgs = [];
       break;

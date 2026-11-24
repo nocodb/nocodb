@@ -211,6 +211,49 @@ const customValidationArray: FormulaMetaCustomValidation = (
   }
 };
 
+const isListArg = (arg?: ParsedFormulaNode) =>
+  !!arg && (!!arg.isDataArray || arg.dataType === FormulaDataTypes.ARRAY);
+
+// MultiSelect and User values are comma-separated lists
+const MULTI_VALUE_UIDTS: string[] = [UITypes.MultiSelect, UITypes.User];
+
+const customValidationArrayOrMultiValue: FormulaMetaCustomValidation = (
+  _argTypes: FormulaDataTypes[],
+  parsedTree: CallExpressionNode
+) => {
+  const arg = parsedTree.arguments?.[0];
+  if (
+    isListArg(arg) ||
+    MULTI_VALUE_UIDTS.includes(arg?.referencedColumn?.uidt ?? '')
+  ) {
+    return;
+  }
+  const calleeName = parsedTree.callee?.name?.toUpperCase();
+  throw new FormulaError(
+    FormulaErrorType.TYPE_MISMATCH,
+    { key: 'msg.formula.firstParamMultiValueOrArray', calleeName },
+    `The first parameter of ${calleeName} must be a MultiSelect or User field, or a list: a Has Many / Many to Many link, or a Lookup or Formula that references one`
+  );
+};
+
+// lists are counted only where the other array functions run
+const listArgDialectValidation: FormulaMetaArgValuesValidation = (
+  parsedTree,
+  sqlUI
+) => {
+  if (
+    isListArg(parsedTree.arguments?.[0]) &&
+    sqlUI?.getUnsupportedFnList().includes('ARRAYUNIQUE')
+  ) {
+    const calleeName = parsedTree.callee?.name?.toUpperCase();
+    throw new FormulaError(
+      FormulaErrorType.INVALID_ARG,
+      { key: 'msg.formula.listArgUnavailable', calleeName },
+      `${calleeName} of a list is unavailable for your database; it can count a MultiSelect or User field`
+    );
+  }
+};
+
 // WORKDAY / WORKDAY_DIFF: positions (0-based) of the date and numeric args;
 // the optional last arg is the comma-separated holidays text
 const workdayArgsValidation =
@@ -1503,6 +1546,22 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['ARRAYSLICE({column})'],
     returnType: FormulaDataTypes.ARRAY,
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/array-functions#arrayslice`,
+  },
+
+  ARRAYCOUNT: {
+    validation: {
+      args: {
+        rqd: 1,
+      },
+      custom: customValidationArrayOrMultiValue,
+      argValues: listArgDialectValidation,
+    },
+    description:
+      'Returns the number of items in a MultiSelect or User field, or in an array',
+    syntax: 'ARRAYCOUNT(value)',
+    examples: ['ARRAYCOUNT({Tags})', 'ARRAYCOUNT({Assignees})'],
+    returnType: FormulaDataTypes.NUMERIC,
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/array-functions#arraycount`,
   },
 
   REGEX_MATCH: {

@@ -181,7 +181,31 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
           aliasToColumn[col.id] = async ({
             tableAlias,
             parentColumns,
+            userIds,
           }: TAliasToColumnParam) => {
+            // `{Copy}` of a User field: hand ARRAYCOUNT's stored-id request on
+            if (userIds) {
+              const tree = (
+                await col.getColOptions<FormulaColumn | ButtonColumn>()
+              ).getParsedTree();
+              if (tree?.type === JSEPNode.IDENTIFIER) {
+                const resolved = await aliasToColumn[
+                  (tree as IdentifierNode).name
+                ]?.({
+                  tableAlias,
+                  parentColumns: (
+                    parentColumns ?? CircularRefContext.make()
+                  ).cloneAndAdd({
+                    id: col.id,
+                    title: col.title,
+                    table: model.title,
+                  }),
+                  userIds,
+                });
+                if (resolved) return resolved;
+              }
+            }
+
             // Memoized per (column, tableAlias) — see formulaBuilderCache.
             // Keyed by tableAlias because leaf resolvers embed it. A hit cannot
             // mask a cycle: CircularRefContext throws during the first
@@ -384,6 +408,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         {
           aliasToColumn[col.id] = async ({
             tableAlias,
+            userIds,
           }: TAliasToColumnParam) => {
             baseUsers =
               baseUsers ??
@@ -410,6 +435,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               : `${
                   tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)
                 }.${await getColumnName(context, col, columns)}`;
+
+            if (userIds) {
+              return {
+                builder:
+                  typeof columnName === 'string'
+                    ? knex.raw('??', [columnName])
+                    : columnName,
+              };
+            }
 
             // Public responses redact user emails; a formula must not re-derive them.
             const userValue = (user: Partial<User>) =>
@@ -516,6 +550,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       (await aliasToColumn?.[(pt as IdentifierNode).name]?.({
         tableAlias,
         parentColumns: params.parentColumns,
+        userIds: pt.fnName === 'ARRAYCOUNT',
       })) || {}
     );
   };

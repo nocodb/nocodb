@@ -1146,6 +1146,8 @@ export const relationDataFetcher = (param: {
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
         fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
+        // postProcessData resolves the rows' relations, which load by pk
+        extractPkAndPv: singleRecord,
       });
 
       const view = relColOptions.fk_target_view_id

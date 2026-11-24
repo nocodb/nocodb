@@ -1707,6 +1707,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
   }
 
+  // V2 MO/OO batch of mmRead: one record (or null) per parent id
+  public async multipleMmRead(
+    param: { colId: string; parentIds: any[] },
+    args: { fieldsSet?: Set<string>; lookupColumn?: Column } = {},
+  ) {
+    return retryLinkedReadOnRollupError(
+      this,
+      await this.linkColumn(param.colId),
+      () =>
+        relationDataFetcher({ baseModel: this, logger }).multipleMmList(
+          param,
+          args,
+          true,
+        ),
+    );
+  }
+
   public async multipleMmListCount({ colId, parentIds }) {
     return relationDataFetcher({
       baseModel: this,
@@ -2127,19 +2144,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         };
       } else if (isBtLikeV2Junction(column)) {
         // V2 MO/OO: single-record — return object (like BT)
-        // Use multipleMmList for batching, take first record per parent
         const readLoader = new DataLoaderWithArgs(
           (ids: readonly string[]) =>
             this._queryQueue.add(async () => {
               if (ids?.length > 1) {
-                const lists = await this.multipleMmList(
+                return await this.multipleMmRead(
                   {
                     parentIds: ids as string[],
                     colId: column.id,
                   },
                   readLoader.args,
                 );
-                return lists.map((list) => list?.[0] ?? null);
               } else {
                 return [
                   await this.mmRead(

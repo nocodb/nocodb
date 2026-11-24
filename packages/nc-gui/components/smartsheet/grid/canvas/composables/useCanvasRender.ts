@@ -18,6 +18,7 @@ import {
   renderTag,
   renderTagLabel,
   roundedRect,
+  setCanvasSearchMark,
   truncateText,
 } from '../utils/canvas'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -54,6 +55,9 @@ import type { MarkdownLoader } from '../loaders/markdownLoader'
 import type { RowDropTarget } from './useRowReOrder'
 import { RESIZE_HANDLE_WIDTH } from './useColumnResize'
 import type { GridRemoteFieldMap, GridRemoteFocus, GridRemoteFocusMap, GridRemoteRecordMap } from '~/lib/types'
+
+/** Searchable fields whose drawn text isn't the matched value (stars, thumbnails, a button label); they keep only the tint. */
+const SEARCH_MARK_SKIP_TYPES = new Set<UITypes>([UITypes.Rating, UITypes.Attachment, UITypes.Button])
 
 export function useCanvasRender({
   width,
@@ -287,8 +291,18 @@ export function useCanvasRender({
     rect: { x: number; y: number; width: number; height: number },
   ) {
     if (!cellMatchesSearch(searchHighlight?.value, column.columnObj, value)) return
-    ctx.fillStyle = getColor(themeV4Colors.yellow['100'], themeV4Colors.yellow['900'], 0.7)
+    ctx.fillStyle = getColor(themeV4Colors.yellow['100'], themeV4Colors.yellow['50'], 0.7)
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height)
+  }
+
+  /** Marks the search term in the text of the next cell drawn, when that cell matches; returns whether it did. */
+  function startSearchMark(column: CanvasGridColumn, value: unknown) {
+    const highlight = searchHighlight?.value
+    if (!highlight || SEARCH_MARK_SKIP_TYPES.has(column.columnObj?.uidt as UITypes)) return false
+    if (!cellMatchesSearch(highlight, column.columnObj, value)) return false
+    // The yellow variables flip in dark mode; 100 there is a deep brown that keeps light and blue text readable.
+    setCanvasSearchMark({ term: highlight.term, fill: getColor(themeV4Colors.yellow['300'], themeV4Colors.yellow['100']) })
+    return true
   }
 
   function renderInterfaceFieldMenuButton(ctx: CanvasRenderingContext2D, x: number, centerY: number) {
@@ -2151,35 +2165,41 @@ export function useCanvasRender({
           paintSearchMatch(ctx, column, value, { x: xOffset - _scrollLeft, y: yOffset, width, height: _rowH })
         }
 
-        renderCell(ctx, column.columnObj, {
-          value,
-          x: xOffset - _scrollLeft,
-          y: yOffset,
-          width,
-          height: _rowH,
-          row: row.row,
-          rowMeta: row.rowMeta,
-          selected: isActive,
-          pv: column.pv,
-          spriteLoader,
-          readonly: column.readonly,
-          imageLoader,
-          markdownLoader,
-          tableMetaLoader,
-          relatedColObj: column.relatedColObj,
-          relatedTableMeta: column.relatedTableMeta,
-          disabled: column?.isInvalidColumn,
-          mousePosition,
-          pk,
-          path: groupPath,
-          skipRender: isCellEditEnabled,
-          isRowHovered: isHovered,
-          isRowChecked: recordSelected,
-          isRowCellSelected,
-          isCellInSelectionRange: isCellInRange,
-          isRootCell: true,
-          rowBgAlreadyApplied,
-        })
+        const searchMarked = startSearchMark(column, value)
+
+        try {
+          renderCell(ctx, column.columnObj, {
+            value,
+            x: xOffset - _scrollLeft,
+            y: yOffset,
+            width,
+            height: _rowH,
+            row: row.row,
+            rowMeta: row.rowMeta,
+            selected: isActive,
+            pv: column.pv,
+            spriteLoader,
+            readonly: column.readonly,
+            imageLoader,
+            markdownLoader,
+            tableMetaLoader,
+            relatedColObj: column.relatedColObj,
+            relatedTableMeta: column.relatedTableMeta,
+            disabled: column?.isInvalidColumn,
+            mousePosition,
+            pk,
+            path: groupPath,
+            skipRender: isCellEditEnabled,
+            isRowHovered: isHovered,
+            isRowChecked: recordSelected,
+            isRowCellSelected,
+            isCellInSelectionRange: isCellInRange,
+            isRootCell: true,
+            rowBgAlreadyApplied,
+          })
+        } finally {
+          if (searchMarked) setCanvasSearchMark(null)
+        }
 
         if (row.rowMeta?.unsavedOffline?.[column.title]) {
           renderUnsavedOfflineMark(ctx, xOffset - _scrollLeft, yOffset, width)
@@ -2281,35 +2301,41 @@ export function useCanvasRender({
               paintSearchMatch(ctx, column, value, { x: xOffset, y: yOffset, width, height: _rowH })
             }
 
-            renderCell(ctx, column.columnObj, {
-              value,
-              x: xOffset,
-              y: yOffset,
-              width,
-              height: _rowH,
-              row: row.row,
-              rowMeta: row.rowMeta,
-              selected: isActive,
-              pv: column.pv,
-              readonly: column.readonly,
-              spriteLoader,
-              imageLoader,
-              markdownLoader,
-              tableMetaLoader,
-              relatedColObj: column.relatedColObj,
-              relatedTableMeta: column.relatedTableMeta,
-              mousePosition,
-              disabled: column?.isInvalidColumn,
-              pk,
-              skipRender: isCellEditEnabled,
-              path: groupPath,
-              isRowHovered: isHovered,
-              isRowChecked: recordSelected,
-              isRowCellSelected,
-              isCellInSelectionRange: isCellInRange,
-              isRootCell: true,
-              rowBgAlreadyApplied,
-            })
+            const searchMarked = startSearchMark(column, value)
+
+            try {
+              renderCell(ctx, column.columnObj, {
+                value,
+                x: xOffset,
+                y: yOffset,
+                width,
+                height: _rowH,
+                row: row.row,
+                rowMeta: row.rowMeta,
+                selected: isActive,
+                pv: column.pv,
+                readonly: column.readonly,
+                spriteLoader,
+                imageLoader,
+                markdownLoader,
+                tableMetaLoader,
+                relatedColObj: column.relatedColObj,
+                relatedTableMeta: column.relatedTableMeta,
+                mousePosition,
+                disabled: column?.isInvalidColumn,
+                pk,
+                skipRender: isCellEditEnabled,
+                path: groupPath,
+                isRowHovered: isHovered,
+                isRowChecked: recordSelected,
+                isRowCellSelected,
+                isCellInSelectionRange: isCellInRange,
+                isRootCell: true,
+                rowBgAlreadyApplied,
+              })
+            } finally {
+              if (searchMarked) setCanvasSearchMark(null)
+            }
 
             if (row.rowMeta?.unsavedOffline?.[column.title]) {
               renderUnsavedOfflineMark(ctx, xOffset, yOffset, width)

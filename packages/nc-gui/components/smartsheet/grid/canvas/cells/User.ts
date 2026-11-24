@@ -186,7 +186,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         }
       } else if (!isNonMember && userIcon.icon && userIcon.iconType === IconType.EMOJI) {
         if (isUnicodeEmoji(icon)) {
-          renderSingleLineText(ctx, { x: x + 3.5, y: y + 1, text: icon })
+          renderSingleLineText(ctx, { x: x + 3.5, y: y + 1, text: icon, noSearchMark: true })
           needsPlaceholder = false
         } else {
           // TODO:
@@ -219,6 +219,7 @@ export const UserFieldCellRenderer: CellRenderer = {
           textAlign: 'center',
           verticalAlign: 'middle',
           fillStyle: textColor,
+          noSearchMark: true,
         })
         needsPlaceholder = false
       }

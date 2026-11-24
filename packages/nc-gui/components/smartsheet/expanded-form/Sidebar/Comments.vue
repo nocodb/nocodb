@@ -471,18 +471,6 @@ function threadRepliers(thread: CommentThread) {
   return repliers.slice(-3)
 }
 
-function commentPlainText(commentItem: CommentTypeExtended) {
-  return (commentItem.comment ?? '')
-    .replace(/@\(([^)]+)\)/g, (_match, inner: string) => {
-      const [, email, name] = inner.split('|')
-      return `@${name || email || ''}`
-    })
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/[*_~`>#]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
 function firstName(commentItem: CommentTypeExtended) {
   return createdBy(commentItem).split(' ')[0]
 }

@@ -59,7 +59,7 @@ async function assertCommentAttachmentsOwned(
   }
 }
 
-// Pin and to-do state have their own operations; create and edit keep
+// The pin has its own operation; create and edit keep
 // whatever the comment already holds.
 // The API accepts meta as an object or a JSON string.
 function parseCommentMeta(value: unknown): Record<string, any> {

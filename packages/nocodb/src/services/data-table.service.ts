@@ -33,6 +33,8 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { assertBulkFilterListWithinLimit } from '~/helpers/bulkEntryLimit';
+import { hasSearchTerm } from '~/db/search';
 import { captureLinkHookRowsForColumn } from '~/db/BaseModelSqlv2/add-remove-links';
 import { _wherePk, dataWrapper } from '~/helpers/dbHelpers';
 import { batchLinkBroadcasts } from '~/db/BaseModelSqlv2/link-broadcast-batch';
@@ -48,6 +50,17 @@ export interface LinkSwapDiffEntry {
   rowId: string | number;
   link: Array<string | number>;
   unlink: Array<string | number>;
+}
+
+/** A searched batch holds one search slot for every entry: capped as shared-view batches are. */
+function assertSearchedBulkWithinLimit(query: unknown, entries: unknown) {
+  if (
+    hasSearchTerm(query as object) ||
+    (Array.isArray(entries) &&
+      entries.some((entry) => hasSearchTerm(entry as object)))
+  ) {
+    assertBulkFilterListWithinLimit(entries);
+  }
 }
 
 @Injectable()
@@ -181,6 +194,8 @@ export class DataTableService {
       };
       user?: any;
       req?: NcRequest;
+      /** Form-scoped write — see `BaseModelSqlv2.nestedInsert`. */
+      formColumns?: Column[];
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -214,6 +229,7 @@ export class DataTableService {
         allowSystemColumn: param.internalFlags?.allowSystemColumn,
         skip_hooks: param.internalFlags?.skipHooks,
         triggerLinkUpdateHooks: true,
+        formColumns: param.formColumns,
       },
     );
 
@@ -274,6 +290,8 @@ export class DataTableService {
         skipHooks?: boolean;
       };
       user?: any;
+      /** Form-scoped write — see `BaseModelSqlv2.nestedInsert`. */
+      formColumns?: Column[];
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -308,6 +326,7 @@ export class DataTableService {
         allowSystemColumn: param.internalFlags?.allowSystemColumn,
         skip_hooks: param.internalFlags?.skipHooks,
         triggerLinkUpdateHooks: true,
+        formColumns: param.formColumns,
       },
     );
     profiler.log('extractIdObj');
@@ -1765,6 +1784,7 @@ export class DataTableService {
     if (!bulkFilterList?.length) {
       NcError.get(context).badRequest('Invalid bulkFilterList');
     }
+    assertSearchedBulkWithinLimit(param.query, bulkFilterList);
 
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -1835,6 +1855,7 @@ export class DataTableService {
     try {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
+    assertSearchedBulkWithinLimit(param.query, bulkFilterList);
 
     return await DBQueryClient.get(source.type).bulkAggregate(context, {
       model,

@@ -76,6 +76,9 @@ export default async function genRollupSelectv2(param: {
   nestedLevel?: number;
   // saving a formula rollup reports its errors; reads show the cell as an error
   throwOnFormulaError?: boolean;
+  // filters: keep MySQL DateTime min/max in @@GLOBAL.time_zone, as the
+  // DateTime filter handler converts its operand to UTC itself
+  skipMysqlDateTimeUtc?: boolean;
 }): Promise<{ builder: Knex.QueryBuilder; isError?: boolean }> {
   const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
   let { parentColumns } = param;
@@ -331,6 +334,7 @@ export default async function genRollupSelectv2(param: {
         columnOptions: await rollupColumn.getColOptions<RollupColumn>(),
         nestedLevel: nestedLevel + 1,
         parentColumns,
+        skipMysqlDateTimeUtc: param.skipMysqlDateTimeUtc,
       });
 
       // Use the inner builder directly as a subquery
@@ -382,6 +386,18 @@ export default async function genRollupSelectv2(param: {
       selectColumnName = rawFromBuilder(
         knex,
         `(${formulaQb.builder.toQuery()})`,
+      );
+    } else if (
+      baseModelSqlv2.isMySQL &&
+      !param.skipMysqlDateTimeUtc &&
+      rollupColumn.uidt === UITypes.DateTime &&
+      ['min', 'max'].includes(columnOptions.rollup_function as string)
+    ) {
+      // MySQL stores DateTime in @@GLOBAL.time_zone; read it as UTC, as the
+      // field itself is read (select-object.ts)
+      selectColumnName = knex.raw(
+        `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+        [selectColumnName],
       );
     }
 

@@ -24,6 +24,7 @@ import {
   isLinksOrLTAR,
   isNumericCol,
   isRollupAggregatableColumn,
+  isSingleRecordLinkColumn,
   isSystemColumn,
   isValidPhoneNumber,
   isValidURL,
@@ -502,6 +503,14 @@ const isFormViewHiddenCol = (col: ColumnType | UITypes): boolean => {
   return formViewHiddenColTypes.includes(col as UITypes)
 }
 
+// A data column nothing can write: the database computes it (e.g. PG generated column).
+// Check the column itself — the shared form forces `readonly` on every field it locks.
+const isReadonlyDataCol = (col?: ColumnType): boolean => !!col?.readonly && !isVirtualCol(col)
+
+// Form views leave these out; synced tables keep showing their readonly synced fields.
+const isFormHiddenReadonlyCol = (col?: ColumnType, table?: Pick<TableType, 'synced'> | null): boolean =>
+  !table?.synced && isReadonlyDataCol(col)
+
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const getColumnValidationError = (column: ColumnType, value?: any) => {
@@ -548,6 +557,8 @@ const getFormulaColDataType = (col: ColumnType) => {
 }
 
 const isSearchableColumn = (column: ColumnType) => {
+  // single-record links (even V2 `Links`) search by their leaf display text
+  if (isSingleRecordLinkColumn(column)) return !isSystemColumn(column)
   return (
     (column?.pk || !isSystemColumn(column)) &&
     ![
@@ -669,6 +680,8 @@ export {
   extractRatingIcon,
   formViewHiddenColTypes,
   isFormViewHiddenCol,
+  isReadonlyDataCol,
+  isFormHiddenReadonlyCol,
   columnToValidate,
   getColumnValidationError,
   getColumnParsedTree,

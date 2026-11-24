@@ -337,6 +337,8 @@ interface IWorkflowExecution {
   // The run whose write triggered this one, and how many trigger hops led here.
   parent_execution_id?: string | null;
   execution_depth?: number;
+  // The person who started the run (manual run, retry, button, record change); not who it runs as.
+  triggered_by?: string | null;
 }
 
 interface NodeConfig {
@@ -359,6 +361,8 @@ interface WorkflowGeneralNode {
     outputVariables?: VariableDefinition[];
     // "On failure" setting; absent = the default for the node's retrySafe.
     retry?: WorkflowNodeRetryPolicy;
+    // Webhook triggers: routes the public webhook URL.
+    triggerId?: string;
   };
   targetPosition: 'top' | 'bottom' | 'left' | 'right';
   sourcePosition: 'top' | 'bottom' | 'left' | 'right';

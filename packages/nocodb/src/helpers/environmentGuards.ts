@@ -1,4 +1,5 @@
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 
 // CE no-op stubs. Environment lanes are an EE feature; EE overrides these with
 // the real impl in `src/ee/helpers/environmentGuards.ts`.
@@ -11,6 +12,7 @@ export async function assertNotLaneInstance(
 export async function assertNotLaneProduction(
   _context: NcContext,
   _message?: string,
+  _ncMeta?: MetaService,
 ): Promise<void> {}
 
 export async function assertNotLaneRelated(
@@ -22,6 +24,7 @@ export async function assertNotLockedViewOnLaneProduction(
   _context: NcContext,
   _viewId: string,
   _message?: string,
+  _ncMeta?: MetaService,
 ): Promise<void> {}
 
 export async function clearLaneCreatingState(

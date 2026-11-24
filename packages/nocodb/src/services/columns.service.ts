@@ -17,6 +17,7 @@ import {
   isMMOrMMLike,
   isRollupFormula,
   isServiceUser,
+  isSingleRecordLinkColumn,
   isSupportedDisplayValueColumn,
   isSystemColumn,
   isVirtualCol,
@@ -70,6 +71,10 @@ import type {
   ReusableParams,
 } from '~/services/columns.service.type';
 import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
+import {
+  assertNewLinkDisplayValueOk,
+  assertNoDisplayValueCycle,
+} from '~/helpers/displayValueCycle';
 import { NcContext } from '~/interface/config';
 import {
   type ColumnWebhookManager,
@@ -117,7 +122,8 @@ import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
 } from '~/helpers/getUniqueName';
-import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
+import { pickDefaultDisplayValue } from '~/helpers/displayValueRepick';
+import { clearSingleQueryCacheForReferencingModels } from '~/helpers/singleQueryCacheInvalidator';
 import validateParams from '~/helpers/validateParams';
 import { MetaService } from '~/meta/meta.service';
 import {
@@ -2091,6 +2097,13 @@ export class ColumnsService implements IColumnsService {
                 );
               }
 
+              // The override ends the display value chain: changing it can close a loop
+              if (column.pv) {
+                await assertNoDisplayValueCycle(context, column, {
+                  [column.id]: resolvedDisplayValueColumnId,
+                });
+              }
+
               await Column.updateDisplayValueColumn(context, {
                 colId: param.columnId,
                 fk_display_value_column_id: resolvedDisplayValueColumnId,
@@ -2110,6 +2123,14 @@ export class ColumnsService implements IColumnsService {
               // override in their own models' compiled queries — clear those
               // caches too or they keep serving the old nested JSON shape.
               await clearDependentLookupModelCaches(context, column);
+
+              // Tables whose reads show this link's display value through their own link
+              if (column.pv) {
+                await clearSingleQueryCacheForReferencingModels(
+                  context,
+                  column.fk_model_id,
+                );
+              }
             }
           }
           // handle reorder column
@@ -4201,45 +4222,55 @@ export class ColumnsService implements IColumnsService {
     }
   }
 
-  @TraceCommand(OperationName.columnSetAsPrimary)
-  async columnSetAsPrimary(
+  /**
+   * Switches a table's display value to `column` and tells everything that reads it: the
+   * meta-dependency handler (formula rollups over the display value), the column-update hooks
+   * for the old and the new display value, and the socket broadcasts. Shared by
+   * set-as-display-value and by a link created with `pv`, which must not skip any of it.
+   *
+   * Eligibility is the caller's to check — this only applies the change.
+   */
+  async setPrimaryColumn(
     context: NcContext,
-    param: { columnId: string; req: NcRequest },
+    param: {
+      column: Column;
+      /** The display value being replaced, read before the switch. */
+      oldPrimaryColumn?: Column;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
   ) {
-    const oldColumn = await Column.get(context, { colId: param.columnId });
-    if (!oldColumn) {
-      NcError.get(context).fieldNotFound(param.columnId);
-    }
+    const { oldPrimaryColumn, req } = param;
 
-    const oldPrimaryColumn = await Model.get(context, oldColumn.fk_model_id)
-      .then((model) => model?.getColumns())
-      .then((columns) => columns?.find((c) => c.pv));
-
-    // LongText (and its richMode / smartMode / ai variants) is rejected as a
-    // display value — multi-line / markdown content renders poorly in
-    // single-line surfaces (LTAR chips, breadcrumbs, audit lines, search).
-    // Existing PV columns keep working; only new selections are blocked.
-    if (oldColumn.uidt === UITypes.LongText && !oldColumn.pv) {
-      NcError.get(context).invalidRequestBody(
-        'Long Text fields cannot be set as the display value.',
-      );
-    }
     const result = await Model.updatePrimaryColumn(
       context,
-      oldColumn.fk_model_id,
-      oldColumn.id,
+      param.column.fk_model_id,
+      param.column.id,
+      ncMeta,
     );
 
-    const column = await Column.get(context, { colId: param.columnId });
+    const column = await Column.get(
+      context,
+      { colId: param.column.id },
+      ncMeta,
+    );
 
-    await this.metaDependencyEventHandler.handleEvent(context, {
-      eventType: MetaEventType.COLUMN_PRIMARY_UPDATED,
-      oldEntity: oldPrimaryColumn,
-      newEntity: column,
-    });
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.COLUMN_PRIMARY_UPDATED,
+        oldEntity: oldPrimaryColumn,
+        newEntity: column,
+      },
+      ncMeta,
+    );
 
     // to reflect column properly on realtime and getWithInfo we will get default view column order and visibility in col meta
-    const table = await Model.getWithInfo(context, { id: column.fk_model_id });
+    const table = await Model.getWithInfo(
+      context,
+      { id: column.fk_model_id },
+      ncMeta,
+    );
 
     if (oldPrimaryColumn) {
       this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
@@ -4247,7 +4278,7 @@ export class ColumnsService implements IColumnsService {
         oldColumn: oldPrimaryColumn,
         column: { ...oldPrimaryColumn, pv: false },
         columnId: column.id,
-        req: param.req,
+        req,
         context,
         columns: table.columns,
       });
@@ -4270,10 +4301,10 @@ export class ColumnsService implements IColumnsService {
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
       table,
-      oldColumn,
+      oldColumn: param.column,
       column,
       columnId: column.id,
-      req: param.req,
+      req,
       context,
       columns: table.columns,
     });
@@ -4298,6 +4329,48 @@ export class ColumnsService implements IColumnsService {
     return result;
   }
 
+  @TraceCommand(OperationName.columnSetAsPrimary)
+  async columnSetAsPrimary(
+    context: NcContext,
+    param: { columnId: string; req: NcRequest },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const oldColumn = await Column.get(context, { colId: param.columnId });
+    if (!oldColumn) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    const oldPrimaryColumn = await Model.get(context, oldColumn.fk_model_id)
+      .then((model) => model?.getColumns())
+      .then((columns) => columns?.find((c) => c.pv));
+
+    // LongText (and its richMode / smartMode / ai variants) is rejected as a
+    // display value — multi-line / markdown content renders poorly in
+    // single-line surfaces (LTAR chips, breadcrumbs, audit lines, search).
+    // Existing PV columns keep working; only new selections are blocked.
+    if (oldColumn.uidt === UITypes.LongText && !oldColumn.pv) {
+      NcError.get(context).invalidRequestBody(
+        'Long Text fields cannot be set as the display value.',
+      );
+    }
+    // Only a link that holds one related record can be a display value, and it must not lead
+    // back to itself through the linked tables' display values.
+    if (isLinksOrLTAR(oldColumn) && !oldColumn.pv) {
+      await oldColumn.getColOptions();
+      if (!isSingleRecordLinkColumn(oldColumn)) {
+        NcError.get(context).invalidRequestBody(
+          'Only a belongs-to, one-to-one or many-to-one link can be set as the display value.',
+        );
+      }
+      await assertNoDisplayValueCycle(context, oldColumn);
+    }
+    return this.setPrimaryColumn(
+      context,
+      { column: oldColumn, oldPrimaryColumn, req: param.req },
+      ncMeta,
+    );
+  }
+
   // Barcode/QrCode encode a value read from another field in the same table.
   // `validateParams` above only checks the id is present, not that it resolves —
   // so a stale or mistyped id would be persisted and later rendered as
@@ -4317,6 +4390,50 @@ export class ColumnsService implements IColumnsService {
     }
   }
 
+  /**
+   * Makes a freshly created link its table's display value, so `pv: true` on a link create
+   * means what it says. `createLTARColumn` has already checked the link may hold it.
+   *
+   * A link request creates a column on each side — a V1 belongs-to names the one on `childId`,
+   * everything else the one on the table the request names — so both ids are offered and the
+   * single-record one wins. They come from the insert rather than a title lookup: the title is
+   * deduped against the table it lands on, so searching by it can find an older link instead.
+   */
+  protected async applyLinkDisplayValue(
+    context: NcContext,
+    param: { columnIds: (string | undefined)[]; req: NcRequest },
+    ncMeta = Noco.ncMeta,
+  ) {
+    for (const columnId of param.columnIds) {
+      if (!columnId) continue;
+
+      const candidate = await Column.get(context, { colId: columnId }, ncMeta);
+      if (!candidate || !isLinksOrLTAR(candidate)) continue;
+
+      await candidate.getColOptions(ncMeta);
+      if (!isSingleRecordLinkColumn(candidate)) continue;
+
+      const model = await Model.get(
+        context,
+        candidate.fk_model_id,
+        false,
+        ncMeta,
+      );
+      const columns = (await model?.getColumns(ncMeta)) ?? [];
+
+      await this.setPrimaryColumn(
+        context,
+        {
+          column: candidate,
+          oldPrimaryColumn: columns.find((c) => c.pv),
+          req: param.req,
+        },
+        ncMeta,
+      );
+      return;
+    }
+  }
+
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
@@ -4328,6 +4445,8 @@ export class ColumnsService implements IColumnsService {
       suppressFormulaError?: boolean;
       /** import only — see validateLmtTrackedFields */
       allowEmptyLmtTrackedSet?: boolean;
+      /** Duplicate/snapshot/import copies keep an AI field's integration as stored. */
+      keepIntegrationBinding?: boolean;
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
       operationSource?: OperationSource;
@@ -4338,6 +4457,21 @@ export class ColumnsService implements IColumnsService {
     // if column_name is defined and title is not defined, set title to column_name
     if (param.column.column_name && !param.column.title) {
       param.column.title = param.column.column_name;
+    }
+
+    // `Column.insert` would promote a link to display value unchecked. Hold the flag back and
+    // apply it after the link exists; `createLTARColumn` rejects an ineligible one up front,
+    // so nothing is created when it cannot be honoured.
+    let pvRequestedOnLink = false;
+    // ids of the two columns a link create inserts, filled in by the LTAR branch below
+    let pvLinkColumnIds: (string | undefined)[] = [];
+    if (
+      'pv' in param.column &&
+      param.column.pv &&
+      isLinksOrLTAR(param.column.uidt)
+    ) {
+      pvRequestedOnLink = true;
+      param.column.pv = false;
     }
 
     validatePayload(
@@ -4588,6 +4722,7 @@ export class ColumnsService implements IColumnsService {
         savedColumn = await this.createLTARColumn(context, {
           tableId: param.tableId,
           column: param.column,
+          pvRequested: pvRequestedOnLink,
           user: param.user,
           req: param.req,
           reuse: param.reuse,
@@ -4598,6 +4733,7 @@ export class ColumnsService implements IColumnsService {
           colExtra,
         });
         captureForTrace('ltar', ltarCapture);
+        pvLinkColumnIds = [savedColumn?.id, ltarCapture.reverseColumnId];
 
         this.appHooksService.emit(AppEvents.RELATION_CREATE, {
           column: {
@@ -5410,6 +5546,17 @@ export class ColumnsService implements IColumnsService {
 
     await this.postColumnAdd(context, param.column, table);
 
+    if (pvRequestedOnLink) {
+      await this.applyLinkDisplayValue(
+        context,
+        { columnIds: pvLinkColumnIds, req: param.req },
+        ncMeta,
+      );
+      // the switch flips `pv` on two columns — re-read so the response and the column_add
+      // broadcast below carry the new display value rather than the old one
+      await table.getColumns(undefined, defaultView?.id);
+    }
+
     const newColumn = table.columns.find((c) => c.title === param.column.title);
 
     const columnFilterKind: 'link' | 'button' | null = isLinksOrLTAR(
@@ -5697,6 +5844,21 @@ export class ColumnsService implements IColumnsService {
               : 'Please delete the link column first.'
           }`,
         });
+      }
+    }
+
+    // The deleted link may be the display value of the table on its other side (its paired
+    // column goes with it), which then needs a new one.
+    let linkedTable: { modelId: string; context: NcContext } | undefined;
+    if (isLinksOrLTAR(column)) {
+      const linkOpts =
+        column.colOptions ??
+        (await column.getColOptions<LinkToAnotherRecordColumn>(ncMeta));
+      if (linkOpts?.fk_related_model_id) {
+        linkedTable = {
+          modelId: linkOpts.fk_related_model_id,
+          context: linkOpts.getRelContext().refContext,
+        };
       }
     }
 
@@ -6333,7 +6495,7 @@ export class ColumnsService implements IColumnsService {
     // Pass defaultViewId so that default view column order and visibility get added to the column meta
     await table.getColumns(ncMeta, defaultView?.id);
 
-    const displayValueColumn = mapDefaultDisplayValue(table.columns);
+    const displayValueColumn = await pickDefaultDisplayValue(table.columns);
     if (displayValueColumn) {
       await Model.updatePrimaryColumn(
         context,
@@ -6341,6 +6503,24 @@ export class ColumnsService implements IColumnsService {
         displayValueColumn.id,
         ncMeta,
       );
+    }
+
+    if (linkedTable && linkedTable.modelId !== table.id) {
+      const linked = await Model.getWithInfo(
+        linkedTable.context,
+        { id: linkedTable.modelId },
+        ncMeta,
+      );
+      const linkedDisplayValue =
+        linked && (await pickDefaultDisplayValue(linked.columns));
+      if (linkedDisplayValue) {
+        await Model.updatePrimaryColumn(
+          linkedTable.context,
+          linked.id,
+          linkedDisplayValue.id,
+          ncMeta,
+        );
+      }
     }
 
     // junction rows referencing the deleted column as a *tracked* field are
@@ -7112,6 +7292,8 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       req: NcRequest;
       columnWebhookManager?: ColumnWebhookManager;
+      /** The request asked for this link to be the table's display value. */
+      pvRequested?: boolean;
       // Sandbox-replay capture slot, mutated by this method with the
       // side-effect IDs (assoc model, FK cols, back-link, reverse LTAR).
       // Caller passes a fresh object and reads back after the call to
@@ -7241,6 +7423,59 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
+    // if xcdb base then treat as virtual relation to avoid creating foreign key
+    if (param.source.isMeta() || param.source.type === 'snowflake') {
+      ltarReq.virtual = true;
+    }
+
+    // The FK / junction columns reference a single PK column, so a composite
+    // PK on a referenced side would create a broken relation. A virtual
+    // relation is fine when that column is unique on its own. Real FKs stay
+    // rejected: PG introspection marks multi-column UNIQUE members as unique.
+    for (const t of isMMLike ? [table, refTable] : [table]) {
+      const pk = t.primaryKey;
+      const singleColOk =
+        !!ltarReq.virtual && !!(pk.unique || pk.ai || pk.meta?.ag);
+      if (t.primaryKeys.length > 1 && !singleColOk) {
+        NcError.get(context).badRequest(
+          `Cannot create relation: table '${
+            t.title || t.table_name
+          }' has a composite primary key. Links to tables with a composite primary key are not supported.`,
+        );
+      }
+    }
+
+    // `pv: true` on a link create: the request names one side of the relation, and only a
+    // side that holds a single record may be the display value. Decide here, before anything
+    // is written, so an ineligible or looping request does not leave a column behind.
+    //   V1 belongs-to  → the named column lands on `childId`, and is the FK side
+    //   V1 one-to-one  → the named column is the side WITHOUT the FK, so it does not qualify
+    //   V2 (junction)  → the named column lands on `parentId`; bt normalises to many-to-one
+    if (param.pvRequested) {
+      const isV1 = ltarReq.version === LinksVersion.V1;
+      const singleRecord = isV1
+        ? relationType === RelationTypes.BELONGS_TO
+        : [
+            RelationTypes.BELONGS_TO,
+            RelationTypes.MANY_TO_ONE,
+            RelationTypes.ONE_TO_ONE,
+          ].includes(relationType as RelationTypes);
+
+      if (!singleRecord) {
+        NcError.get(context).invalidRequestBody(
+          'Only a belongs-to, one-to-one or many-to-one link can be set as the display value.',
+        );
+      }
+
+      const ownsNamedColumn =
+        isV1 && relationType === RelationTypes.BELONGS_TO ? refTable : table;
+      await assertNewLinkDisplayValueOk(context, {
+        ownerModelId: ownsNamedColumn.id,
+        relatedModel: ownsNamedColumn.id === table.id ? refTable : table,
+        displayColumnId: ltarReq.fk_display_value_column_id,
+      });
+    }
+
     let refColumn: Column;
     const childView: View | null = ltarReq?.childViewId
       ? await View.getByTitleOrId(refContext, {
@@ -7279,11 +7514,6 @@ export class ColumnsService implements IColumnsService {
           });
     const isLinks =
       param.column.uidt === UITypes.Links || ltarReq.type === 'bt';
-
-    // if xcdb base then treat as virtual relation to avoid creating foreign key
-    if (param.source.isMeta() || param.source.type === 'snowflake') {
-      ltarReq.virtual = true;
-    }
 
     if (!isMMLike && (ltarReq.type === 'hm' || ltarReq.type === 'bt')) {
       // populate fk column name
@@ -8420,6 +8650,9 @@ export class ColumnsService implements IColumnsService {
           ...op,
           error: dbError?.message || e.message,
         });
+      } finally {
+        // ops share baseModel, whose loaded columns predate this op
+        baseModel.markColumnsChanged();
       }
     }
 

@@ -313,11 +313,15 @@ function entryData(buf: Buffer, entry: CentralEntry) {
 }
 
 /** Text of one part of an archive that already passed the guard, or null. */
-export function readXlsxPart(buf: Buffer, filename: string): string | null {
+export function readXlsxPart(
+  buf: Buffer,
+  filename: string,
+  maxSize = Infinity,
+): string | null {
   const entry = readCentralDirectory(buf, DEFAULT_LIMITS).entries.find(
     (e) => e.filename === filename,
   );
-  if (!entry) return null;
+  if (!entry || entry.uncompressedSize > maxSize) return null;
 
   const { method, data } = entryData(buf, entry);
   if (method === 0) return data.toString('utf8');

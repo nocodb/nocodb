@@ -16,9 +16,12 @@ export const BulletList = Node.create<any, { markdown: MarkdownNodeSpec }>({
           const isDifferentListType =
             previousNode && previousNode.type.name !== node.type.name && previousNode.type.name === 'taskList'
 
-          // Add ` <br>\n\n ` if transitioning from a different list type
+          // <br> keeps the two lists apart; closeBlock starts the next one at column 0
           if (isDifferentListType) {
-            state.write('<br>\n\n ')
+            state.write(' <br>')
+            state.closeBlock(previousNode)
+            // A tight parent list would close with one newline, gluing the next list to the <br>
+            state.flushClose(2)
           }
 
           state.renderList(node, '  ', () => `${this.editor.storage.markdown.options.bulletListMarker || '-'} `)

@@ -9,6 +9,10 @@ export {
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 import { extractFilterFromXwhere as parserExtract } from './filterHelpers_withparser';
 import { extractFilterFromXwhere as oldExtract } from './filterHelpers_old';
+export {
+  getComputedWhereUidt,
+  validateFilterComparison,
+} from './filterHelpers_old';
 import { NcContext } from './ncTypes';
 import { NcApiVersion } from './enums';
 
@@ -70,7 +74,8 @@ export function extractFilterFromXwhere(
       // Strip leading '@' — it's a v1/v2 escape prefix to opt into the new
       // parser and has no meaning in the V3 context where the new parser is
       // always used. Passing it through causes a CST parse error.
-      str: typeof str === 'string' && str.startsWith('@') ? str.substring(1) : str,
+      str:
+        typeof str === 'string' && str.startsWith('@') ? str.substring(1) : str,
       aliasColObjMap,
       throwErrorIfInvalid,
       errors,

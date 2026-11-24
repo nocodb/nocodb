@@ -20,7 +20,7 @@ const {
   showUpgradeToUseAutoNumberField,
 } = useEeConfig()
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 
 const searchQuery = ref('')
 
@@ -31,7 +31,7 @@ const filteredOptions = computed(() => {
 
   return (options.value || []).filter((c) => {
     // Step 1: apply default filter
-    if (searchCompare([c.name, UITypesName[c.name]], searchQuery.value)) return true
+    if (searchCompare([c.name, UITypesName[c.name], getUidtI18nName(c.name, t, te)], searchQuery.value)) return true
 
     // Step 2: apply search basis options
     return searchCompare([...(UITypesSearchTerms[c.name] || [])], searchQuery.value, (matchKeyword) => {
@@ -179,7 +179,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
                 'flex-1': !searchBasisInfoMap[option.name],
               }"
             >
-              {{ UITypesName[option.name] }}
+              {{ getUidtI18nName(option.name, t, te) }}
             </div>
             <div v-if="searchBasisInfoMap[option.name]" class="flex-1 flex">
               <NcTooltip :title="searchBasisInfoMap[option.name]" class="flex cursor-help">

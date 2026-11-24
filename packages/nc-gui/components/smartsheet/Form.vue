@@ -41,6 +41,7 @@ const hiddenBubbleMenuOptions = [
   RichTextBubbleMenuOptions.numberedList,
   RichTextBubbleMenuOptions.taskList,
   RichTextBubbleMenuOptions.image,
+  RichTextBubbleMenuOptions.table,
 ]
 
 const enum NcForm {
@@ -482,7 +483,7 @@ function isDbRequired(column: Record<string, any>) {
           column.fk_column_id === c.colOptions.fk_child_column_id,
       )) ||
     // primary column
-    (column.pk && !column.ai && !column.cdf)
+    (column.pk && !column.ai && !column.cdf && !column.readonly)
   if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions?.type === RelationTypes.BELONGS_TO) {
     const col = columns.value.find((c: Record<string, any>) => c.id === column.colOptions.fk_child_column_id) as Record<
       string,
@@ -1019,7 +1020,10 @@ function setFormData() {
   }
 
   localColumns.value = col
-    .filter((f) => !isFormViewHiddenCol(f) && !systemFieldsIds.value.includes(f.fk_column_id))
+    .filter(
+      (f) =>
+        !isFormViewHiddenCol(f) && !isFormHiddenReadonlyCol(f, meta.value) && !systemFieldsIds.value.includes(f.fk_column_id),
+    )
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 

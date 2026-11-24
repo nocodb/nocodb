@@ -453,6 +453,14 @@ export const captureLinkHooks = async ({
     'attachToTransaction' in driver ? driver.attachToTransaction(fire) : fire();
 };
 
+/** Link ids as plain primary-key values. */
+const plainIds = (ids: unknown[], table: Model): Array<string | number> =>
+  ids.map((id) =>
+    typeof id === 'object' && id
+      ? dataWrapper(id).getByColumnNameTitleOrId(table.primaryKey)
+      : (id as string | number),
+  );
+
 /** {@link captureLinkHooks} for one row's link field written outside `addLinks` / `removeLinks`. */
 export const captureLinkHookRowsForColumn = ({
   baseModel,
@@ -549,11 +557,21 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     if (!column || !isLinksOrLTAR(column))
       NcError.get(baseModel.context).fieldNotFound(colId);
 
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const childColumn = await colOptions?.getChildColumn();
+
+    // Only the pk and `childColumn`: a full row signs attachments, which reads
+    // meta off the caller's transaction
     const row = await baseModel.readByPk(
       rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      {
+        ignoreView: true,
+        getHiddenColumn: true,
+        extractOnlyPrimaries: true,
+        fk_display_value_column_id: childColumn?.id,
+      },
     );
 
     // validate rowId
@@ -563,12 +581,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     if (!_childIds.length) return;
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
-
     const { childContext, parentContext, mmContext } =
       await colOptions.getParentChildContext();
 
-    const childColumn = await colOptions.getChildColumn();
     const parentColumn = await colOptions.getParentColumn();
     const parentTable = await parentColumn.getModel();
     const childTable = await childColumn.getModel();
@@ -731,7 +746,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             // Exclude soft-deleted target rows — otherwise the link succeeds
             // but the linked record is invisible under the read filter.
             const parentSoftDeleteFilter =
-              await refBaseModel.getSoftDeleteFilter();
+              await refBaseModel.getSoftDeleteFilter(parentTn);
             if (parentSoftDeleteFilter) {
               childRowsQb.where(parentSoftDeleteFilter);
             }
@@ -1194,6 +1209,11 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                 : childIds,
             );
           }
+          // Parents the children move away from still show them in search.
+          const trackOldParents = await childBaseModel.searchIndexOldParents(
+            plainIds(childIds, childTable),
+            [childColumn.column_name],
+          );
           await baseModel.execAndParse(updateQb, null, { raw: true });
 
           await parentBaseModel.updateLastModified({
@@ -1204,6 +1224,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
+            await trackOldParents();
             await parentBaseModel
               .getNonTransactionalClone()
               .broadcastLinkUpdates([rowId], linkColIds);
@@ -1248,6 +1269,11 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             }
           }
 
+          // The parent the row moves away from still shows it in search.
+          const trackOldParent = await childBaseModel.searchIndexOldParents(
+            [rowId],
+            [childColumn.column_name],
+          );
           await childBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
@@ -1276,6 +1302,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
           // Broadcast child row update (FK was updated on this row)
           baseModel.dbDriver.attachToTransaction(async () => {
+            await trackOldParent();
             await childBaseModel
               .getNonTransactionalClone()
               .broadcastLinkUpdates([rowId], linkColIds);
@@ -1368,11 +1395,21 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     if (!column || !isLinksOrLTAR(column))
       NcError.get(baseModel.context).fieldNotFound(colId);
 
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
+    const parentColumn = await colOptions?.getParentColumn();
+
+    // Only the pk and `parentColumn`: a full row signs attachments, which reads
+    // meta off the caller's transaction
     const row = await baseModel.readByPk(
       rowId,
       false,
       {},
-      { ignoreView: true, getHiddenColumn: true },
+      {
+        ignoreView: true,
+        getHiddenColumn: true,
+        extractOnlyPrimaries: true,
+        fk_display_value_column_id: parentColumn?.id,
+      },
     );
 
     // validate rowId
@@ -1382,13 +1419,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     if (!_childIds.length) return;
 
-    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>();
-
     const { parentContext, childContext, mmContext } =
       await colOptions.getParentChildContext();
 
     const childColumn = await colOptions.getChildColumn();
-    const parentColumn = await colOptions.getParentColumn();
     const parentTable = await parentColumn.getModel();
     const childTable = await childColumn.getModel();
     await childTable.getColumns();
@@ -1719,6 +1753,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
+            // Unlinked children aren't reached by walking from the parent.
+            await childBaseModel.trackSearchIndexIds(
+              plainIds(childIds, childTable),
+            );
             await parentBaseModel
               .getNonTransactionalClone()
               .broadcastLinkUpdates([rowId], linkColIds);

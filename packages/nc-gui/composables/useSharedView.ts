@@ -140,7 +140,10 @@ export function useSharedView() {
         ],
       })
 
-    Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
+    // setMeta needs base_id for the composite key: default it to the view's base
+    Object.keys(relatedMetas).forEach((key) =>
+      setMeta({ ...relatedMetas[key], base_id: relatedMetas[key]?.base_id || viewMeta.base_id }),
+    )
 
     if (viewMeta.users) {
       basesUser.value.set(viewMeta.base_id, viewMeta.users)

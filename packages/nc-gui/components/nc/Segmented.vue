@@ -11,6 +11,8 @@ interface Option {
   label: string
   disabled?: boolean
   tooltip?: string
+  /** Show only this icon; `label` becomes the accessible name. */
+  icon?: IconMapKey
 }
 
 interface Props {
@@ -41,13 +43,15 @@ function pick(option: Option) {
         type="button"
         role="radio"
         class="nc-segmented-option"
-        :class="{ 'is-on': option.value === value }"
+        :class="{ 'is-on': option.value === value, 'is-icon': !!option.icon }"
         :aria-checked="option.value === value"
+        :aria-label="option.icon ? option.label : undefined"
         :disabled="disabled || option.disabled"
         :data-testid="`nc-segmented-${option.value}`"
         @click="pick(option)"
       >
-        {{ option.label }}
+        <GeneralIcon v-if="option.icon" :icon="option.icon" class="h-4 w-4" />
+        <template v-else>{{ option.label }}</template>
       </button>
     </NcTooltip>
   </div>
@@ -66,6 +70,10 @@ function pick(option: Option) {
 
   &:hover:not(:disabled):not(.is-on) {
     @apply text-nc-content-gray;
+  }
+
+  &.is-icon {
+    @apply flex items-center px-1.5;
   }
 
   &:focus-visible {

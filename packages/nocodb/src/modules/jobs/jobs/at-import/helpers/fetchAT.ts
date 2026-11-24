@@ -31,7 +31,7 @@ function parseJsonStream(
       reject(err);
     };
 
-    const result = {};
+    const result: Record<string, any> = Object.create(null);
 
     objectStream.on('data', (chunk) => {
       if (chunk.key) result[chunk.key] = chunk.value;
@@ -49,9 +49,23 @@ function parseJsonStream(
   });
 }
 
-const info: any = {
-  initialized: false,
-};
+export interface ATSession {
+  shareId: string;
+  cookie: string;
+  headers: Record<string, string>;
+  link: string;
+  baseInfo: Record<string, any>;
+  baseId: string;
+}
+
+// Airtable moved the read URL from an inline `fetch("…")` into
+// `var urlWithParams = "…"`; both forms are accepted
+export function extractReadLink(html: string): string | undefined {
+  const match =
+    html.match(/(?<=var urlWithParams = ")(\\[^"]*)(?=")/) ??
+    html.match(/(?<=fetch\(")(\\.*)(?=")/);
+  return match?.[1].trim();
+}
 
 export function prepareReadLink(link: string) {
   // a base read only needs the schema, but a view read's rows are the payload
@@ -73,7 +87,7 @@ export function prepareReadLink(link: string) {
 // JSON params are merged in; a shared view's access policy has `=` inside
 // its values, so they are not split by hand
 export function parseReadLinkParams(link: string) {
-  const result: Record<string, any> = {};
+  const result: Record<string, any> = Object.create(null);
   const params = new URLSearchParams(link.split('?')[1] ?? '');
   for (const [key, value] of params) {
     let parsed;
@@ -91,8 +105,8 @@ export function parseReadLinkParams(link: string) {
   return result;
 }
 
-async function initialize(shareId, appId?: string) {
-  info.cookie = '';
+async function initialize(shareId, appId?: string): Promise<ATSession> {
+  let cookie = '';
 
   if (!appId || appId === '') {
     appId = null;
@@ -102,36 +116,34 @@ async function initialize(shareId, appId?: string) {
     const hreq = await ATImportEngine.get().initialize({ appId, shareId });
 
     for (const ck of hreq.headers['set-cookie']) {
-      info.cookie += ck.split(';')[0] + '; ';
+      cookie += ck.split(';')[0] + '; ';
     }
 
     const data = hreq.data;
 
     const headers = data.match(/(?<=var headers =)(.*)(?=;)/g);
-    const link = data.match(/(?<=fetch\(")(\\.*)(?=")/g);
+    const rawLink = extractReadLink(data);
 
-    if (!headers || !link) {
+    if (!headers || !rawLink) {
       throw {
         message:
           'This Airtable link is not publicly accessible. Use a shared base or shared view link without a password or sign-in restriction. Refer https://dub.sh/import-airtable-to-nocodb for details',
       };
     }
 
-    info.headers = JSON.parse(
-      data.match(/(?<=var headers =)(.*)(?=;)/g)[0].trim(),
-    );
+    const link = prepareReadLink(unicodeToChar(rawLink));
+    const baseInfo = parseReadLinkParams(link);
 
-    info.link = unicodeToChar(
-      data.match(/(?<=fetch\(")(\\.*)(?=")/g)[0].trim(),
-    );
-
-    info.link = prepareReadLink(info.link);
-    info.baseInfo = parseReadLinkParams(info.link);
-    info.baseId = info.baseInfo.applicationId;
-    info.initialized = true;
+    return {
+      shareId,
+      cookie,
+      headers: JSON.parse(headers[0].trim()),
+      link,
+      baseInfo,
+      baseId: baseInfo.applicationId,
+    };
   } catch (e) {
     logger.log(e);
-    info.initialized = false;
     if (e?.response?.status === 404) {
       throw {
         message:
@@ -152,23 +164,23 @@ async function initialize(shareId, appId?: string) {
   }
 }
 
-async function read() {
-  if (!info.initialized) {
+async function read(session: ATSession) {
+  if (!session) {
     throw {
       message: 'Error Initializing :: please try again !!',
     };
   }
 
   try {
-    const resreq = await ATImportEngine.get().read(info);
+    const resreq = await ATImportEngine.get().read(session);
 
     const data: any = await parseJsonStream(resreq.data, 'data.tableDatas');
 
     if (data?.data) {
       return {
         schema: data?.data,
-        baseId: info.baseId,
-        baseInfo: info.baseInfo,
+        baseId: session.baseId,
+        baseInfo: session.baseInfo,
       };
     } else {
       throw new Error('Error reading Airtable schema: empty response');
@@ -182,15 +194,15 @@ async function read() {
   }
 }
 
-async function readView(viewId) {
-  if (!info.initialized) {
+async function readView(viewId, session: ATSession) {
+  if (!session) {
     throw {
       message: 'Error Initializing :: please try again !!',
     };
   }
 
   try {
-    const resreq = await ATImportEngine.get().readView(viewId, info);
+    const resreq = await ATImportEngine.get().readView(viewId, session);
 
     const data: any = await parseJsonStream(resreq.data, 'data.rowOrder');
 
@@ -209,9 +221,7 @@ async function readView(viewId) {
 }
 
 async function readTemplate(templateId) {
-  if (!info.initialized) {
-    await initialize('shrO8aYf3ybwSdDKn');
-  }
+  const session = await initialize('shrO8aYf3ybwSdDKn');
 
   try {
     const resreq = await axios(
@@ -230,8 +240,8 @@ async function readTemplate(templateId) {
           'User-Agent':
             'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36',
           'x-time-zone': 'Europe/Berlin',
-          cookie: info.cookie,
-          ...info.headers,
+          cookie: session.cookie,
+          ...session.headers,
         },
         // @ts-ignore
         referrer: 'https://www.airtable.com/',

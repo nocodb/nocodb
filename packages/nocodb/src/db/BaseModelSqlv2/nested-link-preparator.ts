@@ -243,8 +243,15 @@ export class NestedLinkPreparator {
           !isLinkV2(col) &&
           (colOptions.type === RelationTypes.BELONGS_TO ||
             (colOptions.type === RelationTypes.ONE_TO_ONE && col.meta?.bt));
+        // These link only from a list and skip anything else, such as a count echoed back from a read
+        const linksFromListOnly = [
+          RelationTypes.HAS_MANY,
+          RelationTypes.ONE_TO_MANY,
+          RelationTypes.MANY_TO_MANY,
+        ].includes(colOptions.type as RelationTypes);
         if (
           refModelPkCol &&
+          (Array.isArray(nestedData) || !linksFromListOnly) &&
           (!isFkToParent || colOptions.fk_parent_column_id === refModelPkCol.id)
         ) {
           linkPlans.push({

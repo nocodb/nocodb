@@ -12,7 +12,11 @@ import {
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from './filterHelpers';
 import { arrFlatMap } from './arrayHelpers';
-import { getRollupWhereUidt } from './filterHelpers_old';
+import { getComputedWhereUidt } from './filterHelpers_old';
+import {
+  DATE_RANGE_NEEDS_TWO_DATES,
+  isPendingDateRangeWhere,
+} from './filter/calendarDateRange';
 import {
   parseLexingError,
   parseParsingError,
@@ -246,7 +250,7 @@ function mapFilterClauseSubType(
   // column whose title contains a dot is not shadowed by an LTAR base match.
   const dotIdx = aliasColObjMap[filter.field]
     ? -1
-    : filter.field?.indexOf('.') ?? -1;
+    : filter.field?.lastIndexOf('.') ?? -1;
   if (dotIdx !== -1) {
     const baseField = filter.field.substring(0, dotIdx);
     const subField = filter.field.substring(dotIdx + 1);
@@ -311,6 +315,13 @@ function handleDataTypes(
     errors?: FilterParseError[];
   }
 ): { filter?: FilterType; errors?: FilterParseError[] } {
+  // a blank end is a UI picker state, never a `where` value
+  if (isPendingDateRangeWhere(filterType.comparison_op, filterType.value)) {
+    if (throwErrorIfInvalid)
+      throw new InvalidFilterError({ message: DATE_RANGE_NEEDS_TWO_DATES });
+    errors.push({ message: DATE_RANGE_NEEDS_TWO_DATES });
+    return { errors };
+  }
   if (filterType.value === null) {
     return { filter: filterType };
   }
@@ -322,7 +333,7 @@ function handleDataTypes(
   ];
   if (
     dateUidts.includes(
-      getRollupWhereUidt(column, filterType.value) ?? column.uidt
+      getComputedWhereUidt(column, filterType.value) ?? column.uidt
     ) &&
     filterType.value
   ) {

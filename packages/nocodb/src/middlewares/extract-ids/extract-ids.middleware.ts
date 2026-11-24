@@ -25,6 +25,7 @@ import {
   personalViewOwnerOnlyOps,
   resolveFilterTableId,
   resolveRequestTable,
+  roleAllowsPermission,
   VIEW_KEY,
 } from './extract-ids.helpers';
 import type { ViewTypes } from 'nocodb-sdk';
@@ -1322,12 +1323,7 @@ export class AclMiddleware implements NestInterceptor {
         Object.entries(roles).some(([name, hasRole]) => {
           return (
             hasRole &&
-            rolePermissions[name] &&
-            (rolePermissions[name] === '*' ||
-              (rolePermissions[name].exclude &&
-                !rolePermissions[name].exclude[permissionName]) ||
-              (rolePermissions[name].include &&
-                rolePermissions[name].include[permissionName]))
+            roleAllowsPermission(rolePermissions[name], permissionName)
           );
         })) ||
       // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
@@ -1335,12 +1331,10 @@ export class AclMiddleware implements NestInterceptor {
         Object.entries(extendedScopeRoles).some(([name, hasRole]) => {
           return (
             hasRole &&
-            rolePermissions[name] &&
-            (rolePermissions[name] === '*' ||
-              (rolePermissions[name].exclude &&
-                !rolePermissions[name].exclude[scope + '_' + permissionName]) ||
-              (rolePermissions[name].include &&
-                rolePermissions[name].include[scope + '_' + permissionName]))
+            roleAllowsPermission(
+              rolePermissions[name],
+              scope + '_' + permissionName,
+            )
           );
         })) ||
       isUserWithNoAccessLeavingWorkspace;

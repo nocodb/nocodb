@@ -194,19 +194,24 @@ interface Row {
     smartTextDrafts?: Record<string, Record<string, any> | null>
     /**
      * Optimistic-row save failure marker. Set when a frontend pre-check
-     * (currently: missing required NOT-NULL fields) blocks the insert before
-     * the row reaches the backend. The row stays in the local cache with this
-     * flag so the canvas/grid can render a ⚠️ marker; clearing it (e.g. once
-     * the missing fields are filled) re-enables the auto-retry path.
+     * (missing required NOT-NULL fields) blocks the insert, or when the
+     * database rejects it (CHECK, foreign key, ...). The row stays in the
+     * local cache with this flag so the canvas/grid can render a ⚠️ marker;
+     * editing the row retries the insert.
      */
-    saveError?: {
-      reason: 'missingRequired'
-      // Column titles that were required-and-null on the failed insert.
-      // UI consumers can cross-reference against FieldsInj to decide whether
-      // any are hidden in the current view (in which case the marker should
-      // prompt the user to open the expanded form).
-      missingFields: string[]
-    }
+    saveError?:
+      | {
+          reason: 'missingRequired'
+          // Column titles that were required-and-null on the failed insert.
+          // UI consumers can cross-reference against FieldsInj to decide whether
+          // any are hidden in the current view (in which case the marker should
+          // prompt the user to open the expanded form).
+          missingFields: string[]
+        }
+      | {
+          reason: 'serverRejected'
+          message: string
+        }
   } & RowMetaRowColorInfo
 }
 
@@ -332,6 +337,7 @@ interface Group {
   rows?: Row[]
   root?: boolean
   displayValueProp?: string
+  relatedTableMeta?: TableType
   /** The linked table's primary-key title, for groups keyed by a linked record. */
   relatedPkProp?: string
 }
@@ -425,6 +431,10 @@ interface CmdCommand {
   lead?: boolean
   /** Only listed when the query is non-empty. */
   searchOnly?: boolean
+  /** A fallback listed only while this level's chip is the active context. */
+  atLevel?: CmdLevel
+  /** A fallback listed first, above the matches and every other section. */
+  top?: boolean
   /** A status row (loading, load error): shown but not selectable or runnable. */
   disabled?: boolean
   /** Spinner in place of the icon; used with `disabled` for rows still loading. */
@@ -457,6 +467,8 @@ interface CmdCommand {
   searchesChildren?: boolean
   /** On a searching sub page: called with the typed query as it settles, to fetch the children. */
   onQuery?: (query: string) => void
+  /** Searching sub page: true while the query's children are on the way; the page shows a loader. */
+  pending?: (query?: string) => boolean
   /** The sub page's breadcrumb and placeholder, when the row's title doesn't fit them. */
   pageTitle?: string
   /** With `run` and `children`: Enter runs it, → or the chevron opens the children. */
@@ -715,6 +727,8 @@ interface ViewActionState {
 
 interface CellRendererOptions {
   value: any
+  /** Lines (or rows of chips) to draw at most, overriding the cap the row height implies. Print uses it to show a value in full. */
+  maxLines?: number
   row: any
   pk: any
   column: ColumnType
@@ -758,6 +772,10 @@ interface CellRendererOptions {
     tagBorderWidth?: number
     /** Tag text split into pieces; pieces with a `url` render as links */
     tagSegments?: Array<{ text: string; url?: string }>
+    /** Called with the drawn box of each link piece in `tagSegments` */
+    onTagLink?: (link: { x: number; width: number; url: string }) => void
+    /** Called by the hm/mm Link renderer with the boxes of the chips it drew */
+    onLinkChips?: (chips: NonNullable<CellRenderStore['ltar']>) => void
   }
   disabled?: {
     isInvalid: boolean
@@ -815,6 +833,9 @@ interface CellRenderStore {
     hoverValue: number
   }
   ltar?: { oldX?: number; oldY?: number; x?: number; y?: number; width?: number; height?: number; value?: any }[]
+  /** Chips of a Lookup of a Link, and the linked table they open into */
+  lookupLinks?: { x: number; y: number; width: number; height: number; value: Record<string, any> }[]
+  lookupLinkMeta?: TableType
   [key: string]: any
 }
 
@@ -864,7 +885,8 @@ interface CellRenderer {
     markdownLoader: MarkdownLoader
     cellRenderStore: CellRenderStore
     isPublic?: boolean
-    openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
+    /** False when nothing opened (an Interface column with no detail page) */
+    openDetachedExpandedForm: (props: UseExpandedFormDetachedProps, ltarColumn?: ColumnType) => boolean
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
     openSmartText?: (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => void
     formula?: boolean
@@ -992,6 +1014,8 @@ interface ParsePlainCellValueProps {
     isXcdbBase: (sourceId?: string) => boolean
     t: Composer['t']
     isUnderLookup?: boolean
+    numberFormat?: { skipThousandSeparator?: boolean; skipAbbreviation?: boolean }
+    linkDepth?: number
   }
 }
 
@@ -1432,6 +1456,10 @@ interface AttachmentCellDropOverType {
 interface GroupKeysStorage {
   [viewId: string]: {
     keys: Array<string>
+    // Groups collapsed by hand while an expanding scope covers them
+    collapsedKeys?: Array<string>
+    // Group key (or GROUP_SCOPE_ALL) → default state of that group and every group below it
+    scopes?: Record<string, boolean>
     lastAccessed: number // timestamp
   }
 }

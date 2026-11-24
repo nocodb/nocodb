@@ -11,6 +11,7 @@ import {
   isVirtualCol,
   ncIsNaN,
 } from 'nocodb-sdk'
+import { linkDisplaySearchClause } from '~/utils/linkedRecordDisplay'
 
 export interface FieldQueryType {
   field: string
@@ -103,6 +104,15 @@ export function useFieldQuery() {
     params: { getWhereQueryAs?: 'string' | 'object'; serializeLinkRecordSearchQuery?: boolean } = {},
   ): string | ValidSearchQueryForColumnReturnType => {
     if (!isValidValue(query)) return ''
+
+    // A single-record link (e.g. as a display value) is searched by its leaf text
+    if (params.getWhereQueryAs) {
+      const linkClause = linkDisplaySearchClause(col, query as string, params.getWhereQueryAs, {
+        meta: tableMeta,
+        metas: metas.value,
+      })
+      if (linkClause !== undefined) return linkClause
+    }
 
     let searchQuery = query
 

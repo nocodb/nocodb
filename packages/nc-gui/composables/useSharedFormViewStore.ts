@@ -322,7 +322,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           ],
         })
 
-      Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
+      // setMeta needs base_id for the composite key: default it to the view's base
+      Object.keys(relatedMetas).forEach((key) =>
+        setMeta({ ...relatedMetas[key], base_id: relatedMetas[key]?.base_id || viewMeta.base_id }),
+      )
 
       if (viewMeta.users) {
         basesUser.value.set(viewMeta.base_id, viewMeta.users)
@@ -337,7 +340,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       )
 
       columns.value = (viewMeta.model?.columns || [])
-        .filter((c: ColumnType) => fieldById[c.id])
+        .filter((c: ColumnType) => fieldById[c.id] && !isFormHiddenReadonlyCol(c, viewMeta.model))
         .map((c: ColumnType) => {
           if (
             !isSystemColumn(c) &&
@@ -994,7 +997,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   })
 
   function isRequired(column: Record<string, any>) {
-    if (!isVirtualCol(column) && ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)) {
+    if (
+      !isVirtualCol(column) &&
+      ((column.rqd && !column.cdf) || (column.pk && !(column.ai || column.cdf || column.readonly)) || column.required)
+    ) {
       return true
     } else if (
       isLinksOrLTAR(column) &&

@@ -971,6 +971,8 @@ export class RelationManager {
               cookie: req,
               updatedColIds: [column.id],
             });
+            // Its search cells still show the row it no longer links to.
+            await parentBaseModel.trackSearchIndexIds([oldRowId]);
           }
 
           await childBaseModel.execAndParse(
@@ -1076,6 +1078,8 @@ export class RelationManager {
                 )?.id,
               ],
             });
+            // Its search cells still show the row it no longer links to.
+            await parentBaseModel.trackSearchIndexIds([oldParentRowId]);
           }
 
           await childBaseModel.execAndParse(
@@ -1177,6 +1181,8 @@ export class RelationManager {
                 cookie: req,
                 updatedColIds: [column.id],
               });
+              // Its search cells still show the row it no longer links to.
+              await childBaseModel.trackSearchIndexIds([oldChildRowId]);
             }
           }
 
@@ -1234,6 +1240,8 @@ export class RelationManager {
               cookie: req,
               updatedColIds: [refTableLinkColumnId],
             });
+            // Its search cells still show the row it no longer links to.
+            await parentBaseModel.trackSearchIndexIds([oldRowId]);
           }
           // Unlink existing child records — but preserve FK on soft-deleted
           // rows so restore conflict detection can detect the OO violation.

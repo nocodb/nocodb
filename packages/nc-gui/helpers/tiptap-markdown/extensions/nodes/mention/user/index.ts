@@ -123,7 +123,9 @@ export const UserMention = TipTapMention.extend<MentionOptions<any, MentionNodeA
           const user = parseProp(node.attrs.id)
 
           if (user?.id) {
-            state.write(`@(${user.id}|${user.email ?? ''}|${user.name ?? ''})`)
+            const mention = `@(${user.id}|${user.email ?? ''}|${user.name ?? ''})`
+            // A bare pipe would end the table cell; markdown-it drops the `\` before the mention is parsed.
+            state.write(state.inTable ? mention.replace(/\|/g, '\\|') : mention)
           }
         },
         parse: {

@@ -86,6 +86,8 @@ export enum SmartsheetStoreEvents {
   COPIED_VIEW_CONFIG = 'copied-view-config',
   AGGREGATION_RELOAD = 'aggregation-reload',
   INTERFACE_ROW_REFRESH = 'interface-row-refresh',
+  /** Toolbar search next/previous; payload `{ direction: 1 | -1 }`. */
+  SEARCH_NAVIGATE = 'search-navigate',
 }
 
 export enum SmartsheetScriptActions {

@@ -38,6 +38,7 @@ export * from '~/lib/bookmark';
 export * from '~/lib/hq-roadmap';
 export * from '~/lib/helpers/metaHelpers';
 export * from '~/lib/circularReplacer';
+export * from '~/lib/search';
 export * from '~/lib/payment/credits';
 export {
   default as UITypes,
@@ -55,6 +56,7 @@ export {
   isLinkV2,
   isMMOrMMLike,
   isBtLikeV2Junction,
+  isSingleRecordLinkColumn,
   isSelfLinkCol,
   isCreatedOrLastModifiedTimeCol,
   isCreatedOrLastModifiedByCol,
@@ -102,6 +104,7 @@ export * from '~/lib/kanbanSummary';
 export * from '~/lib/parser/queryFilter/query-filter-encoder';
 export * from '~/lib/aggregationCompute';
 export * from '~/lib/connectionConfigUtils';
+export * from '~/lib/dataSourceIntegrationUtils';
 export * from '~/lib/currencyHelpers';
 export * from '~/lib/filterHelpers';
 export * from '~/lib/errorUtils';

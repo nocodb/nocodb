@@ -1407,6 +1407,7 @@ export const renderTagLabel = (
     tagBorderColor,
     tagBorderWidth,
     tagSegments,
+    onTagLink,
   } = props.tag || {}
 
   const maxWidth = width - padding * 2 - tagPaddingX * 2
@@ -1469,7 +1470,7 @@ export const renderTagLabel = (
   } else if (tagSegments?.length) {
     // Link segments are underlined; the rest is plain tag text
     const textX = x + tagSpacing + tagPaddingX
-    const pieces: Array<{ text: string; url?: string; x: number }> = []
+    const pieces: Array<{ text: string; url?: string; x: number; width: number }> = []
     let textWidth = 0
 
     for (const segment of tagSegments) {
@@ -1485,7 +1486,7 @@ export const renderTagLabel = (
         render: false,
       })
 
-      pieces.push({ text: measured.text, url: segment.url, x: textX + textWidth })
+      pieces.push({ text: measured.text, url: segment.url, x: textX + textWidth, width: measured.width })
       textWidth += measured.width
       if (measured.isTruncated) break
     }
@@ -1504,6 +1505,7 @@ export const renderTagLabel = (
         isTagLabel: true,
         underline: !!piece.url,
       })
+      if (piece.url) onTagLink?.({ x: piece.x, width: piece.width, url: piece.url })
     }
 
     return {

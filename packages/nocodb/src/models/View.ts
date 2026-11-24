@@ -1461,7 +1461,7 @@ export default class View implements ViewType {
         break;
     }
 
-    const key = `${cacheScope}:viewColumnId:${colId}`;
+    const key = `${cacheScope}:viewColumnId:${viewId}:${colId}`;
     const o = await NocoCache.get(context, key, CacheGetType.TYPE_STRING);
     if (o) return o;
 
@@ -1491,6 +1491,10 @@ export default class View implements ViewType {
       underline?: BoolType;
       bold?: BoolType;
       italic?: BoolType;
+      group_by?: BoolType;
+      group_by_order?: number;
+      group_by_sort?: string;
+      group_by_enabled?: BoolType;
     },
     ncMeta = Noco.ncMeta,
     // Set when colId was read from this view's own columns.
@@ -1545,7 +1549,7 @@ export default class View implements ViewType {
       return;
     }
 
-    // width/group_by* are grid-only and go through GridViewColumn.update
+    // Grid width/group_by* go through GridViewColumn.update
     let updateObj = extractProps(colData, ['order', 'show']);
 
     // keep primary_value_column always visible and first in grid view
@@ -1623,6 +1627,18 @@ export default class View implements ViewType {
       updateObj = {
         ...updateObj,
         ...extractProps(colData, ['underline', 'bold', 'italic']),
+      };
+    }
+
+    if (view.type === ViewTypes.GALLERY) {
+      updateObj = {
+        ...updateObj,
+        ...extractProps(colData, [
+          'group_by',
+          'group_by_order',
+          'group_by_sort',
+          'group_by_enabled',
+        ]),
       };
     }
 
@@ -1980,11 +1996,8 @@ export default class View implements ViewType {
    * Mask the stored password value before returning a view to an
    * owner-facing API consumer.
    *
-   * - Bcrypt hash → replaced with the sentinel; the hash never leaves the
-   *   backend and the frontend renders a masked locked state.
-   * - Legacy plaintext (pre-PR-8174 rows that have never been re-saved) →
-   *   left as-is so the owner can still read their original password.
-   *   Migrates to bcrypt the next time the owner changes it.
+   * - Any stored value, bcrypt hash or legacy plaintext → replaced with the
+   *   sentinel; the frontend renders a masked locked state.
    * - Empty/null → unchanged.
    *
    * Returns a copy when masking is needed so we don't mutate cached View
@@ -1995,7 +2008,6 @@ export default class View implements ViewType {
     view: T,
   ): T {
     if (!view || !view.password) return view;
-    if (!isBcryptHash(view.password)) return view;
     return Object.assign(Object.create(Object.getPrototypeOf(view)), view, {
       password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
     });
@@ -2210,7 +2222,9 @@ export default class View implements ViewType {
   static async delete(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
     const view = await this.get(context, viewId, false, ncMeta);
     await Sort.deleteAll(context, viewId, ncMeta);
-    await Filter.deleteAll(context, viewId, ncMeta);
+    await Filter.deleteAll(context, viewId, ncMeta, {
+      includeFieldConditions: true,
+    });
     const table = this.extractViewTableName(view);
 
     const tableScope = this.extractViewTableNameScope(view);
@@ -2315,6 +2329,7 @@ export default class View implements ViewType {
           context,
           DependencyTableType.DateDependency,
           ganttRule.id,
+          ncMeta,
         );
         await DateDependency.deleteByGanttViewId(context, viewId, ncMeta);
       }
@@ -2350,9 +2365,14 @@ export default class View implements ViewType {
 
       const contextRef = { ...context };
       for (const link of links) {
-        await LinkToAnotherRecordColumn.update(context, link.fk_column_id, {
-          fk_target_view_id: null,
-        });
+        await LinkToAnotherRecordColumn.update(
+          context,
+          link.fk_column_id,
+          {
+            fk_target_view_id: null,
+          },
+          ncMeta,
+        );
 
         // notify all sockets of the change in the related column
         (async (l) => {
@@ -2853,6 +2873,7 @@ export default class View implements ViewType {
                 'group_by',
                 'group_by_order',
                 'group_by_sort',
+                'group_by_enabled',
                 'aggregation',
               ]),
         ]);

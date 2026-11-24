@@ -9,10 +9,14 @@ export const CodeBlock = Node.create<any, { markdown: MarkdownNodeSpec }>({
     return {
       markdown: {
         serialize(state, node) {
-          state.write(`\`\`\`${node.attrs.language || ''}\n`)
-          state.text(node.textContent, false)
-          state.ensureNewLine()
-          state.write('```')
+          // Longer than any backtick run in the code, so an inner ``` doesn't close the block
+          const longestRun = Math.max(0, ...(node.textContent.match(/`+/g) ?? []).map((run) => run.length))
+          const fence = '`'.repeat(Math.max(3, longestRun + 1))
+
+          state.write(`${fence}${node.attrs.language || ''}\n`)
+          // Always end with a newline: updateDOM strips one, so trailing blank lines survive
+          state.text(`${node.textContent}\n`, false)
+          state.write(fence)
           state.closeBlock(node)
         },
         parse: {

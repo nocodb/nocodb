@@ -27,8 +27,9 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
+import { getColumnReorderUpdates } from '../utils/headerUtils'
 import { extractUserKeys } from '../../../../cell/User/utils'
-import { clearTextCache, selectOptionBgColorCache, selectOptionTextColorCache } from '../utils/canvas'
+import { clearTextCache, getAbstractType, selectOptionBgColorCache, selectOptionTextColorCache } from '../utils/canvas'
 import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
@@ -46,11 +47,18 @@ import { CanvasElement } from '../utils/CanvasElement'
 import { calculateGroupRowTop, findGroupByPath, isGroupExpanded } from '../utils/groupby'
 import { type GroupMoveBlockReason, getGroupLevelBlockReason, resolveGroupMove } from '../utils/groupMove'
 import { BaseRoleLoader } from '../loaders/BaseRoleLoader'
+import { isAutoFitSupported, measureAutoFitCell } from '../utils/autoFit'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useFreezeDivider } from './useFreezeDivider'
 import { useColumnReorder } from './useColumnReorder'
-import { normalizeWidth, useColumnResize } from './useColumnResize'
+import {
+  AUTO_FIT_HEADER_PADDING,
+  AUTO_FIT_MAX_WIDTH,
+  RESIZE_HANDLE_WIDTH,
+  normalizeWidth,
+  useColumnResize,
+} from './useColumnResize'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMouseSelection } from './useMouseSelection'
 import { useFillHandler } from './useFillHandler'
@@ -254,7 +262,7 @@ export function useCanvasTable({
   const { $api } = useNuxtApp()
   const { t } = useI18n()
   const { currentUser } = useUserSync()
-  const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
+  const { gridViewCols, metaColumnById, updateGridViewColumn, updateGridViewColumnWidths } = useViewColumnsOrThrow()
   const {
     eventBus,
     isDefaultView,
@@ -389,6 +397,8 @@ export function useCanvasTable({
     scriptEventBus,
     currentUser,
   )
+
+  actionManager.setMetas(metas)
 
   watch(
     () => [baseStore.base?.id, baseStore.base?.fk_workspace_id] as const,
@@ -1180,10 +1190,13 @@ export function useCanvasTable({
     let xOffset = 0
 
     const fixedCols = columns.value.filter((col) => col.fixed)
+    // The frozen area renders the group-by indent too; columnWidths leaves it out
+    const groupIndent = groupByColumns.value.length * 13
 
-    for (const column of fixedCols) {
+    for (const [index, column] of fixedCols.entries()) {
       const width = columnWidths.value[columns.value.indexOf(column)] ?? 180
-      if (x >= xOffset && x < xOffset + width) {
+      const hitWidth = index === fixedCols.length - 1 ? width + groupIndent : width
+      if (x >= xOffset && x < xOffset + hitWidth) {
         if (!column.uidt) {
           xOffset += width
         }
@@ -1682,6 +1695,21 @@ export function useCanvasTable({
     reloadVisibleDataHook?.trigger()
   }
 
+  // Saves only widths that changed (a click on a divider changes none); several go as one request and one undo step
+  const saveColumnWidths = (widths: Record<string, string>) => {
+    const changed: Record<string, string> = {}
+    for (const [columnId, width] of Object.entries(widths)) {
+      const viewCol = gridViewCols.value[columnId]
+      if (!viewCol || parseCellWidth(viewCol.width) === parseCellWidth(width)) continue
+
+      viewCol.width = width
+      changed[columnId] = width
+    }
+    if (Object.keys(changed).length) updateGridViewColumnWidths(changed)
+    // redraw with the saved widths; the live resize override is already cleared
+    reloadVisibleDataHook?.trigger()
+  }
+
   // When resizing a column that's part of a multi-field selection (size > 1),
   // apply the resize to every selected column. Otherwise just the dragged one.
   const getCoResizeColumnIds = (resizedColumnId: string): Set<string> => {
@@ -1696,6 +1724,7 @@ export function useCanvasTable({
     handleMouseMove: resizeMouseMove,
     handleMouseDown: startResize,
     resizeableColumn,
+    findResizeHandleColumn,
     isResizing,
   } = useColumnResize(
     canvasRef,
@@ -1737,15 +1766,106 @@ export function useCanvasTable({
       const coResizeIds = resizeMarker.value?.columnIds ?? resizeWidthOverride.value?.columnIds ?? getCoResizeColumnIds(columnId)
       resizeWidthOverride.value = null
       resizeMarker.value = null
+      const widths: Record<string, string> = {}
       for (const id of coResizeIds) {
-        handleColumnWidth(id, width, (normalizedWidth) => {
-          if (!gridViewCols.value[id]) return
-          gridViewCols.value[id]!.width = normalizedWidth
-          updateGridViewColumn(id, { width: normalizedWidth })
-        })
+        handleColumnWidth(id, width, (normalizedWidth) => (widths[id] = normalizedWidth))
       }
+      saveColumnWidths(widths)
     },
   )
+  // Every row loaded so far, across expanded groups when grouped
+  const getLoadedRows = (): Row[] => {
+    if (!isGroupBy.value) return [...getDataCache([]).cachedRows.value.values()]
+
+    const rows: Row[] = []
+    const walk = (groups: Map<number, CanvasGroup>) => {
+      for (const group of groups.values()) {
+        if (!group.isExpanded) continue
+        if (group.groups?.size) walk(group.groups)
+        else rows.push(...getDataCache(group.path).cachedRows.value.values())
+      }
+    }
+    walk(cachedGroups.value)
+    return rows
+  }
+
+  // Width that fits the header and the loaded cells' text, or null when the type can't be measured
+  const measureFitWidth = (columnId: string, ctx: CanvasRenderingContext2D, rows: Row[]): number | null => {
+    const metaCol = metaColumnById.value[columnId]
+    const column = columns.value.find((c) => c.id === columnId)
+    const fitColumn = column?.columnObj ?? metaCol
+    if (!metaCol || !column || !fitColumn || !isAutoFitSupported(fitColumn)) return null
+
+    const fitContext = {
+      abstractType: getAbstractType(metaCol, sqlUis.value),
+      meta: meta.value as TableType,
+      metas: metas.value,
+      isMysql,
+      isXcdbBase: baseStore.isXcdbBase,
+      t,
+    }
+
+    // mirrors the header layout in useCanvasRender
+    ctx.font = '600 12px Inter'
+    let headerSpace = AUTO_FIT_HEADER_PADDING + (interfacePageDataApi ? 8 : 26)
+    if (metaCol.description?.length) headerSpace += 18
+    if (column.isInvalidColumn?.isInvalid && !column.isInvalidColumn?.ignoreTooltip) headerSpace += 18
+    if (column.isDateDependencyField && !isPublicView.value) headerSpace += 18
+    const isRequired = column.virtual ? isVirtualColRequired(metaCol, meta.value?.columns || []) : metaCol.rqd && !metaCol.cdf
+    if (isRequired) headerSpace += 4
+    const headerText = interfacePageDataApi?.fieldConfigs?.value?.[metaCol.id!]?.label || column.title || ''
+    let width = ctx.measureText(headerText).width + headerSpace
+
+    for (const row of rows) {
+      const value = row.row?.[metaCol.title!]
+      if (value === null || value === undefined || value === '') continue
+
+      width = Math.max(width, measureAutoFitCell(ctx, fitColumn, value, fitContext))
+      if (width >= AUTO_FIT_MAX_WIDTH) break
+    }
+
+    return Math.ceil(Math.min(width, AUTO_FIT_MAX_WIDTH))
+  }
+
+  // Fits each column to its header and loaded cells; returns false when none could be measured
+  const autoFitColumns = (columnIds: string[]): boolean => {
+    const ctx = canvasRef.value?.getContext('2d')
+    if (!ctx) return false
+
+    const rows = getLoadedRows()
+    const originalFont = ctx.font
+    const widths: Record<string, string> = {}
+    let fitted = false
+
+    for (const columnId of columnIds) {
+      const fitWidth = measureFitWidth(columnId, ctx, rows)
+      if (fitWidth === null) continue
+
+      fitted = true
+      handleColumnWidth(columnId, fitWidth, (normalizedWidth) => (widths[columnId] = normalizedWidth))
+    }
+
+    ctx.font = originalFont
+    saveColumnWidths(widths)
+    return fitted
+  }
+
+  // Double-click on a column divider
+  const autoFitColumnWidth = (columnId: string): boolean => autoFitColumns([columnId])
+
+  // Double-click on the row-number column's right edge
+  const autoFitAllColumnWidths = (): boolean =>
+    autoFitColumns(columns.value.filter((col) => col.id !== 'row_number').map((col) => col.id))
+
+  // x of the row-number column's right edge, where a double-click fits every column
+  const rowNumberEdgeX = computed(() => {
+    const rowNumberCol = columns.value.find((col) => col.id === 'row_number')
+    return rowNumberCol ? parseCellWidth(rowNumberCol.width) : null
+  })
+
+  const isRowNumberResizeHandle = (x: number) =>
+    rowNumberEdgeX.value !== null && Math.abs(x - rowNumberEdgeX.value) <= RESIZE_HANDLE_WIDTH / 2
+
   const {
     isDragging: isColumnReordering,
     dragStart: columnDragStart,
@@ -1776,30 +1896,43 @@ export function useCanvasTable({
       const lastViewCol = gridViewCols.value[lastCol.id]
 
       if (nextToViewCol === null && lastViewCol === null) return
+      if (nextToColField?.id === toBeReorderedCol.id) return
 
-      // the display value is pinned first but isn't always lowest-order (interface `field_order`)
-      const lowerOrder = toCol.pv && nextToViewCol ? Math.min(toViewCol.order, nextToViewCol.order - 1) : toViewCol.order
-      const newOrder = nextToViewCol ? lowerOrder + (nextToViewCol.order - lowerOrder) / 2 : lastViewCol.order + 1
+      // Insert right before the next visible field, among all of the view's fields (hidden
+      // ones included). The display value is pinned first whatever its order, so this
+      // also covers dropping right after it.
+      const orderUpdates = getColumnReorderUpdates(
+        Object.entries(gridViewCols.value).map(([id, col]) => ({ id, order: col.order })),
+        toBeReorderedCol.id,
+        nextToViewCol ? nextToColField!.id : null,
+      )
 
-      toBeReorderedViewCol.order = newOrder
+      const saves: Promise<void>[] = []
+      for (const [columnId, newOrder] of Object.entries(orderUpdates)) {
+        const viewCol = gridViewCols.value[columnId]
+        if (!viewCol) continue
 
-      if (isDefaultView.value && toBeReorderedViewCol.fk_column_id) {
-        meta.value.columns = (meta.value?.columns ?? [])?.map((c) => {
-          if (c.id !== toBeReorderedViewCol.fk_column_id) return c
-          c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: newOrder }
-          return c
-        })
+        viewCol.order = newOrder
 
-        if (meta.value?.columnsById?.[toBeReorderedViewCol.fk_column_id]) {
-          meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta = {
-            ...parseProp(meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta),
-            defaultViewColOrder: newOrder,
+        if (isDefaultView.value && viewCol.fk_column_id) {
+          meta.value.columns = (meta.value?.columns ?? [])?.map((c) => {
+            if (c.id !== viewCol.fk_column_id) return c
+            c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: newOrder }
+            return c
+          })
+
+          if (meta.value?.columnsById?.[viewCol.fk_column_id]) {
+            meta.value.columnsById[viewCol.fk_column_id].meta = {
+              ...parseProp(meta.value.columnsById[viewCol.fk_column_id].meta),
+              defaultViewColOrder: newOrder,
+            }
           }
         }
-      }
 
-      updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
-      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        saves.push(updateGridViewColumn(columnId, { order: newOrder }))
+      }
+      // reload the fields only once every order is saved, or it can read stale orders back
+      Promise.all(saves).finally(() => eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD))
     },
     isViewOperationsAllowed,
   )
@@ -2342,6 +2475,11 @@ export function useCanvasTable({
     // Handler
     resizeMouseMove,
     startResize,
+    findResizeHandleColumn,
+    autoFitColumnWidth,
+    autoFitAllColumnWidths,
+    isRowNumberResizeHandle,
+    rowNumberEdgeX,
 
     // Mouse Selection
     onMouseUpSelectionHandler,

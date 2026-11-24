@@ -26,17 +26,19 @@ import { CalendarsService } from '~/services/calendars.service';
 import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
-import { SyncSource, View } from '~/models';
-import { omitSyncToken } from '~/models/SyncSource';
+import { Comment, Model, SyncSource, View } from '~/models';
+import { atImportJobOptions } from '~/models/SyncSource';
 import { NcError } from '~/helpers/catchError';
 import { normalizeArrayQueryParam } from '~/helpers/apiHelpers';
 import { pickBulkAllQuery } from '~/helpers/dataHelpers';
 import { assertTableDataDownloadAllowed } from '~/helpers/tableDataDownloadPermission';
+import { isTableVisible } from '~/helpers/tableHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DataImportService } from '~/services/data-import.service';
 import { ButtonsService } from '~/services/buttons.service';
+import { SearchIndexService } from '~/services/search-index.service';
 
 @Injectable()
 export class UiPostOperations
@@ -67,11 +69,15 @@ export class UiPostOperations
     protected extensionsService: ExtensionsService,
     protected dataImportService: DataImportService,
     protected buttonsService: ButtonsService,
+    protected searchIndexService: SearchIndexService,
   ) {}
   operations = [
     'tableUpdate' as const,
     'tableDelete' as const,
     'tableReorder' as const,
+    'searchIndexBuild' as const,
+    'searchIndexDrop' as const,
+    'searchIndexSetMode' as const,
     'columnAdd' as const,
     'columnUpdate' as const,
     'columnDelete' as const,
@@ -88,6 +94,7 @@ export class UiPostOperations
     'viewColumnsBulkSetVisibility' as const,
     'viewColumnCreate' as const,
     'gridColumnUpdate' as const,
+    'gridColumnsBulkUpdateWidth' as const,
     'timelineColumnUpdate' as const,
     'ganttColumnUpdate' as const,
     'listColumnUpdate' as const,
@@ -167,6 +174,21 @@ export class UiPostOperations
   ];
   httpMethod = 'POST' as const;
 
+  /** A comment on a hidden table answers like a missing comment. */
+  protected async assertCommentTableVisible(
+    context: NcContext,
+    commentId: string,
+    req: NcRequest,
+  ) {
+    const comment = commentId && (await Comment.get(context, commentId));
+    if (
+      comment &&
+      !(await isTableVisible(context, comment.fk_model_id, req.user))
+    ) {
+      NcError.get(context).commentNotFound(commentId);
+    }
+  }
+
   async handle(
     context: NcContext,
     {
@@ -188,6 +210,19 @@ export class UiPostOperations
           table: payload,
           user: req.user,
           req,
+        });
+      case 'searchIndexBuild':
+        return await this.searchIndexService.build(context, {
+          tableId: req.query.tableId,
+        });
+      case 'searchIndexDrop':
+        return await this.searchIndexService.drop(context, {
+          tableId: req.query.tableId,
+        });
+      case 'searchIndexSetMode':
+        return await this.searchIndexService.setMode(context, {
+          tableId: req.query.tableId,
+          mode: payload?.mode,
         });
       case 'tableDelete':
         return await this.tablesService.tableDelete(context, {
@@ -306,6 +341,15 @@ export class UiPostOperations
           grid: payload,
           req,
         });
+      case 'gridColumnsBulkUpdateWidth':
+        return await this.gridColumnsService.gridColumnsBulkUpdateWidth(
+          context,
+          {
+            viewId: req.query.viewId,
+            columnWidths: payload?.columnWidths,
+            req,
+          },
+        );
       case 'viewColumnCreate':
         return await this.viewColumnsService.columnAdd(context, {
           viewId: req.query.viewId,
@@ -725,6 +769,7 @@ export class UiPostOperations
           req,
         });
       case 'commentUpdate':
+        await this.assertCommentTableVisible(context, payload.commentId, req);
         return await this.commentsService.commentUpdate(context, {
           commentId: payload.commentId,
           user: req.user,
@@ -732,6 +777,7 @@ export class UiPostOperations
           req,
         });
       case 'commentDelete':
+        await this.assertCommentTableVisible(context, payload.commentId, req);
         return await this.commentsService.commentDelete(context, {
           commentId: payload.commentId,
           user: req.user,
@@ -781,10 +827,9 @@ export class UiPostOperations
         }
 
         const job = await this.nocoJobsService.add(JobTypes.AtImport, {
+          ...atImportJobOptions(syncSource?.details),
           context,
           syncId: req.query.syncId as string,
-          // The processor reads the token from the sync source.
-          ...omitSyncToken(syncSource?.details),
           baseId: syncSource.base_id,
           sourceId: syncSource.source_id,
           authToken: '',
@@ -818,6 +863,18 @@ export class UiPostOperations
           req,
         });
       case 'dataImportFile':
+        // Sheets name their tables in the body, out of the visibility gate's reach.
+        if (payload?.options?.importDataOnly) {
+          for (const sheet of payload.sheets ?? []) {
+            if (
+              sheet?.tableId &&
+              (!(await Model.get(context, sheet.tableId)) ||
+                !(await isTableVisible(context, sheet.tableId, req.user)))
+            ) {
+              NcError.get(context).tableNotFound(sheet.tableId);
+            }
+          }
+        }
         return await this.dataImportService.importFile(context, {
           baseId: req.query.baseId as string,
           body: payload,

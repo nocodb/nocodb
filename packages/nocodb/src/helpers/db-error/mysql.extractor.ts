@@ -1,7 +1,12 @@
 import { NcErrorType } from 'nocodb-sdk';
 import { DBError, DBErrorKind } from './utils';
+import {
+  constraintViolationMessage,
+  parseConstraintViolation,
+} from './constraint';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
+import { internalDbHostBlockedMessage } from '~/utils/ssrf';
 
 export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
   constructor(
@@ -19,8 +24,14 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
     let _kind: DBErrorKind;
     let httpStatus = 422;
 
+    // mariadb CHECK violations are errno 4025, which mysql2 names after an unrelated mysql error
+    const code =
+      error.errno === 4025 && parseConstraintViolation(error)?.type === 'check'
+        ? 'ER_CHECK_CONSTRAINT_VIOLATED'
+        : error.code;
+
     // todo: handle not null constraint error for all databases
-    switch (error.code) {
+    switch (code) {
       // mysql errors
       case 'ER_TRUNCATED_WRONG_VALUE':
       case 'ER_WRONG_VALUE':
@@ -121,9 +132,14 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         }
 
         break;
-      case 'ER_DATA_TOO_LONG':
-        message = 'The data entered is too long for this field.';
+      case 'ER_DATA_TOO_LONG': {
+        const column = parseConstraintViolation(error)?.column;
+        message = column
+          ? `The data entered is too long for column '${column}'.`
+          : 'The data entered is too long for this field.';
+        if (column) _extra = { column };
         break;
+      }
       case 'ER_WARN_DATA_OUT_OF_RANGE':
       case 'ER_DATA_OUT_OF_RANGE':
         message = 'Number is out of range for this field.';
@@ -164,9 +180,24 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         httpStatus = 500;
         break;
       case 'ER_NO_REFERENCED_ROW':
-        message = 'The referenced record does not exist.';
+      case 'ER_NO_REFERENCED_ROW_2':
+      case 'ER_CHECK_CONSTRAINT_VIOLATED': {
+        const violation = parseConstraintViolation(error);
+        message = violation
+          ? constraintViolationMessage(violation)
+          : code === 'ER_CHECK_CONSTRAINT_VIOLATED'
+          ? 'This record does not satisfy a check constraint.'
+          : 'The referenced record does not exist.';
+        if (violation?.column || violation?.constraint) {
+          _extra = {
+            ...(violation.column && { column: violation.column }),
+            ...(violation.constraint && { constraint: violation.constraint }),
+          };
+        }
         break;
+      }
       case 'ER_ROW_IS_REFERENCED':
+      case 'ER_ROW_IS_REFERENCED_2':
         message = 'This record is being referenced by other records.';
         break;
       case 'ER_LOCK_DEADLOCK':
@@ -184,7 +215,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'The JSON path is not valid for MySQL.';
         break;
       case 'EACCES':
-        message = 'Connection to internal hosts is not allowed';
+        message = internalDbHostBlockedMessage();
         httpStatus = 403;
         break;
       default:
@@ -201,6 +232,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
       message,
       code: error.code,
       httpStatus,
+      ...(_extra && { details: _extra }),
       ...(_kind && { kind: _kind }),
     };
   }

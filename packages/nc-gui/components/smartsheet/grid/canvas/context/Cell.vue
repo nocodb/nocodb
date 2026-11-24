@@ -6,6 +6,7 @@ import {
   type ViewType,
   isAIPromptCol,
   isLinksOrLTAR,
+  isSingleRecordLinkColumn,
   ncHasProperties,
 } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
@@ -101,6 +102,8 @@ const { isAiRecordContextEnabled, setAiRecordContext } = useAiRecordContext()
 const { appInfo, isMobileMode } = useGlobal()
 const { paste } = usePaste()
 const { meta } = useSmartsheetStoreOrThrow()
+const { metas } = useMetas()
+const { ensureLinkedMetas } = useLinkedRecordMetas()
 
 const { copy } = useCopy()
 
@@ -338,13 +341,16 @@ function askAiAboutRecord() {
   if (!recordId) return
 
   const pvCol = cols.find((c) => c.pv)
-  const title = pvCol ? row.row[pvCol.title] : ''
-
-  setAiRecordContext({
-    tableId: meta.value.id,
-    recordId: String(recordId),
-    title: title != null ? String(title) : '',
-  })
+  const tableId = meta.value.id
+  const setContext = () =>
+    setAiRecordContext({
+      tableId,
+      recordId: String(recordId),
+      title: pvCol ? recordTitleOf(row.row, meta.value, metas.value) : '',
+    })
+  setContext()
+  // a link display value may need hop metas first: refresh the title once they load
+  if (pvCol && isSingleRecordLinkColumn(pvCol)) ensureLinkedMetas(row.row, meta.value).then(setContext)
 }
 
 const execBulkAction = async (path: Array<number>) => {

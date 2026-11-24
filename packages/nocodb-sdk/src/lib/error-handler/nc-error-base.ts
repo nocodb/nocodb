@@ -111,6 +111,13 @@ export class NcErrorBase {
     });
   }
 
+  commentNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_COMMENT_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   parentInTrash(parentType: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_PARENT_IN_TRASH, {
       params: parentType,
@@ -1478,6 +1485,13 @@ export class NcErrorBase {
   methodNotAllowed(method: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_METHOD_NOT_ALLOWED, {
       params: `${method} method not allowed`,
+      ...args,
+    });
+  }
+
+  payloadTooLarge(limit?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_PAYLOAD_TOO_LARGE, {
+      params: limit || '',
       ...args,
     });
   }

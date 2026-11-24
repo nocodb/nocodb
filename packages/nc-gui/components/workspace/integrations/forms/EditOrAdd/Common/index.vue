@@ -3,7 +3,13 @@ import {
   DefaultEnvironmentKey,
   FormBuilderInputType,
   IntegrationCredentialMode,
+  MSSQL_URL_TLS_FIELDS,
+  combinedSubTypeForClient,
   integrationSupportsEnvironments,
+  isMssqlStrictEncrypt,
+  ncIsString,
+  sqlAuthConfigFromKnexConfig,
+  supportsDataSourceUse,
 } from 'nocodb-sdk'
 import type { EnvironmentType } from 'nocodb-sdk'
 import { type IntegrationCategoryType, SyncDataType, type clientTypes as _clientTypes } from '#imports'
@@ -12,6 +18,7 @@ const props = defineProps<{
   open: boolean
   integrationType: IntegrationCategoryType
   integrationSubType: SyncDataType
+  loadDatasourceInfo?: boolean
   baseId?: string
 }>()
 
@@ -136,7 +143,7 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
             ...(environmentOverrides.length ? { environments: environmentOverrides } : {}),
           },
           'create',
-          false,
+          !!props.loadDatasourceInfo,
           props.baseId,
         )
       } else if (isProductionEnv.value) {
@@ -241,6 +248,83 @@ function switchEnv(env: EnvironmentType) {
       (env.key === DefaultEnvironmentKey.PRODUCTION ? activeIntegration.value?.config : envOverrideConfig(env.id)) ??
       {},
   )
+}
+
+// SQL connections that also back data sources take a connection URL, like the Database form.
+const supportsConnectionUrl = computed(() => supportsDataSourceUse(props.integrationType, props.integrationSubType))
+
+// Every `config.*` field this form defines describes the connection, so a URL import replaces all of them.
+// The base keys are cleared on every SQL form, even one that does not define them (e.g. SQL Server's SSL keys).
+const BASE_CONNECTION_KEYS = [
+  'host',
+  'port',
+  'username',
+  'password',
+  'database',
+  'sslMode',
+  'sslCa',
+  'sslCert',
+  'sslKey',
+  'extraParams',
+]
+
+// The form's `config.*` fields, by their path under `config`.
+const connectionFields = computed(() =>
+  (activeIntegrationItem.value?.form ?? []).flatMap((field) =>
+    'model' in field && ncIsString(field.model) && field.model.startsWith('config.')
+      ? [{ path: field.model.slice('config.'.length), field }]
+      : [],
+  ),
+)
+
+const connectionConfigKeys = computed(
+  () => new Set([...BASE_CONNECTION_KEYS, ...connectionFields.value.map(({ path }) => path.split('.')[0]!)]),
+)
+
+// What a new form starts with, so a cleared field shows what the connection will use (e.g. SQL Server's TLS switches).
+const connectionDefaults = computed(() =>
+  Object.fromEntries(
+    connectionFields.value.flatMap(({ path, field }) =>
+      !path.includes('.') && 'defaultValue' in field && field.defaultValue !== undefined ? [[path, field.defaultValue]] : [],
+    ),
+  ),
+)
+
+const importUrl = ref('')
+
+const isImportUrlOpen = ref(false)
+
+async function importConnectionUrl() {
+  const url = importUrl.value.trim()
+  if (!url) return
+
+  try {
+    const parsed = await $api.utils.urlToConfig({ url })
+    if (!parsed?.client) {
+      message.error(t('msg.error.invalidURL'))
+      return
+    }
+    if (combinedSubTypeForClient(parsed.client) !== props.integrationSubType) {
+      message.error(t('msg.error.connectionUrlWrongDatabase'))
+      return
+    }
+    // No connection field the URL leaves out survives (an old password must never reach a new host): it goes
+    // back to the form default. Other config keys are kept, and so are SQL Server's TLS switches unless the URL
+    // sets them, so an import never quietly lowers TLS.
+    const current = formState.value.config ?? {}
+    const kept = Object.fromEntries(Object.entries(current).filter(([key]) => !connectionConfigKeys.value.has(key)))
+    const keptTls = Object.fromEntries(
+      MSSQL_URL_TLS_FIELDS.filter((field) => current[field] !== undefined).map((field) => [field, current[field]]),
+    )
+    const imported = sqlAuthConfigFromKnexConfig(parsed)
+    formState.value.config = { ...kept, ...connectionDefaults.value, ...keptTls, ...imported }
+    if (isMssqlStrictEncrypt(imported)) message.warning(t('msg.warning.mssqlStrictEncryptNotSupported'))
+    testConnectionResult.value = null
+    isImportUrlOpen.value = false
+    importUrl.value = ''
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 function setEnvConfig(config: Record<string, any>) {
@@ -487,6 +571,51 @@ const onTestConnection = async () => {
           class="px-2"
         />
         <WorkspaceIntegrationsFormsEditOrAddInstallerLabelSection v-if="isEeUI && isProductionEnv" class="px-2" />
+        <div v-if="supportsConnectionUrl && canManageIntegrations" class="flex justify-end px-2 -mb-2">
+          <NcDropdown v-model:visible="isImportUrlOpen" placement="bottomRight">
+            <NcButton
+              type="text"
+              size="small"
+              class="nc-integration-btn-import-url !rounded-md !px-2"
+              data-testid="nc-integration-import-url"
+              @click.stop="isImportUrlOpen = true"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncLink" class="flex-none" />
+                {{ $t('activity.useConnectionUrl') }}
+              </div>
+            </NcButton>
+            <template #overlay>
+              <div class="p-4 w-[448px] flex flex-col gap-3">
+                <div class="text-sm text-nc-content-gray-subtle">
+                  {{ $t('msg.info.autoPopulateConnectionFromUrl') }}
+                </div>
+                <a-textarea
+                  v-model:value="importUrl"
+                  class="!rounded-lg !min-h-[120px] !max-h-[250px] nc-scrollbar-thin"
+                  data-testid="nc-integration-import-url-input"
+                />
+                <div class="flex items-center gap-2 justify-end">
+                  <NcButton
+                    size="small"
+                    type="secondary"
+                    @click="
+                      () => {
+                        isImportUrlOpen = false
+                        importUrl = ''
+                      }
+                    "
+                  >
+                    {{ $t('general.cancel') }}
+                  </NcButton>
+                  <NcButton size="small" data-testid="nc-integration-import-url-submit" @click="importConnectionUrl">
+                    {{ $t('general.import') }}
+                  </NcButton>
+                </div>
+              </div>
+            </template>
+          </NcDropdown>
+        </div>
         <NcFormBuilder :key="activeEnvKey" class="px-2" />
         <WorkspaceIntegrationsSyncPanel v-if="activeIntegrationItem.type === 'sync'" class="px-2" />
         <div class="mt-10"></div>

@@ -283,6 +283,7 @@ export default class LinkToAnotherRecordColumn {
       fk_target_view_id?: string | null;
       fk_display_value_column_id?: string | null;
     },
+    _ncMeta = Noco.ncMeta,
   ) {
     // placeholder method
   }

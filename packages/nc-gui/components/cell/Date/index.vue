@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { hasDateOverflow, isDateMonthFormat, isSystemColumn, parseDateWithFormat } from 'nocodb-sdk'
+import { hasDateOverflow, isDateMonthFormat, isSystemColumn, parseDateWithFormat, parseStoredDate } from 'nocodb-sdk'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 interface Props {
@@ -71,9 +71,7 @@ const localState = computed({
       return undefined
     }
 
-    const format = picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
-
-    const value = dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
+    const value = parseStoredDate(modelValue)
 
     return value
   },

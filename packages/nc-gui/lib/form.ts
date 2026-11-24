@@ -1,18 +1,23 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
 import dayjs from 'dayjs'
 import {
+  DATE_RANGE_SUB_OP,
   type FilterType,
   type LinkToAnotherRecordType,
   type LookupType,
   type TableType,
   UITypes,
   isBtLikeV2Junction,
+  isCalendarPeriodSubOp,
   isDateMonthFormat,
+  isDateWithinPeriod,
   isLTAR,
   isLink,
+  isSingleRecordLinkColumn,
   isUnratedRating,
 } from 'nocodb-sdk'
 import type { GetMetaParams } from '~/composables/useMetas'
+import { resolveDisplayLeafColumn, resolveLinkedRecordDisplay } from '~/utils/linkedRecordDisplay'
 
 type FormViewColumn = ColumnType & Record<string, any>
 
@@ -217,19 +222,44 @@ export class FormFilters {
 
     if (value === null || value === undefined) return null
 
+    // A display value that is a single-record link nests the leaf record; resolve it to the leaf text
+    const displayCol = customDisplayCol || relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0]
+    let titleOf = (record: Record<string, any>): string | undefined => {
+      const v = record?.[displayValTitle]
+      return v !== undefined && v !== null ? `${v}` : undefined
+    }
+
+    if (displayCol && isSingleRecordLinkColumn(displayCol)) {
+      const getMeta = this.getMeta
+      const loaded: Record<string, TableType> = {}
+      await resolveDisplayLeafColumn(
+        relatedTableMeta,
+        async (baseId, tableId) => {
+          const hopMeta = await getMeta({ baseId, tableIdOrTitle: tableId, disableError: true })
+          if (hopMeta) loaded[`${baseId}:${tableId}`] = hopMeta
+          return hopMeta
+        },
+        colOptions?.fk_display_value_column_id,
+      )
+      titleOf = (record) =>
+        resolveLinkedRecordDisplay(record, relatedTableMeta, {
+          metas: loaded,
+          overrideColumnId: colOptions?.fk_display_value_column_id,
+        }).text || undefined
+    }
+
     // Multi-record relations (mm / om) — value is an array of linked rows
     if (Array.isArray(value)) {
       const displayValues = value
-        .map((row) => (row && typeof row === 'object' ? row[displayValTitle] : undefined))
-        .filter((v): v is string | number | boolean => v !== undefined && v !== null)
-        .map((v) => `${v}`)
+        .map((row) => (row && typeof row === 'object' ? titleOf(row) : undefined))
+        .filter((v): v is string => v !== undefined)
 
       return displayValues.length ? displayValues.join(', ') : null
     }
 
     // Single-record relations (mo / oo) — value is a single linked row
-    if (typeof value === 'object' && value[displayValTitle] !== undefined && value[displayValTitle] !== null) {
-      return `${value[displayValTitle]}`
+    if (typeof value === 'object') {
+      return titleOf(value) ?? null
     }
 
     return null
@@ -459,6 +489,11 @@ export class FormFilters {
                   res = !(dataVal === '' || dataVal === null || dataVal === undefined)
                   break
                 case 'isWithin': {
+                  const subOp = filter.comparison_sub_op
+                  if (isCalendarPeriodSubOp(subOp) || subOp === DATE_RANGE_SUB_OP) {
+                    res = isDateWithinPeriod(subOp, filter.value, dayjs(dataVal), dayjs(), (end) => dayjs(end))
+                    break
+                  }
                   let now = dayjs(new Date()).format(dateFormat).toString()
                   now = column.uidt === UITypes.Date ? now.substring(0, 10) : now
                   switch (filter.comparison_sub_op) {
@@ -477,6 +512,10 @@ export class FormFilters {
                   }
                 }
               }
+            } else {
+              // As validate-row-filters: an empty date only passes neq/not. An explicit false, since
+              // undefined lets the next AND filter reset the chain.
+              res = filter.comparison_op === 'neq' || filter.comparison_op === 'not'
             }
           } else {
             switch (typeof filter.value) {

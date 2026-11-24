@@ -14,6 +14,7 @@ import {
   generateCastQuery,
 } from '~/db/sql-client/lib/pg/typeCast';
 import pgQueries from '~/db/sql-client/lib/pg/pg.queries';
+import { applyPgGeneratedColumnProps } from '~/db/sql-client/lib/pg/generatedColumn';
 import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('PGClient');
@@ -978,6 +979,11 @@ class PGClient extends KnexClient {
             column.ai = true;
           }
         }
+
+        applyPgGeneratedColumnProps(
+          column,
+          response.rows[i].generation_expression,
+        );
 
         columns.push(column);
       }
@@ -3166,9 +3172,13 @@ class PGClient extends KnexClient {
 
     query += this.alterTablePK(table, args.columns, [], query, true);
 
-    query = this.genQuery(`CREATE TABLE ?? (${query});`, [
-      args.schema ? `${args.schema}.${args.tn}` : args.tn,
-    ]);
+    // Keep `?` escaped: knex reads a bare one as a binding here, and pg
+    // rewrites it to `$n` when the statement runs.
+    query = this.genQuery(
+      `CREATE TABLE ?? (${this.sanitize(query)});`,
+      [args.schema ? `${args.schema}.${args.tn}` : args.tn],
+      true,
+    );
 
     if (softDeleteColumnName) {
       const tn = args.schema ? `${args.schema}.${args.tn}` : args.tn;

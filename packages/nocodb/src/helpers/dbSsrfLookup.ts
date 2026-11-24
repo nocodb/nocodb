@@ -12,10 +12,12 @@ import type { LookupAddress } from 'dns';
  * window where a short-TTL DNS record could pass a pre-flight check and then
  * flip to a private/internal address before the driver actually connects.
  *
- * Wired in via knex's per-driver `connection.stream` factory (pg + mysql/mysql2)
- * and tedious's `options.connector` (mssql) — see {@link applyDbSsrfProtection}.
- * The factory never rewrites `host`, so the driver's TLS servername /
- * certificate verification is unaffected.
+ * Wired in via knex's per-driver `connection.stream` factory (pg + mysql/mysql2),
+ * tedious's `options.connector` (mssql), and `connection.ssrfLookup` for the
+ * oracledb / snowflake / databricks dialects in nc-knex-dialects, which call it
+ * before every connect — see {@link applyDbSsrfProtection}. The socket hooks
+ * never rewrite `host`, so the driver's TLS servername / certificate
+ * verification is unaffected.
  *
  * NOTE: keep this file free of app-internal imports — it is copied verbatim into
  * packages/nc-sql-executor (a separate deployable that cannot import from
@@ -41,7 +43,7 @@ const BLOCKED_RANGES = new Set<string>([
 // RFC 8215 local-use NAT64. ipaddr.js reports it as plain `unicast`, and RFC 6052
 // puts the embedded IPv4 at a different offset for every prefix length ≥ /48, so
 // block the /48 outright rather than guessing which one is in use.
-const NAT64_LOCAL_USE = ipaddr.parseCIDR('64:ff9b:1::/48') as [
+export const NAT64_LOCAL_USE = ipaddr.parseCIDR('64:ff9b:1::/48') as [
   ipaddr.IPv6,
   number,
 ];
@@ -50,7 +52,7 @@ const NAT64_LOCAL_USE = ipaddr.parseCIDR('64:ff9b:1::/48') as [
  * Normalise IPv6 forms that embed an IPv4 so the IPv4 blocklist catches an
  * internal target wrapped in an IPv6 transition encoding (CWE-918).
  */
-function normaliseEmbeddedIpv4(parsed: ipaddr.IPv4 | ipaddr.IPv6) {
+export function normaliseEmbeddedIpv4(parsed: ipaddr.IPv4 | ipaddr.IPv6) {
   if (parsed.kind() !== 'ipv6') return parsed;
 
   const v6 = parsed as ipaddr.IPv6;
@@ -319,9 +321,24 @@ function ssrfStreamFactoryFor(client: unknown): unknown {
       return mysql2StreamFactory();
     default:
       // sqlite (no network); mssql (see tediousConnector); oracledb /
-      // snowflake / databricks (no socket hook).
+      // snowflake / databricks (see LOOKUP_HOOK_CLIENTS).
       return undefined;
   }
+}
+
+// Drivers with no socket hook: their nc-knex-dialects client resolves every
+// host through `connection.ssrfLookup` right before each connect.
+const LOOKUP_HOOK_CLIENTS = new Set(['oracledb', 'snowflake', 'databricks']);
+
+/** A knex client name, or the `dialect` of a client class. */
+function clientName(client: unknown): unknown {
+  if (typeof client !== 'function') return client;
+  const proto = (client as { prototype?: Record<string, unknown> }).prototype;
+  return proto?.dialect ?? proto?.driverName;
+}
+
+function isLookupHookClient(client: unknown): boolean {
+  return LOOKUP_HOOK_CLIENTS.has(clientName(client) as string);
 }
 
 /** `'mssql'`, or a knex dialect class for it (e.g. `knex-mssql`'s MssqlClient). */
@@ -333,8 +350,8 @@ function isMssqlClient(client: unknown): boolean {
 }
 
 /**
- * Inject the validating stream factory (or tedious connector) into a knex
- * config's `connection`. A pg DSN is wrapped as `{ connectionString }`; others parse as knex would.
+ * Inject the validating stream factory (tedious connector, or `ssrfLookup`)
+ * into a knex config's `connection`. A pg DSN is wrapped as `{ connectionString }`; others parse as knex would.
  * No-op when disabled, for unsupported clients, or when a stream factory is
  * already present.
  */
@@ -350,6 +367,7 @@ export function applyDbSsrfProtection<
       config.connection = { connectionString: config.connection };
     } else if (
       isMssqlClient(config.client) ||
+      isLookupHookClient(config.client) ||
       ssrfStreamFactoryFor(config.client)
     ) {
       config.connection = parseKnexConnection(config.connection).connection;
@@ -363,6 +381,14 @@ export function applyDbSsrfProtection<
     const conn = connection as { options?: { connector?: unknown } };
     if (typeof conn.options?.connector !== 'function') {
       conn.options = { ...conn.options, connector: tediousConnector() };
+    }
+    return config;
+  }
+
+  if (isLookupHookClient(config.client)) {
+    const conn = connection as { ssrfLookup?: unknown };
+    if (typeof conn.ssrfLookup !== 'function') {
+      conn.ssrfLookup = validatingLookup;
     }
     return config;
   }

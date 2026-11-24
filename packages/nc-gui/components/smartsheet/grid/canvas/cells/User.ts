@@ -124,7 +124,7 @@ export const UserFieldCellRenderer: CellRenderer = {
       const minTagWidth = iconSize + 8 + textWidth + tagPadding * 2
 
       if (x + minTagWidth > _x + _width - padding * 2) {
-        if (y + tagHeight * 2 + tagSpacingY > _y + height || line >= rowHeightTruncateLines(height, true)) {
+        if (y + tagHeight * 2 + tagSpacingY > _y + height || line >= (props.maxLines ?? rowHeightTruncateLines(height, true))) {
           renderSingleLineText(ctx, {
             x: x + padding + tagSpacingX,
             y,

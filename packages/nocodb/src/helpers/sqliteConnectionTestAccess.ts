@@ -1,8 +1,14 @@
 import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
+import {
+  extractSqliteFilename,
+  isSameSqliteFile,
+} from '~/helpers/validateSqliteFilename';
 import { User } from '~/models';
 import Noco from '~/Noco';
 import rolePermissions from '~/utils/acl';
+import { roleAllowsPermission } from '~/helpers/roleAllowsPermission';
 import { MetaTable, RootScopes } from '~/utils/globals';
 
 export const SQLITE_SOURCE_UNAVAILABLE_MESSAGE =
@@ -11,19 +17,50 @@ export const SQLITE_SOURCE_UNAVAILABLE_MESSAGE =
 export const isSqliteClient = (client: unknown): boolean =>
   typeof client === 'string' && client.includes('sqlite');
 
+const isSqliteConnection = (config: unknown, subType?: unknown): boolean => {
+  const c = (config && typeof config === 'object' ? config : {}) as {
+    client?: unknown;
+    connection?: { client?: unknown };
+  };
+  return [subType, c.client, c.connection?.client].some(isSqliteClient);
+};
+
+/**
+ * SQLite connections are only offered where `Noco.isEE()` is false (CE and
+ * unlicensed On-Prem). `previous` is the stored connection on an update: an
+ * existing SQLite one keeps saving while its file is unchanged.
+ */
+export function assertSqliteConnectionAllowed(
+  context: Pick<NcContext, 'api_version'> | undefined,
+  config: unknown,
+  subType?: unknown,
+  previous?: { config: unknown; subType?: unknown },
+): void {
+  if (!Noco.isEE() || !isSqliteConnection(config, subType)) return;
+
+  if (previous && isSqliteConnection(previous.config, previous.subType)) {
+    const filename = extractSqliteFilename(config);
+    if (
+      filename === undefined ||
+      isSameSqliteFile(filename, extractSqliteFilename(previous.config))
+    ) {
+      return;
+    }
+  }
+
+  NcError.get(context).badRequest(
+    'SQLite connections are only available on the free self-hosted edition',
+  );
+}
+
 const grants = (
   roles: Record<string, boolean> | null | undefined,
   operation: string,
 ): boolean =>
-  Object.entries(roles ?? {}).some(([name, hasRole]) => {
-    const perms = hasRole && rolePermissions[name];
-    return (
-      !!perms &&
-      (perms === '*' ||
-        (perms.exclude && !perms.exclude[operation]) ||
-        (perms.include && perms.include[operation]))
-    );
-  });
+  Object.entries(roles ?? {}).some(
+    ([name, hasRole]) =>
+      hasRole && roleAllowsPermission(rolePermissions[name], operation),
+  );
 
 // Who may save a source in the workspace: the permissions the integration,
 // base and source create routes check.

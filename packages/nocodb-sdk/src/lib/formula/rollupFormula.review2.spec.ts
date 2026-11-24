@@ -1,6 +1,7 @@
 import { validateFormulaAndExtractTreeWithType } from './validate-extract-tree';
 import UITypes from '../UITypes';
 import type { UnifiedMetaType } from '~/lib/types';
+import type { ClientTypeOrSqlUI } from './types';
 
 // Review of 1283f328ba8: the scalar-then-per-value retry in validateAndExtract.
 
@@ -60,5 +61,39 @@ describe('rollup formula review 2: aggregate reading retry', () => {
     const started = Date.now();
     await validate(nest(30, (inner) => `MIN(MAX(${inner}, 1), 2)`, 'values'));
     expect(Date.now() - started).toBeLessThan(1000);
+  });
+});
+
+// ARRAYJOIN / ARRAYFLATTEN gained plain formula forms; inside a rollup they
+// still read `values` as before.
+describe('rollup ARRAYJOIN / ARRAYFLATTEN keep their rollup reading', () => {
+  const errorOf = (formula: string, client: ClientTypeOrSqlUI = 'pg') =>
+    validateFormulaAndExtractTreeWithType({
+      formula,
+      columns: [],
+      clientOrSqlUi: client,
+      getMeta,
+      trackPosition: true,
+      rollup: { valuesColumn: num, valuesColumns: [num] },
+    }).then(
+      () => undefined,
+      (e) => String(e?.message ?? e)
+    );
+
+  it('validates ARRAYJOIN(values) and ARRAYJOIN(ARRAYFLATTEN(values))', async () => {
+    expect(await errorOf('ARRAYJOIN(values, ",")')).toBeUndefined();
+    expect(
+      await errorOf('ARRAYJOIN(ARRAYFLATTEN(values), ",")')
+    ).toBeUndefined();
+  });
+
+  it('a nested aggregate reports nesting, not the scalar form', async () => {
+    for (const client of ['pg', 'mysql2'] as ClientTypeOrSqlUI[]) {
+      const message = await errorOf('ARRAYJOIN(SUM(values))', client);
+      expect({ client, message }).toEqual({
+        client,
+        message: expect.stringMatching(/inside another aggregate/),
+      });
+    }
   });
 });

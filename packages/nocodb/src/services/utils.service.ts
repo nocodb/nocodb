@@ -22,7 +22,6 @@ import { fetchForDataImport } from '~/helpers/dataImportFetch';
 import { Base, User } from '~/models';
 import Noco from '~/Noco';
 import { isCloud, isEE, isOnPrem, T } from '~/utils';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
@@ -38,6 +37,7 @@ import {
   NC_DISABLE_SUPPORT_CHAT,
 } from '~/utils/nc-config';
 import NocoCache from '~/cache/NocoCache';
+import { isGlobalSearchEnabled } from '~/db/search/searchIndexMeta';
 
 const versionCache = {
   releaseVersion: null,
@@ -77,7 +77,7 @@ interface AllMeta {
         webhookCount: number | null;
         filterCount: number | null;
         sortCount: number | null;
-        rowCount: ({ totalRecords: number } | null)[] | null;
+        rowCount: null;
         userCount: number | null;
       }
     | { error: string }
@@ -263,7 +263,6 @@ export class UtilsService {
               webhookCount,
               filterCount,
               sortCount,
-              rowCount,
               userCount,
             ] = this.extractResultOrNull(
               await Promise.allSettled([
@@ -367,18 +366,6 @@ export class UtilsService {
                   base.id,
                   MetaTable.SORT,
                 ),
-                // row count per base
-                base.getSources().then(async (sources) => {
-                  return this.extractResultOrNull(
-                    await Promise.allSettled(
-                      sources.map(async (source) =>
-                        (await NcConnectionMgrv2.getSqlClient(source))
-                          .totalRecords?.()
-                          ?.then((result) => result?.data),
-                      ),
-                    ),
-                  );
-                }),
                 // base users count
                 Noco.ncMeta.metaCount(
                   base.fk_workspace_id,
@@ -401,7 +388,8 @@ export class UtilsService {
               webhookCount,
               filterCount,
               sortCount,
-              rowCount,
+              // Counting rows opens a pool to every source (nocodb/nocodb#12554).
+              rowCount: null,
               userCount,
             };
           }),
@@ -476,6 +464,7 @@ export class UtilsService {
       timezone: defaultConnectionConfig.timezone,
       ncMin: !!process.env.NC_MIN,
       teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
+      globalSearchEnabled: isGlobalSearchEnabled(),
       errorReportingEnabled: process.env.NC_DISABLE_ERR_REPORTS !== 'true',
       sentryDSN:
         process.env.NC_DISABLE_ERR_REPORTS !== 'true'

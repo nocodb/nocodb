@@ -4,7 +4,7 @@ import {
   isLinksOrLTAR,
   NcBaseErrorv2,
   NcErrorType,
-  RelationTypes,
+  parseProp,
   serializeExcelDateValue,
   serializeImportValue,
   UITypes,
@@ -18,10 +18,12 @@ import type {
   FileImportType,
   HookType,
   NcRequest,
+  RelationTypes,
   UserType,
 } from 'nocodb-sdk';
 import type { DataImportJobData } from '~/interface/Jobs';
 import type { NcContext } from '~/interface/config';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { describeRowError } from '~/modules/jobs/jobs/data-import/error-formatter';
 import {
   deleteImportAttachment,
@@ -49,7 +51,9 @@ import { MetaTable } from '~/utils/globals';
 import { generateAuditV1Payload } from '~/utils/audit';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { processConcurrently } from '~/utils';
+import { chunkArray } from '~/utils/tsUtils';
 import { batchLinkBroadcasts } from '~/db/BaseModelSqlv2/link-broadcast-batch';
+import { searchIndexQueue } from '~/db/search/searchIndexQueue';
 import {
   getLtarDisplayValueContext,
   resolveLtarDisplayValuesToPks,
@@ -410,6 +414,7 @@ export class DataImportProcessor {
         },
         user: user as UserType,
         req,
+        trimTableName: true,
       });
 
       tableId = created.id;
@@ -539,6 +544,8 @@ export class DataImportProcessor {
       true,
     );
 
+    // Rows stay searchable through their marks; indexed once, after the import.
+    const releaseSearchIndex = searchIndexQueue.hold(context, model.id);
     const stats = await this.streamSheetData({
       context,
       baseId,
@@ -554,7 +561,7 @@ export class DataImportProcessor {
       ltarColMap,
       req,
       log,
-    });
+    }).finally(releaseSearchIndex);
 
     log(
       `Sheet${sheetLabel}: ${stats.rowsInserted} rows inserted, ${stats.rowsFailed} failed` +
@@ -757,9 +764,15 @@ export class DataImportProcessor {
           return [];
         }),
       ]);
+    // A User field set to notify added users counts as a listener too: the
+    // after-insert path sends them one notification per batch.
+    const hasNotifyUserField = (await model.getColumns()).some(
+      (c) => c.uidt === UITypes.User && parseProp(c.meta)?.notify,
+    );
     const skipHooks = !(
       hasRecordWorkflows ||
       hasRecordAgents ||
+      hasNotifyUserField ||
       insertHooks.some((hook) => hook.active)
     );
 
@@ -793,6 +806,40 @@ export class DataImportProcessor {
       Map<string, string | number | null>
     >();
 
+    // Insert hooks for rows with link values wait until the link step has
+    // written them, so listeners see the links. Other rows fire on insert.
+    const deferHooks = !skipHooks && hasLtar;
+    let deferredHookPks: (string | number)[] = [];
+    let hookModel: IBaseModelSqlV2 | undefined;
+
+    const fireInsertHooks = async (pks: (string | number)[]) => {
+      if (!deferHooks || !pks.length) return;
+      // The rows are committed; a hook failure must not fail the import, and
+      // one failing chunk must not skip the chunks after it.
+      for (const chunk of chunkArray(pks.map(String), BATCH_SIZE)) {
+        try {
+          hookModel ??= await Model.getBaseModelSQL(context, {
+            model,
+            dbDriver: await NcConnectionMgrv2.get(
+              await Source.get(context, model.source_id),
+            ),
+          });
+          await hookModel.dispatchInsertHooks(chunk, req);
+        } catch (e: any) {
+          this.logger.error(
+            `after-insert hooks failed on import for model ${model.id}: ${e?.message}`,
+            e?.stack,
+          );
+        }
+      }
+    };
+
+    const fireDeferredInsertHooks = async () => {
+      const pks = deferredHookPks;
+      deferredHookPks = [];
+      await fireInsertHooks(pks);
+    };
+
     // Self-referential link columns (related table == the table being imported)
     // may reference rows that appear LATER in the same file, so they can only be
     // resolved correctly once every row is inserted. If any mapped link is
@@ -821,11 +868,18 @@ export class DataImportProcessor {
       }
     }
 
+    // `fireNow` collects the pks of rows with no link values to hook on insert.
     const accumulateRow = (
       pk: string | number,
       rowLtar: Array<[string, string[]]> | null,
+      fireNow: (string | number)[],
     ) => {
-      if (!rowLtar || pk === undefined || pk === null) return;
+      if (pk === undefined || pk === null) return;
+      if (!rowLtar) {
+        fireNow.push(pk);
+        return;
+      }
+      deferredHookPks.push(pk);
       for (const [colId, values] of rowLtar) {
         let arr = linkAccum.get(colId);
         if (!arr) {
@@ -846,7 +900,7 @@ export class DataImportProcessor {
         tableName: tableId,
         body: rows,
         cookie: req,
-        skip_hooks: skipHooks,
+        skip_hooks: skipHooks || deferHooks,
         raw: true,
         skipPayloadLimit: true,
         ...(options.typecast ? { typecast: 'true' } : {}),
@@ -885,9 +939,11 @@ export class DataImportProcessor {
         if (hasLtar) {
           // PG `returning` / mysql-sqlite one-by-one keep insertion order, so
           // insertedPks[i] corresponds to pending[i].
+          const fireNow: (string | number)[] = [];
           for (let i = 0; i < pendingLtar.length; i++) {
-            accumulateRow(insertedPks[i], pendingLtar[i]);
+            accumulateRow(insertedPks[i], pendingLtar[i], fireNow);
           }
+          await fireInsertHooks(fireNow);
         }
       } catch (err: any) {
         this.logger.error(
@@ -914,6 +970,7 @@ export class DataImportProcessor {
         }
 
         // Retry one-by-one so well-formed rows in the batch still make it in.
+        const fireNow: (string | number)[] = [];
         for (let i = 0; i < pending.length; i++) {
           try {
             let rowPk: string | number | undefined;
@@ -923,7 +980,7 @@ export class DataImportProcessor {
             );
             stats.rowsInserted += 1;
             if (hasLtar && rowPk !== undefined) {
-              accumulateRow(rowPk, pendingLtar[i]);
+              accumulateRow(rowPk, pendingLtar[i], fireNow);
             }
           } catch (rowErr) {
             stats.rowsFailed += 1;
@@ -937,11 +994,13 @@ export class DataImportProcessor {
             }
           }
         }
+        await fireInsertHooks(fireNow);
       }
     };
 
     // Resolve + create links for everything accumulated so far, then clear the
     // accumulator. Counters accumulate (+=) since this may run several times.
+    // The rows it linked then get their insert hooks.
     const flushLinks = async () => {
       if (!hasLtar || !linkAccum.size) return;
       log('Creating record links...', true);
@@ -958,58 +1017,65 @@ export class DataImportProcessor {
       stats.linksFailed += linkStats.linksFailed;
       linkAccum.clear();
       pendingLinkRows = 0;
+      await fireDeferredInsertHooks();
     };
 
-    for await (const sourceRow of handler.streamRows(
-      readStream,
-      parserConfig,
-      spec.columns ?? [],
-      spec.sheetName,
-    )) {
-      // Map source columns to dest columns + type coercion
-      const dbRow: Record<string, any> = {};
-      for (const [srcCol, mapping] of Object.entries(colMap)) {
-        dbRow[mapping.destCn] = coerceValue(
-          sourceRow[srcCol],
-          mapping,
-          importType,
-        );
-      }
-
-      // Extract link display values for the post-insert link phase.
-      let rowLtar: Array<[string, string[]]> | null = null;
-      if (hasLtar) {
-        for (const srcCol of ltarSrcCols) {
-          const { colId, delimiter } = ltarColMap[srcCol];
-          const raw = sourceRow[srcCol];
-          const values = splitDisplayValues(
-            raw instanceof Date ? formatExcelDate(raw) : raw,
-            delimiter,
+    // On abort the pending links are never written; their rows still get
+    // their insert hooks, as they did before the hooks were deferred.
+    try {
+      for await (const sourceRow of handler.streamRows(
+        readStream,
+        parserConfig,
+        spec.columns ?? [],
+        spec.sheetName,
+      )) {
+        // Map source columns to dest columns + type coercion
+        const dbRow: Record<string, any> = {};
+        for (const [srcCol, mapping] of Object.entries(colMap)) {
+          dbRow[mapping.destCn] = coerceValue(
+            sourceRow[srcCol],
+            mapping,
+            importType,
           );
-          if (values.length) (rowLtar ??= []).push([colId, values]);
+        }
+
+        // Extract link display values for the post-insert link phase.
+        let rowLtar: Array<[string, string[]]> | null = null;
+        if (hasLtar) {
+          for (const srcCol of ltarSrcCols) {
+            const { colId, delimiter } = ltarColMap[srcCol];
+            const raw = sourceRow[srcCol];
+            const values = splitDisplayValues(
+              raw instanceof Date ? formatExcelDate(raw) : raw,
+              delimiter,
+            );
+            if (values.length) (rowLtar ??= []).push([colId, values]);
+          }
+        }
+
+        batch.push(dbRow);
+        batchLtar.push(rowLtar);
+        processedRows++;
+        if (batch.length >= BATCH_SIZE) {
+          await flush();
+          reportProgress();
+          // Keep link bookkeeping bounded: drain it once enough has piled up.
+          // Skipped when a self-referential link is present (see hasSelfRefLink) —
+          // those must resolve against the fully-inserted table at the end.
+          if (!hasSelfRefLink && pendingLinkRows >= linkFlushThreshold) {
+            await flushLinks();
+          }
         }
       }
 
-      batch.push(dbRow);
-      batchLtar.push(rowLtar);
-      processedRows++;
-      if (batch.length >= BATCH_SIZE) {
-        await flush();
-        reportProgress();
-        // Keep link bookkeeping bounded: drain it once enough has piled up.
-        // Skipped when a self-referential link is present (see hasSelfRefLink) —
-        // those must resolve against the fully-inserted table at the end.
-        if (!hasSelfRefLink && pendingLinkRows >= linkFlushThreshold) {
-          await flushLinks();
-        }
-      }
+      await flush();
+      reportProgress();
+
+      // Process any links accumulated since the last flush.
+      await flushLinks();
+    } finally {
+      await fireDeferredInsertHooks();
     }
-
-    await flush();
-    reportProgress();
-
-    // Process any links accumulated since the last flush.
-    await flushLinks();
 
     return stats;
   }

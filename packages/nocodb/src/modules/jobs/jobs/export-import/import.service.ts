@@ -13,6 +13,7 @@ import {
   RelationTypes,
   SqlUiFactory,
   UITypes,
+  ViewLockType,
   ViewTypes,
 } from 'nocodb-sdk';
 import hash from 'object-hash';
@@ -25,12 +26,18 @@ import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { CalendarView, LinksColumn, MapView, User } from '~/models';
-import type { AttachmentHolder } from '~/helpers/exportImportHelpers';
+import type {
+  AttachmentHolder,
+  SkippedViews,
+} from '~/helpers/exportImportHelpers';
 import { getCustomLinkParam } from '~/helpers/linkHelpers';
 import { validateImportSchema } from '~/utils/modelUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
-import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
+import {
+  COMMENT_MAX_LENGTH,
+  sanitizeCommentBody,
+} from '~/helpers/sanitizeCommentBody';
 import { NcBaseError, NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { repairCopiedViewTitles } from '~/helpers/viewTitleHelpers';
 import {
@@ -233,6 +240,8 @@ export class ImportService {
       isDuplicateOperation?: boolean;
       // Set when the payload isn't read from a base on this server; null trusts it.
       attachmentHolder: AttachmentHolder | null;
+      // Views the target could not take are left out and counted here.
+      skippedViews?: SkippedViews;
     },
   ) {
     const targetContext = param.targetContext ?? context;
@@ -354,6 +363,7 @@ export class ImportService {
           }),
           req: param.req,
           isDuplicateOperation: param.isDuplicateOperation,
+          trimTableName: true,
         }));
 
       idMap.set(modelData.id, table.id);
@@ -476,7 +486,10 @@ export class ImportService {
           withoutId({
             ...commentD,
             attachments,
-            comment: sanitizeCommentBody(commentD.comment),
+            // Truncate rather than reject so one old long comment can't fail the import.
+            comment: sanitizeCommentBody(
+              String(commentD.comment ?? '').slice(0, COMMENT_MAX_LENGTH),
+            ),
             fk_model_id: table.id,
             parent_comment_id: idMap.get(commentD.parent_comment_id),
           }),
@@ -1430,6 +1443,38 @@ export class ImportService {
 
     elapsedTime(hrTime, 'create LTAR columns', 'importModels');
 
+    // A table whose display value is a link gets it back only now. A V1 belongs-to is created
+    // as the pair of its has-many, so its `pv` never reaches `columnAdd`, and the copy would
+    // otherwise keep the scalar display value `tableCreate` picked. A display value is a
+    // preference, so a link that no longer qualifies here must not fail the whole job.
+    for (const data of param.data) {
+      // A column duplicate imports one column into a live table, but `data.model.columns`
+      // still lists every column — the display value never moved, so leave it alone rather
+      // than re-applying it and emitting its hooks, audit rows and broadcasts again.
+      if (param.existingModel) break;
+
+      const pvColumn = data.model.columns?.find(
+        (c) => c.pv && isLinksOrLTAR(c),
+      );
+      if (!pvColumn) continue;
+
+      // only a column this import created — `getIdOrExternalId` would fall back to the
+      // live column through `externalIdMap`
+      const columnId = idMap.get(pvColumn.id);
+      if (!columnId) continue;
+
+      try {
+        await this.columnsService.columnSetAsPrimary(targetContext, {
+          columnId,
+          req: param.req,
+        });
+      } catch (e) {
+        this.debugLog(
+          `failed to restore link display value for ${data.model.title}: ${e?.message}`,
+        );
+      }
+    }
+
     const referencedColumnsById = new Map(
       referencedColumnSet.map((col) => [col.id, col]),
     );
@@ -1682,6 +1727,7 @@ export class ImportService {
             req: param.req,
             user: param.user,
             suppressFormulaError: true,
+            keepIntegrationBinding: true,
             columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;
@@ -1713,6 +1759,7 @@ export class ImportService {
             }) as any,
             req: param.req,
             user: param.user,
+            keepIntegrationBinding: true,
             columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;
@@ -1909,7 +1956,11 @@ export class ImportService {
             param.user,
             param.req,
           );
-          if (!vw) return;
+          if (!vw) {
+            if (param.skippedViews && view.lock_type === ViewLockType.Personal)
+              param.skippedViews.personal++;
+            return;
+          }
 
           idMap.set(view.id, vw.id);
 
@@ -1986,6 +2037,7 @@ export class ImportService {
             case ViewTypes.GRID:
             case ViewTypes.TIMELINE:
             case ViewTypes.GANTT:
+            case ViewTypes.GALLERY:
               for (const cl of vwColumns) {
                 const fcl = view.columns.find(
                   (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
@@ -2011,7 +2063,6 @@ export class ImportService {
                 });
               }
               break;
-            case ViewTypes.GALLERY:
             case ViewTypes.KANBAN:
             case ViewTypes.CALENDAR:
               break;
@@ -2053,12 +2104,22 @@ export class ImportService {
     // create row color info
     for (const data of param.data) {
       if (param.existingModel) break;
-      if (data.rowColorConditions?.rowColorConditions?.length > 0) {
+      // Conditions of a view that wasn't created have no view to attach to.
+      const rowColorConditions = (
+        data.rowColorConditions?.rowColorConditions ?? []
+      ).filter((rc) => getIdOrExternalId(rc.fk_view_id));
+      const rowColorConditionIds = new Set(
+        rowColorConditions.map((rc) => rc.id),
+      );
+      const rowColorFilters = (data.rowColorConditions?.filters ?? []).filter(
+        (flt) => rowColorConditionIds.has(flt.fk_row_color_condition_id),
+      );
+      if (rowColorConditions.length > 0) {
         await ncMeta.bulkMetaInsert(
           targetContext.workspace_id,
           targetContext.base_id,
           MetaTable.ROW_COLOR_CONDITIONS,
-          data.rowColorConditions.rowColorConditions.map((rc) => {
+          rowColorConditions.map((rc) => {
             return {
               ...rc,
               fk_view_id: getIdOrExternalId(rc.fk_view_id),
@@ -2066,12 +2127,12 @@ export class ImportService {
           }),
         );
       }
-      if (data.rowColorConditions?.filters?.length > 0) {
+      if (rowColorFilters.length > 0) {
         await ncMeta.bulkMetaInsert(
           targetContext.workspace_id,
           targetContext.base_id,
           MetaTable.FILTER_EXP,
-          data.rowColorConditions.filters.map((flt) => {
+          rowColorFilters.map((flt) => {
             return {
               ...flt,
               fk_column_id: getIdOrExternalId(flt.fk_column_id),

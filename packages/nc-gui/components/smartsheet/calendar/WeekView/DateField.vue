@@ -55,6 +55,11 @@ const container = ref<null | HTMLElement>(null)
 
 const { $e } = useNuxtApp()
 
+const { locale } = useI18n()
+
+// Sunday-first, so it can be indexed with dayjs().day()
+const weekdayLabels = computed(() => getCalendarWeekdayLabels(locale.value, { weekStartsOn: 0 }))
+
 const { width: containerWidth } = useElementSize(container)
 
 const { isUIAllowed } = useRoles()
@@ -704,6 +709,8 @@ const addRecord = (date: dayjs.Dayjs) => {
   // Records can't be added to synced (read-only) tables — return if synced.
   // (This guard was inverted; the sibling MonthView/DateTimeView use the same check.)
   if (!isUIAllowed('dataEdit') || !isAddDeleteInlineEnabled.value || !calendarRange.value || isSyncedTable.value) return
+  // A formula or rollup date can't take the clicked date
+  if (calendarRange.value[0]?.is_readonly) return
   const fromCol = calendarRange.value[0]?.fk_from_col
   if (!fromCol) return
   const newRecord = {
@@ -729,7 +736,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         @click="selectDate(date)"
         @dblclick="addRecord(date)"
       >
-        {{ dayjs(date).format('DD ddd') }}
+        <span class="truncate">{{ dayjs(date).format('DD') }} {{ weekdayLabels[dayjs(date).day()] }}</span>
       </div>
     </div>
     <div

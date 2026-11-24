@@ -1,5 +1,11 @@
 import { customAlphabet } from 'nanoid';
-import { AppEvents, EventType, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  isLinksOrLTAR,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { ColumnReqType, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
@@ -12,6 +18,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import { Column, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { _wherePk } from '~/helpers/dbHelpers';
+import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NocoSocket from '~/socket/NocoSocket';
 import { tableForBroadcast } from '~/helpers/publicViewSecrets';
@@ -776,8 +783,17 @@ export const ltarColumnConversion = (svc: IColumnConversionHost) => {
     const textFor = async (pk: string | number): Promise<string | null> => {
       const linked = await readLinked(pk);
       if (!linked.length) return null;
-      const text = linked
-        .map((r) => (r == null ? null : r[dvTitle]))
+      // a link display value is a nested record: use its leaf text
+      const values = await Promise.all(
+        linked.map((r) =>
+          r == null
+            ? null
+            : isLinksOrLTAR(groupCtx.displayValueColumn)
+            ? flattenDisplayValue(r, groupCtx.displayValueColumn)
+            : r[dvTitle],
+        ),
+      );
+      const text = values
         .filter((v) => v !== null && v !== undefined && String(v).length > 0)
         .join(delimiter);
       return text.length ? text : null;

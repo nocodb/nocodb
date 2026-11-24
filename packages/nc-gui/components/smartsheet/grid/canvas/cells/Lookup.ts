@@ -46,7 +46,11 @@ export const LookupCellRenderer: CellRenderer = {
     // cellRenderStore persists per cell across frames, so the link boxes must be dropped up
     // front — every early return below would otherwise leave the previous frame's boxes
     // clickable on a cell that no longer paints them.
-    if (cellRenderStore) cellRenderStore.links = []
+    if (cellRenderStore) {
+      cellRenderStore.links = []
+      // A nested Lookup re-enters with the same store; only the top-level call owns the chips.
+      if (!props.isUnderLookup) cellRenderStore.lookupLinks = []
+    }
 
     if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
       renderCellError(ctx, { x, y, width: _width, height, padding, getColor })
@@ -280,6 +284,10 @@ export const LookupCellRenderer: CellRenderer = {
       }
     }
 
+    // Chips of a Lookup of a Link — recorded so handleClick can open the linked record.
+    const isLinkLookup = !props.isUnderLookup && lookupColumn.uidt === UITypes.LinkToAnotherRecord && !!lkRelatedTableMeta
+    const linkChips: NonNullable<CellRenderStore['lookupLinks']> = []
+
     const renderProps: CellRendererOptions = {
       ...props,
       column: effectiveLookupColumn,
@@ -338,28 +346,20 @@ export const LookupCellRenderer: CellRenderer = {
 
       // A link value keeps its tag; only its link text is underlined
       const formulaSegments = isPlainFormulaLeaf ? getFormulaValueSegments(options.value) : undefined
-      const formulaUrl = formulaSegments?.find((segment) => segment.url)?.url
-      const renderOptions = formulaSegments ? { ...options, tag: { ...options.tag, tagSegments: formulaSegments } } : options
-
-      const point =
-        renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
-          ? renderCell(ctx, lookupColumn, renderOptions)
-          : PlainCellRenderer.render(ctx, renderOptions)
-
-      if (formulaUrl && point?.x) {
-        urlLinkBoxes.push({
-          x: options.x,
-          y: options.y,
-          width: Math.max(point.x - options.x, 0),
-          height: rowHeightInPx['1']!,
-          url: formulaUrl,
-        })
+      // Only the link pieces are clickable, not the tag's plain text
+      const onTagLink = ({ x: linkX, width: linkWidth, url }: { x: number; width: number; url: string }) => {
+        urlLinkBoxes.push({ x: linkX, y: options.y, width: linkWidth, height: rowHeightInPx['1']!, url })
       }
+      const renderOptions = formulaSegments
+        ? { ...options, tag: { ...options.tag, tagSegments: formulaSegments, onTagLink } }
+        : options
 
-      return point
+      return renderAsCellLookupOrLtarValue.includes(lookupColumn.uidt) || isRichText(lookupColumn)
+        ? renderCell(ctx, lookupColumn, renderOptions)
+        : PlainCellRenderer.render(ctx, renderOptions)
     }
 
-    const maxLines = rowHeightTruncateLines(height, true)
+    const maxLines = props.maxLines ?? rowHeightTruncateLines(height, true)
     let line = 1
     let flag = false
     let count = 1
@@ -390,6 +390,11 @@ export const LookupCellRenderer: CellRenderer = {
           width,
           tag: { ...renderProps.tag, renderAsTag: renderOnly1Row.includes(lookupColumn.uidt) },
         })
+
+        // Single-record link chips (bt/oo) draw one value per call, starting at x + 4
+        if (isLinkLookup && point?.x && ncIsObject(v)) {
+          linkChips.push({ x: x + 4, y, width: point.x - (x + 4), height: rowHeightInPx['1']!, value: v })
+        }
 
         if (renderOnly1Row.includes(lookupColumn.uidt)) {
           if (point?.x) {
@@ -515,9 +520,17 @@ export const LookupCellRenderer: CellRenderer = {
       ) {
         renderResult = handleRenderVirtualCol()
       } else {
+        // The hm/mm renderer draws every chip in one call into its own store, so it hands the boxes back here
+        const onLinkChips = (chips: NonNullable<CellRenderStore['ltar']>) => {
+          for (const chip of chips) {
+            if (!ncIsObject(chip.value) || !chip.width || !chip.height) continue
+            linkChips.push({ x: chip.oldX!, y: chip.oldY!, width: chip.width, height: chip.height, value: chip.value })
+          }
+        }
+
         renderResult = lookupRenderer({
           ...renderProps,
-          tag: { ...renderProps.tag, renderAsTag: false },
+          tag: { ...renderProps.tag, renderAsTag: false, onLinkChips: isLinkLookup ? onLinkChips : undefined },
         })
       }
     } else {
@@ -544,10 +557,19 @@ export const LookupCellRenderer: CellRenderer = {
       }
     }
 
+    if (cellRenderStore && linkChips.length) {
+      cellRenderStore.lookupLinks = linkChips
+      cellRenderStore.lookupLinkMeta = lkRelatedTableMeta
+
+      if (!props.isPublic && selected && mousePosition && linkChips.some((box) => isBoxHovered(box, mousePosition))) {
+        setCursor?.('pointer')
+      }
+    }
+
     return renderResult
   },
   async handleClick(ctx) {
-    const { selected, isDoubleClick, mousePosition, cellRenderStore } = ctx
+    const { selected, isDoubleClick, mousePosition, cellRenderStore, column, isPublic, openDetachedExpandedForm } = ctx
 
     // Open a lookup URL value when the (selected) cell's link is clicked. Anything
     // else returns false so the default handling (e.g. double-click opens the
@@ -558,6 +580,32 @@ export const LookupCellRenderer: CellRenderer = {
         if (isBoxHovered(link, mousePosition)) {
           confirmPageLeavingRedirect(link.url, '_blank')
           return true
+        }
+      }
+    }
+
+    // Open the linked record behind a Lookup-of-Link chip, like a Link cell's chip
+    const chips = cellRenderStore?.lookupLinks
+    // Claims the click only when a record opens; otherwise a double-click still opens the overlay.
+    if (!isPublic && (selected || isDoubleClick) && mousePosition && ncIsArray(chips) && chips.length) {
+      const chip = chips.find((box) => isBoxHovered(box, mousePosition))
+      if (chip) {
+        const relatedMeta = cellRenderStore?.lookupLinkMeta
+        const rowId = relatedMeta ? extractPkFromRow(chip.value, (relatedMeta.columns || []) as ColumnType[]) : null
+
+        if (relatedMeta && rowId) {
+          return !!openDetachedExpandedForm(
+            {
+              isOpen: true,
+              row: { row: chip.value, rowMeta: {}, oldRow: { ...chip.value } },
+              meta: relatedMeta,
+              rowId,
+              useMetaFields: true,
+              maintainDefaultViewOrder: true,
+              loadRow: true,
+            },
+            column.columnObj,
+          )
         }
       }
     }

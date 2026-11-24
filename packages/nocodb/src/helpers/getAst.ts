@@ -1,5 +1,6 @@
 import {
   isBtLikeV2Junction,
+  isLinksOrLTAR,
   NcApiVersion,
   parseProp,
   RelationTypes,
@@ -30,6 +31,11 @@ import {
 import { resolveViewVisibleColumns } from '~/helpers/viewVisibleColumns';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import { hasLimitedLinkTargetAccess } from '~/helpers/tableHelpers';
+import {
+  getLinkDisplayOverride,
+  isUnfollowableChain,
+  resolveDisplayValueChain,
+} from '~/helpers/displayValueCycle';
 
 const logger = new Logger('getAst');
 
@@ -193,6 +199,41 @@ const getAst = async (
 
     await extractDependencies(context, model.displayValue, dependencyFields);
 
+    // A link display value is read as a record of its own, pruned to pk + display value
+    // the same way; the scalar would return the whole related record. Always pk/pv only, so
+    // hasLimitedLinkTargetAccess (which only picks that projection) has nothing to add here.
+    // A chain that cannot be followed, or one the parent link's own display column replaces,
+    // is left as the scalar.
+    const pv = model.displayValue;
+    if (
+      pv &&
+      isLinksOrLTAR(pv) &&
+      !(
+        getLinkDisplayOverride({ fk_display_value_column_id }, model.columns) ||
+        isUnfollowableChain(await resolveDisplayValueChain(pv))
+      )
+    ) {
+      const colOpt = await pv.getColOptions<LinkToAnotherRecordColumn>();
+      const pvModel = await colOpt?.getRelatedTable();
+      if (pvModel) {
+        ast[getFieldKey(pv)] = (
+          await getAst(colOpt.getRelContext().refContext, {
+            model: pvModel,
+            extractOnlyPrimaries: true,
+            fk_display_value_column_id: colOpt.fk_display_value_column_id,
+            apiVersion,
+            skipSubstitutingColumnIds,
+            dependencyFields: (dependencyFields.nested[pv.title] =
+              dependencyFields.nested[pv.title] || {
+                nested: {},
+                fieldsSet: new Set(),
+              }),
+            _depth: _depth + 1,
+          })
+        ).ast;
+      }
+    }
+
     // Include custom display value column if specified by the parent LTAR relation
     if (fk_display_value_column_id) {
       const customDisplayCol = model.columns?.find(
@@ -250,6 +291,9 @@ const getAst = async (
   // Collected with the broad strategy-result type; narrowed to `Ast` on return.
   const ast: Record<string, AstResult> = {};
 
+  // Requested V2 junction mo/oo links read as a full record (no nested AST).
+  const junctionLinkTitles: string[] = [];
+
   // Shared inputs for the per-column strategy chain (see getAstColumnStrategy).
   const astCtx: ColumnAstContext = {
     model,
@@ -283,7 +327,9 @@ const getAst = async (
         // it under the bare title as a record read rather than a `_nc_lk_`
         // count (select-object skips its rollup), so it recurses like an LTAR.
         (col.uidt === UITypes.Links && isBtLikeV2Junction(col))) &&
-      !requiredColumnIds?.has(col.id)
+      !requiredColumnIds?.has(col.id) &&
+      // a link display value is the row's title; its chain is capped at create
+      col.id !== model.displayValue?.id
     ) {
       ast[getFieldKey(col)] = null;
       continue;
@@ -421,7 +467,24 @@ const getAst = async (
     if (isRequested || col.pk)
       await extractDependencies(context, col, dependencyFields);
 
+    if (
+      isRequested &&
+      col.uidt === UITypes.Links &&
+      !linksAsLtar &&
+      isBtLikeV2Junction(col)
+    )
+      junctionLinkTitles.push(col.title);
+
     ast[getFieldKey(col)] = isRequested;
+  }
+
+  // A Lookup through such a link shares its nested bucket and would narrow the
+  // link's read to the looked-up column, dropping pk/pv (nocodb/nocodb#14951).
+  // Keep the read unnarrowed; the full row still carries every lookup target.
+  for (const title of junctionLinkTitles) {
+    if (dependencyFields.nested[title]?.fieldsSet) {
+      delete dependencyFields.nested[title].fieldsSet;
+    }
   }
 
   // Narrow back to `Ast`: falsy entries are runtime-only "not requested" markers

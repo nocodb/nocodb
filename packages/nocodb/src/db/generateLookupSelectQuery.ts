@@ -1,7 +1,7 @@
 import {
   isBtLikeV2Junction,
   isMMOrMMLike,
-  isSupportedDisplayValueColumn,
+  isSingleRecordLinkColumn,
   NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
@@ -36,28 +36,14 @@ import { getAliasGenerator } from '~/utils';
 import { DBQueryClient } from '~/dbQueryClient';
 import { rawFromBuilder } from '~/helpers/sqlSanitize';
 import { readsHiddenTable } from '~/helpers/tableHelpers';
+import {
+  DISPLAY_VALUE_LINK_MAX_DEPTH,
+  getDisplayValueOfRefTable,
+} from '~/helpers/displayValueCycle';
+
+export { getDisplayValueOfRefTable };
 
 const LOOKUP_VAL_SEPARATOR = '___';
-
-export async function getDisplayValueOfRefTable(
-  context: NcContext,
-  relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
-) {
-  const colOpt = await relationCol.getColOptions<
-    LinkToAnotherRecordColumn | LinksColumn
-  >();
-  const model = await colOpt.getRelatedTable();
-  const cols = await model.getColumns();
-
-  const overrideId = (colOpt as LinkToAnotherRecordColumn)
-    .fk_display_value_column_id;
-  if (overrideId) {
-    const override = cols.find((c) => c.id === overrideId);
-    if (override && isSupportedDisplayValueColumn(override)) return override;
-  }
-
-  return cols.find((col) => col.pv) || cols[0];
-}
 
 /**
  * Like getDisplayValueOfRefTable but supports filtering by the related record's
@@ -462,10 +448,34 @@ export default async function generateLookupSelectQuery({
         }
       }
 
-      while (
-        lookupColumn.uidt === UITypes.Lookup ||
-        lookupColumn.uidt === UITypes.LinkToAnotherRecord
-      ) {
+      // A display value that is a link carries on to the linked table's display value. It
+      // may be a V2 junction `Links`, which a lookup's own target never continues through.
+      let viaDisplayValue = !lookupColOpt;
+      // a cycle in the data would otherwise join forever
+      const visitedHops = new Set<string>();
+
+      const isHop = async (col: Column) => {
+        if (
+          col.uidt === UITypes.Lookup ||
+          col.uidt === UITypes.LinkToAnotherRecord
+        )
+          return true;
+        if (!viaDisplayValue || col.uidt !== UITypes.Links) return false;
+        if (!col.colOptions) await col.getColOptions();
+        return isSingleRecordLinkColumn(col);
+      };
+
+      while (await isHop(lookupColumn)) {
+        if (
+          visitedHops.has(lookupColumn.id) ||
+          visitedHops.size >= DISPLAY_VALUE_LINK_MAX_DEPTH * 2
+        ) {
+          return {
+            builder: NC_ERROR_SENTINEL,
+            applyCte: () => {},
+          };
+        }
+        visitedHops.add(lookupColumn.id);
         const nestedAlias = getAlias();
 
         let relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>;
@@ -628,11 +638,6 @@ export default async function generateLookupSelectQuery({
           const parentModel = await parentColumn.getModel();
           await parentModel.getColumns();
 
-          const childBaseModel = await Model.getBaseModelSQL(childContext, {
-            model: childModel,
-            dbDriver: knex,
-          });
-
           const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
             model: parentModel,
             dbDriver: knex,
@@ -666,15 +671,6 @@ export default async function generateLookupSelectQuery({
               knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`) as any,
               '=',
               knex.ref(`${nestedAlias}.${parentColumn.column_name}`) as any,
-            )
-            .where(
-              knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
-              '=',
-              knex.ref(
-                `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
-                  childColumn.column_name
-                }`,
-              ),
             );
 
           // Exclude soft-deleted referenced records from nested MM lookup
@@ -706,13 +702,16 @@ export default async function generateLookupSelectQuery({
           });
         }
 
-        if (lookupColumn.uidt === UITypes.Lookup)
+        if (lookupColumn.uidt === UITypes.Lookup) {
           lookupColumn = await nestedLookupColOpt.getLookupColumn();
-        else
+          viaDisplayValue = false;
+        } else {
           lookupColumn = await getDisplayValueOfRefTable(
             nestedRefContext,
             relationCol,
           );
+          viaDisplayValue = true;
+        }
 
         if (!lookupColumn) {
           return {
@@ -828,6 +827,7 @@ export default async function generateLookupSelectQuery({
               )
               .from(selectQb.as(subQueryAlias)),
             applyCte,
+            aggregated: true,
           };
         }
         // alternate approach with array_agg
@@ -836,6 +836,7 @@ export default async function generateLookupSelectQuery({
             .select(knex.raw('json_agg(??)::text', [lookupColumn.id]))
             .from(selectQb.as(subQueryAlias)),
           applyCte,
+          aggregated: true,
         };
         /*
         // alternate approach with array_agg

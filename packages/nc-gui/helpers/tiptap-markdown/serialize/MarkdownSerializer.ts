@@ -14,6 +14,7 @@ export class MarkdownSerializer {
   serialize(content: Node) {
     const state = new MarkdownSerializerState(this.nodes, this.marks, {
       hardBreakNodeName: HardBreak.name,
+      preserveLeadingSpaces: this.editor.storage.markdown.options.preserveLeadingSpaces,
     })
 
     state.renderContent(content)

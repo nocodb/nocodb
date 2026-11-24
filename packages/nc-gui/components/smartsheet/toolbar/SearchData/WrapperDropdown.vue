@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const props = defineProps<{
   visible: boolean
+  // Render the slot in place (no popup), as on mobile.
+  inline?: boolean
   // Bumped by the parent whenever the toolbar width changes (expanded-form / extension /
   // action side panels opening, resizing, or a window resize). The search box is a
   // teleported ant popup anchored to a 0-size trigger in the toolbar; ant only re-positions
@@ -23,7 +25,7 @@ const popupAlign = computed(() => ({
 </script>
 
 <template>
-  <slot v-if="isMobileMode" />
+  <slot v-if="isMobileMode || props.inline" />
   <NcDropdown
     v-else
     :visible="visible"

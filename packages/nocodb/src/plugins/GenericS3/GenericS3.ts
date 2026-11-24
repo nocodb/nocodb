@@ -11,7 +11,11 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Upload } from '@aws-sdk/lib-storage';
 import type { PutObjectRequest, S3 as S3Client } from '@aws-sdk/client-s3';
-import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import type {
+  FileCreateByUrlOptions,
+  IStorageAdapterV2,
+  XcFile,
+} from '~/types/nc-plugin';
 import {
   fetchSourceFile,
   generateTempFilePath,
@@ -143,9 +147,12 @@ export default class GenericS3 implements IStorageAdapterV2 {
   async fileCreateByUrl(
     key: string,
     url: string,
-    { fetchOptions: { buffer } = { buffer: false } },
+    {
+      fetchOptions: { buffer } = { buffer: false },
+      source,
+    }: FileCreateByUrlOptions = {},
   ): Promise<any> {
-    return fetchSourceFile(url, { buffer }, async (response) => {
+    return fetchSourceFile(url, { buffer, source }, async (response) => {
       try {
         const uploadParams: PutObjectRequest = {
           ...this.defaultParams,

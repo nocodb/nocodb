@@ -10,12 +10,16 @@ import { MetaTable } from '~/utils/globals';
 import { User, Workspace } from '~/models';
 import { calculateInstanceEditorCount } from '~/helpers/instanceAdminHelpers';
 import { AbuseReportsService } from '~/services/abuse-reports.service';
+import { SearchIndexService } from '~/services/search-index.service';
 
 @Injectable()
 export class InstanceAdminGetOperations
   implements InternalApiModule<InternalGETResponseType>
 {
-  constructor(protected readonly abuseReportsService: AbuseReportsService) {}
+  constructor(
+    protected readonly abuseReportsService: AbuseReportsService,
+    protected readonly searchIndexService: SearchIndexService,
+  ) {}
 
   operations = [
     'instanceAdminStats' as const,
@@ -23,7 +27,9 @@ export class InstanceAdminGetOperations
     'instanceAdminBases' as const,
     'abuseReportList' as const,
     'abuseReportGet' as const,
+    'globalSearchModeGet' as const,
   ];
+  apiTokenBlockedOperations = ['globalSearchModeGet' as const];
   httpMethod = 'GET' as const;
 
   async handle(
@@ -50,6 +56,8 @@ export class InstanceAdminGetOperations
         return this.abuseReportsService.adminList(req.query as any);
       case 'abuseReportGet':
         return this.abuseReportsService.adminGet(req.query.reportId as string);
+      case 'globalSearchModeGet':
+        return this.searchIndexService.globalModeGet();
     }
   }
 

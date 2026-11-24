@@ -59,11 +59,16 @@ DATE/TIME FILTERING (for Date, DateTime, CreatedTime, LastModifiedTime fields):
   isWithin - Check if date falls within a time range:
     Sub-operators (no value): pastWeek, pastMonth, pastYear, nextWeek, nextMonth, nextYear
     Sub-operators (value = days): pastNumberOfDays, nextNumberOfDays
+    Calendar periods (no value, weeks start Monday): thisCalendarWeek, thisCalendarMonth, thisCalendarYear,
+      lastCalendarWeek, lastCalendarMonth, lastCalendarYear, nextCalendarWeek, nextCalendarMonth, nextCalendarYear
+    Date range (value = from,to; both days included): dateRange
     Examples:
       (created_at,isWithin,pastWeek)           Last 7 days
       (created_at,isWithin,pastMonth)          Last 30 days
       (due_date,isWithin,pastNumberOfDays,14)  Last 14 days
       (due_date,isWithin,nextNumberOfDays,30)  Next 30 days
+      (due_date,isWithin,thisCalendarMonth)    1st to last day of the current month
+      (due_date,isWithin,dateRange,2026-06-01,2026-06-30)  June 2026
 
   eq, neq, gt, lt, gte, lte - Date comparisons (gt=after, lt=before, gte=on or after, lte=on or before):
     Sub-operators (no value): today, tomorrow, yesterday, oneWeekAgo, oneWeekFromNow, oneMonthAgo, oneMonthFromNow

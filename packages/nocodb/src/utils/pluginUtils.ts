@@ -41,13 +41,21 @@ const fileTooLarge = (): never =>
 // failures come back as 400s, so a storage failure is never blamed on the URL.
 export async function fetchSourceFile<T>(
   url: string,
-  { buffer, headers }: { buffer?: boolean; headers?: RawAxiosRequestHeaders },
+  {
+    buffer,
+    headers,
+    source = OperationSource.PLUGINS,
+  }: {
+    buffer?: boolean;
+    headers?: RawAxiosRequestHeaders;
+    source?: OperationSource;
+  },
   write: (response: AxiosResponse) => Promise<T>,
 ): Promise<T> {
   let response: AxiosResponse;
   try {
     response = await axios.get(url, {
-      ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
+      ...getFilteredAgents({ url, source }),
       responseType: buffer ? 'arraybuffer' : 'stream',
       maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
       headers,

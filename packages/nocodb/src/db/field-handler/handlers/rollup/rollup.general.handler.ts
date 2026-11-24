@@ -81,6 +81,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
       knex,
       alias,
       columnOptions: rollupOptions,
+      skipMysqlDateTimeUtc: true,
     });
 
     // an errored rollup reads as the error sentinel text: no typed comparison

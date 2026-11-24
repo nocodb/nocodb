@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type TableType,
+  isLinksOrLTAR,
+  isSingleRecordLinkColumn,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -53,7 +60,39 @@ const displayValueColumn = computed(() => {
   return props.displayValueColumn || (allColumns.value || []).find((c) => c?.pv ?? null) || (allColumns.value || [])?.[0]
 })
 
+const { metas } = useMetas()
+
+const { ensureLinkedMetas } = useLinkedRecordMetas()
+
+// pseudo table holding just the display column, so the chain starts at the link
+const displayHostMeta = computed(() => {
+  const col = displayValueColumn.value
+  return col ? ({ id: col.fk_model_id, base_id: col.base_id, columns: [col] } as TableType) : undefined
+})
+
+// A display value that is a single-record link renders as its leaf column and value
+const displayLeaf = computed(() => {
+  const col = displayValueColumn.value
+  if (!col || !isSingleRecordLinkColumn(col)) return null
+
+  const leaf = resolveLinkedRecordDisplay(currentRow.value.row, displayHostMeta.value, { metas: metas.value })
+  return leaf.complete && leaf.leafColumn && !isSingleRecordLinkColumn(leaf.leafColumn) ? leaf : undefined
+})
+
+watch(
+  () => [currentRow.value?.row, displayValueColumn.value?.id],
+  () => {
+    if (displayValueColumn.value && isSingleRecordLinkColumn(displayValueColumn.value)) {
+      ensureLinkedMetas(currentRow.value?.row, displayHostMeta.value)
+    }
+  },
+  { immediate: true },
+)
+
+const displayColumn = computed(() => (displayLeaf.value === null ? displayValueColumn.value : displayLeaf.value?.leafColumn))
+
 const displayValue = computed(() => {
+  if (displayLeaf.value !== null) return displayLeaf.value?.leafValue
   return displayValueColumn.value?.title ? currentRow.value.row[displayValueColumn.value?.title] : null
 })
 
@@ -129,24 +168,16 @@ const columnsToRender = computed(() => {
 
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
           <div
-            v-if="displayValueColumn && displayValue"
+            v-if="displayColumn && displayValue"
             class="flex justify-start font-semibold text-nc-content-brand nc-display-value"
             :class="displayValueClassName"
           >
             <NcTooltip class="truncate leading-[20px]" show-on-truncate-only>
               <template #title>
-                <LazySmartsheetPlainCell
-                  v-model="displayValue"
-                  :column="displayValueColumn"
-                  class="field-config-plain-cell-value"
-                />
+                <LazySmartsheetPlainCell v-model="displayValue" :column="displayColumn" class="field-config-plain-cell-value" />
               </template>
 
-              <LazySmartsheetPlainCell
-                v-model="displayValue"
-                :column="displayValueColumn"
-                class="field-config-plain-cell-value"
-              />
+              <LazySmartsheetPlainCell v-model="displayValue" :column="displayColumn" class="field-config-plain-cell-value" />
             </NcTooltip>
           </div>
 

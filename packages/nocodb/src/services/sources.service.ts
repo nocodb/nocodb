@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  dataSourceClientOf,
   EventType,
   IntegrationsType,
+  isDataSourceIntegration,
   validateAndExtractSSLProp,
 } from 'nocodb-sdk';
 import type { BaseReqType, IntegrationType } from 'nocodb-sdk';
@@ -14,6 +16,7 @@ import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getIntegrationForSource } from '~/helpers/integrationAccess';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { assertSqliteConnectionAllowed } from '~/helpers/sqliteConnectionTestAccess';
 import { validateChangedDbConnectionTargets } from '~/helpers/validateDbConnectionHost';
 import { parseConfigPayload } from '~/helpers/configPayload';
 import Noco from '~/Noco';
@@ -70,6 +73,12 @@ export class SourcesService {
       baseBody?.config,
       baseBody?.type ?? oldSource?.type,
     );
+    assertSqliteConnectionAllowed(
+      context,
+      baseBody?.config,
+      baseBody?.config?.client ?? baseBody?.type,
+      { config: oldSource.getSourceConfig(), subType: oldSource.type },
+    );
     if (baseBody?.config) {
       await validateChangedDbConnectionTargets(
         baseBody.config,
@@ -81,13 +90,17 @@ export class SourcesService {
       (baseBody as any).fk_integration_id &&
       (baseBody as any).fk_integration_id !== oldSource.fk_integration_id
     ) {
-      this.assertDatabaseIntegration(
-        await getIntegrationForSource(
-          context,
-          (baseBody as any).fk_integration_id,
-          param.req.user?.id,
-          oldSource.base_id,
-        ),
+      const integration = await getIntegrationForSource(
+        context,
+        (baseBody as any).fk_integration_id,
+        param.req.user?.id,
+        oldSource.base_id,
+      );
+      this.assertDatabaseIntegration(integration);
+      assertSqliteConnectionAllowed(
+        context,
+        integration.getConfig(),
+        integration.sub_type,
       );
     }
 
@@ -99,6 +112,7 @@ export class SourcesService {
 
     source.config = undefined;
     source.integration_config = undefined;
+    source.integration_meta = undefined;
 
     const integration = await Integration.get(
       context,
@@ -129,10 +143,7 @@ export class SourcesService {
   }
 
   protected assertDatabaseIntegration(integration: IntegrationType) {
-    if (
-      integration.type !== IntegrationsType.Database ||
-      !integration.sub_type
-    ) {
+    if (!isDataSourceIntegration(integration) || !integration.sub_type) {
       NcError.badRequest('Integration type should be Database');
     }
   }
@@ -188,6 +199,7 @@ export class SourcesService {
 
       source.config = undefined;
       source.integration_config = undefined;
+      source.integration_meta = undefined;
 
       NocoSocket.broadcastEvent(
         context,
@@ -249,13 +261,8 @@ export class SourcesService {
     // if missing integration id, create a new private integration
     // and map the id to the source
     if (!(baseBody as any).fk_integration_id) {
-      // This branch creates the Integration model directly, bypassing
-      // integrationCreate and its guards — mirror the enterprise SQLite block.
-      if (baseBody.config?.client === 'sqlite3' && Noco.isEE()) {
-        NcError.get(context).badRequest(
-          'SQLite connections are only available on the free self-hosted edition',
-        );
-      }
+      // Creates the Integration directly, bypassing integrationCreate's guards.
+      assertSqliteConnectionAllowed(context, baseBody.config, baseBody.type);
       integration = await Integration.createIntegration({
         title: baseBody.alias,
         type: IntegrationsType.Database,
@@ -272,16 +279,24 @@ export class SourcesService {
       };
       baseBody.type = baseBody.config?.client as unknown as BaseReqType['type'];
     } else {
-      integration = await getIntegrationForSource(
+      const existing = await getIntegrationForSource(
         context,
         (baseBody as any).fk_integration_id,
         param.req.user?.id,
         base.id,
       );
+      integration = existing;
 
       this.assertDatabaseIntegration(integration);
+      assertSqliteConnectionAllowed(
+        context,
+        existing.getConfig(),
+        existing.sub_type,
+      );
 
-      baseBody.type = integration.sub_type as unknown as BaseReqType['type'];
+      baseBody.type = dataSourceClientOf(
+        integration,
+      ) as unknown as BaseReqType['type'];
     }
 
     // update invalid ssl config value if found
@@ -318,6 +333,7 @@ export class SourcesService {
 
       source.config = undefined;
       source.integration_config = undefined;
+      source.integration_meta = undefined;
 
       this.appHooksService.emit(AppEvents.SOURCE_CREATE, {
         source,

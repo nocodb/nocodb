@@ -840,6 +840,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               ? { operation: 'listColumnUpdate' as const, listViewColumnId: colId }
               : view.value?.type === ViewTypes.GANTT
               ? { operation: 'ganttColumnUpdate' as const, ganttViewColumnId: colId }
+              : // Gallery has no column op of its own; its group_by* ride viewColumnUpdate.
+              view.value?.type === ViewTypes.GALLERY
+              ? { operation: 'viewColumnUpdate' as const, viewId: view.value.id, columnId: colId }
               : { operation: 'gridColumnUpdate' as const, gridViewColumnId: colId }
 
           await $api.internal.postOperation(view.value!.fk_workspace_id!, view.value!.base_id!, operationParams, props)
@@ -859,6 +862,37 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       } catch (e) {
         // this could happen if user doesn't have permission to update view columns
         // todo: find out root cause and handle with isUIAllowed
+        console.error(e)
+      }
+    }
+
+    // Several widths in one request and one undo step; keyed by field id like gridViewCols
+    const updateGridViewColumnWidths = async (widths: Record<string, string>) => {
+      const ids = Object.keys(widths)
+      if (ids.length < 2 || view.value?.type !== ViewTypes.GRID) {
+        await Promise.all(ids.map((id) => updateGridViewColumn(id, { width: widths[id] })))
+        return
+      }
+
+      try {
+        // ids of view-column rows; an interface's synthetic view has none and persists through its config below
+        const columnWidths = Object.fromEntries(
+          ids.flatMap((id) => (gridViewCols.value[id]?.id ? [[gridViewCols.value[id]!.id!, widths[id]!]] : [])),
+        )
+        if (!isPublic && canEditViewFields.value && Object.keys(columnWidths).length) {
+          await $api.internal.postOperation(
+            view.value!.fk_workspace_id!,
+            view.value!.base_id!,
+            { operation: 'gridColumnsBulkUpdateWidth', viewId: view.value!.id! },
+            { columnWidths },
+          )
+        }
+
+        for (const id of ids) {
+          if (gridViewCols.value?.[id]) gridViewCols.value[id]!.width = widths[id]
+          persistInterfaceGridColumn(id, { width: widths[id] })
+        }
+      } catch (e) {
         console.error(e)
       }
     }
@@ -961,6 +995,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       toggleFieldStyles,
       isViewColumnsLoading,
       updateGridViewColumn,
+      updateGridViewColumnWidths,
       gridViewCols,
       resizingColOldWith,
       isLocalMode,

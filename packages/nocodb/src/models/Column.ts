@@ -8,6 +8,7 @@ import {
   RelationTypes,
   SqlUiFactory,
   UITypes,
+  validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
@@ -50,6 +51,7 @@ import {
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import {
   clearSingleQueryCacheForColumnReferences,
+  clearSingleQueryCacheForReferencingModels,
   clearSingleQueryCacheForRenamedColumnReferences,
 } from '~/helpers/singleQueryCacheInvalidator';
 import { NcCache } from '~/decorators/nc-cache.decorator';
@@ -634,6 +636,205 @@ export default class Column<T = any> implements ColumnType {
           }
         }
         break;*/
+    }
+  }
+
+  /**
+   * Clears the stored trees of every formula/button that reads `column`,
+   * directly or through other formulas of the table, then re-derives the
+   * formulas in dependency order so none is typed from a cleared tree. Then
+   * does the same in other tables that read any of them, through a
+   * `{Link}.{Field}` path or a lookup.
+   */
+  static async resetDependentFormulaTrees(
+    context: NcContext,
+    column: Column,
+    ncMeta = Noco.ncMeta,
+    // every column handled in this update, across tables
+    visited = new Set<string>([column.id]),
+  ) {
+    const columns = await Column.list(
+      context,
+      { fk_model_id: column.fk_model_id },
+      ncMeta,
+    );
+    const dependents = new Map<string, Column>();
+    // dependent id -> the walked columns it reads
+    const reads = new Map<string, Set<string>>();
+    const queue = [column];
+    while (queue.length) {
+      const current = queue.shift();
+      for (const dep of await getFormulasReferredTheColumn(
+        context,
+        { column: current, columns },
+        ncMeta,
+      )) {
+        if (dep.id === column.id) continue;
+        if (!reads.has(dep.id)) reads.set(dep.id, new Set());
+        reads.get(dep.id).add(current.id);
+        if (dependents.has(dep.id) || visited.has(dep.id)) continue;
+        dependents.set(dep.id, dep);
+        queue.push(dep);
+      }
+    }
+    for (const id of dependents.keys()) visited.add(id);
+
+    for (const dep of dependents.values()) {
+      await (dep.uidt === UITypes.Button ? ButtonColumn : FormulaColumn).update(
+        context,
+        dep.id,
+        { parsed_tree: null },
+        ncMeta,
+      );
+      // the validator reads the in-memory options of `columns`
+      await dep.getColOptions(ncMeta);
+    }
+    await columns.find((c) => c.id === column.id)?.getColOptions(ncMeta);
+
+    const source = await Column.formulaSource(context, column, ncMeta);
+    // buttons are only cleared: nothing reads their type
+    const done = new Set([
+      column.id,
+      ...[...dependents.values()]
+        .filter((c) => c.uidt !== UITypes.Formula)
+        .map((c) => c.id),
+    ]);
+    let pending = [...dependents.values()].filter(
+      (c) => c.uidt === UITypes.Formula,
+    );
+    while (pending.length) {
+      const ready = pending.filter((c) =>
+        [...reads.get(c.id)].every((id) => done.has(id)),
+      );
+      // a cycle is left cleared, for the next read to report
+      if (!ready.length) break;
+      for (const formula of ready) {
+        await Column.rederiveFormulaTree(
+          context,
+          formula,
+          columns,
+          source,
+          ncMeta,
+        );
+        done.add(formula.id);
+      }
+      pending = pending.filter((c) => !done.has(c.id));
+    }
+
+    // other tables: formulas over a path to, or a lookup of, a changed column;
+    // one scan for all of this table's changed columns
+    const changed = [column, ...dependents.values()].filter(
+      (c) => c.uidt !== UITypes.Button,
+    );
+    for (const {
+      column: reader,
+      context: readerContext,
+    } of await getFormulasReferringColumnViaPath(context, changed, ncMeta)) {
+      if (visited.has(reader.id)) continue;
+      visited.add(reader.id);
+      await (reader.uidt === UITypes.Button
+        ? ButtonColumn
+        : FormulaColumn
+      ).update(readerContext, reader.id, { parsed_tree: null }, ncMeta);
+      await View.clearSingleQueryCache(
+        readerContext,
+        reader.fk_model_id,
+        null,
+        ncMeta,
+      );
+      if (reader.uidt !== UITypes.Formula) continue;
+      const readerColumns = await Column.list(
+        readerContext,
+        { fk_model_id: reader.fk_model_id },
+        ncMeta,
+      );
+      await Column.rederiveFormulaTree(
+        readerContext,
+        readerColumns.find((c) => c.id === reader.id) ?? reader,
+        readerColumns,
+        await Column.formulaSource(readerContext, reader, ncMeta),
+        ncMeta,
+      );
+      await Column.resetDependentFormulaTrees(
+        readerContext,
+        reader,
+        ncMeta,
+        visited,
+      );
+    }
+
+    const lookups = await ncMeta
+      .knex(MetaTable.COL_LOOKUP)
+      .where('fk_workspace_id', context.workspace_id)
+      .whereIn(
+        'fk_lookup_column_id',
+        changed.map((c) => c.id),
+      )
+      .select('fk_column_id', 'base_id');
+    for (const { fk_column_id, base_id } of lookups) {
+      if (visited.has(fk_column_id)) continue;
+      visited.add(fk_column_id);
+      const lookupContext = { ...context, base_id };
+      const lookup = await Column.get(
+        lookupContext,
+        { colId: fk_column_id },
+        ncMeta,
+      );
+      if (!lookup) continue;
+      await View.clearSingleQueryCache(
+        lookupContext,
+        lookup.fk_model_id,
+        null,
+        ncMeta,
+      );
+      await Column.resetDependentFormulaTrees(
+        lookupContext,
+        lookup,
+        ncMeta,
+        visited,
+      );
+    }
+  }
+
+  private static async formulaSource(
+    context: NcContext,
+    column: Column,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const model = await Model.get(context, column.fk_model_id, false, ncMeta);
+    return Source.get(context, model.source_id, false, ncMeta);
+  }
+
+  // re-validates one formula against `columns` and stores its tree
+  private static async rederiveFormulaTree(
+    context: NcContext,
+    formula: Column,
+    columns: Column[],
+    source: Source,
+    ncMeta = Noco.ncMeta,
+  ) {
+    try {
+      const colOptions = await formula.getColOptions<FormulaColumn>(ncMeta);
+      const parsedTree = await validateFormulaAndExtractTreeWithType({
+        formula: colOptions.formula,
+        columns,
+        column: formula,
+        clientOrSqlUi: SqlUiFactory.create({ client: source.type }),
+        getMeta: async (metaContext, { id }) => {
+          const related = await Model.get(metaContext, id, false, ncMeta);
+          await related?.getColumns(ncMeta);
+          return related;
+        },
+      });
+      await FormulaColumn.update(
+        context,
+        formula.id,
+        { parsed_tree: parsedTree },
+        ncMeta,
+      );
+      await formula.getColOptions(ncMeta);
+    } catch {
+      // left cleared: a formula that no longer fits reports it on read
     }
   }
 
@@ -1802,76 +2003,18 @@ export default class Column<T = any> implements ColumnType {
 
     const updatedColumn = await Column.get(context, { colId }, ncMeta);
     if (!skipFormulaInvalidate) {
-      // invalidate formula/button parsed-tree in which current column is used
-      // whenever a new request comes for that formula, it will be populated again
+      // reset the trees of formulas/buttons over this column, in this table
+      // and in others, and of those over them: a tree carries types read from
+      // the trees it references
       // (awaited: the dependency handlers that run next re-derive these trees)
-      await getFormulasReferredTheColumn(
+      await Column.resetDependentFormulaTrees(
         context,
-        {
-          column: updatedColumn,
-          columns: await Column.list(
-            context,
-            { fk_model_id: oldCol.fk_model_id },
-            ncMeta,
-          ),
-        },
+        updatedColumn,
         ncMeta,
-      )
-        .then(async (formulas) => {
-          for (const formula of formulas) {
-            if (formula.uidt === UITypes.Formula) {
-              await FormulaColumn.update(
-                context,
-                formula.id,
-                {
-                  parsed_tree: null,
-                },
-                ncMeta,
-              );
-            } else if (formula.uidt === UITypes.Button) {
-              await ButtonColumn.update(
-                context,
-                formula.id,
-                {
-                  parsed_tree: null,
-                },
-                ncMeta,
-              );
-            }
-          }
-        })
-        // ignore the error and continue, if formula/button is no longer valid it will be captured in the next run
-        .catch((err) => {
-          logger.error(err);
-        });
-
-      // and in other tables that reach this column through `{Link}.{Field}`
-      getFormulasReferringColumnViaPath(context, updatedColumn, ncMeta)
-        .then(async (formulas) => {
-          for (const {
-            column: formulaColumn,
-            context: formulaContext,
-          } of formulas) {
-            await (formulaColumn.uidt === UITypes.Button
-              ? ButtonColumn
-              : FormulaColumn
-            ).update(
-              formulaContext,
-              formulaColumn.id,
-              { parsed_tree: null },
-              ncMeta,
-            );
-            await View.clearSingleQueryCache(
-              formulaContext,
-              formulaColumn.fk_model_id,
-              null,
-              ncMeta,
-            );
-          }
-        })
-        .catch((err) => {
-          logger.error(err);
-        });
+      ).catch((err) => {
+        // a formula that no longer fits reports that on its next read
+        logger.error(err);
+      });
     }
 
     // Other models' compiled single-query SQL can embed this column (via FK,
@@ -2257,17 +2400,39 @@ export default class Column<T = any> implements ColumnType {
       });
 
     for (const link of links) {
+      const linkContext = {
+        ...context,
+        workspace_id: link.fk_workspace_id,
+        base_id: link.base_id,
+      };
       await Column.updateDisplayValueColumn(
-        {
-          workspace_id: link.fk_workspace_id,
-          base_id: link.base_id,
-        },
+        linkContext,
         {
           colId: link.fk_column_id,
           fk_display_value_column_id: null,
         },
         ncMeta,
       );
+      // A display value link's compiled reads embedded the override; so do its referrers'
+      const owner = await ncMeta.metaGet2(
+        linkContext.workspace_id,
+        linkContext.base_id,
+        MetaTable.COLUMNS,
+        link.fk_column_id,
+      );
+      if (owner?.pv) {
+        await View.clearSingleQueryCache(
+          linkContext,
+          owner.fk_model_id,
+          null,
+          ncMeta,
+        );
+        await clearSingleQueryCacheForReferencingModels(
+          linkContext,
+          owner.fk_model_id,
+          ncMeta,
+        );
+      }
     }
   }
 

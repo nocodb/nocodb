@@ -1,7 +1,9 @@
 import { NcErrorType } from 'nocodb-sdk';
 import { DBError, DBErrorKind } from './utils';
+import { constraintViolationMessage } from './constraint';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
+import { internalDbHostBlockedMessage } from '~/utils/ssrf';
 
 const REGEX_DATE_TIME_OUT_OF_RANGE =
   /date\/time field value out of range:\s*(.*)$/;
@@ -184,10 +186,8 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
           message = `Check constraint violated${
             constraint ? ` ('${constraint}')` : ''
           }: ${hint}`;
-        } else if (constraint) {
-          message = `Check constraint '${constraint}' violated.`;
         } else {
-          message = error.message || 'Check constraint violation.';
+          message = constraintViolationMessage({ type: 'check', constraint });
         }
         if (constraint) _extra = { constraint };
         break;
@@ -381,7 +381,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         break;
 
       case 'EACCES': // SSRF protection blocked connection
-        message = 'Connection to internal hosts is not allowed';
+        message = internalDbHostBlockedMessage();
         httpStatus = 403;
         break;
 

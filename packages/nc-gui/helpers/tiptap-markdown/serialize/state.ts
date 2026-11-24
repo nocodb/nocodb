@@ -22,6 +22,28 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
     this.inlines = []
   }
 
+  declare atBlockStart: boolean
+  declare readonly options: BaseMarkdownSerializerState['options'] & { preserveLeadingSpaces?: boolean }
+
+  // Covers whitespace ProseMirror moves out of a mark ("  **bold**") too, which bypasses the text node serializer
+  override text(text: string, escape = true): void {
+    const atLineStart = this.atBlockStart || this.out.endsWith('<br>')
+    if (escape && atLineStart && this.options.preserveLeadingSpaces) {
+      text = text.replace(/^[ \u00A0]+/, (spaces) => '&nbsp;'.repeat(spaces.length))
+    }
+    // Unescaped output (code spans, mark delimiters, link URLs) never passes through esc()
+    if (!escape && this.inTable) {
+      text = text.replace(/\|/g, '\\|')
+    }
+    super.text(text, escape)
+  }
+
+  // An unescaped pipe would end the table cell
+  override esc(str: string, startOfLine = false): string {
+    const escaped = super.esc(str, startOfLine)
+    return this.inTable ? escaped.replace(/\|/g, '\\|') : escaped
+  }
+
   override render(node: Node, parent: Node, index: number): void {
     super.render(node, parent, index)
     const top = this.inlines[this.inlines.length - 1]

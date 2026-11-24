@@ -10,13 +10,29 @@ import commonFns, {
 } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import type { WorkdaySqlDialect } from '~/db/functionMappings/workday';
+import type { DateCompareSqlDialect } from '~/db/functionMappings/dateCompare';
+import type { TextOccurrenceSqlDialect } from '~/db/functionMappings/textOccurrence';
 import { convertUnits } from '~/helpers/convertUnits';
+import { escapeBindingPlaceholders } from '~/helpers/sqlSanitize';
 import {
   getWeekdayByText,
   getWeekStartOffsetSunday,
 } from '~/helpers/formulaFnHelper';
-import { getDatetimeFormatHandler } from '~/db/datetime-format';
+import {
+  getDatetimeFormatHandler,
+  getDatetimeParseHandler,
+} from '~/db/datetime-format';
 import { workdayDiffFn, workdayFn } from '~/db/functionMappings/workday';
+import {
+  isAfterFn,
+  isBeforeFn,
+  isSameFn,
+} from '~/db/functionMappings/dateCompare';
+import {
+  substituteFn,
+  textAfterFn,
+  textBeforeFn,
+} from '~/db/functionMappings/textOccurrence';
 
 const mysqlWorkdayDialect: WorkdaySqlDialect = {
   dayNumber: (sql) => `DATEDIFF(${sql}, '1900-01-01')`,
@@ -30,6 +46,82 @@ const mysqlWorkdayDialect: WorkdaySqlDialect = {
   // so the built JSON array is always valid and such an entry is ignored.
   holidayDays: (sql) =>
     `(SELECT CASE WHEN wdt.t REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' AND DATE_FORMAT(STR_TO_DATE(wdt.t, '%Y-%m-%d'), '%Y-%m-%d') = wdt.t THEN DATEDIFF(STR_TO_DATE(wdt.t, '%Y-%m-%d'), '1900-01-01') END AS hn FROM (SELECT TRIM(wdj.t) AS t FROM JSON_TABLE(CONCAT('["', REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(CAST(${sql} AS CHAR), '[[:space:]]', ' '), '[^0-9, -]', 'x'), ',', '","'), '"]'), '$[*]' COLUMNS (t VARCHAR(255) PATH '$')) wdj) wdt)`,
+};
+
+// zero-padded text sorts in time order
+const MYSQL_TRUNCATE_FORMATS: Record<string, string> = {
+  year: '%Y',
+  month: '%Y-%m',
+  day: '%Y-%m-%d',
+  hour: '%Y-%m-%d %H',
+  minute: '%Y-%m-%d %H:%i',
+  second: '%Y-%m-%d %H:%i:%s',
+};
+
+const mysqlDateCompareDialect: DateCompareSqlDialect = {
+  truncate: (sql, unit) =>
+    !unit
+      ? `CAST(${sql} AS DATETIME(6))`
+      : unit === 'week'
+      ? `DATE_SUB(DATE(${sql}), INTERVAL WEEKDAY(${sql}) DAY)`
+      : `DATE_FORMAT(${sql}, '${MYSQL_TRUNCATE_FORMATS[unit]}')`,
+  datetimeLiteral: (iso) => `TIMESTAMP '${iso}'`,
+};
+
+// delimiters before the n-th one = SUBSTRING_INDEX up to it
+const mysqlDelimCount = (text: string, delim: string) =>
+  `((CHAR_LENGTH(${text}) - CHAR_LENGTH(REPLACE(${text}, ${delim}, ''))) DIV CHAR_LENGTH(${delim}))`;
+// EXTRACT misreads ISO text ('…T10:30' is hour 0); text is parsed as
+// DATETIME_PARSE reads it, NULL when it isn't a date
+const mysqlTimePart = async (
+  fn: MapFnArgs['fn'],
+  node: MapFnArgs['pt'],
+  nonTextSuffix = '',
+): Promise<string> => {
+  const sql = `(${(await fn(node)).builder.toQuery()})`;
+  return node?.dataType === FormulaDataTypes.STRING
+    ? `(${getDatetimeParseHandler(ClientType.MYSQL).build(sql)})`
+    : `(${sql}${nonTextSuffix})`;
+};
+
+// MySQL rounds a fractional position or length; truncate it, as the other
+// dialects do
+const mysqlSubstr = async ({ fn, knex, pt }: MapFnArgs) => {
+  const args = [
+    (await fn(pt.arguments[0])).builder,
+    (await fn(pt.arguments[1] ?? 1)).builder,
+  ];
+  if (pt.arguments[2]) args.push((await fn(pt.arguments[2])).builder);
+  return {
+    builder: knex.raw(
+      args.length === 3
+        ? 'SUBSTRING(?, TRUNCATE(?, 0), TRUNCATE(?, 0))'
+        : 'SUBSTRING(?, TRUNCATE(?, 0))',
+      args,
+    ),
+  };
+};
+
+const mysqlTextOccurrenceDialect: TextOccurrenceSqlDialect = {
+  isWhole: (sql) => `(${sql} = TRUNCATE(${sql}, 0))`,
+  occurrence: (text, delim, n, literalN) => {
+    // the args are inlined, so the usual literal n > 0 skips the count: the
+    // n-th delimiter exists when the text before it is shorter than the text
+    if (literalN > 0) {
+      const before = `CHAR_LENGTH(SUBSTRING_INDEX(${text}, ${delim}, ${literalN}))`;
+      return `(CASE WHEN ${before} < CHAR_LENGTH(${text}) THEN ${before} + 1 ELSE 0 END)`;
+    }
+    const k = mysqlDelimCount(text, delim);
+    const i = `(CASE WHEN ${n} > 0 THEN ${n} ELSE ${k} + ${n} + 1 END)`;
+    return `(CASE WHEN ${i} BETWEEN 1 AND ${k} THEN CHAR_LENGTH(SUBSTRING_INDEX(${text}, ${delim}, ${i})) + 1 ELSE 0 END)`;
+  },
+  substr: (text, from, length) =>
+    length
+      ? `SUBSTRING(${text}, ${from}, ${length})`
+      : `SUBSTRING(${text}, ${from})`,
+  length: (sql) => `CHAR_LENGTH(${sql})`,
+  concat: (parts) => `CONCAT(${parts.join(', ')})`,
+  inlineArgs: true,
 };
 
 // LEAST / GREATEST take two or more arguments; MIN(x) is x
@@ -116,7 +208,8 @@ const mysql2 = {
       builder: args.knex.raw(`SUBSTR(?, -(?))`, [source, needle]),
     };
   },
-  MID: 'SUBSTR',
+  MID: async (args: MapFnArgs) => mysqlSubstr(args),
+  SUBSTR: async (args: MapFnArgs) => mysqlSubstr(args),
   FLOAT: async (args: MapFnArgs) => {
     return {
       builder: args.knex
@@ -265,10 +358,55 @@ const mysql2 = {
       ),
     };
   },
-  HOUR: async ({ fn, knex, pt }: MapFnArgs) => {
+  HOUR: async ({ fn, knex, pt }: MapFnArgs) => ({
+    // `x + 0` keeps a Time field's hour; text is parsed (below)
+    builder: knex.raw(
+      escapeBindingPlaceholders(
+        `EXTRACT(HOUR FROM ${await mysqlTimePart(
+          fn,
+          pt?.arguments[0],
+          ' + 0',
+        )})`,
+      ),
+    ),
+  }),
+  MINUTE: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapeBindingPlaceholders(
+        `EXTRACT(MINUTE FROM ${await mysqlTimePart(fn, pt?.arguments[0])})`,
+      ),
+    ),
+  }),
+  SECOND: async ({ fn, knex, pt }: MapFnArgs) => ({
+    builder: knex.raw(
+      escapeBindingPlaceholders(
+        `EXTRACT(SECOND FROM ${await mysqlTimePart(fn, pt?.arguments[0])})`,
+      ),
+    ),
+  }),
+  // same clock as NOW() on this dialect
+  TODAY: async ({ knex }: MapFnArgs) => {
+    return { builder: knex.raw(`CURDATE()`) };
+  },
+  IS_SAME: isSameFn(mysqlDateCompareDialect),
+  IS_AFTER: isAfterFn(mysqlDateCompareDialect),
+  IS_BEFORE: isBeforeFn(mysqlDateCompareDialect),
+  TEXTBEFORE: textBeforeFn(mysqlTextOccurrenceDialect),
+  TEXTAFTER: textAfterFn(mysqlTextOccurrenceDialect),
+  SUBSTITUTE: substituteFn(mysqlTextOccurrenceDialect),
+  DATETIME_PARSE: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    if (pt.arguments[0].dataType === FormulaDataTypes.DATE) {
+      return { builder: value };
+    }
     return {
       builder: knex.raw(
-        `EXTRACT(HOUR FROM ((${(await fn(pt?.arguments[0])).builder}) + 0))`,
+        escapePlaceholders(
+          getDatetimeParseHandler(ClientType.MYSQL).build(
+            `(${value.toQuery()})`,
+            pt.arguments[1]?.value,
+          ),
+        ),
       ),
     };
   },
@@ -279,11 +417,18 @@ const mysql2 = {
       builder: knex.raw(`(? REGEXP ?)`, [source, pattern]),
     };
   },
+  // MariaDB's REGEXP_SUBSTR/REGEXP_REPLACE take no position/occurrence/match-type
+  // args, so case sensitivity comes from the inline `(?-i)` flag (MySQL ICU and
+  // MariaDB PCRE both accept it) instead of the 'c' match type. `\\?` keeps knex
+  // from reading the flag's `?` as a binding.
   REGEX_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const pattern = (await fn(pt.arguments[1])).builder;
     return {
-      builder: knex.raw(`REGEXP_SUBSTR(?, ?, 1, 1, 'c')`, [source, pattern]),
+      builder: knex.raw(`REGEXP_SUBSTR(?, CONCAT('(\\?-i)', ?))`, [
+        source,
+        pattern,
+      ]),
     };
   },
   REGEX_REPLACE: async ({ fn, knex, pt }: MapFnArgs) => {
@@ -291,7 +436,7 @@ const mysql2 = {
     const pattern = (await fn(pt.arguments[1])).builder;
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
-      builder: knex.raw(`REGEXP_REPLACE(?, ?, ?, 1, 0, 'c')`, [
+      builder: knex.raw(`REGEXP_REPLACE(?, CONCAT('(\\?-i)', ?), ?)`, [
         source,
         pattern,
         replacement,

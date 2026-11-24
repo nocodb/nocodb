@@ -1,9 +1,15 @@
 import { ClientType } from 'nocodb-sdk';
-import type { DatetimeFormatHandler } from '~/db/datetime-format/datetime-format.interface';
+import type {
+  DatetimeFormatHandler,
+  DatetimeParseHandler,
+} from '~/db/datetime-format/datetime-format.interface';
 import { NcError } from '~/helpers/catchError';
 import { MysqlDatetimeFormatHandler } from '~/db/datetime-format/handlers/datetime-format.mysql.handler';
 import { PgDatetimeFormatHandler } from '~/db/datetime-format/handlers/datetime-format.pg.handler';
 import { SqliteDatetimeFormatHandler } from '~/db/datetime-format/handlers/datetime-format.sqlite.handler';
+import { MysqlDatetimeParseHandler } from '~/db/datetime-format/handlers/datetime-parse.mysql.handler';
+import { PgDatetimeParseHandler } from '~/db/datetime-format/handlers/datetime-parse.pg.handler';
+import { SqliteDatetimeParseHandler } from '~/db/datetime-format/handlers/datetime-parse.sqlite.handler';
 
 // Default format applied when DATETIME_FORMAT is called without a format arg.
 export const DEFAULT_DATETIME_FORMAT = 'YYYY-MM-DD HH:mm';
@@ -34,4 +40,28 @@ export function getDatetimeFormatHandler(
   return handler;
 }
 
-export type { DatetimeFormatHandler } from '~/db/datetime-format/datetime-format.interface';
+const DATETIME_PARSE_HANDLERS: Partial<
+  Record<ClientType, DatetimeParseHandler>
+> = {
+  [ClientType.PG]: new PgDatetimeParseHandler(),
+  [ClientType.MYSQL]: new MysqlDatetimeParseHandler(),
+  [ClientType.SQLITE]: new SqliteDatetimeParseHandler(),
+};
+
+// DATETIME_PARSE strategy for a dialect; the UI gates the rest off via sqlUi
+export function getDatetimeParseHandler(
+  client: ClientType,
+): DatetimeParseHandler {
+  const handler = DATETIME_PARSE_HANDLERS[client];
+  if (!handler) {
+    NcError.badRequest(
+      `DATETIME_PARSE is not supported for the "${client}" database`,
+    );
+  }
+  return handler;
+}
+
+export type {
+  DatetimeFormatHandler,
+  DatetimeParseHandler,
+} from '~/db/datetime-format/datetime-format.interface';

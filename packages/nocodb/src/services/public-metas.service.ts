@@ -20,6 +20,7 @@ import type { NcContext } from '~/interface/config';
 import {
   Base,
   Column,
+  GalleryViewColumn,
   GridViewColumn,
   Model,
   Permission,
@@ -33,7 +34,13 @@ import { getUsersWithBaseAccess } from '~/helpers/baseAccessHelpers';
 import { setModelContext } from '~/helpers/modelContext';
 import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
-import { projectRelatedMetas } from '~/helpers/relatedMetaProjection';
+import { DISPLAY_VALUE_LINK_MAX_DEPTH } from '~/helpers/displayValueCycle';
+import {
+  getSharedModelVisibility,
+  markDisplayValueHop,
+  projectRelatedMetas,
+  unmarkDisplayValueHop,
+} from '~/helpers/relatedMetaProjection';
 import { withoutViewSecrets } from '~/helpers/publicViewSecrets';
 import {
   getViewExposedColumnIds,
@@ -59,14 +66,15 @@ export class PublicMetasService {
   >(context: NcContext, view: T): Promise<T> {
     if (!view?.model?.columns) return view;
 
-    const { allowedCols } = await resolveViewVisibleColumns(context, {
-      model: view.model,
-      view,
-    });
+    const { allowedCols, groupByColumnIds } = await resolveViewVisibleColumns(
+      context,
+      { model: view.model, view },
+    );
     const exposedIds = new Set<string>(view.model.columns.map((c) => c.id));
     for (const [id, allowed] of Object.entries(allowedCols ?? {})) {
       if (allowed) exposedIds.add(id);
     }
+    for (const id of groupByColumnIds) exposedIds.add(id);
 
     const columnsById = Object.fromEntries(
       Object.entries(view.model.columnsById ?? {}).filter(([id]) =>
@@ -131,8 +139,8 @@ export class PublicMetasService {
 
     await view.model.getColumns();
 
-    // Grouping by a field the share doesn't expose is refused on the data path
-    // (its group keys are the field's values) — drop it so the link shows the
+    // Grouping by a field the share doesn't expose (e.g. a timeline's hidden
+    // group field) is refused on the data path — drop it so the link shows the
     // rows ungrouped instead of nothing. Copies: the columns may be cached.
     const isGroupedBy = (c: object) =>
       'group_by' in c && !!(c as { group_by?: unknown }).group_by;
@@ -184,8 +192,14 @@ export class PublicMetasService {
       }
     }
 
+    // A grid/gallery group field renders in the group headers even when hidden.
+    const isGridGroupBy = (c: object) =>
+      (c instanceof GridViewColumn || c instanceof GalleryViewColumn) &&
+      !!c.group_by;
     const isShown = (columnId: string) =>
-      view.columns.some((vc) => vc.fk_column_id === columnId && vc.show);
+      view.columns.some(
+        (vc) => vc.fk_column_id === columnId && (vc.show || isGridGroupBy(vc)),
+      );
 
     // A hidden required column stays out: a shared form submits shown fields
     // only. A Lookup/Rollup brings its link only when the share shows it.
@@ -200,7 +214,7 @@ export class PublicMetasService {
         if (!column) return false;
 
         return (
-          (c instanceof GridViewColumn && c.group_by) ||
+          isGridGroupBy(c) ||
           c.show ||
           column.pk ||
           view.model.columns.some(
@@ -251,7 +265,16 @@ export class PublicMetasService {
     // path returns under `pkAndPvOnly` — the two must agree, or the frontend
     // renders fields the API refuses to return.
     if (isSharedViewAccess(context)) {
-      projectRelatedMetas(relatedMetas, view.model.columns);
+      projectRelatedMetas(
+        relatedMetas,
+        view.model.columns,
+        [],
+        getSharedModelVisibility(
+          view.model.id,
+          view.model.columns,
+          view.columns,
+        ),
+      );
     }
 
     view.relatedMetas = relatedMetas;
@@ -348,6 +371,7 @@ export class PublicMetasService {
   ) {
     const { refContext, mmContext } = ltarColOption.getRelContext();
 
+    unmarkDisplayValueHop(relatedMetas, ltarColOption.fk_related_model_id);
     relatedMetas[ltarColOption.fk_related_model_id] = await Model.getWithInfo(
       refContext,
       {
@@ -360,7 +384,12 @@ export class PublicMetasService {
       relatedMetas,
       ltarColOption.fk_related_model_id,
     );
+    await this.extractDisplayValueChainMetas(context, {
+      ltarColOption,
+      relatedMetas,
+    });
     if (ltarColOption.type === 'mm') {
+      unmarkDisplayValueHop(relatedMetas, ltarColOption.fk_mm_model_id);
       relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
         mmContext,
         {
@@ -373,6 +402,59 @@ export class PublicMetasService {
         relatedMetas,
         ltarColOption.fk_mm_model_id,
       );
+    }
+  }
+
+  // A related table whose display value is a link shows the linked record's display value,
+  // so the tables further down that chain are needed to render it.
+  protected async extractDisplayValueChainMetas(
+    context: NcContext,
+    {
+      ltarColOption,
+      relatedMetas,
+    }: {
+      ltarColOption: LinkToAnotherRecordColumn;
+      relatedMetas: { [key: string]: Model };
+    },
+  ) {
+    const visited = new Set<string>();
+    let opt = ltarColOption;
+
+    for (let depth = 0; depth < DISPLAY_VALUE_LINK_MAX_DEPTH; depth++) {
+      const related = relatedMetas[opt.fk_related_model_id];
+      if (!related?.columns || visited.has(related.id)) return;
+      visited.add(related.id);
+
+      // The link's own display column replaces the related table's display value. Checked on
+      // the id: limited access may already have stripped that column from the meta.
+      if (opt.fk_display_value_column_id) return;
+      const pv = related.displayValue;
+      if (!pv || !isLinksOrLTAR(pv)) return;
+
+      const pvOpt = await pv.getColOptions<LinkToAnotherRecordColumn>();
+      if (!pvOpt?.fk_related_model_id) return;
+
+      const { refContext } = pvOpt.getRelContext();
+      if (!relatedMetas[pvOpt.fk_related_model_id]) {
+        markDisplayValueHop(
+          relatedMetas,
+          pvOpt.fk_related_model_id,
+          pvOpt.fk_display_value_column_id
+            ? [pvOpt.fk_display_value_column_id]
+            : [],
+        );
+        relatedMetas[pvOpt.fk_related_model_id] = await Model.getWithInfo(
+          refContext,
+          { id: pvOpt.fk_related_model_id },
+        );
+        await this.filterIfLimitedAccess(
+          context,
+          refContext,
+          relatedMetas,
+          pvOpt.fk_related_model_id,
+        );
+      }
+      opt = pvOpt;
     }
   }
 
@@ -427,6 +509,9 @@ export class PublicMetasService {
     });
 
     if (!lookedUpCol) return;
+
+    unmarkDisplayValueHop(relatedMetas, relationCol.fk_model_id);
+    unmarkDisplayValueHop(relatedMetas, lookedUpCol.fk_model_id);
 
     // extract meta for table which belongs the relation column
     // if not already extracted

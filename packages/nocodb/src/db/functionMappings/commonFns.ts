@@ -1,4 +1,5 @@
 import {
+  findCreatedTimeColumn,
   FormulaDataTypes,
   getCanonicalTimezone,
   getNodejsTimezone,
@@ -237,50 +238,8 @@ export function getDatetimeFormatTimezone(): string | undefined {
   return timezone;
 }
 
-const DATETIME_INSTANT_UIDTS = new Set<string>([
-  UITypes.DateTime,
-  UITypes.CreatedTime,
-  UITypes.LastModifiedTime,
-]);
-
-// True only for expressions known to be a datetime instant. Date fields,
-// formula columns and anything unidentified are not shifted (a Date would move
-// to the previous/next day).
-export function isDatetimeInstantNode(node: MapFnArgs['pt']): boolean {
-  if (node?.dataType !== FormulaDataTypes.DATE) return false;
-
-  if (node.type === JSEPNode.IDENTIFIER) {
-    return DATETIME_INSTANT_UIDTS.has(node.referencedColumn?.uidt);
-  }
-
-  if (node.type !== JSEPNode.CALL_EXP) return false;
-
-  const args: MapFnArgs['pt'][] = node.arguments ?? [];
-  // result branches that can carry the value
-  let branches: MapFnArgs['pt'][];
-  switch (node.callee?.name?.toUpperCase()) {
-    case 'NOW':
-      return true;
-    case 'DATEADD':
-      branches = args.slice(0, 1);
-      break;
-    case 'IF':
-      branches = args.slice(1, 3);
-      break;
-    case 'SWITCH':
-      branches = args.filter(
-        (_, i) => (i > 0 && i % 2 === 0) || (i === args.length - 1 && i > 0),
-      );
-      break;
-    default:
-      return false;
-  }
-
-  const valueBranches = branches.filter(
-    (b) => b && b.dataType !== FormulaDataTypes.NULL,
-  );
-  return valueBranches.length > 0 && valueBranches.every(isDatetimeInstantNode);
-}
+// shared with the SDK, which classifies a referenced formula by it
+export { isDatetimeInstantNode } from 'nocodb-sdk';
 
 export const ALLOWED_DATEADD_UNITS = new Set([
   'day',
@@ -424,7 +383,17 @@ export async function treatArgAsConditionalExp(
   }
 }
 
+// A node that renders as the SQL under DERIVED_REF_SQL. The key is a symbol,
+// so a stored (JSON) parse tree can never carry it.
+const DERIVED_REF = '__NC_DERIVED_REF';
+const DERIVED_REF_SQL = Symbol('ncDerivedRefSql');
+
 export default {
+  [DERIVED_REF]: async (args: MapFnArgs) => {
+    const sql = args.pt[DERIVED_REF_SQL];
+    if (typeof sql !== 'string') NcError.badRequest('Invalid formula');
+    return { builder: args.knex.raw(sql) };
+  },
   SWITCH: async (args: MapFnArgs) => {
     const count = Math.floor((args.pt.arguments.length - 1) / 2);
     const query: Knex.Raw[] = [];
@@ -715,6 +684,180 @@ export default {
       ),
     };
   },
+  NOT: async (args: MapFnArgs) => {
+    const cond = (await treatArgAsConditionalExp(args)).builder;
+    // a blank comparison is false (as MSSQL / Oracle materialize it), so NOT is true
+    const client = args.knex.clientType();
+    let sql = 'NOT (?)';
+    if (args.pt.arguments[0]?.dataType === FormulaDataTypes.COND_EXP) {
+      if (client === 'pg') sql = '(?) IS NOT TRUE';
+      else if (['mysql', 'mysql2', 'sqlite3'].includes(client))
+        sql = 'NOT COALESCE((?), 0)';
+    }
+    return {
+      builder: args.knex.raw(logicalScalarSql(args.knex, sql), [cond]),
+    };
+  },
+  // |DATETIME_DIFF(NOW(), date, unit)|, on every dialect that has DATETIME_DIFF
+  FROMNOW: async (args: MapFnArgs) =>
+    args.fn(
+      {
+        type: JSEPNode.CALL_EXP,
+        callee: { type: 'Identifier', name: 'ABS' },
+        dataType: FormulaDataTypes.NUMERIC,
+        arguments: [
+          {
+            type: JSEPNode.CALL_EXP,
+            callee: { type: 'Identifier', name: 'DATETIME_DIFF' },
+            dataType: FormulaDataTypes.NUMERIC,
+            arguments: [
+              {
+                type: JSEPNode.CALL_EXP,
+                callee: { type: 'Identifier', name: 'NOW' },
+                dataType: FormulaDataTypes.DATE,
+                arguments: [],
+              },
+              args.pt.arguments[0],
+              args.pt.arguments[1] ?? {
+                type: JSEPNode.LITERAL,
+                value: 'days',
+                dataType: FormulaDataTypes.STRING,
+              },
+            ],
+          },
+        ],
+      },
+      args.prevBinaryOp,
+    ),
+  TONOW: async (args: MapFnArgs) =>
+    args.fn(
+      { ...args.pt, callee: { type: 'Identifier', name: 'FROMNOW' } },
+      args.prevBinaryOp,
+    ),
+  // SEARCH with the spreadsheet argument order and an optional start position
+  FIND: async (args: MapFnArgs) => {
+    const [needle, haystack, start] = args.pt.arguments;
+    const client = args.knex.clientType();
+    const sqlOf = async (node) =>
+      `(${(await args.fn(node)).builder.toQuery()})`;
+    // FIND is case-sensitive; MySQL's LOCATE and MSSQL's CHARINDEX follow the
+    // column collation, so they compare in a binary one
+    const search = async (h, n) =>
+      client === 'mysql2' || client === 'mysql'
+        ? `LOCATE(CONVERT(${await sqlOf(
+            n,
+          )} USING utf8mb4) COLLATE utf8mb4_bin, CONVERT(${await sqlOf(
+            h,
+          )} USING utf8mb4) COLLATE utf8mb4_bin)`
+        : client === 'mssql'
+        ? `CHARINDEX(CAST(${await sqlOf(
+            n,
+          )} AS NVARCHAR(MAX)) COLLATE Latin1_General_100_BIN2, CAST(${await sqlOf(
+            h,
+          )} AS NVARCHAR(MAX)) COLLATE Latin1_General_100_BIN2)`
+        : sqlOf({
+            type: JSEPNode.CALL_EXP,
+            callee: { type: 'Identifier', name: 'SEARCH' },
+            dataType: FormulaDataTypes.NUMERIC,
+            arguments: [h, n],
+          });
+    if (!start) {
+      return {
+        builder: args.knex.raw(
+          escapeBindingPlaceholders(await search(haystack, needle)),
+        ),
+      };
+    }
+
+    // position in the whole text, and in the text from the start position on
+    const positions = async (h, n, s) => ({
+      fullPos: await search(h, n),
+      pos: await search(
+        {
+          type: JSEPNode.CALL_EXP,
+          callee: { type: 'Identifier', name: 'SUBSTR' },
+          dataType: FormulaDataTypes.STRING,
+          arguments: [h, s],
+        },
+        n,
+      ),
+    });
+    // a start below 1 searches the whole text (SUBSTR differs there per dialect);
+    // past the end Oracle's SUBSTR is NULL, so not-found comes from fp * 0
+    const findSql = (s: string, fp: string, p: string) =>
+      `CASE WHEN ${s} < 1 THEN ${fp} WHEN ${p} > 0 THEN ${p} + ${s} - 1 WHEN ${s} IS NOT NULL THEN ${fp} * 0 END`;
+
+    // a fractional start truncates, the same in SUBSTR and in the result
+    const truncSql = (sql: string) =>
+      client === 'pg'
+        ? `TRUNC((${sql})::numeric)`
+        : client === 'sqlite3'
+        ? `CAST(${sql} AS INTEGER)`
+        : client === 'mssql'
+        ? `ROUND(${sql}, 0, 1)`
+        : client === 'oracledb'
+        ? `TRUNC(${sql})`
+        : client === 'databricks'
+        ? `CAST(${sql} AS BIGINT)`
+        : `TRUNCATE(${sql}, 0)`;
+    // SEARCH and SUBSTR read precomputed SQL through DERIVED_REF nodes
+    const sqlNode = (sql: string, dataType: FormulaDataTypes) => ({
+      type: JSEPNode.CALL_EXP,
+      callee: { type: 'Identifier', name: DERIVED_REF },
+      arguments: [],
+      dataType,
+      [DERIVED_REF_SQL]: sql,
+    });
+    // derived row only where verified; MySQL can't resolve an outer column read
+    // by a derived table and one nested in it (FIND in FIND), so it stays inline
+    if (!['pg', 'sqlite3', 'mssql', 'oracledb'].includes(client)) {
+      const startSql = truncSql(await sqlOf(start));
+      const { fullPos, pos } = await positions(
+        haystack,
+        needle,
+        sqlNode(startSql, FormulaDataTypes.NUMERIC),
+      );
+      return {
+        builder: args.knex.raw(
+          escapeBindingPlaceholders(`(${findSql(startSql, fullPos, pos)})`),
+        ),
+      };
+    }
+
+    const haystackSql = await sqlOf(haystack);
+    const needleSql = await sqlOf(needle);
+    const startSql = truncSql(await sqlOf(start));
+    // the arguments (a lookup is a correlated subquery) are evaluated once in a
+    // derived row
+    const ref = (name: string, dataType: FormulaDataTypes) =>
+      sqlNode(`nc_fa.${name}`, dataType);
+    const found = await positions(
+      ref('h', FormulaDataTypes.STRING),
+      ref('n', FormulaDataTypes.STRING),
+      ref('s', FormulaDataTypes.NUMERIC),
+    );
+
+    const fromless = client === 'oracledb' ? ' FROM DUAL' : '';
+    const noInline =
+      client === 'pg'
+        ? ' OFFSET 0'
+        : client === 'sqlite3'
+        ? ' LIMIT -1 OFFSET 0'
+        : '';
+    return {
+      builder: args.knex.raw(
+        escapeBindingPlaceholders(
+          `(SELECT ${findSql(
+            'nc_fb.s',
+            'nc_fb.fp',
+            'nc_fb.p',
+          )} FROM (SELECT nc_fa.s, ${found.fullPos} AS fp, ${
+            found.pos
+          } AS p FROM (SELECT ${haystackSql} AS h, ${needleSql} AS n, ${startSql} AS s${fromless}${noInline}) nc_fa${noInline}) nc_fb)`,
+        ),
+      ),
+    };
+  },
   AVG: async (args: MapFnArgs) => {
     if (args.pt.arguments.length > 1) {
       return args.fn(
@@ -775,9 +918,7 @@ export default {
     };
   },
   CREATED_TIME: async (args: MapFnArgs) => {
-    const createdAtCol = args.model?.columns?.find(
-      (col) => col.column_name === 'created_at',
-    );
+    const createdAtCol = findCreatedTimeColumn(args.model?.columns ?? []);
     if (!createdAtCol) {
       NcError.badRequest('Created at field not found');
     }

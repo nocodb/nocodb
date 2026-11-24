@@ -22,6 +22,7 @@ export * from './formula/url-markup';
 export * from './formula/member-path';
 export * from './formula/method-scope';
 export * from './formula/rollupFormula';
+export * from './formula/dateOnlyFormula';
 
 // Columns of the table a link field points to, for resolving `{Link}.{Field}`
 export type RelatedColumnsResolver<R = ColumnType[] | undefined> = (

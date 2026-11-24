@@ -34,6 +34,7 @@ import {
   Unauthorized,
   UnprocessableEntity,
 } from '~/helpers/catchError';
+import { QueryAbortedError } from '~/db/queryGuard';
 
 // NcBaseErrorv2 types that stand for a server-side failure, not caller error.
 // The mapper marks them handled (they carry a safe user message), but there's a
@@ -67,6 +68,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const apiVersion = (request as any).ncApiVersion;
+
+    // The client closed the request and its query was cancelled: nobody to answer or alert.
+    if (exception instanceof QueryAbortedError) {
+      if (!response.headersSent) response.status(499).end();
+      return;
+    }
 
     // catch body-parser error and replace with NcBaseErrorv2
     if (

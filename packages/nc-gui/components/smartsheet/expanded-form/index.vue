@@ -26,6 +26,8 @@ interface Props {
   existingTemplateNames?: string[]
   editingTemplateId?: string
   blueprintParentTableId?: string
+  /** Blueprint of a record linked from an unsaved one, created when that one is saved (not a template's) */
+  linkOnParentSave?: boolean
   /** Breadcrumb trail showing the parent chain (e.g., ['Project Template', 'Tasks']) */
   breadcrumbs?: string[]
   expandForm?: (row: Row) => void
@@ -150,6 +152,7 @@ const {
   commentsDrawer,
   changedColumns,
   hasLtarChanges,
+  heldLtarBlueprints,
   pendingLtarOps,
   displayValue,
   state: rowState,
@@ -408,9 +411,14 @@ const save = async () => {
     if (!props.skipReload) {
       // The form already holds the saved row, so its own view-data listener skips it
       const reloadParams = { inPlace: true, skipLoadingRowId: primaryKey.value || undefined }
-      // The grid provides one hook for both
-      if (reloadTrigger !== reloadViewDataTrigger) await reloadTrigger?.trigger(reloadParams)
-      await reloadViewDataTrigger?.trigger(reloadParams)
+      try {
+        // The grid provides one hook for both
+        if (reloadTrigger !== reloadViewDataTrigger) await reloadTrigger?.trigger(reloadParams)
+        await reloadViewDataTrigger?.trigger(reloadParams)
+      } catch {
+        // The record is already saved; only the view is stale.
+        message.warning(t('msg.warning.recordSavedButReloadFailed'))
+      }
     }
 
     isUnsavedFormExist.value = false
@@ -419,7 +427,8 @@ const save = async () => {
     if (_row.value?.row?.__nc_rls_hidden) {
       message.info(t('msg.info.recordSavedButHidden'))
       isExpanded.value = false
-    } else if (props.closeAfterSave) {
+    } else if (props.closeAfterSave && !hasLtarChanges.value) {
+      // Stays open while linked records that failed to create are held for a retry
       isExpanded.value = false
     } else {
       if (isUnsavedDuplicatedRecordExist.value) {
@@ -460,6 +469,7 @@ const clearLtarBuffers = () => {
     _row.value.rowMeta.smartTextDrafts = {}
   }
   pendingLtarOps.value = []
+  heldLtarBlueprints.value = {}
 }
 
 const discardPreventModal = () => {
@@ -508,6 +518,12 @@ const saveChanges = async () => {
       isPreventChangeModalOpen.value = false
       return
     }
+    // Linked records that failed to create are still held: stay on this record
+    if (hasLtarChanges.value) {
+      isPreventChangeModalOpen.value = false
+      interruptedDirectionToGo.value = undefined
+      return
+    }
     if (interruptedDirectionToGo.value) {
       loadingEmit(interruptedDirectionToGo.value)
     } else {
@@ -519,7 +535,7 @@ const saveChanges = async () => {
   if (isCloseModalOpen.value) {
     isCloseModalOpen.value = false
     if ((await save()) === false) return
-    isExpanded.value = false
+    if (!hasLtarChanges.value) isExpanded.value = false
   }
 }
 const reloadParentRowHook = inject(ReloadRowDataHookInj, createEventHook())
@@ -693,7 +709,8 @@ useActiveKeydownListener(
       // remove focus from the active input if any to avoid unwanted input
       ;(document.activeElement as HTMLInputElement)?.blur?.()
 
-      if (changedColumns.value.size > 0) {
+      // Held linked records that failed to create count as unsaved changes too
+      if (changedColumns.value.size > 0 || (!isNew.value && hasLtarChanges.value)) {
         Modal.confirm({
           title: t('msg.saveChanges'),
           okText: t('general.save'),
@@ -701,6 +718,8 @@ useActiveKeydownListener(
           onOk: async () => {
             if ((await save()) === false) return
             reloadHook?.trigger(null)
+            // Some are still held: stay on this record
+            if (hasLtarChanges.value) return
             addNewRow()
           },
           onCancel: () => {
@@ -716,6 +735,8 @@ useActiveKeydownListener(
             try {
               await _save(rowState.value)
               reloadHook?.trigger(null)
+              // Linked records that failed to create are held: stay on this record
+              if (hasLtarChanges.value) return
               addNewRow()
             } catch (e: any) {
               message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
@@ -1080,7 +1101,7 @@ export default {
           </NcButton>
           <NcTooltip v-if="conflictingColumns.length" placement="bottom">
             <template #title>{{
-              $t(hasLtarChanges ? 'tooltip.fieldChangedByOthersDropLinks' : 'tooltip.fieldChangedByOthers', {
+              $t(pendingLtarOps.length ? 'tooltip.fieldChangedByOthersDropLinks' : 'tooltip.fieldChangedByOthers', {
                 fields: conflictingColumns.join(', '),
               })
             }}</template>
@@ -1197,6 +1218,7 @@ export default {
       >
         <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5" />
         <span v-if="templateMode">{{ $t('msg.info.editingRecordTemplate') }}</span>
+        <span v-else-if="linkOnParentSave">{{ $t('msg.info.editingLinkedNewRecord') }}</span>
         <span v-else>{{ $t('msg.info.editingSubRecord') }}</span>
       </div>
     </div>

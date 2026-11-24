@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { isDateMonthFormat, isJalaliFormat, isSystemColumn, parseDateWithFormat, parseJalaliToGregorian } from 'nocodb-sdk'
+import {
+  isDateMonthFormat,
+  isJalaliFormat,
+  isSystemColumn,
+  parseDateWithFormat,
+  parseJalaliToGregorian,
+  parseStoredDate,
+} from 'nocodb-sdk'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 interface Props {
@@ -94,9 +101,7 @@ const localState = computed({
 
     // Stored values are always Gregorian ISO; parse them as Gregorian even for
     // Jalali columns (the Jalali conversion happens at display/format time).
-    const format = isJalali.value ? 'YYYY-MM-DD' : picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
-
-    const value = dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
+    const value = parseStoredDate(modelValue)
 
     return value
   },

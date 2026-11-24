@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import {
   coerceOracleReturnedPk,
   dataWrapper,
+  formMappingColumns,
   populatePk,
 } from 'src/helpers/dbHelpers';
 import {
@@ -25,12 +26,11 @@ import {
 } from '~/db/BaseModelSqlv2/mssql-insert-sql';
 import { withRecordIndex } from '~/db/BaseModelSqlv2/with-record-index';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
-import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
-import getAst from '~/helpers/getAst';
-import { nocoExecute } from '~/utils';
+import { handleConstraintError } from '~/helpers/constraintErrorHandler';
 import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
 import { captureNestedLinkHooks } from '~/db/BaseModelSqlv2/add-remove-links';
+import { isSearchIndexTracked } from '~/db/search/searchIndex';
 
 const logger = new Logger('BaseModelSqlv2');
 
@@ -243,7 +243,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         insertData: insertObj || data,
       });
       await baseModel.errorInsert(e, data, request);
-      await handleNotNullConstraintError({ error: e, baseModel });
+      await handleConstraintError({ error: e, baseModel });
       throw e;
     }
   };
@@ -265,6 +265,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       skipPermissionCheck = false,
       skipAttachmentOwnershipCheck = false,
       triggerLinkUpdateHooks = false,
+      formColumns,
     }: {
       chunkSize?: number;
       cookie?: NcRequest;
@@ -292,6 +293,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       skipAttachmentOwnershipCheck?: boolean;
       /** Fire update hooks on the records the nested links change — user writes only */
       triggerLinkUpdateHooks?: boolean;
+      /** Map only these columns (and the pks), by title or id — see `nestedInsert`. */
+      formColumns?: Column[];
     } = {},
   ) => {
     // The after-insert hooks read the inserted rows back by pk. In raw mode the
@@ -300,6 +303,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
     // out of the insert itself.
     const capturePks =
       typeof onInsertedPks === 'function' || (raw && !skip_hooks);
+    // Indexed tables need the inserted pks, or every row is re-indexed.
+    const returnPksForSearch =
+      baseModel.isPg && isSearchIndexTracked(baseModel.model);
     let trx;
     try {
       const insertDatas = raw ? datas : [];
@@ -335,6 +341,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         const order = await baseModel.getHighestOrderInTable();
         const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
         const attachmentCols = columns.filter((c) => isAttachment(c));
+        const mapColumns = formMappingColumns(baseModel.model, formColumns);
 
         for (const [index, d] of datas.entries()) {
           const insertObj = await withRecordIndex(
@@ -344,11 +351,12 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             async () => {
               const insertObj = await baseModel.handleValidateBulkInsert(
                 d,
-                columns,
+                mapColumns ?? columns,
                 {
                   allowSystemColumn,
                   undo,
                   typecast,
+                  byTitleOrId: !!mapColumns,
                 },
               );
 
@@ -601,7 +609,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           );
         } else {
           responses =
-            (!raw || capturePks) && baseModel.isPg
+            (!raw || capturePks || returnPksForSearch) && baseModel.isPg
               ? await trx
                   .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
                   .returning(
@@ -649,6 +657,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // Transaction is finalized; clear the reference so a post-commit
       // failure below can't trigger rollback() on an already-closed trx.
       trx = null;
+      // Queued now: the hook readbacks below can fail after the commit. The
+      // after hook then only queues these rows.
+      const searchMarked = returnPksForSearch
+        ? await baseModel.trackSearchIndexInserted(responses)
+        : undefined;
 
       // Safe to run now that the rows are visible to other connections. These
       // only enqueue background jobs, so a failure must not fail the insert.
@@ -691,35 +704,13 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               insertData: datas?.[0],
               req: cookie,
             });
-          } else if (!baseModel.model.primaryKeys?.length) {
-            // A PK-less table's readback pk filter (`_wherePk`) resolves to an
-            // empty `{}` where-clause, which `orWhere` no-ops — chunkList would
-            // silently return the table's first N pre-existing rows instead of
-            // the ones just inserted, dispatching hooks against the wrong rows.
-            logger.warn(
-              `skipping after-insert hook dispatch for model ${baseModel.model?.id}: table has no primary key columns to re-read inserted rows by`,
-            );
           } else {
-            const insertResponseList = await baseModel.chunkList({
-              // composite PKs require the `___`-joined string form (asString=true);
-              // the object form stringifies to "[object Object]" in chunkList's join
-              pks: responses.map((d) => baseModel.extractPksValues(d, true)),
-            });
-
-            // get ast
-            const { ast, parsedQuery } = await getAst(baseModel.context, {
-              model: baseModel.model,
-              query: {},
-              extractOnlyPrimaries: false,
-            });
-            // nocoexecute
-            const insertResponses = await nocoExecute(
-              ast,
-              insertResponseList,
-              {},
-              parsedQuery,
+            // composite PKs require the `___`-joined string form (asString=true);
+            // the object form stringifies to "[object Object]" in chunkList's join
+            await baseModel.dispatchInsertHooks(
+              responses.map((d) => baseModel.extractPksValues(d, true)),
+              cookie,
             );
-            await baseModel.afterBulkInsert(insertResponses, cookie);
           }
         } catch (hookErr: any) {
           // The rows are already durably committed above. On the raw import
@@ -735,6 +726,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           );
         }
       }
+      if (searchMarked) baseModel.forgetSearchIndexWritten(searchMarked);
 
       await baseModel.statsUpdate({
         count: insertDatas.length,
@@ -759,7 +751,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         baseModel: baseModel,
         insertData: datas?.[0],
       });
-      await handleNotNullConstraintError({ error: e, baseModel });
+      await handleConstraintError({ error: e, baseModel });
       // await baseModel.errorInsertb(e, data, null);
       throw e;
     }

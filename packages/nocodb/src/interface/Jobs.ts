@@ -113,6 +113,10 @@ export enum JobTypes {
   HqRoadmapNotify = 'hq-roadmap-notify',
   HqRoadmapImpactRefresh = 'hq-roadmap-impact-refresh',
   FactoryMachineImageDelete = 'factory-machine-image-delete',
+  SearchIndexBuild = 'search-index-build',
+  SearchIndexFlush = 'search-index-flush',
+  SearchIndexFieldSync = 'search-index-field-sync',
+  SearchIndexReconcile = 'search-index-reconcile',
 }
 
 // hourly; the processor deletes exports once their signed links (3h) have expired
@@ -155,6 +159,10 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.HqRoadmapImpactRefresh,
   JobTypes.FactoryMachineImageDelete,
   JobTypes.CloudDbMoveBackWatchdog,
+  JobTypes.SearchIndexBuild,
+  JobTypes.SearchIndexFlush,
+  JobTypes.SearchIndexFieldSync,
+  JobTypes.SearchIndexReconcile,
 ];
 
 // No client is handed these job ids, so nothing polls them on /jobs/listen.
@@ -166,6 +174,10 @@ export const UNPOLLED_JOB_TYPES: ReadonlySet<string> = new Set([
   JobTypes.UpdateWsStat,
   JobTypes.UpdateUsageStats,
   JobTypes.CloudDbMoveBackWatchdog,
+  JobTypes.SearchIndexBuild,
+  JobTypes.SearchIndexFlush,
+  JobTypes.SearchIndexFieldSync,
+  JobTypes.SearchIndexReconcile,
 ]);
 
 export enum JobStatus {
@@ -239,6 +251,39 @@ export interface JobData {
   // context
   context: NcContext;
   user: Partial<UserType>;
+}
+
+export interface SearchIndexBuildJobData extends JobData {
+  modelId: string;
+  /** Asked for by a user: with every slot taken, it waits for one. */
+  explicit?: boolean;
+  /** A wait for a slot: skipped once the index has been built elsewhere. */
+  retry?: boolean;
+}
+
+/** Rows a flush re-indexes in place of the table's marks. */
+export type SearchIndexFlushRows =
+  | { ids: Array<string | number> }
+  | { since: string }
+  | { all: true };
+
+export interface SearchIndexFlushJobData extends JobData {
+  modelId: string;
+  /** The job's id, as added. */
+  key: string;
+  /** Unset: the table's marks. */
+  rows?: SearchIndexFlushRows;
+  /** Walk the rows to the indexes that read them. */
+  propagate?: boolean;
+  /** The table was marked stale for these rows: cleared once indexed. */
+  stale?: boolean;
+  /** Failed runs so far. */
+  attempt?: number;
+}
+
+export interface SearchIndexFieldSyncJobData extends JobData {
+  modelId: string;
+  key: string;
 }
 
 export interface AtImportJobData extends JobData {

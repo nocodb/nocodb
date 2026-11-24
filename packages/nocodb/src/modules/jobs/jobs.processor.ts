@@ -27,6 +27,16 @@ const LOCAL_CONCURRENCY_LIMIT = {
   [JobTypes.AttachmentUrlUpload]: 1,
   // Each move-back is a full pg_dump into the shared data DB.
   [JobTypes.CloudDbMoveBack]: 1,
+  // Heavy jobs share one heap with concurrency 20; uncapped, a few at once OOM the worker.
+  [JobTypes.DataExport]: 2,
+  [JobTypes.InterfaceDataExport]: 2,
+  [JobTypes.DataImport]: 2,
+  [JobTypes.DuplicateBase]: 2,
+  // Search index work: a build holds its slot for the whole backfill.
+  [JobTypes.SearchIndexBuild]: 2,
+  [JobTypes.SearchIndexFlush]: 3,
+  [JobTypes.SearchIndexFieldSync]: 1,
+  [JobTypes.SearchIndexReconcile]: 1,
 };
 
 export const LOCAL_JOB_COUNT_MAP = new Map<string, number>();

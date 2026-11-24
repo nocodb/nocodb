@@ -451,6 +451,8 @@ const handlePaste = (e: ClipboardEvent) => {
 const handleBlur = (e: Event) => {
   const target = e.target as HTMLInputElement
   const originalValue = target.value
+  // Number('') is 0: an empty field would save as a real coordinate
+  if (originalValue.trim() === '') return
   const value = convertGeoNumberToString(Number(originalValue))
   if (value !== originalValue) {
     if (target.id === identifier.latitude) {
@@ -651,7 +653,6 @@ onBeforeUnmount(() => {
                     :placeholder="t('labels.enterLatitude')"
                     :min="-90"
                     :disabled="readonly"
-                    required
                     :max="90"
                     :status="isLatitudeInvalid ? 'error' : ''"
                     @blur="handleBlur"
@@ -672,7 +673,6 @@ onBeforeUnmount(() => {
                     step="0.0000000001"
                     class="nc-geodata-input-field"
                     :placeholder="t('labels.enterLongitude')"
-                    required
                     :min="-180"
                     :disabled="readonly"
                     :max="180"

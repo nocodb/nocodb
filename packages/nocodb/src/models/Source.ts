@@ -1,4 +1,11 @@
-import { UITypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
+import {
+  dataSourceClientOf,
+  IntegrationsType,
+  isDataSourceAuthClient,
+  knexConfigFromSqlAuthConfig,
+  UITypes,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
@@ -16,6 +23,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { dropSearchSchema } from '~/db/search/searchIndexSchema';
 import {
   parseMetaProp,
   prepareForDb,
@@ -60,6 +68,8 @@ export const SOURCE_UPDATE_PROPS = [
   'is_encrypted',
 ];
 
+const logger = new Logger('Source');
+
 export default class Source implements SourceType {
   id?: string;
   fk_workspace_id?: string;
@@ -80,6 +90,9 @@ export default class Source implements SourceType {
   fk_integration_id?: string;
   integration_config?: string;
   integration_title?: string;
+  integration_type?: string;
+  integration_sub_type?: string;
+  integration_meta?: unknown;
   is_encrypted?: boolean;
   deleted?: boolean;
 
@@ -467,10 +480,33 @@ export default class Source implements SourceType {
       return this.normalizeMssqlConfig(config);
     }
 
-    const integrationConfig = decryptPropIfRequired({
+    let integrationConfig = decryptPropIfRequired({
       data: this,
       prop: 'integration_config',
     });
+    // A combined app connection stores the flat auth shape. Convert it whole
+    // (by the row's type, not its shape) so knex keys in it never reach the
+    // driver past the checks, which read the converted config.
+    const isAuthConfig = this.integration_type
+      ? this.integration_type === IntegrationsType.Auth
+      : !integrationConfig?.client;
+    if (isAuthConfig && isDataSourceAuthClient(this.type)) {
+      // Sources cached before these fields were joined lack them; base create now refuses unflagged rows.
+      if (
+        this.integration_sub_type !== undefined &&
+        dataSourceClientOf({
+          type: this.integration_type,
+          sub_type: this.integration_sub_type,
+          meta: this.integration_meta,
+        }) !== this.type
+      ) {
+        NcError.badRequest('This connection cannot be used as a data source');
+      }
+      integrationConfig = knexConfigFromSqlAuthConfig(
+        this.type,
+        integrationConfig,
+      );
+    }
     // merge integration config with source config
     // override integration config with source config if exists
     // only override database and searchPath
@@ -512,6 +548,13 @@ export default class Source implements SourceType {
   }
 
   async sourceCleanup(_ncMeta = Noco.ncMeta) {
+    if (this.isMeta() && /^(pg|postgres)/.test(this.type ?? '')) {
+      try {
+        await dropSearchSchema(await NcConnectionMgrv2.get(this), this.base_id);
+      } catch (e) {
+        logger.warn(`Search index cleanup failed for ${this.base_id}: ${e}`);
+      }
+    }
     await NcConnectionMgrv2.releaseSource(this);
     // Not a static import: ProjectMgrv2 → KnexMigratorv2 → Base cycles back into the models.
     const { default: ProjectMgrv2 } = await import(
@@ -814,6 +857,9 @@ export default class Source implements SourceType {
     qb.select(
       `${MetaTable.INTEGRATIONS}.config as integration_config`,
       `${MetaTable.INTEGRATIONS}.title as integration_title`,
+      `${MetaTable.INTEGRATIONS}.type as integration_type`,
+      `${MetaTable.INTEGRATIONS}.sub_type as integration_sub_type`,
+      `${MetaTable.INTEGRATIONS}.meta as integration_meta`,
     ).leftJoin(
       MetaTable.INTEGRATIONS,
       `${MetaTable.SOURCES}.fk_integration_id`,

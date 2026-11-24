@@ -1,5 +1,14 @@
 import { useStorage } from '@vueuse/core'
-import type { GroupKeysStorage } from '#imports'
+import type { CanvasGroup, GroupKeysStorage } from '#imports'
+
+/** Scope key that covers every group in a view. */
+export const GROUP_SCOPE_ALL = '*'
+
+/** Persisted expansion keys of a group's ancestors and the group itself, outermost first. */
+export function groupKeyChain(group: Pick<CanvasGroup, 'nestedIn'>): string[] {
+  const segments = group.nestedIn.map((n) => `${n.key}-${n.column_name}`)
+  return segments.length ? segments.map((_, i) => segments.slice(0, i + 1).join('_')) : ['default']
+}
 
 /**
  * Persists which groups are expanded per view in localStorage.
@@ -110,6 +119,88 @@ export class GroupKeysManager {
     } else {
       this.removeKey(baseId, viewId, key)
     }
+  }
+
+  /** No base id (anonymous public interface): state lives for this page session only. */
+  private memoryViews: GroupKeysStorage = {}
+
+  private viewEntry(
+    baseId: string | undefined,
+    viewId: string | undefined,
+    create: boolean,
+  ): GroupKeysStorage[string] | undefined {
+    const storageKey = this.storageKey(baseId, viewId)
+    if (storageKey) {
+      if (create) this.ensureView(storageKey)
+      this.touch(storageKey)
+      return this.storage.value[storageKey]
+    }
+
+    if (!viewId) return
+    if (create && !this.memoryViews[viewId]) this.memoryViews[viewId] = { keys: [], lastAccessed: Date.now() }
+    return this.memoryViews[viewId]
+  }
+
+  /** State a group gets from the nearest scope over it, ignoring its own toggle. */
+  private scopedState(entry: GroupKeysStorage[string], chain: Array<string>): boolean {
+    const scopes = entry.scopes ?? {}
+    for (let i = chain.length - 1; i >= 0; i--) {
+      const scoped = scopes[chain[i]!]
+      if (scoped !== undefined) return scoped
+    }
+    return scopes[GROUP_SCOPE_ALL] ?? false
+  }
+
+  /**
+   * Resolve a group's expanded state from its `groupKeyChain`. The group's own toggle wins,
+   * then the nearest scope.
+   */
+  isGroupExpanded(baseId: string | undefined, viewId: string | undefined, chain: Array<string>): boolean {
+    const entry = this.viewEntry(baseId, viewId, false)
+    if (!entry || !chain.length) return false
+
+    const self = chain[chain.length - 1]!
+    if (entry.keys?.includes(self)) return true
+    if (entry.collapsedKeys?.includes(self)) return false
+
+    return this.scopedState(entry, chain)
+  }
+
+  /** Expand or collapse a single group; records it only when that differs from its scope. */
+  setGroupExpanded(baseId: string | undefined, viewId: string | undefined, chain: Array<string>, expand: boolean): void {
+    const entry = this.viewEntry(baseId, viewId, true)
+    if (!entry || !chain.length) return
+
+    const key = chain[chain.length - 1]!
+    entry.keys = entry.keys.filter((k) => k !== key)
+    entry.collapsedKeys = (entry.collapsedKeys ?? []).filter((k) => k !== key)
+
+    if (expand === this.scopedState(entry, chain)) return
+    if (expand) entry.keys.push(key)
+    else entry.collapsedKeys.push(key)
+  }
+
+  /**
+   * Expand or collapse a group and every group below it, or the whole view with GROUP_SCOPE_ALL.
+   * Clears any state recorded below the scope so it applies uniformly.
+   */
+  setScope(baseId: string | undefined, viewId: string | undefined, key: string, expand: boolean): void {
+    const entry = this.viewEntry(baseId, viewId, true)
+    if (!entry) return
+
+    if (key === GROUP_SCOPE_ALL) {
+      entry.keys = []
+      entry.collapsedKeys = []
+      entry.scopes = expand ? { [GROUP_SCOPE_ALL]: true } : {}
+      return
+    }
+
+    const isAtOrUnder = (k: string) => k === key || k.startsWith(`${key}_`)
+
+    entry.keys = entry.keys.filter((k) => !isAtOrUnder(k))
+    entry.collapsedKeys = (entry.collapsedKeys ?? []).filter((k) => !isAtOrUnder(k))
+    entry.scopes = Object.fromEntries(Object.entries(entry.scopes ?? {}).filter(([k]) => !isAtOrUnder(k)))
+    entry.scopes[key] = expand
   }
 
   clearView(baseId?: string, viewId?: string): void {

@@ -66,7 +66,11 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       } else if (isHm(column) || isMm(column) || isMMOrMMLike(column)) {
         if (!getRowLtarHelpers(row)[column.title!]) getRowLtarHelpers(row)[column.title!] = []
 
-        if (getRowLtarHelpers(row)[column.title!]!.find((ln: Record<string, any>) => deepCompare(ln, value))) {
+        // Records still to create (blueprints) may well have the same values
+        if (
+          !value?._isBlueprint &&
+          getRowLtarHelpers(row)[column.title!]!.find((ln: Record<string, any>) => deepCompare(ln, value))
+        ) {
           // This value is already in the list
           return message.info(t('msg.info.valueAlreadyInList'))
         }

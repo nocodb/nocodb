@@ -1,17 +1,26 @@
 import {
   type ColumnType,
   type SelectOptionsType,
+  type TableType,
   UITypes,
   type ViewType,
   ViewTypes,
   dateFormats,
   isBtLikeV2Junction,
+  isSingleRecordLinkColumn,
   isUtilizationMultiResourceLink,
   parseProp,
   timeFormats,
 } from 'nocodb-sdk'
+import { recordTitleOf } from '~/utils/linkedRecordDisplay'
 
-export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: string) => {
+export const valueToTitle = (
+  value: string,
+  col: ColumnType,
+  displayValueProp?: string,
+  // the linked table, so a display value that is itself a single-record link resolves to its leaf text
+  related?: { meta?: TableType; metas?: Record<string, TableType> },
+) => {
   if (col.uidt === UITypes.Checkbox) {
     return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
   }
@@ -28,6 +37,11 @@ export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: 
     value &&
     typeof value === 'object'
   ) {
+    const displayCol = related?.meta?.columns?.find((c) => c.title === displayValueProp)
+    if (displayCol && isSingleRecordLinkColumn(displayCol)) {
+      return recordTitleOf(value, related!.meta, related!.metas) || GROUP_BY_VARS.NULL
+    }
+
     return value[displayValueProp] ?? GROUP_BY_VARS.NULL
   }
 

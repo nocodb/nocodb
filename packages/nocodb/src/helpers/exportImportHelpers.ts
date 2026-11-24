@@ -109,6 +109,11 @@ type DroppedAttachmentKind =
   | 'form image'
   | 'interface image';
 
+/** Views an import left out, by reason. */
+export interface SkippedViews {
+  personal: number;
+}
+
 // What a copy or import left out, so the job can tell whoever ran it.
 export class DroppedAttachments {
   private readonly kinds = new Map<

@@ -1,6 +1,8 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { parseCellWidth } from '../utils/cell'
 
+export const RESIZE_HANDLE_WIDTH = 8
+
 export function useColumnResize(
   canvasRef: Ref<HTMLCanvasElement | undefined>,
   columns: ComputedRef<CanvasGridColumn[]>,
@@ -10,7 +12,6 @@ export function useColumnResize(
   onResize?: (columnId: string, width: number, leftX: number) => void,
   onResizeEnd?: (columnId: string, width: number) => void,
 ) {
-  const RESIZE_HANDLE_WIDTH = 8
   const isResizing = ref(false)
   const activeColumn = ref<{
     id: string
@@ -26,11 +27,8 @@ export function useColumnResize(
 
   let resizeRafId: number | null = null
 
-  const resizeableColumn = computed(() => {
-    if (!mousePosition.value) {
-      return null
-    }
-
+  // the column whose right-edge resize handle is at canvas x, if any
+  const findResizeHandleColumn = (x: number) => {
     const fixedCols = columns.value.filter((col) => col.fixed)
     let currentX = 0
 
@@ -38,7 +36,7 @@ export function useColumnResize(
       const width = parseCellWidth(column.width)
       const nextX = currentX + width
 
-      if (Math.abs(mousePosition.value.x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
+      if (Math.abs(x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
         if (!column.uidt) return null
 
         return { id: column.id, width, x: currentX }
@@ -58,14 +56,16 @@ export function useColumnResize(
       const width = parseCellWidth(column.width)
       const nextX = currentX + width
 
-      if (Math.abs(mousePosition.value.x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
+      if (Math.abs(x - nextX) <= RESIZE_HANDLE_WIDTH / 2) {
         return { id: column.id, width, x: currentX }
       }
       currentX = nextX
     }
 
     return null
-  })
+  }
+
+  const resizeableColumn = computed(() => (mousePosition.value ? findResizeHandleColumn(mousePosition.value.x) : null))
 
   const handleMouseMove = (e: MouseEvent) => {
     try {
@@ -158,12 +158,17 @@ export function useColumnResize(
     isResizing,
     activeColumn,
     resizeableColumn,
+    findResizeHandleColumn,
     handleMouseMove,
     handleMouseDown,
     RESIZE_HANDLE_WIDTH,
     cleanupResize,
   }
 }
+
+// header right side: dropdown chevron + right padding
+export const AUTO_FIT_HEADER_PADDING = 24
+export const AUTO_FIT_MAX_WIDTH = 500
 
 // Column width constraints
 export const columnWidthLimit = {

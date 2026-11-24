@@ -50,12 +50,8 @@ const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink, meta } = useProvideLTARStore(
-  column as Ref<Required<ColumnType>>,
-  row,
-  isNew,
-  reloadRowTrigger.trigger,
-)
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, relatedChipDisplay, unlink, meta } =
+  useProvideLTARStore(column as Ref<Required<ColumnType>>, row, isNew, reloadRowTrigger.trigger)
 
 await loadRelatedTableMeta()
 
@@ -87,9 +83,7 @@ const cells = computed(() =>
   localCellValue.value.reduce((acc, curr) => {
     if (!relatedTableDisplayValueProp.value) return acc
 
-    const value = curr[relatedTableDisplayValueProp.value]
-
-    return [...acc, { value, item: curr }]
+    return [...acc, { ...relatedChipDisplay(curr), item: curr }]
   }, []),
 )
 
@@ -238,7 +232,7 @@ onUnmounted(() => {
             :key="i"
             :item="cell.item"
             :value="cell.value"
-            :column="m2mColumn"
+            :column="cell.column"
             :show-unlink-button="false"
             :truncate="false"
             @unlink="unlinkRef(cell.item)"

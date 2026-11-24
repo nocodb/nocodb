@@ -6,6 +6,13 @@ import { TypeConversionError } from '../error/type-conversion.error'
 
 export { getEmailHref, validateEmail }
 
+// pg caps identifiers in UTF-8 bytes, not characters. Like the backend, say
+// "bytes" only when that differs from the character count.
+export const getTableNameLengthError = (name: string, limit: number, inBytes: boolean): string | undefined => {
+  const size = inBytes ? new TextEncoder().encode(name).length : name.length
+  if (size > limit) return `Table name exceeds ${limit} ${size !== name.length ? 'bytes' : 'characters'}`
+}
+
 export const validateTableName = {
   validator: (_: unknown, value: string) => {
     return new Promise((resolve, reject) => {
@@ -143,12 +150,13 @@ export const validateTeamName = {
     return new Promise((resolve, reject) => {
       const { t } = getI18n().global
 
-      if (!value) {
+      if (!value?.trim()) {
         return reject(new Error(t('msg.error.teamNameRequired')))
       }
 
-      if (value.length > 256) {
-        return reject(new Error(t('msg.error.teamNameExceedsCharacters', { value: 256 })))
+      // Matches the API's maxLength on team titles
+      if (value.trim().length > 150) {
+        return reject(new Error(t('msg.error.teamNameExceedsCharacters', { value: 150 })))
       }
 
       const m = value.match(/[./\\]/g)

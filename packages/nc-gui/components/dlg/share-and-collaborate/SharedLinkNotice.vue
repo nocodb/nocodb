@@ -5,7 +5,8 @@ import { useViewColumns } from '~/composables/useViewColumns'
 /**
  * What a view's shared link leaves out: it reads only the view's shown fields
  * (plus the primary key and display value), so grouping by a hidden field
- * shows the rows ungrouped and a summary over hidden fields shows nothing.
+ * (outside grid and gallery) shows the rows ungrouped and a summary over hidden
+ * fields shows nothing.
  * Offers to show those fields.
  */
 
@@ -37,7 +38,7 @@ function hiddenColumns(ids: string[]) {
 }
 
 const hiddenGroupBy = computed(() => {
-  if (!isThisView.value) return []
+  if (!isThisView.value || [ViewTypes.GRID, ViewTypes.GALLERY].includes(view.value?.type as ViewTypes)) return []
   const ids = Object.values(viewColumns?.gridViewCols.value ?? {})
     .filter((c) => c.group_by)
     .map((c) => c.fk_column_id as string)

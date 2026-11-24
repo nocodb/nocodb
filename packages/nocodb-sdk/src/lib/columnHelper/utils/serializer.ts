@@ -4,11 +4,13 @@ import { convertDurationToSeconds } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
 import { hasDateOverflow } from '~/lib/dateTimeHelper';
 import {
+  ncIsArray,
   ncIsBoolean,
   ncIsFunction,
   ncIsNaN,
   ncIsNull,
   ncIsNumber,
+  ncIsObject,
   ncIsString,
   ncIsUndefined,
 } from '~/lib/is';
@@ -230,10 +232,26 @@ export const serializeImportValue = (raw: any, col: ColumnType) => {
       return value === null
         ? null
         : serializeDurationValue(value as string, col);
+    case UITypes.Attachment:
+      return serializeAttachmentImportValue(value);
     default:
       return value;
   }
 };
+
+// Exports write attachments as `title(url)` text with expiring signed urls;
+// drop anything that isn't attachment JSON instead of failing the row (#10223).
+function serializeAttachmentImportValue(value: any) {
+  if (value === null) return null;
+  const attachments = parseProp(value, null);
+  if (
+    !ncIsArray(attachments) ||
+    attachments.some((a) => !ncIsObject(a) || !('url' in a || 'path' in a))
+  ) {
+    return null;
+  }
+  return value;
+}
 
 /**
  * Convert an Excel date *serial* into the string a date column expects.

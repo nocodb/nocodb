@@ -253,6 +253,9 @@ export const extractCallExpressionReferencedInfo = ({
     case 'ROUNDDOWN':
     case 'ROUNDUP':
     case 'JSON_EXTRACT':
+    case 'SUBSTITUTE':
+    case 'TEXTBEFORE':
+    case 'TEXTAFTER':
     case 'SUBSTR': {
       nodeArgs = nodeArgs.slice(0, 1);
       break;
@@ -283,6 +286,18 @@ export const extractCallExpressionReferencedInfo = ({
     case 'COUNTA':
     case 'COUNT':
     case 'COUNTALL':
+    case 'MINUTE':
+    case 'SECOND':
+    case 'NOT':
+    case 'IS_SAME':
+    case 'IS_AFTER':
+    case 'IS_BEFORE':
+    case 'FROMNOW':
+    case 'TONOW':
+    case 'DATETIME_PARSE':
+    case 'FIND':
+    case 'TEXTSPLIT':
+    case 'ARRAYJOIN':
     case 'SEARCH': {
       nodeArgs = [];
       break;
@@ -295,6 +310,32 @@ export const extractCallExpressionReferencedInfo = ({
       nodeArgs = nodeArgs.slice(0, 1);
       isPureOperation = true;
       break;
+    }
+
+    // keeps a field's display only when every array comes from that same field
+    case 'ARRAYFLATTEN': {
+      const uniqueReferencedColumnIds = arrUniq(
+        nodeArgs.map((n) => n.referencedColumn?.id)
+      );
+      if (
+        nodeArgs.some((n) => !n.referencedColumn?.id) ||
+        uniqueReferencedColumnIds.length !== 1
+      ) {
+        return {
+          uidtCandidates: [UITypes.SingleLineText],
+          invalidForReferenceColumn: true,
+        } as ReferencedInfo;
+      }
+      isPureOperation = true;
+      break;
+    }
+
+    // a date with no time: shown as one, never as midnight in some timezone
+    case 'TODAY': {
+      return {
+        uidtCandidates: [UITypes.Date],
+        invalidForReferenceColumn: true,
+      } as ReferencedInfo;
     }
 
     // always a plain date: borrow the start date's display only from a Date field

@@ -1,4 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
+import { getColumnReorderUpdates } from './canvas/utils/headerUtils'
 
 export const useColumnDrag = ({
   fields,
@@ -54,15 +55,29 @@ export const useColumnDrag = ({
     // if nextToViewCol/toViewCol is null, return
     if (nextToViewCol === null && lastViewCol === null) return
 
-    const newOrder = nextToViewCol ? toViewCol.order! + (nextToViewCol.order! - toViewCol.order!) / 2 : lastViewCol.order! + 1
+    if (nextToColField?.id === colId) return
 
-    toBeReorderedViewCol.order = newOrder
+    // compare against all of the view's fields, hidden ones included, so no two get the same order
+    const orderUpdates = getColumnReorderUpdates(
+      Object.entries(gridViewCols.value).map(([id, col]) => ({ id, order: col.order })),
+      colId,
+      nextToViewCol ? nextToColField!.id! : null,
+    )
 
-    if (isDefaultView.value && toBeReorderedViewCol.fk_column_id) {
-      updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
-    }
+    await Promise.all(
+      Object.entries(orderUpdates).map(([columnId, newOrder]) => {
+        const viewCol = gridViewCols.value[columnId]
+        if (!viewCol) return undefined
 
-    await updateGridViewColumn(colId, { order: newOrder } as any)
+        viewCol.order = newOrder
+
+        if (isDefaultView.value && viewCol.fk_column_id) {
+          updateDefaultViewColumnOrder(viewCol.fk_column_id, newOrder)
+        }
+
+        return updateGridViewColumn(columnId, { order: newOrder } as any)
+      }),
+    )
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
   }

@@ -517,6 +517,8 @@ export class BaseUsersService {
       baseUser: ProjectUserUpdateReqType;
       req: NcRequest;
       baseId: string;
+      // Set when `ncMeta` is the caller's transaction: post-commit work goes here.
+      afterCommit?: (fn: () => Promise<void>) => void;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
@@ -634,32 +636,37 @@ export class BaseUsersService {
       );
     }
 
-    await this.mailService.sendMail(
-      {
-        mailEvent: MailEvent.BASE_ROLE_UPDATE,
-        payload: {
-          req: param.req,
-          user: user,
-          base,
-          oldRole: (getProjectRole(targetUser) ??
-            this.getInheritedBaseRole({
-              base,
-              workspaceRole: (targetUser as any)?.workspace_roles,
-            })) as ProjectRoles,
-          newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+    const postCommit = async () => {
+      await this.mailService.sendMail(
+        {
+          mailEvent: MailEvent.BASE_ROLE_UPDATE,
+          payload: {
+            req: param.req,
+            user: user,
+            base,
+            oldRole: (getProjectRole(targetUser) ??
+              this.getInheritedBaseRole({
+                base,
+                workspaceRole: (targetUser as any)?.workspace_roles,
+              })) as ProjectRoles,
+            newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+          },
         },
-      },
-      ncMeta,
-    );
+        // Deferred work runs once the caller's transaction is gone.
+        param.afterCommit ? Noco.ncMeta : ncMeta,
+      );
 
-    this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
-      base,
-      user,
-      baseUser: param.baseUser,
-      oldBaseUser: oldBaseUser as Partial<ProjectUserReqType>,
-      req: param.req,
-      context,
-    });
+      this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
+        base,
+        user,
+        baseUser: param.baseUser,
+        oldBaseUser: oldBaseUser as Partial<ProjectUserReqType>,
+        req: param.req,
+        context,
+      });
+    };
+    if (param.afterCommit) param.afterCommit(postCommit);
+    else await postCommit();
 
     return {
       msg: 'User has been updated successfully',

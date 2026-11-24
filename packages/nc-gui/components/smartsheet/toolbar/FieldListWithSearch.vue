@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ButtonType, type ColumnType, isSystemColumn } from 'nocodb-sdk'
+import { type ButtonType, type ColumnType, PlanFeatureTypes, PlanTitles, isSystemColumn } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -28,10 +28,17 @@ const isCompact = inject(FieldListCompactInj, ref(false))
 
 const { $e } = useNuxtApp()
 
+const { blockGlobalSearch } = useEeConfig()
+
 const { t } = useI18n()
 
-const options = computed(() =>
-  (props.options || [])
+// The global search's "All fields" entry is not a column: it stays first and skips the field filters.
+const allFieldsOption = computed(() => props.options?.find((c) => c.id === ALL_FIELDS_SEARCH_FIELD))
+
+const options = computed(() => [
+  ...(allFieldsOption.value ? [allFieldsOption.value] : []),
+  ...(props.options || [])
+    .filter((c) => c.id !== ALL_FIELDS_SEARCH_FIELD)
     .filter((c) => (isLocalMode.value && c?.id && fieldsMap.value[c.id] ? fieldsMap.value[c.id]?.initialShow : true))
     .map((c) => c)
     .sort((field1, field2) => {
@@ -58,7 +65,7 @@ const options = computed(() =>
 
       return orderVal1 - orderVal2 || sortByOrder
     }),
-)
+])
 
 const configByToolbarMenu = computed(() => {
   switch (toolbarMenu.value) {
@@ -94,6 +101,14 @@ const handleSelect = (c: ColumnType) => {
 
 const isLocked = inject(IsLockedInj)
 
+// The all-fields picker uses 13px text, with icons scaled to match; other pickers keep their size.
+const isSmallPicker = computed(() => toolbarMenu.value === 'globalSearch' && !!allFieldsOption.value)
+
+const iconClass = computed(() => {
+  if (isCompact.value) return '!w-3 !h-3 opacity-75'
+  return isSmallPicker.value ? '!w-3 !h-3' : '!w-3.5 !h-3.5'
+})
+
 const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
   {
     searchBasisInfo: t('msg.info.matchedByButtonLabel'),
@@ -125,6 +140,7 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
     class="field-list-with-search"
     :class="{
       'nc-input-bordered': inputBordered,
+      'nc-field-list-sm': isSmallPicker,
     }"
     :search-input-placeholder="searchInputPlaceholder"
     :show-selected-option="showSelectedOption"
@@ -143,10 +159,21 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
     @change="handleSelect"
   >
     <template #listItemExtraLeft="{ option }">
-      <SmartsheetHeaderIcon
-        :column="option"
-        :class="isCompact ? '!w-3 !h-3 opacity-75' : '!w-3.5 !h-3.5'"
-        color="text-nc-content-gray-muted"
+      <GeneralIcon
+        v-if="option.id === ALL_FIELDS_SEARCH_FIELD"
+        icon="search"
+        :class="iconClass"
+        class="text-nc-content-gray-muted mx-1 flex-none"
+      />
+      <SmartsheetHeaderIcon v-else :column="option" :class="iconClass" color="text-nc-content-gray-muted" />
+    </template>
+    <template #listItemExtraRight="{ option }">
+      <PaymentUpgradeBadge
+        v-if="option.id === ALL_FIELDS_SEARCH_FIELD && blockGlobalSearch"
+        :feature="PlanFeatureTypes.FEATURE_GLOBAL_SEARCH"
+        :plan-title="PlanTitles.PLUS"
+        remove-click
+        show-as-lock
       />
     </template>
   </NcList>
@@ -160,6 +187,14 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
 
   .nc-list-item {
     @apply h-8 hover:bg-nc-bg-gray-light gap-x-1.5;
+  }
+
+  &.nc-field-list-sm {
+    .nc-list-item,
+    .nc-toolbar-dropdown-search-field-input,
+    .nc-toolbar-dropdown-search-field-input input {
+      @apply text-bodyDefaultSm;
+    }
   }
 }
 </style>

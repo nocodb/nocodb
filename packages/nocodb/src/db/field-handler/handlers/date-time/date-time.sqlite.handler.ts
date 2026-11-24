@@ -11,6 +11,21 @@ import type { Column, Filter } from '~/models';
 // The filters build inclusive range ends as `<next boundary> - 1ms`
 const isInclusiveRangeEnd = (val: dayjs.Dayjs) => val.millisecond() === 999;
 
+const isUtcMidnight = (val: dayjs.Dayjs) =>
+  val.utc().format('HH:mm:ss.SSS') === '00:00:00.000';
+
+// For `>=` / `<` on a computed value (a formula over a date formula) that may
+// be date-only text: '2026-11-16' < '2026-11-16 00:00:00', so a midnight
+// bound goes bare. Stored DateTime columns keep the datetime bound.
+const lowerOrExclusiveBound = (
+  val: dayjs.Dayjs,
+  format: string,
+  options: FilterOptions,
+) =>
+  options.customWhereClause && isUtcMidnight(val)
+    ? val.utc().format('YYYY-MM-DD')
+    : val.utc().format(format);
+
 export class DateTimeSQLiteHandler extends DateTimeGeneralHandler {
   override async parseUserInput(params: {
     value: any;
@@ -50,9 +65,13 @@ export class DateTimeSQLiteHandler extends DateTimeGeneralHandler {
     args.qb.where(
       rootArgs.knex.raw('?? >= ? and ?? < ?', [
         args.sourceField,
-        args.anchorDate.utc().format(this.dateValueFormat),
+        lowerOrExclusiveBound(args.anchorDate, this.dateValueFormat, options),
         args.sourceField,
-        args.rangeDate.add(1, 'millisecond').utc().format(this.dateValueFormat),
+        lowerOrExclusiveBound(
+          args.rangeDate.add(1, 'millisecond'),
+          this.dateValueFormat,
+          options,
+        ),
       ]),
     );
   }
@@ -67,11 +86,12 @@ export class DateTimeSQLiteHandler extends DateTimeGeneralHandler {
     rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     options: FilterOptions,
   ) {
+    // an end-of-day bound becomes next-day midnight, which can go bare below
     if (
       isInclusiveRangeEnd(args.val) &&
       (args.comparisonOp === '>' || args.comparisonOp === '<=')
     ) {
-      return super.comparisonOp(
+      return this.comparisonOp(
         {
           ...args,
           val: args.val.add(1, 'millisecond'),
@@ -81,9 +101,28 @@ export class DateTimeSQLiteHandler extends DateTimeGeneralHandler {
         options,
       );
     }
+    if (
+      (args.comparisonOp === '>=' || args.comparisonOp === '<') &&
+      options.customWhereClause &&
+      isUtcMidnight(args.val)
+    ) {
+      args.qb.where(
+        rootArgs.knex.raw(`?? ${args.comparisonOp} ?`, [
+          args.sourceField,
+          args.val.utc().format('YYYY-MM-DD'),
+        ]),
+      );
+      return;
+    }
     // a value with ms needs a ms bound; with the offset it sorts correctly
-    // against both stored shapes and equals an identical stored value
-    if (args.val.millisecond() !== 0) {
+    // against both stored shapes and equals an identical stored value.
+    // `>` and `<=` need it for whole seconds too: a stored value at the bound
+    // sorts after the bare `HH:mm:ss` prefix.
+    if (
+      args.val.millisecond() !== 0 ||
+      args.comparisonOp === '>' ||
+      args.comparisonOp === '<='
+    ) {
       args.qb.where(
         rootArgs.knex.raw(`?? ${args.comparisonOp} ?`, [
           args.sourceField,

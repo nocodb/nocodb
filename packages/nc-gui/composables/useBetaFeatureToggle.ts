@@ -82,14 +82,6 @@ const FEATURES = [
     isEE: true,
   },
   // {
-  //   id: 'form_support_column_scanning',
-  //   title: 'Scanner for filling data in forms',
-  //   description: 'Enable scanner to fill data in forms.',
-  //   enabled: false,
-  //   version: 1,
-  //   isEngineering: true,
-  // },
-  // {
   //   id: 'extensions',
   //   title: 'Extensions beta features',
   //   description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
@@ -310,6 +302,16 @@ const FEATURES = [
     version: 1,
     isEE: true,
   },
+  {
+    // Also needs NC_GLOBAL_SEARCH on the server (appInfo.globalSearchEnabled).
+    id: 'global_search',
+    title: 'Global search',
+    description: 'Search every field of a grid or gallery view, and every record in a project from Cmd+K.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 // Retired flags: FEATURES entries commented out above, but kept in FEATURE_FLAG
@@ -317,7 +319,6 @@ const FEATURES = [
 // the fixed state below. Revive one by uncommenting its entry and removing it here.
 const RETIRED_FEATURES = {
   extensions: ncIsPlaywright(), // e2e builds keep beta extensions available
-  form_support_column_scanning: false,
   view_actions: false,
   show_everyones_personal_views: false,
   ai_fill_handle: false,

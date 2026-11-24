@@ -4,6 +4,8 @@ import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
 import { mdImageAsText, mdLinkRuleSetupExt } from '.'
 import { parseUserMention } from '~/helpers/tiptap-markdown/extensions'
+import { imgTagsToMarkdown } from '~/helpers/tiptap-markdown/util/imgTag'
+import { rewriteOutsideCode } from '~/helpers/tiptap-markdown/util/outsideCode'
 
 declare module 'markdown-it-task-lists' {
   import type { PluginWithOptions } from 'markdown-it'
@@ -102,7 +104,6 @@ export function sanitizeRichTextHtml(html: string): string {
 // Precompiled regex patterns
 const taskRegex = /^(?!.*- )(\s*)\[( |x|X)\]/gm // Matches unchecked and checked tasks
 const strikeThroughRegex = /(?<!~)~(?!~)(.*?)(?<!~)~(?!~)/g // Matches strikethrough syntax
-
 export class NcMarkdownParser {
   private static instance: NcMarkdownParser | null = null
   private md: MarkdownIt
@@ -176,17 +177,17 @@ export class NcMarkdownParser {
 
   public static preprocessMarkdown(markdownText: string, _isEditor = false): string {
     if (!ncIsString(markdownText)) return markdownText ?? ''
-    // Only process task lists if not in editor mode
-    // if (!isEditor) {
-    // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
-    markdownText = markdownText.replace(taskRegex, (_match, spaces, state) => {
-      const checked = state.toLowerCase() === 'x' ? '[x]' : '[ ]'
-      return `${spaces}- ${checked}`
-    })
-    // }
 
-    // Replace single tilde strikethrough syntax with <s> tags
-    return markdownText.replace(strikeThroughRegex, '<s>$1</s>')
+    return rewriteOutsideCode(markdownText, (line) =>
+      line
+        // Replace [ ] and [x] with GitHub-style checklist syntax only if not already prefixed with "- "
+        .replace(taskRegex, (_match, spaces, state) => {
+          const checked = state.toLowerCase() === 'x' ? '[x]' : '[ ]'
+          return `${spaces}- ${checked}`
+        })
+        // Replace single tilde strikethrough syntax with <s> tags
+        .replace(strikeThroughRegex, '<s>$1</s>'),
+    )
   }
 
   /**
@@ -209,7 +210,8 @@ export class NcMarkdownParser {
 
     // If content is a string, parse it and sanitize to prevent XSS
     if (ncIsString(content)) {
-      return sanitizeRichTextHtml(parser.md.render(NcMarkdownParser.preprocessMarkdown(content)))
+      // The sanitizer drops <img>; a resized image is one, so show it like every other image
+      return sanitizeRichTextHtml(parser.md.render(NcMarkdownParser.preprocessMarkdown(imgTagsToMarkdown(content))))
     }
 
     return content

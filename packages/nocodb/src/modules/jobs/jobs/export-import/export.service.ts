@@ -29,6 +29,7 @@ import type RowColorCondition from '~/models/RowColorCondition';
 import type { GetRowColorConditionsResult } from '~/helpers/rowColorViewHelpers';
 import type { ExcelNumberFormat } from '~/modules/jobs/jobs/export-import/excel-number-format';
 import { NcError } from '~/helpers/catchError';
+import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 import { DriverClient } from '~/utils/nc-config';
 import {
   escapeFormulaeInRows,
@@ -1612,7 +1613,7 @@ export class ExportService {
     const dateOnlyTypes: string[] = [UITypes.Date];
     const fromIsDateOnly = dateOnlyTypes.includes(fromColumn.uidt);
 
-    const displayColumn =
+    let displayColumn =
       model.columns.find((c) => c.pv) ?? model.columns.find((c) => c.pk);
 
     const pkColumn = model.columns.find((c) => c.pk);
@@ -1626,6 +1627,10 @@ export class ExportService {
       visibleColumnIds = new Set(
         viewColumns.filter((vc) => vc.show).map((vc) => vc.fk_column_id),
       );
+      // The shared calendar shows no title for a hidden display value.
+      if (displayColumn && !visibleColumnIds.has(displayColumn.id)) {
+        displayColumn = undefined;
+      }
     }
 
     // Non-system, non-virtual data columns (in field order) used to build the
@@ -1703,12 +1708,15 @@ export class ExportService {
             continue;
           }
 
-          const summary = displayColumn
-            ? await serializeForDescription(
+          // a link display value is a nested record: use its leaf text
+          const summary = !displayColumn
+            ? undefined
+            : isLinksOrLTAR(displayColumn)
+            ? (await flattenDisplayValue(row, displayColumn)) ?? undefined
+            : await serializeForDescription(
                 row[displayColumn.title],
                 displayColumn,
-              )
-            : undefined;
+              );
 
           const descriptionParts: string[] = [];
           for (const col of descriptionColumns) {

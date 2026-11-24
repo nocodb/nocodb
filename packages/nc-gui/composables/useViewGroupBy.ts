@@ -1,11 +1,11 @@
 import {
   type ColumnType,
   CommonAggregations,
+  type FilterType,
   type GridType,
   type LinkToAnotherRecordType,
   type LookupType,
   type TableType,
-  UITypesName,
   type ViewType,
   isColumnInError,
   isSupportedDisplayValueColumn,
@@ -48,7 +48,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
   ) => {
     const groupByLimit = GROUP_BY_MAX_LEVELS
 
-    const { t } = useI18n()
+    const { t, te } = useI18n()
 
     const { api } = useApi()
 
@@ -68,7 +68,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
-    const { getMeta, getPartialMeta } = useMetas()
+    const { getMeta, getPartialMeta, metas } = useMetas()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
@@ -163,7 +163,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           field.ncItemDisabled = true
           field.ncItemTooltip = isColumnInError(field)
             ? t('tooltip.groupingNotSupportedForFieldsWithErrors')
-            : `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
+            : t('tooltip.groupingNotSupportedForField', { type: getColumnTypeI18nName(field, t, te) })
         } else {
           field.ncItemDisabled = false
           field.ncItemTooltip = ''
@@ -255,8 +255,36 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return tempColor
     }
 
+    // The legacy where parser can't read these in a value; such levels go as filter objects.
+    const isUnsafeWhereValue = (curr: GroupNestedIn) =>
+      curr.key !== GROUP_BY_VARS.NULL &&
+      curr.column_uidt !== UITypes.Checkbox &&
+      ![UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes) &&
+      ![UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes) &&
+      !(curr.split && curr.splitId !== undefined) &&
+      /[\n\r()~]/.test(curr.split ? `${splitGroupValue(curr.key) ?? ''}` : curr.key ?? '')
+
+    const calculateNestedFilterArr = (nestedIn: GroupNestedIn[]): FilterType[] =>
+      nestedIn.filter(isUnsafeWhereValue).map((curr) => ({
+        fk_column_id: curr.column_id,
+        comparison_op: curr.split ? 'eq' : 'gb_eq',
+        value: curr.split ? splitGroupValue(curr.key) : curr.key,
+      }))
+
+    /** View filters (unless synced) plus the group levels the where string can't carry. */
+    const filtersFor = (nestedIn: GroupNestedIn[], includeViewFilters = true) => [
+      ...(includeViewFilters ? nestedFilters.value ?? [] : []),
+      ...calculateNestedFilterArr(nestedIn),
+    ]
+
+    const filterArrJsonFor = (nestedIn: GroupNestedIn[]) => {
+      const filters = filtersFor(nestedIn, !isUIAllowed('filterSync'))
+      return isUIAllowed('filterSync') && !filters.length ? {} : { filterArrJson: JSON.stringify(filters) }
+    }
+
     const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
       return nestedIn.reduce((acc, curr) => {
+        if (isUnsafeWhereValue(curr)) return acc
         if (curr.key === GROUP_BY_VARS.NULL && curr.split && curr.column_uidt === UITypes.Links) {
           // A Links field holds a count: nobody linked is 0, not null.
           acc += `${acc.length ? '~and' : ''}(${curr.title},eq,0)`
@@ -488,6 +516,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group.displayValueProp =
             (displayValueCol || relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
           group.relatedPkProp = relatedTableMeta.columns?.find((c) => c.pk)?.title
+          group.relatedTableMeta = relatedTableMeta
+          // load hop metas when the display value is a single-record link
+          await resolveDisplayLeafColumn(relatedTableMeta, async (baseId, tableId) =>
+            getMeta({ baseId, tableIdOrTitle: tableId, disableError: true }),
+          )
         }
 
         const isSplit = isTimelineGroupSplit(view.value, groupby.column)
@@ -506,7 +539,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
                 sortsArr: sorts.value,
-                filtersArr: nestedFilters.value,
+                filtersArr: filtersFor(group.nestedIn),
                 ...(isServerSplit ? { split_values: true } : {}),
               })
             : !isPublic
@@ -517,7 +550,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 ...(isSplit ? { offset } : {}),
                 ...(isServerSplit ? { split_values: true } : {}),
                 ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                ...filterArrJsonFor(group.nestedIn),
                 where: `${effectiveWhere}`,
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
@@ -534,7 +567,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                   sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                   column_name: groupby.column.title,
                   sortsArr: sorts.value,
-                  filtersArr: nestedFilters.value,
+                  filtersArr: filtersFor(group.nestedIn),
                 },
                 {
                   headers: {
@@ -625,7 +658,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             return {
               where: calculateNestedWhere(child.nestedIn, where?.value),
               alias: aggregationAliasMapper.generateAlias(child.key),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              ...filterArrJsonFor(child.nestedIn),
             }
           })
 
@@ -660,13 +693,55 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             })
           }
         }
+        return true
       } catch (e) {
         console.log(e)
         message.error(await extractSdkResponseErrorMsg(e))
+        return false
       }
     }
 
-    async function loadGroupData(group: Group, force = false, params: any = {}) {
+    /** `lean`: only the view's shown fields, no comment counts (cards that never show them). */
+    interface GroupRowsOptions {
+      lean?: boolean
+    }
+
+    async function fetchGroupRows(group: Group, offset: number, limit: number, params: any = {}, opts: GroupRowsOptions = {}) {
+      const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+
+      const query = {
+        offset,
+        limit,
+        where: `${nestedWhere}`,
+      }
+
+      return interfaceDataApi
+        ? await interfaceDataApi.fetchList({
+            offset: query.offset,
+            limit: query.limit,
+            // search rides `where` (Search-action gated server-side); the
+            // group-nesting predicate rides `nestedWhere` (always applied).
+            where: where?.value,
+            nestedWhere: calculateNestedWhere(group.nestedIn),
+            sortsArr: sorts.value,
+            filtersArr: filtersFor(group.nestedIn),
+          })
+        : !isPublic
+        ? await api.dbViewRow.list('noco', base.value!.id!, view.value!.fk_model_id!, view.value!.id!, {
+            ...query,
+            ...params,
+            include_row_color: true,
+            ...(opts.lean ? {} : { getHiddenColumns: true }),
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...filterArrJsonFor(group.nestedIn),
+          } as any)
+        : await fetchSharedViewData(
+            { sortsArr: sorts.value, filtersArr: filtersFor(group.nestedIn), ...query },
+            { isGroupBy: true },
+          )
+    }
+
+    async function loadGroupData(group: Group, force = false, params: any = {}, opts: GroupRowsOptions = {}) {
       try {
         if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return
 
@@ -676,44 +751,49 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group.paginationData = { page: 1, pageSize: groupByRecordLimit.value }
         }
 
-        const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
+        const pageSize = group.paginationData.pageSize ?? groupByRecordLimit.value
 
-        const query = {
-          offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByRecordLimit.value),
-          limit: group.paginationData.pageSize ?? groupByRecordLimit.value,
-          where: `${nestedWhere}`,
-        }
-
-        const response = interfaceDataApi
-          ? await interfaceDataApi.fetchList({
-              offset: query.offset,
-              limit: query.limit,
-              // search rides `where` (Search-action gated server-side); the
-              // group-nesting predicate rides `nestedWhere` (always applied).
-              where: where?.value,
-              nestedWhere: calculateNestedWhere(group.nestedIn),
-              sortsArr: sorts.value,
-              filtersArr: nestedFilters.value,
-            })
-          : !isPublic
-          ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-              ...query,
-              ...params,
-              include_row_color: true,
-              getHiddenColumns: true,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-            } as any)
-          : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, ...query }, { isGroupBy: true })
+        const response = await fetchGroupRows(group, ((group.paginationData.page ?? 0) - 1) * pageSize, pageSize, params, opts)
 
         group.count = response.pageInfo.totalRows ?? 0
         group.rows = group.nestedIn[group.nestedIn.length - 1]?.split
           ? shareSplitRows(formatData(response.list), group)
           : formatData(response.list)
-        await loadAggCommentsCount(group.rows)
+        if (!opts.lean) await loadAggCommentsCount(group.rows)
         group.paginationData = response.pageInfo
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
+      }
+    }
+
+    /** Appends the group's next `limit` rows instead of replacing the page. */
+    async function loadMoreGroupRows(group: Group, limit: number, opts: GroupRowsOptions = {}) {
+      try {
+        if ((!base?.value?.id && !interfaceDataApi) || !view.value?.id || !view.value?.fk_model_id) return true
+
+        const before = group.rows
+        const loaded = before ?? []
+
+        const response = await fetchGroupRows(group, loaded.length, limit, {}, opts)
+
+        // A refresh replaced the rows meanwhile: drop this page, the trigger asks again.
+        if (group.rows !== before) return true
+
+        const seen = new Set(loaded.map((r) => extractPkFromRow(r.row, meta?.value?.columns ?? [])))
+        const next = formatData(response.list).filter((r) => {
+          const pk = extractPkFromRow(r.row, meta?.value?.columns ?? [])
+          return !pk || !seen.has(pk)
+        })
+
+        if (!opts.lean) await loadAggCommentsCount(next)
+
+        group.rows = [...loaded, ...next]
+        group.count = response.pageInfo.totalRows ?? group.count
+        group.paginationData = { ...response.pageInfo, page: 1, pageSize: group.rows.length }
+        return true
+      } catch (e) {
+        message.error(await extractSdkResponseErrorMsg(e))
+        return false
       }
     }
 
@@ -748,7 +828,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           return {
             where: calculateNestedWhere(child.nestedIn, where?.value),
             alias: aliasMapper.generateAlias(child.key),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            ...filterArrJsonFor(child.nestedIn),
           }
         })
 
@@ -914,7 +994,15 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
           return (
             g.key ===
-            valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column, group.displayValueProp)
+            valueToTitle(
+              row.row[groupBy.value[nestLevel].column.title!],
+              groupBy.value[nestLevel].column,
+              group.displayValueProp,
+              {
+                meta: group.relatedTableMeta,
+                metas: metas.value,
+              },
+            )
           )
         })
 
@@ -1054,6 +1142,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       loadGroups,
       loadGroupData,
       loadGroupPage,
+      loadMoreGroupRows,
       loadGroupAggregation,
       groupWrapperChangePage,
       redistributeRows,
@@ -1063,7 +1152,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
   'useViewGroupBy',
 )
 
-export { useProvideViewGroupBy }
+export { useProvideViewGroupBy, useViewGroupBy }
 
 export function useViewGroupByOrThrow() {
   const viewColumns = useViewGroupBy()

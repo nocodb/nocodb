@@ -18,6 +18,8 @@ import {
 import RowColorCondition from '~/models/RowColorCondition';
 import { NcError } from '~/helpers/catchError';
 
+export { roleAllowsPermission } from '~/helpers/roleAllowsPermission';
+
 export const VIEW_KEY = Symbol.for('nc:view');
 
 /**
@@ -92,6 +94,7 @@ const PERSONAL_VIEW_MANAGEMENT_PERMISSIONS = [
   'hideAllColumns',
   'showAllColumns',
   'gridColumnUpdate',
+  'gridColumnsBulkUpdateWidth',
   'listColumnUpdate',
   'timelineColumnUpdate',
   'gridViewUpdate',
@@ -178,6 +181,7 @@ export const personalViewOwnerAllowedPermissions = [
   'hideAllColumns',
   'showAllColumns',
   'gridColumnUpdate',
+  'gridColumnsBulkUpdateWidth',
   'listColumnUpdate',
   'timelineColumnUpdate',
   'formColumnUpdate',

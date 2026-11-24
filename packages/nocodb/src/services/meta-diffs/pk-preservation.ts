@@ -1,3 +1,5 @@
+import type { ColumnInternalMeta } from '~/types/column-internal-meta';
+
 /**
  * Pure helpers for column-property diff between NocoDB metadata and the
  * external DB schema, with asymmetric handling of `pk`.
@@ -11,6 +13,9 @@
  *   - `pk` *lost* on the DB side while NocoDB has it: keep NocoDB's value.
  *
  * Other props (`rqd`, `un`, `ai`, `unique`) are propagated symmetrically.
+ * `readonly` follows the DB only for PG generated columns, marked by
+ * `internal_meta.pg_generated`; a readonly NocoDB set itself (AutoNumber,
+ * UUID, synced fields) is never cleared.
  *
  * Tests in `tests/unit/helpersTest/pkPreservation.test.ts` lock the
  * behavior.
@@ -28,6 +33,8 @@ export interface ColumnSchemaProps {
   un?: boolean | null;
   ai?: boolean | null;
   unique?: boolean | null;
+  readonly?: boolean | null;
+  internal_meta?: ColumnInternalMeta | null;
 }
 
 /** True when NocoDB has pk and the DB column does not. */
@@ -60,8 +67,49 @@ export function detectColumnSchemaPropsChanged(
     !!oldCol.rqd !== !!dbCol.rqd ||
     !!oldCol.un !== !!dbCol.un ||
     !!oldCol.ai !== !!dbCol.ai ||
-    !!oldCol.unique !== !!dbCol.unique
+    !!oldCol.unique !== !!dbCol.unique ||
+    resolveGeneratedReadonlyAfterSync(oldCol, dbCol) !== null
   );
+}
+
+/**
+ * The `readonly` change a sync applies for a PG generated column, or null for
+ * none: a column that became generated turns readonly and gets the marker; one
+ * that stopped (PG 13+ `DROP EXPRESSION`) turns writable again — only when the
+ * marker shows introspection set the readonly.
+ */
+export function resolveGeneratedReadonlyAfterSync(
+  oldCol: ColumnSchemaProps,
+  dbCol: ColumnSchemaProps,
+): { readonly: boolean; pg_generated: boolean } | null {
+  const wasGenerated = !!oldCol.internal_meta?.pg_generated;
+  if (dbCol.internal_meta?.pg_generated) {
+    return oldCol.readonly && wasGenerated
+      ? null
+      : { readonly: true, pg_generated: true };
+  }
+  return wasGenerated ? { readonly: false, pg_generated: false } : null;
+}
+
+/**
+ * `readonly` + `internal_meta` to write for a PG generated column change.
+ * Only `pg_generated` changes; the rest of `current.internal_meta` is kept, so
+ * pass the column as stored now, not a pre-sync snapshot.
+ */
+export function generatedReadonlyUpdate<
+  T extends Record<string, any> = Record<string, any>,
+>(
+  current: ColumnSchemaProps & { internal_meta?: T | null },
+  dbCol: ColumnSchemaProps,
+): { readonly?: boolean; internal_meta?: T } {
+  const next = resolveGeneratedReadonlyAfterSync(current, dbCol);
+  if (!next) return {};
+  const internal_meta: Record<string, any> = {
+    ...(current.internal_meta || {}),
+  };
+  if (next.pg_generated) internal_meta.pg_generated = true;
+  else delete internal_meta.pg_generated;
+  return { readonly: next.readonly, internal_meta: internal_meta as T };
 }
 
 /**
@@ -73,4 +121,18 @@ export function resolvePkAfterSync(
   dbPk: boolean | null | undefined,
 ): boolean {
   return !!(dbPk || noCoDbPk);
+}
+
+/**
+ * `internal_meta` for a type-change apply: introspected keys merged over the
+ * stored ones, so NocoDB-managed keys (unique_constraint_name) survive.
+ * `pg_generated` is left to the props-changed apply. Undefined = leave as is.
+ */
+export function mergeIntrospectedInternalMeta<T extends Record<string, any>>(
+  stored: T | null | undefined,
+  introspected: Record<string, any> | null | undefined,
+): T | undefined {
+  const { pg_generated: _pgGenerated, ...rest } = introspected || {};
+  if (!Object.keys(rest).length) return undefined;
+  return { ...(stored || {}), ...rest } as T;
 }

@@ -164,6 +164,68 @@ export const testExtractFilterFromXwhere = (
           expect(result.filters[0].comparison_sub_op).toBe('exactDate');
           expect(result.filters[0].value).toBe('2025-01-01');
         });
+        it('will keep both dates of a dateRange', async () => {
+          const columnAlias: Record<string, ColumnType> = {
+            Date: {
+              id: 'field1',
+              column_name: 'col1',
+              title: 'Date',
+              uidt: UITypes.Date,
+            },
+          };
+          const range = extractFilterFromXwhere(
+            '(Date,isWithin,dateRange,2026-03-01,2026-03-31)',
+            columnAlias
+          );
+          expect(range.filters[0].comparison_sub_op).toBe('dateRange');
+          expect(range.filters[0].value).toBe('2026-03-01,2026-03-31');
+
+          const period = extractFilterFromXwhere(
+            '(Date,isWithin,thisCalendarWeek)',
+            columnAlias
+          );
+          expect(period.errors).toBeUndefined();
+          expect(period.filters[0].comparison_sub_op).toBe('thisCalendarWeek');
+        });
+        it('will reject a dateRange with a blank end', async () => {
+          const columnAlias: Record<string, ColumnType> = {
+            Date: {
+              id: 'field1',
+              column_name: 'col1',
+              title: 'Date',
+              uidt: UITypes.Date,
+            },
+            // the parser can't see a lookup's leaf type
+            DueLookup: {
+              id: 'field2',
+              column_name: 'col2',
+              title: 'DueLookup',
+              uidt: UITypes.Lookup,
+            },
+          };
+          for (const where of [
+            '(Date,isWithin,dateRange,2026-03-01,)',
+            '(Date,isWithin,dateRange,,2026-03-01)',
+            '(Date,isWithin,dateRange)',
+            '(DueLookup,isWithin,dateRange,2026-03-01,)',
+            '(DueLookup,isWithin,dateRange)',
+          ]) {
+            // the grammar parser rejects a trailing comma before this check
+            expect(() =>
+              extractFilterFromXwhere(where, columnAlias, true)
+            ).toThrow();
+            // collected, not thrown, when the caller gathers errors
+            const collected = extractFilterFromXwhere(where, columnAlias);
+            expect(collected.errors?.length).toBeGreaterThan(0);
+          }
+          expect(
+            extractFilterFromXwhere(
+              '(DueLookup,isWithin,dateRange,2026-03-01,2026-03-31)',
+              columnAlias,
+              true
+            ).filters
+          ).toHaveLength(1);
+        });
         it('will parse datetime oneMonthAgo', async () => {
           // most datetime filter need to have suboperator
           const query = '(Date,lt,oneMonthAgo)';
@@ -259,6 +321,24 @@ export const testExtractFilterFromXwhere = (
       });
     });
   });
+
+  describe(`${title}: LTAR sub-field on a link title containing a dot`, () => {
+    it('splits on the last dot', () => {
+      const result = extractFilterFromXwhere('(Orders v1.2.Id,eq,5)', {
+        'Orders v1.2': {
+          id: 'ltar_dot_col',
+          column_name: 'orders',
+          title: 'Orders v1.2',
+          uidt: UITypes.Links,
+        },
+      });
+      expect(result.errors ?? []).toHaveLength(0);
+      const f = result.filters![0];
+      expect(f.fk_column_id).toBe('ltar_dot_col');
+      expect(f.value).toBe('5');
+      expect((f as any).meta?.ltarSubField).toBe('Id');
+    });
+  });
 };
 testExtractFilterFromXwhere('filterHelpers_old', extractFilterFromXwhere);
 
@@ -286,7 +366,10 @@ describe('filterHelpers_old_specific', () => {
       });
 
       it('parses dot-notation in — splits value and sets ltarSubField', () => {
-        const result = extractFilterFromXwhere('(author.Id,in,1,2,3)', ltarAlias);
+        const result = extractFilterFromXwhere(
+          '(author.Id,in,1,2,3)',
+          ltarAlias
+        );
         expect(result.filters).toBeDefined();
         const f = result.filters[0];
         expect(f.fk_column_id).toBe('ltar_col_id');
@@ -299,7 +382,10 @@ describe('filterHelpers_old_specific', () => {
         // The backend only resolves the `id` sub-field (to the related table's
         // PK); any other sub-field must error rather than silently fall back to
         // display-value filtering.
-        const result = extractFilterFromXwhere('(author.Name,eq,Jane)', ltarAlias);
+        const result = extractFilterFromXwhere(
+          '(author.Name,eq,Jane)',
+          ltarAlias
+        );
         expect(result.errors).toBeDefined();
         expect(result.errors.length).toBeGreaterThan(0);
       });
@@ -318,9 +404,17 @@ describe('filterHelpers_old_specific', () => {
 
       it('non-LTAR column with dot in alias returns error (no LTAR in map)', () => {
         const textAlias: Record<string, ColumnType> = {
-          Title: { id: 'txt_col', column_name: 'Title', title: 'Title', uidt: UITypes.SingleLineText },
+          Title: {
+            id: 'txt_col',
+            column_name: 'Title',
+            title: 'Title',
+            uidt: UITypes.SingleLineText,
+          },
         };
-        const result = extractFilterFromXwhere('(Title.Something,eq,x)', textAlias);
+        const result = extractFilterFromXwhere(
+          '(Title.Something,eq,x)',
+          textAlias
+        );
         expect(result.errors).toBeDefined();
         expect(result.errors.length).toBeGreaterThan(0);
       });

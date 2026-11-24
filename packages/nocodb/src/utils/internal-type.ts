@@ -1,9 +1,11 @@
+import type { GlobalSearchModeStatus } from '~/db/search/searchIndexMeta';
 import type {
   FactoryPort,
   FactoryPreview,
   FactoryRepoType,
   FactorySessionView,
   FactoryStreamState,
+  SearchIndexStatus,
 } from 'nocodb-sdk';
 import type {
   AbuseReportDetailType,
@@ -16,6 +18,7 @@ import type {
   NcRequest,
   ProseMirrorDoc,
   RowColoringInfo,
+  TableSyncSourceViewType,
   TableType,
 } from 'nocodb-sdk';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -41,6 +44,8 @@ import type {
 
 export type InternalGETResponseType = Promise<
   | void
+  | SearchIndexStatus
+  | GlobalSearchModeStatus
   | AbuseReportListType
   | AbuseReportDetailType
   | RowColoringInfo
@@ -62,7 +67,7 @@ export type InternalGETResponseType = Promise<
   | {
       source_table_missing: boolean;
       columns: Column[];
-      views: View[];
+      views: TableSyncSourceViewType[];
       visible_source_column_ids: string[];
     }
   | Filter[]
@@ -107,6 +112,8 @@ export type InternalGETResponseType = Promise<
 
 export type InternalPOSTResponseType = Promise<
   | void
+  | SearchIndexStatus
+  | GlobalSearchModeStatus
   | AbuseReportType
   | { id: string; blocked: boolean }
   | boolean

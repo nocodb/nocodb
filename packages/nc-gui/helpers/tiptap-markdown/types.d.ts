@@ -13,6 +13,8 @@ export interface MarkdownOptions {
   transformPastedText?: boolean
   transformCopiedText?: boolean
   renderImagesAsLinks?: boolean
+  /** Write leading spaces as &nbsp; and escape typed entities, for editors that reload their own markdown */
+  preserveLeadingSpaces?: boolean
 }
 
 export interface MarkdownStorage {

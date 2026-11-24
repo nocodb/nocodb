@@ -133,7 +133,7 @@ function triggerToolbarControl(selector: string) {
 
           <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isList" />
 
-          <SmartsheetToolbarGroupByMenu v-if="isGrid" />
+          <SmartsheetToolbarGroupByMenu v-if="isGrid || isGallery" />
 
           <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isList" />
 

@@ -6,6 +6,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type FormulaColumn from '../models/FormulaColumn';
+import type { Knex } from 'knex';
 import type { NcContext } from '~/interface/config';
 import type { ColumnType } from 'nocodb-sdk';
 import type { ButtonColumn } from '~/models';
@@ -58,23 +59,33 @@ export function getFormulaColumnRefs(formula: string): string[] {
 /**
  * Formula and Url button columns of OTHER tables that reach `columnId` through
  * a `{Link}.{Field}` path. Same-table references are handled by the callers.
+ * Several columns of one table share a single scan.
  */
 export async function getFormulasReferringColumnViaPath(
   context: NcContext,
-  column: Pick<Column, 'id' | 'fk_model_id'>,
+  columnOrColumns:
+    | Pick<Column, 'id' | 'fk_model_id'>
+    | Pick<Column, 'id' | 'fk_model_id'>[],
   ncMeta = Noco.ncMeta,
 ): Promise<{ column: Column; context: NcContext }[]> {
+  const columns = [columnOrColumns].flat();
+  if (!columns.length) return [];
+  const column = columns[0];
+  const ids = columns.map((c) => c.id);
+  const mentionsAny = (qb: Knex.QueryBuilder) => {
+    for (const id of ids) qb.orWhere('formula', 'like', `%${id}%`);
+  };
   const rows = [
     ...(await ncMeta
       .knex(MetaTable.COL_FORMULA)
       .where('fk_workspace_id', context.workspace_id)
-      .where('formula', 'like', `%${column.id}%`)
+      .where(mentionsAny)
       .select('fk_column_id', 'base_id', 'formula')),
     ...(await ncMeta
       .knex(MetaTable.COL_BUTTON)
       .where('fk_workspace_id', context.workspace_id)
       .where('type', ButtonActionsType.Url)
-      .where('formula', 'like', `%${column.id}%`)
+      .where(mentionsAny)
       .select('fk_column_id', 'base_id', 'formula')),
   ];
 
@@ -86,7 +97,7 @@ export async function getFormulasReferringColumnViaPath(
     } catch {
       continue;
     }
-    if (!formulaTreeReferencesColumn(tree, [column.id])) continue;
+    if (!formulaTreeReferencesColumn(tree, ids)) continue;
 
     const formulaContext = { ...context, base_id: row.base_id };
     const formulaColumn = await Column.get(

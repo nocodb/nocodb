@@ -1,6 +1,8 @@
 import IEmailAdapter, { XcEmail, XcEmailAttachment } from './lib/IEmailAdapter';
 import IStorageAdapter, { XcFile } from './lib/IStorageAdapter';
-import IStorageAdapterV2 from './lib/IStorageAdapterV2';
+import IStorageAdapterV2, {
+  FileCreateByUrlOptions,
+} from './lib/IStorageAdapterV2';
 import IWebhookNotificationAdapter from './lib/IWebhookNotificationAdapter';
 import XcEmailPlugin from './lib/XcEmailPlugin';
 import XcPlugin from './lib/XcPlugin';
@@ -25,6 +27,7 @@ export {
   IWebhookNotificationAdapter,
   XcWebhookNotificationPlugin,
   IStorageAdapterV2,
+  FileCreateByUrlOptions,
 };
 export * from './common/XcUIBuilder';
 export * from './common/XcNotification';

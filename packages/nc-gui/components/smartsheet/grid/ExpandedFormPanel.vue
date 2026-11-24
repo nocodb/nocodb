@@ -123,6 +123,7 @@ const {
   changedColumns,
   hasLtarChanges,
   pendingLtarOps,
+  heldLtarBlueprints,
   displayValue,
   state: rowState,
   isNew,
@@ -370,6 +371,7 @@ useRecordNavCommands({
     clearColumns()
     if (_row.value?.rowMeta) _row.value.rowMeta.ltarState = {}
     pendingLtarOps.value = []
+    heldLtarBlueprints.value = {}
     await _loadRow(activeRowId.value ?? undefined)
   },
   close: onClose,
@@ -402,6 +404,7 @@ const discardAndNavigate = () => {
     _row.value.rowMeta.ltarState = {}
   }
   pendingLtarOps.value = []
+  heldLtarBlueprints.value = {}
   showDiscardModal.value = false
   runPending()
 }
@@ -411,6 +414,11 @@ const saveAndContinue = async () => {
   const ok = await save()
   if (!ok) return // save failed — stay on current row so user can fix/retry
   showDiscardModal.value = false
+  // Linked records that failed to create are still held on this row: stay on it
+  if (hasLtarChanges.value) {
+    pendingAction.value = null
+    return
+  }
   runPending()
 }
 
@@ -766,7 +774,7 @@ watch(activeRowId, () => {
 
         <NcTooltip v-if="conflictingColumns.length" placement="bottom">
           <template #title>{{
-            $t(hasLtarChanges ? 'tooltip.fieldChangedByOthersDropLinks' : 'tooltip.fieldChangedByOthers', {
+            $t(pendingLtarOps.length ? 'tooltip.fieldChangedByOthersDropLinks' : 'tooltip.fieldChangedByOthers', {
               fields: conflictingColumns.join(', '),
             })
           }}</template>

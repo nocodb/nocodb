@@ -41,6 +41,7 @@ export class SourcesController {
       source.config = undefined;
     }
     source.integration_config = undefined;
+    source.integration_meta = undefined;
 
     maskKnexConfig(source);
     hideSecretRefIds(req, source.config);
@@ -69,6 +70,7 @@ export class SourcesController {
 
     source.config = undefined;
     source.integration_config = undefined;
+    source.integration_meta = undefined;
 
     return source;
   }
@@ -89,6 +91,7 @@ export class SourcesController {
     for (const source of sources) {
       source.config = undefined;
       source.integration_config = undefined;
+      source.integration_meta = undefined;
     }
 
     return new PagedResponseImpl(sources, {

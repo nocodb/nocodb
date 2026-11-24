@@ -7,6 +7,7 @@ import relativeTime from 'dayjs/plugin/relativeTime.js';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
+import type { FilterTypeWithMeta } from '~/lib/filterHelpers_withparser';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
@@ -20,6 +21,13 @@ import { ColumnHelper } from '~/lib/columnHelper/column-helper';
 import { parseCheckboxValue } from '~/lib/columnHelper/utils/parser';
 import { CURRENT_USER_TOKEN } from '~/lib/globals';
 import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
+import {
+  DATE_RANGE_SUB_OP,
+  isCalendarPeriodSubOp,
+  isDateWithinPeriod,
+  parseDateInTimezone,
+} from '~/lib/filter/calendarDateRange';
+import { formulaDateUidt } from '~/lib/formula/dateOnlyFormula';
 
 extend(utc);
 extend(timezone);
@@ -100,12 +108,12 @@ export class RowFilterValidator {
     const { column, columns, metas, baseId } = params;
     switch (column.uidt as UITypes) {
       case UITypes.Formula: {
-        const dataType = parseProp(column.colOptions)?.parsed_tree?.dataType;
-        switch (dataType) {
+        const parsedTree = parseProp(column.colOptions)?.parsed_tree;
+        switch (parsedTree?.dataType) {
           case FormulaDataTypes.NUMERIC:
             return UITypes.Decimal;
           case FormulaDataTypes.DATE:
-            return UITypes.DateTime;
+            return formulaDateUidt(parsedTree);
           case FormulaDataTypes.BOOLEAN:
           case FormulaDataTypes.LOGICAL:
             return UITypes.Checkbox;
@@ -309,6 +317,13 @@ export class RowFilterValidator {
               res = false; // Unsupported operation for User fields
           }
         } else if (
+          (filter as FilterTypeWithMeta).meta?.ltarSubField &&
+          column.uidt === UITypes.Links &&
+          !isBtLikeV2Junction(column)
+        ) {
+          // A many-record Links cell holds a count, not the linked ids: leave `Link.Id` to the server.
+          res = true;
+        } else if (
           column.uidt === UITypes.LinkToAnotherRecord ||
           (column.uidt === UITypes.Links && isBtLikeV2Junction(column))
         ) {
@@ -336,8 +351,11 @@ export class RowFilterValidator {
           if (!relatedMeta?.columns) {
             res = false;
           } else {
-            // Find the child column in the related table
-            const childColumn = relatedMeta.columns.find((col) => col.pv);
+            // `(Link.Id,eq,5)` matches the linked records' primary key, not their display value.
+            const childColumn = (filter as FilterTypeWithMeta).meta
+              ?.ltarSubField
+              ? relatedMeta.columns.find((col) => col.pk)
+              : relatedMeta.columns.find((col) => col.pv);
             if (!childColumn) {
               res = false;
             } else {
@@ -631,6 +649,18 @@ export class RowFilterValidator {
             break;
           }
           case 'isWithin': {
+            const subOp = filter.comparison_sub_op;
+            if (isCalendarPeriodSubOp(subOp) || subOp === DATE_RANGE_SUB_OP) {
+              const tz = getTimezone();
+              res = isDateWithinPeriod(
+                subOp,
+                filter.value,
+                getDayjsDataVal(),
+                dayjs.tz(this.dateNow(), tz),
+                (end) => parseDateInTimezone(end, tz)
+              );
+              break;
+            }
             let now = dayjs
               .tz(this.dateNow(), getTimezone())
               .format(dateFormat)

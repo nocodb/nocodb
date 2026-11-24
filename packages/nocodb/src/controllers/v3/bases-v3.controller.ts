@@ -53,11 +53,13 @@ export class BasesV3Controller {
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Query('include') qsInclude?: string[],
+    @Req() req?: NcRequest,
   ) {
     const base = await this.baseV3Service.getProjectWithInfo(context, {
       baseId: baseId,
       qsInclude,
       includeConfig: false,
+      req,
     });
 
     return base;

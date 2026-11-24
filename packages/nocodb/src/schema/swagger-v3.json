@@ -3544,38 +3544,36 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "list": [
-                        {
-                          "id": "root",
-                          "group_operator": "AND",
-                          "filters": [
-                            {
-                              "id": "fiml6n8qzam4wmvl",
-                              "field_id": "c580jyan91qwrbx",
-                              "operator": "eq",
-                              "value": "Midmarket"
-                            },
-                            {
-                              "id": "fi3egizdiubzfo9u",
-                              "group_operator": "OR",
-                              "filters": [
-                                {
-                                  "id": "fih624x0srskaf1i",
-                                  "field_id": "caymvuj3az60wyk",
-                                  "operator": "eq",
-                                  "value": "Mexico"
-                                },
-                                {
-                                  "id": "fi1pjkf0f88r8s6l",
-                                  "field_id": "caymvuj3az60wyk",
-                                  "operator": "eq",
-                                  "value": "Canada"
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
+                      "list": {
+                        "id": "root",
+                        "group_operator": "AND",
+                        "filters": [
+                          {
+                            "id": "fiml6n8qzam4wmvl",
+                            "field_id": "c580jyan91qwrbx",
+                            "operator": "eq",
+                            "value": "Midmarket"
+                          },
+                          {
+                            "id": "fi3egizdiubzfo9u",
+                            "group_operator": "OR",
+                            "filters": [
+                              {
+                                "id": "fih624x0srskaf1i",
+                                "field_id": "caymvuj3az60wyk",
+                                "operator": "eq",
+                                "value": "Mexico"
+                              },
+                              {
+                                "id": "fi1pjkf0f88r8s6l",
+                                "field_id": "caymvuj3az60wyk",
+                                "operator": "eq",
+                                "value": "Canada"
+                              }
+                            ]
+                          }
+                        ]
+                      }
                     }
                   }
                 }
@@ -5672,7 +5670,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nMore examples: `where=(Title,like,report)` matches records whose Title contains 'report'; `where=(Tags,anyof,urgent,bug)` matches records whose multi-select Tags has 'urgent' or 'bug'.\n\nOperators: eq, neq, gt, ge, lt, le, like, nlike, in, btw, nbtw, is, isnot, blank, notblank, checked, notchecked, anyof, allof, nanyof, nallof, isWithin (gte and lte are accepted as aliases of ge and le). Which ones apply depends on the field type, see [filtering](https://nocodb.com/docs/apis/filtering).\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format; for quoting values that contain commas, parentheses or spaces, see [the `where` syntax](https://nocodb.com/docs/apis/filtering#v3-where-query-parameter)."
+            "description": "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nMore examples: `where=(Title,like,report)` matches records whose Title contains 'report'; `where=(Tags,anyof,urgent,bug)` matches records whose multi-select Tags has 'urgent' or 'bug'.\n\nOperators: eq, neq, gt, ge, lt, le, like, nlike, in, btw, nbtw, is, isnot, blank, notblank, checked, notchecked, anyof, allof, nanyof, nallof, isWithin (gte and lte are accepted as aliases of ge and le). Which ones apply depends on the field type, see [filtering](https://nocodb.com/docs/apis/filtering).\n\n**Date and DateTime fields** (also CreatedTime and LastModifiedTime): the operator must be followed by a sub-operator such as `exactDate`, `today` or `daysAgo`. Days are taken in the field's timezone, or UTC if it has none. `eq` matches and `neq` excludes the whole day, even when a time is given. On DateTime, CreatedTime and LastModifiedTime, `gt`, `ge`, `lt` and `le` compare to the exact instant when the value includes a time (to the millisecond on PostgreSQL and SQLite, to the second on other databases); a date-only value compares against day boundaries. Date fields always compare whole dates. A value without an offset is read in the field's timezone, so send `Z` or an explicit offset, and URL-encode `+` as `%2B`.\n\nExample: `where=(UpdatedAt,gt,exactDate,2026-01-15T10:00:00Z)` returns records updated after 10:00 UTC on 2026-01-15; `where=(UpdatedAt,gt,2026-01-15T10:00:00Z)` is rejected.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format; for quoting values that contain commas, parentheses or spaces, see [the `where` syntax](https://nocodb.com/docs/apis/filtering#v3-where-query-parameter)."
           },
           {
             "schema": {
@@ -6639,7 +6637,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nMore examples: `where=(Title,like,report)` matches records whose Title contains 'report'; `where=(Tags,anyof,urgent,bug)` matches records whose multi-select Tags has 'urgent' or 'bug'.\n\nOperators: eq, neq, gt, ge, lt, le, like, nlike, in, btw, nbtw, is, isnot, blank, notblank, checked, notchecked, anyof, allof, nanyof, nallof, isWithin (gte and lte are accepted as aliases of ge and le). Which ones apply depends on the field type, see [filtering](https://nocodb.com/docs/apis/filtering).\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format; for quoting values that contain commas, parentheses or spaces, see [the `where` syntax](https://nocodb.com/docs/apis/filtering#v3-where-query-parameter)."
+            "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nMore examples: `where=(Title,like,report)` matches records whose Title contains 'report'; `where=(Tags,anyof,urgent,bug)` matches records whose multi-select Tags has 'urgent' or 'bug'.\n\nOperators: eq, neq, gt, ge, lt, le, like, nlike, in, btw, nbtw, is, isnot, blank, notblank, checked, notchecked, anyof, allof, nanyof, nallof, isWithin (gte and lte are accepted as aliases of ge and le). Which ones apply depends on the field type, see [filtering](https://nocodb.com/docs/apis/filtering).\n\n**Date and DateTime fields** (also CreatedTime and LastModifiedTime): the operator must be followed by a sub-operator such as `exactDate`, `today` or `daysAgo`. Days are taken in the field's timezone, or UTC if it has none. `eq` matches and `neq` excludes the whole day, even when a time is given. On DateTime, CreatedTime and LastModifiedTime, `gt`, `ge`, `lt` and `le` compare to the exact instant when the value includes a time (to the millisecond on PostgreSQL and SQLite, to the second on other databases); a date-only value compares against day boundaries. Date fields always compare whole dates. A value without an offset is read in the field's timezone, so send `Z` or an explicit offset, and URL-encode `+` as `%2B`.\n\nExample: `where=(UpdatedAt,gt,exactDate,2026-01-15T10:00:00Z)` returns records updated after 10:00 UTC on 2026-01-15; `where=(UpdatedAt,gt,2026-01-15T10:00:00Z)` is rejected.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format; for quoting values that contain commas, parentheses or spaces, see [the `where` syntax](https://nocodb.com/docs/apis/filtering#v3-where-query-parameter)."
           },
           {
             "schema": {
@@ -12428,6 +12426,80 @@
           "propertyName": "mode"
         }
       },
+      "ViewRowColourResponse": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "title": "conditions",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "filter"
+                ],
+                "description": "Mode of row coloring. In this mode, the color is selected based on conditions applied to the fields."
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique identifier for the condition.",
+                      "readOnly": true
+                    },
+                    "apply_as_row_background": {
+                      "type": "boolean"
+                    },
+                    "color": {
+                      "type": "string"
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterGroupResponse",
+                      "description": "The condition's filters, nested under a root group. Values come back as strings, as in `FilterResponse`."
+                    }
+                  }
+                }
+              }
+            },
+            "required": [
+              "mode",
+              "conditions"
+            ]
+          },
+          {
+            "type": "object",
+            "title": "select",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "select"
+                ],
+                "description": "Mode of row coloring. In this mode, the color is selected based on a single select field."
+              },
+              "field_id": {
+                "type": "string",
+                "description": "Single select field ID to be used for colouring rows in the view."
+              },
+              "apply_as_row_background": {
+                "type": "boolean",
+                "description": "Whether to additionally apply the color as row background."
+              }
+            },
+            "required": [
+              "mode",
+              "field_id"
+            ]
+          }
+        ],
+        "discriminator": {
+          "propertyName": "mode"
+        },
+        "description": "Row colour configuration as returned by the API. Same shape as `ViewRowColour`, except that condition filters are `FilterGroupResponse`."
+      },
       "ViewOptionsGrid": {
         "type": "object",
         "properties": {
@@ -13465,7 +13537,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 }
@@ -13497,7 +13569,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 }
@@ -13529,7 +13601,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 },
@@ -13564,7 +13636,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 },
@@ -13599,7 +13671,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 },
@@ -13634,7 +13706,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 }
@@ -13666,7 +13738,7 @@
                     "$ref": "#/components/schemas/ViewFields"
                   },
                   "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
+                    "$ref": "#/components/schemas/ViewRowColourResponse",
                     "description": "Row colour configuration for the view."
                   }
                 }
@@ -15777,16 +15849,10 @@
         "type": "object",
         "properties": {
           "list": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FilterGroupResponse"
-            },
-            "description": "List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**. A view with no filters still returns that root group, with an empty `filters` array and `group_operator` set to `null`."
+            "$ref": "#/components/schemas/FilterGroupResponse",
+            "description": "The view's filters, nested under a single root group whose `id` is **root**. Despite the name this is one group object, not an array. Omitted when the view has no filters."
           }
-        },
-        "required": [
-          "list"
-        ]
+        }
       },
       "FilterGroupLevel3": {
         "type": "object",
@@ -20410,6 +20476,10 @@
                   "type": "integer",
                   "description": "Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule"
                 },
+                "triggered_by": {
+                  "type": ["string", "null"],
+                  "description": "ID of the person who started this execution: a manual run, retry, button click or record change. Null for schedules, webhooks, service accounts, agents and other workflows' writes. The execution still runs as the workflow's run-as identity. Below Creator, only executions the caller started are returned."
+                },
                 "created_at": {
                   "type": "string",
                   "format": "date-time",
@@ -20460,6 +20530,10 @@
           "execution_depth": {
             "type": "integer",
             "description": "Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule"
+          },
+          "triggered_by": {
+            "type": ["string", "null"],
+            "description": "ID of the person who started this execution: a manual run, retry, button click or record change. Null for schedules, webhooks, service accounts, agents and other workflows' writes. The execution still runs as the workflow's run-as identity. Below Creator, only executions the caller started are returned."
           },
           "created_at": {
             "type": "string",

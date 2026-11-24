@@ -115,7 +115,8 @@ export class DocumentsV3Service {
     param: { docId: string },
     req: NcRequest,
   ): Promise<boolean> {
-    return await this.documentsService.delete(context, param.docId, req);
+    await this.documentsService.delete(context, param.docId, req);
+    return true;
   }
 
   async docReorder(
@@ -203,6 +204,7 @@ export class DocumentsV3Service {
       context,
       'Documents are not available in an environment instance.',
     );
+    await this.documentsService.assertPublicShareAllowed(context);
     const doc = await Document.share(context, param.docId);
     const includeSubtree = !!getDocShareMeta(doc.meta).include_subtree;
 
@@ -259,6 +261,7 @@ export class DocumentsV3Service {
       context,
       'Documents are not available in an environment instance.',
     );
+    await this.documentsService.assertPublicShareAllowed(context);
     const doc = await Document.updateShareSettings(context, param.docId, body);
     const includeSubtree = !!getDocShareMeta(doc.meta).include_subtree;
 

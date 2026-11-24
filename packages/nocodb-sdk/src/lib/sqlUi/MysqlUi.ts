@@ -1482,6 +1482,9 @@ export class MysqlUi implements SqlUi {
       'ARRAYUNIQUE',
       'ARRAYSLICE',
       'ARRAYCOMPACT',
+      'TEXTSPLIT',
+      'ARRAYJOIN',
+      'ARRAYFLATTEN',
     ];
   }
 

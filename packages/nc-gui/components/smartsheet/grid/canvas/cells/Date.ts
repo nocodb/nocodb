@@ -1,4 +1,4 @@
-import dayjs from 'dayjs'
+import { parseStoredDate } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTagLabel, truncateText } from '../utils/canvas'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 const defaultDateFormat = 'YYYY-MM-DD'
@@ -34,7 +34,7 @@ export const DateCellRenderer: CellRenderer = {
     }
 
     if (value) {
-      const date = dayjs(/^\d+$/.test(value) ? +value : value, defaultDateFormat)
+      const date = parseStoredDate(value, defaultDateFormat)
       if (date.isValid()) {
         formattedDate = date.format(dateFormat)
       } else {
@@ -88,7 +88,7 @@ export const DateCellRenderer: CellRenderer = {
       // format with the column format (mirrors render()). Parsing with a Jalali
       // dateFormat here yields an invalid date, so the click area is never
       // computed and the cell can't be opened by mouse.
-      const date = dayjs(/^\d+$/.test(value) ? +value : value, defaultDateFormat)
+      const date = parseStoredDate(value, defaultDateFormat)
       if (date.isValid()) {
         text = date.format(dateFormat)
       } else {

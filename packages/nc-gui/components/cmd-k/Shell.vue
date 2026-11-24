@@ -22,27 +22,30 @@ onClickOutside(contentEl, () => {
 </script>
 
 <template>
-  <Transition name="nc-cmdk-modal">
-    <div v-if="vOpen" class="cmdk-modal cmdk-modal-active" :class="modalClass">
-      <div
-        ref="contentEl"
-        class="cmdk-modal-content nc-cmdk"
-        role="dialog"
-        aria-modal="true"
-        :aria-label="
-          $t(activeCmd === 'cmd-j' ? 'objects.document' : activeCmd === 'cmd-l' ? 'labels.recent' : 'labels.quickNavigation')
-        "
-      >
-        <div class="nc-cmdk-header">
-          <slot name="header" />
+  <!-- In <body>, outside the app root, so a modal that makes the page inert can't take the palette with it -->
+  <Teleport to="body">
+    <Transition name="nc-cmdk-modal">
+      <div v-if="vOpen" class="cmdk-modal cmdk-modal-active" :class="modalClass">
+        <div
+          ref="contentEl"
+          class="cmdk-modal-content nc-cmdk"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="
+            $t(activeCmd === 'cmd-j' ? 'objects.document' : activeCmd === 'cmd-l' ? 'labels.recent' : 'labels.quickNavigation')
+          "
+        >
+          <div class="nc-cmdk-header">
+            <slot name="header" />
+          </div>
+          <div class="nc-cmdk-body">
+            <slot />
+          </div>
+          <CmdFooter :active-cmd="activeCmd" :set-active-cmd-view="setActiveCmdView" />
         </div>
-        <div class="nc-cmdk-body">
-          <slot />
-        </div>
-        <CmdFooter :active-cmd="activeCmd" :set-active-cmd-view="setActiveCmdView" />
       </div>
-    </div>
-  </Transition>
+    </Transition>
+  </Teleport>
 </template>
 
 <style lang="scss">

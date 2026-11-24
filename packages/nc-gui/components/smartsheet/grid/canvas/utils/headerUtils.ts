@@ -1,8 +1,10 @@
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, UITypesName, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { parseCellWidth } from './cell'
 import type { CanvasGridColumn } from '~/lib/types'
 import type { GetMetaParams } from '~/composables/useMetas'
+import { getI18n } from '~/plugins/a.i18n'
+import { getColumnTypeI18nName } from '~/utils/fieldTypeI18n'
 
 /**
  * Header drag-drop landing spot: the dragged field is inserted *after*
@@ -13,6 +15,63 @@ import type { GetMetaParams } from '~/composables/useMetas'
  */
 export function getColumnDropTargetIndex(columns: CanvasGridColumn[], hoveredIndex: number) {
   return columns[hoveredIndex]?.pv ? hoveredIndex : hoveredIndex - 1
+}
+
+// `order` is float4 on pg and float(8,2) on mysql: keep 2 decimals and check the stored value
+const toStoredOrder = (n: number) => Math.round(n * 100) / 100
+
+/**
+ * `n` orders spread evenly and strictly between `prev` and `next` (null: whole numbers after
+ * `prev`), all distinct and > 0 once stored; null when the gap is too small for them.
+ */
+function spreadOrders(prev: number, next: number | null, n: number): number[] | null {
+  const orders: number[] = []
+  let last = prev
+  for (let i = 1; i <= n; i++) {
+    const order = next === null ? Math.floor(prev) + i : toStoredOrder(prev + ((next - prev) * i) / (n + 1))
+    if (!(order > last && Math.fround(order) > Math.fround(last))) return null
+    orders.push(order)
+    last = order
+  }
+  if (next !== null && !(last < next && Math.fround(last) < Math.fround(next))) return null
+  return orders
+}
+
+/**
+ * Orders to save when `movedId` is placed right before `beforeId` (null: at the end).
+ * `viewCols` must hold every field of the view, hidden ones too, so the new order can't
+ * equal a hidden field's. When the neighbours leave no room (equal orders, or a gap the
+ * stored column can't represent), the moved field and the fewest following fields are
+ * spread up to the next field with room; only changed orders are returned.
+ */
+export function getColumnReorderUpdates(
+  viewCols: { id: string; order?: number | null }[],
+  movedId: string,
+  beforeId: string | null,
+): Record<string, number> {
+  const moved = viewCols.find((c) => c.id === movedId)
+  if (!moved) return {}
+
+  const others = viewCols.filter((c) => c.id !== movedId).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+  let index = beforeId ? others.findIndex((c) => c.id === beforeId) : -1
+  if (index < 0) index = others.length
+
+  // an order of 0 reads as unset, so the floor is 0
+  const prevOrder = index > 0 ? others[index - 1]!.order ?? 0 : 0
+
+  const run = [moved]
+  for (let j = index; ; j++) {
+    const orders = spreadOrders(prevOrder, j < others.length ? others[j]!.order ?? 0 : null, run.length)
+    if (orders) {
+      const updates: Record<string, number> = {}
+      run.forEach((c, i) => {
+        if (orders[i] !== c.order) updates[c.id] = orders[i]!
+      })
+      return updates
+    }
+    run.push(others[j]!)
+  }
 }
 
 // Display value drop slot: gutter + left half of the display value; edgeX = gutter right border
@@ -33,17 +92,8 @@ export function getDisplayValueDropSlot(columns: CanvasGridColumn[], scrollLeft:
 }
 
 export function columnTypeName(column: CanvasGridColumn) {
-  if (column?.columnObj.uidt === UITypes.LongText) {
-    if (parseProp(column?.columnObj?.meta)?.richMode) {
-      return UITypesName.RichText
-    }
-
-    if (parseProp(column.columnObj?.meta)?.[LongTextAiMetaProp]) {
-      return UITypesName.AIPrompt
-    }
-  }
-
-  return column.columnObj.uidt ? UITypesName[column.columnObj.uidt!] : ''
+  const { t, te } = getI18n().global
+  return getColumnTypeI18nName(column?.columnObj, t, te)
 }
 export function getCustomColumnTooltip({
   column,

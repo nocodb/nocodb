@@ -32,6 +32,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
+import { QueryAbortedError } from '~/db/queryGuard';
 
 const LINK_PICKER_QUERY_KEYS = [
   'limit',
@@ -419,6 +420,7 @@ export class DatasService {
             e instanceof NcSDKErrorV2
           )
             throw e;
+          if (e instanceof QueryAbortedError) throw e;
           this.logger.error(`Error fetching data: ${e?.message}`, e?.stack);
           NcError.get(context).internalServerError(
             'Please check server log for more details',

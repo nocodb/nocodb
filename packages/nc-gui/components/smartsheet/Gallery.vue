@@ -8,7 +8,8 @@ import {
   ViewTypes,
   isVirtualCol,
 } from 'nocodb-sdk'
-import type { Attachment } from '../../lib/types'
+import { createReusableTemplate } from '@vueuse/core'
+import type { Attachment, Group } from '../../lib/types'
 import type { Row as RowType } from '#imports'
 import { NavigateDir } from '#imports'
 const meta = inject(MetaInj, ref())
@@ -26,9 +27,11 @@ const fields = inject(FieldsInj, ref([]))
 const { appInfo, user } = useGlobal()
 const { isViewDataLoading, isActiveViewFieldHeaderVisible: storeFieldHeaderVisible } = storeToRefs(useViewsStore())
 
-const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus } =
+const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus, sorts } =
   useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
+
+const { $api } = useNuxtApp()
 const { metas } = useMetas()
 const route = useRoute()
 const router = useRouter()
@@ -51,6 +54,7 @@ const { isMounted } = useIsMounted()
 const {
   fetchChunk,
   deleteRow,
+  deleteRowById,
   insertRow,
   syncCount,
   navigateToSiblingRow,
@@ -62,7 +66,13 @@ const {
   clearCache,
   viewData: galleryData,
   updateOrSaveRow,
-} = useGalleryViewData(meta, view, xWhere)
+} = useGalleryViewData(
+  meta,
+  view,
+  xWhere,
+  () => refreshGroupsFromPeer(),
+  (id, payload) => patchGroupedRow(id, payload),
+)
 
 const { copy } = useCopy()
 
@@ -89,6 +99,24 @@ const interfaceShowRowExpand = inject(InterfaceShowRowExpandInj, ref(true))
  * image itself (overlay title / record-color wash).
  */
 const interfaceGalleryTheme = inject(InterfaceGalleryThemeInj, undefined)
+
+// Card markup shared by the flat (virtualised) grid and grouped sections.
+const [DefineCard, ReuseCard] = createReusableTemplate<{ record: RowType }>()
+
+const viewGroupBy = useViewGroupBy()
+
+// Interface pages keep the flat gallery: their viz config has no group-by.
+const isGroupedGallery = computed(() => !interfacePageDataApi && !!viewGroupBy?.isGroupBy.value)
+
+const GROUP_ROWS_PAGE_SIZE = 24
+
+const GROUP_LIST_PAGE_SIZE = 25
+
+const expandedGroupKeys = reactive(new Set<string>())
+
+const isGroupedGalleryLoading = ref(false)
+
+let groupedLoadSeq = 0
 
 const isActiveViewFieldHeaderVisible = computed(() => {
   if (interfacePageDataApi) return parseProp(galleryData.value?.meta)?.is_field_header_visible ?? true
@@ -232,6 +260,12 @@ function deleteContextMenuRow() {
   if (!target) return
 
   const pk = contextMenuRowId.value
+
+  if (isGroupedGallery.value) {
+    if (pk) deleteGroupedRow(pk)
+    return
+  }
+
   const index = pk
     ? [...cachedRows.value.entries()].find(([, row]) => extractPkFromRow(row.row, meta.value?.columns) === pk)?.[0]
     : target.index
@@ -242,6 +276,109 @@ function deleteContextMenuRow() {
   }
 
   deleteRow(index)
+}
+
+async function deleteGroupedRow(pk: string) {
+  if (await deleteRowById(pk)) await refreshGroup(viewGroupBy?.rootGroup.value)
+}
+
+/** Rebuilds the grouped tree from the first page of groups. */
+async function loadGroupedGallery() {
+  if (!viewGroupBy) return
+
+  const seq = ++groupedLoadSeq
+  const root = viewGroupBy.rootGroup.value
+  root.children = []
+
+  // Load into a new root and swap it in: a load or refresh still in flight writes into the old one.
+  const fresh: Group = {
+    ...toRaw(root),
+    children: [],
+    rows: undefined,
+    paginationData: { page: 1, pageSize: GROUP_LIST_PAGE_SIZE },
+  }
+
+  isGroupedGalleryLoading.value = true
+  try {
+    await viewGroupBy.loadGroups({}, fresh)
+    if (seq !== groupedLoadSeq) return
+
+    viewGroupBy.rootGroup.value = fresh
+  } finally {
+    if (seq === groupedLoadSeq) isGroupedGalleryLoading.value = false
+  }
+}
+
+// Saving a group-by changes it in several requests, then emits GROUP_BY_RELOAD: load once for all of them.
+const scheduleGroupedLoad = useDebounceFn(() => loadGroupedGallery(), 250)
+
+/**
+ * Refetches what is already loaded, keeping collapse state and scroll position.
+ * `savedPk`: after that record's save, reload only the groups whose count changed or that hold it.
+ */
+async function refreshGroup(group?: Group, savedPk?: string, prevCount?: number): Promise<void> {
+  if (!viewGroupBy || !group) return
+
+  if (group.nested) {
+    if (!group.children) return
+    const counts = new Map(group.children.map((child) => [child.key, child.count]))
+    await viewGroupBy.loadGroups({ offset: 0, limit: Math.max(GROUP_LIST_PAGE_SIZE, group.children.length) }, group)
+    await Promise.all((group.children ?? []).map((child) => refreshGroup(child, savedPk, counts.get(child.key))))
+    return
+  }
+
+  if (!group.rows) return
+  if (savedPk !== undefined && prevCount === group.count) {
+    const held = group.rows.find((r) => `${extractPkFromRow(r.row, meta.value?.columns ?? [])}` === savedPk)
+    if (!held || (await patchSavedRow(held, savedPk))) return
+  }
+  group.paginationData = { page: 1, pageSize: Math.max(GROUP_ROWS_PAGE_SIZE, group.rows.length) }
+  await viewGroupBy.loadGroupData(group, true, {}, { lean: true })
+}
+
+/** Patches a card from its saved record; false when a sorted field changed, so its group must reorder. */
+async function patchSavedRow(held: RowType, pk: string) {
+  if (!meta.value?.base_id || !meta.value.id || !view.value?.id) return false
+  try {
+    const fresh = await $api.dbViewRow.read('noco', meta.value.base_id, meta.value.id, view.value.id, pk)
+    const sortTitles = sorts.value.map((s) => meta.value?.columns?.find((c) => c.id === s.fk_column_id)?.title)
+    if (sortTitles.some((title) => title && JSON.stringify(fresh[title]) !== JSON.stringify(held.row[title]))) return false
+    Object.assign(held.row, fresh)
+    restampRowColors(held)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function refreshGroupsFromPeer() {
+  if (isGroupedGallery.value) refreshGroup(viewGroupBy?.rootGroup.value)
+}
+
+/** The loaded leaf group holding the row with this pk. */
+function findGroupedRow(pk: string, group = viewGroupBy?.rootGroup.value): { group: Group; row: RowType } | undefined {
+  if (!group) return
+  for (const child of group.children ?? []) {
+    const found = findGroupedRow(pk, child)
+    if (found) return found
+  }
+  const row = group.rows?.find((r) => `${extractPkFromRow(r.row, meta.value?.columns ?? [])}` === pk)
+  return row ? { group, row } : undefined
+}
+
+/** A peer edit that kept the row's group and order: patch the card, no refetch. */
+function patchGroupedRow(id: string, payload: Record<string, any>) {
+  if (!isGroupedGallery.value) return false
+  const found = findGroupedRow(id)
+  if (found) {
+    Object.assign(found.row.row, payload)
+    restampRowColors(found.row)
+  }
+  return true
+}
+
+function cardTestId(record: RowType) {
+  return record.rowMeta.rowIndex ?? extractPkFromRow(record.row, meta.value?.columns ?? [])
 }
 
 /** Interface: duplicate the right-clicked card, inserting directly below it. */
@@ -514,9 +651,15 @@ const visibleRows = computed(() => {
 
 const {
   isRowColouringEnabled,
+  getEvaluatedRowMetaRowColorInfo,
   getCellColorStyle: _getCellColorStyle,
   getCellLeftBorderStyle: _getCellLeftBorderStyle,
 } = useViewRowColorRender()
+
+/** A card patched in place keeps the colours of its old values; a refetch would re-stamp them. */
+function restampRowColors(record: RowType) {
+  Object.assign(record.rowMeta, getEvaluatedRowMetaRowColorInfo(record.row))
+}
 
 function getCardColorStyle(record: RowType): Record<string, string> {
   const colorStyle = extractRowBackgroundColorStyle(record)
@@ -563,6 +706,9 @@ const getCellColorBgVar = (record: Row, columnId: string) => {
 }
 
 const updateVisibleRows = async () => {
+  // Grouped sections load their own rows.
+  if (isGroupedGallery.value) return
+
   const { start, end } = rowSlice
 
   const firstChunkId = Math.floor(start / CHUNK_SIZE)
@@ -717,7 +863,14 @@ if (interfacePageDataApi) {
   })
 }
 
-const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean }) => {
+const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean; skipLoadingRowId?: string }) => {
+  if (isGroupedGallery.value) {
+    const savedPk = params?.skipLoadingRowId === undefined ? undefined : `${params.skipLoadingRowId}`
+    if (params?.inPlace) await refreshGroup(viewGroupBy?.rootGroup.value, savedPk)
+    else await loadGroupedGallery()
+    return
+  }
+
   // Interface reloads (filter edits, user-filter picks) and in-place refreshes swap in place: keep
   // the current cards on screen and only re-arm the chunk states so the
   // visible range refetches over them — clearing the cache first blanks the
@@ -741,6 +894,10 @@ const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload?: { tableI
 
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger(payload?.inPlace ? { shouldShowLoading: false, inPlace: true } : undefined)
+  }
+
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD && isGroupedGallery.value) {
+    scheduleGroupedLoad()
   }
 }
 
@@ -797,15 +954,401 @@ const { onCardEnter, onCardLeave } = useCardCommands({
   saveField: async (record, column, value) => {
     record.row[column.title!] = value
     await updateOrSaveRow(record, column.title!)
+    if (!isGroupedGallery.value) return
+    // A grouped field moves the card to another group; a sorted one reorders its group.
+    if (viewGroupBy?.groupBy.value.some((g) => g.column.id === column.id)) {
+      await refreshGroup(viewGroupBy.rootGroup.value)
+    } else if (sorts.value.some((s) => s.fk_column_id === column.id)) {
+      const pk = extractPkFromRow(record.row, meta.value?.columns ?? [])
+      const found = pk ? findGroupedRow(`${pk}`) : undefined
+      if (found) await refreshGroup(found.group)
+    }
   },
   sendRecord: (record) => {
     contextMenuTarget.value = { row: record, index: record.rowMeta.rowIndex! }
     showSendRecordModal.value = true
   },
 })
+// Covers grouping turned on, the view switched, and a level's field or sort changed.
+watch(
+  () =>
+    isGroupedGallery.value
+      ? `${view.value?.id}|${viewGroupBy?.groupBy.value.map((g) => `${g.column.id}:${g.sort}`).join(',')}`
+      : '',
+  (signature, prev) => {
+    if (!signature) return
+    // Opening a view loads now; a group-by edit arrives in steps, so it loads once they settle.
+    const isViewSwitch = !!prev && prev.split('|')[0] !== signature.split('|')[0]
+    if (prev === undefined || isViewSwitch) loadGroupedGallery()
+    else scheduleGroupedLoad()
+  },
+  { immediate: true },
+)
+
+// Groups start collapsed; the ones a user expanded are restored per view.
+watch(
+  () => [view.value?.base_id, view.value?.id],
+  ([baseId, viewId]) => {
+    expandedGroupKeys.clear()
+    for (const key of groupKeysManager.getKeys(baseId, viewId)) expandedGroupKeys.add(key)
+  },
+  { immediate: true },
+)
+
+// Leaving grouped mode: the flat cache was not kept in sync while groups were shown.
+watch(isGroupedGallery, (grouped, wasGrouped) => {
+  if (wasGrouped && !grouped) reloadViewDataListener()
+})
 </script>
 
 <template>
+  <DefineCard v-slot="{ record }">
+    <LazySmartsheetRow :row="record">
+      <a-card
+        class="relative !rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group overflow-hidden break-all cursor-pointer flex flex-col"
+        :class="[
+          fixedColumnsPerRow ? '!max-w-none' : 'max-w-[450px]',
+          {
+            '!cursor-default': !interfaceShowRowExpand,
+            'nc-interface-card-selected': isCardSelected(record),
+          },
+        ]"
+        :body-style="{ padding: cardBodyPadding, flex: 1, display: 'flex' }"
+        :data-testid="`nc-gallery-card-${cardTestId(record)}`"
+        :style="[getCardColorStyle(record), isTileTheme ? { height: `${cardHeight}px` } : {}]"
+        @click="expandFormClick($event, record)"
+        @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex ?? -1 })"
+        @mouseenter="onCardEnter(record)"
+        @mousemove="onCardEnter(record)"
+        @mouseleave="onCardLeave(record)"
+      >
+        <SmartsheetRecordPresenceBadge v-if="isEeUI" :row="record" class="absolute top-2 right-2 z-10" />
+        <template v-if="showCover" #cover>
+          <a-carousel
+            v-if="isMounted && !reloadAttachments && attachments(record).length"
+            class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
+            :style="{
+              'minHeight': `${coverHeight}px`,
+              '--nc-cover-h': `${coverHeight}px`,
+              ...extractRowBackgroundColorStyle(record).rowBgColor,
+              ...extractRowBackgroundColorStyle(record).rowBorderColor,
+            }"
+            arrows
+          >
+            <template #customPaging>
+              <a>
+                <div>
+                  <div></div>
+                </div>
+              </a>
+            </template>
+            <template #prevArrow>
+              <div class="z-10 arrow">
+                <NcButton
+                  type="secondary"
+                  size="xsmall"
+                  class="!absolute !left-1.5 !bottom-0 !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                >
+                  <GeneralIcon icon="arrowLeft" class="text-nc-content-inverted-secondary w-4 h-4" />
+                </NcButton>
+              </div>
+            </template>
+            <template #nextArrow>
+              <div class="z-10 arrow">
+                <NcButton
+                  type="secondary"
+                  size="xsmall"
+                  class="!absolute !right-1.5 !bottom-0 !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                >
+                  <GeneralIcon icon="arrowRight" class="text-nc-content-inverted-secondary w-4 h-4" />
+                </NcButton>
+              </div>
+            </template>
+            <template v-for="(attachment, index) in attachments(record)" :key="`carousel-${record.rowMeta.rowIndex}-${index}`">
+              <!-- Slick clones its direct child and REPLACES its inline style, so the
+                   cover height rides a CSS var set on the carousel root instead. -->
+              <LazyCellAttachmentPreviewThumbnail
+                :attachment="attachment"
+                class="nc-gallery-cover-thumb"
+                thumbnail="card_cover"
+                image-class="!w-full"
+                :object-fit="coverImageObjectFitStyle"
+                @click="expandFormClick($event, record)"
+              />
+            </template>
+          </a-carousel>
+          <div
+            v-else
+            class="w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center !bg-nc-bg-default"
+            :style="{ height: `${coverHeight}px` }"
+          >
+            <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+          </div>
+        </template>
+
+        <!-- POSTER (interface-only): the image IS the card — title on a
+             bottom scrim; coverless records wash in the record color
+             with the title centered. Body fields never render. -->
+        <div
+          v-if="isTileTheme"
+          class="nc-gallery-poster-tile relative w-full h-full overflow-hidden"
+          :class="{
+            'nc-has-record-color': !!record.rowMeta?.rowLeftBorderColor,
+            'nc-gallery-tile-reveal': isSimpleTheme && hasPosterCover(record),
+          }"
+        >
+          <template v-if="hasPosterCover(record)">
+            <LazyCellAttachmentPreviewThumbnail
+              :attachment="attachments(record)[0]"
+              class="nc-gallery-poster-image !absolute !inset-0"
+              image-class="!w-full !h-full"
+              thumbnail="card_cover"
+              :object-fit="coverImageObjectFitStyle"
+            />
+            <div
+              v-if="!isMinimalTheme"
+              class="nc-gallery-poster-scrim absolute inset-x-0 bottom-0 h-2/5 pointer-events-none"
+            ></div>
+          </template>
+          <div v-else-if="isMinimalTheme" class="absolute inset-0 flex items-center justify-center">
+            <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+          </div>
+
+          <!-- Caption: title (+ secondary field on simple). Overlaid on the scrim
+               with a cover; centered (poster) / top-and-bottom (simple) on the wash. -->
+          <div
+            v-if="displayField && !isMinimalTheme"
+            class="nc-gallery-tile-caption absolute z-1 p-3 flex flex-col gap-1.5"
+            :class="[
+              hasPosterCover(record) ? 'inset-x-0 bottom-0' : 'inset-0',
+              { 'justify-center': !hasPosterCover(record) && !secondaryField },
+              { 'justify-between': !hasPosterCover(record) && !!secondaryField },
+            ]"
+          >
+            <h2
+              class="nc-card-display-value-wrapper"
+              :class="[
+                hasPosterCover(record) ? 'nc-gallery-poster-title-overlay' : 'nc-gallery-poster-title-centered',
+                {
+                  'nc-card-title-large': cardTitleSize === 'large',
+                  'nc-card-title-interface': !!interfacePageDataApi,
+                },
+              ]"
+            >
+              <template
+                v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField) || isPercent(displayField)"
+              >
+                <LazySmartsheetVirtualCell
+                  v-if="isVirtualCol(displayField)"
+                  v-model="record.row[displayField.title]"
+                  class="!text-nc-content-brand"
+                  :column="displayField"
+                  :row="record"
+                />
+                <NcTooltip
+                  v-else
+                  class="!w-full max-w-full"
+                  placement="top"
+                  show-on-truncate-only
+                  truncate-selector=".nc-cell-field"
+                  :disabled="!isDisplayFieldTextOrNumber"
+                  :title="`${record.row[displayField.title] ?? ''}`"
+                >
+                  <LazySmartsheetCell
+                    v-model="record.row[displayField.title]"
+                    class="!text-nc-content-brand"
+                    :column="displayField"
+                    :edit-enabled="false"
+                    :read-only="true"
+                  />
+                </NcTooltip>
+              </template>
+              <template v-else> - </template>
+            </h2>
+
+            <div
+              v-if="secondaryField"
+              class="nc-gallery-tile-secondary !children:pointer-events-none"
+              :class="{ 'nc-gallery-tile-on-cover': hasPosterCover(record) }"
+            >
+              <LazySmartsheetVirtualCell
+                v-if="isVirtualCol(secondaryField)"
+                v-model="record.row[secondaryField.title]"
+                :column="secondaryField"
+                :row="record"
+              />
+              <LazySmartsheetCell
+                v-else
+                v-model="record.row[secondaryField.title]"
+                :column="secondaryField"
+                :edit-enabled="false"
+                :read-only="true"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex-1 flex content-stretch gap-3 w-full">
+          <div
+            v-if="isRowColouringEnabled"
+            class="w-1 flex-none min-h-4 rounded-sm"
+            :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
+          ></div>
+          <div
+            class="flex-1 flex flex-col !children:pointer-events-none"
+            :class="{
+              'w-[calc(100%_-_16px)]': isRowColouringEnabled,
+              'w-full': !isRowColouringEnabled,
+              'gap-3': isActiveViewFieldHeaderVisible,
+            }"
+          >
+            <div
+              v-if="displayField"
+              class="flex gap-2 rounded-lg w-full z-1 relative"
+              :class="getCellColorClass(record, displayField.id)"
+              :style="getCellColorBgVar(record, displayField.id)"
+            >
+              <div
+                v-if="getCellLeftBorderStyle(record, displayField.id)"
+                class="w-1 flex-none min-h-4 rounded-sm"
+                :style="getCellLeftBorderStyle(record, displayField.id)"
+              ></div>
+              <h2
+                class="nc-card-display-value-wrapper flex-1 min-w-0 !children:pointer-events-auto"
+                :class="{
+                  'nc-card-title-large': cardTitleSize === 'large',
+                  'nc-card-title-interface': !!interfacePageDataApi,
+                }"
+              >
+                <template
+                  v-if="
+                    !isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField) || isPercent(displayField)
+                  "
+                >
+                  <LazySmartsheetVirtualCell
+                    v-if="isVirtualCol(displayField)"
+                    v-model="record.row[displayField.title]"
+                    class="!text-nc-content-brand"
+                    :column="displayField"
+                    :row="record"
+                  />
+                  <NcTooltip
+                    v-else
+                    class="!w-full max-w-full"
+                    placement="top"
+                    show-on-truncate-only
+                    truncate-selector=".nc-cell-field"
+                    :disabled="!isDisplayFieldTextOrNumber"
+                    :title="`${record.row[displayField.title] ?? ''}`"
+                  >
+                    <LazySmartsheetCell
+                      v-model="record.row[displayField.title]"
+                      class="!text-nc-content-brand"
+                      :column="displayField"
+                      :edit-enabled="false"
+                      :read-only="true"
+                    />
+                  </NcTooltip>
+                </template>
+                <template v-else> - </template>
+              </h2>
+            </div>
+            <div
+              v-for="col in cardFields(record)"
+              :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
+              class="nc-card-col-wrapper"
+              :class="{
+                '!children:pointer-events-auto': resetPointerEvent(record, col),
+              }"
+              @click="handleClick(col, $event)"
+            >
+              <NcTooltip
+                hide-on-click
+                :disabled="isActiveViewFieldHeaderVisible"
+                class="w-full z-10 flex"
+                :class="{
+                  'pointer-events-auto': !isActiveViewFieldHeaderVisible,
+                }"
+                placement="left"
+                :arrow="false"
+              >
+                <template #title>
+                  <LazySmartsheetHeaderVirtualCell
+                    v-if="isVirtualCol(col)"
+                    :column="col"
+                    :hide-menu="true"
+                    hide-icon-tooltip
+                    class="!text-gray-100 nc-record-cell-tooltip"
+                  />
+                  <LazySmartsheetHeaderCell
+                    v-else
+                    :column="col"
+                    :hide-menu="true"
+                    hide-icon-tooltip
+                    class="!text-gray-100 nc-record-cell-tooltip"
+                  />
+                </template>
+                <div
+                  class="flex gap-2 rounded-lg w-full z-1 relative"
+                  :class="{
+                    'pointer-events-none': !resetPointerEvent(record, col),
+                    [getCellColorClass(record, col.id)]: true,
+                  }"
+                  :style="getCellColorBgVar(record, col.id)"
+                >
+                  <div
+                    v-if="getCellLeftBorderStyle(record, col.id)"
+                    class="w-1 flex-none min-h-4 rounded-sm"
+                    :style="getCellLeftBorderStyle(record, col.id)"
+                  ></div>
+                  <div class="flex flex-col w-full">
+                    <div class="flex flex-row w-full justify-start">
+                      <div
+                        v-if="isActiveViewFieldHeaderVisible"
+                        class="nc-card-col-header w-full !children:text-nc-content-gray-muted"
+                        :class="{ 'nc-card-col-header-no-icon': !!interfacePageDataApi }"
+                      >
+                        <!-- Interface cards label with the field NAME only — no type icon -->
+                        <LazySmartsheetHeaderVirtualCell
+                          v-if="isVirtualCol(col)"
+                          :column="col"
+                          :hide-menu="true"
+                          :hide-icon="!!interfacePageDataApi"
+                        />
+                        <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" :hide-icon="!!interfacePageDataApi" />
+                      </div>
+                    </div>
+                    <div
+                      v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
+                      class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
+                    >
+                      <LazySmartsheetVirtualCell
+                        v-if="isVirtualCol(col)"
+                        v-model="record.row[col.title]"
+                        :column="col"
+                        :row="record"
+                        class="!text-nc-content-gray"
+                      />
+                      <LazySmartsheetCell
+                        v-else
+                        v-model="record.row[col.title]"
+                        :column="col"
+                        :edit-enabled="false"
+                        :read-only="true"
+                        class="!text-nc-content-gray"
+                      />
+                    </div>
+                    <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
+                  </div>
+                </div>
+              </NcTooltip>
+            </div>
+          </div>
+        </div>
+      </a-card>
+    </LazySmartsheetRow>
+  </DefineCard>
+
   <!-- Interface hosts size the viz box themselves; the viewport calc only holds
        for the standalone smartsheet view. -->
   <div
@@ -887,7 +1430,32 @@ const { onCardEnter, onCardLeave } = useCardCommands({
         </NcMenu>
       </template>
       <div class="flex-1" @contextmenu.capture="resetContextMenuTarget">
-        <div :key="containerHeight" class="relative" :style="{ height: `${containerHeight}px` }">
+        <div v-if="isGroupedGallery && viewGroupBy" class="nc-gallery-grouped p-3" data-testid="nc-gallery-grouped">
+          <div v-if="isGroupedGalleryLoading && !viewGroupBy.rootGroup.value.children?.length" class="flex justify-center py-10">
+            <GeneralLoader size="large" />
+          </div>
+          <div
+            v-else-if="!viewGroupBy.rootGroup.value.children?.length"
+            class="flex justify-center py-10 text-nc-content-gray-muted"
+          >
+            {{ $t('labels.noData') }}
+          </div>
+          <SmartsheetGalleryGroupList
+            v-else
+            :parent="viewGroupBy.rootGroup.value"
+            :expanded-keys="expandedGroupKeys"
+            :page-size="GROUP_ROWS_PAGE_SIZE"
+            :group-page-size="GROUP_LIST_PAGE_SIZE"
+            :scroll-root="scrollContainer"
+            :card-height="cardHeight"
+            :columns-per-row="columnsPerRow"
+          >
+            <template #card="{ record }">
+              <ReuseCard :record="record" />
+            </template>
+          </SmartsheetGalleryGroupList>
+        </div>
+        <div v-else :key="containerHeight" class="relative" :style="{ height: `${containerHeight}px` }">
           <div :style="{ height: `${placeholderAboveHeight}px` }"></div>
           <div class="nc-gallery-container grid gap-3 p-3">
             <div
@@ -903,364 +1471,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                   showAsBluredRecord(isExternalSource, record.rowMeta.rowIndex + 1) && !record.rowMeta.new ? 'none' : 'auto',
               }"
             >
-              <LazySmartsheetRow :row="record">
-                <a-card
-                  class="relative !rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group overflow-hidden break-all cursor-pointer flex flex-col"
-                  :class="[
-                    fixedColumnsPerRow ? '!max-w-none' : 'max-w-[450px]',
-                    {
-                      '!cursor-default': !interfaceShowRowExpand,
-                      'nc-interface-card-selected': isCardSelected(record),
-                    },
-                  ]"
-                  :body-style="{ padding: cardBodyPadding, flex: 1, display: 'flex' }"
-                  :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
-                  :style="[getCardColorStyle(record), isTileTheme ? { height: `${cardHeight}px` } : {}]"
-                  @click="expandFormClick($event, record)"
-                  @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
-                  @mouseenter="onCardEnter(record)"
-                  @mousemove="onCardEnter(record)"
-                  @mouseleave="onCardLeave(record)"
-                >
-                  <SmartsheetRecordPresenceBadge v-if="isEeUI" :row="record" class="absolute top-2 right-2 z-10" />
-                  <template v-if="showCover" #cover>
-                    <a-carousel
-                      v-if="isMounted && !reloadAttachments && attachments(record).length"
-                      class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
-                      :style="{
-                        'minHeight': `${coverHeight}px`,
-                        '--nc-cover-h': `${coverHeight}px`,
-                        ...extractRowBackgroundColorStyle(record).rowBgColor,
-                        ...extractRowBackgroundColorStyle(record).rowBorderColor,
-                      }"
-                      arrows
-                    >
-                      <template #customPaging>
-                        <a>
-                          <div>
-                            <div></div>
-                          </div>
-                        </a>
-                      </template>
-                      <template #prevArrow>
-                        <div class="z-10 arrow">
-                          <NcButton
-                            type="secondary"
-                            size="xsmall"
-                            class="!absolute !left-1.5 !bottom-0 !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                          >
-                            <GeneralIcon icon="arrowLeft" class="text-nc-content-inverted-secondary w-4 h-4" />
-                          </NcButton>
-                        </div>
-                      </template>
-                      <template #nextArrow>
-                        <div class="z-10 arrow">
-                          <NcButton
-                            type="secondary"
-                            size="xsmall"
-                            class="!absolute !right-1.5 !bottom-0 !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                          >
-                            <GeneralIcon icon="arrowRight" class="text-nc-content-inverted-secondary w-4 h-4" />
-                          </NcButton>
-                        </div>
-                      </template>
-                      <template
-                        v-for="(attachment, index) in attachments(record)"
-                        :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
-                      >
-                        <!-- Slick clones its direct child and REPLACES its inline style, so the
-                             cover height rides a CSS var set on the carousel root instead. -->
-                        <LazyCellAttachmentPreviewThumbnail
-                          :attachment="attachment"
-                          class="nc-gallery-cover-thumb"
-                          thumbnail="card_cover"
-                          image-class="!w-full"
-                          :object-fit="coverImageObjectFitStyle"
-                          @click="expandFormClick($event, record)"
-                        />
-                      </template>
-                    </a-carousel>
-                    <div
-                      v-else
-                      class="w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center !bg-nc-bg-default"
-                      :style="{ height: `${coverHeight}px` }"
-                    >
-                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
-                    </div>
-                  </template>
-
-                  <!-- POSTER (interface-only): the image IS the card — title on a
-                       bottom scrim; coverless records wash in the record color
-                       with the title centered. Body fields never render. -->
-                  <div
-                    v-if="isTileTheme"
-                    class="nc-gallery-poster-tile relative w-full h-full overflow-hidden"
-                    :class="{
-                      'nc-has-record-color': !!record.rowMeta?.rowLeftBorderColor,
-                      'nc-gallery-tile-reveal': isSimpleTheme && hasPosterCover(record),
-                    }"
-                  >
-                    <template v-if="hasPosterCover(record)">
-                      <LazyCellAttachmentPreviewThumbnail
-                        :attachment="attachments(record)[0]"
-                        class="nc-gallery-poster-image !absolute !inset-0"
-                        image-class="!w-full !h-full"
-                        thumbnail="card_cover"
-                        :object-fit="coverImageObjectFitStyle"
-                      />
-                      <div
-                        v-if="!isMinimalTheme"
-                        class="nc-gallery-poster-scrim absolute inset-x-0 bottom-0 h-2/5 pointer-events-none"
-                      ></div>
-                    </template>
-                    <div v-else-if="isMinimalTheme" class="absolute inset-0 flex items-center justify-center">
-                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
-                    </div>
-
-                    <!-- Caption: title (+ secondary field on simple). Overlaid on the scrim
-                         with a cover; centered (poster) / top-and-bottom (simple) on the wash. -->
-                    <div
-                      v-if="displayField && !isMinimalTheme"
-                      class="nc-gallery-tile-caption absolute z-1 p-3 flex flex-col gap-1.5"
-                      :class="[
-                        hasPosterCover(record) ? 'inset-x-0 bottom-0' : 'inset-0',
-                        { 'justify-center': !hasPosterCover(record) && !secondaryField },
-                        { 'justify-between': !hasPosterCover(record) && !!secondaryField },
-                      ]"
-                    >
-                      <h2
-                        class="nc-card-display-value-wrapper"
-                        :class="[
-                          hasPosterCover(record) ? 'nc-gallery-poster-title-overlay' : 'nc-gallery-poster-title-centered',
-                          {
-                            'nc-card-title-large': cardTitleSize === 'large',
-                            'nc-card-title-interface': !!interfacePageDataApi,
-                          },
-                        ]"
-                      >
-                        <template
-                          v-if="
-                            !isRowEmpty(record, displayField) ||
-                            isAllowToRenderRowEmptyField(displayField) ||
-                            isPercent(displayField)
-                          "
-                        >
-                          <LazySmartsheetVirtualCell
-                            v-if="isVirtualCol(displayField)"
-                            v-model="record.row[displayField.title]"
-                            class="!text-nc-content-brand"
-                            :column="displayField"
-                            :row="record"
-                          />
-                          <NcTooltip
-                            v-else
-                            class="!w-full max-w-full"
-                            placement="top"
-                            show-on-truncate-only
-                            truncate-selector=".nc-cell-field"
-                            :disabled="!isDisplayFieldTextOrNumber"
-                            :title="`${record.row[displayField.title] ?? ''}`"
-                          >
-                            <LazySmartsheetCell
-                              v-model="record.row[displayField.title]"
-                              class="!text-nc-content-brand"
-                              :column="displayField"
-                              :edit-enabled="false"
-                              :read-only="true"
-                            />
-                          </NcTooltip>
-                        </template>
-                        <template v-else> - </template>
-                      </h2>
-
-                      <div
-                        v-if="secondaryField"
-                        class="nc-gallery-tile-secondary !children:pointer-events-none"
-                        :class="{ 'nc-gallery-tile-on-cover': hasPosterCover(record) }"
-                      >
-                        <LazySmartsheetVirtualCell
-                          v-if="isVirtualCol(secondaryField)"
-                          v-model="record.row[secondaryField.title]"
-                          :column="secondaryField"
-                          :row="record"
-                        />
-                        <LazySmartsheetCell
-                          v-else
-                          v-model="record.row[secondaryField.title]"
-                          :column="secondaryField"
-                          :edit-enabled="false"
-                          :read-only="true"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div v-else class="flex-1 flex content-stretch gap-3 w-full">
-                    <div
-                      v-if="isRowColouringEnabled"
-                      class="w-1 flex-none min-h-4 rounded-sm"
-                      :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
-                    ></div>
-                    <div
-                      class="flex-1 flex flex-col !children:pointer-events-none"
-                      :class="{
-                        'w-[calc(100%_-_16px)]': isRowColouringEnabled,
-                        'w-full': !isRowColouringEnabled,
-                        'gap-3': isActiveViewFieldHeaderVisible,
-                      }"
-                    >
-                      <div
-                        v-if="displayField"
-                        class="flex gap-2 rounded-lg w-full z-1 relative"
-                        :class="getCellColorClass(record, displayField.id)"
-                        :style="getCellColorBgVar(record, displayField.id)"
-                      >
-                        <div
-                          v-if="getCellLeftBorderStyle(record, displayField.id)"
-                          class="w-1 flex-none min-h-4 rounded-sm"
-                          :style="getCellLeftBorderStyle(record, displayField.id)"
-                        ></div>
-                        <h2
-                          class="nc-card-display-value-wrapper flex-1 min-w-0 !children:pointer-events-auto"
-                          :class="{
-                            'nc-card-title-large': cardTitleSize === 'large',
-                            'nc-card-title-interface': !!interfacePageDataApi,
-                          }"
-                        >
-                          <template
-                            v-if="
-                              !isRowEmpty(record, displayField) ||
-                              isAllowToRenderRowEmptyField(displayField) ||
-                              isPercent(displayField)
-                            "
-                          >
-                            <LazySmartsheetVirtualCell
-                              v-if="isVirtualCol(displayField)"
-                              v-model="record.row[displayField.title]"
-                              class="!text-nc-content-brand"
-                              :column="displayField"
-                              :row="record"
-                            />
-                            <NcTooltip
-                              v-else
-                              class="!w-full max-w-full"
-                              placement="top"
-                              show-on-truncate-only
-                              truncate-selector=".nc-cell-field"
-                              :disabled="!isDisplayFieldTextOrNumber"
-                              :title="`${record.row[displayField.title] ?? ''}`"
-                            >
-                              <LazySmartsheetCell
-                                v-model="record.row[displayField.title]"
-                                class="!text-nc-content-brand"
-                                :column="displayField"
-                                :edit-enabled="false"
-                                :read-only="true"
-                              />
-                            </NcTooltip>
-                          </template>
-                          <template v-else> - </template>
-                        </h2>
-                      </div>
-                      <div
-                        v-for="col in cardFields(record)"
-                        :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
-                        class="nc-card-col-wrapper"
-                        :class="{
-                          '!children:pointer-events-auto': resetPointerEvent(record, col),
-                        }"
-                        @click="handleClick(col, $event)"
-                      >
-                        <NcTooltip
-                          hide-on-click
-                          :disabled="isActiveViewFieldHeaderVisible"
-                          class="w-full z-10 flex"
-                          :class="{
-                            'pointer-events-auto': !isActiveViewFieldHeaderVisible,
-                          }"
-                          placement="left"
-                          :arrow="false"
-                        >
-                          <template #title>
-                            <LazySmartsheetHeaderVirtualCell
-                              v-if="isVirtualCol(col)"
-                              :column="col"
-                              :hide-menu="true"
-                              hide-icon-tooltip
-                              class="!text-gray-100 nc-record-cell-tooltip"
-                            />
-                            <LazySmartsheetHeaderCell
-                              v-else
-                              :column="col"
-                              :hide-menu="true"
-                              hide-icon-tooltip
-                              class="!text-gray-100 nc-record-cell-tooltip"
-                            />
-                          </template>
-                          <div
-                            class="flex gap-2 rounded-lg w-full z-1 relative"
-                            :class="{
-                              'pointer-events-none': !resetPointerEvent(record, col),
-                              [getCellColorClass(record, col.id)]: true,
-                            }"
-                            :style="getCellColorBgVar(record, col.id)"
-                          >
-                            <div
-                              v-if="getCellLeftBorderStyle(record, col.id)"
-                              class="w-1 flex-none min-h-4 rounded-sm"
-                              :style="getCellLeftBorderStyle(record, col.id)"
-                            ></div>
-                            <div class="flex flex-col w-full">
-                              <div class="flex flex-row w-full justify-start">
-                                <div
-                                  v-if="isActiveViewFieldHeaderVisible"
-                                  class="nc-card-col-header w-full !children:text-nc-content-gray-muted"
-                                  :class="{ 'nc-card-col-header-no-icon': !!interfacePageDataApi }"
-                                >
-                                  <!-- Interface cards label with the field NAME only — no type icon -->
-                                  <LazySmartsheetHeaderVirtualCell
-                                    v-if="isVirtualCol(col)"
-                                    :column="col"
-                                    :hide-menu="true"
-                                    :hide-icon="!!interfacePageDataApi"
-                                  />
-                                  <LazySmartsheetHeaderCell
-                                    v-else
-                                    :column="col"
-                                    :hide-menu="true"
-                                    :hide-icon="!!interfacePageDataApi"
-                                  />
-                                </div>
-                              </div>
-                              <div
-                                v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
-                                class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
-                              >
-                                <LazySmartsheetVirtualCell
-                                  v-if="isVirtualCol(col)"
-                                  v-model="record.row[col.title]"
-                                  :column="col"
-                                  :row="record"
-                                  class="!text-nc-content-gray"
-                                />
-                                <LazySmartsheetCell
-                                  v-else
-                                  v-model="record.row[col.title]"
-                                  :column="col"
-                                  :edit-enabled="false"
-                                  :read-only="true"
-                                  class="!text-nc-content-gray"
-                                />
-                              </div>
-                              <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
-                            </div>
-                          </div>
-                        </NcTooltip>
-                      </div>
-                    </div>
-                  </div>
-                </a-card>
-              </LazySmartsheetRow>
+              <ReuseCard :record="record" />
             </div>
 
             <!-- Keyed on the record count, not the virtual slice: a long list
@@ -1274,7 +1485,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
       </div>
     </NcDropdown>
     <!-- Floating new-record button — not shown in interfaces -->
-    <div class="sticky bottom-4 w-[fit-content] z-10">
+    <div class="sticky bottom-4 w-[fit-content] z-30">
       <PermissionsTooltip
         v-if="isUIAllowed('dataInsert') && !isSyncedTable && canAddDeleteRows && !interfacePageDataApi"
         :entity="PermissionEntity.TABLE"
@@ -1323,7 +1534,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
       :first-row="isFirstRow"
       :last-row="isLastRow"
       :view="view"
-      show-next-prev-icons
+      :show-next-prev-icons="!isGroupedGallery"
       :expand-form="expandForm"
       @next="goToSiblingRow(NavigateDir.NEXT)"
       @prev="goToSiblingRow(NavigateDir.PREV)"

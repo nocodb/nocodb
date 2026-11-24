@@ -1,6 +1,7 @@
 import {
   isFieldTrackingLmbCol,
   isFieldTrackingLmtCol,
+  isSingleRecordLinkColumn,
   NC_ERROR_SENTINEL,
   UITypes,
 } from 'nocodb-sdk';
@@ -114,6 +115,20 @@ export async function getColumnNameQuery({
   switch (column.uidt) {
     case UITypes.Links:
     case UITypes.Rollup: {
+      // a single-record link that is the display value reads as the linked record's text
+      if (column.uidt === UITypes.Links && column.pv) {
+        if (!column.colOptions) await column.getColOptions(ncMeta);
+        if (isSingleRecordLinkColumn(column)) {
+          column_name_query = await generateLookupSelectQuery({
+            baseModelSqlv2,
+            column,
+            alias: null,
+            model: await column.getModel(ncMeta),
+            isAggregation: true,
+          });
+          break;
+        }
+      }
       const rollupOpt = (await column.getColOptions(ncMeta)) as RollupColumn;
       // a rollup flagged from its data compiles to the error value, and heals
       if (!rollupOpt || (rollupOpt.error && !rollupOpt.data_error)) break;

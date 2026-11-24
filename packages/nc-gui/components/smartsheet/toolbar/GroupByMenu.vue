@@ -97,10 +97,11 @@ const syncedGroupByEntries = computed<Group[]>(() => {
   return tempGroupBy
 })
 
-// A shared link can't group by a hidden field (its groups would show the
-// field's values), so it shows the rows ungrouped — say so to the view's editors.
+// Outside grid and gallery, a shared link can't group by a hidden field, so it
+// shows the rows ungrouped — say so to the view's editors.
 const sharedLinkHiddenGroupFields = computed(() => {
   if (!view.value?.uuid || isPublic.value || canUpdateViewMeta?.value === false) return []
+  if ([ViewTypes.GRID, ViewTypes.GALLERY].includes(view.value.type as ViewTypes)) return []
   const shown = new Set((fields.value ?? []).filter((f) => f.show).map((f) => f.fk_column_id))
   return syncedGroupByEntries.value
     .map((g) => (g.fk_column_id ? metaColumnById.value?.[g.fk_column_id] : undefined))
@@ -111,7 +112,9 @@ const sharedLinkHiddenGroupFields = computed(() => {
 // Views that persist the per-group enable/disable toggle (`group_by_enabled`).
 // Grid and Gantt accept the field on their *ColumnUpdate ops + view-column
 // schema; Timeline/List don't yet, so their toggle stays hidden.
-const supportsGroupByEnabledToggle = computed(() => [ViewTypes.GRID, ViewTypes.GANTT].includes(view.value?.type as ViewTypes))
+const supportsGroupByEnabledToggle = computed(() =>
+  [ViewTypes.GRID, ViewTypes.GANTT, ViewTypes.GALLERY].includes(view.value?.type as ViewTypes),
+)
 
 // All group-by column IDs for badge count and column filtering
 const groupedByColumnIds = computed(() => {
@@ -411,7 +414,9 @@ const updateHideEmptyGroups = async (v: boolean) => {
       const currentMeta = parseProp((view.value?.view as GridType)?.meta)
       const payload = { ...currentMeta, hide_empty_groups: v }
 
-      await updateViewMeta(view.value.id, ViewTypes.GRID, { meta: payload })
+      await updateViewMeta(view.value.id, view.value.type === ViewTypes.GALLERY ? ViewTypes.GALLERY : ViewTypes.GRID, {
+        meta: payload,
+      })
     } catch (e) {
       hideEmptyGroups.value = previousValue
       message.error(t('msg.error.errorWhileUpdatingView'))
@@ -695,7 +700,7 @@ useGroupByCommands({
 
           <!-- Hide empty groups toggle -->
           <div
-            v-if="view?.type === ViewTypes.GRID"
+            v-if="view?.type === ViewTypes.GRID || view?.type === ViewTypes.GALLERY"
             class="flex items-center gap-1 px-0 pt-2 border-t-1 border-nc-border-gray-medium mt-2"
           >
             <NcSwitch

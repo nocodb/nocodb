@@ -13,11 +13,15 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
+import { assertSqliteConnectionAllowed } from '~/helpers/sqliteConnectionTestAccess';
 import {
   validateChangedDbConnectionTargets,
   validateDbConnectionTargets,
 } from '~/helpers/validateDbConnectionHost';
-import { isPrivateIntegrationForbidden } from '~/helpers/integrationAccess';
+import {
+  getIntegrationForUse,
+  isPrivateIntegrationForbidden,
+} from '~/helpers/integrationAccess';
 import { parseConfigPayload } from '~/helpers/configPayload';
 
 @Injectable()
@@ -85,6 +89,12 @@ export class IntegrationsService {
     validateAndNormalizeSqliteConfig(
       integrationBody?.config,
       integrationBody?.sub_type ?? oldIntegration?.sub_type,
+    );
+    assertSqliteConnectionAllowed(
+      context,
+      integrationBody?.config,
+      integrationBody?.sub_type ?? oldIntegration?.sub_type,
+      { config: oldIntegration.getConfig(), subType: oldIntegration.sub_type },
     );
     if (
       (integrationBody?.type ?? oldIntegration.type) ===
@@ -204,6 +214,9 @@ export class IntegrationsService {
       );
 
       await integration.delete(ncMeta);
+      await ncMeta.commit();
+
+      // After commit: the audit hook writes on its own connection.
       this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
         integration,
         req: param.req,
@@ -213,8 +226,6 @@ export class IntegrationsService {
           base_id: null,
         },
       });
-
-      await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
@@ -355,14 +366,11 @@ export class IntegrationsService {
     }
     param.logger?.('Creating the integration');
     integrationBody.title = integrationBody.title?.trim();
-    // SQLite connections are only offered on the free self-hosted edition
-    // (CE + unlicensed On-Prem). Block on licensed On-Prem and Cloud, where
-    // Noco.isEE() is true — mirrors the frontend isEEFeatureBlocked gating.
-    if (integrationBody.sub_type === 'sqlite3' && Noco.isEE()) {
-      NcError.get(context).badRequest(
-        'SQLite connections are only available on the free self-hosted edition',
-      );
-    }
+    assertSqliteConnectionAllowed(
+      context,
+      integrationBody.config,
+      integrationBody.sub_type,
+    );
     validateAndNormalizeSqliteConfig(
       integrationBody.config,
       integrationBody.sub_type,
@@ -544,7 +552,11 @@ export class IntegrationsService {
       userId?: string;
     },
   ) {
-    const integration = await Integration.get(context, params.integrationId);
+    const integration = await getIntegrationForUse(
+      context,
+      params.integrationId,
+      params.userId,
+    );
 
     await this.bindIntegrationEndpointUser(context, integration, params.userId);
 

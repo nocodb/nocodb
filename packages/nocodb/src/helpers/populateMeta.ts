@@ -13,7 +13,9 @@ import { META_COL_NAME } from '~/constants';
 import { getSourceIntrospectionSchema, normalizeDr } from '~/helpers/dbHelpers';
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
-import getColumnUiType from '~/helpers/getColumnUiType';
+import getColumnUiType, {
+  getIntrospectedColumnMeta,
+} from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
 import View from '~/models/View';
 import NcHelp from '~/utils/NcHelp';
@@ -21,6 +23,57 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import { pluralizeTitle } from '~/helpers/pluralizeTitle';
+
+// System columns of a NocoDB-created table, mapped back to system fields when an
+// external table has them.
+const NC_SYSTEM_COL_UIDT: Record<string, UITypes> = {
+  created_at: UITypes.CreatedTime,
+  updated_at: UITypes.LastModifiedTime,
+  created_by: UITypes.CreatedBy,
+  updated_by: UITypes.LastModifiedBy,
+  nc_order: UITypes.Order,
+  [META_COL_NAME]: UITypes.Meta,
+};
+
+// Every NocoDB-created table has these; nc_row_meta exists only on EE + PG tables.
+const NC_REQUIRED_SYSTEM_COLS = [
+  'created_at',
+  'updated_at',
+  'created_by',
+  'updated_by',
+  'nc_order',
+];
+
+// System types a regular field can become without changing how records are
+// written: the created/modified ones reject API writes and are auto-filled.
+export const NC_CONVERTIBLE_SYSTEM_UIDTS: ReadonlySet<UITypes> = new Set([
+  UITypes.Order,
+  UITypes.Meta,
+]);
+
+/** Column name -> system uidt for a NocoDB-created table, else null. */
+export function getNcSystemColumnUidts(
+  columnNames: Array<string>,
+): Record<string, UITypes> | null {
+  const names = new Set(columnNames);
+  return NC_REQUIRED_SYSTEM_COLS.every((name) => names.has(name))
+    ? NC_SYSTEM_COL_UIDT
+    : null;
+}
+
+/** Marks the NocoDB system columns of a NocoDB-created table as system fields. */
+export function mapNcSystemColumns(
+  columns: Array<{ cn: string; uidt?: UITypes | string; system?: boolean }>,
+) {
+  const systemUidts = getNcSystemColumnUidts(columns.map((c) => c.cn));
+  if (!systemUidts) return;
+  for (const column of columns) {
+    if (systemUidts[column.cn]) {
+      column.uidt = systemUidts[column.cn];
+      column.system = true;
+    }
+  }
+}
 
 export const IGNORE_TABLES = [
   'nc_models',
@@ -332,17 +385,6 @@ export async function populateMeta(
 
   // await this.syncRelations();
 
-  // Detect NocoDB-created tables by presence of all 6 system columns.
-  // If all are found together, remap them to their proper UITypes and mark as system.
-  const NC_SYSTEM_COL_UIDT: Record<string, UITypes> = {
-    created_at: UITypes.CreatedTime,
-    updated_at: UITypes.LastModifiedTime,
-    created_by: UITypes.CreatedBy,
-    updated_by: UITypes.LastModifiedBy,
-    nc_order: UITypes.Order,
-    [META_COL_NAME]: UITypes.Meta,
-  };
-
   const tableMetasInsert = tables.map((table) => {
     return async () => {
       logger?.(`Populating meta for table '${table.title}'`);
@@ -372,17 +414,10 @@ export async function populateMeta(
           ? []
           : tableRelations.filter((r) => r.tn === table.tn);
 
-      const columnNameSet = new Set(columns.map((c) => c.cn));
-      const isNcCreatedTable = Object.keys(NC_SYSTEM_COL_UIDT).every((name) =>
-        columnNameSet.has(name),
-      );
+      mapNcSystemColumns(columns);
 
       for (const column of columns) {
-        // Remap NocoDB system columns to their proper UITypes
-        if (isNcCreatedTable && NC_SYSTEM_COL_UIDT[column.cn]) {
-          column.uidt = NC_SYSTEM_COL_UIDT[column.cn];
-          column.system = true;
-        } else if (!column.uidt) {
+        if (!column.uidt) {
           column.uidt = getColumnUiType(source, column);
         }
       }
@@ -465,10 +500,12 @@ export async function populateMeta(
           }
         }
 
+        const uidt = column.uidt || getColumnUiType(source, column);
         await Column.insert(context, {
-          uidt: column.uidt || getColumnUiType(source, column),
+          uidt,
           fk_model_id: models2[table.tn].id,
           ...column,
+          meta: getIntrospectedColumnMeta(uidt, column),
           title: getColumnNameAlias(column.cn, source),
           column_name: column.cn,
           order: colOrder++,
@@ -619,12 +656,14 @@ export async function populateMeta(
       info.apiCount += 2;
 
       for (const column of columns) {
+        const uidt = getColumnUiType(source, column);
         await Column.insert(context, {
           fk_model_id: models2[table.table_name].id,
           ...column,
+          meta: getIntrospectedColumnMeta(uidt, column),
           title: getColumnNameAlias(column.cn, source),
           order: colOrder++,
-          uidt: getColumnUiType(source, column),
+          uidt,
         });
       }
 

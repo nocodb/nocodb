@@ -10,12 +10,15 @@ import {
   isDateOrDateTimeCol,
   isLinkV2,
   isLinksOrLTAR,
+  isSingleRecordLinkColumn,
   isSystemColumn,
   parseStringDateTime,
   timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { LtarCellShape } from '~/utils/ltarDeferredOps'
+import { linkedRecordTitleFormatter } from '~/utils/dataUtils'
+import { recordTitleOf, resolveDisplayLeafColumn, resolveLinkedRecordDisplay } from '~/utils/linkedRecordDisplay'
 import {
   applyLtarCellOp,
   ltarCellCount,
@@ -51,6 +54,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const pendingLtarOps = smartsheetRowStore?.pendingLtarOps
     const rowStoreCurrentRow = smartsheetRowStore?.currentRow
 
+    // Linked records held on a saved row after they failed to create; shown as pending links.
+    const heldBlueprints = (): Record<string, any>[] =>
+      isNewRow?.value ? [] : smartsheetRowStore?.heldLtarBlueprints.value[column.value.title as string] ?? []
+
     // Related records queued as pending links for this column (existing-row deferral).
     const queuedLinkRecords = () =>
       (pendingLtarOps?.value ?? []).filter((o) => o.columnId === column.value.id && o.op === 'link').map((o) => o.record)
@@ -79,7 +86,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { base, isSharedBase } = storeToRefs(useBase())
 
-    const { isPg } = useBase()
+    const { isPg, isMysql, isXcdbBase } = useBase()
 
     const { getBaseRoles } = useBases()
 
@@ -191,7 +198,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         const buffered = currentRow.value?.rowMeta?.ltarState?.[column.value?.title as string]
         pendingLinkRows.value = !buffered ? [] : Array.isArray(buffered) ? [...buffered] : [buffered]
       } else {
-        pendingLinkRows.value = queuedLinkRecords()
+        pendingLinkRows.value = [...queuedLinkRecords(), ...heldBlueprints()]
       }
     }
 
@@ -267,6 +274,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     // actions
 
+    // Loads the metas of hops a link display value passes through
+    function loadRelatedDisplayChainMeta() {
+      return resolveDisplayLeafColumn(
+        relatedTableMeta.value,
+        async (hopBaseId, hopTableId) => {
+          await getMeta({ baseId: hopBaseId, tableIdOrTitle: hopTableId, disableError: true })
+          return getMetaByKey(hopBaseId, hopTableId)
+        },
+        colOptions.value?.fk_display_value_column_id,
+      )
+    }
+
     const loadRelatedTableMeta = async () => {
       const relatedBaseId = colOptions.value.fk_related_base_id || column.value.base_id
       if (!relatedBaseId) {
@@ -296,6 +315,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           baseId: column.value?.base_id,
         })
       }
+
+      await loadRelatedDisplayChainMeta()
 
       if (isPublic.value) return
 
@@ -343,6 +364,28 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return relatedTableDisplayValueColumn.value?.id || ''
     })
 
+    // A pv that is a single-record link nests the leaf record; resolve it to the leaf column, value and text
+    const formatLinkedTitle = (value: unknown, col: ColumnType, leafMeta?: TableType) =>
+      linkedRecordTitleFormatter({ metas: metas.value, isMysql, isXcdbBase, t })(value, col, leafMeta)
+
+    const relatedDisplayLeaf = (record: Record<string, any> | null | undefined) =>
+      resolveLinkedRecordDisplay(record, relatedTableMeta.value, {
+        metas: metas.value,
+        format: formatLinkedTitle,
+        overrideColumnId: colOptions.value?.fk_display_value_column_id,
+      })
+
+    // Column and value for a flat chip; undefined column when there is no leaf to draw
+    const relatedChipDisplay = (record: Record<string, any> | null | undefined) => {
+      const leaf = relatedDisplayLeaf(record)
+      if (!leaf.complete || !leaf.leafColumn || isSingleRecordLinkColumn(leaf.leafColumn)) {
+        return { column: undefined, value: undefined }
+      }
+      return { column: leaf.leafColumn, value: leaf.leafValue }
+    }
+
+    const relatedRecordTitle = (record: Record<string, any> | null | undefined) => relatedDisplayLeaf(record).text
+
     const displayValueProp = computed(() => {
       return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || meta?.value?.columns?.[0])?.title
     })
@@ -374,6 +417,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     })
 
     const headerDisplayValue = computed(() => {
+      const pvCol = meta.value?.columns?.find((c) => c.pv) || meta.value?.columns?.[0]
+      if (pvCol && isSingleRecordLinkColumn(pvCol))
+        return recordTitleOf(row.value.row, meta.value, metas.value, formatLinkedTitle)
+
       if (
         row.value.row[displayValueProp.value] &&
         displayValueTypeAndFormatProp.value.type &&
@@ -572,6 +619,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       const displayCol = relatedTableDisplayValueColumn.value
 
+      // A link display value is typed by its leaf inside getValidSearchQueryForColumn (no date special case)
       // Date/DateTime display value: keep single-column exact date search (used with date picker input)
       if (isDateOrDateTimeCol(displayCol)) {
         return `(${displayCol.title},eq,exactDate,${query})`
@@ -835,9 +883,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           const rawList = newRowState.state?.[colTitle] ?? []
           const query = childrenListPagination.query.toLocaleLowerCase()
           const list = query
-            ? rawList.filter((record: Record<string, any>) =>
-                `${record[relatedTableDisplayValueProp.value] ?? ''}`.toLocaleLowerCase().includes(query),
-              )
+            ? rawList.filter((record: Record<string, any>) => relatedRecordTitle(record).toLocaleLowerCase().includes(query))
             : rawList
           childrenList.value = {
             list,
@@ -1050,16 +1096,88 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // Multi-target: keep the child-list count badge in sync. The cell value keeps its
       // shape (see `LtarCellShape`) — a bare count in a LinkToAnotherRecord cell made it
       // appear to clear on every deferred edit until save (#14013).
+      const held = heldBlueprints()
       if (!isSingleTargetRelation.value) {
         childrenListCount.value = resolveDeferredLtarCount(queue, colId, ltarCellCount(base))
       }
 
-      cur.row[colTitle] = resolveDeferredCellValue({
+      const value = resolveDeferredCellValue({
         queue,
         columnId: colId,
         shape: ltarCellShape.value,
         base,
         getRelatedRowId: getRelatedTableRowId,
+      })
+      cur.row[colTitle] = !held.length
+        ? value
+        : ltarCellShape.value === 'records'
+        ? [...(value ?? []), ...held]
+        : ltarCellShape.value === 'count'
+        ? ltarCellCount(value) + held.length
+        : value ?? held[0]
+    }
+
+    // A held record changes outside this store (a Save, an edit, a removal): redraw it.
+    watch(
+      () => smartsheetRowStore?.heldLtarBlueprints.value[column.value.title as string],
+      () => {
+        if (isNewRow?.value) return
+        refreshDeferredDisplay()
+        syncPendingLinkRows()
+      },
+      { deep: true },
+    )
+
+    // A view reload writes the persisted value back into the cell; add the held records again.
+    watch(
+      () => rowStoreCurrentRow?.value?.row?.[column.value.title as string],
+      (value) => {
+        const held = heldBlueprints()
+        if (isNewRow?.value || !held.length || !pendingLtarOps) return
+        const shown =
+          ltarCellShape.value === 'records'
+            ? held.every((h) => Array.isArray(value) && value.includes(h))
+            : ltarCellShape.value === 'count'
+            ? ltarCellCount(value) ===
+              resolveDeferredLtarCount(
+                pendingLtarOps.value,
+                column.value.id as string,
+                ltarCellCount(rowStoreCurrentRow?.value?.oldRow?.[column.value.title as string]),
+              ) +
+                held.length
+            : !!value
+        if (!shown) refreshDeferredDisplay()
+      },
+    )
+
+    const { open: openExpandedFormDetached } = useExpandedFormDetached()
+
+    /** Edit a blueprint (a linked record not created yet) in its own form; Save replaces it. */
+    const openBlueprintEditor = (
+      blueprint: Record<string, any>,
+      { breadcrumbs = [], linkOnParentSave = true }: { breadcrumbs?: string[]; linkOnParentSave?: boolean } = {},
+    ) => {
+      const { _isBlueprint, _ltarState, ...blueprintData } = blueprint
+      const nestedLtarState = _ltarState && Object.keys(_ltarState).length ? _ltarState : undefined
+
+      openExpandedFormDetached({
+        isOpen: true,
+        row: { row: { ...blueprintData }, oldRow: {}, rowMeta: { new: true, ltarState: nestedLtarState } },
+        state: nestedLtarState,
+        meta: relatedTableMeta.value,
+        loadRow: false,
+        useMetaFields: true,
+        blueprintMode: true,
+        blueprintParentTableId: meta.value?.id,
+        linkOnParentSave,
+        breadcrumbs: [...breadcrumbs, meta.value?.title || ''],
+        newRecordSubmitBtnText: 'Save Record',
+        newRecordHeader: `Edit ${relatedTableMeta.value?.title} Record`,
+        createdRecord: (record: Record<string, any>) => {
+          smartsheetRowStore?.replaceLtarBlueprint(column.value.title as string, blueprint, { ...record, _isBlueprint: true })
+          // A new row's list is a snapshot of its buffered links
+          if (isNewRow?.value) loadChildrenList(false)
+        },
       })
     }
 
@@ -1101,7 +1219,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // asymmetric counting (link only increments for multi-target).
     const removePendingLink = async (relatedRow: Record<string, any>) => {
       if (!rowStoreCurrentRow) return
-      if (isNewRow?.value) {
+      if (!isNewRow?.value && relatedRow?._isBlueprint) {
+        // A held record was never created: dropping it is all there is to undo.
+        smartsheetRowStore?.replaceLtarBlueprint(column.value.title as string, relatedRow, null)
+      } else if (isNewRow?.value) {
         // New row: links live in ltarState — drop the buffered link and update display.
         if (!removeLTARRef) return
         await removeLTARRef(relatedRow, column.value as ColumnType, { skipRowDisplay: true })
@@ -1571,9 +1692,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         const rawList = newRowState.state?.[colTitle] ?? []
         const query = childrenListPagination.query.toLocaleLowerCase()
         const list = query
-          ? rawList.filter((record: Record<string, any>) =>
-              `${record[relatedTableDisplayValueProp.value] ?? ''}`.toLocaleLowerCase().includes(query),
-            )
+          ? rawList.filter((record: Record<string, any>) => relatedRecordTitle(record).toLocaleLowerCase().includes(query))
           : rawList
         return {
           list: list.slice(offset, offset + limit),
@@ -1679,6 +1798,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       // Supersede any in-flight requests — their (now stale) responses are dropped.
       childrenSearch.refresh()
     }
+
+    // Once the row is saved its linked list comes from the server; drop rows cached from the buffer.
+    watch(
+      () => !!isNewRow?.value,
+      (isNew, wasNew) => {
+        if (wasNew && !isNew) resetChildrenCache()
+      },
+    )
 
     const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
 
@@ -1819,6 +1946,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       getRelatedTableRowId,
       headerDisplayValue,
       relatedTableDisplayValueColumn,
+      relatedDisplayLeaf,
+      relatedChipDisplay,
+      relatedRecordTitle,
       relatedTableDisplayValuePropId,
       resetChildrenExcludedOffsetCount,
       resetChildrenListOffsetCount,
@@ -1856,6 +1986,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       removePendingLink,
       isPendingLink,
       isPendingUnlink,
+      openBlueprintEditor,
     }
   },
   'ltar-store',

@@ -94,6 +94,8 @@ export interface SerializerOrParserFnProps {
     clipboardItem?: NcClipboardItemType;
     // skip display-only `meta.abbreviate` — copy paths need text that survives paste-back
     skipAbbreviation?: boolean;
+    // hops followed through link display values, caps runaway nesting
+    linkDepth?: number;
   };
 }
 

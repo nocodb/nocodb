@@ -78,6 +78,11 @@ export class LookupHelper extends AbstractColumnHelper {
   ): string | null {
     if (!value) return null;
 
+    // a link display value can nest links; stop runaway chains
+    const linkDepth = params.linkDepth ?? 0;
+    if (linkDepth > 16) return '';
+    params = { ...params, linkDepth: linkDepth + 1 };
+
     const { col, meta, metas } = params;
 
     const baseId = meta?.base_id;
@@ -136,10 +141,12 @@ export class LookupHelper extends AbstractColumnHelper {
     // recursing. A complex cell value (e.g. a Lookup of a User column, whose
     // value is a user object with neither key) falls through to the raw value
     // so the recursive parser can handle it.
-    const resolveRecordValue = (v: any) =>
-      v && typeof v === 'object' && !Array.isArray(v)
-        ? v[childColumn!.title] ?? v[childColumn!.id] ?? v
-        : v;
+    const resolveRecordValue = (v: any) => {
+      if (!v || typeof v !== 'object' || Array.isArray(v)) return v;
+      // a present-but-null key (unlinked nested link) must not fall through to the whole record
+      if (childColumn!.title in v) return v[childColumn!.title];
+      return v[childColumn!.id] ?? v;
+    };
 
     if (ncIsArray(value)) {
       return value

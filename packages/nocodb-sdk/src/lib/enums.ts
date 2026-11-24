@@ -267,6 +267,7 @@ export enum AppEvents {
   VAULT_SCOPE_UPDATE = 'vault.scope.update',
 
   ROW_USER_MENTION = 'row.user.mention',
+  ROW_USER_ASSIGN = 'row.user.assign',
   ROW_LMT_TOUCHED = 'row.lmt.touched',
   CALENDAR_CREATE = 'calendar.create',
   TIMELINE_CREATE = 'timeline.create',
@@ -883,6 +884,7 @@ export enum NcAccessSource {
   SHARED_FORM = 'shared-form',
   SHARED_DOC = 'shared-doc',
   SHARED_INTERFACE = 'shared-interface',
+  SHARED_DASHBOARD = 'shared-dashboard',
 }
 
 /** Every source that is a share surface — i.e. everything `is_public` covers. */
@@ -1035,6 +1037,9 @@ export enum OperationSource {
   DATA_IMPORT = 'data_import',
   // A customer's HashiCorp Vault or Conjur, often on a private network.
   VAULTS = 'vaults',
+  // Attachment URLs from anonymous requests (public forms, shared bases):
+  // only NC_ALLOW_LOCAL_ATTACHMENTS=all opens private addresses to them.
+  PUBLIC_ATTACHMENTS = 'public_attachments',
 }
 
 /**

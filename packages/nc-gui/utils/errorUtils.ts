@@ -12,6 +12,10 @@ export async function extractSdkResponseErrorMsg(e: Error & { response?: any }) 
   let msg
   let errors: any[] | null = null
 
+  // No NocoDB message usually means a proxy or gateway answered; the status tells them apart.
+  const status = e.response.status
+  const fallbackMsg = status ? `Some internal error occurred (HTTP ${status})` : 'Some internal error occurred'
+
   if (e.response.data instanceof Blob) {
     try {
       const parsedData = JSON.parse(await e.response.data.text())
@@ -19,12 +23,12 @@ export async function extractSdkResponseErrorMsg(e: Error & { response?: any }) 
       msg = parsedData.message || parsedData.msg
       errors = parsedData.errors
     } catch {
-      msg = 'Some internal error occurred'
+      msg = fallbackMsg
     }
   } else {
     // V2 format: prioritize 'message' field over 'msg'
     // V1 format: falls back to 'msg' field
-    msg = e.response?.data?.message || e.response?.data?.msg || 'Some internal error occurred'
+    msg = e.response?.data?.message || e.response?.data?.msg || fallbackMsg
     errors = e.response.data?.errors
   }
 
@@ -87,6 +91,28 @@ export function isUniqueConstraintViolationError(e: Error & { response?: any }):
     (errorData.message ?? errorData.msg)?.includes('Duplicate value') ||
     (errorData.message ?? errorData.msg)?.includes('Unique constraint violation')
   )
+}
+
+const reportedErrors = new WeakSet<object>()
+
+/** Marks an error already shown to the user, so a caller can stop it before Vue's error boundary. */
+export function markErrorReported(e: unknown) {
+  if (e && typeof e === 'object') reportedErrors.add(e)
+}
+
+export function isErrorReported(e: unknown): boolean {
+  return !!e && typeof e === 'object' && reportedErrors.has(e)
+}
+
+/** Wraps an async action so a rejection it already reported resolves; any other still rejects. */
+export function swallowReportedErrors<A extends unknown[], R>(fn: (...args: A) => Promise<R>) {
+  return async (...args: A): Promise<R | undefined> => {
+    try {
+      return await fn(...args)
+    } catch (e) {
+      if (!isErrorReported(e)) throw e
+    }
+  }
 }
 
 export { NcErrorType }

@@ -23,12 +23,17 @@ import { handleFormulaError } from '~/lib/formula/handle-formula-error';
 import { isCurlyIdentifier } from '~/lib/formula/hooks';
 import { formulas } from '~/lib/formula/formulas';
 import {
+  formulaDateUidt,
+  formulaInstantKind,
+} from '~/lib/formula/dateOnlyFormula';
+import {
   parseFormula,
   parseFormulaWithIndex,
 } from '~/lib/formula/jsepInstances';
-import { ClientTypeOrSqlUI } from '~/lib/formula/types';
+import { ClientTypeOrSqlUI, ReferencedInfo } from '~/lib/formula/types';
 import { SqlUiFactory } from '~/lib/sqlUi';
 import { PgUi } from '~/lib/sqlUi/PgUi';
+import { OracleUi } from '~/lib/sqlUi/OracleUi';
 import {
   extractBinaryExpReferencedInfo,
   extractCallExpressionReferencedInfo,
@@ -97,9 +102,15 @@ const concatenateValues = (node: ParsedFormulaNode) =>
  * counts one aggregate); a callee with no scalar version, or `perValue`, then
  * reads them per value (SUM(MAX(values, 0))).
  */
-// SUM aggregates `values` in a rollup; its plain formula form is not read there
+// SUM, ARRAYJOIN and ARRAYFLATTEN read `values` in a rollup; their plain
+// formula forms are not read there
+const ROLLUP_ONLY_NAMES: string[] = [
+  RollupAggregate.SUM,
+  RollupAggregate.ARRAYJOIN,
+  RollupModifier.ARRAYFLATTEN,
+];
 const hasScalarVersion = (name: string) =>
-  name !== RollupAggregate.SUM &&
+  !ROLLUP_ONLY_NAMES.includes(name) &&
   !!(formulas[name] || ROLLUP_SCALAR_ALIASES[name]);
 
 function valueSetArgIndexes(
@@ -433,8 +444,9 @@ export async function extractColumnIdentifierType({
         uidt: lookupRef?.uidt,
         intermediaryUidt: UITypes.Lookup,
         intermediaryId: col.id,
+        // a date-only formula refers to itself but isn't a Date field
         directLookup:
-          lookupRef?.id === lookupColumn?.id ||
+          (lookupRef?.id === lookupColumn?.id && !lookupRef?.dateOnly) ||
           (lookupRef?.intermediaryUidt === UITypes.Lookup &&
             lookupRef?.intermediaryId === lookupColumn?.id &&
             !!lookupRef?.directLookup),
@@ -516,7 +528,27 @@ export async function extractColumnIdentifierType({
       if (parsedTree) {
         res.dataType = parsedTree.dataType || FormulaDataTypes.UNKNOWN;
         res.isDataArray = parsedTree.isDataArray;
-        res.referencedColumn = parsedTree.referencedColumn;
+        // a date-only formula stays date-only one level up; the source Date
+        // field is kept, so its display format is too
+        if (formulaDateUidt(parsedTree) === UITypes.Date) {
+          res.referencedColumn = {
+            ...(parsedTree.referencedColumn?.uidt === UITypes.Date
+              ? parsedTree.referencedColumn
+              : { id: col.id, uidt: UITypes.Date }),
+            dateOnly: true,
+          };
+        } else {
+          // an inner date-only reference does not make this formula date-only
+          const { dateOnly: _dateOnly, ...referencedColumn } =
+            parsedTree.referencedColumn ??
+            ({} as ReferencedInfo['referencedColumn']);
+          res.referencedColumn = {
+            ...referencedColumn,
+            ...(parsedTree.dataType === FormulaDataTypes.DATE
+              ? { instant: formulaInstantKind(parsedTree) }
+              : {}),
+          };
+        }
       } else {
         res.dataType = FormulaDataTypes.UNKNOWN;
       }
@@ -936,7 +968,14 @@ async function checkForCircularFormulaRef(
   }
 }
 
-const DATE_PART_FUNCTIONS = ['DAY', 'MONTH', 'YEAR', 'HOUR'];
+const DATE_PART_FUNCTIONS = [
+  'DAY',
+  'MONTH',
+  'YEAR',
+  'HOUR',
+  'MINUTE',
+  'SECOND',
+];
 
 export async function validateFormulaAndExtractTreeWithType({
   formula,
@@ -1534,11 +1573,11 @@ export async function validateFormulaAndExtractTreeWithType({
         );
       }
 
-      // pg can't cast a number or checkbox to a timestamp; SQLite and MySQL
-      // read one as a date, so formulas saved there keep working
+      // pg and Oracle can't cast a number or checkbox to a timestamp; SQLite,
+      // MySQL and MSSQL read one as a date, so formulas saved there keep working
       if (
         DATE_PART_FUNCTIONS.includes(calleeName) &&
-        sqlUI instanceof PgUi &&
+        (sqlUI instanceof PgUi || sqlUI instanceof OracleUi) &&
         [FormulaDataTypes.NUMERIC, FormulaDataTypes.BOOLEAN].includes(
           argTypes[0]
         )
@@ -1639,6 +1678,11 @@ export async function validateFormulaAndExtractTreeWithType({
         }
       }
 
+      formulas[calleeName].validation?.argValues?.(
+        <CallExpressionNode>res,
+        sqlUI
+      );
+
       if (typeof formulas[calleeName].returnType === 'function') {
         res.dataType = (formulas[calleeName].returnType as any)?.(
           argTypes
@@ -1647,7 +1691,7 @@ export async function validateFormulaAndExtractTreeWithType({
         res.dataType = formulas[calleeName].returnType as FormulaDataTypes;
       }
 
-      if (calleeName.toUpperCase().startsWith('ARRAY')) {
+      if (res.dataType === FormulaDataTypes.ARRAY) {
         res.inArrayFormat = true;
       }
 

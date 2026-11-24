@@ -63,6 +63,8 @@ export class FormColumnsService {
       await assertNotLockedViewOnLaneProduction(
         context,
         oldFormViewColumn.fk_view_id,
+        undefined,
+        ncMeta,
       );
     }
 

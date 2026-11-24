@@ -48,6 +48,7 @@ export interface IBaseModelSqlV2 {
       extractOnlyPrimaries?: boolean;
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
+      fk_display_value_column_id?: string | null;
     },
   ): Promise<any>;
   execAndParse(
@@ -120,6 +121,28 @@ export interface IBaseModelSqlV2 {
     model: Model,
   ): Promise<Column | undefined>;
   extractPksValues(data: any, asString?: boolean): any;
+
+  trackSearchIndexChange(
+    rows: Record<string, any>[] | Record<string, any> | null,
+    prev?: Record<string, any>[] | Record<string, any> | null,
+  ): Promise<void>;
+
+  trackSearchIndexIds(ids: Array<string | number>): Promise<void>;
+
+  trackSearchIndexWritten(ids: Array<string | number>): Promise<void>;
+
+  forgetSearchIndexWritten(ids: Array<string | number>): void;
+
+  trackSearchIndexInserted(
+    rows: Record<string, any>[],
+  ): Promise<Array<string | number> | undefined>;
+
+  trackSearchIndexSince(since: Date): Promise<void>;
+
+  searchIndexOldParents(
+    rowIds: Array<string | number>,
+    columnNames: Iterable<string>,
+  ): Promise<() => Promise<void>>;
   readByPk(
     id?: any,
     validateFormula?: boolean,
@@ -131,6 +154,7 @@ export interface IBaseModelSqlV2 {
       extractOnlyPrimaries?: boolean;
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
+      fk_display_value_column_id?: string | null;
     },
   ): Promise<any>;
 
@@ -218,6 +242,9 @@ export interface IBaseModelSqlV2 {
   ): Promise<void>;
 
   afterBulkInsert(data: any[], req): Promise<void>;
+
+  /** Reads inserted rows back by pk (`___`-joined strings) and fires `afterBulkInsert` for them. */
+  dispatchInsertHooks(pks: string[], req): Promise<void>;
 
   afterBulkDelete(
     data: any,
@@ -318,6 +345,7 @@ export interface IBaseModelSqlV2 {
       allowSystemColumn: boolean;
       undo: boolean;
       typecast: boolean;
+      byTitleOrId?: boolean;
     },
   ): Promise<any>;
 
@@ -475,7 +503,7 @@ export interface IBaseModelSqlV2 {
    */
   formulaDryRunFailed?: boolean;
   getRlsConditions(): Promise<Filter[]>;
-  getSoftDeleteFilter(): Promise<Knex.QueryCallback | null>;
+  getSoftDeleteFilter(tableAlias?: string): Promise<Knex.QueryCallback | null>;
   updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any): Promise<void>;
   afterSoftDeleteCompleted(params: {
     cookie: NcRequest;

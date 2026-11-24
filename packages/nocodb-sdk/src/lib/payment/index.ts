@@ -73,6 +73,7 @@ export enum PlanFeatureTypes {
   FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER = 'feature_rollup_limit_records_by_filter',
   FEATURE_PERSONAL_VIEWS = 'feature_personal_views',
   FEATURE_SSO = 'feature_sso',
+  FEATURE_USER_FIELD_NOTIFY = 'feature_user_field_notify',
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
   FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
   FEATURE_CURRENT_USER_FILTER = 'feature_current_user_filter',
@@ -128,6 +129,7 @@ export enum PlanFeatureTypes {
   FEATURE_DOCS_APIS = 'feature_docs_apis',
   FEATURE_DOCS_INLINE_COMMENTS = 'feature_docs_inline_comments',
   FEATURE_DOCS_EXPORT_PDF = 'feature_docs_export_pdf',
+  FEATURE_DOCS_PUBLIC_SHARE = 'feature_docs_public_share',
   FEATURE_DOCUMENT_PERMISSIONS = 'feature_document_permissions',
   FEATURE_DOC_AI = 'feature_doc_ai',
   /** Live co-editing of long-form fields (script source, Long Text, SmartText). */
@@ -213,6 +215,9 @@ export enum PlanFeatureTypes {
 
   /** Shared form views can require the submitter to sign in. */
   FEATURE_FORM_REQUIRE_SIGNIN = 'feature_form_require_signin',
+
+  /** Search across every field of a table, and across a workspace's records in ⌘K. */
+  FEATURE_GLOBAL_SEARCH = 'feature_global_search',
 }
 
 export enum PlanAddonTypes {
@@ -510,6 +515,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to limit rollup records by filters.',
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: 'to use personal views.',
   [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',
+  [PlanFeatureTypes.FEATURE_USER_FIELD_NOTIFY]:
+    'to notify users when they are added to a User field.',
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]:
     'to send custom webhook payloads.',
   [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]:
@@ -581,6 +588,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]:
     'to use inline comments in documents.',
   [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]: 'to export documents as PDF.',
+  [PlanFeatureTypes.FEATURE_DOCS_PUBLIC_SHARE]:
+    'to share documents publicly.',
   [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]:
     'to use document permissions.',
   [PlanFeatureTypes.FEATURE_DOC_AI]: 'to use AI features in documents.',
@@ -663,6 +672,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to keep integration credentials in your own secrets manager.',
   [PlanFeatureTypes.FEATURE_COMPUTE_LITE]:
     'to run sandboxes on your own servers with nc-compute-lite.',
+  [PlanFeatureTypes.FEATURE_GLOBAL_SEARCH]:
+    'to search all fields and records across your workspace.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

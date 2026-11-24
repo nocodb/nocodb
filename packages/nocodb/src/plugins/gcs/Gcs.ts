@@ -3,7 +3,11 @@ import { promisify } from 'util';
 import { Readable } from 'stream';
 import { Storage } from '@google-cloud/storage';
 import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
-import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import type {
+  FileCreateByUrlOptions,
+  IStorageAdapterV2,
+  XcFile,
+} from '~/types/nc-plugin';
 import {
   fetchSourceFile,
   generateTempFilePath,
@@ -155,9 +159,12 @@ export default class Gcs implements IStorageAdapterV2 {
   public async fileCreateByUrl(
     destPath: string,
     url: string,
-    { fetchOptions: { buffer } = { buffer: false } },
+    {
+      fetchOptions: { buffer } = { buffer: false },
+      source,
+    }: FileCreateByUrlOptions = {},
   ): Promise<{ url: string; data: any }> {
-    return fetchSourceFile(url, { buffer }, async (response) => {
+    return fetchSourceFile(url, { buffer, source }, async (response) => {
       try {
         const file = this.storageClient.bucket(this.bucketName).file(destPath);
         await file.save(response.data);

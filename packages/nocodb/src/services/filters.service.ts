@@ -18,24 +18,16 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { assertViewConfigEditable } from '~/helpers/viewLockHelpers';
 import { assertDateFiltersReadable } from '~/helpers/filterVerify';
+import {
+  FILTER_OWNER_KEYS,
+  withFilterOwner,
+} from '~/helpers/filterOwnerHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 import { Column, Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
-
-// Columns that tie a filter to what it filters.
-const FILTER_OWNER_KEYS = [
-  'fk_view_id',
-  'fk_row_color_condition_id',
-  'fk_hook_id',
-  'fk_link_col_id',
-  'fk_parent_column_id',
-  'fk_button_col_id',
-  'fk_widget_id',
-  'fk_rls_policy_id',
-] as const;
 
 @Injectable()
 export class FiltersService {
@@ -64,10 +56,10 @@ export class FiltersService {
 
     await assertDateFiltersReadable(context, [param.filter]);
 
-    const filter = await Filter.insert(context, {
-      ...param.filter,
-      fk_hook_id: param.hookId,
-    });
+    const filter = await Filter.insert(
+      context,
+      withFilterOwner(param.filter, { fk_hook_id: param.hookId }),
+    );
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
@@ -215,6 +207,23 @@ export class FiltersService {
     const view = await View.get(context, param.viewId);
     assertViewConfigEditable(context, view, param.req);
 
+    // A form field condition names its field, which must be a column of this view's table.
+    const parentColumnIds = new Set<string>();
+    const collectParentColumns = (node?: FilterType) => {
+      if (!node) return;
+      if (node.fk_parent_column_id) {
+        parentColumnIds.add(node.fk_parent_column_id);
+      }
+      node.children?.forEach(collectParentColumns);
+    };
+    collectParentColumns(param.filter as FilterType);
+    for (const columnId of parentColumnIds) {
+      const column = await Column.get(context, { colId: columnId });
+      if (!column || column.fk_model_id !== view?.fk_model_id) {
+        NcError.get(context).fieldNotFound(columnId);
+      }
+    }
+
     await assertDateFiltersReadable(context, [param.filter]);
 
     if (param.filter.fk_parent_id) {
@@ -232,10 +241,14 @@ export class FiltersService {
       ).withViewId(param.viewId)
     ).forUpdate();
 
-    const filter = await Filter.insert(context, {
-      ...param.filter,
-      fk_view_id: param.viewId,
-    });
+    const { fk_parent_column_id } = param.filter as FilterType;
+    const filter = await Filter.insert(
+      context,
+      withFilterOwner(param.filter, {
+        fk_view_id: param.viewId,
+        ...(fk_parent_column_id ? { fk_parent_column_id } : {}),
+      }),
+    );
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,

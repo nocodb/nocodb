@@ -12,6 +12,17 @@ import type { PlanTitles } from '~/lib/payment';
  */
 
 /**
+ * Where a database connection points, so a person can tell two of the same
+ * kind apart. Non-secret only: never user, password, SSL material or a vault
+ * reference.
+ */
+export interface AppConnectionTarget {
+  host?: string;
+  port?: string | number;
+  database?: string;
+}
+
+/**
  * A connection this VIEWER may bind. Per-user: `Integration.list` hides another
  * user's private integrations, which is why this never travels on a broadcast.
  */
@@ -21,6 +32,8 @@ export interface AppConnectionCandidate {
   type: string;
   sub_type: string | undefined;
   granted: boolean;
+  /** Database connections only. */
+  target?: AppConnectionTarget;
 }
 
 /** A slot as the owner's screen and the building agent both read it. */

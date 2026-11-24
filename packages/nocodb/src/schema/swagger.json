@@ -17297,7 +17297,8 @@
                                 }
                               }
                             },
-                            "description": "Row Count"
+                            "nullable": true,
+                            "description": "Row Count. Always null: counting rows would connect to every data source."
                           },
                           "userCount": {
                             "type": "integer",
@@ -17343,11 +17344,7 @@
                           "webhookCount": 0,
                           "filterCount": 0,
                           "sortCount": 0,
-                          "rowCount": [
-                            {
-                              "TotalRecords": "76"
-                            }
-                          ],
+                          "rowCount": null,
                           "userCount": 1
                         }
                       ],
@@ -17385,11 +17382,7 @@
                           "webhookCount": 0,
                           "filterCount": 0,
                           "sortCount": 0,
-                          "rowCount": [
-                            {
-                              "TotalRecords": "76"
-                            }
-                          ],
+                          "rowCount": null,
                           "userCount": 1
                         }
                       ],
@@ -23042,6 +23035,11 @@
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Meta info for the comment (e.g. image annotation anchor)"
+          },
+          "parent_comment_id": {
+            "type": "string",
+            "description": "Comment this one replies to. A reply to a reply joins the same thread.",
+            "example": "cmt043cx4r30343ff"
           }
         },
         "required": [
@@ -23185,6 +23183,16 @@
                   "pastMonth",
                   "pastNumberOfDays",
                   "pastWeek",
+                  "thisCalendarWeek",
+                  "thisCalendarMonth",
+                  "thisCalendarYear",
+                  "lastCalendarWeek",
+                  "lastCalendarMonth",
+                  "lastCalendarYear",
+                  "nextCalendarWeek",
+                  "nextCalendarMonth",
+                  "nextCalendarYear",
+                  "dateRange",
                   "pastYear",
                   "today",
                   "tomorrow",
@@ -23556,6 +23564,16 @@
                   "pastMonth",
                   "pastNumberOfDays",
                   "pastWeek",
+                  "thisCalendarWeek",
+                  "thisCalendarMonth",
+                  "thisCalendarYear",
+                  "lastCalendarWeek",
+                  "lastCalendarMonth",
+                  "lastCalendarYear",
+                  "nextCalendarWeek",
+                  "nextCalendarMonth",
+                  "nextCalendarYear",
+                  "dateRange",
                   "pastYear",
                   "today",
                   "tomorrow",
@@ -26316,7 +26334,10 @@
               "id": "uqq8xmyz97t1u"
             },
             "description": "Label shown on the range's cards",
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 40
           }
         },
@@ -30225,7 +30246,7 @@
         }
       },
       "ViewColumnUpdateReq": {
-        "description": "Model for View Column Update Request. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views). Grid-only properties (`width`, `group_by`, `group_by_order`, `group_by_sort`) are ignored; use the Grid Column Update endpoint (`PATCH /api/v1/db/meta/grid-columns/{columnId}`) for those.",
+        "description": "Model for View Column Update Request. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views, and `group_by`/`group_by_order`/`group_by_sort`/`group_by_enabled` on gallery views). On a grid, `width` and the `group_by*` properties are ignored; use the Grid Column Update endpoint (`PATCH /api/v1/db/meta/grid-columns/{columnId}`) for those.",
         "x-stoplight": {
           "id": "7xso36z6hvh43"
         },
@@ -30250,6 +30271,27 @@
             "description": "The order of the list of views.",
             "example": 1,
             "minimum": 0
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Gallery only: group by this column"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Gallery only: position of this column among the group-bys",
+            "example": 1,
+            "nullable": true
+          },
+          "group_by_sort": {
+            "type": "string",
+            "description": "Gallery only: group order",
+            "enum": ["asc", "desc", "count-asc", "count-desc", null],
+            "example": "asc",
+            "nullable": true
+          },
+          "group_by_enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Gallery only: whether this group-by is applied. Disabled group-bys keep their config."
           }
         }
       },
@@ -30681,6 +30723,27 @@
             "type": "number",
             "description": "Order",
             "example": 1
+          },
+          "group_by": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Group By"
+          },
+          "group_by_order": {
+            "type": "number",
+            "description": "Group By Order",
+            "example": 1,
+            "nullable": true
+          },
+          "group_by_sort": {
+            "type": "string",
+            "description": "Group By Sort",
+            "enum": ["asc", "desc", "count-asc", "count-desc", null],
+            "example": "asc",
+            "nullable": true
+          },
+          "group_by_enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this group-by is enabled. Disabled group-bys retain their config but are not applied."
           }
         }
       },
@@ -31701,7 +31764,8 @@
               "extension",
               "record",
               "hook",
-              "app"
+              "app",
+              "document"
             ]
           },
           "resource_id": {

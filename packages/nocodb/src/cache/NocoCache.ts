@@ -89,6 +89,37 @@ export default class NocoCache {
   }
 
   /**
+   * Re-arms a {@link setIfNotExist} claim while `value` still holds it. Like
+   * that claim, resolves `true` with the cache off.
+   */
+  public static async expireIfValue(
+    context: CacheContext,
+    key: string,
+    value: string,
+    expireSeconds: number,
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return true;
+    return this.client.expireIfValue(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      value,
+      expireSeconds,
+    );
+  }
+
+  /** Releases a {@link setIfNotExist} claim only while `value` still holds it. */
+  public static async delIfValue(
+    context: CacheContext,
+    key: string,
+    value: string,
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return true;
+    return this.client.delIfValue(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      value,
+    );
+  }
+
+  /**
    * Atomic take-one-from-a-set. Returns null when nothing is available.
    *
    * Deliberately unlike {@link setIfNotExist}, which resolves `true` with the

@@ -851,6 +851,21 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           if (baseModel.isOracle) {
             const oracleDt = (column.dt ?? '').toUpperCase();
             const tnPart = alias || baseModel.tnPath;
+            // node-oracledb builds dates with Date.UTC / new Date(y, ...),
+            // which read years 0-99 as 19xx; emit the stored date as text.
+            if (
+              column.uidt === UITypes.Date &&
+              /^(DATE|TIMESTAMP)/.test(oracleDt || 'DATE')
+            ) {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(
+                  oracleDt.includes('TIME ZONE')
+                    ? `TO_CHAR(??.?? AT TIME ZONE '+00:00', 'YYYY-MM-DD')`
+                    : `TO_CHAR(??.??, 'YYYY-MM-DD')`,
+                  [tnPart, column.column_name],
+                );
+              break;
+            }
             // node-oracledb returns RAW as a Node Buffer, which serializes
             // as `{type:"Buffer",data:[…]}` in the JSON response. RAWTOHEX
             // emits the canonical hex string instead. (LONG RAW can't be

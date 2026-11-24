@@ -20,12 +20,14 @@ export default class JSONUrlTemplateAdapter extends JSONTemplateAdapter {
 
   async init() {
     this.progress('Downloading json file')
-    const data = await this.$api.utils.axiosRequestMake({
-      apiMeta: {
-        url: this.url,
+    this._jsonData = await this.$api.utils.axiosRequestMake(
+      {
+        apiMeta: {
+          url: this.url,
+        },
       },
-    })
-    this._jsonData = data
+      { format: 'arraybuffer' },
+    )
     await super.init()
   }
 }

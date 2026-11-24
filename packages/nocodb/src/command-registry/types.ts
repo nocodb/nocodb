@@ -115,7 +115,12 @@ export interface OperationSandbox<S extends ZodType = ZodType, R = any> {
    * formula column → other columns). Persisted on `meta.deps`, used by
    * sandbox cherry-pick to auto-include referenced entities.
    */
-  readonly dependencies?: (params: z.infer<S>, result: R) => TraceCommandDep[];
+  readonly dependencies?: (
+    params: z.infer<S>,
+    result: R,
+    /** The `extra` the entry's `before` resolved. */
+    extra?: Record<string, unknown>,
+  ) => TraceCommandDep[];
 }
 
 export interface InverseOp {
@@ -368,6 +373,9 @@ export interface CaptureBag {
    *  soft-deletes write ONE entry covering all rows in the batch, so a
    *  single id captures the whole bulk delete. */
   softDeleteTrashId: string;
+  /** Set server-side when an interface insert carries data the server read
+   *  (`tableDataDuplicate`), so its redo keeps every copied field. */
+  serverReadInsert: boolean;
   /** V3-update LTAR diff: per-(col, row, target) link mutations produced
    *  by `updateLTARCols`. Captured by `bulkUpdate` before dispatching to
    *  the LTAR updater (CE, Mux, or EE LinksRequestHandler — the diff is

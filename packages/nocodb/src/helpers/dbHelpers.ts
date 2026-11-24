@@ -2,7 +2,6 @@ import { customAlphabet } from 'nanoid';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
   isNumericCol,
@@ -82,6 +81,8 @@ export function getSourceIntrospectionSchema(
 export type QueryWithCte = {
   builder: string | Knex.QueryBuilder;
   applyCte: (qb: Knex.QueryBuilder) => void;
+  /** PG only: the builder yields a JSON array (as text) of many values. */
+  aggregated?: boolean;
 };
 
 export function concatKnexRaw(knex: CustomKnex, raws: Knex.Raw[]) {
@@ -455,6 +456,15 @@ export const nanoidv2 = customAlphabet(
   14,
 );
 
+/** Columns a form-scoped write maps: the pks plus the form's own columns. */
+export function formMappingColumns(
+  model: Model,
+  formColumns?: Column[] | null,
+): Column[] | undefined {
+  if (!formColumns) return undefined;
+  return [...model.primaryKeys, ...formColumns.filter((c) => !c.pk)];
+}
+
 export async function populatePk(
   context: NcContext,
   model: Model,
@@ -724,26 +734,13 @@ export async function hasFlaggedFormulaColumn(
  * using an alias-qualified column name. For use in subqueries where the
  * table is aliased (e.g. lookups, rollups, CTEs).
  *
- * Returns null if the table has no __nc_deleted column or the source is not meta.
+ * Same gating as `getSoftDeleteFilter` (meta source, trash enabled).
  */
 export async function getAliasedSoftDeleteFilter(
   baseModel: IBaseModelSqlV2,
   tableAlias: string,
 ): Promise<Knex.QueryCallback | null> {
-  const columns = await baseModel.model.getColumns();
-  const deletedColumn = columns.find((c) => isDeletedCol(c));
-  if (!deletedColumn) return null;
-
-  const source = await baseModel.getSource();
-  if (!source.isMeta()) return null;
-
-  const qualifiedName = `${tableAlias}.${deletedColumn.column_name}`;
-  const notDeletedSql = boolSqlLiteral(baseModel, false);
-  return function () {
-    this.whereNull(qualifiedName).orWhereRaw(`?? = ${notDeletedSql}`, [
-      qualifiedName,
-    ]);
-  };
+  return baseModel.getSoftDeleteFilter(tableAlias);
 }
 
 export function shouldSkipField(
@@ -1198,6 +1195,17 @@ export const dataWrapper = (data: any) => {
 
       return undefined;
     },
+    getByTitleOrId: (column: { id: string; title: string }) => {
+      if (Object.hasOwn(data, column.title)) {
+        return data[column.title];
+      }
+
+      if (Object.hasOwn(data, column.id)) {
+        return data[column.id];
+      }
+
+      return undefined;
+    },
     getColumnKeyName: (column: {
       column_name: string;
       id: string;
@@ -1257,13 +1265,20 @@ export const dataWrapper = (data: any) => {
 export function transformObjectKeys(
   obj: Record<string, any>,
   aliasMap: Record<string, string>,
+  // ids of link columns: their values are linked records whose keys are renamed too
+  linkColumnIds?: Set<string>,
 ): Record<string, any> {
   if (!obj || typeof obj !== 'object') return obj;
 
   const result = {};
   Object.entries(obj).forEach(([key, value]) => {
     const alias = aliasMap[key];
-    result[alias || key] = value;
+    result[alias || key] =
+      linkColumnIds?.has(key) && value && typeof value === 'object'
+        ? Array.isArray(value)
+          ? value.map((v) => transformObjectKeys(v, aliasMap, linkColumnIds))
+          : transformObjectKeys(value, aliasMap, linkColumnIds)
+        : value;
   });
   return result;
 }
@@ -1291,7 +1306,8 @@ export function getArrayAggExpression(
   // Note: columnName and alias are controlled by our code, so it's safe to use directly
   const exprMap: Record<string, string> = {
     pg: `ARRAY_AGG(DISTINCT ${columnName}) FILTER (WHERE ${columnName} IS NOT NULL) AS ${alias}`,
-    mysql2: `CAST(CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT('"', ${columnName}, '"')), ']') AS JSON) AS ${alias}`,
+    // JSON_EXTRACT(.., '$') rather than CAST(.. AS JSON): MariaDB has no JSON cast target
+    mysql2: `JSON_EXTRACT(CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT('"', ${columnName}, '"')), ']'), '$') AS ${alias}`,
     sqlite3: `json_group_array(DISTINCT ${columnName}) AS ${alias}`,
   };
 

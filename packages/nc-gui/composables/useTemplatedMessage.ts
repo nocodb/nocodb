@@ -43,6 +43,8 @@ export function useTemplatedMessage(
           isMysql,
           isXcdbBase,
           t,
+          // Keep raw numbers: the template may put them in a URL
+          numberFormat: { skipThousandSeparator: true, skipAbbreviation: true },
         })
       }
 

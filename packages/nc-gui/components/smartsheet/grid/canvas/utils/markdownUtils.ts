@@ -1,5 +1,6 @@
 import type { UserType } from 'nocodb-sdk'
 import { decode as decodeHtmlEntities } from 'html-entities'
+import { imgTagsToMarkdown } from '~/helpers/tiptap-markdown/util/imgTag'
 
 type MarkdownStyle = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'link' | 'mention'
 
@@ -221,6 +222,69 @@ const blockMarkers: BlockMarker[] = [
   { open: /^\d+\. /, type: 'numbered-list-item' },
 ]
 
+const tableRowRegex = /^\s*\|.*\|\s*$/
+
+const tableDelimiterCellRegex = /^\s*:?-+:?\s*$/
+
+const isTableRow = (line: string) => tableRowRegex.test(line)
+
+/** Split on unescaped pipes, as GFM does (inline code included). */
+const splitTableRow = (line: string): string[] => {
+  const cells: string[] = []
+  let current = ''
+
+  const body = line.trim().slice(1, -1)
+  for (let i = 0; i < body.length; i++) {
+    const char = body[i]!
+    if (char === '\\' && body[i + 1] === '|') {
+      // The cell text holds a plain pipe, as GFM does; a mention's `id|email|name` needs it bare
+      current += '|'
+      i++
+      continue
+    }
+    if (char === '|') {
+      cells.push(current)
+      current = ''
+      continue
+    }
+    current += char
+  }
+  cells.push(current)
+
+  return cells.map((cell) => cell.trim())
+}
+
+const isTableDelimiterRow = (line: string) =>
+  isTableRow(line) && splitTableRow(line).every((cell) => tableDelimiterCellRegex.test(cell))
+
+/** A table row as one line: cells split by a gap and a bar, the header row in bold. */
+const tableRowTokens = (
+  line: string,
+  isHeader: boolean,
+  options?: {
+    users?: Partial<UserType | User>[]
+    currentUser?: Partial<UserType | User> | null
+  },
+): Token[] => {
+  const tokens: Token[] = []
+
+  splitTableRow(line).forEach((cell, index) => {
+    if (index) tokens.push({ styles: [], value: '  |  ' })
+
+    const cellTokens = tokenizeLine(cell.replace(/<br\s*\/?>/gi, ' '), options)
+    tokens.push(
+      ...(isHeader
+        ? cellTokens.map((token) => ({
+            ...token,
+            styles: token.styles.includes('bold') ? token.styles : [...token.styles, 'bold' as MarkdownStyle],
+          }))
+        : cellTokens),
+    )
+  })
+
+  return tokens
+}
+
 export const parseMarkdown = (
   text: string,
   options?: {
@@ -228,12 +292,30 @@ export const parseMarkdown = (
     currentUser?: Partial<UserType | User> | null
   },
 ): Block[] => {
-  const lines = text.split('\n')
+  // Whole text at once, so lines inside a code fence are known
+  const lines = imgTagsToMarkdown(text).split('\n')
   const blocks: Block[] = []
   const { users = [], currentUser = null } = options || {}
 
-  for (const line of lines) {
-    if (!line.trim()) continue
+  // A table is a header row, a delimiter row, then rows up to the first line that isn't one
+  let inTable = false
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!
+    if (!line.trim()) {
+      inTable = false
+      continue
+    }
+
+    const isHeader = isTableRow(line) && !!lines[i + 1] && isTableDelimiterRow(lines[i + 1]!)
+    inTable = isHeader || (inTable && isTableRow(line))
+
+    if (inTable) {
+      if (!isHeader && isTableDelimiterRow(line)) continue
+
+      blocks.push({ type: 'paragraph', tokens: tableRowTokens(line, isHeader, options) })
+      continue
+    }
 
     const customProps: Record<string, any> = {}
     let blockType: BlockType = 'paragraph'

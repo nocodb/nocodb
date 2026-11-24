@@ -41,10 +41,12 @@ import {
   ncIsObject,
   ncIsUndefined,
   parseHelper,
+  parseProp,
   PermissionEntity,
   PermissionKey,
   RelationTypes,
   resolveCurrentUserToken,
+  restoreEarlyYear,
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -89,6 +91,23 @@ import {
   LTARColsUpdater,
 } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
+import { capSearchCountQuery, getSearchFilters } from '~/db/search';
+import {
+  isSearchIndexJunction,
+  isSearchIndexTracked,
+  SEARCH_INDEX_SLACK_MS,
+} from '~/db/search/searchIndex';
+import {
+  SEARCH_DIRTY_CAP,
+  searchIndexQueue,
+} from '~/db/search/searchIndexQueue';
+import { junctionLinkedRows } from '~/db/search/searchIndexFields';
+import { isSearchIndexingEnabled } from '~/db/search/searchIndexMeta';
+import {
+  execPgWithGuard,
+  getQueryGuard,
+  shouldGuardQuery,
+} from '~/db/queryGuard';
 import {
   ncIsStringHasValue,
   ncLikeContainsPattern,
@@ -103,7 +122,10 @@ import {
   NestedLinkPreparator,
 } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
-import { collectLinkBroadcast } from '~/db/BaseModelSqlv2/link-broadcast-batch';
+import {
+  collectLinkAudit,
+  collectLinkBroadcast,
+} from '~/db/BaseModelSqlv2/link-broadcast-batch';
 import {
   mssqlBuildBulkInsertWithCapture,
   mssqlChunkSize,
@@ -117,7 +139,10 @@ import {
   extractCorrespondingLinkColumn,
 } from '~/db/BaseModelSqlv2/add-remove-links';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
-import conditionV2, { applyRelatedRls } from '~/db/conditionV2';
+import conditionV2, {
+  applyRelatedRls,
+  getLinkRelFilters,
+} from '~/db/conditionV2';
 import { DBQueryClient } from '~/dbQueryClient';
 import formulaQueryBuilderv2, {
   checkStoredFormulaError,
@@ -126,7 +151,7 @@ import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
-import { handleNotNullConstraintError } from '~/helpers/notNullConstraintErrorHandler';
+import { handleConstraintError } from '~/helpers/constraintErrorHandler';
 import { readsHiddenTable } from '~/helpers/tableHelpers';
 import {
   formatPgDateTime,
@@ -143,6 +168,7 @@ import {
   extractLinkFieldsByTitle,
   extractSortsObject,
   formatDataForAudit,
+  formMappingColumns,
   getAliasedSoftDeleteFilter,
   getAs,
   getBaseModelSqlFromModelId,
@@ -158,6 +184,11 @@ import {
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+import {
+  DISPLAY_VALUE_LINK_MAX_DEPTH,
+  getLinkDisplayOverride,
+} from '~/helpers/displayValueCycle';
+import { flattenDisplayValue } from '~/helpers/flattenDisplayValue';
 import { extractProps } from '~/helpers/extractProps';
 import { mapNonFiniteToString } from '~/helpers/formulaNonFinite';
 import { isNonFiniteFormulaHandlingEnabled } from '~/db/formulav2/pg-ieee';
@@ -295,6 +326,8 @@ interface RelationLoaderArgs {
   offset?: number;
   fieldsSet?: Set<string>;
   fieldSet?: Set<string>;
+  // set when the rows feed a Lookup that has link conditions
+  lookupColumn?: Column;
 }
 
 /** DataLoader with a typed side-channel for query args. */
@@ -315,6 +348,20 @@ function cloneFilters(filters: Filter[]): Filter[] {
         ...(filter.children ? { children: cloneFilters(filter.children) } : {}),
       }),
   );
+}
+
+// A filtered Lookup's link conditions over `refBaseModel`'s rows
+async function lookupLinkFilters(
+  refBaseModel: IBaseModelSqlV2,
+  lookupColumn?: Column,
+): Promise<Filter[] | undefined> {
+  if (!lookupColumn) return;
+  const filters = await getLinkRelFilters({
+    column: lookupColumn,
+    table: refBaseModel.model,
+    context: refBaseModel.context,
+  });
+  return filters.length ? filters : undefined;
 }
 
 /**
@@ -342,8 +389,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   protected _queryQueue: PQueue;
   protected _columns = {};
-  protected _softDeleteFilter: Promise<Knex.QueryCallback | null> | undefined;
+  protected _softDeleteColumnName: Promise<string | null> | undefined;
   protected _rlsConditions: Promise<Filter[]> | undefined;
+  // lookup column id -> its resolved target; read by every execAndParse pass
+  protected _nestedColumns = new Map<string, Promise<Column | any>>();
+  // set when columns are edited under this instance: its loaded columns may be stale
+  protected _columnsChanged = false;
   protected source: Source;
   public model: Model;
   public context: NcContext;
@@ -613,7 +664,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await model.getCachedColumns();
 
     if (extractDisplayValueData) {
-      return data ? data[model.displayValue.title] ?? null : '';
+      return data ? await flattenDisplayValue(data, model.displayValue) : '';
     }
 
     return data;
@@ -656,8 +707,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           },
         );
         if (extractDisplayValueData) {
-          const titleKey = displayColumn?.title ?? model.displayValue?.title;
-          results.push(data ? data[titleKey] ?? null : '');
+          results.push(
+            data
+              ? await flattenDisplayValue(
+                  data,
+                  model.displayValue,
+                  displayColumn,
+                )
+              : '',
+          );
         } else {
           results.push(data);
         }
@@ -713,16 +771,28 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // Reassemble results in original order
-    return props.map(
-      ({ model, id, extractDisplayValueData = true, displayColumn }) => {
-        const key = `${model.id}::${displayColumn?.id ?? ''}`;
-        const record = recordsByKey.get(key)?.get(String(id));
-        if (extractDisplayValueData) {
-          const titleKey = displayColumn?.title ?? model.displayValue?.title;
-          return record ? record[titleKey] ?? null : '';
-        }
-        return record ?? null;
-      },
+    return Promise.all(
+      props.map(
+        async ({
+          model,
+          id,
+          extractDisplayValueData = true,
+          displayColumn,
+        }) => {
+          const key = `${model.id}::${displayColumn?.id ?? ''}`;
+          const record = recordsByKey.get(key)?.get(String(id));
+          if (extractDisplayValueData) {
+            return record
+              ? await flattenDisplayValue(
+                  record,
+                  model.displayValue,
+                  displayColumn,
+                )
+              : '';
+          }
+          return record ?? null;
+        },
+      ),
     );
   }
 
@@ -921,6 +991,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       customConditions?: Filter[];
       apiVersion?: NcApiVersion;
       linksAsLtar?: boolean | string;
+      search?: string;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
@@ -980,6 +1051,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasColObjMap,
       throwErrorIfInvalidParams,
     );
+    const searchFilters = await getSearchFilters(this, args);
     // Resolve RLS (Row-Level Security) conditions
     const rlsConditions = ignoreRlsOpt ? [] : await this.getRlsConditions();
     const rlsFilterGroup = rlsConditions.length
@@ -1034,6 +1106,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
+          ...searchFilters,
         ],
         qb,
         undefined,
@@ -1070,6 +1143,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
+          ...searchFilters,
         ],
         qb,
         undefined,
@@ -1174,6 +1248,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       limit?;
       filterArr?: Filter[];
       customConditions?: Filter[];
+      search?: string;
     } = {},
     ignoreViewFilterAndSort = false,
     throwErrorIfInvalidParams = false,
@@ -1225,6 +1300,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams,
     );
 
+    const searchFilters = await getSearchFilters(this, args);
+
     // Resolve RLS conditions for count
     const rlsConditionsCount = await this.getRlsConditions();
     const rlsFilterGroupCount = rlsConditionsCount.length
@@ -1267,6 +1344,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
+          ...searchFilters,
         ],
         qb,
         undefined,
@@ -1295,6 +1373,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             is_group: true,
             logical_op: 'and',
           }),
+          ...searchFilters,
         ],
         qb,
         undefined,
@@ -1302,12 +1381,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
-    qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
-      as: 'count',
-    }).first();
-    debugCount(qb.toQuery());
+    const countQb = searchFilters.length
+      ? capSearchCountQuery(
+          this.dbDriver,
+          qb,
+          sanitize(this.model.primaryKey?.column_name),
+        )
+      : qb
+          .count(sanitize(this.model.primaryKey?.column_name) || '*', {
+            as: 'count',
+          })
+          .first();
+    debugCount(countQb.toQuery());
     return (
-      await this.execAndParse(qb, null, {
+      await this.execAndParse(countQb, null, {
         raw: true,
         first: true,
         queryTimeout: getDataQueryTimeout(),
@@ -1474,7 +1561,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       nested?: boolean;
       linksAsLtar?: boolean;
     },
-    args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+    args: {
+      limit?;
+      offset?;
+      fieldsSet?: Set<string>;
+      lookupColumn?: Column;
+    } = {},
   ) {
     try {
       return await retryLinkedReadOnRollupError(
@@ -1506,6 +1598,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       offset?;
       fieldsSet?: Set<string>;
       pkAndPvOnly?: boolean;
+      lookupColumn?: Column;
     } = {},
     selectAllRecords = false,
   ) {
@@ -1526,7 +1619,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       colId: string;
       parentId: any;
     },
-    args: { fieldsSet?: Set<string> } = {},
+    args: { fieldsSet?: Set<string>; lookupColumn?: Column } = {},
   ) {
     return retryLinkedReadOnRollupError(
       this,
@@ -1563,7 +1656,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       limit?;
       offset?;
       fieldSet?: Set<string>;
+      fieldsSet?: Set<string>;
       pkAndPvOnly?: boolean;
+      lookupColumn?: Column;
     } = {},
     selectAllRecords = false,
   ) {
@@ -1594,7 +1689,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       nested?: boolean;
       linksAsLtar?: boolean;
     },
-    args: { limit?; offset?; fieldsSet?: Set<string> } = {},
+    args: {
+      limit?;
+      offset?;
+      fieldsSet?: Set<string>;
+      lookupColumn?: Column;
+    } = {},
   ) {
     return retryLinkedReadOnRollupError(
       this,
@@ -1902,6 +2002,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       tableAlias,
       validateFormula,
       dryRunLimit,
+      // a validating build re-reads the columns: a column edit may have changed them
+      columns:
+        validateFormula || this._columnsChanged
+          ? undefined
+          : this.model.columns,
     });
     return qb;
   }
@@ -1935,7 +2040,412 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         fieldsSet: new Set([...(args?.fieldsSet ?? []), ...lookupFields]),
       };
     };
+    // A row read without its pk skips its relations instead of throwing; log
+    // it so a field-narrowing regression shows up rather than empty links.
+    const warnedMissingPk = new Set<string>();
+    const isMissingPk = (pk: unknown, relColumn: Column) => {
+      if (pk !== null && pk !== undefined) return false;
+      if (warnedMissingPk.has(relColumn.id)) return true;
+      warnedMissingPk.add(relColumn.id);
+      logger.warn(
+        `Relation '${relColumn.title}' (${relColumn.id}) skipped on ${this.model.title}: row has no primary key`,
+      );
+      return true;
+    };
     const columns = await this.model.getColumns();
+    // Registers a link column's relation resolver. A Lookup with link
+    // conditions gets its own copy under `key`, reading only the rows they keep.
+    const registerRelation = async (
+      column: Column,
+      key?: string,
+      lookupColumn?: Column,
+    ) => {
+      const linksKey =
+        key ??
+        (column.uidt === UITypes.Links && !linksAsLtar
+          ? `_nc_lk_${column.title}`
+          : column.title);
+      const titleKey = key ?? column.title;
+      const withLinkFilter = (args?: RelationLoaderArgs) =>
+        lookupColumn ? { ...args, lookupColumn } : args;
+      const isMMLike = isMMOrMMLike(column);
+      if (!key) this._columns[column.title] = column;
+      const colOptions =
+        (await column.getColOptions()) as LinkToAnotherRecordColumn;
+      if (!colOptions) return;
+
+      const { refContext } = colOptions.getRelContext();
+
+      if (colOptions?.type === 'hm' && !isMMLike) {
+        // DataLoader collects all .load(id) calls from the same microtick
+        // into a single batch. The batch callback is wrapped in _queryQueue.add()
+        // to serialize actual DB execution across all relation types.
+        const listLoader = new DataLoaderWithArgs(
+          (ids: readonly string[]) =>
+            this._queryQueue.add(async () => {
+              if (ids.length > 1) {
+                const data = await this.multipleHmList(
+                  {
+                    colId: column.id,
+                    ids: ids as string[],
+                    apiVersion,
+                    linksAsLtar,
+                  },
+                  listLoader.args,
+                );
+                return ids.map((id: string) => (data[id] ? data[id] : []));
+              } else {
+                return [
+                  await this.hmList(
+                    {
+                      colId: column.id,
+                      id: ids[0],
+                      apiVersion,
+                      nested: true,
+                      linksAsLtar,
+                    },
+                    listLoader.args,
+                  ),
+                ];
+              }
+            }),
+          {
+            cache: false,
+          },
+        );
+        const self: BaseModelSqlv2 = this;
+
+        proto[linksKey] = async function (
+          args?: RelationLoaderArgs,
+        ): Promise<any> {
+          const pk = getCompositePkValue(self.model.primaryKeys, this);
+          if (isMissingPk(pk, column)) return [];
+          listLoader.args = withLinkFilter(
+            withLookupFields(args, column, colOptions),
+          );
+          return listLoader.load(pk);
+        };
+      } else if (isBtLikeV2Junction(column)) {
+        // V2 MO/OO: single-record — return object (like BT)
+        // Use multipleMmList for batching, take first record per parent
+        const readLoader = new DataLoaderWithArgs(
+          (ids: readonly string[]) =>
+            this._queryQueue.add(async () => {
+              if (ids?.length > 1) {
+                const lists = await this.multipleMmList(
+                  {
+                    parentIds: ids as string[],
+                    colId: column.id,
+                  },
+                  readLoader.args,
+                );
+                return lists.map((list) => list?.[0] ?? null);
+              } else {
+                return [
+                  await this.mmRead(
+                    { parentId: ids[0], colId: column.id },
+                    readLoader.args,
+                  ),
+                ];
+              }
+            }),
+          {
+            cache: false,
+          },
+        );
+
+        const self: BaseModelSqlv2 = this;
+        proto[titleKey] = async function (args?: RelationLoaderArgs) {
+          const pk = getCompositePkValue(self.model.primaryKeys, this);
+          if (isMissingPk(pk, column)) return null;
+          readLoader.args = withLinkFilter(
+            withLookupFields(args, column, colOptions),
+          );
+          return await readLoader.load(pk);
+        };
+      } else if (colOptions.type === 'mm' || isMMLike) {
+        const listLoader = new DataLoaderWithArgs(
+          (ids: readonly string[]) =>
+            this._queryQueue.add(async () => {
+              if (ids?.length > 1) {
+                const data = await this.multipleMmList(
+                  {
+                    parentIds: ids as string[],
+                    colId: column.id,
+                    apiVersion,
+                    nested: true,
+                    linksAsLtar,
+                  },
+                  listLoader.args,
+                );
+
+                return data;
+              } else {
+                return [
+                  await this.mmList(
+                    {
+                      parentId: ids[0],
+                      colId: column.id,
+                      apiVersion,
+                      nested: true,
+                      linksAsLtar,
+                    },
+                    listLoader.args,
+                  ),
+                ];
+              }
+            }),
+          {
+            cache: false,
+          },
+        );
+
+        const self: BaseModelSqlv2 = this;
+        proto[linksKey] = async function (
+          args?: RelationLoaderArgs,
+        ): Promise<any> {
+          const pk = getCompositePkValue(self.model.primaryKeys, this);
+          if (isMissingPk(pk, column)) return [];
+          listLoader.args = withLinkFilter(
+            withLookupFields(args, column, colOptions),
+          );
+          return await listLoader.load(pk);
+        };
+      } else if (colOptions.type === 'bt' && !isMMLike) {
+        // @ts-ignore
+        const colOptions =
+          (await column.getColOptions()) as LinkToAnotherRecordColumn;
+
+        const pCol = await Column.get(refContext, {
+          colId: colOptions.fk_parent_column_id,
+        });
+        const cCol = await Column.get(this.context, {
+          colId: colOptions.fk_child_column_id,
+        });
+
+        // use dataloader to get batches of parent data together rather than getting them individually
+        // it takes individual keys and callback is invoked with an array of values and we can get the
+        // result for all those together and return the value in the same order as in the array
+        // this way all parents data extracted together
+        const readLoader = new DataLoaderWithArgs(
+          (_ids: readonly string[]) =>
+            this._queryQueue.add(async () => {
+              // handle binary(16) foreign keys
+              const ids = _ids.map((id) => {
+                if (pCol.ct !== 'binary(16)') return id;
+
+                // Cast the id to string.
+                const idAsString = id + '';
+                // Check if the id is a UUID and the column is binary(16)
+                const isUUIDBinary16 =
+                  idAsString.length === 36 || idAsString.length === 32;
+                // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                const idAsUUID = isUUIDBinary16
+                  ? idAsString.length === 32
+                    ? idAsString.replace(
+                        /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                        '$1-$2-$3-$4-$5',
+                      )
+                    : idAsString
+                  : null;
+
+                return idAsUUID
+                  ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                  : id;
+              });
+
+              const pBaseModel = await Model.getBaseModelSQL(refContext, {
+                id: pCol.fk_model_id,
+                dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
+              });
+              const data = await pBaseModel.list(
+                {
+                  // parents are matched back by the referenced column, so fetch it
+                  fieldsSet:
+                    readLoader.args?.fieldsSet &&
+                    new Set([...readLoader.args.fieldsSet, pCol.title]),
+                  customConditions: await lookupLinkFilters(
+                    pBaseModel,
+                    readLoader.args?.lookupColumn,
+                  ),
+                  filterArr: [
+                    new Filter({
+                      id: null,
+                      fk_column_id: pCol.id,
+                      fk_model_id: pCol.fk_model_id,
+                      value: ids as any[],
+                      comparison_op: 'in',
+                    }),
+                  ],
+                },
+                {
+                  ignoreViewFilterAndSort: true,
+                  ignorePagination: true,
+                },
+              );
+
+              const groupedList = groupBy(data, pCol.title);
+              return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
+            }),
+          {
+            cache: false,
+          },
+        );
+
+        // defining BelongsTo read resolver method
+        proto[titleKey] = async function (args?: RelationLoaderArgs) {
+          if (this?.[cCol?.title] === null || this?.[cCol?.title] === undefined)
+            return null;
+
+          readLoader.args = withLinkFilter(args);
+
+          return await readLoader.load(this?.[cCol?.title]);
+        };
+      } else if (colOptions.type === 'oo' && !isMMLike) {
+        const isBt = column.meta?.bt;
+
+        if (isBt) {
+          // @ts-ignore
+          const colOptions =
+            (await column.getColOptions()) as LinkToAnotherRecordColumn;
+          const pCol = await Column.get(refContext, {
+            colId: colOptions.fk_parent_column_id,
+          });
+          const cCol = await Column.get(this.context, {
+            colId: colOptions.fk_child_column_id,
+          });
+
+          // use dataloader to get batches of parent data together rather than getting them individually
+          // it takes individual keys and callback is invoked with an array of values and we can get the
+          // result for all those together and return the value in the same order as in the array
+          // this way all parents data extracted together
+          const readLoader = new DataLoaderWithArgs(
+            (_ids: readonly string[]) =>
+              this._queryQueue.add(async () => {
+                // handle binary(16) foreign keys
+                const ids = _ids.map((id) => {
+                  if (pCol.ct !== 'binary(16)') return id;
+
+                  // Cast the id to string.
+                  const idAsString = id + '';
+                  // Check if the id is a UUID and the column is binary(16)
+                  const isUUIDBinary16 =
+                    idAsString.length === 36 || idAsString.length === 32;
+                  // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                  const idAsUUID = isUUIDBinary16
+                    ? idAsString.length === 32
+                      ? idAsString.replace(
+                          /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                          '$1-$2-$3-$4-$5',
+                        )
+                      : idAsString
+                    : null;
+
+                  return idAsUUID
+                    ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                    : id;
+                });
+
+                const pBaseModel = await Model.getBaseModelSQL(refContext, {
+                  id: pCol.fk_model_id,
+                  dbDriver: this.dbDriver,
+                  queryQueue: this._queryQueue,
+                });
+                const data = await pBaseModel.list(
+                  {
+                    // parents are matched back by the referenced column, so fetch it
+                    fieldsSet:
+                      readLoader.args?.fieldsSet &&
+                      new Set([...readLoader.args.fieldsSet, pCol.title]),
+                    customConditions: await lookupLinkFilters(
+                      pBaseModel,
+                      readLoader.args?.lookupColumn,
+                    ),
+                    filterArr: [
+                      new Filter({
+                        id: null,
+                        fk_column_id: pCol.id,
+                        fk_model_id: pCol.fk_model_id,
+                        value: ids as any[],
+                        comparison_op: 'in',
+                      }),
+                    ],
+                  },
+                  {
+                    ignoreViewFilterAndSort: true,
+                    ignorePagination: true,
+                  },
+                );
+
+                const groupedList = groupBy(data, pCol.title);
+                return _ids.map(async (id: string) => groupedList?.[id]?.[0]);
+              }),
+            {
+              cache: false,
+            },
+          );
+
+          // defining BelongsTo read resolver method
+          proto[titleKey] = async function (args?: RelationLoaderArgs) {
+            if (
+              this?.[cCol?.title] === null ||
+              this?.[cCol?.title] === undefined
+            )
+              return null;
+
+            readLoader.args = withLinkFilter(args);
+
+            return await readLoader.load(this?.[cCol?.title]);
+          };
+        } else {
+          const listLoader = new DataLoaderWithArgs(
+            (ids: readonly string[]) =>
+              this._queryQueue.add(async () => {
+                if (ids.length > 1) {
+                  const data = await this.multipleHmList(
+                    {
+                      colId: column.id,
+                      ids: ids as string[],
+                    },
+                    listLoader.args,
+                  );
+                  return ids.map((id: string) =>
+                    data[id] ? data[id]?.[0] : null,
+                  );
+                } else {
+                  return [
+                    (
+                      await this.hmList(
+                        {
+                          colId: column.id,
+                          id: ids[0],
+                        },
+                        listLoader.args,
+                      )
+                    )?.[0] ?? null,
+                  ];
+                }
+              }),
+            {
+              cache: false,
+            },
+          );
+          const self: BaseModelSqlv2 = this;
+
+          proto[linksKey] = async function (
+            args?: RelationLoaderArgs,
+          ): Promise<any> {
+            const pk = getCompositePkValue(self.model.primaryKeys, this);
+            if (isMissingPk(pk, column)) return null;
+            listLoader.args = withLinkFilter(
+              withLookupFields(args, column, colOptions),
+            );
+            return listLoader.load(pk);
+          };
+        }
+      }
+    };
     await Promise.all(
       columns.map(async (column) => {
         switch (column.uidt) {
@@ -1983,8 +2493,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 brokenLookup();
                 break;
               }
+              // Reading the link's own rows would ignore the lookup's conditions
+              let relKey = relColTitle;
+              if (parseProp(column.meta)?.enableConditions) {
+                relKey = `__nc_lkf_${column.id}`;
+                await registerRelation(relCol, relKey, column);
+              }
               proto.__columnAliases[column.title] = {
-                path: [relColTitle, lookupCol.title],
+                path: [relKey, lookupCol.title],
               };
               (lookupFieldsByRelColId[relCol.id] ??= new Set()).add(
                 lookupCol.title,
@@ -1993,392 +2509,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           case UITypes.Links:
           case UITypes.LinkToAnotherRecord:
-            {
-              const isMMLike = isMMOrMMLike(column);
-              this._columns[column.title] = column;
-              const colOptions =
-                (await column.getColOptions()) as LinkToAnotherRecordColumn;
-              if (!colOptions) break;
-
-              const { refContext } = colOptions.getRelContext();
-
-              if (colOptions?.type === 'hm' && !isMMLike) {
-                // DataLoader collects all .load(id) calls from the same microtick
-                // into a single batch. The batch callback is wrapped in _queryQueue.add()
-                // to serialize actual DB execution across all relation types.
-                const listLoader = new DataLoaderWithArgs(
-                  (ids: readonly string[]) =>
-                    this._queryQueue.add(async () => {
-                      if (ids.length > 1) {
-                        const data = await this.multipleHmList(
-                          {
-                            colId: column.id,
-                            ids: ids as string[],
-                            apiVersion,
-                            linksAsLtar,
-                          },
-                          listLoader.args,
-                        );
-                        return ids.map((id: string) =>
-                          data[id] ? data[id] : [],
-                        );
-                      } else {
-                        return [
-                          await this.hmList(
-                            {
-                              colId: column.id,
-                              id: ids[0],
-                              apiVersion,
-                              nested: true,
-                              linksAsLtar,
-                            },
-                            listLoader.args,
-                          ),
-                        ];
-                      }
-                    }),
-                  {
-                    cache: false,
-                  },
-                );
-                const self: BaseModelSqlv2 = this;
-
-                proto[
-                  column.uidt === UITypes.Links && !linksAsLtar
-                    ? `_nc_lk_${column.title}`
-                    : column.title
-                ] = async function (args?: RelationLoaderArgs): Promise<any> {
-                  listLoader.args = withLookupFields(args, column, colOptions);
-                  return listLoader.load(
-                    getCompositePkValue(self.model.primaryKeys, this),
-                  );
-                };
-              } else if (isBtLikeV2Junction(column)) {
-                // V2 MO/OO: single-record — return object (like BT)
-                // Use multipleMmList for batching, take first record per parent
-                const readLoader = new DataLoaderWithArgs(
-                  (ids: readonly string[]) =>
-                    this._queryQueue.add(async () => {
-                      if (ids?.length > 1) {
-                        const lists = await this.multipleMmList(
-                          {
-                            parentIds: ids as string[],
-                            colId: column.id,
-                          },
-                          readLoader.args,
-                        );
-                        return lists.map((list) => list?.[0] ?? null);
-                      } else {
-                        return [
-                          await this.mmRead(
-                            { parentId: ids[0], colId: column.id },
-                            readLoader.args,
-                          ),
-                        ];
-                      }
-                    }),
-                  {
-                    cache: false,
-                  },
-                );
-
-                const self: BaseModelSqlv2 = this;
-                proto[column.title] = async function (
-                  args?: RelationLoaderArgs,
-                ) {
-                  readLoader.args = withLookupFields(args, column, colOptions);
-                  return await readLoader.load(
-                    getCompositePkValue(self.model.primaryKeys, this),
-                  );
-                };
-              } else if (colOptions.type === 'mm' || isMMLike) {
-                const listLoader = new DataLoaderWithArgs(
-                  (ids: readonly string[]) =>
-                    this._queryQueue.add(async () => {
-                      if (ids?.length > 1) {
-                        const data = await this.multipleMmList(
-                          {
-                            parentIds: ids as string[],
-                            colId: column.id,
-                            apiVersion,
-                            nested: true,
-                            linksAsLtar,
-                          },
-                          listLoader.args,
-                        );
-
-                        return data;
-                      } else {
-                        return [
-                          await this.mmList(
-                            {
-                              parentId: ids[0],
-                              colId: column.id,
-                              apiVersion,
-                              nested: true,
-                              linksAsLtar,
-                            },
-                            listLoader.args,
-                          ),
-                        ];
-                      }
-                    }),
-                  {
-                    cache: false,
-                  },
-                );
-
-                const self: BaseModelSqlv2 = this;
-                proto[
-                  column.uidt === UITypes.Links && !linksAsLtar
-                    ? `_nc_lk_${column.title}`
-                    : column.title
-                ] = async function (args?: RelationLoaderArgs): Promise<any> {
-                  listLoader.args = withLookupFields(args, column, colOptions);
-                  return await listLoader.load(
-                    getCompositePkValue(self.model.primaryKeys, this),
-                  );
-                };
-              } else if (colOptions.type === 'bt' && !isMMLike) {
-                // @ts-ignore
-                const colOptions =
-                  (await column.getColOptions()) as LinkToAnotherRecordColumn;
-
-                const pCol = await Column.get(refContext, {
-                  colId: colOptions.fk_parent_column_id,
-                });
-                const cCol = await Column.get(this.context, {
-                  colId: colOptions.fk_child_column_id,
-                });
-
-                // use dataloader to get batches of parent data together rather than getting them individually
-                // it takes individual keys and callback is invoked with an array of values and we can get the
-                // result for all those together and return the value in the same order as in the array
-                // this way all parents data extracted together
-                const readLoader = new DataLoaderWithArgs(
-                  (_ids: readonly string[]) =>
-                    this._queryQueue.add(async () => {
-                      // handle binary(16) foreign keys
-                      const ids = _ids.map((id) => {
-                        if (pCol.ct !== 'binary(16)') return id;
-
-                        // Cast the id to string.
-                        const idAsString = id + '';
-                        // Check if the id is a UUID and the column is binary(16)
-                        const isUUIDBinary16 =
-                          idAsString.length === 36 || idAsString.length === 32;
-                        // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                        const idAsUUID = isUUIDBinary16
-                          ? idAsString.length === 32
-                            ? idAsString.replace(
-                                /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                                '$1-$2-$3-$4-$5',
-                              )
-                            : idAsString
-                          : null;
-
-                        return idAsUUID
-                          ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                          : id;
-                      });
-
-                      const data = await (
-                        await Model.getBaseModelSQL(refContext, {
-                          id: pCol.fk_model_id,
-                          dbDriver: this.dbDriver,
-                          queryQueue: this._queryQueue,
-                        })
-                      ).list(
-                        {
-                          fieldsSet: readLoader.args?.fieldsSet,
-                          filterArr: [
-                            new Filter({
-                              id: null,
-                              fk_column_id: pCol.id,
-                              fk_model_id: pCol.fk_model_id,
-                              value: ids as any[],
-                              comparison_op: 'in',
-                            }),
-                          ],
-                        },
-                        {
-                          ignoreViewFilterAndSort: true,
-                          ignorePagination: true,
-                        },
-                      );
-
-                      const groupedList = groupBy(data, pCol.title);
-                      return _ids.map(
-                        async (id: string) => groupedList?.[id]?.[0],
-                      );
-                    }),
-                  {
-                    cache: false,
-                  },
-                );
-
-                // defining BelongsTo read resolver method
-                proto[column.title] = async function (
-                  args?: RelationLoaderArgs,
-                ) {
-                  if (
-                    this?.[cCol?.title] === null ||
-                    this?.[cCol?.title] === undefined
-                  )
-                    return null;
-
-                  readLoader.args = args;
-
-                  return await readLoader.load(this?.[cCol?.title]);
-                };
-              } else if (colOptions.type === 'oo' && !isMMLike) {
-                const isBt = column.meta?.bt;
-
-                if (isBt) {
-                  // @ts-ignore
-                  const colOptions =
-                    (await column.getColOptions()) as LinkToAnotherRecordColumn;
-                  const pCol = await Column.get(refContext, {
-                    colId: colOptions.fk_parent_column_id,
-                  });
-                  const cCol = await Column.get(this.context, {
-                    colId: colOptions.fk_child_column_id,
-                  });
-
-                  // use dataloader to get batches of parent data together rather than getting them individually
-                  // it takes individual keys and callback is invoked with an array of values and we can get the
-                  // result for all those together and return the value in the same order as in the array
-                  // this way all parents data extracted together
-                  const readLoader = new DataLoaderWithArgs(
-                    (_ids: readonly string[]) =>
-                      this._queryQueue.add(async () => {
-                        // handle binary(16) foreign keys
-                        const ids = _ids.map((id) => {
-                          if (pCol.ct !== 'binary(16)') return id;
-
-                          // Cast the id to string.
-                          const idAsString = id + '';
-                          // Check if the id is a UUID and the column is binary(16)
-                          const isUUIDBinary16 =
-                            idAsString.length === 36 ||
-                            idAsString.length === 32;
-                          // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                          const idAsUUID = isUUIDBinary16
-                            ? idAsString.length === 32
-                              ? idAsString.replace(
-                                  /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                                  '$1-$2-$3-$4-$5',
-                                )
-                              : idAsString
-                            : null;
-
-                          return idAsUUID
-                            ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                            : id;
-                        });
-
-                        const data = await (
-                          await Model.getBaseModelSQL(refContext, {
-                            id: pCol.fk_model_id,
-                            dbDriver: this.dbDriver,
-                            queryQueue: this._queryQueue,
-                          })
-                        ).list(
-                          {
-                            fieldsSet: readLoader.args?.fieldsSet,
-                            filterArr: [
-                              new Filter({
-                                id: null,
-                                fk_column_id: pCol.id,
-                                fk_model_id: pCol.fk_model_id,
-                                value: ids as any[],
-                                comparison_op: 'in',
-                              }),
-                            ],
-                          },
-                          {
-                            ignoreViewFilterAndSort: true,
-                            ignorePagination: true,
-                          },
-                        );
-
-                        const groupedList = groupBy(data, pCol.title);
-                        return _ids.map(
-                          async (id: string) => groupedList?.[id]?.[0],
-                        );
-                      }),
-                    {
-                      cache: false,
-                    },
-                  );
-
-                  // defining BelongsTo read resolver method
-                  proto[column.title] = async function (
-                    args?: RelationLoaderArgs,
-                  ) {
-                    if (
-                      this?.[cCol?.title] === null ||
-                      this?.[cCol?.title] === undefined
-                    )
-                      return null;
-
-                    readLoader.args = args;
-
-                    return await readLoader.load(this?.[cCol?.title]);
-                  };
-                } else {
-                  const listLoader = new DataLoaderWithArgs(
-                    (ids: readonly string[]) =>
-                      this._queryQueue.add(async () => {
-                        if (ids.length > 1) {
-                          const data = await this.multipleHmList(
-                            {
-                              colId: column.id,
-                              ids: ids as string[],
-                            },
-                            listLoader.args,
-                          );
-                          return ids.map((id: string) =>
-                            data[id] ? data[id]?.[0] : null,
-                          );
-                        } else {
-                          return [
-                            (
-                              await this.hmList(
-                                {
-                                  colId: column.id,
-                                  id: ids[0],
-                                },
-                                listLoader.args,
-                              )
-                            )?.[0] ?? null,
-                          ];
-                        }
-                      }),
-                    {
-                      cache: false,
-                    },
-                  );
-                  const self: BaseModelSqlv2 = this;
-
-                  proto[
-                    column.uidt === UITypes.Links && !linksAsLtar
-                      ? `_nc_lk_${column.title}`
-                      : column.title
-                  ] = async function (args?: RelationLoaderArgs): Promise<any> {
-                    listLoader.args = withLookupFields(
-                      args,
-                      column,
-                      colOptions,
-                    );
-                    return listLoader.load(
-                      getCompositePkValue(self.model.primaryKeys, this),
-                    );
-                  };
-                }
-              }
-            }
-            break;
+            await registerRelation(column);
         }
       }),
     );
@@ -3063,7 +3194,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         .update(updateObjForDriver)
         .where(wherePkClause);
 
+      // Any field can be a custom link's foreign key.
+      const trackOldParents = await this.searchIndexOldParents(
+        [this.extractPksValues(prevData, true)],
+        Object.keys(updateObj),
+      );
+
       await this.execAndParse(query, null, { raw: true });
+      await trackOldParents?.();
 
       const newId = this.extractPksValues(
         {
@@ -3072,6 +3210,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         },
         true,
       );
+      // Queued before the readback, which can throw after the write.
+      await this.trackSearchIndexWritten([newId]);
 
       const readNewData = (model: BaseModelSqlv2) =>
         model.readByPk(
@@ -3092,13 +3232,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           prevData,
         });
         await this.afterLinkUpdate([prevData], [newData], cookie);
+        this.forgetSearchIndexWritten([newId]);
       } else {
         await this.afterUpdate(prevData, newData, cookie, updateObj);
       }
       return hookReader === this ? newData : await readNewData(this);
     } catch (e) {
       await this.errorUpdate(e, data, cookie);
-      await handleNotNullConstraintError({ error: e, baseModel: this });
+      await handleConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -3225,11 +3366,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const columns = await this.model.getColumns();
 
+      // A column_name can equal another field's title, so forms map by title or id.
+      const formColumns = formMappingColumns(this.model, param?.formColumns);
+
       // Exclude auto-increment columns from the insert body so the DB assigns
       // them.
       const dbDataWrapper = dataWrapper(data);
-      for (const col of columns) {
+      for (const col of formColumns ?? columns) {
         if (col.ai) {
+          if (formColumns) {
+            delete data[col.title];
+            delete data[col.id];
+            continue;
+          }
           const keyName = dbDataWrapper.getColumnKeyName(col);
           if (data[keyName]) {
             delete data[keyName];
@@ -3243,7 +3392,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         data,
         this.clientMeta,
         this.dbDriver,
-        columns,
+        formColumns ?? columns,
+        { byTitleOrId: !!formColumns },
       );
       let rowId = null;
 
@@ -3499,6 +3649,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         throw e;
       }
 
+      // Committed: queued before the readback, which can throw after the write.
+      if (rowId !== null && rowId !== undefined) {
+        await this.trackSearchIndexWritten([rowId]);
+      }
+
       for (const op of postCommitOps) {
         try {
           await op(rowId);
@@ -3695,7 +3850,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       return response;
     } catch (e) {
-      await handleNotNullConstraintError({ error: e, baseModel: this });
+      await handleConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -4426,7 +4581,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return [...updatedDataList, ...insertedDataList];
     } catch (e) {
       await trx?.rollback();
-      await handleNotNullConstraintError({ error: e, baseModel: this });
+      await handleConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -4490,6 +4645,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn: boolean;
       undo: boolean;
       typecast: boolean;
+      byTitleOrId?: boolean;
     } = {
       allowSystemColumn: false,
       undo: false,
@@ -4559,7 +4715,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // map alias to column
       if (!isVirtualCol(col)) {
-        let val = !ncIsUndefined(d?.[col.column_name])
+        let val = params.byTitleOrId
+          ? !ncIsUndefined(d?.[col.title])
+            ? d?.[col.title]
+            : d?.[col.id]
+          : !ncIsUndefined(d?.[col.column_name])
           ? d?.[col.column_name]
           : !ncIsUndefined(d?.[col.title])
           ? d?.[col.title]
@@ -4686,6 +4846,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipAttachmentOwnershipCheck?: boolean;
       /** Fire update hooks on the records the nested links change — user writes only */
       triggerLinkUpdateHooks?: boolean;
+      /** Map only these columns (and the pks), by title or id — see `nestedInsert`. */
+      formColumns?: Column[];
     },
   ) {
     return await baseModelInsert(this).bulk(datas, params);
@@ -4705,6 +4867,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       triggerLinkUpdateHooks = false,
       skip_hooks = false,
       skipPermissionCheck = false,
+      formColumns,
     }: {
       cookie?: any;
       raw?: boolean;
@@ -4723,6 +4886,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skip_hooks?: boolean;
       /** Trusted internal copy paths only — see `prepareNocoData`. */
       skipPermissionCheck?: boolean;
+      /** Map only these columns (and the pks), by title or id — see `nestedInsert`. */
+      formColumns?: Column[];
     } = {},
   ) {
     let transaction;
@@ -4739,6 +4904,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
+      const mapColumns = formMappingColumns(this.model, formColumns);
       const updateDatas = raw
         ? datas
         : await Promise.all(
@@ -4747,7 +4913,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 d,
                 this.clientMeta,
                 this.dbDriver,
-                columns,
+                mapColumns ?? columns,
+                { byTitleOrId: !!mapColumns },
               ),
             ),
           );
@@ -4867,6 +5034,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           triggerUpdateHooks: triggerLinkUpdateHooks && !skip_hooks,
         });
 
+      const trackOldParents = await this.searchIndexOldParents(
+        updatePkValues,
+        toBeUpdated.flatMap((o) => Object.keys(o.d)),
+      );
+
       transaction = await this.dbDriver.transaction();
       try {
         if (
@@ -4904,6 +5076,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         transaction = null;
         throw ex;
       }
+      // Committed: queue before the readbacks below, which can throw.
+      await this.trackSearchIndexWritten(updatePkValues);
+      await trackOldParents();
 
       // sqlite: after the commit, so field and link writes aren't atomic
       if (writeLinks && this.isSqlite) {
@@ -4973,13 +5148,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await this.afterBulkUpdate(prevData, newData, cookie);
         }
       }
+      if (raw || skip_hooks) await this.trackSearchIndexChange(datas);
       profiler.end();
       return raw || hookReader === this
         ? newData
         : await readUpdatedRecords(this);
     } catch (e) {
       if (transaction) await transaction.rollback();
-      await handleNotNullConstraintError({ error: e, baseModel: this });
+      await handleConstraintError({ error: e, baseModel: this });
       throw e;
     }
   }
@@ -5116,6 +5292,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
+      // Before the modified time is taken: an update-all is indexed by it.
+      const searchIndexSince = new Date();
       await this.prepareNocoData(updateData, false, cookie);
 
       const pkValues = this.extractPksValues(updateData);
@@ -5299,9 +5477,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
 
+        // Past the mark cap, by `since`: an id list would ride in the job.
+        const searchIndexPks =
+          args.skipValidationAndHooks || skip_hooks
+            ? undefined
+            : bulkUpdateHookPks
+            ? bulkUpdateHookPks.length <= SEARCH_DIRTY_CAP
+              ? bulkUpdateHookPks
+              : undefined
+            : await this.searchIndexAffectedPks(qb);
+
         qb.update(updateDataForDriver);
 
         await this.execAndParse(qb, null, { raw: true });
+
+        if (!args.skipValidationAndHooks && !skip_hooks) {
+          // Too many to list: the rows this update stamped.
+          if (searchIndexPks) await this.trackSearchIndexIds(searchIndexPks);
+          else await this.trackSearchIndexSince(searchIndexSince);
+        }
 
         if (bulkUpdateHookPks?.length) {
           // Write is already committed here — a failed emission must not 500
@@ -5369,6 +5563,36 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
     if (hooks.some((hook) => hook.active)) return true;
     return this.hasActiveBulkUpdateHooks();
+  }
+
+  /** Rows a bulkUpdateAll will touch, for the search index; undefined = too many, track by `since`. */
+  protected async searchIndexAffectedPks(
+    qb: Knex.QueryBuilder,
+  ): Promise<Array<string | number> | undefined> {
+    const pk = this.model.primaryKey;
+    if (
+      !isSearchIndexTracked(this.model) ||
+      this.model.primaryKeys?.length !== 1
+    ) {
+      return undefined;
+    }
+    try {
+      const rows: Record<string, string | number>[] = await this.execAndParse(
+        qb
+          .clone()
+          .clear('select')
+          .clear('order')
+          .select(this.dbDriver.raw('?? as ??', [pk.column_name, '__pk']))
+          .limit(SEARCH_DIRTY_CAP + 1),
+        null,
+        { raw: true },
+      );
+      if (!rows || rows.length > SEARCH_DIRTY_CAP) return undefined;
+      return rows.map((r) => r.__pk).filter((v) => v != null);
+    } catch (e) {
+      logger.error(e.message, e.stack);
+      return undefined;
+    }
   }
 
   // Collect the primary-key values of every row matching the (pre-update) query
@@ -6120,6 +6344,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     insertData: Record<string, any>;
     req: NcRequest;
   }): Promise<void> {
+    await this.trackSearchIndexChange(data);
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
     const filteredAuditData = removeBlankPropsAndMask(insertData || data, [
@@ -6158,10 +6383,34 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.handleRichTextMentions(null, data, req);
   }
 
+  public async dispatchInsertHooks(
+    pks: string[],
+    req: NcRequest,
+  ): Promise<void> {
+    if (!pks.length) return;
+    // A PK-less table's readback pk filter resolves to an empty where-clause,
+    // so chunkList would return pre-existing rows instead of the inserted ones.
+    if (!this.model.primaryKeys?.length) {
+      logger.warn(
+        `skipping after-insert hook dispatch for model ${this.model?.id}: table has no primary key columns to re-read inserted rows by`,
+      );
+      return;
+    }
+    const rows = await this.chunkList({ pks });
+    const { ast, parsedQuery } = await getAst(this.context, {
+      model: this.model,
+      query: {},
+      extractOnlyPrimaries: false,
+    });
+    const data = await nocoExecute(ast, rows, {}, parsedQuery);
+    await this.afterBulkInsert(data, req);
+  }
+
   public async afterBulkInsert(
     data: Record<string, any>[],
     req: NcRequest,
   ): Promise<void> {
+    await this.trackSearchIndexChange(data);
     await this.handleHooks('after.bulkInsert', null, data, req);
     let parentAuditId;
 
@@ -6239,6 +6488,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest,
     eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
+    await this.trackSearchIndexChange(data);
     const id = this.extractPksValues(data);
 
     // disable external source audit in cloud
@@ -6270,6 +6520,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
     rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
+    if (data?.length) await this.trackSearchIndexChange(data);
     await this.handleHooks('after.bulkDelete', null, data, req);
 
     // bulkAll chunks rows into 100-row batches and calls afterBulkDelete per
@@ -6334,6 +6585,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req,
     isBulkAllOperation = false,
   ): Promise<void> {
+    if (data?.length) await this.trackSearchIndexChange(data);
     const isBulk = data?.length > 1;
     // Streamed restore calls afterBulkRestore per chunk. First chunk creates
     // the parent audit; later chunks reuse req.ncParentAuditId so the whole
@@ -6410,6 +6662,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest,
     isBulkAllOperation = false,
   ): Promise<void> {
+    // bulkUpdateAll passes a count and tracks its rows itself.
+    if (Array.isArray(newData) || !isBulkAllOperation) {
+      await this.trackSearchIndexChange(
+        Array.isArray(newData) ? newData : null,
+        prevData,
+      );
+    }
     if (!isBulkAllOperation && Array.isArray(newData)) {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
@@ -6540,6 +6799,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest,
     updateObj?: Record<string, any>,
   ): Promise<void> {
+    await this.trackSearchIndexChange(newData, prevData);
     // TODO this is a temporary fix for the audit log / DOMPurify causes issue for long text
     const id = this.extractPksValues(newData);
 
@@ -6738,6 +6998,257 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   // todo: handle composite primary key
   public extractPksValues(data: Record<string, any>, asString = false) {
     return dataWrapper(data).extractPksValue(this.model, asString);
+  }
+
+  /**
+   * Queue rows for the search index; a no-op unless the table is indexed.
+   * null, or any row without a readable pk, refreshes the whole table.
+   * `prev`: the rows before an update, for the links a junction row had.
+   * Resolves once search can find the rows; never rejects.
+   */
+  public async trackSearchIndexChange(
+    rows: Record<string, any>[] | Record<string, any> | null,
+    prev?: Record<string, any>[] | Record<string, any> | null,
+  ) {
+    const junction = isSearchIndexJunction(this.model);
+    const tracked = this.isSearchIndexTrackedTable();
+    if (!junction && !tracked) return;
+    if (junction && prev) {
+      await this.trackSearchIndexJunction(Array.isArray(prev) ? prev : [prev]);
+    }
+    const list = rows ? (Array.isArray(rows) ? rows : [rows]) : null;
+    const ids = list ? this.searchIndexIdsOf(list) : null;
+    // Tracked by the write itself before its readback: queue only.
+    if (
+      ids?.length &&
+      ids.every((id) => this.searchIndexWritten.has(`${id}`))
+    ) {
+      for (const id of ids) this.searchIndexWritten.delete(`${id}`);
+      if (tracked) {
+        searchIndexQueue.enqueue(this.context, this.model.id, ids, {
+          marked: true,
+        });
+      }
+      return;
+    }
+    if (junction) await this.trackSearchIndexJunction(list);
+    if (tracked) await searchIndexQueue.track(this.context, this.model, ids);
+  }
+
+  /** Indexed or read by other indexes; an auto-created junction never is. */
+  private isSearchIndexTrackedTable() {
+    return !this.model.mm && isSearchIndexTracked(this.model);
+  }
+
+  /**
+   * Junction rows are links: a write to them re-indexes the rows they link
+   * or unlink in each table whose link field reads the junction.
+   */
+  private async trackSearchIndexJunction(
+    rows: Array<Record<string, any> | string | number> | null,
+  ) {
+    if (!isSearchIndexingEnabled()) return;
+    try {
+      const sides = await junctionLinkedRows(this, rows, isSearchIndexTracked);
+      for (const { model, ids } of sides) {
+        const side = await Model.getBaseModelSQL(this.context, {
+          model,
+          dbDriver: this.dbDriver,
+        });
+        if (ids) await side.trackSearchIndexIds(ids);
+        else await side.trackSearchIndexChange(null);
+      }
+    } catch (e) {
+      logger.error(e.message, e.stack);
+    }
+  }
+
+  /** Rows whose links changed, by pk. */
+  public async trackSearchIndexIds(ids: Array<string | number>) {
+    if (!ids?.length) return;
+    if (isSearchIndexJunction(this.model)) {
+      await this.trackSearchIndexJunction(ids);
+    }
+    if (!this.isSearchIndexTrackedTable()) return;
+    await searchIndexQueue.track(this.context, this.model, ids);
+  }
+
+  /** Rows this write's after hook reports again: marked once, here. */
+  private searchIndexWritten = new Set<string>();
+
+  /**
+   * Rows just written, tracked before a readback that can throw; the after
+   * hook for the same rows then only queues them.
+   */
+  public async trackSearchIndexWritten(ids: Array<string | number>) {
+    if (!ids?.length) return;
+    const junction = isSearchIndexJunction(this.model);
+    const tracked = this.isSearchIndexTrackedTable();
+    if (!junction && !tracked) return;
+    if (junction) await this.trackSearchIndexJunction(ids);
+    if (tracked) await searchIndexQueue.track(this.context, this.model, ids);
+    for (const id of ids) this.searchIndexWritten.add(`${id}`);
+  }
+
+  /** For a write whose after hook doesn't report its rows again. */
+  public forgetSearchIndexWritten(ids: Array<string | number>) {
+    for (const id of ids) this.searchIndexWritten.delete(`${id}`);
+  }
+
+  /**
+   * Rows a bulk insert just committed, before its hook readback. Resolves to
+   * the ids marked for the after hook: forget them once the hooks have run.
+   */
+  public async trackSearchIndexInserted(
+    rows: Record<string, any>[],
+  ): Promise<Array<string | number> | undefined> {
+    const ids = this.searchIndexIdsOf(rows);
+    if (!ids?.length) {
+      await this.trackSearchIndexChange(rows);
+      return undefined;
+    }
+    await this.trackSearchIndexWritten(ids);
+    return ids;
+  }
+
+  /** The rows' pks, or null when any row has none readable. */
+  private searchIndexIdsOf(
+    rows: Record<string, any>[] | Record<string, any>,
+  ): Array<string | number> | null {
+    const ids: Array<string | number> = [];
+    for (const row of Array.isArray(rows) ? rows : [rows]) {
+      const id =
+        row && typeof row === 'object'
+          ? this.extractPksValues(row, true)
+          : undefined;
+      if (id == null || id === '' || id === 'N/A') return null;
+      ids.push(id);
+    }
+    return ids;
+  }
+
+  /** Rows a bulk write stamped at or after `since`, ids unknown. */
+  public async trackSearchIndexSince(since: Date) {
+    if (isSearchIndexJunction(this.model)) {
+      await this.trackSearchIndexJunction(null);
+    }
+    if (!this.isSearchIndexTrackedTable()) return;
+    await searchIndexQueue.track(this.context, this.model, {
+      since: new Date(since.getTime() - SEARCH_INDEX_SLACK_MS).toISOString(),
+    });
+  }
+
+  /**
+   * Belongs-to parents that rows are about to move away from: their search
+   * cells still show the moved rows, and the reverse walk only reaches the
+   * new parent. Read before the write; call the result after it.
+   */
+  public async searchIndexOldParents(
+    rowIds: Array<string | number>,
+    columnNames: Iterable<string>,
+  ): Promise<() => Promise<void>> {
+    const noop = async () => {};
+    if (!isSearchIndexingEnabled()) return noop;
+    const pk = this.model.primaryKey;
+    if (!rowIds?.length || !pk || this.model.primaryKeys?.length !== 1) {
+      return noop;
+    }
+    const columns = await this.model.getColumns();
+    const names = new Set(columnNames);
+    const moves: Array<{
+      fk: Column;
+      parent: IBaseModelSqlV2;
+      parentKey: Column;
+    }> = [];
+    for (const link of columns) {
+      const options = link.colOptions as LinkToAnotherRecordColumn;
+      if (
+        link.uidt !== UITypes.LinkToAnotherRecord ||
+        !options ||
+        options.type === RelationTypes.HAS_MANY ||
+        options.type === RelationTypes.MANY_TO_MANY ||
+        isMMOrMMLike(link)
+      ) {
+        continue;
+      }
+      // A custom link's foreign key is any field, not a ForeignKey column.
+      const fk = columns.find((c) => c.id === options.fk_child_column_id);
+      if (!fk || fk.pk || !names.has(fk.column_name)) continue;
+      const parent = await options.getRelatedTable();
+      if (
+        !parent ||
+        parent.id === this.model.id ||
+        parent.source_id !== this.model.source_id ||
+        !isSearchIndexTracked(parent)
+      ) {
+        continue;
+      }
+      await parent.getColumns();
+      const parentKey = await options.getParentColumn();
+      if (!parentKey) continue;
+      moves.push({
+        fk,
+        parentKey,
+        parent: await Model.getBaseModelSQL(this.context, {
+          model: parent,
+          dbDriver: this.dbDriver,
+        }),
+      });
+    }
+    if (!moves.length) return noop;
+    try {
+      const rows: Record<string, string | number>[] = await this.execAndParse(
+        this.dbDriver(this.tnPath)
+          .select(moves.map((m) => m.fk.column_name))
+          .whereIn(pk.column_name, rowIds),
+        null,
+        { raw: true },
+      );
+      return async () => {
+        for (const { fk, parent, parentKey } of moves) {
+          const keys = [
+            ...new Set(
+              (rows ?? [])
+                .map((r) => r[fk.column_name])
+                .filter((v) => v != null),
+            ),
+          ];
+          if (!keys.length) continue;
+          // Runs after the write committed, sometimes un-awaited: never throw.
+          // The reconcile picks up rows missed here.
+          try {
+            const parentPk = parent.model.primaryKey;
+            if (!parentPk || parentKey.id === parentPk.id) {
+              await parent.trackSearchIndexIds(keys);
+              continue;
+            }
+            // The foreign key holds the parent's key field: map it to pks.
+            const parents: Record<string, string | number>[] =
+              await parent.execAndParse(
+                this.dbDriver(parent.tnPath)
+                  .select(parentPk.column_name)
+                  .whereIn(parentKey.column_name, keys),
+                null,
+                { raw: true },
+              );
+            await parent.trackSearchIndexIds(
+              (parents ?? []).map((r) => r[parentPk.column_name]),
+            );
+          } catch (e) {
+            logger.warn(
+              `Search index: old parents in ${parent.model.id} of ${
+                this.model.id
+              } rows ${rowIds.slice(0, 20).join(',')}${
+                rowIds.length > 20 ? ` (+${rowIds.length - 20})` : ''
+              } not tracked: ${e?.message}`,
+            );
+          }
+        }
+      };
+    } catch (e) {
+      logger.error(e.message, e.stack);
+      return noop;
+    }
   }
 
   protected async errorDelete(
@@ -7288,6 +7799,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return;
     }
 
+    if (collectLinkAudit(this, commonAuditObj, auditObjs)) return;
+
     const { opType, model, refModel, columnTitle, columnId, req } =
       commonAuditObj;
 
@@ -7366,7 +7879,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         for (const displayValue of displayValues) {
           const pk = sourceBaseModel.extractPksValues(displayValue, true);
 
-          displayValueMap.set(pk, displayValue[displayValueColumn.title]);
+          displayValueMap.set(
+            pk,
+            await flattenDisplayValue(displayValue, displayValueColumn),
+          );
         }
       }
     }
@@ -7395,7 +7911,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           refDisplayValueMap.set(
             pk,
-            refDisplayValue[refDisplayValueColumn.title],
+            await flattenDisplayValue(refDisplayValue, refDisplayValueColumn),
           );
         }
       }
@@ -8303,6 +8819,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     query = this.sanitizeQuery(query);
 
+    let guard = getQueryGuard();
+    if (
+      guard &&
+      this.isPg &&
+      trx === this.dbDriver &&
+      !(trx as Knex).isTransaction
+    ) {
+      // A cancel opens its own connection; never point that at a customer's database.
+      if (guard.signal && !(await this.getSource())?.isMeta()) {
+        guard = { ...guard, signal: undefined };
+      }
+      if (shouldGuardQuery(guard, query)) {
+        const timeouts = [guard.statementTimeoutMs, timeout].filter(
+          (t) => t > 0,
+        );
+        return await execPgWithGuard(trx, query, {
+          ...guard,
+          statementTimeoutMs: timeouts.length
+            ? Math.min(...timeouts)
+            : undefined,
+        });
+      }
+    }
+
     // pg cancels the statement server-side and frees the connection. SET LOCAL
     // reverts at commit so the pooled connection stays clean; skipped inside a
     // caller's transaction, where it would outlive this read.
@@ -8559,6 +9099,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const idToAliasMap: Record<string, string> = {};
     const ltarMap: Record<string, boolean> = {};
     const missingColumnIds = new Set<string>();
+    // link columns, whose values are linked records that may nest another one (a display
+    // value that is itself a link)
+    const linkColumnIds = new Set<string>();
+    // where the keys inside a link's values live: its related table's base
+    const valuesContext = new Map<string, NcContext>();
 
     // Build initial maps and collect missing column IDs
     for (const col of modelColumns) {
@@ -8567,6 +9112,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       idToAliasMap[col.id] = col.title;
+      if (isLinksOrLTAR(col)) linkColumnIds.add(col.id);
 
       // For Links columns, only treat as LTAR when linksAsLtar produced
       // nested object data (not a count number). Check the actual data to decide.
@@ -8605,8 +9151,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // skip it instead of dereferencing null below (which would 500 the
           // whole list). Mirrors getAst, which already skips such columns.
         } else if (
-          (col.colOptions as LinkToAnotherRecordColumn)?.fk_related_base_id !==
-          this.model.base_id
+          // same-base ids resolve below through missingColumnIds
+          (col.colOptions as LinkToAnotherRecordColumn)?.fk_related_base_id &&
+          (col.colOptions as LinkToAnotherRecordColumn).fk_related_base_id !==
+            this.model.base_id
         ) {
           const { refContext } = (
             col.colOptions as LinkToAnotherRecordColumn
@@ -8615,55 +9163,129 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             fk_model_id: (col.colOptions as LinkToAnotherRecordColumn)
               .fk_related_model_id,
           });
-          for (const col of columns) idToAliasMap[col.id] = col.title;
+          for (const refCol of columns) {
+            idToAliasMap[refCol.id] = refCol.title;
+            if (!isLinksOrLTAR(refCol)) continue;
+            linkColumnIds.add(refCol.id);
+            // its values (a nested display value) are keyed in its own related base
+            const refOpt =
+              (refCol.colOptions as LinkToAnotherRecordColumn) ??
+              (await refCol.getColOptions<LinkToAnotherRecordColumn>());
+            if (refOpt) {
+              valuesContext.set(refCol.id, refOpt.getRelContext().refContext);
+            }
+          }
         }
 
         ltarMap[col.id] = true;
 
-        // Find any data that contains this column and collect missing column IDs
-        const linkData = data.find(
-          (d) =>
-            d[col.id] &&
-            ((!Array.isArray(d[col.id]) && Object.keys(d[col.id]).length > 0) ||
-              (Array.isArray(d[col.id]) && d[col.id].length > 0)),
-        );
-
-        if (linkData && typeof linkData[col.id] === 'object') {
-          const sampleData = Array.isArray(linkData[col.id])
-            ? linkData[col.id][0] || {}
-            : linkData[col.id];
-
-          Object.keys(sampleData).forEach((k) => {
-            if (!idToAliasMap[k]) {
-              missingColumnIds.add(k);
+        // Collect untranslated keys from every nested row: same-base titles come only from here
+        for (const d of data) {
+          const value = d?.[col.id];
+          if (!value || typeof value !== 'object') continue;
+          for (const nested of Array.isArray(value) ? value : [value]) {
+            if (!nested || typeof nested !== 'object' || Array.isArray(nested))
+              continue;
+            for (const k of Object.keys(nested)) {
+              if (!idToAliasMap[k]) missingColumnIds.add(k);
             }
-          });
+          }
         }
       } else {
         ltarMap[col.id] = false;
       }
     }
 
-    // Fetch all missing column aliases concurrently
-    if (missingColumnIds.size > 0) {
-      const columnPromises = Array.from(missingColumnIds).map(async (k) => {
-        try {
-          const col = await Column.get(this.context, { colId: k });
-          return { id: k, title: col?.title };
-        } catch (e) {
-          // ignore error to avoid breaking the entire response
-          return {};
+    // A linked record only nests another one when the linked table's display value is itself
+    // a link (without its own display column), so only those links are scanned.
+    const nestingLinkIds = new Set<string>();
+    for (const col of modelColumns) {
+      if (!isLinksOrLTAR(col) || !col.colOptions) continue;
+      const colOpt = col.colOptions as LinkToAnotherRecordColumn;
+      valuesContext.set(col.id, colOpt.getRelContext().refContext);
+      if (!colOpt.fk_related_model_id) continue;
+      const related = await colOpt.getRelatedTable();
+      if (!related) continue;
+      const relatedColumns = await related.getColumns();
+      const pv = related.displayValue;
+      if (
+        pv &&
+        isLinksOrLTAR(pv) &&
+        !getLinkDisplayOverride(colOpt, relatedColumns)
+      ) {
+        nestingLinkIds.add(col.id);
+      }
+    }
+
+    // Fetch missing column aliases concurrently; a linked record that nests another one
+    // (a link display value) brings the next level's ids, so repeat until none are left.
+    // Each id is read in the base of the table it belongs to.
+    const requestedColumnIds = new Set<string>();
+    const idContext = new Map<string, NcContext>();
+    const collectNestedIds = (value: any, ctx: NcContext) => {
+      if (Array.isArray(value)) {
+        return value.forEach((v) => collectNestedIds(v, ctx));
+      }
+      if (!value || typeof value !== 'object') return;
+      for (const [k, v] of Object.entries(value)) {
+        if (!idToAliasMap[k] && !requestedColumnIds.has(k)) {
+          missingColumnIds.add(k);
+          idContext.set(k, ctx);
         }
-      });
+        if (linkColumnIds.has(k)) {
+          collectNestedIds(v, valuesContext.get(k) ?? ctx);
+        }
+      }
+    };
+    const collectFromRows = () => {
+      if (!nestingLinkIds.size) return;
+      for (const item of data) {
+        for (const k of nestingLinkIds) {
+          if (item?.[k] != null) {
+            collectNestedIds(item[k], valuesContext.get(k) ?? this.context);
+          }
+        }
+      }
+    };
+    collectFromRows();
+    for (
+      let round = 0;
+      missingColumnIds.size > 0 && round <= DISPLAY_VALUE_LINK_MAX_DEPTH;
+      round++
+    ) {
+      const toFetch = Array.from(missingColumnIds);
+      missingColumnIds.clear();
+      toFetch.forEach((k) => requestedColumnIds.add(k));
 
-      const columnResults = await Promise.all(columnPromises);
+      const columnResults = await Promise.all(
+        toFetch.map(async (k) => {
+          try {
+            const colContext = idContext.get(k) ?? this.context;
+            const col = await Column.get(colContext, { colId: k });
+            if (col && isLinksOrLTAR(col)) {
+              const colOpt =
+                (col.colOptions as LinkToAnotherRecordColumn) ??
+                (await col.getColOptions<LinkToAnotherRecordColumn>());
+              if (colOpt) {
+                valuesContext.set(k, colOpt.getRelContext().refContext);
+              }
+            }
+            return { id: k, title: col?.title, col };
+          } catch (e) {
+            // ignore error to avoid breaking the entire response
+            return {} as { id?: string; title?: string; col?: Column };
+          }
+        }),
+      );
 
-      // Update the alias map with fetched columns
-      columnResults.forEach(({ id, title }) => {
+      columnResults.forEach(({ id, title, col }) => {
         if (title) {
           idToAliasMap[id] = title;
+          if (isLinksOrLTAR(col)) linkColumnIds.add(id);
         }
       });
+
+      collectFromRows();
     }
 
     // Transform data in a single pass
@@ -8690,7 +9312,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // Transform array of objects
             transformedItem[targetKey] = value.map((arrVal) => {
               if (!arrVal || typeof arrVal !== 'object') return arrVal;
-              return transformObjectKeys(arrVal, idToAliasMap);
+              return transformObjectKeys(arrVal, idToAliasMap, linkColumnIds);
             });
           } else if (
             value &&
@@ -8701,6 +9323,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             transformedItem[targetKey] = transformObjectKeys(
               value,
               idToAliasMap,
+              linkColumnIds,
             );
           } else {
             // Directly assign arrays of primitives or primitive values
@@ -9199,7 +9822,28 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (column.uidt !== UITypes.Lookup) {
       return column;
     }
-    const colOptions = await column.getColOptions<LookupColumn>();
+    let resolved = this._nestedColumns.get(column.id);
+    if (!resolved) {
+      resolved = this.resolveNestedColumn(column);
+      this._nestedColumns.set(column.id, resolved);
+      resolved.catch(() => this._nestedColumns.delete(column.id));
+    }
+    return resolved;
+  }
+
+  // call after editing columns through a reused instance: from then on lookups
+  // and formulas re-read column options instead of trusting the loaded ones
+  public markColumnsChanged() {
+    this._columnsChanged = true;
+    this._nestedColumns.clear();
+  }
+
+  private async resolveNestedColumn(column: Column) {
+    const loaded = column.colOptions as LookupColumn | undefined;
+    const colOptions =
+      !this._columnsChanged && typeof loaded?.getRelationColumn === 'function'
+        ? loaded
+        : await column.getColOptions<LookupColumn>();
     if (colOptions?.error) return { uidt: UITypes.SingleLineText };
     const relationCol = await colOptions.getRelationColumn();
     if (!relationCol) return { uidt: UITypes.SingleLineText };
@@ -9209,7 +9853,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const { refContext } = relationColOpt.getRelContext();
     return this.getNestedColumn(
-      await colOptions?.getLookupColumn(),
+      await Column.get(refContext, { colId: colOptions.fk_lookup_column_id }),
       refContext,
     );
   }
@@ -9514,6 +10158,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         col.uidt === UITypes.Formula ||
         getRollupResultUidt(col) === UITypes.DateTime
       ) {
+        // mssql/oracle drivers return MIN/MAX of a datetime as a Date
+        if (d[col.id] instanceof Date) {
+          if (dayjs(d[col.id]).isValid()) {
+            d[col.id] = dayjs(d[col.id]).utc().format('YYYY-MM-DD HH:mm:ssZ');
+          }
+          continue;
+        }
         if (!d[col.id] || typeof d[col.id] !== 'string') {
           continue;
         }
@@ -9577,7 +10228,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if ((getRollupResultUidt(col) ?? col.uidt) === UITypes.Date) {
-        d[col.id] = dayjs(d[col.id]).format('YYYY-MM-DD');
+        d[col.id] = restoreEarlyYear(
+          dayjs(d[col.id]),
+          String(d[col.id]),
+        ).format('YYYY-MM-DD');
         continue;
       }
 
@@ -9912,7 +10566,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const parentTn = parentModel.getTnPath(parentTable);
 
       const qb = this.dbDriver(parentTn);
-      await this.applySortAndFilter({ table: parentTable, where, qb, sort });
+      await parentModel.applySortAndFilter({
+        table: parentTable,
+        where,
+        qb,
+        sort,
+      });
 
       qb.where(
         parentCol.column_name,
@@ -11108,30 +11767,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  private async broadcastLinkUpdateAwaited(
-    ids: Array<string>,
-    linkColumnIds: string[] = [],
-  ) {
-    const ast = await getAst(this.context, {
-      model: this.model,
-    });
-
-    const list = await this.chunkList({
-      pks: ids,
-      chunkSize: 100,
-      args: ast.dependencyFields,
-    });
-
-    NocoSocket.broadcastBulkDataEvent(this.context, {
-      tableId: this.model.id,
-      rows: list.map((item) => ({
-        id: this.extractPksValues(item),
-        action: 'update' as const,
-        payload: item,
-      })),
-      linkColumnIds,
-    });
-  }
+  // CE has no realtime clients, so there is nothing to read or send. EE reads and broadcasts the rows.
+  protected async broadcastLinkUpdateAwaited(
+    _ids: Array<string>,
+    _linkColumnIds: string[] = [],
+  ) {}
 
   /**
    * `linkColumnIds`: the link columns that changed (other tables' ids are ignored);
@@ -11141,6 +11781,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     ids: Array<string>,
     linkColumnIds: string[] = [],
   ) {
+    await this.trackSearchIndexIds(ids);
     if (collectLinkBroadcast(this, ids, linkColumnIds)) return;
     this.broadcastLinkUpdateAwaited(ids, linkColumnIds).catch((e) => {
       logger.error(e);
@@ -11744,27 +12385,35 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   /**
    * Returns a knex where-clause callback that excludes soft-deleted records,
    * or null if the table has no __nc_deleted column or is not a meta (NocoDB-managed) source.
+   * Pass `tableAlias` when the query joins a table that may also have __nc_deleted.
    */
-  public async getSoftDeleteFilter(): Promise<Knex.QueryCallback | null> {
-    if (this._softDeleteFilter !== undefined) return this._softDeleteFilter;
+  public async getSoftDeleteFilter(
+    tableAlias?: string,
+  ): Promise<Knex.QueryCallback | null> {
+    if (this._softDeleteColumnName === undefined) {
+      this._softDeleteColumnName = (async () => {
+        const columns = await this.model.getColumns();
+        const deletedColumn = columns.find((c) => isDeletedCol(c));
+        if (!deletedColumn) return null;
 
-    this._softDeleteFilter = (async () => {
-      const columns = await this.model.getColumns();
-      const deletedColumn = columns.find((c) => isDeletedCol(c));
-      if (!deletedColumn) return null;
+        const source = await this.getSource();
+        if (!source.isMeta() || !this.model.isTrashEnabled) return null;
+        return deletedColumn.column_name;
+      })();
+    }
 
-      const source = await this.getSource();
-      if (!source.isMeta() || !this.model.isTrashEnabled) return null;
-      const columnName = deletedColumn.column_name;
-      const notDeletedSql = boolSqlLiteral(this, false);
-      return function () {
-        this.whereNull(columnName).orWhereRaw(`?? = ${notDeletedSql}`, [
-          columnName,
-        ]);
-      };
-    })();
+    const columnName = await this._softDeleteColumnName;
+    if (!columnName) return null;
 
-    return this._softDeleteFilter;
+    const qualifiedName = tableAlias
+      ? `${tableAlias}.${columnName}`
+      : columnName;
+    const notDeletedSql = boolSqlLiteral(this, false);
+    return function () {
+      this.whereNull(qualifiedName).orWhereRaw(`?? = ${notDeletedSql}`, [
+        qualifiedName,
+      ]);
+    };
   }
 }
 

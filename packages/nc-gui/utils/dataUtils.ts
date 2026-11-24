@@ -2,7 +2,9 @@ import {
   NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
+  canEncodeQueryFilterToken,
   dateFormats,
+  encodeQueryFilterClause,
   formatCurrencyValue,
   getEffectiveDisplayColumn,
   getEffectiveLookupColumn,
@@ -24,7 +26,11 @@ import {
   isVirtualCol,
   ncIsArray,
   ncIsNumber,
+  parseDecimalValue,
+  parseIntValue,
+  parseProp,
   resolveCurrentUserToken,
+  restoreEarlyYear,
   roundUpToPrecision,
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
@@ -42,8 +48,9 @@ import type {
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import { decode as decodeHtmlEntities } from 'html-entities'
-import { isColumnRequiredAndNull } from './columnUtils'
+import { isColumnRequiredAndNull, isReadonlyDataCol } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
+import { LINKED_RECORD_MAX_DEPTH } from '~/utils/linkedRecordDisplay'
 import type { GetMetaParams } from '~/composables/useMetas'
 
 export { isValidValue }
@@ -102,6 +109,62 @@ export const findIndexByPk = (pk: Record<string, string>, data: Row[]) => {
   return -1
 }
 
+/** The link field on the related table that points back through the same relation. */
+export function findReverseLinkColumn(
+  ltarColumn: ColumnType | null | undefined,
+  relatedMeta: TableType | null | undefined,
+  currentTableId: string | null | undefined,
+): ColumnType | undefined {
+  const colOpt = ltarColumn?.colOptions as LinkToAnotherRecordType | undefined
+  if (!ltarColumn || !colOpt || !relatedMeta?.columns || !currentTableId) return
+
+  return relatedMeta.columns.find((col) => {
+    // On a self-link the column itself also passes the checks below; only its reverse may match.
+    if (!isLinksOrLTAR(col) || col.id === ltarColumn.id) return false
+    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
+    if (colOpt1?.fk_related_model_id !== currentTableId) return false
+
+    // V2 relations (OM/MO/OO/MM) all store fk_parent/fk_child inverted between
+    // the paired columns — same shape as V1 MM. V1 HM/BT/OO store them straight.
+    const isJunctionShape =
+      (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) ||
+      (isLinkV2(ltarColumn) && isLinkV2(col))
+
+    if (isJunctionShape) {
+      return (
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
+        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
+        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
+      )
+    }
+
+    return colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
+  })
+}
+
+/**
+ * `where` that filters the related table to the records linked to `rowId`, through the reverse
+ * link's `.Id`. Undefined when that filter can't be built or wouldn't match by id.
+ */
+export function buildLinkedRecordsWhere(
+  ltarColumn: ColumnType | null | undefined,
+  currentMeta: TableType | null | undefined,
+  relatedMeta: TableType | null | undefined,
+  rowId: string | null | undefined,
+): string | undefined {
+  if (!rowId || !currentMeta?.id) return
+  // The backend matches `.Id` on the first PK only.
+  if (currentMeta.columns?.filter((c) => c.pk).length !== 1) return
+
+  const reverseColumn = findReverseLinkColumn(ltarColumn, relatedMeta, currentMeta.id)
+  if (!reverseColumn?.title || !canEncodeQueryFilterToken(reverseColumn.title)) return
+  // A view-limited link usually hides the PK there, and the backend then matches `.Id` on the display value.
+  if ((reverseColumn.colOptions as LinkToAnotherRecordType | undefined)?.fk_target_view_id) return
+
+  // `@` selects the parser that understands quoted field names.
+  return `@${encodeQueryFilterClause(`${reverseColumn.title}.Id`, 'eq', rowId)}`
+}
+
 /**
  * Compute the pre-fill state for a new record opened from a LTAR "New record"
  * button (LinkedItems or UnLinkedItems panel).
@@ -124,32 +187,7 @@ export function computeLtarNewRowState(
 ): Record<string, any> {
   if (isNewRow || !ltarColumn || !relatedMeta?.columns || !currentTableId) return {}
 
-  const colOpt = ltarColumn.colOptions as LinkToAnotherRecordType
-  if (!colOpt) return {}
-
-  const colInRelatedTable = relatedMeta.columns.find((col) => {
-    // On a self-link the column itself also passes the checks below; only its reverse may be seeded.
-    if (!isLinksOrLTAR(col) || col.id === ltarColumn.id) return false
-    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
-    if (colOpt1?.fk_related_model_id !== currentTableId) return false
-
-    // V2 relations (OM/MO/OO/MM) all store fk_parent/fk_child inverted between
-    // the paired columns — same shape as V1 MM. V1 HM/BT/OO store them straight.
-    const isJunctionShape =
-      (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) ||
-      (isLinkV2(ltarColumn) && isLinkV2(col))
-
-    if (isJunctionShape) {
-      return (
-        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
-        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
-        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
-      )
-    }
-
-    return colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
-  })
-
+  const colInRelatedTable = findReverseLinkColumn(ltarColumn, relatedMeta, currentTableId)
   if (!colInRelatedTable) return {}
   const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
   if (!relatedTableColOpt) return {}
@@ -160,6 +198,206 @@ export function computeLtarNewRowState(
   return {
     [colInRelatedTable.title as string]: isSingleRecord ? rowData : rowData && [rowData],
   }
+}
+
+/** The link's foreign key is on the row itself, so the linked record has to exist before the row. */
+export function isLtarFkOnRow(column: ColumnType | null | undefined): boolean {
+  if (!column || isLinkV2(column)) return false
+  const type = (column.colOptions as LinkToAnotherRecordType | undefined)?.type
+  return type === RelationTypes.BELONGS_TO || (type === RelationTypes.ONE_TO_ONE && !!parseProp(column.meta)?.bt)
+}
+
+/**
+ * Split a new row's buffered links into links to existing records and blueprints (records
+ * to create once the row exists). A column holding blueprints maps to the remaining links,
+ * or `undefined`, so spreading `links` over the row payload drops them.
+ */
+export function splitLtarBlueprints(ltarState: Record<string, any> | null | undefined) {
+  const links: Record<string, any> = {}
+  const blueprints: Record<string, Record<string, any>[]> = {}
+
+  for (const [title, value] of Object.entries(ltarState ?? {})) {
+    const items = Array.isArray(value) ? value : [value]
+    const pending = items.filter((item) => item?._isBlueprint)
+    if (!pending.length) {
+      links[title] = value
+      continue
+    }
+    blueprints[title] = pending
+    links[title] = Array.isArray(value) ? value.filter((item) => !item?._isBlueprint) : undefined
+  }
+
+  return { links, blueprints }
+}
+
+type LtarBlueprints = Record<string, Record<string, any>[]>
+
+/** The link column and related table a blueprint is created in; throws when either is missing. */
+async function resolveBlueprintTarget(
+  meta: TableType,
+  title: string,
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>,
+) {
+  const column = meta.columns?.find((c) => c.title === title)
+  const colOptions = column?.colOptions as LinkToAnotherRecordType | undefined
+  const relatedMeta =
+    column && colOptions?.fk_related_model_id
+      ? await getMeta({ baseId: colOptions.fk_related_base_id || meta.base_id!, tableIdOrTitle: colOptions.fk_related_model_id })
+      : null
+  if (!column || !relatedMeta)
+    throw new Error(`Records linked in "${title}" could not be created: the linked table is unavailable`)
+  return { column, relatedMeta }
+}
+
+/** Insert payload for one blueprint, linked back to `record`, and the blueprints nested in it. */
+async function prepareBlueprint(
+  { column, relatedMeta }: { column: ColumnType; relatedMeta: TableType },
+  meta: TableType,
+  record: Record<string, any>,
+  blueprint: Record<string, any>,
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>,
+) {
+  const { _isBlueprint, _ltarState, ...row } = blueprint
+  const nested = splitLtarBlueprints(_ltarState)
+  const linkState = { ...nested.links, ...computeLtarNewRowState(column, relatedMeta, meta.id, record, false) }
+  const { insertObj, missingRequiredColumns } = await populateInsertObject({
+    meta: relatedMeta,
+    ltarState: linkState,
+    getMeta,
+    row,
+  })
+  // Link values copied from the row are display mirrors; the buffered state is what links.
+  for (const col of relatedMeta.columns ?? []) if (isLinksOrLTAR(col)) delete insertObj[col.title!]
+
+  return { payload: { ...insertObj, ...linkState }, missingRequiredColumns, nestedBlueprints: nested.blueprints }
+}
+
+/**
+ * Check the blueprints buffered on a new row before the row is saved: each linked table must be
+ * available and each record must have its required fields. Throws with every problem found.
+ */
+export async function validateLtarBlueprints({
+  meta,
+  blueprints,
+  getMeta,
+}: {
+  meta: TableType
+  blueprints: LtarBlueprints
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>
+}): Promise<void> {
+  const problems: string[] = []
+
+  const visit = async (parentMeta: TableType, parentBlueprints: LtarBlueprints) => {
+    // Stands in for the unsaved row, so a foreign key derived from it isn't reported missing.
+    const placeholder = Object.fromEntries((parentMeta.columns ?? []).map((c) => [c.title!, '__nc_pending__']))
+
+    for (const [title, items] of Object.entries(parentBlueprints)) {
+      let target
+      try {
+        target = await resolveBlueprintTarget(parentMeta, title, getMeta)
+      } catch (e: any) {
+        problems.push(e.message)
+        continue
+      }
+
+      for (const blueprint of items) {
+        const { missingRequiredColumns, nestedBlueprints } = await prepareBlueprint(
+          target,
+          parentMeta,
+          placeholder,
+          blueprint,
+          getMeta,
+        )
+        if (missingRequiredColumns.size) {
+          problems.push(
+            `${target.relatedMeta.title || title}: missing required field(s) ${[...missingRequiredColumns].join(', ')}`,
+          )
+        }
+        await visit(target.relatedMeta, nestedBlueprints)
+      }
+    }
+  }
+
+  await visit(meta, blueprints)
+
+  if (problems.length) throw new Error(problems.join('; '))
+}
+
+/** A blueprint whose record could not be created; `record` is its display value, if any. */
+export interface LtarBlueprintError {
+  table: string
+  record: string
+  error: unknown
+}
+
+/** How the user would recognise a blueprint: its display value. */
+function blueprintLabel(relatedMeta: TableType | null, blueprint: Record<string, any>) {
+  const pv = relatedMeta?.columns?.find((c) => c.pv)
+  const value = pv ? blueprint[pv.title!] : undefined
+  return value !== null && value !== undefined && value !== '' ? String(value) : ''
+}
+
+/**
+ * Create the blueprints buffered on a row, each linked back to the now saved `record`.
+ * Returns the records created per link column, every error, and the top-level blueprints that
+ * failed, with their data, so they can be kept on the row for a retry. A nested blueprint that fails is only reported: the record it
+ * belongs to now exists, so it can be added from that record.
+ */
+export async function createLtarBlueprints({
+  meta,
+  record,
+  blueprints,
+  getMeta,
+  createRecord,
+}: {
+  meta: TableType
+  record: Record<string, any>
+  blueprints: LtarBlueprints
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>
+  createRecord: (meta: TableType, data: Record<string, any>) => Promise<Record<string, any>>
+}): Promise<{ created: LtarBlueprints; errors: LtarBlueprintError[]; failed: LtarBlueprints }> {
+  const created: LtarBlueprints = {}
+  const errors: LtarBlueprintError[] = []
+  const failed: LtarBlueprints = {}
+
+  for (const [title, items] of Object.entries(blueprints)) {
+    let target
+    try {
+      target = await resolveBlueprintTarget(meta, title, getMeta)
+    } catch (error) {
+      for (const blueprint of items) errors.push({ table: title, record: blueprintLabel(null, blueprint), error })
+      failed[title] = [...items]
+      continue
+    }
+
+    const table = target.relatedMeta.title || title
+
+    for (const blueprint of items) {
+      let createdRecord
+      let nestedBlueprints: LtarBlueprints
+      try {
+        const prepared = await prepareBlueprint(target, meta, record, blueprint, getMeta)
+        nestedBlueprints = prepared.nestedBlueprints
+        createdRecord = await createRecord(target.relatedMeta, prepared.payload)
+        ;(created[title] ??= []).push(createdRecord)
+      } catch (error) {
+        errors.push({ table, record: blueprintLabel(target.relatedMeta, blueprint), error })
+        ;(failed[title] ??= []).push(blueprint)
+        continue
+      }
+
+      const nested = await createLtarBlueprints({
+        meta: target.relatedMeta,
+        record: createdRecord,
+        blueprints: nestedBlueprints,
+        getMeta,
+        createRecord,
+      })
+      errors.push(...nested.errors)
+    }
+  }
+
+  return { created, errors, failed }
 }
 
 // a function to populate insert object and verify if all required fields are present
@@ -197,15 +435,14 @@ export async function populateInsertObject({
   const linkedFkTitles = new Set<string>()
 
   for (const col of meta.columns) {
-    if (
-      !ltarState ||
-      col.uidt !== UITypes.LinkToAnotherRecord ||
-      (<LinkToAnotherRecordType>col.colOptions)?.type !== RelationTypes.BELONGS_TO
-    ) {
+    // Belongs-to, and the one-to-one side that holds the foreign key
+    if (!ltarState || col.uidt !== UITypes.LinkToAnotherRecord || !isLtarFkOnRow(col)) {
       continue
     }
 
-    const ltarVal = ltarState[col.title!] || row?.[col.title!]
+    const linked = ltarState[col.title!] || row?.[col.title!]
+    // A one-to-one link can arrive as a one-record list
+    const ltarVal = Array.isArray(linked) ? linked[0] : linked
     if (!ltarVal) continue
 
     const colOpt = <LinkToAnotherRecordType>col.colOptions
@@ -291,6 +528,8 @@ export const getSkippedDuplicateLinks = (row: Record<string, any> = {}, columns:
 //    auto-increment, default or auto-generated value) would be copied verbatim
 //    and the insert would fail on the unique constraint, so leave it for the
 //    user to fill in
+//  - readonly columns: the database computes them (e.g. PG generated columns)
+//    and the backend rejects a written value
 //  - single-parent links (has-many / one-to-one / one-to-many) — copying them
 //    would reassign the linked record to the copy and detach it from the
 //    original (see `isSingleParentLinkColumn`). Shareable links (belongs-to /
@@ -315,7 +554,10 @@ export const getDuplicateRowData = (
   delete clonedRow.ncRecordHash
 
   for (const col of columns) {
-    if (col.title && (isSystemColumn(col) || col.pk || (!keepSingleParentLinks && isSingleParentLinkColumn(col)))) {
+    if (
+      col.title &&
+      (isSystemColumn(col) || col.pk || isReadonlyDataCol(col) || (!keepSingleParentLinks && isSingleParentLinkColumn(col)))
+    ) {
       delete clonedRow[col.title]
     }
   }
@@ -436,7 +678,9 @@ export const getDateValue = (modelValue: string | null | number, col: ColumnType
       return parsedDate.format(dateFormat) as string
     }
   } else {
-    return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
+    return restoreEarlyYear(dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue), String(modelValue)).format(
+      dateFormat,
+    )
   }
 
   return ''
@@ -509,7 +753,11 @@ export const getPercentValue = (modelValue: string | number | null) => {
   return modelValue || modelValue === 0 ? `${modelValue}%` : ''
 }
 
-export const getCurrencyValue = (modelValue: string | number | null | undefined, col: ColumnType): string => {
+export const getCurrencyValue = (
+  modelValue: string | number | null | undefined,
+  col: ColumnType,
+  options?: ParsePlainCellValueProps['params']['numberFormat'],
+): string => {
   const currencyMeta = {
     currency_locale: 'en-US',
     currency_code: 'USD',
@@ -521,7 +769,7 @@ export const getCurrencyValue = (modelValue: string | number | null | undefined,
       return modelValue === null || modelValue === undefined ? '' : (modelValue as string)
     }
     // Same rounding and formatting as the grid cell, so the field's precision applies
-    return formatCurrencyValue(Number(roundUpToPrecision(Number(modelValue), currencyMeta.precision ?? 2)), currencyMeta)
+    return formatCurrencyValue(Number(roundUpToPrecision(Number(modelValue), currencyMeta.precision ?? 2)), currencyMeta, options)
   } catch (e) {
     return modelValue as string
   }
@@ -557,20 +805,32 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
   }
 }
 
-export const getDecimalValue = (modelValue: string | null | number, col: ColumnType) => {
+export const getDecimalValue = (
+  modelValue: string | null | number,
+  col: ColumnType,
+  options?: ParsePlainCellValueProps['params']['numberFormat'],
+) => {
   if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
-  const columnMeta = parseProp(col.meta)
 
-  return Number(modelValue).toFixed(columnMeta?.precision ?? 1)
+  // Raw value for templates: '.' decimal point whatever the field's separator
+  if (options?.skipThousandSeparator) {
+    return Number(modelValue).toFixed(parseProp(col.meta)?.precision ?? 1)
+  }
+
+  return `${parseDecimalValue(modelValue, col, options) ?? ''}`
 }
 
-export const getIntValue = (modelValue: string | null | number) => {
+export const getIntValue = (
+  modelValue: string | null | number,
+  col?: ColumnType,
+  options?: ParsePlainCellValueProps['params']['numberFormat'],
+) => {
   if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
-  return Number(modelValue).toString()
+  return `${parseIntValue(modelValue, col, options) ?? ''}`
 }
 
 export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
@@ -639,6 +899,11 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
 }
 
 export const getLookupValue = (modelValue: string | null | number | Array<any>, params: ParsePlainCellValueProps['params']) => {
+  // a link display value can nest links; stop runaway chains
+  const linkDepth = params.linkDepth ?? 0
+  if (linkDepth > LINKED_RECORD_MAX_DEPTH) return ''
+  params = { ...params, linkDepth: linkDepth + 1 }
+
   const { col, meta, metas } = params
 
   const colOptions = col.colOptions as LookupType
@@ -668,7 +933,9 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   // and stringifies as [object Object]
   const resolveRecordValue = (v: any) => {
     if (v && typeof v === 'object' && !Array.isArray(v) && childColumn?.title) {
-      return v[childColumn.title] ?? v[childColumn.id] ?? v
+      // a present-but-null key (unlinked nested link) must not fall through to the whole record
+      if (childColumn.title in v) return v[childColumn.title]
+      return v[childColumn.id] ?? v
     }
 
     return v
@@ -699,6 +966,8 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   if (!childColumn) {
     if (typeof modelValue === 'string') {
       return modelValue
+    } else if (modelValue && typeof modelValue === 'object') {
+      return ''
     } else {
       return modelValue?.toString() ?? ''
     }
@@ -751,7 +1020,7 @@ export const parsePlainCellValue = (
   value: ParsePlainCellValueProps['value'],
   params: ParsePlainCellValueProps['params'],
 ): string => {
-  const { col, abstractType, isUnderLookup } = params
+  const { col, abstractType, isUnderLookup, numberFormat } = params
 
   if (!col) {
     return ''
@@ -793,20 +1062,20 @@ export const parsePlainCellValue = (
     return getPercentValue(value)
   }
   if (isCurrency(col)) {
-    return getCurrencyValue(value, col)
+    return getCurrencyValue(value, col, numberFormat)
   }
   if (isUser(col)) {
     return getUserValue(value, params)
   }
   if (isDecimal(col)) {
-    return getDecimalValue(value, col)
+    return getDecimalValue(value, col, numberFormat)
   }
   if (isRating(col)) {
     return value ? `${value}` : '0'
   }
 
-  if (isInt(col, abstractType)) {
-    return getIntValue(value)
+  if (col.uidt === UITypes.Number || isInt(col, abstractType)) {
+    return getIntValue(value, col, numberFormat)
   }
   if (isJSON(col)) {
     try {
@@ -865,6 +1134,18 @@ export const parsePlainCellValue = (
 
   return value as unknown as string
 }
+
+// Column-aware `format` for recordTitleOf / resolveLinkedRecordDisplay: renders a leaf like a plain cell
+export const linkedRecordTitleFormatter =
+  (ctx: Omit<ParsePlainCellValueProps['params'], 'col' | 'meta'> & { meta?: TableType }) =>
+  (value: unknown, col: ColumnType, leafMeta?: TableType): string => {
+    if (value === null || value === undefined) return ''
+    const out = parsePlainCellValue(
+      value as ParsePlainCellValueProps['value'],
+      { ...ctx, col, meta: leafMeta ?? ctx.meta } as ParsePlainCellValueProps['params'],
+    )
+    return out === null || out === undefined || typeof out === 'object' ? '' : String(out)
+  }
 
 // Utility to stringify filter or sort array, if the array is empty return undefined
 export const stringifyFilterOrSortArr = (arr: any[]) => {

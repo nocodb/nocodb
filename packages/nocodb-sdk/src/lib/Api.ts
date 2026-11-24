@@ -43,6 +43,8 @@ export interface WorkflowExecutionGetResponseV3Type {
   parent_execution_id?: string | null;
   /** Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule */
   execution_depth?: number;
+  /** ID of the person who started this execution: a manual run, retry, button click or record change. Null for schedules, webhooks, service accounts, agents and other workflows' writes. The execution still runs as the workflow's run-as identity. Below Creator, only executions the caller started are returned. */
+  triggered_by?: string | null;
   /**
    * Timestamp when the execution record was created
    * @format date-time
@@ -80,6 +82,8 @@ export interface WorkflowExecutionListV3Type {
     parent_execution_id?: string | null;
     /** Trigger hops (workflow or agent writes) that led to this execution; 0 when started by a person or a schedule */
     execution_depth?: number;
+    /** ID of the person who started this execution: a manual run, retry, button click or record change. Null for schedules, webhooks, service accounts, agents and other workflows' writes. The execution still runs as the workflow's run-as identity. Below Creator, only executions the caller started are returned. */
+    triggered_by?: string | null;
     /**
      * Timestamp when the execution record was created
      * @format date-time
@@ -2637,6 +2641,11 @@ export interface FilterResponseV3Type {
   value?: string | null;
   /** Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on. */
   enabled?: boolean;
+  /**
+   * IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. An unknown zone is rejected. On create, a date filter that omits it stores the request's `whereTz` when the field has no time zone of its own; `null` stores no zone. Send `null` on update to clear it.
+   * @example Asia/Kolkata
+   */
+  timezone?: string | null;
 }
 
 export interface FilterGroupV3Type {
@@ -2678,8 +2687,8 @@ export interface FilterGroupLevel3V3Type {
 }
 
 export interface FilterListResponseV3Type {
-  /** List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**. A view with no filters still returns that root group, with an empty `filters` array and `group_operator` set to `null`. */
-  list: FilterGroupResponseV3Type[];
+  /** The view's filters, nested under a single root group whose `id` is **root**. Despite the name this is one group object, not an array. Omitted when the view has no filters. */
+  list?: FilterGroupResponseV3Type;
 }
 
 export interface FilterV3Type {
@@ -2697,6 +2706,11 @@ export interface FilterV3Type {
   value?: string | number | boolean | null;
   /** Whether the filter is switched on. A switched-off filter is skipped only when the plan includes toggle filters; otherwise it is still applied. Returned on reads; ignored on create, update and replace, so a recreated filter comes back switched on. */
   enabled?: boolean;
+  /**
+   * IANA time zone (e.g. `Asia/Kolkata`) used to evaluate date and date-time conditions such as `today` or `exactDate`. When the filter has none, the field's display time zone is used, then the request's `whereTz` query parameter, then UTC. An unknown zone is rejected. On create, a date filter that omits it stores the request's `whereTz` when the field has no time zone of its own; `null` stores no zone. Send `null` on update to clear it.
+   * @example Asia/Kolkata
+   */
+  timezone?: string | null;
 }
 
 /**
@@ -3923,7 +3937,7 @@ export type ViewV3Type = {
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
-        row_coloring?: ViewRowColourV3Type;
+        row_coloring?: ViewRowColourResponseV3Type;
       }
     | {
         type?: 'gallery';
@@ -3942,7 +3956,7 @@ export type ViewV3Type = {
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
-        row_coloring?: ViewRowColourV3Type;
+        row_coloring?: ViewRowColourResponseV3Type;
       }
     | {
         type?: 'kanban';
@@ -3961,7 +3975,7 @@ export type ViewV3Type = {
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
-        row_coloring?: ViewRowColourV3Type;
+        row_coloring?: ViewRowColourResponseV3Type;
       }
     | {
         type?: 'calendar';
@@ -3980,7 +3994,7 @@ export type ViewV3Type = {
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
-        row_coloring?: ViewRowColourV3Type;
+        row_coloring?: ViewRowColourResponseV3Type;
       }
     | {
         type?: 'timeline';
@@ -4000,7 +4014,7 @@ export type ViewV3Type = {
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
-        row_coloring?: ViewRowColourV3Type;
+        row_coloring?: ViewRowColourResponseV3Type;
       }
     | {
         type?: 'gantt';
@@ -4020,7 +4034,7 @@ export type ViewV3Type = {
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
-        row_coloring?: ViewRowColourV3Type;
+        row_coloring?: ViewRowColourResponseV3Type;
       }
     | {
         type?: 'map';
@@ -4039,7 +4053,7 @@ export type ViewV3Type = {
          */
         fields?: ViewFieldsV3Type;
         /** Row colour configuration for the view. */
-        row_coloring?: ViewRowColourV3Type;
+        row_coloring?: ViewRowColourResponseV3Type;
       }
     | {
         type?: 'list';
@@ -4660,6 +4674,8 @@ export interface ViewOptionsCalendarV3Type {
     start_date_field_id: string;
     /** Date field ID to be used as end date in calendar view. */
     end_date_field_id?: string;
+    /** Optional label shown on this range's cards when the view has several date ranges. */
+    label?: string;
   }[];
 }
 
@@ -4690,6 +4706,31 @@ export interface ViewOptionsGridV3Type {
   /** Height of the rows in the grid view. */
   row_height?: 'short' | 'medium' | 'tall' | 'extra';
 }
+
+/**
+ * Row colour configuration as returned by the API. Same shape as `ViewRowColour`, except that condition filters are `FilterGroupResponse`.
+ */
+export type ViewRowColourResponseV3Type =
+  | {
+      /** Mode of row coloring. In this mode, the color is selected based on conditions applied to the fields. */
+      mode: 'filter';
+      conditions: {
+        /** Unique identifier for the condition. */
+        id?: string;
+        apply_as_row_background?: boolean;
+        color?: string;
+        /** The condition's filters, nested under a root group. Values come back as strings, as in `FilterResponse`. */
+        filters?: FilterGroupResponseV3Type;
+      }[];
+    }
+  | {
+      /** Mode of row coloring. In this mode, the color is selected based on a single select field. */
+      mode: 'select';
+      /** Single select field ID to be used for colouring rows in the view. */
+      field_id: string;
+      /** Whether to additionally apply the color as row background. */
+      apply_as_row_background?: boolean;
+    };
 
 export type ViewRowColourV3Type =
   | {
@@ -6280,6 +6321,16 @@ export interface FilterType {
     | 'pastMonth'
     | 'pastNumberOfDays'
     | 'pastWeek'
+    | 'thisCalendarWeek'
+    | 'thisCalendarMonth'
+    | 'thisCalendarYear'
+    | 'lastCalendarWeek'
+    | 'lastCalendarMonth'
+    | 'lastCalendarYear'
+    | 'nextCalendarWeek'
+    | 'nextCalendarMonth'
+    | 'nextCalendarYear'
+    | 'dateRange'
     | 'pastYear'
     | 'today'
     | 'tomorrow'
@@ -6300,6 +6351,16 @@ export interface FilterType {
         | 'pastMonth'
         | 'pastNumberOfDays'
         | 'pastWeek'
+        | 'thisCalendarWeek'
+        | 'thisCalendarMonth'
+        | 'thisCalendarYear'
+        | 'lastCalendarWeek'
+        | 'lastCalendarMonth'
+        | 'lastCalendarYear'
+        | 'nextCalendarWeek'
+        | 'nextCalendarMonth'
+        | 'nextCalendarYear'
+        | 'dateRange'
         | 'pastYear'
         | 'today'
         | 'tomorrow'
@@ -6449,6 +6510,16 @@ export interface FilterReqType {
     | 'pastMonth'
     | 'pastNumberOfDays'
     | 'pastWeek'
+    | 'thisCalendarWeek'
+    | 'thisCalendarMonth'
+    | 'thisCalendarYear'
+    | 'lastCalendarWeek'
+    | 'lastCalendarMonth'
+    | 'lastCalendarYear'
+    | 'nextCalendarWeek'
+    | 'nextCalendarMonth'
+    | 'nextCalendarYear'
+    | 'dateRange'
     | 'pastYear'
     | 'today'
     | 'tomorrow'
@@ -6469,6 +6540,16 @@ export interface FilterReqType {
         | 'pastMonth'
         | 'pastNumberOfDays'
         | 'pastWeek'
+        | 'thisCalendarWeek'
+        | 'thisCalendarMonth'
+        | 'thisCalendarYear'
+        | 'lastCalendarWeek'
+        | 'lastCalendarMonth'
+        | 'lastCalendarYear'
+        | 'nextCalendarWeek'
+        | 'nextCalendarMonth'
+        | 'nextCalendarYear'
+        | 'dateRange'
         | 'pastYear'
         | 'today'
         | 'tomorrow'
@@ -7520,8 +7601,8 @@ export interface CalendarRangeType {
   fk_from_column_id?: IdType;
   /** Foreign Key to View */
   fk_view_id?: StringOrNullType;
-  /** Base ID */
-  label?: string;
+  /** Label shown on the range's cards */
+  label?: string | null;
 }
 
 /**
@@ -8809,7 +8890,7 @@ export interface ViewUpdateReqType {
 }
 
 /**
- * Model for View Column Update Request. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views). Grid-only properties (`width`, `group_by`, `group_by_order`, `group_by_sort`) are ignored; use the Grid Column Update endpoint (`PATCH /api/v1/db/meta/grid-columns/{columnId}`) for those.
+ * Model for View Column Update Request. Applies `show` and `order` (plus `underline`/`bold`/`italic` on calendar, timeline and gantt views, and `group_by`/`group_by_order`/`group_by_sort`/`group_by_enabled` on gallery views). On a grid, `width` and the `group_by*` properties are ignored; use the Grid Column Update endpoint (`PATCH /api/v1/db/meta/grid-columns/{columnId}`) for those.
  */
 export interface ViewColumnUpdateReqType {
   /** View Title */
@@ -8820,6 +8901,20 @@ export interface ViewColumnUpdateReqType {
    * @example 1
    */
   order?: number;
+  /** Gallery only: group by this column */
+  group_by?: BoolType;
+  /**
+   * Gallery only: position of this column among the group-bys
+   * @example 1
+   */
+  group_by_order?: number | null;
+  /**
+   * Gallery only: group order
+   * @example asc
+   */
+  group_by_sort?: 'asc' | 'desc' | 'count-asc' | 'count-desc' | null;
+  /** Gallery only: whether this group-by is applied. Disabled group-bys keep their config. */
+  group_by_enabled?: BoolType;
 }
 
 /**
@@ -8975,6 +9070,20 @@ export interface GalleryColumnReqType {
    * @example 1
    */
   order?: number;
+  /** Group By */
+  group_by?: BoolType;
+  /**
+   * Group By Order
+   * @example 1
+   */
+  group_by_order?: number | null;
+  /**
+   * Group By Sort
+   * @example asc
+   */
+  group_by_sort?: 'asc' | 'desc' | 'count-asc' | 'count-desc' | null;
+  /** Whether this group-by is enabled. Disabled group-bys retain their config but are not applied. */
+  group_by_enabled?: BoolType;
 }
 
 /**
@@ -9546,7 +9655,8 @@ export interface BaseTrashType {
     | 'extension'
     | 'record'
     | 'hook'
-    | 'app';
+    | 'app'
+    | 'document';
   /** ID of the trashed resource */
   resource_id?: IdType;
   /** Type of the parent entity */
@@ -16037,6 +16147,8 @@ export class Api<
         next_date: string;
         sort?: any[];
         where?: string;
+        /** IANA time zone for date conditions in `where` and in view filters without a time zone of their own */
+        whereTz?: string;
         /** @min 1 */
         limit?: number;
         /** @min 0 */
@@ -17849,11 +17961,11 @@ export class Api<
   filterCount?: number,
   \** Sort Count *\
   sortCount?: number,
-  \** Row Count *\
+  \** Row Count. Always null: counting rows would connect to every data source. *\
   rowCount?: ({
   TotalRecords?: string,
 
-})[],
+})[] | null,
   \** Total base user Count *\
   userCount?: number,
 
@@ -17917,10 +18029,12 @@ export class Api<
             filterCount?: number;
             /** Sort Count */
             sortCount?: number;
-            /** Row Count */
-            rowCount?: {
-              TotalRecords?: string;
-            }[];
+            /** Row Count. Always null: counting rows would connect to every data source. */
+            rowCount?:
+              | {
+                  TotalRecords?: string;
+                }[]
+              | null;
             /** Total base user Count */
             userCount?: number;
           }[];

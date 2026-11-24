@@ -29,6 +29,7 @@ const { isSharedBase } = storeToRefs(useBase())
 const FEEDS = [
   { value: 'fields', labelKey: 'objects.fields' },
   { value: 'audits', labelKey: 'labels.revisionHistory' },
+  { value: 'activity', labelKey: 'activity.commentThread.commentsAndRevisions' },
 ] as const
 
 /** Bottom section — picking one IS selecting the comments feed. */
@@ -37,6 +38,8 @@ const COMMENT_FILTERS = [
   { value: 'record', labelKey: 'labels.recordComments' },
   { value: 'onAttachments', labelKey: 'labels.commentsOnAttachments' },
   { value: 'withAttachments', labelKey: 'labels.commentsWithAttachments' },
+  { value: 'mentions', labelKey: 'activity.commentThread.mentionsMe' },
+  { value: 'unread', labelKey: 'activity.commentThread.unread' },
 ] as const
 
 type SidebarFeed = (typeof FEEDS)[number]['value'] | 'comments'
@@ -62,7 +65,21 @@ const showCommentFilters = computed(() => !props.activityInMainPane && !isSqlVie
 
 const showAudits = computed(() => !props.activityInMainPane && !isSqlView.value && isAuditEnabled.value)
 
-const feedOptions = computed(() => FEEDS.filter((feed) => (feed.value === 'fields' ? !!props.showFieldsTab : showAudits.value)))
+/** Mentions and Unread read the signed-in user; Unread also needs the EE read state. */
+const commentFilterOptions = computed(() =>
+  COMMENT_FILTERS.filter((option) => {
+    if (option.value === 'mentions') return !isSharedBase.value
+    if (option.value === 'unread') return isEeUI && !isSharedBase.value
+    return true
+  }),
+)
+
+const feedOptions = computed(() =>
+  FEEDS.filter((feed) => {
+    if (feed.value === 'fields') return !!props.showFieldsTab
+    return showAudits.value && (feed.value !== 'activity' || showCommentFilters.value)
+  }),
+)
 
 const hasMenu = computed(() => showCommentFilters.value || feedOptions.value.length > 1)
 
@@ -76,13 +93,14 @@ const activeLabel = computed(() => {
 
 /** The resolved toggle is meaningless for the attachment filters — those are open-comments-only. */
 const offersResolvedToggle = computed(
-  () => tab.value === 'comments' && (commentFilter.value === 'all' || commentFilter.value === 'record'),
+  () =>
+    tab.value === 'activity' || (tab.value === 'comments' && (commentFilter.value === 'all' || commentFilter.value === 'record')),
 )
 
+const isCommentFeed = computed(() => tab.value === 'comments' || tab.value === 'activity')
+
 /** The bell follows the comments feed — except in Discussion mode, where the main pane is it. */
-const showNotificationBell = computed(
-  () => isEeUI && !isSharedBase.value && (props.activityInMainPane || tab.value === 'comments'),
-)
+const showNotificationBell = computed(() => isEeUI && !isSharedBase.value && (props.activityInMainPane || isCommentFeed.value))
 
 function setFeed(value: SidebarFeed) {
   tab.value = value
@@ -119,6 +137,15 @@ watch(
 
 // Options come and go with the host presentor (Fields) and the row's context
 // (SQL view, shared base) — never leave the panel on a feed that's gone.
+// A stored filter can name an option this context does not offer (e.g. Unread on a shared base).
+watch(
+  commentFilterOptions,
+  (options) => {
+    if (!options.some((option) => option.value === commentFilter.value)) commentFilter.value = 'all'
+  },
+  { immediate: true },
+)
+
 watch(
   [feedOptions, showCommentFilters],
   ([options, hasComments]) => {
@@ -170,11 +197,23 @@ watch(
               </div>
             </NcMenuItem>
 
+            <NcMenuItem
+              v-if="feedOptions.some((feed) => feed.value === 'activity')"
+              v-e="['c:comment:activity:open']"
+              data-testid="nc-expanded-form-sidebar-feed-activity"
+              @click="setFeed('activity')"
+            >
+              <div class="flex items-center gap-2 min-w-52">
+                <span class="flex-1">{{ $t('activity.commentThread.commentsAndRevisions') }}</span>
+                <GeneralIcon v-if="tab === 'activity'" icon="check" class="flex-none w-4 h-4 text-nc-content-brand" />
+              </div>
+            </NcMenuItem>
+
             <template v-if="showCommentFilters">
               <NcDivider v-if="feedOptions.length" class="!my-1" />
 
               <NcMenuItem
-                v-for="option in COMMENT_FILTERS"
+                v-for="option in commentFilterOptions"
                 :key="option.value"
                 :data-testid="`nc-expanded-form-sidebar-filter-${option.value}`"
                 @click="setCommentFilter(option.value)"
@@ -212,7 +251,7 @@ watch(
       <!-- Record bell — per-user comment-notification preference (EE; CE stub
            renders nothing). -->
       <div class="flex-none flex items-center gap-1 ml-auto">
-        <SmartsheetExpandedFormCommentSearchToggle v-if="tab === 'comments'" v-model="showCommentSearch" />
+        <SmartsheetExpandedFormCommentSearchToggle v-if="isCommentFeed" v-model="showCommentSearch" />
         <SmartsheetExpandedFormSidebarCommentNotificationBell v-if="showNotificationBell" />
       </div>
     </div>
@@ -220,10 +259,11 @@ watch(
     <div class="flex-1 min-h-0 overflow-hidden">
       <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper v-if="tab === 'fields'" :compact-mode="compactMode" />
       <SmartsheetExpandedFormSidebarComments
-        v-else-if="tab === 'comments'"
+        v-else-if="isCommentFeed"
         v-model:show-search="showCommentSearch"
-        :comment-filter="commentFilter"
+        :comment-filter="tab === 'activity' ? 'all' : commentFilter"
         :show-resolved="showResolvedComments"
+        :show-revisions="tab === 'activity'"
         class="h-full"
       />
       <SmartsheetExpandedFormSidebarAudits v-else-if="tab === 'audits'" class="h-full" />

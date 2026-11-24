@@ -119,10 +119,15 @@ export function getUnpaddedDateFormat(format: string) {
 // genuinely invalid values (e.g. "hello") are still rejected rather than
 // silently coerced.
 export function parseDateWithFormat(value: string, format: string) {
-  let parsed = dayjs(value, format);
+  let parsed = restoreEarlyYear(dayjs(value, format), value, format);
 
   if (!parsed.isValid()) {
-    parsed = dayjs(value, getUnpaddedDateFormat(format), true);
+    // Strict check done by hand: dayjs' own runs before the year is restored.
+    const unpadded = getUnpaddedDateFormat(format);
+    parsed = restoreEarlyYear(dayjs(value, unpadded), value, unpadded);
+    if (parsed.isValid() && parsed.format(unpadded) !== value) {
+      parsed = dayjs(NaN);
+    }
   }
 
   if (parsed.isValid() && hasDateOverflow(value, format, parsed)) {
@@ -147,13 +152,11 @@ const NUMERIC_TOKEN_FIELDS: Record<string, (d: dayjs.Dayjs) => number> = {
   s: (d) => d.second(),
 };
 
-export function hasDateOverflow(
-  value: string,
-  format: string,
-  parsed: dayjs.Dayjs
-) {
+// Keys of the format's digit-holding tokens, in order; null when the format
+// has a token whose digits can't be matched (Do, Z, ...).
+function getNumericTokenKeys(format: string): string[] | null {
   const tokens = format.replace(/\[[^\]]*]/g, '').match(/[A-Za-z]+/g) ?? [];
-  const fields: ((d: dayjs.Dayjs) => number)[] = [];
+  const keys: string[] = [];
 
   for (const token of tokens) {
     // Meridiem, weekday and month-name tokens hold no digits.
@@ -163,15 +166,54 @@ export function hasDateOverflow(
       token.length <= 2 || token === 'YYYY'
         ? NUMERIC_TOKEN_FIELDS[key]
         : undefined;
-    if (!field || (token.length === 2 && token[0] !== token[1])) return false;
-    fields.push(field);
+    if (!field || (token.length === 2 && token[0] !== token[1])) return null;
+    keys.push(key);
   }
+
+  return keys;
+}
+
+export function hasDateOverflow(
+  value: string,
+  format: string,
+  parsed: dayjs.Dayjs
+) {
+  const keys = getNumericTokenKeys(format);
+  if (!keys) return false;
 
   const numbers = String(value).match(/\d+/g) ?? [];
 
-  return fields.some(
-    (field, i) => i < numbers.length && field(parsed) !== +numbers[i]
+  return keys.some(
+    (key, i) =>
+      i < numbers.length && NUMERIC_TOKEN_FIELDS[key](parsed) !== +numbers[i]
   );
+}
+
+// dayjs builds dates with `new Date(y, ...)`, which maps years 0-99 to
+// 1900-1999. Put back a zero-padded 4-digit year below 100 (e.g. 0050).
+export function restoreEarlyYear(
+  parsed: dayjs.Dayjs,
+  value: string,
+  format = 'YYYY-MM-DD'
+) {
+  if (!parsed.isValid()) return parsed;
+
+  const yearIndex = getNumericTokenKeys(format)?.indexOf('YYYY') ?? -1;
+  if (yearIndex < 0) return parsed;
+
+  const yearDigits = String(value).match(/\d+/g)?.[yearIndex];
+  if (yearDigits?.length !== 4 || +yearDigits >= 100) return parsed;
+
+  return parsed.year() === 1900 + +yearDigits
+    ? parsed.year(+yearDigits)
+    : parsed;
+}
+
+// Parse a stored date value (ISO date or epoch ms) with the given format.
+export function parseStoredDate(value: string | number, format = 'YYYY-MM-DD') {
+  if (typeof value === 'number' || /^\d+$/.test(value)) return dayjs(+value);
+
+  return restoreEarlyYear(dayjs(value, format), value, format);
 }
 
 export function parseStringDate(v: string, dateFormat: string) {

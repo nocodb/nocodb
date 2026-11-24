@@ -2,7 +2,7 @@
 import Draggable from 'vuedraggable'
 import { type ColumnType, isDateOrDateTimeCol } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
-import { computeLtarNewRowState } from '~/utils/dataUtils'
+import { buildLinkedRecordsWhere, computeLtarNewRowState, isLtarFkOnRow } from '~/utils/dataUtils'
 
 interface Prop {
   modelValue?: boolean
@@ -33,6 +33,8 @@ const { isUIAllowed } = useRoles()
 const { t } = useI18n()
 
 const isForm = inject(IsFormInj, ref(false))
+
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -71,6 +73,7 @@ const {
   childrenExcludedOffsetCount,
   childrenListOffsetCount,
   relatedTableDisplayValueProp,
+  relatedRecordTitle,
   displayValueTypeAndFormatProp,
   unlink,
   isChildrenListLinked,
@@ -102,6 +105,7 @@ const {
   isSingleTargetRelation,
   pendingLinkRows,
   removePendingLink,
+  openBlueprintEditor,
   isPendingUnlink,
   canReorder,
   reorderLink,
@@ -111,6 +115,20 @@ const {
 const { withLoading } = useLoadingTrigger()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
+
+const { openTable } = useTablesStore()
+
+const linkedRecordsWhere = computed(() => {
+  if (isPublic.value || isForm.value || isNew.value || !isLinkedTableAccessible.value) return
+  return buildLinkedRecordsWhere(injectedColumn.value, meta.value, relatedTableMeta.value, rowId.value)
+})
+
+const openLinkedRecordsInTable = async () => {
+  if (!linkedRecordsWhere.value || !relatedTableMeta.value) return
+  const where = linkedRecordsWhere.value
+  vModel.value = false
+  await openTable(relatedTableMeta.value, false, { where })
+}
 
 // Buffered (unsaved) links to show ABOVE the persisted virtual list. Only for an
 // existing row edited in the expanded form (deferred mode) and multi-target
@@ -257,6 +275,18 @@ const colTitle = computed(() => injectedColumn.value?.title || '')
 
 const onClick = (row: Row) => {
   if (isPublic.value || isForm.value) return
+  // A linked record not created yet opens in its own editor
+  if ((row as Record<string, any>)?._isBlueprint) {
+    // On a new row the list hands over a decorated copy; the staged entry at _index is the one to replace
+    const blueprint = isNew.value
+      ? childrenList.value?.list?.[(row as Record<string, any>)._index] ?? row
+      : (row as Record<string, any>)
+    openBlueprintEditor(blueprint, {
+      breadcrumbs: parentBreadcrumbs.value,
+      linkOnParentSave: !isTemplateMode.value,
+    })
+    return
+  }
   // Don't allow expanding if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
   // A New record form closed without saving leaves these set; reset them so this row opens as itself.
@@ -275,7 +305,8 @@ const addNewRecord = () => {
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
   isNewRecord.value = true
-  isBlueprintMode.value = false
+  // A new record saved from its form can't be linked to yet: buffer the child and create it on that Save.
+  isBlueprintMode.value = isNew.value && isExpandedFormOpen.value && !isLtarFkOnRow(injectedColumn?.value)
 }
 
 const reloadViewDataListener = withLoading((params) => {
@@ -343,7 +374,7 @@ const onCreatedRecord = async (record: any) => {
         },
         t('activity.gotSavedLinkedSuccessfully', {
           tableName: relatedTableMeta.value?.title,
-          recordTitle: record[relatedTableDisplayValueProp.value],
+          recordTitle: relatedRecordTitle(record),
         }),
       ),
     ],
@@ -410,7 +441,8 @@ const totalItemsToShow = computed(() => {
   if (isChildrenLoading.value) {
     return props.items
   }
-  return childrenListCount.value
+  // Held records (failed to create) are listed as pending links but aren't in the server count
+  return childrenListCount.value + pendingLinkRows.value.filter((r) => r?._isBlueprint).length
 })
 
 const isDataExist = computed<boolean>(() => {
@@ -524,6 +556,30 @@ const visibleRows = computed(() => {
   })
 })
 
+// Linked state is keyed by childrenList index; a drag reorders reorderRows
+// before the reload, so resolve each reorder row to its childrenList index by id.
+const childrenListIndexById = computed(() => {
+  const map = new Map<string, number>()
+  childrenList.value?.list?.forEach((r, i) => {
+    const id = getRelatedTableRowId(r)
+    if (id != null) map.set(String(id), i)
+  })
+  return map
+})
+
+const reorderRowIndex = (row: Record<string, any>) => childrenListIndexById.value.get(String(getRelatedTableRowId(row))) ?? -1
+
+function isReorderRowLinked(row: Record<string, any>) {
+  if (shouldDefer.value && isPendingUnlink(row)) return false
+  return childrenCachedLinkedState.value.get(reorderRowIndex(row)) ?? true
+}
+
+const reorderRowLinkOrUnlink = (row: Record<string, any>) => {
+  const index = reorderRowIndex(row)
+  if (index < 0) return
+  linkOrUnLink(row, String(index))
+}
+
 onUnmounted(() => {
   resetChildrenListOffsetCount()
   resetChildrenCache()
@@ -539,6 +595,9 @@ const onFilterChange = () => {
 
 const isSearchInputFocused = ref(false)
 
+// The query an Enter is already waiting on; a repeat Enter for it would toggle the row back
+let pendingEnterQuery: string | null = null
+
 const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
   scrollContainerRef,
   filterQueryRef,
@@ -549,9 +608,23 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
   },
   getQuery: () => childrenListPagination.query,
   onEscapeEmptyQuery: () => emit('escape'),
-  onEnterWithQuery: () => {
-    const list = childrenList.value?.list ?? state.value?.[colTitle.value]
-    if (ncIsArray(list) && list.length) linkOrUnLink(list[0], '0')
+  onEnterWithQuery: async () => {
+    const query = childrenListPagination.query
+    // Only a repeat Enter for the same query is dropped; an Enter after editing the query waits for its own results
+    if (pendingEnterQuery === query) return
+    pendingEnterQuery = query
+    try {
+      // Wait for the debounced search so Enter acts on this query's results, not the previous ones
+      const staleList = isChildrenLoading.value ? childrenList.value : undefined
+      await until(isChildrenLoading).toBe(false)
+      if (!vModel.value || query !== childrenListPagination.query) return
+      // The load failed: the list still holds the previous query's rows
+      if (staleList && childrenList.value === staleList) return
+      const list = childrenList.value?.list ?? state.value?.[colTitle.value]
+      if (ncIsArray(list) && list.length) linkOrUnLink(list[0], '0')
+    } finally {
+      if (pendingEnterQuery === query) pendingEnterQuery = null
+    }
   },
 })
 </script>
@@ -637,7 +710,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               :animation="150"
               @end="onReorderEnd"
             >
-              <template #item="{ element, index }">
+              <template #item="{ element }">
                 <div
                   class="flex flex-row items-center border-b-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight"
                   data-testid="nc-child-list-reorder-item"
@@ -654,13 +727,13 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                     :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                     :fields="fields"
                     :display-value-column="relatedTableDisplayValueColumn"
-                    :is-linked="true"
+                    :is-linked="isReorderRowLinked(element)"
                     :is-loading="false"
                     :related-table-display-value-prop="relatedTableDisplayValueProp"
                     :row="element"
                     :allow-expand="allowRecordExpand"
                     data-testid="nc-child-list-item"
-                    @link-or-unlink="unlinkRow(element, index)"
+                    @link-or-unlink="reorderRowLinkOrUnlink(element)"
                     @expand="onClick(element)"
                     @close="vModel = false"
                   />
@@ -812,6 +885,22 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               {{ isMobileMode ? $t('title.linkMore') : $t('title.linkMoreRecords') }}
             </div>
           </NcButton>
+          <NcTooltip v-if="linkedRecordsWhere && childrenCachedTotalRows > 0" :disabled="!isMobileMode">
+            <template #title>{{ $t('labels.viewAllInTable') }}</template>
+            <NcButton
+              v-e="['c:link:records:table:open']"
+              data-testid="nc-child-list-button-view-in-table"
+              class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
+              size="small"
+              type="secondary"
+              @click="openLinkedRecordsInTable"
+            >
+              <div class="flex items-center gap-1">
+                <GeneralIcon icon="externalLink" class="h-4 w-4" />
+                <span v-if="!isMobileMode">{{ $t('labels.viewAllInTable') }}</span>
+              </div>
+            </NcButton>
+          </NcTooltip>
         </div>
         <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
           {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}
@@ -841,6 +930,8 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         skip-reload
         maintain-default-view-order
         :blueprint-mode="isBlueprintMode"
+        :blueprint-parent-table-id="isBlueprintMode ? meta?.id : undefined"
+        :link-on-parent-save="isBlueprintMode"
         :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Record' : 'Create & Link'"
         :new-record-header="

@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import type { AppEvents } from 'nocodb-sdk';
 import type {
+  AbuseReportAdminEvent,
   ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
@@ -33,12 +34,11 @@ import type {
   MapViewUpdateEvent,
   MetaDiffEvent,
   OrgUserAddEvent,
+  OrgUserBlockEvent,
   OrgUserDeleteEvent,
   OrgUserInviteEvent,
   OrgUserRemoveEvent,
   OrgUserUpdateEvent,
-  OrgUserBlockEvent,
-  AbuseReportAdminEvent,
   OrgWorkspaceEvent,
   PluginEvent,
   PluginTestEvent,
@@ -57,6 +57,7 @@ import type {
   ResourceRestoreEvent,
   RowCommentEvent,
   RowMentionEvent,
+  RowUserAssignEvent,
   SharedBaseDeleteEvent,
   SharedBaseEvent,
   SharedViewUpdateEvent,
@@ -73,10 +74,10 @@ import type {
   UserEmailVerificationEvent,
   UserInviteEvent,
   UserPasswordChangeEvent,
-  UserSessionsRevokeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
   UserProfileUpdateEvent,
+  UserSessionsRevokeEvent,
   UserSigninEvent,
   UserSigninFailedEvent,
   UserSignoutEvent,
@@ -199,10 +200,18 @@ export class AppHooksService {
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
   ): () => void;
+  on(
+    event: AppEvents.RELATION_DELETE | AppEvents.RELATION_CREATE,
+    listener: (data: RelationEvent) => void,
+  ): () => void;
 
   on(
     event: AppEvents.ROW_USER_MENTION,
     listener: (data: RowMentionEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.ROW_USER_ASSIGN,
+    listener: (data: RowUserAssignEvent) => void,
   ): () => void;
   on(
     event:
@@ -393,6 +402,7 @@ export class AppHooksService {
     data: UserEmailVerificationEvent,
   ): void;
   emit(event: AppEvents.ROW_USER_MENTION, data: RowMentionEvent): void;
+  emit(event: AppEvents.ROW_USER_ASSIGN, data: RowUserAssignEvent): void;
 
   emit(event: AppEvents.EXTENSION_CREATE, data: any): void;
   emit(event: AppEvents.EXTENSION_UPDATE, data: any): void;

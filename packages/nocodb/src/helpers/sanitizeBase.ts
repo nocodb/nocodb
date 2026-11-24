@@ -18,6 +18,7 @@ export function sanitizeBase<T extends Record<string, any>>(base: T): T {
       const copy = { ...s };
       delete copy.config;
       delete copy.integration_config;
+      delete copy.integration_meta;
       return copy;
     });
   }

@@ -1,7 +1,13 @@
 import { NcErrorType } from 'nocodb-sdk';
 import { DBError } from './utils';
+import {
+  constraintViolationMessage,
+  driverMessage,
+  parseConstraintViolation,
+} from './constraint';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
+import { internalDbHostBlockedMessage } from '~/utils/ssrf';
 
 export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
   constructor(
@@ -25,21 +31,33 @@ export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
         message = 'The database is locked by another process or transaction.';
         httpStatus = 500;
         break;
-      case 'SQLITE_CONSTRAINT':
-        {
-          const constraint = /FOREIGN KEY|UNIQUE/.test(error.message)
-            ? error.message.match(/FOREIGN KEY|UNIQUE/gi)?.join(' ')
-            : 'constraint';
-          message = `A ${constraint} constraint was violated: ${error.message}`;
-          _extra = {
-            constraint,
-          };
-          // Set type if it's a unique constraint violation
-          if (/UNIQUE/i.test(error.message)) {
-            _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
-          }
+      case 'SQLITE_CONSTRAINT': {
+        // never echo error.message: knex prefixes it with the SQL
+        const reason = driverMessage(error);
+        // a composite key lists several columns: name none
+        const column = reason.match(
+          /^(?:UNIQUE|NOT NULL) constraint failed: (?:[^\s.]+\.)?([^\s,]+)\s*$/,
+        )?.[1];
+        const violation = parseConstraintViolation(error);
+        if (violation) {
+          message = constraintViolationMessage(violation);
+          if (violation.constraint)
+            _extra = { constraint: violation.constraint };
+        } else if (/^UNIQUE constraint failed/.test(reason)) {
+          _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
+          message = column
+            ? `${column} field unique constraint violation.`
+            : 'This record already exists.';
+          if (column) _extra = { column };
+        } else if (/^NOT NULL constraint failed/.test(reason)) {
+          _type = DBError.COLUMN_NOT_NULL;
+          message = 'A value is required for this field.';
+          if (column) _extra = { column };
+        } else {
+          message = 'A database constraint was violated.';
         }
         break;
+      }
       case 'SQLITE_CORRUPT':
         message = 'The database file is corrupt.';
         httpStatus = 500;
@@ -123,7 +141,7 @@ export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
         break;
 
       case 'EACCES':
-        message = 'Connection to internal hosts is not allowed';
+        message = internalDbHostBlockedMessage();
         httpStatus = 403;
         break;
 
@@ -141,6 +159,7 @@ export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
       message,
       code: error.code,
       httpStatus,
+      ...(_extra && { details: _extra }),
     };
   }
 }

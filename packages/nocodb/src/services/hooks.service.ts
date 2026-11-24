@@ -44,6 +44,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { isReplay } from '~/helpers/replayScope';
+import { withFilterOwner } from '~/helpers/filterOwnerHelpers';
 
 const SUPPORTED_HOOK_VERSION = ['v3'];
 
@@ -227,10 +228,10 @@ export class HooksService {
       | undefined;
     if (bundledFilters?.length) {
       for (const filter of bundledFilters) {
-        await Filter.insert(context, {
-          ...filter,
-          fk_hook_id: hook.id,
-        });
+        await Filter.insert(
+          context,
+          withFilterOwner(filter, { fk_hook_id: hook.id }),
+        );
       }
 
       // Snapshot the inserted tree so `HookCreateContract.extraCommandMeta`
@@ -400,10 +401,10 @@ export class HooksService {
       // propagates `fk_hook_id`. Pre-set ids are honored only under
       // `is_replay` (so undo→redo round-trips).
       for (const filter of bundledFilters) {
-        await Filter.insert(context, {
-          ...filter,
-          fk_hook_id: param.hookId,
-        });
+        await Filter.insert(
+          context,
+          withFilterOwner(filter, { fk_hook_id: param.hookId }),
+        );
       }
     }
 
@@ -609,7 +610,6 @@ export class HooksService {
     return await populateSamplePayloadV2(
       context,
       model,
-      false,
       param.operation,
       'records',
       param.includeUser,
@@ -660,7 +660,6 @@ export class HooksService {
     return await populateSamplePayloadV2(
       context,
       model,
-      false,
       param.operation,
       undefined,
       param.includeUser,

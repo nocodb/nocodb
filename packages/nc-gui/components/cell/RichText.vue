@@ -3,8 +3,8 @@ import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
-import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
+import { NcCollaboration } from '~/helpers/tiptap/collaboration'
 import { NcMarkdownParser, richTextTableExtensions, suggestion } from '~/helpers/tiptap'
 import { ResizableImage } from '~/helpers/tiptap/functionality/resizableImage'
 import { Markdown } from '~/helpers/tiptap-markdown'
@@ -235,7 +235,7 @@ const getTiptapExtensions = () => {
 
   if (collab) {
     extensions.push(
-      Collaboration.configure({ document: collab.ydoc!, field: 'default' }),
+      NcCollaboration.configure({ document: collab.ydoc!, field: 'default' }),
       // CollaborationCursor only reads `provider.awareness`, so the transport's
       // Awareness instance is passed directly rather than wrapping a y-websocket
       // provider we do not have.

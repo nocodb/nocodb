@@ -33,7 +33,7 @@ export type SearchState =
   | 'catching_up'
   | 'term_too_short'
   | 'disabled'
-  /** Too large to read live on a plan without global search (past the live-search row cap or the server's live budget); no rows match. */
+  /** Past the record limit of a plan without global search, so it can't be read live; no rows match. */
   | 'plan_limit';
 
 /** The `pageInfo` key carrying a search's {@link SearchState}. */

@@ -12,6 +12,10 @@ import getColumnUiType, {
 } from '~/helpers/getColumnUiType';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Column, Model } from '~/models';
+import {
+  getIdentifierLength,
+  getIdentifierLengthUnit,
+} from '~/helpers/identifierLength';
 
 @Injectable()
 export class SqlViewsService {
@@ -95,13 +99,18 @@ export class SqlViewsService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
+    } else if (sqlClientType === 'mssql' || sqlClientType === 'oracledb') {
       tableNameLengthLimit = 128;
     }
 
-    if (body.view_name.length > tableNameLengthLimit) {
+    if (
+      getIdentifierLength(body.view_name, sqlClientType) > tableNameLengthLimit
+    ) {
       NcError.badRequest(
-        `Table name exceeds ${tableNameLengthLimit} characters`,
+        `Table name exceeds ${tableNameLengthLimit} ${getIdentifierLengthUnit(
+          body.view_name,
+          sqlClientType,
+        )}`,
       );
     }
 

@@ -146,6 +146,7 @@ export default class View implements ViewType {
   allow_sync?: boolean;
   created_by?: string;
   owned_by?: string;
+  deleted?: BoolType;
 
   fk_model_id: string;
   model?: Model;

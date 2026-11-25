@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
-import { SEARCH_COUNT_CAP } from 'nocodb-sdk'
+import { SEARCH_COUNT_CAP, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{
   // Render the box in the toolbar instead of a body-teleported popup, for hosts that scroll inside the page.
@@ -51,6 +51,15 @@ const { isMobileMode, appInfo, loadAppInfo } = useGlobal()
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 const { getMetaByKey } = useMetas()
+
+const viewColumns = useViewColumns()
+
+// A system ID field is listed while the view shows it, or while it is the picked field (so the pick never dangles).
+function isSearchableField(column: ColumnType) {
+  if (!isSearchableColumn(column)) return false
+  if (!column.pk || !isSystemColumn(column) || column.id === search.value.field) return true
+  return !!viewColumns?.sortedAndFilteredFields.value?.some((field) => field.id === column.id)
+}
 
 function getTableTitle(tableId?: string) {
   if (!tableId) return t('general.unknown')
@@ -140,7 +149,7 @@ const columns = computed(() => {
       return (levelMeta.columns as ColumnType[]).filter((column) => isSearchableColumn(column))
     }
   }
-  return (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? []
+  return (meta.value as TableType)?.columns?.filter((column) => isSearchableField(column)) ?? []
 })
 
 // Grouped grids load rows per group and keep single-field search for now.
@@ -313,11 +322,12 @@ watch(searchKey, () => {
   isSearchStepping.value = false
 })
 
-// "All fields" is the default where available; elsewhere the box falls back to the display value field.
+// "All fields" is the default where available and it covers the display value field; elsewhere the box
+// falls back to the display value field.
 watch(
   [isAllFieldsSearchAvailable, () => search.value.field, columns],
   ([isAvailable, field]) => {
-    if (!field && isAvailable) {
+    if (!field && isAvailable && allFieldsSearchCovers(columns.value?.find((column) => column.pv))) {
       search.value.field = ALL_FIELDS_SEARCH_FIELD
     } else if (!field || (field === ALL_FIELDS_SEARCH_FIELD && !isAvailable)) {
       search.value.field = columns.value?.find((column) => column.pv)?.id ?? ''

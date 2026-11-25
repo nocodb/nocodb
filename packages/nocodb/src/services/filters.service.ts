@@ -113,35 +113,37 @@ export class FiltersService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
+      // includeDeleted: a trashed view keeps its lock; only the webhook needs it live.
+      const view = await View.get(context, filter.fk_view_id, true, ncMeta);
       assertViewConfigEditable(context, view, param.req);
-      viewWebhookManager = (
-        await (
-          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
-            view.fk_model_id,
-          )
-        ).withViewId(filter.fk_view_id)
-      ).forUpdate();
+      if (view && !view.deleted) {
+        viewWebhookManager = (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(filter.fk_view_id)
+        ).forUpdate();
+      }
     } else if (filter.fk_row_color_condition_id) {
       const rowColorCondition = await RowColorCondition.getById(
         context,
         filter.fk_row_color_condition_id,
         ncMeta,
       );
-      const view = await View.get(
-        context,
-        rowColorCondition.fk_view_id,
-        false,
-        ncMeta,
-      );
+      const view =
+        rowColorCondition &&
+        (await View.get(context, rowColorCondition.fk_view_id, true, ncMeta));
       assertViewConfigEditable(context, view, param.req);
-      viewWebhookManager = (
-        await (
-          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
-            view.fk_model_id,
-          )
-        ).withViewId(rowColorCondition.fk_view_id)
-      ).forUpdate();
+      if (view && !view.deleted) {
+        viewWebhookManager = (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(rowColorCondition.fk_view_id)
+        ).forUpdate();
+      }
     }
     await Filter.delete(context, param.filterId);
 
@@ -363,35 +365,37 @@ export class FiltersService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
+      // includeDeleted: a trashed view keeps its lock; only the webhook needs it live.
+      const view = await View.get(context, filter.fk_view_id, true, ncMeta);
       assertViewConfigEditable(context, view, param.req);
-      viewWebhookManager = (
-        await (
-          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
-            view.fk_model_id,
-          )
-        ).withViewId(filter.fk_view_id)
-      ).forUpdate();
+      if (view && !view.deleted) {
+        viewWebhookManager = (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(filter.fk_view_id)
+        ).forUpdate();
+      }
     } else if (filter.fk_row_color_condition_id) {
       const rowColorCondition = await RowColorCondition.getById(
         context,
         filter.fk_row_color_condition_id,
         ncMeta,
       );
-      const view = await View.get(
-        context,
-        rowColorCondition.fk_view_id,
-        false,
-        ncMeta,
-      );
+      const view =
+        rowColorCondition &&
+        (await View.get(context, rowColorCondition.fk_view_id, true, ncMeta));
       assertViewConfigEditable(context, view, param.req);
-      viewWebhookManager = (
-        await (
-          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
-            view.fk_model_id,
-          )
-        ).withViewId(rowColorCondition.fk_view_id)
-      ).forUpdate();
+      if (view && !view.deleted) {
+        viewWebhookManager = (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(rowColorCondition.fk_view_id)
+        ).forUpdate();
+      }
     }
 
     // todo: type correction

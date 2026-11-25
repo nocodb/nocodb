@@ -321,9 +321,11 @@ export class DataAttachmentV3Service {
     }
 
     // Update the cell field using baseModel.dbDriver directly
-    const currentAttachments = rowData[column.column_name]
-      ? JSON.parse(rowData[column.column_name])
-      : [];
+    const currentAttachments = this.parseStoredAttachments(
+      context,
+      column.title,
+      rowData[column.column_name],
+    );
     await validateNumberOfFilesInCell(
       context,
       currentAttachments.length + 1,
@@ -481,6 +483,30 @@ export class DataAttachmentV3Service {
       req: { context, user: context.user } as any,
       rowId: recordId,
     });
+  }
+
+  // A cell can hold non-attachment text, e.g. written by a v1/v2 API call or left
+  // from a field type change. Refuse instead of overwriting it.
+  private parseStoredAttachments(
+    context: NcContext,
+    columnTitle: string,
+    value: unknown,
+  ): unknown[] {
+    if (value === null || value === undefined || value === '') return [];
+    if (Array.isArray(value)) return value;
+
+    let parsed: unknown;
+    try {
+      parsed = typeof value === 'string' ? JSON.parse(value) : value;
+    } catch {
+      parsed = undefined;
+    }
+    if (parsed === null) return [];
+    if (Array.isArray(parsed)) return parsed;
+
+    NcError.get(context).invalidValueForField(
+      `Field '${columnTitle}' holds a value that is not a list of attachments — clear the cell before uploading to it.`,
+    );
   }
 
   // Peers apply their own RLS, so the row is read without the uploader's. A failed

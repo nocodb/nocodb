@@ -48,6 +48,17 @@ export function ncIsStringHasValue(val: string | undefined | null) {
 }
 
 /**
+ * A number or boolean filter value on a text column (a `filterArrJson`
+ * filter, e.g. from a workflow variable) compares as text: PG has no
+ * `text = integer` operator.
+ */
+export function ncTextFilterValue<T>(val: T): T | string {
+  return typeof val === 'number' || typeof val === 'boolean'
+    ? String(val)
+    : val;
+}
+
+/**
  * Split an `allof`/`anyof`/`nallof`/`nanyof` value into its items.
  *
  * The value is normally a comma-separated string, but it is not always one:

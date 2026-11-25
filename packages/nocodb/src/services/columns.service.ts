@@ -562,22 +562,41 @@ export async function getJunctionTableName(
     0,
     15,
   )}_${childTable.slice(0, 15)}`;
-  let suffix: number = null;
-  // check table name avail or not, if not then add incremental suffix
-  while (
-    await Noco.ncMeta.metaGet2(
-      (parent as any).fk_workspace_id,
-      parent.base_id,
-      MetaTable.MODELS,
-      {
-        table_name: `${tableName}${suffix ?? ''}`,
+
+  const context = {
+    workspace_id: (parent as any).fk_workspace_id,
+    base_id: parent.base_id,
+  };
+  const connectionConfig = await (
+    await Source.get(context, parent.source_id)
+  ).getConnectionConfig();
+  const sqlClientType = connectionConfig?.client;
+  const limit = SqlUiFactory.create(connectionConfig).tableNameLengthLimit;
+
+  // Compare names as the DB stores them: pg cuts identifiers at 63 bytes, so
+  // multibyte names that differ only past the cut collide.
+  const taken = new Set(
+    (
+      await Model.list(context, {
+        base_id: parent.base_id,
         source_id: parent.source_id,
-      },
-    )
-  ) {
-    suffix = suffix ? suffix + 1 : 1;
+        includeDeleted: true,
+      })
+    ).map((m) => truncateIdentifier(m.table_name, limit, sqlClientType)),
+  );
+
+  let suffix = '';
+  const candidate = () =>
+    `${truncateIdentifier(
+      tableName,
+      limit - getIdentifierLength(suffix, sqlClientType),
+      sqlClientType,
+    )}${suffix}`;
+  // check table name avail or not, if not then add incremental suffix
+  for (let i = 1; taken.has(candidate()); i++) {
+    suffix = `${i}`;
   }
-  return `${tableName}${suffix ?? ''}`;
+  return candidate();
 }
 
 // todo: move to swagger.json/types

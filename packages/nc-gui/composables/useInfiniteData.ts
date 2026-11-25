@@ -200,6 +200,8 @@ export function useInfiniteData(args: {
     searchAbortSignal,
     searchQueryParams,
     searchState,
+    searchCountPending,
+    searchError,
     eventBus,
   } = disableSmartsheet
     ? {
@@ -219,6 +221,8 @@ export function useInfiniteData(args: {
         searchAbortSignal: ref<AbortSignal | undefined>(),
         searchQueryParams: computed<{ search?: string }>(() => ({})),
         searchState: ref<SearchState>(),
+        searchCountPending: ref(0),
+        searchError: ref<'timeout' | 'limit'>(),
         eventBus: useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore),
       }
     : useSmartsheetStoreOrThrow()
@@ -611,17 +615,19 @@ export function useInfiniteData(args: {
     !!searchQueryParams.value.search &&
     (error?.response?.status === 408 ||
       (error?.response?.status === 429 && error?.response?.data?.error === NcErrorType.ERR_TOO_MANY_REQUESTS))
-  // Toasts the first failure of a term only.
+  // The search box shows it; without one (no smartsheet store) the first failure of a term is toasted.
   const noteSearchLimit = async (error: any) => {
     if (searchGaveUp()) return
     searchGaveUpTerm = searchQueryParams.value.search
-    message.error(await extractSdkResponseErrorMsg(error))
+    if (disableSmartsheet) message.error(await extractSdkResponseErrorMsg(error))
+    else searchError.value = error?.response?.status === 408 ? 'timeout' : 'limit'
   }
-  watch(
-    () => searchQueryParams.value.search,
-    () => (searchGaveUpTerm = undefined),
-  )
-  inject(ReloadViewDataHookInj, undefined)?.on(() => (searchGaveUpTerm = undefined))
+  const resetSearchGaveUp = () => {
+    searchGaveUpTerm = undefined
+    searchError.value = undefined
+  }
+  watch(() => searchQueryParams.value.search, resetSearchGaveUp)
+  inject(ReloadViewDataHookInj, undefined)?.on(resetSearchGaveUp)
 
   async function processBatch() {
     if (pendingChunkRequests.length === 0) return
@@ -2238,6 +2244,9 @@ export function useInfiniteData(args: {
     const whereFilter = await callbacks?.getWhereFilter?.(path)
     const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
+    const isSearchCount = !path.length && !!fetchTotalRowsWithSearchQuery.value
+    if (isSearchCount) searchCountPending.value++
+
     try {
       // A search reload: the first chunk carries the count, so the search runs once, not twice.
       const firstChunk =
@@ -2371,6 +2380,8 @@ export function useInfiniteData(args: {
         throw error
       }
       return false
+    } finally {
+      if (isSearchCount) searchCountPending.value--
     }
   }
 

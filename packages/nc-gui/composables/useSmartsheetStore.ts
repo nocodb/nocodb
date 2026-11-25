@@ -252,6 +252,12 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     /** Why the last all-fields search returned no or possibly incomplete rows (from its count). */
     const searchState = ref<SearchState>()
 
+    /** Searched count requests in flight; the search box shows a spinner while any run. */
+    const searchCountPending = ref(0)
+
+    /** The current term's search timed out or hit the search limit; shown in the search box. */
+    const searchError = ref<'timeout' | 'limit'>()
+
     const xWhere = computed(() => {
       let where
 
@@ -550,6 +556,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       searchHighlight,
       searchCursorRow,
       searchState,
+      searchCountPending,
+      searchError,
       isViewOperationsAllowed,
     }
   },

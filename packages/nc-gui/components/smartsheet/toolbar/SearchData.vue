@@ -33,6 +33,8 @@ const {
   isAllFieldsSearchSupported,
   searchCursorRow,
   searchState,
+  searchCountPending,
+  searchError,
 } = useSmartsheetStoreOrThrow()
 
 const { lastOpenedViewId } = storeToRefs(useViewsStore())
@@ -126,13 +128,7 @@ const isValidSearchQuery = computed(() => {
 })
 
 const isSearchResultVisible = computed(() => {
-  return (
-    !isDropdownOpen.value &&
-    search.value.query?.trim() &&
-    !isInlineBox.value &&
-    (isGrid.value || isGallery.value) &&
-    !isGroupBy.value
-  )
+  return search.value.query?.trim() && !isInlineBox.value && (isGrid.value || isGallery.value) && !isGroupBy.value
 })
 
 const columns = computed(() => {
@@ -175,13 +171,32 @@ const searchCountTooltip = computed(() =>
   ),
 )
 
-// Arrows stay (disabled) at zero matches so the input doesn't change width.
+const isSearchErrorVisible = computed(() => !!searchError.value && !!search.value.query?.trim())
+
+const searchErrorMessage = computed(() =>
+  searchError.value === 'timeout' ? t('msg.error.searchTimedOut') : t('msg.error.searchTooMany'),
+)
+
 const isSearchNavigationShown = computed(
   () => isAllFieldsSelected.value && isSearchResultVisible.value && isGrid.value && !isGroupBy.value,
 )
 
 // Next/previous steps through the grid's rows, which are all matches (all-fields search only).
-const isSearchNavigationVisible = computed(() => isSearchNavigationShown.value && totalRowsWithSearchQuery.value > 0)
+// Off while an error shows, so Enter retries instead of stepping through the previous term's count.
+const isSearchNavigationVisible = computed(
+  () => isSearchNavigationShown.value && !isSearchErrorVisible.value && totalRowsWithSearchQuery.value > 0,
+)
+
+// Shown only once a search has run past SEARCH_BUSY_DELAY_MS, so quick ones don't flicker.
+const isSearchBusy = ref(false)
+
+const SEARCH_BUSY_DELAY_MS = 150
+
+const { start: startSearchBusyTimer, stop: stopSearchBusyTimer } = useTimeoutFn(
+  () => (isSearchBusy.value = true),
+  SEARCH_BUSY_DELAY_MS,
+  { immediate: false },
+)
 
 // "1/900" replaces "900 matches" only after a step.
 const searchPositionLabel = computed(() =>
@@ -210,6 +225,15 @@ watch(
     }
   },
   { immediate: true },
+)
+
+watch(
+  () => searchCountPending.value > 0,
+  (isPending) => {
+    stopSearchBusyTimer()
+    if (isPending) startSearchBusyTimer()
+    else isSearchBusy.value = false
+  },
 )
 
 if (isList.value && listViewStore) {
@@ -312,6 +336,21 @@ const displayColumnLabel = computed(() => {
   return isAllFieldsSelected.value ? t('labels.allFields') : displayColumn.value?.title
 })
 
+const searchPlaceholder = computed(() =>
+  isAllFieldsSelected.value
+    ? t('placeholder.searchAllFields')
+    : t('placeholder.searchField', { field: displayColumn.value?.title ?? '' }),
+)
+
+const searchShortcutLabel = `${renderCmdOrCtrlKey(true)} F`
+
+const isSearchInputFocused = ref(false)
+
+// Hidden while the field picker is open: picking blurs the input, and the hint would flicker in and out.
+const isShortcutHintVisible = computed(
+  () => !search.value.query && !isSearchInputFocused.value && !isDropdownOpen.value && !isMobileMode.value,
+)
+
 watchDebounced(
   () => search.value.query,
   () => {
@@ -338,12 +377,20 @@ const onSelectOption = (column: ColumnType) => {
   })
 }
 
+// Closing the picker from the box goes back to typing.
+function toggleFieldPicker() {
+  isDropdownOpen.value = !isDropdownOpen.value
+  if (!isDropdownOpen.value) nextTick(() => globalSearchRef.value?.focus())
+}
+
 const handleShowSearchInput = () => {
   if (!search.value.query && lastClosedQuery.value) {
     search.value.query = lastClosedQuery.value
   }
   lastClosedQuery.value = ''
   showSearchBox.value = true
+  // The input is focused below; don't flash the shortcut hint until then.
+  isSearchInputFocused.value = true
 
   setTimeout(() => {
     nextTick(() => {
@@ -462,8 +509,14 @@ useSearchCommands({
 
 <template>
   <div ref="globalSearchWrapperRef" class="nc-global-search-wrapper relative" :class="{ 'min-w-0': props.inline }">
-    <NcTooltip v-if="isSearchButtonVisible" :disabled="!search.query" placement="bottom">
-      <template #title> {{ $t('general.searchIn') }} {{ displayColumnLabel ?? '' }}: {{ search.query }} </template>
+    <NcTooltip v-if="isSearchButtonVisible" placement="bottom">
+      <template #title>
+        <div class="flex items-center gap-2">
+          <span v-if="isSearchErrorVisible">{{ searchErrorMessage }}</span>
+          <span v-else>{{ search.query ? `${searchPlaceholder}: ${search.query}` : $t('placeholder.searchRecords') }}</span>
+          <span class="nc-search-shortcut-tooltip">{{ searchShortcutLabel }}</span>
+        </div>
+      </template>
       <NcButton
         size="small"
         type="text"
@@ -475,7 +528,8 @@ useSearchCommands({
         <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
         <span
           v-if="search.query"
-          class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-nc-fill-primary"
+          class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full"
+          :class="isSearchErrorVisible ? 'bg-nc-content-red-medium' : 'bg-nc-fill-primary'"
           data-testid="nc-global-search-active-indicator"
         />
       </NcButton>
@@ -510,11 +564,20 @@ useSearchCommands({
             :trigger="['click']"
             overlay-class-name="nc-dropdown-toolbar-search-field-option"
           >
-            <div class="flex items-center gap-2 group px-2 cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
-              <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+            <div class="flex items-center gap-2 group px-2 cursor-pointer" @mousedown.prevent @click="toggleFieldPicker">
+              <div
+                v-if="isSearchBusy"
+                class="h-3.5 w-3.5 flex items-center justify-center text-nc-content-brand"
+                role="status"
+                :aria-label="$t('general.loading')"
+                data-testid="nc-search-loading"
+              >
+                <GeneralLoader :size="14" />
+              </div>
+              <GeneralIcon v-else icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
               <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
                 <template v-if="!isFieldListCompact">
-                  <GeneralIcon v-if="isAllFieldsSelected" icon="search" class="!w-3.5 !h-3.5 flex-none" />
+                  <GeneralIcon v-if="isAllFieldsSelected" icon="fields" class="!w-3.5 !h-3.5 flex-none" />
                   <SmartsheetHeaderIcon v-else :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
                 </template>
                 <div v-if="!isMobileMode" class="w-16 text-bodyDefaultSm font-medium truncate">
@@ -554,16 +617,21 @@ useSearchCommands({
               size="small"
               class="!text-bodyDefaultSm flex-1 h-full nc-view-search-data !pl-0"
               :class="isSearchResultVisible ? 'md:!w-28' : 'md:!w-40'"
-              :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
+              :placeholder="searchPlaceholder"
               :bordered="false"
               autocomplete="off"
               data-testid="search-data-input"
               @press-enter="onSearchEnter"
+              @focus="isSearchInputFocused = true"
+              @blur="isSearchInputFocused = false"
             >
             </a-input>
           </form>
+          <div v-if="isShortcutHintVisible" class="flex-none flex items-center pr-2" data-testid="nc-search-shortcut-hint">
+            <span class="nc-search-shortcut-chip">{{ searchShortcutLabel }}</span>
+          </div>
           <div
-            v-if="!isValidSearchQuery || isSearchResultVisible"
+            v-else-if="!isValidSearchQuery || isSearchErrorVisible || isSearchResultVisible"
             class="nc-search-result flex-none flex items-center gap-0.5 my-1.5 pl-1.5 pr-1 border-l-1 border-nc-border-gray-medium"
             data-testid="nc-search-result"
           >
@@ -575,6 +643,20 @@ useSearchCommands({
             >
               <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
             </NcTooltip>
+            <template v-else-if="isSearchErrorVisible">
+              <NcTooltip :title="searchErrorMessage" placement="topRight" class="flex px-1">
+                <GeneralIcon
+                  icon="ncInfo"
+                  class="flex-none h-3.5 w-3.5 text-nc-content-red-medium"
+                  data-testid="nc-search-error"
+                />
+              </NcTooltip>
+              <NcTooltip v-if="searchError === 'timeout'" :title="`${$t('general.retry')} (Enter)`" placement="bottom">
+                <NcButton size="xxsmall" type="text" data-testid="nc-search-retry" @mousedown.prevent @click="onPressEnter">
+                  <GeneralIcon icon="reload" class="h-3.5 w-3.5" />
+                </NcButton>
+              </NcTooltip>
+            </template>
             <template v-else>
               <SmartsheetToolbarSearchDataAllFieldsState
                 v-if="isEeUI"
@@ -590,11 +672,13 @@ useSearchCommands({
                   </template>
                 </template>
                 <span
-                  class="px-1 text-bodySm whitespace-nowrap tabular-nums"
-                  :class="totalRowsWithSearchQuery ? 'text-nc-content-gray-muted' : 'text-nc-content-red-medium'"
+                  class="px-1 text-bodySm whitespace-nowrap tabular-nums text-nc-content-gray-muted"
                   data-testid="nc-search-count"
                 >
-                  <span v-if="searchPositionLabel" class="text-nc-content-gray font-semibold">{{ searchPositionLabel }}</span>
+                  <template v-if="!totalRowsWithSearchQuery">{{ searchCountPending ? '' : $t('labels.noResults') }}</template>
+                  <span v-else-if="searchPositionLabel" class="text-nc-content-gray font-semibold">{{
+                    searchPositionLabel
+                  }}</span>
                   <i18n-t v-else keypath="title.matchCount" :plural="totalRowsWithSearchQuery" tag="span">
                     <template #count>
                       <span :class="{ 'text-nc-content-gray font-semibold': totalRowsWithSearchQuery }">{{
@@ -605,7 +689,7 @@ useSearchCommands({
                 </span>
               </NcTooltip>
               <div
-                v-if="isSearchNavigationShown"
+                v-if="isSearchNavigationVisible"
                 class="nc-search-navigation flex items-center"
                 data-testid="nc-search-navigation"
               >
@@ -613,7 +697,6 @@ useSearchCommands({
                   <NcButton
                     size="xxsmall"
                     type="text"
-                    :disabled="!isSearchNavigationVisible"
                     data-testid="nc-search-navigation-previous"
                     @mousedown.prevent
                     @click="navigateSearch(-1)"
@@ -625,7 +708,6 @@ useSearchCommands({
                   <NcButton
                     size="xxsmall"
                     type="text"
-                    :disabled="!isSearchNavigationVisible"
                     data-testid="nc-search-navigation-next"
                     @mousedown.prevent
                     @click="navigateSearch(1)"
@@ -647,5 +729,13 @@ useSearchCommands({
   @apply !text-gray-400;
   line-height: 0.8rem !important;
   font-size: 0.8rem !important;
+}
+
+.nc-search-shortcut-chip {
+  @apply px-1.5 rounded text-bodySm text-nc-content-gray-muted bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium;
+}
+
+.nc-search-shortcut-tooltip {
+  @apply px-1.5 rounded text-bodySm bg-white/15;
 }
 </style>

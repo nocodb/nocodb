@@ -159,7 +159,7 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
     <template #listItemExtraLeft="{ option }">
       <GeneralIcon
         v-if="option.id === ALL_FIELDS_SEARCH_FIELD"
-        icon="search"
+        icon="fields"
         :class="iconClass"
         class="text-nc-content-gray-muted mx-1 flex-none"
       />

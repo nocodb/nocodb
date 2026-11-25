@@ -44,7 +44,7 @@ export async function isKanbanJunctionStack(column: Column): Promise<boolean> {
 /**
  * Server-built stack buckets for a Kanban summary over a field the viewer
  * can't see. The board sends `(Stack,gb_eq,Value)` / `(Stack,gb_null)` per
- * stack, `(FkId,eq,Id)` / `(Link,blank)` (or `(FkId,null)`) for a link stack, or
+ * stack, `(FkId,eq,Id)` / `(FkId,gb_null)` (or `(FkId,null)`) for a link stack, or
  * `(Link.Id,eq,Id)` / `(Link,blank)` for a junction link; anything else is
  * dropped, and the value becomes a literal filter
  * value — so a viewer can't splice extra conditions into a bucket and
@@ -64,9 +64,9 @@ export function buildKanbanStackBuckets(
   const ref = fkColumnId ?? stackColumn.title;
   const eqPrefix = `(${ref}${junction ? '.Id' : ''},${eqOp},`;
   const nullWhere = `(${ref},${nullOp})`;
-  // A link stack's Uncategorized: a blank link, which also holds a foreign key
-  // naming a trashed record
-  const blankLinkWhere = fkColumnId ? `(${stackColumn.title},blank)` : null;
+  // A link stack's Uncategorized as the stack key reads it (a key naming a
+  // trashed record included); `(FkId,null)` from older clients still passes
+  const fkGroupNullWhere = fkColumnId ? `(${fkColumnId},gb_null)` : null;
   const buckets: Array<{ alias: string; filterArrJson: string }> = [];
 
   for (const entry of entries) {
@@ -76,8 +76,8 @@ export function buildKanbanStackBuckets(
     if (typeof where !== 'string') continue;
 
     let filter: Record<string, unknown> | null = null;
-    if (blankLinkWhere && where === blankLinkWhere) {
-      filter = { fk_column_id: stackColumn.id, comparison_op: 'blank' };
+    if (fkGroupNullWhere && where === fkGroupNullWhere) {
+      filter = { fk_column_id: fkColumnId, comparison_op: 'gb_null' };
     } else if (where === nullWhere) {
       filter = { fk_column_id: columnId, comparison_op: nullOp };
     } else if (where.startsWith(eqPrefix) && where.endsWith(')')) {

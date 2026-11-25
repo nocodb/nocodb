@@ -74,6 +74,7 @@ import type { XKnex } from '~/db/CustomKnex';
 import type {
   IBaseModelSqlV2,
   PermanentDeleteOptions,
+  TrashAwareFkGroupParent,
 } from '~/db/IBaseModelSqlV2';
 import type { NestedLinkLastModifiedEntry } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import type {
@@ -381,6 +382,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected _columns = {};
   protected _softDeleteColumnName: Promise<string | null> | undefined;
   protected _rlsConditions: Promise<Filter[]> | undefined;
+  private _trashAwareFkGroupParents = new Map<
+    string,
+    Promise<TrashAwareFkGroupParent | null>
+  >();
   // lookup column id -> its resolved target; read by every execAndParse pass
   protected _nestedColumns = new Map<string, Promise<Column | any>>();
   // set when columns are edited under this instance: its loaded columns may be stale
@@ -7897,9 +7902,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * For a belongs-to link's foreign key whose linked table keeps trashed
    * records: a subquery of the live linked record a row names, so a key naming
    * a trashed one groups as empty, as the link itself reads. Null otherwise.
+   * Memoised per column: one instance serves one request.
    */
-  private async getTrashAwareFkGroupParent(column: Column) {
-    if (isVirtualCol(column)) return null;
+  public getTrashAwareFkGroupParent(
+    column: Column,
+  ): Promise<TrashAwareFkGroupParent | null> {
+    if (isVirtualCol(column)) return Promise.resolve(null);
+    let parent = this._trashAwareFkGroupParents.get(column.id);
+    if (!parent) {
+      parent = this.resolveTrashAwareFkGroupParent(column);
+      this._trashAwareFkGroupParents.set(column.id, parent);
+    }
+    return parent;
+  }
+
+  private async resolveTrashAwareFkGroupParent(
+    column: Column,
+  ): Promise<TrashAwareFkGroupParent | null> {
     for (const linkColumn of await this.model.getColumns()) {
       if (!isLinksOrLTAR(linkColumn)) continue;
       const relation =
@@ -7915,7 +7934,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
       const parentColumn = await relation.getParentColumn();
       const parentModel = await parentColumn?.getModel();
-      if (!parentModel || parentModel.source_id !== this.model.source_id)
+      // A cross-base parent shares the connection, as the link's own filters assume
+      if (
+        !parentModel ||
+        (parentModel.source_id !== this.model.source_id &&
+          !relation.isCrossBaseLink())
+      )
         return null;
       const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
         model: parentModel,

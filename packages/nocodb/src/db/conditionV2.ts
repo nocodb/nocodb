@@ -474,8 +474,39 @@ const parseConditionV2 = async (
           },
         };
       } else {
-        filter.comparison_op =
-          (filter.comparison_op as any) === 'gb_eq' ? 'eq' : 'blank';
+        const isGbEq = (filter.comparison_op as any) === 'gb_eq';
+        // A foreign key's empty group is NULL: `blank` also compares to ''
+        const emptyOp = column.uidt === UITypes.ForeignKey ? 'null' : 'blank';
+        // A belongs-to foreign key naming a trashed record groups as empty
+        // (getGroupingKeyQuery): its group filters match the same rows
+        const fkParent =
+          column.fk_model_id === baseModelSqlv2.model.id
+            ? await baseModelSqlv2.getTrashAwareFkGroupParent(column)
+            : null;
+        if (fkParent) {
+          const plain = await parseConditionV2(
+            baseModelSqlv2,
+            new Filter({
+              ...filter,
+              comparison_op: isGbEq ? 'eq' : emptyOp,
+            }),
+            aliasCount,
+            alias,
+            undefined,
+            throwErrorIfInvalid,
+          );
+          if (!plain) return plain;
+          const live = () => fkParent.liveParent(alias).select(knex.raw('1'));
+          return {
+            rootApply: plain.rootApply,
+            clause: (qb) =>
+              qb.where((inner) => {
+                if (isGbEq) inner.where(plain.clause).whereExists(live());
+                else inner.where(plain.clause).orWhereNotExists(live());
+              }),
+          };
+        }
+        filter.comparison_op = isGbEq ? 'eq' : emptyOp;
         // if qrCode or Barcode replace it with value column
         if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt))
           filter.fk_column_id = await column

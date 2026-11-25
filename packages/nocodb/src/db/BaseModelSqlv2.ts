@@ -24,6 +24,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isDeletedCol,
+  isFkBelongsToLink,
   isKanbanJunctionLink,
   isLinksOrLTAR,
   isMMOrMMLike,
@@ -73,6 +74,7 @@ import type { XKnex } from '~/db/CustomKnex';
 import type {
   IBaseModelSqlV2,
   PermanentDeleteOptions,
+  TrashAwareFkGroupParent,
 } from '~/db/IBaseModelSqlV2';
 import type { NestedLinkLastModifiedEntry } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import type {
@@ -380,6 +382,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected _columns = {};
   protected _softDeleteColumnName: Promise<string | null> | undefined;
   protected _rlsConditions: Promise<Filter[]> | undefined;
+  private _trashAwareFkGroupParents = new Map<
+    string,
+    Promise<TrashAwareFkGroupParent | null>
+  >();
   // lookup column id -> its resolved target; read by every execAndParse pass
   protected _nestedColumns = new Map<string, Promise<Column | any>>();
   // set when columns are edited under this instance: its loaded columns may be stale
@@ -7893,8 +7899,109 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   /**
+   * For a belongs-to link's foreign key whose linked table keeps trashed
+   * records: a subquery of the live linked record a row names, so a key naming
+   * a trashed one groups as empty, as the link itself reads. Null otherwise.
+   * Memoised per column: one instance serves one request.
+   */
+  public getTrashAwareFkGroupParent(
+    column: Column,
+  ): Promise<TrashAwareFkGroupParent | null> {
+    if (isVirtualCol(column)) return Promise.resolve(null);
+    let parent = this._trashAwareFkGroupParents.get(column.id);
+    if (!parent) {
+      parent = this.resolveTrashAwareFkGroupParent(column);
+      this._trashAwareFkGroupParents.set(column.id, parent);
+    }
+    return parent;
+  }
+
+  private async resolveTrashAwareFkGroupParent(
+    column: Column,
+  ): Promise<TrashAwareFkGroupParent | null> {
+    for (const linkColumn of await this.model.getColumns()) {
+      if (!isLinksOrLTAR(linkColumn)) continue;
+      const relation =
+        await linkColumn.getColOptions<LinkToAnotherRecordColumn>();
+      if (
+        relation?.fk_child_column_id !== column.id ||
+        !isFkBelongsToLink({ ...linkColumn, colOptions: relation })
+      )
+        continue;
+
+      const { parentContext } = await relation.getParentChildContext(
+        linkColumn,
+      );
+      const parentColumn = await relation.getParentColumn();
+      const parentModel = await parentColumn?.getModel();
+      // A cross-base parent shares the connection, as the link's own filters assume
+      if (
+        !parentModel ||
+        (parentModel.source_id !== this.model.source_id &&
+          !relation.isCrossBaseLink())
+      )
+        return null;
+      const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+        model: parentModel,
+        dbDriver: this.dbDriver,
+      });
+      const parentAlias = '__nc_grp_parent';
+      const softDeleteFilter = await getAliasedSoftDeleteFilter(
+        parentBaseModel,
+        parentAlias,
+      );
+      if (!softDeleteFilter) return null;
+
+      const parentRef = `${parentAlias}.${parentColumn.column_name}`;
+      return {
+        parentRef,
+        liveParent: (rootRef: string = this.tnPath) =>
+          this.dbDriver(
+            parentBaseModel.getTnPath(parentModel.table_name, parentAlias),
+          )
+            .where(
+              parentRef,
+              this.dbDriver.raw('??', [`${rootRef}.${column.column_name}`]),
+            )
+            .where(softDeleteFilter),
+      };
+    }
+    return null;
+  }
+
+  /** Whether a grouping column's key is an expression (`getGroupingKeyQuery`), not the column. */
+  public async usesGroupingKeyQuery(column: Column) {
+    return (
+      this.isJunctionGroupingColumn(column) ||
+      !!(await this.getTrashAwareFkGroupParent(column))
+    );
+  }
+
+  /**
+   * Narrows `qb` to one stack of a keyed grouping column, or undefined for a
+   * column compared directly.
+   */
+  public async getGroupingStackFilter(column: Column) {
+    if (this.isJunctionGroupingColumn(column))
+      return this.getJunctionStackFilter(column);
+
+    const fkParent = await this.getTrashAwareFkGroupParent(column);
+    if (!fkParent) return undefined;
+    const fkRef = `${this.tnPath}.${column.column_name}`;
+    return (qb: Knex.QueryBuilder, key: string | number | null) => {
+      const live = fkParent.liveParent().select(this.dbDriver.raw('1'));
+      if (key === null)
+        return qb.where((inner) =>
+          inner.whereNull(fkRef).orWhereNotExists(live),
+        );
+      return qb.where(fkRef, key).whereExists(live);
+    };
+  }
+
+  /**
    * SQL for a row's group key: the column itself, or for a junction link the id
-   * of the one record it names (null when unlinked or that record is deleted).
+   * of the one record it names (null when unlinked or that record is deleted),
+   * as for a belongs-to foreign key whose linked table keeps trashed records.
    * `rootRef` is how the outer query names this table. Wrapped: a Knex.Raw is
    * thenable, so resolving a promise with one would run it.
    */
@@ -7903,6 +8010,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     rootRef: string = this.tnPath,
   ): Promise<{ sql: Knex.Raw }> {
     if (!this.isJunctionGroupingColumn(column)) {
+      const fkParent = await this.getTrashAwareFkGroupParent(column);
+      if (fkParent) {
+        return {
+          sql: rawFromBuilder(
+            this.dbDriver,
+            fkParent.liveParent(rootRef).select(fkParent.parentRef),
+          ).wrap('(', ')'),
+        };
+      }
       return {
         sql: this.dbDriver.raw('??', [`${rootRef}.${column.column_name}`]),
       };
@@ -8083,6 +8199,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     },
   ): Promise<Set<any>> {
     const isJunction = this.isJunctionGroupingColumn(column);
+    const isKeyed = await this.usesGroupingKeyQuery(column);
 
     // TODO: Add virtual column support
     if (isVirtualCol(column) && !isJunction) {
@@ -8103,7 +8220,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       groupingValues.add(null);
     } else {
       const keyAlias = '__nc_grp_key';
-      const qb = isJunction
+      const qb = isKeyed
         ? this.dbDriver(this.tnPath).select(
             this.dbDriver.raw('? as ??', [
               (await this.getGroupingKeyQuery(column)).sql,
@@ -8164,7 +8281,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         : MAX_GROUPING_VALUES;
 
       // A junction key is an expression: distinct over the scoped rows
-      const discoveryQb = isJunction
+      const discoveryQb = isKeyed
         ? this.dbDriver
             .from(qb.as('__nc_grp_keys'))
             .distinct(keyAlias)
@@ -8174,7 +8291,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const discoveredValues = (
         await this.execAndParse(discoveryQb, null, { raw: true })
-      ).map((row) => row[isJunction ? keyAlias : column.column_name]);
+      ).map((row) => row[isKeyed ? keyAlias : column.column_name]);
 
       if (discoveredValues.length > maxGroupingValues) {
         NcError.get(this.context).badRequest(
@@ -8206,6 +8323,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const columns = await this.model.getColumns();
       const column = await this.resolveGroupingColumn(args.groupColumnId);
       const isJunction = this.isJunctionGroupingColumn(column);
+      const isKeyed = await this.usesGroupingKeyQuery(column);
 
       if (isVirtualCol(column) && !isJunction)
         NcError.get(this.context).notImplemented(
@@ -8232,14 +8350,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.selectObject({ qb, extractPkAndPv: true });
 
       const keyAlias = '__nc_grp_key';
-      const keyQuery = isJunction
+      const keyQuery = isKeyed
         ? (await this.getGroupingKeyQuery(column)).sql
         : undefined;
       if (keyQuery)
         qb.select(this.dbDriver.raw('? as ??', [keyQuery, keyAlias]));
-      const filterJunctionStack = isJunction
-        ? await this.getJunctionStackFilter(column)
-        : undefined;
+      const filterKeyedStack = await this.getGroupingStackFilter(column);
 
       // todo: refactor and move to a method (applyFilterAndSort)
       const aliasColObjMap = await this.model.getAliasColObjMap(columns);
@@ -8349,8 +8465,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           .unionAll(
             [...groupingValues].map((r) => {
               const query = qb.clone();
-              if (filterJunctionStack) {
-                filterJunctionStack(query, r as string | number | null);
+              if (filterKeyedStack) {
+                filterKeyedStack(query, r as string | number | null);
               } else if (r === null) {
                 query.where((qb) => {
                   qb.whereNull(column.column_name);
@@ -8425,13 +8541,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const columns = await this.model.getColumns();
     const column = await this.resolveGroupingColumn(args.groupColumnId);
     const isJunction = this.isJunctionGroupingColumn(column);
+    const isKeyed = await this.usesGroupingKeyQuery(column);
 
     if (isVirtualCol(column) && !isJunction)
       NcError.get(this.context).notImplemented('Grouping for virtual columns');
 
-    // A junction key is an expression, which some dialects can't GROUP BY
-    // directly: select it per row here and count over it below
-    const qb: Knex.QueryBuilder = isJunction
+    // A key expression (junction link, trash-aware foreign key) can't be
+    // grouped directly in some dialects: select it per row, count below
+    const qb: Knex.QueryBuilder = isKeyed
       ? this.dbDriver(this.tnPath).select(
           this.dbDriver.raw('? as ??', [
             (await this.getGroupingKeyQuery(column)).sql,
@@ -8440,7 +8557,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         )
       : this.dbDriver(this.tnPath).count('*', { as: 'count' });
 
-    if (isJunction) {
+    if (isKeyed) {
       // grouped by the outer query
     } else if (
       column.uidt === UITypes.SingleSelect &&
@@ -8543,7 +8660,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb.where(softDeleteFilterGLC);
     }
 
-    if (isJunction) {
+    if (isKeyed) {
       return await this.execAndParse(
         this.dbDriver
           .from(qb.as('__nc_grp_keys'))

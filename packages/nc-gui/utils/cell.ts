@@ -124,12 +124,14 @@ export const isShowNullField = (column: ColumnType) => {
   ].includes(column.uidt as UITypes)
 }
 
+/** Text is picked for the colourblind-swapped colour, so paint the chip background with `toDisplayOptionColor` too. */
 export const getSelectTypeOptionTextColor = (
   color: string | null | undefined,
   getColor: GetColorType,
   disableGetColor = false,
 ): string => {
   color = color ?? disableGetColor ? color || '#ccc' : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)') // Set default only if color is null or undefined
+  color = toDisplayOptionColor(color)
 
   return tinycolor.isReadable(color, '#fff', { level: 'AA', size: 'large' })
     ? '#fff'
@@ -162,6 +164,8 @@ export const getSelectTypeFieldOptionBgColor = ({
   if (!color) {
     return getColor ? getColor('var(--nc-bg-gray-medium)') : 'var(--nc-bg-gray-medium)'
   }
+
+  color = toDisplayOptionColor(color, isDark)
 
   if (isDark) {
     // `shade` predates the chip resolver and no caller sets it — honour it only if one does.

@@ -1,4 +1,5 @@
 import type { Row } from '~/lib/types'
+import { isColorblindPaletteOn } from '~/utils/colorsUtils'
 
 // Resolved colours for a single calendar event, independent of which display
 // theme is active. Calendar cards never receive a preset `color` prop — the
@@ -33,8 +34,14 @@ const NEUTRAL: CalendarEventColors = {
 // Accents for uncoloured events when a view has several date ranges, one per range.
 const RANGE_ACCENTS = ['#3366FF', '#F97316', '#16A34A', '#9333EA', '#E11D48', '#0891B2']
 
+// Okabe-Ito accents, used while the colourblind preference is on.
+const RANGE_ACCENTS_COLORBLIND = ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#D55E00', '#56B4E9']
+
 // Accent of the range at `index`, as used on its cards.
-export const getCalendarRangeAccent = (index: number) => RANGE_ACCENTS[index % RANGE_ACCENTS.length]
+export const getCalendarRangeAccent = (index: number) => {
+  const accents = isColorblindPaletteOn.value ? RANGE_ACCENTS_COLORBLIND : RANGE_ACCENTS
+  return accents[index % accents.length]
+}
 
 export function getCalendarEventColors(record?: Row): CalendarEventColors {
   const accent = record?.rowMeta?.rowLeftBorderColor

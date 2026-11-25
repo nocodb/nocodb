@@ -4190,7 +4190,7 @@
       "weekStartsOnSubtitle": "Used by calendar views and date pickers.",
       "accessibility": "Accessibility",
       "colorblindPalette": "Colourblind-friendly colours",
-      "colorblindPaletteSubtitle": "Show auto-assigned option colours in a palette that stays distinct with colour-vision deficiency. Colours picked by hand stay the same, and only you see the change."
+      "colorblindPaletteSubtitle": "Use colours that stay distinct with colour-vision deficiency for auto-assigned options, charts, calendar date ranges and filtered fields. Colours picked by hand stay the same, and only you see the change."
     },
     "personalAccessToken": "Personal Access Token",
     "airtableTokenViewHint": "Required for a shared base. Not needed for a shared view link.",

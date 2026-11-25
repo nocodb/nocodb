@@ -62,30 +62,60 @@ export function useColumnFilteredOrSorted() {
     }
   }
 
-  const appearanceConfig = {
-    FILTERED: {
-      'cellBgColor': themeV3Colors.green['50'],
-      'cellBgColor.hovered': themeV3Colors.green['100'],
-      'cellBgColor.selected': themeV3Colors.green['100'],
-      'cellBorderColor': themeV3Colors.gray['200'],
-      'cellBorderColor.hovered': themeV3Colors.gray['200'],
-      'cellBorderColor.selected': themeV3Colors.gray['200'],
-      'cellBgClass': '!bg-nc-green-50 column-filtered',
-      'toolbarBgClass': '!bg-nc-bg-green-light !hover:bg-nc-bg-green-dark',
-      'toolbarChipBgClass': 'bg-nc-bg-green-dark group-hover:bg-nc-green-200',
-      'toolbarTextClass': 'text-nc-green-700',
+  const filteredAppearance = {
+    'cellBgColor': themeV3Colors.green['50'],
+    'cellBgColor.hovered': themeV3Colors.green['100'],
+    'cellBgColor.selected': themeV3Colors.green['100'],
+    'cellBorderColor': themeV3Colors.gray['200'],
+    'cellBorderColor.hovered': themeV3Colors.gray['200'],
+    'cellBorderColor.selected': themeV3Colors.gray['200'],
+    'cellBgClass': '!bg-nc-green-50 column-filtered',
+    'toolbarBgClass': '!bg-nc-bg-green-light !hover:bg-nc-bg-green-dark',
+    'toolbarChipBgClass': 'bg-nc-bg-green-dark group-hover:bg-nc-green-200',
+    'toolbarTextClass': 'text-nc-green-700',
+    'headerBgColor': '#27D66510',
+    'headerBgClass':
+      "relative !bg-[var(--color-base-white)] after:(content-[''] absolute block inset-0 !bg-[#27D66510] pointer-events-none)",
+    'canvas': {
+      'cellBgColor': themeV4Colors.green['50'],
+      'cellBgColor.hovered': themeV4Colors.green['100'],
+      'cellBgColor.selected': themeV4Colors.green['100'],
+      'cellBorderColor': themeV4Colors.gray['200'],
+      'cellBorderColor.hovered': themeV4Colors.gray['200'],
+      'cellBorderColor.selected': themeV4Colors.gray['200'],
       'headerBgColor': '#27D66510',
-      'headerBgClass':
-        "relative !bg-[var(--color-base-white)] after:(content-[''] absolute block inset-0 !bg-[#27D66510] pointer-events-none)",
-      'canvas': {
-        'cellBgColor': themeV4Colors.green['50'],
-        'cellBgColor.hovered': themeV4Colors.green['100'],
-        'cellBgColor.selected': themeV4Colors.green['100'],
-        'cellBorderColor': themeV4Colors.gray['200'],
-        'cellBorderColor.hovered': themeV4Colors.gray['200'],
-        'cellBorderColor.selected': themeV4Colors.gray['200'],
-        'headerBgColor': '#27D66510',
-      },
+    },
+  }
+
+  // Green vs orange is the hardest pair for red-green colour blindness; purple keeps filter and sort apart.
+  const filteredColorblindAppearance = {
+    'cellBgColor': themeV3Colors.purple['50'],
+    'cellBgColor.hovered': themeV3Colors.purple['100'],
+    'cellBgColor.selected': themeV3Colors.purple['100'],
+    'cellBorderColor': themeV3Colors.gray['200'],
+    'cellBorderColor.hovered': themeV3Colors.gray['200'],
+    'cellBorderColor.selected': themeV3Colors.gray['200'],
+    'cellBgClass': '!bg-nc-purple-50 column-filtered',
+    'toolbarBgClass': '!bg-nc-bg-purple-light !hover:bg-nc-bg-purple-dark',
+    'toolbarChipBgClass': 'bg-nc-bg-purple-dark group-hover:bg-nc-purple-200',
+    'toolbarTextClass': 'text-nc-purple-700',
+    'headerBgColor': '#7D26CD10',
+    'headerBgClass':
+      "relative !bg-[var(--color-base-white)] after:(content-[''] absolute block inset-0 !bg-[#7D26CD10] pointer-events-none)",
+    'canvas': {
+      'cellBgColor': themeV4Colors.purple['50'],
+      'cellBgColor.hovered': themeV4Colors.purple['100'],
+      'cellBgColor.selected': themeV4Colors.purple['100'],
+      'cellBorderColor': themeV4Colors.gray['200'],
+      'cellBorderColor.hovered': themeV4Colors.gray['200'],
+      'cellBorderColor.selected': themeV4Colors.gray['200'],
+      'headerBgColor': '#7D26CD10',
+    },
+  }
+
+  const appearanceConfig = {
+    get FILTERED() {
+      return isColorblindPaletteOn.value ? filteredColorblindAppearance : filteredAppearance
     },
     SORTED: {
       'cellBgColor': themeV3Colors.orange['50'],

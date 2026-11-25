@@ -2640,6 +2640,7 @@
     "categories": "Categories",
     "legendTitle": "Legend title",
     "palette": "Palette",
+    "chartPaletteColorblindNote": "Your colourblind preference shows charts in a safe palette. Everyone else sees the palette you pick.",
     "legendOrientation": "Legend orientation",
     "showRecordCountInLegend": "Show record count in legend",
     "showPercentageOnChart": "Show percentage on chart",

@@ -65,6 +65,9 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
    *
    * MySQL preserves case-sensitive `eq` / `neq` via LongTextMysqlHandler's
    * `filterEq` / `filterNeq` overrides (`BINARY ?? = ?`).
+   *
+   * A number or boolean value (a `filterArrJson` filter, e.g. from a workflow
+   * variable) is compared as text: PG has no `text = integer` operator.
    */
   override async filter(
     knex: CustomKnex,
@@ -72,16 +75,17 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
     column: Column,
     options: FilterOptions,
   ) {
-    if (!isAIPromptCol(column)) {
-      return super.filter(knex, filter, column, options);
-    }
-
-    const aiField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw =
+    const field: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw =
       options.customWhereClause ??
       this.getFieldExpression(knex, column, options.alias);
 
+    const val =
+      typeof filter.value === 'number' || typeof filter.value === 'boolean'
+        ? String(filter.value)
+        : filter.value;
+
     return this.handleFilter(
-      { val: filter.value, sourceField: aiField },
+      { val, sourceField: field },
       { knex, filter, column },
       options,
     );

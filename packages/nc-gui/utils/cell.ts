@@ -165,7 +165,7 @@ export const getSelectTypeFieldOptionBgColor = ({
     return getColor ? getColor('var(--nc-bg-gray-medium)') : 'var(--nc-bg-gray-medium)'
   }
 
-  color = toDisplayOptionColor(color)
+  color = toDisplayOptionColor(color, isDark)
 
   if (isDark) {
     // `shade` predates the chip resolver and no caller sets it — honour it only if one does.

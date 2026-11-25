@@ -4,6 +4,10 @@ import tinycolor from 'tinycolor2'
 import { ref } from 'vue'
 export { enumColors as enumColor } from 'nocodb-sdk'
 
+/** The surface a dark-mode chip sits on, and the separation the deep row has to keep from it. */
+const DARK_CHIP_SURFACE = '#171717'
+const DEEP_TILE_MIN_CONTRAST = 1.5
+
 export const COLORBLIND_PALETTE_META_KEY = 'colorblind_palette'
 
 // Paul Tol's "muted" scheme: nine hues that stay apart under the common colour-vision deficiencies, plus grey.
@@ -30,11 +34,26 @@ const colorblindColorMap = new Map<string, string>(
 /** Synced from the signed-in user's preference in `useGlobal`. */
 export const isColorblindPaletteOn = ref(false)
 
+const colorblindDarkCache = new Map<string, string>()
+
 /** Default palette colours show as their colourblind-safe counterpart when the user has that on; custom colours pass through. */
-export const toDisplayOptionColor = <T extends string | null | undefined>(color: T): T => {
+export const toDisplayOptionColor = <T extends string | null | undefined>(color: T, isDark = false): T => {
   if (!color || !isColorblindPaletteOn.value) return color
 
-  return (colorblindColorMap.get(color.toLowerCase()) ?? color) as T
+  const swapped = colorblindColorMap.get(color.toLowerCase())
+  if (!swapped) return color
+  if (!isDark) return swapped as T
+
+  // Dark chips need the tile to separate from the surface; Tol's indigo sits under that floor.
+  let lifted = colorblindDarkCache.get(swapped)
+  if (!lifted) {
+    let tile = tinycolor(swapped)
+    while (tinycolor.readability(tile, DARK_CHIP_SURFACE) < DEEP_TILE_MIN_CONTRAST) tile = tile.lighten(2)
+    lifted = tile.toHexString()
+    colorblindDarkCache.set(swapped, lifted)
+  }
+
+  return lifted as T
 }
 
 // UnoCSS ships shorthand (1-9), 950 and DEFAULT keys alongside the 50-900 shades.
@@ -961,10 +980,6 @@ export const DEFAULT_PALETTE_HUES = ['gray', 'red', 'orange', 'yellow', 'green',
 /** Ramp stops for the three light rows: wash, tint, vivid. 500 is peak chroma in every ramp. */
 const DEFAULT_PALETTE_TONES = ['100', '300', '500'] as const
 
-/** The surface a dark-mode chip sits on, and the separation the deep row has to keep from it. */
-const DARK_CHIP_SURFACE = '#171717'
-const DEEP_TILE_MIN_CONTRAST = 1.5
-
 /**
  * The "Default colours" swatch grid — one row per tier, one column per hue.
  *
@@ -1236,7 +1251,7 @@ const solidChipInk = (color: tinycolor.Instance, background: string) => {
  *  - dark, pastel — the surface lifted with white, the colour moved into the label
  */
 export const getSelectChipColors = (color: string, isDark: boolean): { bg: string; ink: string } => {
-  color = toDisplayOptionColor(color)
+  color = toDisplayOptionColor(color, isDark)
 
   const cacheKey = `${color}|${isDark ? 'd' : 'l'}`
 

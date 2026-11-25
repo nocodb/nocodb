@@ -37,7 +37,7 @@ jobs:
 
       # enable after fixing all validation errors
       #        - name: Validate OpenAPI definition
-      #          uses: char0n/swagger-editor-validate@v1
+      #          uses: char0n/swagger-editor-validate@fe35d650e9fc674505607519d0d12ab4de5d415d # v1
       #          with:
       #            swagger-editor-url: http://localhost/
       #            definition-file: packages/nocodb/src/schema/swagger.json

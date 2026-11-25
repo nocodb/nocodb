@@ -110,6 +110,11 @@ import {
 import { getReplay, setReplay } from '~/helpers/replayScope';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
+import {
+  getIdentifierLength,
+  getIdentifierLengthUnit,
+  truncateIdentifier,
+} from '~/helpers/identifierLength';
 import { extractProps } from '~/helpers/extractProps';
 import { isRowDataUnchanged } from '~/helpers/isRowDataUnchanged';
 import { isTableVisible } from '~/helpers/tableHelpers';
@@ -1501,9 +1506,18 @@ export class ColumnsService implements IColumnsService {
       param.column.title = param.column.title.trim();
     }
 
-    if (param.column.column_name && !isMetaOnlyUpdateAllowed) {
+    // An unchanged name is already valid in the DB; trimming it would rename it.
+    if (
+      param.column.column_name &&
+      !isMetaOnlyUpdateAllowed &&
+      param.column.column_name !== column.column_name
+    ) {
       // - 5 is a buffer for suffix
-      let colName = param.column.column_name.slice(0, mxColumnLength - 5);
+      let colName = truncateIdentifier(
+        param.column.column_name,
+        mxColumnLength - 5,
+        sqlClientType,
+      );
       let suffix = 1;
       while (
         !(await Column.checkTitleAvailable(context, {
@@ -1512,7 +1526,11 @@ export class ColumnsService implements IColumnsService {
           exclude_id: param.columnId,
         }))
       ) {
-        colName = param.column.column_name.slice(0, mxColumnLength - 5);
+        colName = truncateIdentifier(
+          param.column.column_name,
+          mxColumnLength - 5,
+          sqlClientType,
+        );
         colName += `_${suffix++}`;
       }
       param.column.column_name = colName;
@@ -1522,10 +1540,16 @@ export class ColumnsService implements IColumnsService {
       !isMetaOnlyUpdateAllowed &&
       !isVirtualCol(param.column) &&
       param.column.column_name &&
-      param.column.column_name.length > mxColumnLength
+      getIdentifierLength(param.column.column_name, sqlClientType) >
+        mxColumnLength
     ) {
       NcError.get(context).invalidRequestBody(
-        `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
+        `Column name ${
+          param.column.column_name
+        } exceeds ${mxColumnLength} ${getIdentifierLengthUnit(
+          param.column.column_name,
+          sqlClientType,
+        )}`,
       );
     }
 
@@ -4681,7 +4705,11 @@ export class ColumnsService implements IColumnsService {
 
       if (param.column.column_name) {
         // - 5 is a buffer for suffix
-        let colName = param.column.column_name.slice(0, mxColumnLength - 5);
+        let colName = truncateIdentifier(
+          param.column.column_name,
+          mxColumnLength - 5,
+          sqlClientType,
+        );
         let suffix = 1;
         while (
           !(await Column.checkTitleAvailable(context, {
@@ -4689,7 +4717,11 @@ export class ColumnsService implements IColumnsService {
             fk_model_id: param.tableId,
           }))
         ) {
-          colName = param.column.column_name.slice(0, mxColumnLength - 5);
+          colName = truncateIdentifier(
+            param.column.column_name,
+            mxColumnLength - 5,
+            sqlClientType,
+          );
           colName += `_${suffix++}`;
         }
         param.column.column_name = colName;
@@ -4697,10 +4729,16 @@ export class ColumnsService implements IColumnsService {
 
       if (
         param.column.column_name &&
-        param.column.column_name.length > mxColumnLength
+        getIdentifierLength(param.column.column_name, sqlClientType) >
+          mxColumnLength
       ) {
         NcError.get(context).invalidRequestBody(
-          `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
+          `Column name ${
+            param.column.column_name
+          } exceeds ${mxColumnLength} ${getIdentifierLengthUnit(
+            param.column.column_name,
+            sqlClientType,
+          )}`,
         );
       }
 

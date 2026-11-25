@@ -182,7 +182,10 @@ const isSearchNavigationShown = computed(
 )
 
 // Next/previous steps through the grid's rows, which are all matches (all-fields search only).
-const isSearchNavigationVisible = computed(() => isSearchNavigationShown.value && totalRowsWithSearchQuery.value > 0)
+// Off while an error shows, so Enter retries instead of stepping through the previous term's count.
+const isSearchNavigationVisible = computed(
+  () => isSearchNavigationShown.value && !isSearchErrorVisible.value && totalRowsWithSearchQuery.value > 0,
+)
 
 // Shown only once a search has run past SEARCH_BUSY_DELAY_MS, so quick ones don't flicker.
 const isSearchBusy = ref(false)

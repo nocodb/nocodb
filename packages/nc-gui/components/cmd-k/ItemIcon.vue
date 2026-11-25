@@ -27,7 +27,8 @@ const dotColor = computed(() => {
 
 // Pale safe colours (grey, sand, sky) keep their tone, so they get a ring instead of being darkened into their neighbours.
 const isFaintDot = computed(() => {
-  if (props.icon.type !== 'color' || !dotColor.value || isDark.value || dotColor.value.startsWith('var(')) return false
+  if (props.icon.type !== 'color' || !props.icon.color || !dotColor.value || isDark.value) return false
+  if (toDisplayOptionColor(props.icon.color, false) === props.icon.color) return false
   return tinycolor.readability(dotColor.value, '#ffffff') < 3
 })
 </script>

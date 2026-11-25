@@ -1,5 +1,6 @@
 import { NO_SCOPE as SDK_NO_SCOPE } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import { isColorblindPaletteOn } from '~/utils/colorsUtils'
 
 export const NOCO = 'noco'
 
@@ -255,7 +256,14 @@ function liftPaletteForDark(schema: string, colors: string[]): string[] {
   return lifted
 }
 
+/** Okabe-Ito, with grey in place of black. Replaces the chosen palette while the colourblind preference is on. */
+const CHART_PALETTE_COLORBLIND = ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#56B4E9', '#D55E00', '#F0E442', '#999999']
+
 export const getChartColors = (schema?: string | null, isDark = false): string[] => {
+  if (isColorblindPaletteOn.value && schema !== 'contrast') {
+    return isDark ? liftPaletteForDark('colorblind', CHART_PALETTE_COLORBLIND) : CHART_PALETTE_COLORBLIND
+  }
+
   if ((!schema || schema === 'default') && isDark) return CHART_PALETTE_DEFAULT_DARK
 
   const key = schema ?? 'default'

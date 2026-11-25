@@ -1085,6 +1085,8 @@ function activateCardDrag() {
   const drag = cardDrag.value
   if (!drag || drag.active) return
   drag.active = true
+  // Keeps the card's chunk cached while auto-scroll moves far from it.
+  if (drag.record.rowMeta) drag.record.rowMeta.isDragging = true
   window.getSelection()?.removeAllRanges()
   dragGhostPos.value = { x: drag.lastX - drag.offsetX, y: drag.lastY - drag.offsetY }
   updateCardDropTarget()
@@ -1176,6 +1178,7 @@ useEventListener(
 )
 
 function cleanupCardDrag() {
+  if (cardDrag.value?.record.rowMeta) cardDrag.value.record.rowMeta.isDragging = false
   cardDrag.value = null
   dropIndicator.value = null
   clearTimeout(longPressTimer)
@@ -1236,6 +1239,14 @@ async function onCardDragEnd(e: PointerEvent) {
   })
 
   if (drag.slot === null) return
+
+  // A refresh during the drag can shift or replace rows: act only on the card that was picked up.
+  const current = drag.group ? drag.group.rows?.[drag.from] : cachedRows.value.get(drag.from)
+  const inPlace = !!current && toRaw(current) === toRaw(drag.record)
+  if (!inPlace) {
+    message.info(t('msg.info.groupMoveCancelledRowChanged'))
+    return
+  }
 
   $e('a:record:reorder', { view: 'gallery', grouped: !!drag.group })
 

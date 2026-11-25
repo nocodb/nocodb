@@ -6,10 +6,12 @@ import {
   PermissionKey,
   UITypes,
   ViewTypes,
+  isOrderCol,
   isVirtualCol,
 } from 'nocodb-sdk'
 import { createReusableTemplate } from '@vueuse/core'
 import type { Attachment, Group } from '../../lib/types'
+import { galleryGroupScope, isGalleryReorderAllowed, resolveGalleryCardDrop } from '../../utils/galleryCardReorder'
 import type { Row as RowType } from '#imports'
 import { NavigateDir } from '#imports'
 const meta = inject(MetaInj, ref())
@@ -21,17 +23,17 @@ const { withLoading } = useLoadingTrigger()
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isSharedBase } = storeToRefs(useBase())
+const { isSharedBase, base } = storeToRefs(useBase())
 const fields = inject(FieldsInj, ref([]))
 
-const { appInfo, user } = useGlobal()
+const { appInfo, user, isMobileMode } = useGlobal()
+
+const { $api, $e } = useNuxtApp()
 const { isViewDataLoading, isActiveViewFieldHeaderVisible: storeFieldHeaderVisible } = storeToRefs(useViewsStore())
 
-const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus, sorts } =
+const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus, sorts, isPkAvail } =
   useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
-
-const { $api } = useNuxtApp()
 const { metas } = useMetas()
 const route = useRoute()
 const router = useRouter()
@@ -66,6 +68,7 @@ const {
   clearCache,
   viewData: galleryData,
   updateOrSaveRow,
+  updateRecordOrder,
 } = useGalleryViewData(
   meta,
   view,
@@ -969,6 +972,203 @@ const { onCardEnter, onCardLeave } = useCardCommands({
     showSendRecordModal.value = true
   },
 })
+// #region Card reorder: the grid's dataMove, under its canReorderWithinGroup rules.
+const canReorderCards = computed(() =>
+  isGalleryReorderAllowed({
+    canEditData: isUIAllowed('dataEdit'),
+    isSqlView: !!isSqlView.value,
+    isPublic: isPublic.value,
+    isReadonly: isReadonly.value,
+    hasOrderColumn: (meta.value?.columns ?? []).some((c) => isOrderCol(c)),
+    hasSorts: !!sorts.value?.length,
+    hasPk: !!isPkAvail.value,
+    isMobileMode: isMobileMode.value,
+    isInterface: !!interfacePageDataApi,
+  }),
+)
+
+interface CardDrag {
+  record: RowType
+  from: number
+  group?: Group
+  scope: string
+  startX: number
+  startY: number
+  offsetX: number
+  offsetY: number
+  width: number
+  height: number
+  active: boolean
+  slot: number | null
+}
+
+const cardDrag = ref<CardDrag | null>(null)
+
+const dragGhostPos = ref({ x: 0, y: 0 })
+
+const dropIndicator = ref<{ top: number; left: number; height: number } | null>(null)
+
+let suppressNextCardClick = false
+
+function isDraggedCard(record: RowType) {
+  return !!cardDrag.value?.active && cardDrag.value.record === record
+}
+
+function groupRowPks(group: Group) {
+  return (group.rows ?? []).map((r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[]))
+}
+
+function isValidCardDrop(drag: CardDrag, slot: number) {
+  if (drag.group) {
+    return !!resolveGalleryCardDrop(groupRowPks(drag.group), drag.from, slot, (drag.group.rows?.length ?? 0) >= drag.group.count)
+  }
+  return slot !== drag.from && slot !== drag.from + 1
+}
+
+function onCardMouseDown(e: MouseEvent, record: RowType, index: number | undefined, group?: Group) {
+  if (!canReorderCards.value || e.button !== 0 || record.rowMeta?.new || index === undefined) return
+
+  const target = e.target as HTMLElement
+  if (target.closest('button, a, input, textarea, [contenteditable="true"], .arrow, .slick-dots')) return
+
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+
+  cardDrag.value = {
+    record,
+    from: index,
+    group,
+    scope: galleryGroupScope(group),
+    startX: e.clientX,
+    startY: e.clientY,
+    offsetX: e.clientX - rect.left,
+    offsetY: e.clientY - rect.top,
+    width: rect.width,
+    height: rect.height,
+    active: false,
+    slot: null,
+  }
+
+  window.addEventListener('mousemove', onCardDragMove)
+  window.addEventListener('mouseup', onCardDragEnd)
+  window.addEventListener('keydown', onCardDragKeydown, true)
+}
+
+function onCardDragMove(e: MouseEvent) {
+  const drag = cardDrag.value
+  const container = scrollContainer.value as HTMLElement | undefined
+  if (!drag || !container) return
+
+  if (!drag.active) {
+    if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 5) return
+    drag.active = true
+  }
+
+  e.preventDefault()
+  dragGhostPos.value = { x: e.clientX - drag.offsetX, y: e.clientY - drag.offsetY }
+
+  const containerRect = container.getBoundingClientRect()
+  const cardEl = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-gallery-card-index]')
+
+  if (cardEl && cardEl.dataset.galleryCardScope === drag.scope) {
+    const rect = cardEl.getBoundingClientRect()
+    const after = e.clientX > rect.left + rect.width / 2
+    const slot = Number(cardEl.dataset.galleryCardIndex) + (after ? 1 : 0)
+
+    if (isValidCardDrop(drag, slot)) {
+      drag.slot = slot
+      // Centred in the 12px gap beside the card.
+      dropIndicator.value = {
+        top: rect.top - containerRect.top + container.scrollTop,
+        left: (after ? rect.right + 4.5 : rect.left - 7.5) - containerRect.left + container.scrollLeft,
+        height: rect.height,
+      }
+    } else {
+      drag.slot = null
+      dropIndicator.value = null
+    }
+  } else if (cardEl || e.clientX < containerRect.left || e.clientX > containerRect.right) {
+    // A card of another group, or outside the gallery: no drop. Gaps keep the last target.
+    drag.slot = null
+    dropIndicator.value = null
+  }
+
+  if (e.clientY < containerRect.top + 60) container.scrollTop -= 16
+  else if (e.clientY > containerRect.bottom - 60) container.scrollTop += 16
+}
+
+function cleanupCardDrag() {
+  cardDrag.value = null
+  dropIndicator.value = null
+  window.removeEventListener('mousemove', onCardDragMove)
+  window.removeEventListener('mouseup', onCardDragEnd)
+  window.removeEventListener('keydown', onCardDragKeydown, true)
+}
+
+function onCardDragKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Escape') return
+  e.stopPropagation()
+  cleanupCardDrag()
+}
+
+async function moveCardInGroup(group: Group, from: number, slot: number) {
+  const rows = group.rows
+  if (!rows || !meta.value?.id) return
+
+  const pks = groupRowPks(group)
+  const target = resolveGalleryCardDrop(pks, from, slot, rows.length >= group.count)
+  if (!target) return
+
+  const [moved] = rows.splice(from, 1)
+  rows.splice(slot > from ? slot - 1 : slot, 0, moved!)
+
+  // `before` is a dataMove query param the generated query type doesn't list.
+  const query: Parameters<typeof $api.internal.postOperation>[2] & { before: string | null } = {
+    operation: 'dataMove',
+    tableId: meta.value.id,
+    rowId: pks[from],
+    before: target.before,
+  }
+
+  try {
+    await $api.internal.postOperation(base.value!.fk_workspace_id!, meta.value.base_id!, query, {})
+  } catch (e: any) {
+    message.error(`${t('msg.error.updateRecordOrderFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+    await viewGroupBy?.loadGroupData(group, true, {}, { lean: true })
+  }
+}
+
+async function onCardDragEnd() {
+  const drag = cardDrag.value
+  cleanupCardDrag()
+  if (!drag?.active) return
+
+  // The click that ends a drag must not open the record.
+  suppressNextCardClick = true
+  setTimeout(() => {
+    suppressNextCardClick = false
+  })
+
+  if (drag.slot === null) return
+
+  $e('a:record:reorder', { view: 'gallery', grouped: !!drag.group })
+
+  if (drag.group) {
+    await moveCardInGroup(drag.group, drag.from, drag.slot)
+  } else if (isValidCardDrop(drag, drag.slot)) {
+    await updateRecordOrder(drag.from, drag.slot >= totalRows.value ? null : drag.slot)
+  }
+}
+
+function onGalleryClickCapture(e: MouseEvent) {
+  if (!suppressNextCardClick) return
+  suppressNextCardClick = false
+  e.stopPropagation()
+  e.preventDefault()
+}
+
+onBeforeUnmount(cleanupCardDrag)
+// #endregion
+
 // Covers grouping turned on, the view switched, and a level's field or sort changed.
 watch(
   () =>
@@ -1429,7 +1629,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
           </PermissionsTooltip>
         </NcMenu>
       </template>
-      <div class="flex-1" @contextmenu.capture="resetContextMenuTarget">
+      <div class="flex-1" @contextmenu.capture="resetContextMenuTarget" @click.capture="onGalleryClickCapture">
         <div v-if="isGroupedGallery && viewGroupBy" class="nc-gallery-grouped p-3" data-testid="nc-gallery-grouped">
           <div v-if="isGroupedGalleryLoading && !viewGroupBy.rootGroup.value.children?.length" class="flex justify-center py-10">
             <GeneralLoader size="large" />
@@ -1450,8 +1650,14 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
             :card-height="cardHeight"
             :columns-per-row="columnsPerRow"
           >
-            <template #card="{ record }">
-              <ReuseCard :record="record" />
+            <template #card="{ record, index, group }">
+              <div
+                class="h-full"
+                :class="{ 'opacity-40': isDraggedCard(record) }"
+                @mousedown="onCardMouseDown($event, record, index, group)"
+              >
+                <ReuseCard :record="record" />
+              </div>
             </template>
           </SmartsheetGalleryGroupList>
         </div>
@@ -1462,6 +1668,9 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
               v-for="record in visibleRows"
               :key="`record-${record.rowMeta.rowIndex}`"
               :data-card-id="`record-${record.rowMeta.rowIndex}`"
+              :data-gallery-card-index="record.rowMeta.rowIndex"
+              data-gallery-card-scope="flat"
+              :class="{ 'opacity-40': isDraggedCard(record) }"
               :style="{
                 filter:
                   showAsBluredRecord(isExternalSource, record.rowMeta.rowIndex + 1) && !record.rowMeta.new
@@ -1470,6 +1679,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
                 pointerEvents:
                   showAsBluredRecord(isExternalSource, record.rowMeta.rowIndex + 1) && !record.rowMeta.new ? 'none' : 'auto',
               }"
+              @mousedown="onCardMouseDown($event, record, record.rowMeta.rowIndex, undefined)"
             >
               <ReuseCard :record="record" />
             </div>
@@ -1484,6 +1694,27 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
         </div>
       </div>
     </NcDropdown>
+
+    <div
+      v-if="cardDrag?.active && dropIndicator"
+      class="nc-gallery-drop-indicator absolute w-[3px] rounded-full bg-nc-fill-primary pointer-events-none z-20"
+      data-testid="nc-gallery-drop-indicator"
+      :style="{ top: `${dropIndicator.top}px`, left: `${dropIndicator.left}px`, height: `${dropIndicator.height}px` }"
+    ></div>
+    <div
+      v-if="cardDrag?.active"
+      class="nc-gallery-drag-ghost fixed pointer-events-none z-1000 opacity-90 shadow-lg rounded-xl"
+      data-testid="nc-gallery-drag-ghost"
+      :style="{
+        left: `${dragGhostPos.x}px`,
+        top: `${dragGhostPos.y}px`,
+        width: `${cardDrag.width}px`,
+        height: `${cardDrag.height}px`,
+        transform: 'rotate(2deg)',
+      }"
+    >
+      <ReuseCard :record="cardDrag.record" />
+    </div>
     <!-- Floating new-record button — not shown in interfaces -->
     <div class="sticky bottom-4 w-[fit-content] z-30">
       <PermissionsTooltip
@@ -1914,6 +2145,11 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
 
 <!-- Unscoped: `nc-gallery-theme-*` sits on the host, out of scoped reach. -->
 <style lang="scss">
+// Card parts opt back into pointer events; the ghost must never be the drop target.
+.nc-gallery-drag-ghost * {
+  pointer-events: none !important;
+}
+
 // GALLERY — image tiles (poster / minimal / simple): the image IS the card.
 // White title on the bottom scrim; coverless tiles wear a soft record-color
 // wash (plain gray surface without a record color) with the title centered.

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { galleryGroupScope } from '../../../utils/galleryCardReorder'
 import type { Group, Row } from '~/lib/types'
 
 interface Props {
@@ -19,7 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 defineSlots<{
-  card(props: { record: Row }): any
+  card(props: { record: Row; index: number; group: Group }): any
 }>()
 
 const { meta } = useSmartsheetStoreOrThrow()
@@ -252,8 +253,10 @@ useEventListener(
               :key="rowKey(record, index)"
               :root="scrollRoot"
               :estimated-height="cardHeight"
+              :data-gallery-card-index="index"
+              :data-gallery-card-scope="galleryGroupScope(group)"
             >
-              <slot name="card" :record="record" />
+              <slot name="card" :record="record" :index="index" :group="group" />
             </SmartsheetGalleryCardSlot>
           </div>
 

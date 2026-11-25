@@ -1,7 +1,8 @@
 import { ColumnType } from '~/lib/Api';
 import { ncIsNullOrUndefined, ncIsNumber, ncIsUndefined } from '~/lib/is';
 import { floatAddDumb, floatDivDumb, floatSubDumb } from './decimal';
-const fillHandlerSuffixRegex = /(.*)(\d+)$/;
+// lazy prefix, so the suffix keeps every trailing digit: "Item 99" -> "Item " + "99"
+const fillHandlerSuffixRegex = /(.*?)(\d+)$/;
 
 const getModifierForNumber = ({
   group,
@@ -180,12 +181,16 @@ export function populateFillHandleStringNumber({
         groupOfIndex.group.lastIndex += groupOfIndex.group.modifier;
       }
       // Pure numbers keep their sign; prefixed values ("Item 2") count back up past 0, like Google Sheets.
+      // A zero-padded suffix ("INV-009") keeps its width.
+      const { data } = groupOfIndex.group;
+      const lastSuffix = String(data[data.length - 1]);
+      const width = lastSuffix.startsWith('0') ? lastSuffix.length : 0;
       result.push(
         groupOfIndex.group.prefix === nullPrefix
           ? `${groupOfIndex.group.lastIndex}`
-          : `${groupOfIndex.group.prefix as string}${Math.abs(
-              groupOfIndex.group.lastIndex
-            )}`
+          : `${groupOfIndex.group.prefix as string}${String(
+              Math.abs(groupOfIndex.group.lastIndex)
+            ).padStart(width, '0')}`
       );
     }
   }

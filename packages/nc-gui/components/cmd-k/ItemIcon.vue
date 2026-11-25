@@ -17,6 +17,9 @@ const iconComponent = computed(() => {
 const dotColor = computed(() => {
   if (props.icon.type !== 'color') return
   if (!props.icon.color) return 'var(--nc-content-gray-muted)'
+  // Safe colours tell apart by lightness too, so normalising them would merge pairs like wine and rose.
+  const safeColor = toDisplayOptionColor(props.icon.color, isDark.value)
+  if (safeColor !== props.icon.color) return safeColor
   const { h, s } = tinycolor(props.icon.color).toHsl()
   // Greys stay grey; anything with a hue is pushed to a solid, theme-readable tone.
   return tinycolor({ h, s: s < 0.08 ? s : Math.max(s, 0.65), l: isDark.value ? 0.66 : 0.52 }).toHexString()

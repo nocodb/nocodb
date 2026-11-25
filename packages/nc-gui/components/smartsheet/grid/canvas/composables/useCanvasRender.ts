@@ -292,9 +292,9 @@ export function useCanvasRender({
     isCurrent = false,
   ) {
     if (!cellMatchesSearch(searchHighlight?.value, column.columnObj, value)) return
-    // The current match sits between the cell tint and the term mark (300 / dark 100), so the mark still shows on it.
+    // The current match fills with the term mark's colour, as Airtable does.
     ctx.fillStyle = isCurrent
-      ? getColor(themeV4Colors.yellow['200'], themeV4Colors.yellow['100'], 0.6)
+      ? getColor(themeV4Colors.yellow['300'], themeV4Colors.yellow['100'])
       : getColor(themeV4Colors.yellow['100'], themeV4Colors.yellow['50'], 0.7)
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height)
   }

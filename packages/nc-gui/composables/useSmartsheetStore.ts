@@ -255,6 +255,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     /** Searched count requests in flight; the search box shows a spinner while any run. */
     const searchCountPending = ref(0)
 
+    /** The current term's search timed out or hit the search limit; shown in the search box. */
+    const searchError = ref<'timeout' | 'limit'>()
+
     const xWhere = computed(() => {
       let where
 
@@ -554,6 +557,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       searchCursorRow,
       searchState,
       searchCountPending,
+      searchError,
       isViewOperationsAllowed,
     }
   },

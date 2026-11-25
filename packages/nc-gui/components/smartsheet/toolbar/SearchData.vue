@@ -33,6 +33,7 @@ const {
   isAllFieldsSearchSupported,
   searchCursorRow,
   searchState,
+  searchCountPending,
 } = useSmartsheetStoreOrThrow()
 
 const { lastOpenedViewId } = storeToRefs(useViewsStore())
@@ -183,6 +184,17 @@ const isSearchNavigationShown = computed(
 // Next/previous steps through the grid's rows, which are all matches (all-fields search only).
 const isSearchNavigationVisible = computed(() => isSearchNavigationShown.value && totalRowsWithSearchQuery.value > 0)
 
+// Shown only once a search has run past SEARCH_BUSY_DELAY_MS, so quick ones don't flicker.
+const isSearchBusy = ref(false)
+
+const SEARCH_BUSY_DELAY_MS = 150
+
+const { start: startSearchBusyTimer, stop: stopSearchBusyTimer } = useTimeoutFn(
+  () => (isSearchBusy.value = true),
+  SEARCH_BUSY_DELAY_MS,
+  { immediate: false },
+)
+
 // "1/900" replaces "900 matches" only after a step.
 const searchPositionLabel = computed(() =>
   isSearchStepping.value && isSearchNavigationVisible.value && searchCursorRow.value >= 0
@@ -210,6 +222,15 @@ watch(
     }
   },
   { immediate: true },
+)
+
+watch(
+  () => searchCountPending.value > 0,
+  (isPending) => {
+    stopSearchBusyTimer()
+    if (isPending) startSearchBusyTimer()
+    else isSearchBusy.value = false
+  },
 )
 
 if (isList.value && listViewStore) {
@@ -514,7 +535,7 @@ useSearchCommands({
               <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
               <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
                 <template v-if="!isFieldListCompact">
-                  <GeneralIcon v-if="isAllFieldsSelected" icon="search" class="!w-3.5 !h-3.5 flex-none" />
+                  <GeneralIcon v-if="isAllFieldsSelected" icon="fields" class="!w-3.5 !h-3.5 flex-none" />
                   <SmartsheetHeaderIcon v-else :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
                 </template>
                 <div v-if="!isMobileMode" class="w-16 text-bodyDefaultSm font-medium truncate">
@@ -575,6 +596,15 @@ useSearchCommands({
             >
               <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
             </NcTooltip>
+            <div
+              v-else-if="isSearchBusy"
+              class="flex items-center px-1 text-nc-content-gray-muted"
+              role="status"
+              :aria-label="$t('general.loading')"
+              data-testid="nc-search-loading"
+            >
+              <GeneralLoader size="small" />
+            </div>
             <template v-else>
               <SmartsheetToolbarSearchDataAllFieldsState
                 v-if="isEeUI"

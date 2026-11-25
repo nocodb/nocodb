@@ -283,15 +283,19 @@ export function useCanvasRender({
 
   const searchHighlight = useSmartsheetStore()?.searchHighlight
 
-  /** Tints a cell whose loaded value shows the toolbar search term. */
+  /** Tints a cell whose loaded value shows the toolbar search term; the active cell is the current match. */
   function paintSearchMatch(
     ctx: CanvasRenderingContext2D,
     column: CanvasGridColumn,
     value: unknown,
     rect: { x: number; y: number; width: number; height: number },
+    isCurrent = false,
   ) {
     if (!cellMatchesSearch(searchHighlight?.value, column.columnObj, value)) return
-    ctx.fillStyle = getColor(themeV4Colors.yellow['100'], themeV4Colors.yellow['50'], 0.7)
+    // The current match sits between the cell tint and the term mark (300 / dark 100), so the mark still shows on it.
+    ctx.fillStyle = isCurrent
+      ? getColor(themeV4Colors.yellow['200'], themeV4Colors.yellow['100'], 0.6)
+      : getColor(themeV4Colors.yellow['100'], themeV4Colors.yellow['50'], 0.7)
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height)
   }
 
@@ -2161,8 +2165,8 @@ export function useCanvasRender({
           renderRedBorders.push({ rowIndex: rowIdx, column })
         }
 
-        if (!isActive && !isCellInRange && !recordSelected) {
-          paintSearchMatch(ctx, column, value, { x: xOffset - _scrollLeft, y: yOffset, width, height: _rowH })
+        if (isActive ? !recordSelected : !isCellInRange && !recordSelected) {
+          paintSearchMatch(ctx, column, value, { x: xOffset - _scrollLeft, y: yOffset, width, height: _rowH }, isActive)
         }
 
         const searchMarked = startSearchMark(column, value)
@@ -2297,8 +2301,8 @@ export function useCanvasRender({
               renderRedBorders.push({ rowIndex: rowIdx, column })
             }
 
-            if (!isActive && !isCellInRange && !recordSelected) {
-              paintSearchMatch(ctx, column, value, { x: xOffset, y: yOffset, width, height: _rowH })
+            if (isActive ? !recordSelected : !isCellInRange && !recordSelected) {
+              paintSearchMatch(ctx, column, value, { x: xOffset, y: yOffset, width, height: _rowH }, isActive)
             }
 
             const searchMarked = startSearchMark(column, value)

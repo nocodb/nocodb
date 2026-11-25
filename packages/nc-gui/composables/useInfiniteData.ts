@@ -200,6 +200,7 @@ export function useInfiniteData(args: {
     searchAbortSignal,
     searchQueryParams,
     searchState,
+    searchCountPending,
     eventBus,
   } = disableSmartsheet
     ? {
@@ -219,6 +220,7 @@ export function useInfiniteData(args: {
         searchAbortSignal: ref<AbortSignal | undefined>(),
         searchQueryParams: computed<{ search?: string }>(() => ({})),
         searchState: ref<SearchState>(),
+        searchCountPending: ref(0),
         eventBus: useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore),
       }
     : useSmartsheetStoreOrThrow()
@@ -2238,6 +2240,9 @@ export function useInfiniteData(args: {
     const whereFilter = await callbacks?.getWhereFilter?.(path)
     const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
+    const isSearchCount = !path.length && !!fetchTotalRowsWithSearchQuery.value
+    if (isSearchCount) searchCountPending.value++
+
     try {
       // A search reload: the first chunk carries the count, so the search runs once, not twice.
       const firstChunk =
@@ -2371,6 +2376,8 @@ export function useInfiniteData(args: {
         throw error
       }
       return false
+    } finally {
+      if (isSearchCount) searchCountPending.value--
     }
   }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
-import { parseKey, shouldRenderCell } from '../../../utils/groupbyUtils'
+import { isLinkRecordGroup, parseKey, shouldRenderCell } from '../../../utils/groupbyUtils'
 import type { Group } from '~/lib/types'
 
 interface Props {
@@ -15,12 +15,18 @@ const isColorCodeEnabled = computed(() => parseProp(props.group.column?.meta)?.i
 
 const isVarTitle = computed(() => props.group.key in GROUP_BY_VARS.VAR_TITLES)
 
-const isChipType = computed(() =>
-  [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.LinkToAnotherRecord].includes(props.group.column?.uidt as UITypes),
+// A single-record Links group is keyed by the record's display value, not a count.
+const isLinkRecord = computed(() => isLinkRecordGroup(props.group))
+
+const isChipType = computed(
+  () =>
+    isLinkRecord.value ||
+    [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.LinkToAnotherRecord].includes(props.group.column?.uidt as UITypes),
 )
 
 // Same split as the canvas grid header: one chip per option or linked record.
 const chips = computed(() => {
+  if (isLinkRecord.value) return parseKey(props.group) ?? []
   const parsed = props.group.column?.uidt === UITypes.LinkToAnotherRecord ? parseKey(props.group) : props.group.key
   return (Array.isArray(parsed) ? parsed.flat() : String(parsed ?? '').split(',')).filter((tag) => tag !== '')
 })
@@ -62,7 +68,7 @@ function chipStyle(color?: string) {
         v-for="(tag, tagIndex) of chips"
         :key="`${group.column.id}-${tagIndex}-${tag}`"
         class="nc-gallery-group-chip"
-        :class="group.column.uidt === UITypes.LinkToAnotherRecord ? 'rounded-md' : 'rounded-xl'"
+        :class="group.column.uidt === UITypes.LinkToAnotherRecord || isLinkRecord ? 'rounded-md' : 'rounded-xl'"
         :style="chipStyle(group.color?.split(',')[tagIndex] ?? group.color)"
       >
         {{ tag }}

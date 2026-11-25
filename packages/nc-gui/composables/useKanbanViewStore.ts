@@ -975,8 +975,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         // `.Id` filters a link by the linked record's id rather than its display value
         where = stackTitle === null ? `(${groupingField.value},blank)` : `(${groupingField.value}.Id,eq,${stackTitle})`
       } else if (stackType.value === KanbanStackType.Link) {
-        // Filtered on the foreign key itself: the link column filters on the display value
-        where = stackTitle === null ? `(${linkFkColumnId.value},null)` : `(${linkFkColumnId.value},eq,${stackTitle})`
+        // Filtered on the foreign key itself: the link column filters on the display value.
+        // Uncategorized is a blank link, which also holds a key naming a trashed record.
+        where = stackTitle === null ? `(${groupingField.value},blank)` : `(${linkFkColumnId.value},eq,${stackTitle})`
       }
 
       if (xWhere.value) {
@@ -1659,7 +1660,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         if (isJunctionLinkStack.value) {
           return title === null ? `(${groupingField.value},blank)` : `(${groupingField.value}.Id,eq,${title})`
         }
-        if (fkId) return title === null ? `(${fkId},null)` : `(${fkId},eq,${title})`
+        if (fkId) return title === null ? `(${groupingField.value},blank)` : `(${fkId},eq,${title})`
         return title === null ? `(${groupingField.value},gb_null)` : `(${groupingField.value},gb_eq,${title})`
       }
 

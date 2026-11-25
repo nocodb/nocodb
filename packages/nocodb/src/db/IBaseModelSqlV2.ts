@@ -504,6 +504,11 @@ export interface IBaseModelSqlV2 {
   formulaDryRunFailed?: boolean;
   getRlsConditions(): Promise<Filter[]>;
   getSoftDeleteFilter(tableAlias?: string): Promise<Knex.QueryCallback | null>;
+  usesGroupingKeyQuery(column: Column): Promise<boolean>;
+  getGroupingKeyQuery(
+    column: Column,
+    rootRef?: string,
+  ): Promise<{ sql: Knex.Raw }>;
   updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any): Promise<void>;
   afterSoftDeleteCompleted(params: {
     cookie: NcRequest;

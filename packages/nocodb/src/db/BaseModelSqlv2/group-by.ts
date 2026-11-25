@@ -775,6 +775,16 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         default: {
+          // a belongs-to foreign key naming a trashed record groups as empty
+          if (await baseModel.usesGroupingKeyQuery(column)) {
+            columnQuery = (await baseModel.getGroupingKeyQuery(column)).sql;
+            if (!isSubGroup) {
+              selectors.push(
+                baseModel.dbDriver.raw(`? as ??`, [columnQuery, alias]),
+              );
+            }
+            break;
+          }
           // a LastModifiedBy column tracking specific fields has no
           // physical column — group on its latest-tracked-editor expression
           const defaultColumnName: any = isFieldTrackingLmbCol(column)
@@ -1494,6 +1504,16 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           default:
             {
+              if (await baseModel.usesGroupingKeyQuery(column)) {
+                selectors.push(
+                  baseModel.dbDriver.raw('? as ??', [
+                    (await baseModel.getGroupingKeyQuery(column)).sql,
+                    getAs(column),
+                  ]),
+                );
+                groupBySelectors.push(getAs(column));
+                break;
+              }
               // a LastModifiedBy column tracking specific fields has no
               // physical column — group on its latest-tracked-editor
               // expression

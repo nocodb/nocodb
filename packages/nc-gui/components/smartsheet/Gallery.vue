@@ -992,8 +992,12 @@ interface CardDrag {
   from: number
   group?: Group
   scope: string
+  pointerId: number
+  isTouch: boolean
   startX: number
   startY: number
+  lastX: number
+  lastY: number
   offsetX: number
   offsetY: number
   width: number
@@ -1010,6 +1014,13 @@ const dropIndicator = ref<{ top: number; left: number; height: number } | null>(
 
 let suppressNextCardClick = false
 
+let longPressTimer: ReturnType<typeof setTimeout> | undefined
+
+let autoScrollFrame: number | undefined
+
+// Touch: a long press picks the card up, a move before it scrolls.
+const LONG_PRESS_MS = 350
+
 function isDraggedCard(record: RowType) {
   return !!cardDrag.value?.active && cardDrag.value.record === record
 }
@@ -1025,8 +1036,10 @@ function isValidCardDrop(drag: CardDrag, slot: number) {
   return slot !== drag.from && slot !== drag.from + 1
 }
 
-function onCardMouseDown(e: MouseEvent, record: RowType, index: number | undefined, group?: Group) {
-  if (!canReorderCards.value || e.button !== 0 || record.rowMeta?.new || index === undefined) return
+function onCardPointerDown(e: PointerEvent, record: RowType, index: number | undefined, group?: Group) {
+  if (!canReorderCards.value || !e.isPrimary || record.rowMeta?.new || index === undefined || cardDrag.value) return
+  const isTouch = e.pointerType !== 'mouse'
+  if (!isTouch && e.button !== 0) return
 
   const target = e.target as HTMLElement
   if (target.closest('button, a, input, textarea, [contenteditable="true"], .arrow, .slick-dots')) return
@@ -1038,8 +1051,12 @@ function onCardMouseDown(e: MouseEvent, record: RowType, index: number | undefin
     from: index,
     group,
     scope: galleryGroupScope(group),
+    pointerId: e.pointerId,
+    isTouch,
     startX: e.clientX,
     startY: e.clientY,
+    lastX: e.clientX,
+    lastY: e.clientY,
     offsetX: e.clientX - rect.left,
     offsetY: e.clientY - rect.top,
     width: rect.width,
@@ -1048,30 +1065,43 @@ function onCardMouseDown(e: MouseEvent, record: RowType, index: number | undefin
     slot: null,
   }
 
-  window.addEventListener('mousemove', onCardDragMove)
-  window.addEventListener('mouseup', onCardDragEnd)
+  window.addEventListener('pointermove', onCardDragMove)
+  window.addEventListener('pointerup', onCardDragEnd)
+  window.addEventListener('pointercancel', cleanupCardDrag)
   window.addEventListener('keydown', onCardDragKeydown, true)
+  window.addEventListener('dragstart', preventWhileDragging, true)
+  window.addEventListener('selectstart', preventWhileDragging, true)
+  window.addEventListener('contextmenu', preventWhileDragging, true)
+
+  if (isTouch) longPressTimer = setTimeout(activateCardDrag, LONG_PRESS_MS)
 }
 
-function onCardDragMove(e: MouseEvent) {
+// From press to release: a native image drag would cancel the pointer stream.
+function preventWhileDragging(e: Event) {
+  if (cardDrag.value) e.preventDefault()
+}
+
+function activateCardDrag() {
+  const drag = cardDrag.value
+  if (!drag || drag.active) return
+  drag.active = true
+  window.getSelection()?.removeAllRanges()
+  dragGhostPos.value = { x: drag.lastX - drag.offsetX, y: drag.lastY - drag.offsetY }
+  updateCardDropTarget()
+  autoScrollFrame = requestAnimationFrame(autoScrollTick)
+}
+
+function updateCardDropTarget() {
   const drag = cardDrag.value
   const container = scrollContainer.value as HTMLElement | undefined
   if (!drag || !container) return
 
-  if (!drag.active) {
-    if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 5) return
-    drag.active = true
-  }
-
-  e.preventDefault()
-  dragGhostPos.value = { x: e.clientX - drag.offsetX, y: e.clientY - drag.offsetY }
-
   const containerRect = container.getBoundingClientRect()
-  const cardEl = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-gallery-card-index]')
+  const cardEl = document.elementFromPoint(drag.lastX, drag.lastY)?.closest<HTMLElement>('[data-gallery-card-index]')
 
   if (cardEl && cardEl.dataset.galleryCardScope === drag.scope) {
     const rect = cardEl.getBoundingClientRect()
-    const after = e.clientX > rect.left + rect.width / 2
+    const after = drag.lastX > rect.left + rect.width / 2
     const slot = Number(cardEl.dataset.galleryCardIndex) + (after ? 1 : 0)
 
     if (isValidCardDrop(drag, slot)) {
@@ -1086,22 +1116,78 @@ function onCardDragMove(e: MouseEvent) {
       drag.slot = null
       dropIndicator.value = null
     }
-  } else if (cardEl || e.clientX < containerRect.left || e.clientX > containerRect.right) {
+  } else if (cardEl || drag.lastX < containerRect.left || drag.lastX > containerRect.right) {
     // A card of another group, or outside the gallery: no drop. Gaps keep the last target.
     drag.slot = null
     dropIndicator.value = null
   }
-
-  if (e.clientY < containerRect.top + 60) container.scrollTop -= 16
-  else if (e.clientY > containerRect.bottom - 60) container.scrollTop += 16
 }
+
+// Scrolls while the pointer rests near the top or bottom edge, faster closer to it.
+function autoScrollTick() {
+  const drag = cardDrag.value
+  const container = scrollContainer.value as HTMLElement | undefined
+  if (!drag?.active || !container) return
+
+  const { top, bottom } = container.getBoundingClientRect()
+  const edge = 60
+  let delta = 0
+  if (drag.lastY < top + edge) delta = -Math.ceil((Math.min(top + edge - drag.lastY, edge) / edge) * 16)
+  else if (drag.lastY > bottom - edge) delta = Math.ceil((Math.min(drag.lastY - (bottom - edge), edge) / edge) * 16)
+
+  if (delta) {
+    const before = container.scrollTop
+    container.scrollTop += delta
+    if (container.scrollTop !== before) updateCardDropTarget()
+  }
+  autoScrollFrame = requestAnimationFrame(autoScrollTick)
+}
+
+function onCardDragMove(e: PointerEvent) {
+  const drag = cardDrag.value
+  if (!drag || e.pointerId !== drag.pointerId) return
+
+  drag.lastX = e.clientX
+  drag.lastY = e.clientY
+
+  if (!drag.active) {
+    const moved = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY)
+    if (drag.isTouch) {
+      if (moved > 8) cleanupCardDrag()
+      return
+    }
+    if (moved < 5) return
+    activateCardDrag()
+  }
+
+  e.preventDefault()
+  dragGhostPos.value = { x: e.clientX - drag.offsetX, y: e.clientY - drag.offsetY }
+  updateCardDropTarget()
+}
+
+// Touch moves would pan the page under a picked-up card; needs a non-passive listener bound before touchstart.
+useEventListener(
+  scrollContainer,
+  'touchmove',
+  (e: TouchEvent) => {
+    if (cardDrag.value?.active) e.preventDefault()
+  },
+  { passive: false },
+)
 
 function cleanupCardDrag() {
   cardDrag.value = null
   dropIndicator.value = null
-  window.removeEventListener('mousemove', onCardDragMove)
-  window.removeEventListener('mouseup', onCardDragEnd)
+  clearTimeout(longPressTimer)
+  if (autoScrollFrame !== undefined) cancelAnimationFrame(autoScrollFrame)
+  autoScrollFrame = undefined
+  window.removeEventListener('pointermove', onCardDragMove)
+  window.removeEventListener('pointerup', onCardDragEnd)
+  window.removeEventListener('pointercancel', cleanupCardDrag)
   window.removeEventListener('keydown', onCardDragKeydown, true)
+  window.removeEventListener('dragstart', preventWhileDragging, true)
+  window.removeEventListener('selectstart', preventWhileDragging, true)
+  window.removeEventListener('contextmenu', preventWhileDragging, true)
 }
 
 function onCardDragKeydown(e: KeyboardEvent) {
@@ -1137,8 +1223,9 @@ async function moveCardInGroup(group: Group, from: number, slot: number) {
   }
 }
 
-async function onCardDragEnd() {
+async function onCardDragEnd(e: PointerEvent) {
   const drag = cardDrag.value
+  if (drag && e.pointerId !== drag.pointerId) return
   cleanupCardDrag()
   if (!drag?.active) return
 
@@ -1629,7 +1716,12 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
           </PermissionsTooltip>
         </NcMenu>
       </template>
-      <div class="flex-1" @contextmenu.capture="resetContextMenuTarget" @click.capture="onGalleryClickCapture">
+      <div
+        class="flex-1"
+        :class="{ 'nc-gallery-reorderable': canReorderCards }"
+        @contextmenu.capture="resetContextMenuTarget"
+        @click.capture="onGalleryClickCapture"
+      >
         <div v-if="isGroupedGallery && viewGroupBy" class="nc-gallery-grouped p-3" data-testid="nc-gallery-grouped">
           <div v-if="isGroupedGalleryLoading && !viewGroupBy.rootGroup.value.children?.length" class="flex justify-center py-10">
             <GeneralLoader size="large" />
@@ -1654,7 +1746,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
               <div
                 class="h-full"
                 :class="{ 'opacity-40': isDraggedCard(record) }"
-                @mousedown="onCardMouseDown($event, record, index, group)"
+                @pointerdown="onCardPointerDown($event, record, index, group)"
               >
                 <ReuseCard :record="record" />
               </div>
@@ -1679,7 +1771,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
                 pointerEvents:
                   showAsBluredRecord(isExternalSource, record.rowMeta.rowIndex + 1) && !record.rowMeta.new ? 'none' : 'auto',
               }"
-              @mousedown="onCardMouseDown($event, record, record.rowMeta.rowIndex, undefined)"
+              @pointerdown="onCardPointerDown($event, record, record.rowMeta.rowIndex, undefined)"
             >
               <ReuseCard :record="record" />
             </div>
@@ -2145,6 +2237,11 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
 
 <!-- Unscoped: `nc-gallery-theme-*` sits on the host, out of scoped reach. -->
 <style lang="scss">
+// iOS long-press callout would cover the card being picked up.
+.nc-gallery-reorderable [data-gallery-card-index] {
+  -webkit-touch-callout: none;
+}
+
 // Card parts opt back into pointer events; the ghost must never be the drop target.
 .nc-gallery-drag-ghost * {
   pointer-events: none !important;

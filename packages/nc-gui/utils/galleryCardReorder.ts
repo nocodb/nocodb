@@ -47,5 +47,5 @@ export function resolveGalleryCardDrop(
 
 /** Drop scope of a grouped card: cards move only within their own group. */
 export function galleryGroupScope(group?: Group) {
-  return group ? `group:${group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_')}` : 'flat'
+  return group ? `group:${JSON.stringify(group.nestedIn.map((n) => [n.column_name, n.key]))}` : 'flat'
 }

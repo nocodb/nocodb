@@ -5,6 +5,7 @@ import {
   canEncodeQueryFilterToken,
   dateFormats,
   encodeQueryFilterClause,
+  formatCurrencyValue,
   getEffectiveDisplayColumn,
   getEffectiveLookupColumn,
   getRenderAsTextFunForUiType,
@@ -30,6 +31,7 @@ import {
   parseProp,
   resolveCurrentUserToken,
   restoreEarlyYear,
+  roundUpToPrecision,
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
   timeFormats,
@@ -751,7 +753,11 @@ export const getPercentValue = (modelValue: string | number | null) => {
   return modelValue || modelValue === 0 ? `${modelValue}%` : ''
 }
 
-export const getCurrencyValue = (modelValue: string | number | null | undefined, col: ColumnType): string => {
+export const getCurrencyValue = (
+  modelValue: string | number | null | undefined,
+  col: ColumnType,
+  options?: ParsePlainCellValueProps['params']['numberFormat'],
+): string => {
   const currencyMeta = {
     currency_locale: 'en-US',
     currency_code: 'USD',
@@ -762,10 +768,8 @@ export const getCurrencyValue = (modelValue: string | number | null | undefined,
     if (modelValue === null || modelValue === undefined || isNaN(modelValue)) {
       return modelValue === null || modelValue === undefined ? '' : (modelValue as string)
     }
-    return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
-      style: 'currency',
-      currency: currencyMeta.currency_code || 'USD',
-    }).format(+modelValue)
+    // Same rounding and formatting as the grid cell, so the field's precision applies
+    return formatCurrencyValue(Number(roundUpToPrecision(Number(modelValue), currencyMeta.precision ?? 2)), currencyMeta, options)
   } catch (e) {
     return modelValue as string
   }
@@ -1058,7 +1062,7 @@ export const parsePlainCellValue = (
     return getPercentValue(value)
   }
   if (isCurrency(col)) {
-    return getCurrencyValue(value, col)
+    return getCurrencyValue(value, col, numberFormat)
   }
   if (isUser(col)) {
     return getUserValue(value, params)

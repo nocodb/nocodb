@@ -146,6 +146,33 @@ describe('formatAggregation latest date', () => {
   });
 });
 
+describe('formatAggregation date and month range', () => {
+  const col = { uidt: UITypes.Date };
+  const range = (value: unknown) =>
+    formatAggregation(DateAggregations.DateRange, value, col);
+  const months = (value: unknown) =>
+    formatAggregation(DateAggregations.MonthRange, value, col);
+
+  it('uses the singular unit for a range of one', () => {
+    expect(range(1)).toBe('1 day');
+    expect(months(1)).toBe('1 month');
+    // a numeric database result can arrive as a string
+    expect(months('1')).toBe('1 month');
+  });
+
+  it('keeps the plural unit for every other range', () => {
+    expect(range(0)).toBe('0 days');
+    expect(range(30)).toBe('30 days');
+    expect(months(0)).toBe('0 months');
+    expect(months('12')).toBe('12 months');
+  });
+
+  it('shows an empty range as zero', () => {
+    expect(range(null)).toBe('0 days');
+    expect(months(undefined)).toBe('0 months');
+  });
+});
+
 describe('getColumnDisplayTimezone', () => {
   it("uses a DateTime column's timezone", () => {
     expect(

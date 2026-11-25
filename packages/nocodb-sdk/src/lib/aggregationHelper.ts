@@ -257,9 +257,9 @@ const formatAggregation = (
       aggregation
     )
   ) {
-    return aggregation === DateAggregations.DateRange
-      ? `${value ?? 0} days`
-      : `${value ?? 0} months`;
+    const count = value ?? 0;
+    const unit = aggregation === DateAggregations.DateRange ? 'day' : 'month';
+    return `${count} ${unit}${Number(count) === 1 ? '' : 's'}`;
   }
 
   if (

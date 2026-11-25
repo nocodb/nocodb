@@ -130,6 +130,7 @@ export const getSelectTypeOptionTextColor = (
   disableGetColor = false,
 ): string => {
   color = color ?? disableGetColor ? color || '#ccc' : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)') // Set default only if color is null or undefined
+  color = toDisplayOptionColor(color)
 
   return tinycolor.isReadable(color, '#fff', { level: 'AA', size: 'large' })
     ? '#fff'
@@ -162,6 +163,8 @@ export const getSelectTypeFieldOptionBgColor = ({
   if (!color) {
     return getColor ? getColor('var(--nc-bg-gray-medium)') : 'var(--nc-bg-gray-medium)'
   }
+
+  color = toDisplayOptionColor(color)
 
   if (isDark) {
     // `shade` predates the chip resolver and no caller sets it — honour it only if one does.

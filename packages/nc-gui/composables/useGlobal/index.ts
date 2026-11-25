@@ -61,6 +61,14 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
     { immediate: true },
   )
 
+  watch(
+    () => parseProp(state.user.value?.meta)?.[COLORBLIND_PALETTE_META_KEY] === true,
+    (isOn) => {
+      isColorblindPaletteOn.value = isOn
+    },
+    { immediate: true },
+  )
+
   // Sync auth cookie with token for browser-initiated requests (<img src>, open-in-new-tab).
   // The cookie enables native <img src> loading without fetch+blob.
   // In production (same-origin), the backend also sets an HttpOnly version via Set-Cookie

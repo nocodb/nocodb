@@ -1,7 +1,41 @@
 import { colors as unoColors } from '@unocss/preset-mini/colors'
 import { enumColors as enumColor } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import { ref } from 'vue'
 export { enumColors as enumColor } from 'nocodb-sdk'
+
+export const COLORBLIND_PALETTE_META_KEY = 'colorblind_palette'
+
+// Paul Tol's "muted" scheme: nine hues that stay apart under the common colour-vision deficiencies, plus grey.
+const COLORBLIND_SAFE_COLORS = [
+  '#332288',
+  '#88ccee',
+  '#44aa99',
+  '#882255',
+  '#cc6677',
+  '#999933',
+  '#ddcc77',
+  '#117733',
+  '#aa4499',
+  '#dddddd',
+]
+
+const colorblindColorMap = new Map<string, string>(
+  [...enumColor.light, ...enumColor.dark].map((color, i) => [
+    color.toLowerCase(),
+    COLORBLIND_SAFE_COLORS[i % COLORBLIND_SAFE_COLORS.length]!,
+  ]),
+)
+
+/** Synced from the signed-in user's preference in `useGlobal`. */
+export const isColorblindPaletteOn = ref(false)
+
+/** Default palette colours show as their colourblind-safe counterpart when the user has that on; custom colours pass through. */
+export const toDisplayOptionColor = <T extends string | null | undefined>(color: T): T => {
+  if (!color || !isColorblindPaletteOn.value) return color
+
+  return (colorblindColorMap.get(color.toLowerCase()) ?? color) as T
+}
 
 // UnoCSS ships shorthand (1-9), 950 and DEFAULT keys alongside the 50-900 shades.
 // Callers iterate palette values, so keep only the shades WindiCSS exposed.
@@ -1202,6 +1236,8 @@ const solidChipInk = (color: tinycolor.Instance, background: string) => {
  *  - dark, pastel — the surface lifted with white, the colour moved into the label
  */
 export const getSelectChipColors = (color: string, isDark: boolean): { bg: string; ink: string } => {
+  color = toDisplayOptionColor(color)
+
   const cacheKey = `${color}|${isDark ? 'd' : 'l'}`
 
   const cached = chipCache.get(cacheKey)

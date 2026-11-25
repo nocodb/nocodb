@@ -4187,7 +4187,10 @@
       "languageRegion": "Language & region",
       "languageSubtitle": "Used for menus, labels and messages across NocoDB.",
       "weekStartsOn": "Week starts on",
-      "weekStartsOnSubtitle": "Used by calendar views and date pickers."
+      "weekStartsOnSubtitle": "Used by calendar views and date pickers.",
+      "accessibility": "Accessibility",
+      "colorblindPalette": "Colourblind-friendly colours",
+      "colorblindPaletteSubtitle": "Show select options in colours that stay distinct with colour-vision deficiency. Only changes what you see."
     },
     "personalAccessToken": "Personal Access Token",
     "airtableTokenViewHint": "Required for a shared base. Not needed for a shared view link.",

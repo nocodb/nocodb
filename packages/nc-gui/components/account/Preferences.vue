@@ -10,11 +10,15 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { weekStart, setWeekStart } = useWeekStart()
 
+const { isColorblindPaletteOn, setColorblindPalette } = useColorblindPalette()
+
 const { locale, t } = useI18n()
 
 const { $e } = useNuxtApp()
 
 const isSavingWeekStart = ref(false)
+
+const isSavingColorblindPalette = ref(false)
 
 const themeOptions = computed(() => [
   { value: 'light' as ThemeMode, label: t('general.light') },
@@ -69,6 +73,18 @@ async function onSelectWeekStart(value: string) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isSavingWeekStart.value = false
+  }
+}
+
+async function onToggleColorblindPalette(isOn: boolean) {
+  isSavingColorblindPalette.value = true
+  try {
+    await setColorblindPalette(isOn)
+    $e('c:user:colorblind-palette:toggle', { enabled: isOn, source: 'preferences' })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isSavingColorblindPalette.value = false
   }
 }
 </script>
@@ -195,6 +211,30 @@ async function onSelectWeekStart(value: string) {
                   :aria-label="$t('labels.preferencesPage.weekStartsOn')"
                   data-testid="nc-pref-week-start"
                   @update:value="onSelectWeekStart"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="nc-settings-item-card-wrapper">
+            <div class="nc-settings-item-heading text-nc-content-gray-emphasis">
+              {{ $t('labels.preferencesPage.accessibility') }}
+            </div>
+            <div class="nc-settings-item-card">
+              <div class="nc-settings-item md:!items-center">
+                <div class="nc-settings-item-content flex-1">
+                  <div id="nc-pref-colorblind-label" class="nc-settings-item-title">
+                    {{ $t('labels.preferencesPage.colorblindPalette') }}
+                  </div>
+                  <div class="nc-settings-item-subtitle">{{ $t('labels.preferencesPage.colorblindPaletteSubtitle') }}</div>
+                </div>
+                <NcSwitch
+                  :checked="isColorblindPaletteOn"
+                  :disabled="isSavingColorblindPalette"
+                  aria-labelledby="nc-pref-colorblind-label"
+                  class="nc-settings-item-action md:!self-center"
+                  data-testid="nc-pref-colorblind-palette"
+                  @change="onToggleColorblindPalette"
                 />
               </div>
             </div>

@@ -3802,7 +3802,7 @@
     "metaApis": "Metadatu API",
     "maxNumberOfAttachments": "Maksimālais pielikumu skaits",
     "maxAttachmentSizeMb": "Maksimālais pielikuma izmērs (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Paziņot lietotājiem ar piekļuvi projektam, kad viņi tiek pievienoti",
+    "notifyUsersWithBaseAccessWhenAdded": "Paziņot lietotājiem ar piekļuvi bāzei, kad viņi tiek pievienoti",
     "mimeExamplePng": "Atļauj tikai PNG attēlus",
     "mimeExamplePdf": "Atļauj tikai PDF dokumentus",
     "mimeExampleAllImages": "Atļauj visus attēlus",
@@ -6019,7 +6019,158 @@
       "sizeStandard": "Standarta",
       "sizeLarge": "Liels",
       "machineSize": "Datora lielums",
-      "alwaysOn": "Vienmēr ieslēgts"
+      "alwaysOn": "Vienmēr ieslēgts",
+      "workspaceAgent": "Vispārīgs aģents",
+      "workspaceAgentDescription": "Darbojas ar jūsu lietotnēm, datiem un dokumentiem, izmantojot integrācijas, pārvaldītā datorā.",
+      "waitingForGithubBody": "Apstipriniet piekļuvi logā, kas tika atvērts. Šī lapa atjaunojas pati."
+    },
+    "agentSessionNew": "Jauna saruna",
+    "agentSessionJustNow": "Tagad",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} st.",
+    "agentSessionsViewAll": "Skatīt visas {count}",
+    "agentSessionsCount": "{count} sesija | {count} sesijas",
+    "agentSessionsAutomatic": "Automātiski",
+    "agentSessionsBack": "Atpakaļ uz aģentiem",
+    "agentModeCoding": "Programmēšana",
+    "agentFiles": {
+      "title": "Faili",
+      "subtitle": "Aģents tos nolasa katrā palaišanas reizē.",
+      "drop": "Velciet un nometiet failus šeit vai",
+      "browse": "pārlūkot",
+      "accepted": "PDF, Word, Excel, CSV vai attēli, katrs līdz {size} MB",
+      "uploading": "Augšupielādē…",
+      "download": "Lejupielādēt {name}",
+      "remove": "Noņemt {name}",
+      "saved": "Saglabāts automātiski. Izmaiņas stājas spēkā no nākamās palaišanas."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Darbojas jūsu vārdā",
+      "worksAsYouHint": "Izmanto jūsu piekļuvi šajā projektā, šeit ierobežotu.",
+      "capSameAsMe": "Tāpat kā es",
+      "currentRole": "Pašlaik tas var darboties kā {role}",
+      "webhookOwnerOnly": "Šo webhook var palaist tikai jūsu paša API pilnvara.",
+      "paused": "Apturēts: jums vairs nebija piekļuves šim projektam. Ieslēdziet to atkal, lai turpinātu.",
+      "pausedOwnerNoAccess": "Tā īpašniekam vairs nav piekļuves šim projektam.",
+      "viaAgent": "caur {agent}",
+      "viaAnAgent": "caur aģentu",
+      "oversightTitle": "Personīgie aģenti",
+      "oversightHint": "Aģenti, ko dalībnieki izveidojuši sev. Varat tos izslēgt vai dzēst; viņu norādījumi un palaišanas paliek privātas.",
+      "oversightEmpty": "Šajā projektā nav personīgo aģentu.",
+      "triggers": "Palaidēji",
+      "turnOff": "Izslēgt"
+    },
+    "agentSetup": {
+      "jobTitle": "Izveidot vispārīgu aģentu",
+      "jobSubtitle": "Sāciet ar veidni vai saviem vārdiem. Vēlāk varēsiet mainīt visu.",
+      "describeTitle": "Iestatīt, aprakstot",
+      "describeSubtitle": "Pastāstiet tam saviem vārdiem, kas jādara. Tas jautā tikai to, kas vajadzīgs.",
+      "pickTemplate": "Izvēlieties veidni",
+      "createManually": "Izveidot manuāli",
+      "noTemplates": "Jūsu meklējumam neatbilst neviena veidne.",
+      "category": {
+        "everyone": "Visiem",
+        "sales": "Pārdošana",
+        "ops": "Operācijas",
+        "marketing": "Mārketings",
+        "support": "Atbalsts"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Atbilžu bots",
+          "description": "Atbild uz jautājumiem par jūsu tabulām un dokumentiem, kad vien kāds jautā."
+        },
+        "meeting-prep": {
+          "description": "Katru darba dienas rītu sagatavo šodienas tikšanās no jūsu tikšanos tabulas: klientu, atvērtos darījumus un pēdējās piezīmes."
+        },
+        "follow-up-drafter": {
+          "title": "Atgādinājumu sagatavotājs",
+          "description": "Sagatavo atgādinājuma e-pastus, kad ierakstam vajadzīgs pamudinājums."
+        },
+        "deal-risk-watcher": {
+          "title": "Darījumu riska uzraugs",
+          "description": "Atzīmē darījumus, kas apstājušies, un pasaka īpašniekam, kāpēc."
+        },
+        "data-cleaner": {
+          "title": "Datu tīrītājs",
+          "description": "Atrod dublikātus un trūkstošās vērtības un izlabo tās, reģistrējot katru izmaiņu."
+        },
+        "campaign-report": {
+          "title": "Kampaņas atskaite",
+          "description": "Katru piektdienu apkopo kampaņu rezultātus un publicē tos Slack kanālā."
+        },
+        "content-calendar-keeper": {
+          "title": "Satura kalendāra uzraugs",
+          "description": "Atgādina īpašniekiem par gaidāmajām publikācijām un atzīmē visu nokavēto."
+        },
+        "customer-check-in": {
+          "title": "Saziņa ar klientu",
+          "description": "Sagatavo ziņu klientiem, kas apklusuši, gatavu pārskatīšanai."
+        }
+      },
+      "rowJob": "Uzdevums",
+      "rowReads": "Lasa",
+      "rowRuns": "Darbojas",
+      "rowShares": "Dalās",
+      "rowAccess": "Piekļuve",
+      "accessRead": "Lasa ierakstus",
+      "accessWrite": "Lasa un maina ierakstus",
+      "accessWeb": "izmanto tīmekli",
+      "allTables": "Visas tabulas",
+      "notSet": "Vēl nav iestatīts",
+      "ask": {
+        "when": "Kad tam jādarbojas?",
+        "table": "Kura tabula tam jāuzrauga?",
+        "share": "Kur tam jādalās ar atrasto?",
+        "channel": "Kurā Slack kanālā tam jāpublicē?",
+        "final": "Tas ir viss, kas man vajadzīgs. Pabeidziet iestatīšanu, lai to pārskatītu un ieslēgtu."
+      },
+      "channelHint": "Ierakstiet kanāla nosaukumu zemāk, piemēram, #sales.",
+      "finish": "Pabeigt iestatīšanu",
+      "day": {
+        "day": "diena",
+        "weekday": "darba diena",
+        "monday": "pirmdiena",
+        "tuesday": "otrdiena",
+        "wednesday": "trešdiena",
+        "thursday": "ceturtdiena",
+        "friday": "piektdiena",
+        "saturday": "sestdiena",
+        "sunday": "svētdiena"
+      },
+      "shareChat": "Šeit sarunā",
+      "shareEmail": "E-pasts jums",
+      "shareEmailTo": "E-pasts {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Melnraksts gatavs. Pārskatiet visu un ieslēdziet to.",
+      "barReview": "Pārskatiet visu sadaļā Iestatījumi un tad ieslēdziet to.",
+      "openSetup": "Atvērt iestatīšanu",
+      "placeholderReply": "Atbildiet vai mainiet jebko: “lai notiek katru dienu”, “nosauc to par Darījumu uzraugu”",
+      "examples": {
+        "staleDeals": "Katru piektdienu uzskaiti iestrēgušos darījumus un publicē tos kanālā #sales",
+        "newContact": "Kad tiek pievienots jauns kontakts, aizpildi viņa amatu un uzņēmumu",
+        "closingDeals": "Katru rītu atsūti man e-pastā darījumus, kas noslēdzas šonedēļ",
+        "pricing": "Atbildi uz jautājumiem par mūsu cenām, izmantojot tabulu Docs",
+        "wonThankYou": "Kad darījums pāriet uz Iegūts, sagatavo pateicību pārskatīšanai",
+        "activities": "Katru pirmdienu apkopo, kas mainījies tabulā Activities",
+        "duplicates": "Atzīmē dublētos uzņēmumus un apvieno tos, veidojot žurnālu"
+      },
+      "settingsTitle": "Iestatiet savu aģentu",
+      "namePlaceholder": "piem., Darījumu riska uzraugs",
+      "createAgent": "Izveidot aģentu",
+      "hintName": "Piešķiriet tam nosaukumu, lai turpinātu",
+      "hintInstructions": "Pievienojiet norādījumus, lai turpinātu",
+      "hintReady": "Vēl nedarbojas. Pārbaudiet katru sadaļu un tad {cta}.",
+      "scopeTitle": "Veids",
+      "scopeHint": "To varat mainīt, kamēr tas ir melnraksts.",
+      "scopeLocked": "Nemainīgs, tiklīdz aģents ir ieslēgts. Lai to mainītu, dublējiet aģentu: kopija sākas kā melnraksts.",
+      "deliveryTitle": "Rezultāti nonāk",
+      "deliveryHint": "Kurp tas sūta atrasto, kad darbojas pats.",
+      "deliveryChannel": "Slack kanāls",
+      "deliverySlackMissing": "Pievienojiet Slack sadaļā Integrācijas, lai tas varētu tur publicēt.",
+      "deliverySlackInvalid": "Ievadiet Slack kanālu, piemēram, #sales.",
+      "discardTitle": "Atmest šo melnrakstu?",
+      "discardContent": "Melnraksts un tā iestatīšanas saruna tiks pārvietoti uz atkritni."
     }
   },
   "activity": {
@@ -6354,18 +6505,6 @@
       "pin": "Piespraust komentāru",
       "unpin": "Atspraust komentāru",
       "pinnedComment": "Piesprausts komentārs",
-      "assignTodo": "Piešķirt kā uzdevumu",
-      "editTodo": "Rediģēt uzdevumu",
-      "removeTodo": "Noņemt uzdevumu",
-      "assignee": "Atbildīgā persona",
-      "selectAssignee": "Atlasiet personu",
-      "dueDate": "Izpildes termiņš",
-      "noDueDate": "Nav izpildes termiņa",
-      "assign": "Piešķirt",
-      "assignedTo": "Piešķirts lietotājam {name}",
-      "due": "Termiņš {date}",
-      "markDone": "Atzīmēt kā paveiktu",
-      "markNotDone": "Atzīmēt kā nepaveiktu",
       "summarize": "Apkopot",
       "summaryOf": "{count} komentāra kopsavilkums | {count} komentāru kopsavilkums",
       "summarizing": "Notiek pavediena apkopošana...",

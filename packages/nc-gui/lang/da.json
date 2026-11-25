@@ -3800,7 +3800,7 @@
     "metaApis": "Metadata-API'er",
     "maxNumberOfAttachments": "Maks. antal vedhæftede filer",
     "maxAttachmentSizeMb": "Maks. størrelse på vedhæftet fil (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Underret brugere med projektadgang, når de tilføjes",
+    "notifyUsersWithBaseAccessWhenAdded": "Giv brugere med adgang til basen besked, når de tilføjes",
     "mimeExamplePng": "Tillader kun PNG-billeder",
     "mimeExamplePdf": "Tillader kun PDF-dokumenter",
     "mimeExampleAllImages": "Tillader alle billeder",
@@ -5994,7 +5994,157 @@
       "sizeSmall": "Lille",
       "sizeLarge": "Stor",
       "machineSize": "Maskinstørrelse",
-      "alwaysOn": "Altid aktiv"
+      "alwaysOn": "Altid aktiv",
+      "workspaceAgent": "Generel agent",
+      "workspaceAgentDescription": "Arbejder på tværs af dine apps, data og docs via integrationer, på en administreret maskine.",
+      "waitingForGithubBody": "Godkend adgangen i vinduet, der blev åbnet. Denne side opdaterer sig selv."
+    },
+    "agentSessionNew": "Ny chat",
+    "agentSessionJustNow": "Nu",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} t",
+    "agentSessionsViewAll": "Se alle {count}",
+    "agentSessionsCount": "{count} session | {count} sessioner",
+    "agentSessionsAutomatic": "Automatisk",
+    "agentSessionsBack": "Tilbage til agenter",
+    "agentModeCoding": "Programmering",
+    "agentFiles": {
+      "title": "Filer",
+      "subtitle": "Agenten læser dem ved hver kørsel.",
+      "drop": "Træk og slip filer her, eller",
+      "browse": "gennemse",
+      "accepted": "PDF, Word, Excel, CSV eller billeder, op til {size} MB hver",
+      "uploading": "Uploader…",
+      "download": "Hent {name}",
+      "remove": "Fjern {name}",
+      "saved": "Gemmes automatisk. Ændringer gælder fra næste kørsel."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Arbejder som dig",
+      "worksAsYouHint": "Bruger din adgang i dette projekt, begrænset her.",
+      "capSameAsMe": "Samme som mig",
+      "currentRole": "Lige nu kan den handle som {role}",
+      "webhookOwnerOnly": "Kun dit eget API-token kan udløse denne webhook.",
+      "paused": "Sat på pause: du havde ikke længere adgang til dette projekt. Slå den til igen for at fortsætte.",
+      "pausedOwnerNoAccess": "Ejeren har ikke længere adgang til dette projekt.",
+      "viaAgent": "via {agent}",
+      "viaAnAgent": "via en agent",
+      "oversightTitle": "Personlige agenter",
+      "oversightHint": "Agenter, som medlemmer har lavet til sig selv. Du kan slå dem fra eller slette dem; deres instruktioner og kørsler forbliver private.",
+      "oversightEmpty": "Ingen personlige agenter i dette projekt.",
+      "triggers": "Udløsere",
+      "turnOff": "Slå fra"
+    },
+    "agentSetup": {
+      "jobTitle": "Opret en generel agent",
+      "jobSubtitle": "Start fra en skabelon eller dine egne ord. Du kan ændre alt senere.",
+      "describeTitle": "Sæt op ved at beskrive",
+      "describeSubtitle": "Fortæl den med dine egne ord, hvad den skal gøre. Den spørger kun om det, den har brug for.",
+      "pickTemplate": "Vælg en skabelon",
+      "createManually": "Opret manuelt",
+      "noTemplates": "Ingen skabeloner matcher din søgning.",
+      "category": {
+        "everyone": "Til alle",
+        "sales": "Salg",
+        "ops": "Drift",
+        "marketing": "Markedsføring",
+        "support": "Support"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Svarbot",
+          "description": "Besvarer spørgsmål om dine tabeller og docs, hver gang nogen spørger."
+        },
+        "meeting-prep": {
+          "description": "Hver hverdagsmorgen forbereder den dagens møder ud fra din mødetabel: kunden, åbne handler og de seneste noter."
+        },
+        "follow-up-drafter": {
+          "title": "Opfølgningsskribent",
+          "description": "Skriver udkast til opfølgningsmails, når en post trænger til et skub."
+        },
+        "deal-risk-watcher": {
+          "title": "Handelsrisikovagt",
+          "description": "Markerer handler, der er gået i stå, og fortæller ejeren hvorfor."
+        },
+        "data-cleaner": {
+          "title": "Dataoprydder",
+          "description": "Finder dubletter og manglende værdier og retter dem, med en log over hver ændring."
+        },
+        "campaign-report": {
+          "title": "Kampagnerapport",
+          "description": "Opsummerer hver fredag kampagneresultaterne og skriver dem på Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "Indholdskalendervagt",
+          "description": "Minder ejere om kommende opslag og markerer alt, der er forsinket."
+        },
+        "customer-check-in": {
+          "title": "Kundeopfølgning",
+          "description": "Skriver et udkast til en opfølgning hos kunder, der er blevet tavse, klar til gennemsyn."
+        }
+      },
+      "rowJob": "Opgave",
+      "rowReads": "Læser",
+      "rowRuns": "Kører",
+      "rowShares": "Deler",
+      "rowAccess": "Adgang",
+      "accessRead": "Læser poster",
+      "accessWrite": "Læser og ændrer poster",
+      "accessWeb": "bruger nettet",
+      "allTables": "Alle tabeller",
+      "notSet": "Endnu ikke angivet",
+      "ask": {
+        "when": "Hvornår skal den køre?",
+        "table": "Hvilken tabel skal den holde øje med?",
+        "share": "Hvor skal den dele det, den finder?",
+        "channel": "Hvilken Slack-kanal skal den skrive i?",
+        "final": "Det er alt, hvad jeg har brug for. Afslut opsætningen for at gennemgå den og slå den til."
+      },
+      "channelHint": "Skriv kanalnavnet nedenfor, for eksempel #sales.",
+      "finish": "Afslut opsætningen",
+      "day": {
+        "day": "dag",
+        "weekday": "hverdag",
+        "monday": "mandag",
+        "tuesday": "tirsdag",
+        "wednesday": "onsdag",
+        "thursday": "torsdag",
+        "friday": "fredag",
+        "saturday": "lørdag",
+        "sunday": "søndag"
+      },
+      "shareChat": "Her i chatten",
+      "shareEmail": "E-mail til dig",
+      "shareEmailTo": "E-mail til {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Udkastet er klar. Gennemgå det hele, og slå den til.",
+      "barReview": "Gennemgå det hele i Indstillinger, og slå den så til.",
+      "openSetup": "Åbn opsætningen",
+      "placeholderReply": "Svar, eller ændr hvad som helst: “gør den daglig”, “kald den Handelsvagt”",
+      "examples": {
+        "staleDeals": "Oplist hver fredag handler, der står stille, og skriv dem i #sales",
+        "newContact": "Udfyld titel og virksomhed, når en ny kontakt tilføjes",
+        "closingDeals": "Send mig hver morgen en mail med de handler, der lukker i denne uge",
+        "pricing": "Besvar spørgsmål om vores priser ud fra tabellen Docs",
+        "wonThankYou": "Når en handel går til Vundet, så skriv et udkast til en tak til gennemsyn",
+        "activities": "Opsummer hver mandag, hvad der er ændret i Activities",
+        "duplicates": "Markér dublerede virksomheder, og flet dem sammen med en log"
+      },
+      "settingsTitle": "Sæt din agent op",
+      "namePlaceholder": "f.eks. Handelsrisikovagt",
+      "createAgent": "Opret agent",
+      "hintName": "Giv den et navn for at fortsætte",
+      "hintInstructions": "Tilføj instruktioner for at fortsætte",
+      "hintReady": "Kører ikke endnu. Gennemgå hvert afsnit, og {cta}.",
+      "scopeHint": "Du kan ændre dette, så længe det er et udkast.",
+      "scopeLocked": "Låst, når agenten er slået til. Dublér agenten for at ændre det: kopien starter som udkast.",
+      "deliveryTitle": "Resultater går til",
+      "deliveryHint": "Hvor den sender det, den finder, når den kører af sig selv.",
+      "deliveryChannel": "Slack-kanal",
+      "deliverySlackMissing": "Forbind Slack under Integrationer, så den kan skrive der.",
+      "deliverySlackInvalid": "Angiv en Slack-kanal, for eksempel #sales.",
+      "discardTitle": "Kassér dette udkast?",
+      "discardContent": "Udkastet og dets opsætningschat flyttes til papirkurven."
     }
   },
   "activity": {
@@ -6329,18 +6479,6 @@
       "pin": "Fastgør kommentar",
       "unpin": "Frigør kommentar",
       "pinnedComment": "Fastgjort kommentar",
-      "assignTodo": "Tildel som opgave",
-      "editTodo": "Rediger opgave",
-      "removeTodo": "Fjern opgave",
-      "assignee": "Tildelt person",
-      "selectAssignee": "Vælg en person",
-      "dueDate": "Forfaldsdato",
-      "noDueDate": "Ingen forfaldsdato",
-      "assign": "Tildel",
-      "assignedTo": "Tildelt {name}",
-      "due": "Forfalder {date}",
-      "markDone": "Markér som færdig",
-      "markNotDone": "Markér som ikke færdig",
       "summarize": "Opsummer",
       "summaryOf": "Opsummering af {count} kommentar | Opsummering af {count} kommentarer",
       "summarizing": "Opsummerer tråden...",

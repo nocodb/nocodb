@@ -3806,7 +3806,7 @@
     "metaApis": "Metaadat-API-k",
     "maxNumberOfAttachments": "Mellékletek maximális száma",
     "maxAttachmentSizeMb": "Melléklet maximális mérete (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Értesítse a projekthozzáféréssel rendelkező felhasználókat, amikor hozzáadják őket",
+    "notifyUsersWithBaseAccessWhenAdded": "Értesítse a bázishoz hozzáféréssel rendelkező felhasználókat, amikor hozzáadják őket",
     "mimeExamplePng": "Csak PNG képeket engedélyez",
     "mimeExamplePdf": "Csak PDF dokumentumokat engedélyez",
     "mimeExampleAllImages": "Minden képet engedélyez",
@@ -6020,7 +6020,158 @@
       "sizeStandard": "Normál",
       "sizeLarge": "Nagy",
       "machineSize": "Gépméret",
-      "alwaysOn": "Mindig bekapcsolva"
+      "alwaysOn": "Mindig bekapcsolva",
+      "workspaceAgent": "Általános ügynök",
+      "workspaceAgentDescription": "Integrációkon keresztül dolgozik az alkalmazásaival, adataival és dokumentumaival, felügyelt gépen.",
+      "waitingForGithubBody": "Hagyja jóvá a hozzáférést a megnyílt ablakban. Ez az oldal magától frissül."
+    },
+    "agentSessionNew": "Új csevegés",
+    "agentSessionJustNow": "Most",
+    "agentSessionMinutes": "{n} p",
+    "agentSessionHours": "{n} ó",
+    "agentSessionsViewAll": "Mind a(z) {count} megtekintése",
+    "agentSessionsCount": "{count} munkamenet | {count} munkamenet",
+    "agentSessionsAutomatic": "Automatikus",
+    "agentSessionsBack": "Vissza az ügynökökhöz",
+    "agentModeCoding": "Programozás",
+    "agentFiles": {
+      "title": "Fájlok",
+      "subtitle": "Az ügynök minden futáskor elolvassa őket.",
+      "drop": "Húzza ide a fájlokat, vagy",
+      "browse": "tallózás",
+      "accepted": "PDF, Word, Excel, CSV vagy képek, egyenként legfeljebb {size} MB",
+      "uploading": "Feltöltés…",
+      "download": "{name} letöltése",
+      "remove": "{name} eltávolítása",
+      "saved": "Automatikusan mentve. A módosítások a következő futástól érvényesek."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Az Ön nevében jár el",
+      "worksAsYouHint": "Az Ön hozzáférését használja ebben a projektben, itt korlátozva.",
+      "capSameAsMe": "Ugyanaz, mint én",
+      "currentRole": "Jelenleg {role} szerepben járhat el",
+      "webhookOwnerOnly": "Ezt a webhookot csak a saját API-tokenje indíthatja el.",
+      "paused": "Szüneteltetve: már nem volt hozzáférése ehhez a projekthez. Kapcsolja vissza a folytatáshoz.",
+      "pausedOwnerNoAccess": "A tulajdonosának már nincs hozzáférése ehhez a projekthez.",
+      "viaAgent": "{agent} révén",
+      "viaAnAgent": "egy ügynök révén",
+      "oversightTitle": "Személyes ügynökök",
+      "oversightHint": "Ügynökök, amelyeket a tagok maguknak készítettek. Kikapcsolhatja vagy törölheti őket; az utasításaik és futásaik privátak maradnak.",
+      "oversightEmpty": "Nincsenek személyes ügynökök ebben a projektben.",
+      "triggers": "Eseményindítók",
+      "turnOff": "Kikapcsolás"
+    },
+    "agentSetup": {
+      "jobTitle": "Általános ügynök létrehozása",
+      "jobSubtitle": "Induljon sablonból vagy a saját szavaiból. Később mindent módosíthat.",
+      "describeTitle": "Beállítás leírással",
+      "describeSubtitle": "Mondja el a saját szavaival, mit csináljon. Csak azt kérdezi, amire szüksége van.",
+      "pickTemplate": "Válasszon sablont",
+      "createManually": "Létrehozás kézzel",
+      "noTemplates": "Egy sablon sem felel meg a keresésnek.",
+      "category": {
+        "everyone": "Mindenkinek",
+        "sales": "Értékesítés",
+        "ops": "Működés",
+        "marketing": "Marketing",
+        "support": "Támogatás"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Válaszbot",
+          "description": "Válaszol a tábláival és dokumentumaival kapcsolatos kérdésekre, amikor valaki kérdez."
+        },
+        "meeting-prep": {
+          "description": "Minden hétköznap reggel előkészíti a napi megbeszéléseket a megbeszélések táblájából: az ügyfelet, a nyitott üzleteket és a legutóbbi jegyzeteket."
+        },
+        "follow-up-drafter": {
+          "title": "Utánkövetés-fogalmazó",
+          "description": "Utánkövető e-maileket fogalmaz, amikor egy rekord lökést igényel."
+        },
+        "deal-risk-watcher": {
+          "title": "Üzleti kockázatfigyelő",
+          "description": "Megjelöli az elakadt üzleteket, és megmondja a felelősnek, miért."
+        },
+        "data-cleaner": {
+          "title": "Adattisztító",
+          "description": "Megtalálja a duplikátumokat és a hiányzó értékeket, és kijavítja őket, minden változást naplózva."
+        },
+        "campaign-report": {
+          "title": "Kampányjelentés",
+          "description": "Minden pénteken összefoglalja a kampányeredményeket, és kiteszi őket a Slack csatornába."
+        },
+        "content-calendar-keeper": {
+          "title": "Tartalomnaptár-gondozó",
+          "description": "Emlékezteti a felelősöket a közelgő bejegyzésekre, és megjelöli a késésben lévőket."
+        },
+        "customer-check-in": {
+          "title": "Ügyfélmegkeresés",
+          "description": "Megírja az elcsendesedett ügyfelek megkeresésének piszkozatát, átnézésre készen."
+        }
+      },
+      "rowJob": "Feladat",
+      "rowReads": "Olvas",
+      "rowRuns": "Fut",
+      "rowShares": "Megoszt",
+      "rowAccess": "Hozzáférés",
+      "accessRead": "Rekordokat olvas",
+      "accessWrite": "Rekordokat olvas és módosít",
+      "accessWeb": "használja a webet",
+      "allTables": "Minden tábla",
+      "notSet": "Még nincs beállítva",
+      "ask": {
+        "when": "Mikor fusson?",
+        "table": "Melyik táblát figyelje?",
+        "share": "Hol ossza meg, amit talál?",
+        "channel": "Melyik Slack-csatornába írjon?",
+        "final": "Ennyire van szükségem. Fejezze be a beállítást, hogy átnézze és bekapcsolja."
+      },
+      "channelHint": "Írja be alább a csatorna nevét, például #sales.",
+      "finish": "Beállítás befejezése",
+      "day": {
+        "day": "nap",
+        "weekday": "hétköznap",
+        "monday": "hétfő",
+        "tuesday": "kedd",
+        "wednesday": "szerda",
+        "thursday": "csütörtök",
+        "friday": "péntek",
+        "saturday": "szombat",
+        "sunday": "vasárnap"
+      },
+      "shareChat": "Itt a csevegésben",
+      "shareEmail": "E-mail Önnek",
+      "shareEmailTo": "E-mail neki: {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "A piszkozat kész. Nézzen át mindent, és kapcsolja be.",
+      "barReview": "Nézzen át mindent a Beállításokban, majd kapcsolja be.",
+      "openSetup": "Beállítás megnyitása",
+      "placeholderReply": "Válaszoljon, vagy módosítson bármit: „legyen napi”, „hívd Üzletfigyelőnek”",
+      "examples": {
+        "staleDeals": "Minden pénteken listázd az elakadt üzleteket, és tedd ki őket a #sales csatornába",
+        "newContact": "Amikor új kapcsolattartó kerül be, töltsd ki a beosztását és a cégét",
+        "closingDeals": "Minden reggel küldd el e-mailben az ezen a héten záruló üzleteket",
+        "pricing": "Válaszolj az árazásunkkal kapcsolatos kérdésekre a Docs tábla alapján",
+        "wonThankYou": "Amikor egy üzlet Megnyertre vált, készíts köszönőlevelet átnézésre",
+        "activities": "Minden hétfőn foglald össze, mi változott az Activities táblában",
+        "duplicates": "Jelöld meg a duplikált cégeket, és vond össze őket naplózással"
+      },
+      "settingsTitle": "Állítsa be az ügynökét",
+      "namePlaceholder": "pl. Üzleti kockázatfigyelő",
+      "createAgent": "Ügynök létrehozása",
+      "hintName": "A folytatáshoz adjon neki nevet",
+      "hintInstructions": "A folytatáshoz adjon meg utasításokat",
+      "hintReady": "Még nem fut. Nézze át az egyes szakaszokat, majd {cta}.",
+      "scopeTitle": "Típus",
+      "scopeHint": "Ezt módosíthatja, amíg piszkozat.",
+      "scopeLocked": "Az ügynök bekapcsolása után rögzül. A módosításhoz másolja le az ügynököt: a másolat piszkozatként indul.",
+      "deliveryTitle": "Az eredmények ide kerülnek",
+      "deliveryHint": "Hová küldi, amit talál, amikor magától fut.",
+      "deliveryChannel": "Slack-csatorna",
+      "deliverySlackMissing": "Csatlakoztassa a Slack alkalmazást az Integrációkban, hogy oda írhasson.",
+      "deliverySlackInvalid": "Adjon meg egy Slack-csatornát, például #sales.",
+      "discardTitle": "Elveti ezt a piszkozatot?",
+      "discardContent": "A piszkozat és a hozzá tartozó beállítási csevegés a kukába kerül."
     }
   },
   "activity": {
@@ -6355,18 +6506,6 @@
       "pin": "Megjegyzés rögzítése",
       "unpin": "Megjegyzés rögzítésének feloldása",
       "pinnedComment": "Rögzített megjegyzés",
-      "assignTodo": "Hozzárendelés teendőként",
-      "editTodo": "Teendő szerkesztése",
-      "removeTodo": "Teendő eltávolítása",
-      "assignee": "Felelős",
-      "selectAssignee": "Válasszon egy személyt",
-      "dueDate": "Határidő",
-      "noDueDate": "Nincs határidő",
-      "assign": "Hozzárendelés",
-      "assignedTo": "Hozzárendelve: {name}",
-      "due": "Határidő: {date}",
-      "markDone": "Megjelölés késznek",
-      "markNotDone": "Megjelölés nem késznek",
       "summarize": "Összefoglalás",
       "summaryOf": "{count} megjegyzés összefoglalása | {count} megjegyzés összefoglalása",
       "summarizing": "A szál összefoglalása...",

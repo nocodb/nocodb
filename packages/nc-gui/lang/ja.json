@@ -3806,7 +3806,7 @@
     "metaApis": "メタデータ API",
     "maxNumberOfAttachments": "添付ファイルの最大数",
     "maxAttachmentSizeMb": "添付ファイルの最大サイズ（MB）",
-    "notifyUsersWithBaseAccessWhenAdded": "プロジェクトへのアクセス権を持つユーザーが追加されたときに通知する",
+    "notifyUsersWithBaseAccessWhenAdded": "ベースへのアクセス権を持つユーザーが追加されたら通知する",
     "mimeExamplePng": "PNG 画像のみ許可します",
     "mimeExamplePdf": "PDF 文書のみ許可します",
     "mimeExampleAllImages": "すべての画像を許可します",
@@ -6025,7 +6025,158 @@
       "sizeStandard": "標準",
       "sizeLarge": "大",
       "machineSize": "マシンサイズ",
-      "alwaysOn": "常時オン"
+      "alwaysOn": "常時オン",
+      "workspaceAgent": "汎用エージェント",
+      "workspaceAgentDescription": "管理されたマシン上で、連携を通じてアプリ、データ、ドキュメントを横断して動作します。",
+      "waitingForGithubBody": "開いたウィンドウでアクセスを承認してください。このページは自動で更新されます。"
+    },
+    "agentSessionNew": "新しいチャット",
+    "agentSessionJustNow": "たった今",
+    "agentSessionMinutes": "{n}分",
+    "agentSessionHours": "{n}時間",
+    "agentSessionsViewAll": "{count} 件すべてを表示",
+    "agentSessionsCount": "{count} 件のセッション | {count} 件のセッション",
+    "agentSessionsAutomatic": "自動",
+    "agentSessionsBack": "エージェント一覧に戻る",
+    "agentModeCoding": "コーディング",
+    "agentFiles": {
+      "title": "ファイル",
+      "subtitle": "エージェントは実行のたびにこれらを読み込みます。",
+      "drop": "ここにファイルをドラッグ＆ドロップ、または",
+      "browse": "参照",
+      "accepted": "PDF、Word、Excel、CSV、画像（各 {size} MB まで）",
+      "uploading": "アップロード中…",
+      "download": "{name} をダウンロード",
+      "remove": "{name} を削除",
+      "saved": "自動保存されます。変更は次回の実行から反映されます。"
+    },
+    "agentPersonal": {
+      "worksAsYou": "あなたとして動作",
+      "worksAsYouHint": "このプロジェクトでのあなたのアクセス権を使います（ここで上限を設定）。",
+      "capSameAsMe": "自分と同じ",
+      "currentRole": "現在は {role} として動作できます",
+      "webhookOwnerOnly": "このウェブフックを実行できるのは自分の API トークンだけです。",
+      "paused": "一時停止中: このプロジェクトへのアクセス権がなくなっていました。再開するにはオンに戻してください。",
+      "pausedOwnerNoAccess": "所有者はこのプロジェクトへのアクセス権を失っています。",
+      "viaAgent": "{agent} 経由",
+      "viaAnAgent": "エージェント経由",
+      "oversightTitle": "個人エージェント",
+      "oversightHint": "メンバーが自分用に作成したエージェントです。オフにしたり削除したりできますが、その指示と実行内容は非公開のままです。",
+      "oversightEmpty": "このプロジェクトに個人エージェントはありません。",
+      "triggers": "トリガー",
+      "turnOff": "オフにする"
+    },
+    "agentSetup": {
+      "jobTitle": "汎用エージェントを作成",
+      "jobSubtitle": "テンプレートから、または自分の言葉から始められます。あとからすべて変更できます。",
+      "describeTitle": "説明して設定する",
+      "describeSubtitle": "何をしてほしいかを自分の言葉で伝えてください。必要なことだけを尋ねます。",
+      "pickTemplate": "テンプレートを選択",
+      "createManually": "手動で作成",
+      "noTemplates": "検索に一致するテンプレートはありません。",
+      "category": {
+        "everyone": "全員向け",
+        "sales": "セールス",
+        "ops": "オペレーション",
+        "marketing": "マーケティング",
+        "support": "サポート"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "回答ボット",
+          "description": "誰かが質問したときに、テーブルやドキュメントについて回答します。"
+        },
+        "meeting-prep": {
+          "description": "平日の毎朝、会議テーブルから当日の会議を準備します。取引先、進行中の商談、直近のメモをまとめます。"
+        },
+        "follow-up-drafter": {
+          "title": "フォローアップ作成",
+          "description": "レコードに後押しが必要なときに、フォローアップメールを下書きします。"
+        },
+        "deal-risk-watcher": {
+          "title": "商談リスク監視",
+          "description": "停滞している商談に印を付け、担当者に理由を伝えます。"
+        },
+        "data-cleaner": {
+          "title": "データクリーナー",
+          "description": "重複や欠けている値を見つけて修正し、すべての変更をログに残します。"
+        },
+        "campaign-report": {
+          "title": "キャンペーンレポート",
+          "description": "毎週金曜日にキャンペーンの結果をまとめ、Slack に投稿します。"
+        },
+        "content-calendar-keeper": {
+          "title": "コンテンツカレンダー管理",
+          "description": "今後の投稿を担当者にリマインドし、期限切れのものに印を付けます。"
+        },
+        "customer-check-in": {
+          "title": "顧客フォローアップ",
+          "description": "連絡が途絶えた顧客への確認文を、レビュー用に下書きします。"
+        }
+      },
+      "rowJob": "役割",
+      "rowReads": "読み取り",
+      "rowRuns": "実行",
+      "rowShares": "共有",
+      "rowAccess": "アクセス",
+      "accessRead": "レコードを読み取る",
+      "accessWrite": "レコードを読み取り、変更する",
+      "accessWeb": "ウェブを使う",
+      "allTables": "すべてのテーブル",
+      "notSet": "未設定",
+      "ask": {
+        "when": "いつ実行しますか？",
+        "table": "どのテーブルを監視しますか？",
+        "share": "見つけた内容をどこで共有しますか？",
+        "channel": "どの Slack チャンネルに投稿しますか？",
+        "final": "必要な情報はこれで全部です。セットアップを完了して内容を確認し、オンにしてください。"
+      },
+      "channelHint": "下にチャンネル名を入力してください（例: #sales）。",
+      "finish": "セットアップを完了",
+      "day": {
+        "day": "日",
+        "weekday": "平日",
+        "monday": "月曜日",
+        "tuesday": "火曜日",
+        "wednesday": "水曜日",
+        "thursday": "木曜日",
+        "friday": "金曜日",
+        "saturday": "土曜日",
+        "sunday": "日曜日"
+      },
+      "shareChat": "このチャット内",
+      "shareEmail": "自分にメール",
+      "shareEmailTo": "{name} にメール",
+      "shareSlack": "Slack {channel}",
+      "barReady": "下書きができました。内容を確認してオンにしてください。",
+      "barReview": "設定ですべて確認してから、オンにしてください。",
+      "openSetup": "セットアップを開く",
+      "placeholderReply": "返信するか、好きなように変更してください（例: 「毎日にして」「商談ウォッチャーという名前にして」）",
+      "examples": {
+        "staleDeals": "毎週金曜日に、停滞している商談を一覧にして #sales に投稿して",
+        "newContact": "新しい連絡先が追加されたら、役職と会社を補完して",
+        "closingDeals": "毎朝、今週成立する商談をメールで送って",
+        "pricing": "Docs テーブルをもとに、料金に関する質問に答えて",
+        "wonThankYou": "商談が受注に変わったら、確認用にお礼の文面を作成して",
+        "activities": "毎週月曜日に、Activities で変わった点をまとめて",
+        "duplicates": "重複した会社に印を付け、ログを残して統合して"
+      },
+      "settingsTitle": "エージェントを設定",
+      "namePlaceholder": "例: 商談リスク監視",
+      "createAgent": "エージェントを作成",
+      "hintName": "続けるには名前を付けてください",
+      "hintInstructions": "続けるには指示を追加してください",
+      "hintReady": "まだ実行されていません。各セクションを確認してから、{cta}。",
+      "scopeTitle": "タイプ",
+      "scopeHint": "下書きの間は変更できます。",
+      "scopeLocked": "エージェントをオンにすると固定されます。変更するにはエージェントを複製してください。コピーは下書きとして始まります。",
+      "deliveryTitle": "結果の送信先",
+      "deliveryHint": "自動で実行されたとき、見つけた内容の送信先です。",
+      "deliveryChannel": "Slack チャンネル",
+      "deliverySlackMissing": "そこに投稿できるよう、連携で Slack を接続してください。",
+      "deliverySlackInvalid": "Slack チャンネルを入力してください（例: #sales）。",
+      "discardTitle": "この下書きを破棄しますか？",
+      "discardContent": "下書きとそのセットアップチャットはゴミ箱に移動します。"
     }
   },
   "activity": {
@@ -6360,18 +6511,6 @@
       "pin": "コメントをピン留め",
       "unpin": "コメントのピン留めを解除",
       "pinnedComment": "ピン留めされたコメント",
-      "assignTodo": "ToDo として割り当て",
-      "editTodo": "ToDo を編集",
-      "removeTodo": "ToDo を削除",
-      "assignee": "担当者",
-      "selectAssignee": "担当者を選択",
-      "dueDate": "期限日",
-      "noDueDate": "期限日なし",
-      "assign": "割り当て",
-      "assignedTo": "{name} に割り当て済み",
-      "due": "期限 {date}",
-      "markDone": "完了としてマーク",
-      "markNotDone": "未完了としてマーク",
       "summarize": "要約する",
       "summaryOf": "{count} 件のコメントの要約 | {count} 件のコメントの要約",
       "summarizing": "スレッドを要約しています...",

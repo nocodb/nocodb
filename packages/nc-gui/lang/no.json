@@ -3803,7 +3803,7 @@
     "metaApis": "Metadata-API-er",
     "maxNumberOfAttachments": "Maks. antall vedlegg",
     "maxAttachmentSizeMb": "Maks. vedleggsstørrelse (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Varsle brukere med prosjekttilgang når de legges til",
+    "notifyUsersWithBaseAccessWhenAdded": "Varsle brukere med tilgang til basen når de legges til",
     "mimeExamplePng": "Tillater kun PNG-bilder",
     "mimeExamplePdf": "Tillater kun PDF-dokumenter",
     "mimeExampleAllImages": "Tillater alle bilder",
@@ -6008,7 +6008,157 @@
       "sizeSmall": "Liten",
       "sizeLarge": "Stor",
       "machineSize": "Maskinstørrelse",
-      "alwaysOn": "Alltid på"
+      "alwaysOn": "Alltid på",
+      "workspaceAgent": "Generell agent",
+      "workspaceAgentDescription": "Jobber på tvers av appene, dataene og docs-ene dine via integrasjoner, på en administrert maskin.",
+      "waitingForGithubBody": "Godkjenn tilgangen i vinduet som ble åpnet. Denne siden oppdaterer seg selv."
+    },
+    "agentSessionNew": "Ny chat",
+    "agentSessionJustNow": "Nå",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} t",
+    "agentSessionsViewAll": "Se alle {count}",
+    "agentSessionsCount": "{count} økt | {count} økter",
+    "agentSessionsAutomatic": "Automatisk",
+    "agentSessionsBack": "Tilbake til agenter",
+    "agentModeCoding": "Programmering",
+    "agentFiles": {
+      "title": "Filer",
+      "subtitle": "Agenten leser dem ved hver kjøring.",
+      "drop": "Dra og slipp filer hit, eller",
+      "browse": "bla gjennom",
+      "accepted": "PDF, Word, Excel, CSV eller bilder, opptil {size} MB hver",
+      "uploading": "Laster opp…",
+      "download": "Last ned {name}",
+      "remove": "Fjern {name}",
+      "saved": "Lagres automatisk. Endringer gjelder fra neste kjøring."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Jobber som deg",
+      "worksAsYouHint": "Bruker tilgangen din i dette prosjektet, begrenset her.",
+      "capSameAsMe": "Samme som meg",
+      "currentRole": "Akkurat nå kan den opptre som {role}",
+      "webhookOwnerOnly": "Bare ditt eget API-token kan utløse denne webhooken.",
+      "paused": "Satt på pause: du hadde ikke lenger tilgang til dette prosjektet. Slå den på igjen for å fortsette.",
+      "pausedOwnerNoAccess": "Eieren har ikke lenger tilgang til dette prosjektet.",
+      "viaAgent": "via {agent}",
+      "viaAnAgent": "via en agent",
+      "oversightTitle": "Personlige agenter",
+      "oversightHint": "Agenter som medlemmer har laget til seg selv. Du kan slå dem av eller slette dem; instruksjonene og kjøringene deres forblir private.",
+      "oversightEmpty": "Ingen personlige agenter i dette prosjektet.",
+      "triggers": "Utløsere",
+      "turnOff": "Slå av"
+    },
+    "agentSetup": {
+      "jobTitle": "Opprett en generell agent",
+      "jobSubtitle": "Start fra en mal eller dine egne ord. Du kan endre alt senere.",
+      "describeTitle": "Sett opp ved å beskrive",
+      "describeSubtitle": "Fortell den med egne ord hva den skal gjøre. Den spør bare om det den trenger.",
+      "pickTemplate": "Velg en mal",
+      "createManually": "Opprett manuelt",
+      "noTemplates": "Ingen maler samsvarer med søket ditt.",
+      "category": {
+        "everyone": "For alle",
+        "sales": "Salg",
+        "ops": "Drift",
+        "marketing": "Markedsføring",
+        "support": "Support"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Svarbot",
+          "description": "Svarer på spørsmål om tabellene og docs-ene dine hver gang noen spør."
+        },
+        "meeting-prep": {
+          "description": "Hver ukedagsmorgen forbereder den dagens møter fra møtetabellen din: kunden, åpne avtaler og de siste notatene."
+        },
+        "follow-up-drafter": {
+          "title": "Oppfølgingsskribent",
+          "description": "Lager utkast til oppfølgings-e-poster når en post trenger en dytt."
+        },
+        "deal-risk-watcher": {
+          "title": "Avtalerisikovakt",
+          "description": "Merker avtaler som har stoppet opp, og forteller eieren hvorfor."
+        },
+        "data-cleaner": {
+          "title": "Dataopprydder",
+          "description": "Finner duplikater og manglende verdier og retter dem, med en logg over hver endring."
+        },
+        "campaign-report": {
+          "title": "Kampanjerapport",
+          "description": "Oppsummerer kampanjeresultatene hver fredag og poster dem på Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "Innholdskalendervakt",
+          "description": "Minner eiere om kommende innlegg og merker alt som er forfalt."
+        },
+        "customer-check-in": {
+          "title": "Kundeoppfølging",
+          "description": "Lager et utkast til oppfølging for kunder som har blitt stille, klart til gjennomgang."
+        }
+      },
+      "rowJob": "Oppgave",
+      "rowReads": "Leser",
+      "rowRuns": "Kjører",
+      "rowShares": "Deler",
+      "rowAccess": "Tilgang",
+      "accessRead": "Leser poster",
+      "accessWrite": "Leser og endrer poster",
+      "accessWeb": "bruker nettet",
+      "allTables": "Alle tabeller",
+      "notSet": "Ikke angitt ennå",
+      "ask": {
+        "when": "Når skal den kjøre?",
+        "table": "Hvilken tabell skal den følge med på?",
+        "share": "Hvor skal den dele det den finner?",
+        "channel": "Hvilken Slack-kanal skal den poste i?",
+        "final": "Det er alt jeg trenger. Fullfør oppsettet for å se over den og slå den på."
+      },
+      "channelHint": "Skriv kanalnavnet nedenfor, for eksempel #sales.",
+      "finish": "Fullfør oppsettet",
+      "day": {
+        "day": "dag",
+        "weekday": "ukedag",
+        "monday": "mandag",
+        "tuesday": "tirsdag",
+        "wednesday": "onsdag",
+        "thursday": "torsdag",
+        "friday": "fredag",
+        "saturday": "lørdag",
+        "sunday": "søndag"
+      },
+      "shareChat": "Her i chatten",
+      "shareEmail": "E-post til deg",
+      "shareEmailTo": "E-post til {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Utkastet er klart. Se over alt og slå den på.",
+      "barReview": "Se over alt i Innstillinger, og slå den så på.",
+      "openSetup": "Åpne oppsettet",
+      "placeholderReply": "Svar, eller endre hva som helst: «gjør den daglig», «kall den Avtalevakt»",
+      "examples": {
+        "staleDeals": "List opp avtaler som står stille hver fredag, og post dem i #sales",
+        "newContact": "Fyll inn tittel og selskap når en ny kontakt legges til",
+        "closingDeals": "Send meg e-post hver morgen med avtalene som lukkes denne uken",
+        "pricing": "Svar på spørsmål om prisene våre ut fra tabellen Docs",
+        "wonThankYou": "Når en avtale går til Vunnet, lag et utkast til en takk for gjennomgang",
+        "activities": "Oppsummer hver mandag hva som er endret i Activities",
+        "duplicates": "Merk dupliserte selskaper og slå dem sammen med en logg"
+      },
+      "settingsTitle": "Sett opp agenten din",
+      "namePlaceholder": "f.eks. Avtalerisikovakt",
+      "createAgent": "Opprett agent",
+      "hintName": "Gi den et navn for å fortsette",
+      "hintInstructions": "Legg til instruksjoner for å fortsette",
+      "hintReady": "Kjører ikke ennå. Gå gjennom hver del, og {cta}.",
+      "scopeHint": "Du kan endre dette så lenge det er et utkast.",
+      "scopeLocked": "Låst når agenten er på. Dupliser agenten for å endre det: kopien starter som utkast.",
+      "deliveryTitle": "Resultatene går til",
+      "deliveryHint": "Hvor den sender det den finner når den kjører av seg selv.",
+      "deliveryChannel": "Slack-kanal",
+      "deliverySlackMissing": "Koble til Slack under Integrasjoner slik at den kan poste der.",
+      "deliverySlackInvalid": "Oppgi en Slack-kanal, for eksempel #sales.",
+      "discardTitle": "Forkaste dette utkastet?",
+      "discardContent": "Utkastet og oppsettchatten flyttes til papirkurven."
     }
   },
   "activity": {
@@ -6343,18 +6493,6 @@
       "pin": "Fest kommentar",
       "unpin": "Løsne kommentar",
       "pinnedComment": "Festet kommentar",
-      "assignTodo": "Tildel som gjøremål",
-      "editTodo": "Rediger gjøremål",
-      "removeTodo": "Fjern gjøremål",
-      "assignee": "Tildelt person",
-      "selectAssignee": "Velg en person",
-      "dueDate": "Forfallsdato",
-      "noDueDate": "Ingen forfallsdato",
-      "assign": "Tildel",
-      "assignedTo": "Tildelt {name}",
-      "due": "Forfaller {date}",
-      "markDone": "Merk som ferdig",
-      "markNotDone": "Merk som ikke ferdig",
       "summarize": "Oppsummer",
       "summaryOf": "Oppsummering av {count} kommentar | Oppsummering av {count} kommentarer",
       "summarizing": "Oppsummerer tråden...",

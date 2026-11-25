@@ -3806,7 +3806,7 @@
     "metaApis": "API siêu dữ liệu",
     "maxNumberOfAttachments": "Số tệp đính kèm tối đa",
     "maxAttachmentSizeMb": "Dung lượng tệp đính kèm tối đa (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Thông báo cho người dùng có quyền truy cập dự án khi họ được thêm vào",
+    "notifyUsersWithBaseAccessWhenAdded": "Thông báo cho người dùng có quyền truy cập cơ sở khi họ được thêm vào",
     "mimeExamplePng": "Chỉ cho phép hình ảnh PNG",
     "mimeExamplePdf": "Chỉ cho phép tài liệu PDF",
     "mimeExampleAllImages": "Cho phép mọi hình ảnh",
@@ -6021,7 +6021,158 @@
       "sizeStandard": "Tiêu chuẩn",
       "sizeLarge": "Lớn",
       "machineSize": "Kích thước máy",
-      "alwaysOn": "Luôn bật"
+      "alwaysOn": "Luôn bật",
+      "workspaceAgent": "Tác nhân chung",
+      "workspaceAgentDescription": "Làm việc trên các ứng dụng, dữ liệu và tài liệu của bạn thông qua tích hợp, trên một máy được quản lý.",
+      "waitingForGithubBody": "Hãy chấp thuận quyền truy cập trong cửa sổ vừa mở. Trang này tự cập nhật."
+    },
+    "agentSessionNew": "Trò chuyện mới",
+    "agentSessionJustNow": "Vừa xong",
+    "agentSessionMinutes": "{n} phút",
+    "agentSessionHours": "{n} giờ",
+    "agentSessionsViewAll": "Xem tất cả {count}",
+    "agentSessionsCount": "{count} phiên | {count} phiên",
+    "agentSessionsAutomatic": "Tự động",
+    "agentSessionsBack": "Quay lại danh sách tác nhân",
+    "agentModeCoding": "Lập trình",
+    "agentFiles": {
+      "title": "Tệp",
+      "subtitle": "Tác nhân đọc các tệp này mỗi lần chạy.",
+      "drop": "Kéo và thả tệp vào đây, hoặc",
+      "browse": "duyệt tệp",
+      "accepted": "PDF, Word, Excel, CSV hoặc hình ảnh, mỗi tệp tối đa {size} MB",
+      "uploading": "Đang tải lên…",
+      "download": "Tải {name} xuống",
+      "remove": "Gỡ {name}",
+      "saved": "Tự động lưu. Thay đổi có hiệu lực từ lần chạy tiếp theo."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Hoạt động thay bạn",
+      "worksAsYouHint": "Dùng quyền truy cập của bạn trong dự án này, có giới hạn tại đây.",
+      "capSameAsMe": "Giống như tôi",
+      "currentRole": "Hiện tại nó có thể hoạt động với vai trò {role}",
+      "webhookOwnerOnly": "Chỉ token API của riêng bạn mới kích hoạt được webhook này.",
+      "paused": "Đã tạm dừng: bạn không còn quyền truy cập dự án này. Bật lại để tiếp tục.",
+      "pausedOwnerNoAccess": "Chủ sở hữu của nó không còn quyền truy cập dự án này.",
+      "viaAgent": "qua {agent}",
+      "viaAnAgent": "qua một tác nhân",
+      "oversightTitle": "Tác nhân cá nhân",
+      "oversightHint": "Các tác nhân mà thành viên tự tạo cho mình. Bạn có thể tắt hoặc xóa chúng; hướng dẫn và các lần chạy của chúng vẫn riêng tư.",
+      "oversightEmpty": "Không có tác nhân cá nhân nào trong dự án này.",
+      "triggers": "Trình kích hoạt",
+      "turnOff": "Tắt"
+    },
+    "agentSetup": {
+      "jobTitle": "Tạo một tác nhân chung",
+      "jobSubtitle": "Bắt đầu từ một mẫu hoặc từ lời của bạn. Bạn có thể thay đổi mọi thứ sau.",
+      "describeTitle": "Thiết lập bằng cách mô tả",
+      "describeSubtitle": "Hãy nói bằng lời của bạn điều nó cần làm. Nó chỉ hỏi những gì cần thiết.",
+      "pickTemplate": "Chọn một mẫu",
+      "createManually": "Tạo thủ công",
+      "noTemplates": "Không có mẫu nào khớp với tìm kiếm của bạn.",
+      "category": {
+        "everyone": "Cho mọi người",
+        "sales": "Bán hàng",
+        "ops": "Vận hành",
+        "marketing": "Tiếp thị",
+        "support": "Hỗ trợ"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Bot trả lời",
+          "description": "Trả lời câu hỏi về các bảng và tài liệu của bạn mỗi khi có ai hỏi."
+        },
+        "meeting-prep": {
+          "description": "Mỗi sáng ngày làm việc, chuẩn bị các cuộc họp hôm nay từ bảng cuộc họp của bạn: khách hàng, thương vụ đang mở và ghi chú gần nhất."
+        },
+        "follow-up-drafter": {
+          "title": "Người soạn thư theo dõi",
+          "description": "Soạn email theo dõi khi một bản ghi cần được thúc đẩy."
+        },
+        "deal-risk-watcher": {
+          "title": "Người canh rủi ro thương vụ",
+          "description": "Đánh dấu những thương vụ đã chững lại và nói cho người phụ trách biết vì sao."
+        },
+        "data-cleaner": {
+          "title": "Trình dọn dữ liệu",
+          "description": "Tìm bản trùng và giá trị còn thiếu rồi sửa, kèm nhật ký cho mọi thay đổi."
+        },
+        "campaign-report": {
+          "title": "Báo cáo chiến dịch",
+          "description": "Mỗi thứ Sáu, tóm tắt kết quả chiến dịch và đăng lên kênh Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "Người giữ lịch nội dung",
+          "description": "Nhắc người phụ trách về các bài sắp đăng và đánh dấu những gì quá hạn."
+        },
+        "customer-check-in": {
+          "title": "Hỏi thăm khách hàng",
+          "description": "Soạn thư hỏi thăm cho khách hàng đã im ắng, sẵn sàng để xem lại."
+        }
+      },
+      "rowJob": "Nhiệm vụ",
+      "rowReads": "Đọc",
+      "rowRuns": "Chạy",
+      "rowShares": "Chia sẻ",
+      "rowAccess": "Quyền truy cập",
+      "accessRead": "Đọc bản ghi",
+      "accessWrite": "Đọc và thay đổi bản ghi",
+      "accessWeb": "dùng web",
+      "allTables": "Tất cả các bảng",
+      "notSet": "Chưa đặt",
+      "ask": {
+        "when": "Nó nên chạy khi nào?",
+        "table": "Nó nên theo dõi bảng nào?",
+        "share": "Nó nên chia sẻ những gì tìm được ở đâu?",
+        "channel": "Nó nên đăng vào kênh Slack nào?",
+        "final": "Tôi chỉ cần bấy nhiêu. Hãy hoàn tất thiết lập để xem lại và bật nó."
+      },
+      "channelHint": "Nhập tên kênh bên dưới, ví dụ #sales.",
+      "finish": "Hoàn tất thiết lập",
+      "day": {
+        "day": "ngày",
+        "weekday": "ngày trong tuần",
+        "monday": "Thứ Hai",
+        "tuesday": "Thứ Ba",
+        "wednesday": "Thứ Tư",
+        "thursday": "Thứ Năm",
+        "friday": "Thứ Sáu",
+        "saturday": "Thứ Bảy",
+        "sunday": "Chủ Nhật"
+      },
+      "shareChat": "Ngay tại đây trong trò chuyện",
+      "shareEmail": "Email cho bạn",
+      "shareEmailTo": "Email cho {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Bản nháp đã sẵn sàng. Xem lại mọi thứ rồi bật nó.",
+      "barReview": "Xem lại mọi thứ trong Cài đặt, rồi bật nó.",
+      "openSetup": "Mở thiết lập",
+      "placeholderReply": "Trả lời, hoặc thay đổi bất cứ điều gì: “đổi thành hằng ngày”, “đặt tên là Người canh thương vụ”",
+      "examples": {
+        "staleDeals": "Mỗi thứ Sáu, liệt kê các thương vụ đang đình trệ và đăng vào #sales",
+        "newContact": "Khi có liên hệ mới, điền chức danh và công ty của họ",
+        "closingDeals": "Mỗi sáng, gửi email cho tôi những thương vụ chốt trong tuần này",
+        "pricing": "Trả lời câu hỏi về bảng giá của chúng tôi dựa trên bảng Docs",
+        "wonThankYou": "Khi một thương vụ chuyển sang Thắng, soạn thư cảm ơn để xem lại",
+        "activities": "Mỗi thứ Hai, tóm tắt những gì đã thay đổi trong Activities",
+        "duplicates": "Đánh dấu các công ty trùng lặp và gộp chúng kèm nhật ký"
+      },
+      "settingsTitle": "Thiết lập tác nhân của bạn",
+      "namePlaceholder": "ví dụ Người canh rủi ro thương vụ",
+      "createAgent": "Tạo tác nhân",
+      "hintName": "Đặt tên cho nó để tiếp tục",
+      "hintInstructions": "Thêm hướng dẫn để tiếp tục",
+      "hintReady": "Chưa chạy. Hãy kiểm tra từng phần, rồi {cta}.",
+      "scopeTitle": "Loại",
+      "scopeHint": "Bạn có thể thay đổi điều này khi nó còn là bản nháp.",
+      "scopeLocked": "Cố định sau khi tác nhân được bật. Để thay đổi, hãy nhân bản tác nhân: bản sao bắt đầu ở dạng nháp.",
+      "deliveryTitle": "Kết quả gửi tới",
+      "deliveryHint": "Nơi nó gửi những gì tìm được khi tự chạy.",
+      "deliveryChannel": "Kênh Slack",
+      "deliverySlackMissing": "Kết nối Slack trong phần Tích hợp để nó đăng được ở đó.",
+      "deliverySlackInvalid": "Nhập một kênh Slack, ví dụ #sales.",
+      "discardTitle": "Bỏ bản nháp này?",
+      "discardContent": "Bản nháp và cuộc trò chuyện thiết lập sẽ được chuyển vào thùng rác."
     }
   },
   "activity": {
@@ -6356,18 +6507,6 @@
       "pin": "Ghim bình luận",
       "unpin": "Bỏ ghim bình luận",
       "pinnedComment": "Bình luận đã ghim",
-      "assignTodo": "Giao như một việc cần làm",
-      "editTodo": "Sửa việc cần làm",
-      "removeTodo": "Xóa việc cần làm",
-      "assignee": "Người được giao",
-      "selectAssignee": "Chọn một người",
-      "dueDate": "Ngày đến hạn",
-      "noDueDate": "Không có ngày đến hạn",
-      "assign": "Giao",
-      "assignedTo": "Đã giao cho {name}",
-      "due": "Hạn {date}",
-      "markDone": "Đánh dấu là đã xong",
-      "markNotDone": "Đánh dấu là chưa xong",
       "summarize": "Tóm tắt",
       "summaryOf": "Tóm tắt {count} bình luận | Tóm tắt {count} bình luận",
       "summarizing": "Đang tóm tắt chuỗi thảo luận...",

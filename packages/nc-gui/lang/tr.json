@@ -3806,7 +3806,7 @@
     "metaApis": "Meta veri API'leri",
     "maxNumberOfAttachments": "En fazla ek sayısı",
     "maxAttachmentSizeMb": "En büyük ek boyutu (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Proje erişimi olan kullanıcıları eklendiklerinde bilgilendir",
+    "notifyUsersWithBaseAccessWhenAdded": "Tabana erişimi olan kullanıcılar eklendiğinde onları bilgilendir",
     "mimeExamplePng": "Yalnızca PNG görsellerine izin verir",
     "mimeExamplePdf": "Yalnızca PDF belgelerine izin verir",
     "mimeExampleAllImages": "Tüm görsellere izin verir",
@@ -6018,7 +6018,158 @@
       "sizeSmall": "Küçük",
       "sizeLarge": "Büyük",
       "machineSize": "Makine boyutu",
-      "alwaysOn": "Her zaman açık"
+      "alwaysOn": "Her zaman açık",
+      "workspaceAgent": "Genel ajan",
+      "workspaceAgentDescription": "Yönetilen bir makinede, entegrasyonlar aracılığıyla uygulamalarınız, verileriniz ve belgelerinizle çalışır.",
+      "waitingForGithubBody": "Açılan pencerede erişimi onaylayın. Bu sayfa kendiliğinden güncellenir."
+    },
+    "agentSessionNew": "Yeni sohbet",
+    "agentSessionJustNow": "Şimdi",
+    "agentSessionMinutes": "{n} dk",
+    "agentSessionHours": "{n} sa",
+    "agentSessionsViewAll": "{count} tanesinin tümünü gör",
+    "agentSessionsCount": "{count} oturum | {count} oturum",
+    "agentSessionsAutomatic": "Otomatik",
+    "agentSessionsBack": "Ajanlara dön",
+    "agentModeCoding": "Kodlama",
+    "agentFiles": {
+      "title": "Dosyalar",
+      "subtitle": "Ajan bunları her çalıştırmada okur.",
+      "drop": "Dosyaları buraya sürükleyip bırakın ya da",
+      "browse": "gözat",
+      "accepted": "PDF, Word, Excel, CSV veya görseller, her biri en fazla {size} MB",
+      "uploading": "Yükleniyor…",
+      "download": "{name} dosyasını indir",
+      "remove": "{name} dosyasını kaldır",
+      "saved": "Otomatik kaydedildi. Değişiklikler bir sonraki çalıştırmadan itibaren geçerlidir."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Sizin adınıza çalışır",
+      "worksAsYouHint": "Bu projedeki erişiminizi kullanır, burada sınırlandırılmış olarak.",
+      "capSameAsMe": "Benimle aynı",
+      "currentRole": "Şu anda {role} olarak hareket edebilir",
+      "webhookOwnerOnly": "Bu webhook'u yalnızca kendi API belirteciniz tetikleyebilir.",
+      "paused": "Duraklatıldı: bu projeye artık erişiminiz yoktu. Sürdürmek için yeniden açın.",
+      "pausedOwnerNoAccess": "Sahibinin bu projeye artık erişimi yok.",
+      "viaAgent": "{agent} aracılığıyla",
+      "viaAnAgent": "bir ajan aracılığıyla",
+      "oversightTitle": "Kişisel ajanlar",
+      "oversightHint": "Üyelerin kendileri için oluşturduğu ajanlar. Bunları kapatabilir veya silebilirsiniz; talimatları ve çalıştırmaları gizli kalır.",
+      "oversightEmpty": "Bu projede kişisel ajan yok.",
+      "triggers": "Tetikleyiciler",
+      "turnOff": "Kapat"
+    },
+    "agentSetup": {
+      "jobTitle": "Genel bir ajan oluştur",
+      "jobSubtitle": "Bir şablonla ya da kendi kelimelerinizle başlayın. Her şeyi sonradan değiştirebilirsiniz.",
+      "describeTitle": "Anlatarak kur",
+      "describeSubtitle": "Ne yapacağını kendi kelimelerinizle anlatın. Yalnızca ihtiyacı olanı sorar.",
+      "pickTemplate": "Bir şablon seçin",
+      "createManually": "Elle oluştur",
+      "noTemplates": "Aramanızla eşleşen şablon yok.",
+      "category": {
+        "everyone": "Herkes için",
+        "sales": "Satış",
+        "ops": "Operasyon",
+        "marketing": "Pazarlama",
+        "support": "Destek"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Yanıt botu",
+          "description": "Biri sorduğunda tablolarınız ve belgelerinizle ilgili soruları yanıtlar."
+        },
+        "meeting-prep": {
+          "description": "Her hafta içi sabah, toplantı tablonuzdan bugünkü toplantıları hazırlar: müşteri, açık fırsatlar ve son notlar."
+        },
+        "follow-up-drafter": {
+          "title": "Takip yazarı",
+          "description": "Bir kayıt dürtmeye ihtiyaç duyduğunda takip e-postaları yazar."
+        },
+        "deal-risk-watcher": {
+          "title": "Fırsat riski gözcüsü",
+          "description": "Duraklamış fırsatları işaretler ve sorumlusuna nedenini söyler."
+        },
+        "data-cleaner": {
+          "title": "Veri temizleyici",
+          "description": "Yinelenen ve eksik değerleri bulup düzeltir, her değişikliğin kaydını tutar."
+        },
+        "campaign-report": {
+          "title": "Kampanya raporu",
+          "description": "Her cuma kampanya sonuçlarını özetler ve Slack kanalına gönderir."
+        },
+        "content-calendar-keeper": {
+          "title": "İçerik takvimi bekçisi",
+          "description": "Sorumlulara yaklaşan paylaşımları hatırlatır ve gecikenleri işaretler."
+        },
+        "customer-check-in": {
+          "title": "Müşteri iletişimi",
+          "description": "Sessizleşen müşteriler için incelemeye hazır bir iletişim taslağı yazar."
+        }
+      },
+      "rowJob": "Görev",
+      "rowReads": "Okur",
+      "rowRuns": "Çalışır",
+      "rowShares": "Paylaşır",
+      "rowAccess": "Erişim",
+      "accessRead": "Kayıtları okur",
+      "accessWrite": "Kayıtları okur ve değiştirir",
+      "accessWeb": "web'i kullanır",
+      "allTables": "Tüm tablolar",
+      "notSet": "Henüz ayarlanmadı",
+      "ask": {
+        "when": "Ne zaman çalışsın?",
+        "table": "Hangi tabloyu izlesin?",
+        "share": "Bulduklarını nerede paylaşsın?",
+        "channel": "Hangi Slack kanalına göndersin?",
+        "final": "İhtiyacım olan her şey bu kadar. Gözden geçirip açmak için kurulumu tamamlayın."
+      },
+      "channelHint": "Kanal adını aşağıya yazın, örneğin #sales.",
+      "finish": "Kurulumu tamamla",
+      "day": {
+        "day": "gün",
+        "weekday": "hafta içi gün",
+        "monday": "Pazartesi",
+        "tuesday": "Salı",
+        "wednesday": "Çarşamba",
+        "thursday": "Perşembe",
+        "friday": "Cuma",
+        "saturday": "Cumartesi",
+        "sunday": "Pazar"
+      },
+      "shareChat": "Burada sohbette",
+      "shareEmail": "Size e-posta",
+      "shareEmailTo": "{name} kişisine e-posta",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Taslak hazır. Her şeyi gözden geçirin ve açın.",
+      "barReview": "Her şeyi Ayarlar'da gözden geçirin, sonra açın.",
+      "openSetup": "Kurulumu aç",
+      "placeholderReply": "Yanıtlayın ya da dilediğinizi değiştirin: “günlük yap”, “adını Fırsat gözcüsü koy”",
+      "examples": {
+        "staleDeals": "Her cuma duran fırsatları listele ve #sales kanalına gönder",
+        "newContact": "Yeni bir kişi eklendiğinde unvanını ve şirketini doldur",
+        "closingDeals": "Her sabah bu hafta kapanacak fırsatları bana e-postayla gönder",
+        "pricing": "Docs tablosundan fiyatlandırmamıza dair soruları yanıtla",
+        "wonThankYou": "Bir fırsat Kazanıldı durumuna geçtiğinde, incelenmek üzere bir teşekkür taslağı hazırla",
+        "activities": "Her pazartesi Activities tablosunda nelerin değiştiğini özetle",
+        "duplicates": "Yinelenen şirketleri işaretle ve kayıt tutarak birleştir"
+      },
+      "settingsTitle": "Ajanınızı kurun",
+      "namePlaceholder": "ör. Fırsat riski gözcüsü",
+      "createAgent": "Ajan oluştur",
+      "hintName": "Devam etmek için ona bir ad verin",
+      "hintInstructions": "Devam etmek için talimat ekleyin",
+      "hintReady": "Henüz çalışmıyor. Her bölümü kontrol edin, sonra {cta}.",
+      "scopeTitle": "Tür",
+      "scopeHint": "Taslak olduğu sürece bunu değiştirebilirsiniz.",
+      "scopeLocked": "Ajan açıldığında sabitlenir. Değiştirmek için ajanı çoğaltın: kopya taslak olarak başlar.",
+      "deliveryTitle": "Sonuçlar şuraya gider",
+      "deliveryHint": "Kendi başına çalıştığında bulduklarını nereye gönderir.",
+      "deliveryChannel": "Slack kanalı",
+      "deliverySlackMissing": "Oraya gönderebilmesi için Entegrasyonlar'dan Slack bağlantısını kurun.",
+      "deliverySlackInvalid": "Bir Slack kanalı girin, örneğin #sales.",
+      "discardTitle": "Bu taslak atılsın mı?",
+      "discardContent": "Taslak ve kurulum sohbeti çöp kutusuna taşınacak."
     }
   },
   "activity": {
@@ -6353,18 +6504,6 @@
       "pin": "Yorumu sabitle",
       "unpin": "Yorumun sabitlemesini kaldır",
       "pinnedComment": "Sabitlenmiş yorum",
-      "assignTodo": "Yapılacak iş olarak ata",
-      "editTodo": "Yapılacak işi düzenle",
-      "removeTodo": "Yapılacak işi kaldır",
-      "assignee": "Atanan kişi",
-      "selectAssignee": "Bir kişi seçin",
-      "dueDate": "Bitiş tarihi",
-      "noDueDate": "Bitiş tarihi yok",
-      "assign": "Ata",
-      "assignedTo": "{name} kişisine atandı",
-      "due": "Bitiş {date}",
-      "markDone": "Tamamlandı olarak işaretle",
-      "markNotDone": "Tamamlanmadı olarak işaretle",
       "summarize": "Özetle",
       "summaryOf": "{count} yorumun özeti | {count} yorumun özeti",
       "summarizing": "Konu özetleniyor...",

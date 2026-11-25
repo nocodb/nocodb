@@ -3805,7 +3805,7 @@
     "metaApis": "API za metapodatke",
     "maxNumberOfAttachments": "Najveći broj privitaka",
     "maxAttachmentSizeMb": "Najveća veličina privitka (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Obavijesti korisnike s pristupom projektu kad su dodani",
+    "notifyUsersWithBaseAccessWhenAdded": "Obavijesti korisnike s pristupom bazi kada budu dodani",
     "mimeExamplePng": "Dopušta samo PNG slike",
     "mimeExamplePdf": "Dopušta samo PDF dokumente",
     "mimeExampleAllImages": "Dopušta sve slike",
@@ -6016,7 +6016,158 @@
       "sizeStandard": "Standardni",
       "sizeLarge": "Velik",
       "machineSize": "Veličina stroja",
-      "alwaysOn": "Uvijek uključen"
+      "alwaysOn": "Uvijek uključen",
+      "workspaceAgent": "Opći agent",
+      "workspaceAgentDescription": "Radi s vašim aplikacijama, podacima i dokumentima putem integracija, na upravljanom stroju.",
+      "waitingForGithubBody": "Odobrite pristup u prozoru koji se otvorio. Ova se stranica osvježava sama."
+    },
+    "agentSessionNew": "Novi razgovor",
+    "agentSessionJustNow": "Sada",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} h",
+    "agentSessionsViewAll": "Prikaži svih {count}",
+    "agentSessionsCount": "{count} sesija | {count} sesija",
+    "agentSessionsAutomatic": "Automatski",
+    "agentSessionsBack": "Natrag na agente",
+    "agentModeCoding": "Programiranje",
+    "agentFiles": {
+      "title": "Datoteke",
+      "subtitle": "Agent ih čita pri svakom pokretanju.",
+      "drop": "Povucite i ispustite datoteke ovdje ili",
+      "browse": "pregledaj",
+      "accepted": "PDF, Word, Excel, CSV ili slike, svaka do {size} MB",
+      "uploading": "Učitavanje…",
+      "download": "Preuzmi {name}",
+      "remove": "Ukloni {name}",
+      "saved": "Sprema se automatski. Promjene vrijede od sljedećeg pokretanja."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Radi u vaše ime",
+      "worksAsYouHint": "Koristi vaš pristup u ovom projektu, ovdje ograničen.",
+      "capSameAsMe": "Isto kao ja",
+      "currentRole": "Trenutačno može djelovati kao {role}",
+      "webhookOwnerOnly": "Samo vaš vlastiti API token može pokrenuti ovaj webhook.",
+      "paused": "Pauzirano: više niste imali pristup ovom projektu. Ponovno ga uključite za nastavak.",
+      "pausedOwnerNoAccess": "Njegov vlasnik više nema pristup ovom projektu.",
+      "viaAgent": "preko {agent}",
+      "viaAnAgent": "preko agenta",
+      "oversightTitle": "Osobni agenti",
+      "oversightHint": "Agenti koje su članovi izradili za sebe. Možete ih isključiti ili izbrisati; njihove upute i pokretanja ostaju privatni.",
+      "oversightEmpty": "Nema osobnih agenata u ovom projektu.",
+      "triggers": "Okidači",
+      "turnOff": "Isključi"
+    },
+    "agentSetup": {
+      "jobTitle": "Izradi općeg agenta",
+      "jobSubtitle": "Krenite od predloška ili svojih riječi. Sve možete kasnije promijeniti.",
+      "describeTitle": "Postavi opisivanjem",
+      "describeSubtitle": "Recite mu svojim riječima što treba raditi. Pita samo ono što mu treba.",
+      "pickTemplate": "Odaberite predložak",
+      "createManually": "Izradi ručno",
+      "noTemplates": "Nijedan predložak ne odgovara vašem pretraživanju.",
+      "category": {
+        "everyone": "Za sve",
+        "sales": "Prodaja",
+        "ops": "Operacije",
+        "marketing": "Marketing",
+        "support": "Podrška"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Bot za odgovore",
+          "description": "Odgovara na pitanja o vašim tablicama i dokumentima kad god netko pita."
+        },
+        "meeting-prep": {
+          "description": "Svako radno jutro priprema današnje sastanke iz vaše tablice sastanaka: klijenta, otvorene poslove i posljednje bilješke."
+        },
+        "follow-up-drafter": {
+          "title": "Sastavljač podsjetnika",
+          "description": "Priprema e-poruke za podsjećanje kada zapis treba poticaj."
+        },
+        "deal-risk-watcher": {
+          "title": "Čuvar rizika poslova",
+          "description": "Označava poslove koji su zapeli i govori vlasniku zašto."
+        },
+        "data-cleaner": {
+          "title": "Čistač podataka",
+          "description": "Pronalazi duplikate i vrijednosti koje nedostaju i ispravlja ih, uz zapisnik svake promjene."
+        },
+        "campaign-report": {
+          "title": "Izvješće o kampanji",
+          "description": "Svakog petka sažima rezultate kampanja i objavljuje ih na Slack kanalu."
+        },
+        "content-calendar-keeper": {
+          "title": "Čuvar kalendara sadržaja",
+          "description": "Podsjeća vlasnike na nadolazeće objave i označava sve što kasni."
+        },
+        "customer-check-in": {
+          "title": "Javljanje klijentu",
+          "description": "Priprema poruku za klijente koji su utihnuli, spremnu za pregled."
+        }
+      },
+      "rowJob": "Zadatak",
+      "rowReads": "Čita",
+      "rowRuns": "Pokreće se",
+      "rowShares": "Dijeli",
+      "rowAccess": "Pristup",
+      "accessRead": "Čita zapise",
+      "accessWrite": "Čita i mijenja zapise",
+      "accessWeb": "koristi web",
+      "allTables": "Sve tablice",
+      "notSet": "Još nije postavljeno",
+      "ask": {
+        "when": "Kada se treba pokretati?",
+        "table": "Koju tablicu treba pratiti?",
+        "share": "Gdje treba dijeliti ono što pronađe?",
+        "channel": "U koji Slack kanal treba objavljivati?",
+        "final": "To je sve što mi treba. Dovršite postavljanje kako biste ga pregledali i uključili."
+      },
+      "channelHint": "Upišite naziv kanala ispod, primjerice #sales.",
+      "finish": "Dovrši postavljanje",
+      "day": {
+        "day": "dan",
+        "weekday": "radni dan",
+        "monday": "ponedjeljak",
+        "tuesday": "utorak",
+        "wednesday": "srijeda",
+        "thursday": "četvrtak",
+        "friday": "petak",
+        "saturday": "subota",
+        "sunday": "nedjelja"
+      },
+      "shareChat": "Ovdje u razgovoru",
+      "shareEmail": "E-pošta vama",
+      "shareEmailTo": "E-pošta za {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Nacrt je spreman. Pregledajte sve i uključite ga.",
+      "barReview": "Pregledajte sve u Postavkama, a zatim ga uključite.",
+      "openSetup": "Otvori postavljanje",
+      "placeholderReply": "Odgovorite ili promijenite bilo što: „neka bude dnevno”, „nazovi ga Čuvar poslova”",
+      "examples": {
+        "staleDeals": "Svakog petka izlistaj zastale poslove i objavi ih u #sales",
+        "newContact": "Kada se doda novi kontakt, ispuni njegovu funkciju i tvrtku",
+        "closingDeals": "Svako jutro pošalji mi e-poštom poslove koji se zatvaraju ovaj tjedan",
+        "pricing": "Odgovaraj na pitanja o našim cijenama na temelju tablice Docs",
+        "wonThankYou": "Kada posao prijeđe u Dobiveno, pripremi zahvalu za pregled",
+        "activities": "Svakog ponedjeljka sažmi što se promijenilo u Activities",
+        "duplicates": "Označi duplicirane tvrtke i spoji ih uz zapisnik"
+      },
+      "settingsTitle": "Postavite svog agenta",
+      "namePlaceholder": "npr. Čuvar rizika poslova",
+      "createAgent": "Izradi agenta",
+      "hintName": "Dajte mu naziv za nastavak",
+      "hintInstructions": "Dodajte upute za nastavak",
+      "hintReady": "Još nije pokrenut. Provjerite svaki odjeljak, a zatim {cta}.",
+      "scopeTitle": "Vrsta",
+      "scopeHint": "Ovo možete mijenjati dok je nacrt.",
+      "scopeLocked": "Nepromjenjivo kada je agent uključen. Za promjenu duplicirajte agenta: kopija počinje kao nacrt.",
+      "deliveryTitle": "Rezultati idu na",
+      "deliveryHint": "Kamo šalje ono što pronađe kada se pokreće sam.",
+      "deliveryChannel": "Slack kanal",
+      "deliverySlackMissing": "Povežite Slack u Integracijama kako bi mogao ondje objavljivati.",
+      "deliverySlackInvalid": "Unesite Slack kanal, primjerice #sales.",
+      "discardTitle": "Odbaciti ovaj nacrt?",
+      "discardContent": "Nacrt i njegov razgovor o postavljanju premjestit će se u smeće."
     }
   },
   "activity": {
@@ -6351,18 +6502,6 @@
       "pin": "Prikvači komentar",
       "unpin": "Otkvači komentar",
       "pinnedComment": "Prikvačeni komentar",
-      "assignTodo": "Dodijeli kao zadatak",
-      "editTodo": "Uredi zadatak",
-      "removeTodo": "Ukloni zadatak",
-      "assignee": "Dodijeljena osoba",
-      "selectAssignee": "Odaberite osobu",
-      "dueDate": "Datum dospijeća",
-      "noDueDate": "Bez datuma dospijeća",
-      "assign": "Dodijeli",
-      "assignedTo": "Dodijeljeno korisniku {name}",
-      "due": "Rok {date}",
-      "markDone": "Označi kao dovršeno",
-      "markNotDone": "Označi kao nedovršeno",
       "summarize": "Sažmi",
       "summaryOf": "Sažetak {count} komentara | Sažetak {count} komentara",
       "summarizing": "Sažimanje niti...",

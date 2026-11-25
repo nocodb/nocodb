@@ -3798,7 +3798,7 @@
     "metaApis": "API-uri de metadate",
     "maxNumberOfAttachments": "Numărul maxim de atașamente",
     "maxAttachmentSizeMb": "Dimensiunea maximă a atașamentului (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Notifică utilizatorii cu acces la proiect când sunt adăugați",
+    "notifyUsersWithBaseAccessWhenAdded": "Anunță utilizatorii cu acces la bază atunci când sunt adăugați",
     "mimeExamplePng": "Permite doar imagini PNG",
     "mimeExamplePdf": "Permite doar documente PDF",
     "mimeExampleAllImages": "Permite toate imaginile",
@@ -6001,7 +6001,158 @@
       "sizeSmall": "Mică",
       "sizeLarge": "Mare",
       "machineSize": "Dimensiunea mașinii",
-      "alwaysOn": "Mereu activ"
+      "alwaysOn": "Mereu activ",
+      "workspaceAgent": "Agent general",
+      "workspaceAgentDescription": "Lucrează cu aplicațiile, datele și documentele tale prin integrări, pe o mașină administrată.",
+      "waitingForGithubBody": "Aprobă accesul în fereastra care s-a deschis. Această pagină se actualizează singură."
+    },
+    "agentSessionNew": "Discuție nouă",
+    "agentSessionJustNow": "Acum",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} h",
+    "agentSessionsViewAll": "Vezi toate cele {count}",
+    "agentSessionsCount": "{count} sesiune | {count} sesiuni",
+    "agentSessionsAutomatic": "Automat",
+    "agentSessionsBack": "Înapoi la agenți",
+    "agentModeCoding": "Programare",
+    "agentFiles": {
+      "title": "Fișiere",
+      "subtitle": "Agentul le citește la fiecare rulare.",
+      "drop": "Trage și plasează fișierele aici sau",
+      "browse": "răsfoiește",
+      "accepted": "PDF, Word, Excel, CSV sau imagini, până la {size} MB fiecare",
+      "uploading": "Se încarcă…",
+      "download": "Descarcă {name}",
+      "remove": "Elimină {name}",
+      "saved": "Salvat automat. Modificările se aplică de la următoarea rulare."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Lucrează în numele tău",
+      "worksAsYouHint": "Folosește accesul tău în acest proiect, limitat aici.",
+      "capSameAsMe": "La fel ca mine",
+      "currentRole": "Chiar acum poate acționa ca {role}",
+      "webhookOwnerOnly": "Doar propriul tău token API poate declanșa acest webhook.",
+      "paused": "În pauză: nu mai aveai acces la acest proiect. Pornește-l din nou pentru a relua.",
+      "pausedOwnerNoAccess": "Proprietarul lui nu mai are acces la acest proiect.",
+      "viaAgent": "prin {agent}",
+      "viaAnAgent": "prin intermediul unui agent",
+      "oversightTitle": "Agenți personali",
+      "oversightHint": "Agenți pe care membrii i-au creat pentru ei înșiși. Îi poți opri sau șterge; instrucțiunile și rulările lor rămân private.",
+      "oversightEmpty": "Niciun agent personal în acest proiect.",
+      "triggers": "Declanșatoare",
+      "turnOff": "Oprește"
+    },
+    "agentSetup": {
+      "jobTitle": "Creează un agent general",
+      "jobSubtitle": "Pornește de la un șablon sau de la propriile cuvinte. Poți schimba tot mai târziu.",
+      "describeTitle": "Configurează descriind",
+      "describeSubtitle": "Spune-i cu propriile cuvinte ce să facă. Întreabă doar ce îi trebuie.",
+      "pickTemplate": "Alege un șablon",
+      "createManually": "Creează manual",
+      "noTemplates": "Niciun șablon nu se potrivește căutării tale.",
+      "category": {
+        "everyone": "Pentru toată lumea",
+        "sales": "Vânzări",
+        "ops": "Operațiuni",
+        "marketing": "Marketing",
+        "support": "Asistență"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Bot de răspunsuri",
+          "description": "Răspunde la întrebări despre tabelele și documentele tale ori de câte ori cineva întreabă."
+        },
+        "meeting-prep": {
+          "description": "În fiecare dimineață de zi lucrătoare pregătește întâlnirile de azi din tabelul tău de întâlniri: clientul, tranzacțiile deschise și ultimele notițe."
+        },
+        "follow-up-drafter": {
+          "title": "Redactor de reveniri",
+          "description": "Pregătește e-mailuri de revenire când o înregistrare are nevoie de un impuls."
+        },
+        "deal-risk-watcher": {
+          "title": "Paznic al riscului tranzacțiilor",
+          "description": "Semnalează tranzacțiile care s-au blocat și îi spune responsabilului de ce."
+        },
+        "data-cleaner": {
+          "title": "Curățător de date",
+          "description": "Găsește duplicate și valori lipsă și le corectează, cu un jurnal al fiecărei modificări."
+        },
+        "campaign-report": {
+          "title": "Raport de campanie",
+          "description": "În fiecare vineri rezumă rezultatele campaniilor și le publică pe Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "Îngrijitor al calendarului de conținut",
+          "description": "Le amintește responsabililor de postările care urmează și semnalează tot ce a depășit termenul."
+        },
+        "customer-check-in": {
+          "title": "Reluarea legăturii cu clientul",
+          "description": "Pregătește un mesaj de reluare a legăturii pentru clienții care au tăcut, gata de verificat."
+        }
+      },
+      "rowJob": "Sarcină",
+      "rowReads": "Citește",
+      "rowRuns": "Rulează",
+      "rowShares": "Împărtășește",
+      "rowAccess": "Acces",
+      "accessRead": "Citește înregistrări",
+      "accessWrite": "Citește și modifică înregistrări",
+      "accessWeb": "folosește internetul",
+      "allTables": "Toate tabelele",
+      "notSet": "Încă nestabilit",
+      "ask": {
+        "when": "Când ar trebui să ruleze?",
+        "table": "Ce tabel ar trebui să urmărească?",
+        "share": "Unde ar trebui să împărtășească ce găsește?",
+        "channel": "Pe ce canal Slack ar trebui să publice?",
+        "final": "Asta e tot ce îmi trebuie. Termină configurarea ca să îl verifici și să îl pornești."
+      },
+      "channelHint": "Scrie mai jos numele canalului, de exemplu #sales.",
+      "finish": "Termină configurarea",
+      "day": {
+        "day": "zi",
+        "weekday": "zi lucrătoare",
+        "monday": "luni",
+        "tuesday": "marți",
+        "wednesday": "miercuri",
+        "thursday": "joi",
+        "friday": "vineri",
+        "saturday": "sâmbătă",
+        "sunday": "duminică"
+      },
+      "shareChat": "Aici în discuție",
+      "shareEmail": "E-mail către tine",
+      "shareEmailTo": "E-mail către {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Ciorna e gata. Verifică tot și pornește-l.",
+      "barReview": "Verifică tot în Setări, apoi pornește-l.",
+      "openSetup": "Deschide configurarea",
+      "placeholderReply": "Răspunde sau schimbă orice: „fă-l zilnic”, „numește-l Paznic al tranzacțiilor”",
+      "examples": {
+        "staleDeals": "În fiecare vineri, listează tranzacțiile blocate și publică-le pe #sales",
+        "newContact": "Când se adaugă un contact nou, completează-i funcția și compania",
+        "closingDeals": "În fiecare dimineață, trimite-mi pe e-mail tranzacțiile care se închid săptămâna aceasta",
+        "pricing": "Răspunde la întrebări despre prețurile noastre pe baza tabelului Docs",
+        "wonThankYou": "Când o tranzacție trece pe Câștigată, pregătește un mesaj de mulțumire pentru verificare",
+        "activities": "În fiecare luni, rezumă ce s-a schimbat în Activities",
+        "duplicates": "Semnalează companiile duplicate și unește-le păstrând un jurnal"
+      },
+      "settingsTitle": "Configurează-ți agentul",
+      "namePlaceholder": "de ex. Paznic al riscului tranzacțiilor",
+      "createAgent": "Creează agent",
+      "hintName": "Dă-i un nume pentru a continua",
+      "hintInstructions": "Adaugă instrucțiuni pentru a continua",
+      "hintReady": "Încă nu rulează. Verifică fiecare secțiune, apoi {cta}.",
+      "scopeTitle": "Tip",
+      "scopeHint": "Poți schimba asta cât timp este ciornă.",
+      "scopeLocked": "Fix odată ce agentul este pornit. Ca să îl schimbi, duplică agentul: copia începe ca ciornă.",
+      "deliveryTitle": "Rezultatele ajung la",
+      "deliveryHint": "Unde trimite ce găsește atunci când rulează singur.",
+      "deliveryChannel": "Canal Slack",
+      "deliverySlackMissing": "Conectează Slack în Integrări ca să poată publica acolo.",
+      "deliverySlackInvalid": "Introdu un canal Slack, de exemplu #sales.",
+      "discardTitle": "Renunți la această ciornă?",
+      "discardContent": "Ciorna și discuția de configurare vor fi mutate la coșul de gunoi."
     }
   },
   "activity": {
@@ -6333,18 +6484,6 @@
       "pin": "Fixează comentariul",
       "unpin": "Anulează fixarea comentariului",
       "pinnedComment": "Comentariu fixat",
-      "assignTodo": "Atribuie ca sarcină",
-      "editTodo": "Editează sarcina",
-      "removeTodo": "Elimină sarcina",
-      "assignee": "Persoană atribuită",
-      "selectAssignee": "Selectează o persoană",
-      "dueDate": "Data scadentă",
-      "noDueDate": "Fără dată scadentă",
-      "assign": "Atribuie",
-      "assignedTo": "Atribuit lui {name}",
-      "due": "Scadent {date}",
-      "markDone": "Marchează ca finalizat",
-      "markNotDone": "Marchează ca nefinalizat",
       "summarize": "Rezumă",
       "summaryOf": "Rezumatul a {count} comentariu | Rezumatul a {count} comentarii",
       "summarizing": "Se rezumă firul...",

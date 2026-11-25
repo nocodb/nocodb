@@ -3806,7 +3806,7 @@
     "metaApis": "中繼資料 API",
     "maxNumberOfAttachments": "附件數量上限",
     "maxAttachmentSizeMb": "附件大小上限（MB）",
-    "notifyUsersWithBaseAccessWhenAdded": "當具有專案存取權的使用者被加入時通知他們",
+    "notifyUsersWithBaseAccessWhenAdded": "當擁有該庫存取權限的使用者被加入時通知他們",
     "mimeExamplePng": "僅允許 PNG 圖片",
     "mimeExamplePdf": "僅允許 PDF 文件",
     "mimeExampleAllImages": "允許所有圖片",
@@ -6027,7 +6027,158 @@
       "sizeStandard": "標準",
       "sizeLarge": "大",
       "machineSize": "機器規格",
-      "alwaysOn": "一律開啟"
+      "alwaysOn": "一律開啟",
+      "workspaceAgent": "通用代理",
+      "workspaceAgentDescription": "在受管機器上，透過整合跨越你的應用程式、資料與文件進行作業。",
+      "waitingForGithubBody": "請在開啟的視窗中核准存取。本頁面會自動更新。"
+    },
+    "agentSessionNew": "新增聊天",
+    "agentSessionJustNow": "剛剛",
+    "agentSessionMinutes": "{n} 分鐘",
+    "agentSessionHours": "{n} 小時",
+    "agentSessionsViewAll": "檢視全部 {count} 個",
+    "agentSessionsCount": "{count} 個工作階段 | {count} 個工作階段",
+    "agentSessionsAutomatic": "自動",
+    "agentSessionsBack": "返回代理清單",
+    "agentModeCoding": "程式設計",
+    "agentFiles": {
+      "title": "檔案",
+      "subtitle": "代理每次執行都會讀取這些檔案。",
+      "drop": "將檔案拖放到此處，或",
+      "browse": "瀏覽",
+      "accepted": "PDF、Word、Excel、CSV 或圖片，每個最大 {size} MB",
+      "uploading": "上傳中…",
+      "download": "下載 {name}",
+      "remove": "移除 {name}",
+      "saved": "已自動儲存。變更自下次執行起生效。"
+    },
+    "agentPersonal": {
+      "worksAsYou": "以你的身分運作",
+      "worksAsYouHint": "使用你在此專案中的存取權限，並在此處設有上限。",
+      "capSameAsMe": "與我相同",
+      "currentRole": "目前它可以以 {role} 的身分執行",
+      "webhookOwnerOnly": "只有你自己的 API 權杖才能觸發此 Webhook。",
+      "paused": "已暫停：你已不再擁有此專案的存取權限。重新開啟即可繼續。",
+      "pausedOwnerNoAccess": "其擁有者已不再擁有此專案的存取權限。",
+      "viaAgent": "透過 {agent}",
+      "viaAnAgent": "透過代理",
+      "oversightTitle": "個人代理",
+      "oversightHint": "成員為自己建立的代理。你可以將其關閉或刪除；它們的指示與執行紀錄仍保持私密。",
+      "oversightEmpty": "此專案中沒有個人代理。",
+      "triggers": "觸發器",
+      "turnOff": "關閉"
+    },
+    "agentSetup": {
+      "jobTitle": "建立通用代理",
+      "jobSubtitle": "從範本或你自己的描述開始。之後可以變更一切。",
+      "describeTitle": "透過描述來設定",
+      "describeSubtitle": "用你自己的話告訴它要做什麼。它只會詢問必要的資訊。",
+      "pickTemplate": "選擇一個範本",
+      "createManually": "手動建立",
+      "noTemplates": "沒有符合搜尋的範本。",
+      "category": {
+        "everyone": "給所有人",
+        "sales": "業務",
+        "ops": "營運",
+        "marketing": "行銷",
+        "support": "支援"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "問答機器人",
+          "description": "每當有人提問時，回答關於你的表格與文件的問題。"
+        },
+        "meeting-prep": {
+          "description": "每個工作日早晨，根據你的會議表格準備當天的會議：客戶、進行中的交易與最近的紀錄。"
+        },
+        "follow-up-drafter": {
+          "title": "跟進郵件撰寫",
+          "description": "當記錄需要推動時，草擬跟進郵件。"
+        },
+        "deal-risk-watcher": {
+          "title": "交易風險監看",
+          "description": "標記已經停滯的交易，並告訴負責人原因。"
+        },
+        "data-cleaner": {
+          "title": "資料清理",
+          "description": "找出重複項與缺漏值並修正，同時記錄每一處變更。"
+        },
+        "campaign-report": {
+          "title": "活動報告",
+          "description": "每週五彙整行銷活動的結果並發布到 Slack 頻道。"
+        },
+        "content-calendar-keeper": {
+          "title": "內容行事曆管家",
+          "description": "提醒負責人即將發布的內容，並標記所有逾期項目。"
+        },
+        "customer-check-in": {
+          "title": "客戶回訪",
+          "description": "為已經沉默的客戶草擬一封回訪訊息，供審閱。"
+        }
+      },
+      "rowJob": "職責",
+      "rowReads": "讀取",
+      "rowRuns": "執行",
+      "rowShares": "分享",
+      "rowAccess": "存取",
+      "accessRead": "讀取記錄",
+      "accessWrite": "讀取並修改記錄",
+      "accessWeb": "使用網路",
+      "allTables": "所有表格",
+      "notSet": "尚未設定",
+      "ask": {
+        "when": "它應該在什麼時候執行？",
+        "table": "它應該關注哪個表格？",
+        "share": "它應該把找到的內容分享到哪裡？",
+        "channel": "它應該發布到哪個 Slack 頻道？",
+        "final": "我需要的資訊就這些。完成設定即可檢查並開啟它。"
+      },
+      "channelHint": "在下方輸入頻道名稱，例如 #sales。",
+      "finish": "完成設定",
+      "day": {
+        "day": "日",
+        "weekday": "工作日",
+        "monday": "星期一",
+        "tuesday": "星期二",
+        "wednesday": "星期三",
+        "thursday": "星期四",
+        "friday": "星期五",
+        "saturday": "星期六",
+        "sunday": "星期日"
+      },
+      "shareChat": "就在聊天中",
+      "shareEmail": "寄電子郵件給你",
+      "shareEmailTo": "寄電子郵件給 {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "草稿已就緒。檢查全部內容後開啟它。",
+      "barReview": "在設定中檢查全部內容，然後開啟它。",
+      "openSetup": "開啟設定",
+      "placeholderReply": "回覆，或變更任何內容：「改成每天」「把它叫做交易監看」",
+      "examples": {
+        "staleDeals": "每週五，列出停滯的交易並發布到 #sales",
+        "newContact": "當新增聯絡人時，補齊其職稱與公司",
+        "closingDeals": "每天早上，把本週即將成交的交易用電子郵件寄給我",
+        "pricing": "根據 Docs 表格回答關於我們定價的問題",
+        "wonThankYou": "當交易變為已成交時，草擬一封感謝信供審閱",
+        "activities": "每週一，總結 Activities 中發生的變化",
+        "duplicates": "標記重複的公司並合併，同時記錄紀錄檔"
+      },
+      "settingsTitle": "設定你的代理",
+      "namePlaceholder": "例如：交易風險監看",
+      "createAgent": "建立代理",
+      "hintName": "為它取個名稱以繼續",
+      "hintInstructions": "新增說明以繼續",
+      "hintReady": "尚未執行。檢查每個部分，然後{cta}。",
+      "scopeTitle": "類型",
+      "scopeHint": "在它還是草稿時，你可以變更此項。",
+      "scopeLocked": "代理開啟後即固定。若要變更，請複製該代理：副本將以草稿開始。",
+      "deliveryTitle": "結果傳送至",
+      "deliveryHint": "它自行執行時，把找到的內容傳送到哪裡。",
+      "deliveryChannel": "Slack 頻道",
+      "deliverySlackMissing": "請在整合中連接 Slack，它才能發布到那裡。",
+      "deliverySlackInvalid": "請輸入一個 Slack 頻道，例如 #sales。",
+      "discardTitle": "要捨棄此草稿嗎？",
+      "discardContent": "草稿與其設定聊天將移至回收桶。"
     }
   },
   "activity": {
@@ -6362,18 +6513,6 @@
       "pin": "置頂留言",
       "unpin": "取消置頂留言",
       "pinnedComment": "已置頂的留言",
-      "assignTodo": "指派為待辦事項",
-      "editTodo": "編輯待辦事項",
-      "removeTodo": "移除待辦事項",
-      "assignee": "負責人",
-      "selectAssignee": "選擇一個人",
-      "dueDate": "截止日期",
-      "noDueDate": "無截止日期",
-      "assign": "指派",
-      "assignedTo": "已指派給 {name}",
-      "due": "截止 {date}",
-      "markDone": "標記為已完成",
-      "markNotDone": "標記為未完成",
       "summarize": "產生摘要",
       "summaryOf": "{count} 則留言的摘要 | {count} 則留言的摘要",
       "summarizing": "正在產生討論串摘要...",

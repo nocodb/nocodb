@@ -3806,7 +3806,7 @@
     "metaApis": "واجهات API للبيانات الوصفية",
     "maxNumberOfAttachments": "الحد الأقصى لعدد المرفقات",
     "maxAttachmentSizeMb": "الحد الأقصى لحجم المرفق (ميغابايت)",
-    "notifyUsersWithBaseAccessWhenAdded": "إشعار المستخدمين الذين لديهم وصول إلى المشروع عند إضافتهم",
+    "notifyUsersWithBaseAccessWhenAdded": "إشعار المستخدمين الذين لديهم حق الوصول إلى القاعدة عند إضافتهم",
     "mimeExamplePng": "يسمح بصور PNG فقط",
     "mimeExamplePdf": "يسمح بمستندات PDF فقط",
     "mimeExampleAllImages": "يسمح بجميع الصور",
@@ -6028,7 +6028,158 @@
       "sizeLarge": "كبير",
       "memory": "{count} غيغابايت",
       "machineSize": "حجم الجهاز",
-      "alwaysOn": "يعمل دائمًا"
+      "alwaysOn": "يعمل دائمًا",
+      "workspaceAgent": "وكيل عام",
+      "workspaceAgentDescription": "يعمل عبر تطبيقاتك وبياناتك ومستنداتك من خلال التكاملات، على جهاز مُدار.",
+      "waitingForGithubBody": "وافق على الوصول في النافذة التي فُتحت. تتحدث هذه الصفحة من تلقاء نفسها."
+    },
+    "agentSessionNew": "محادثة جديدة",
+    "agentSessionJustNow": "الآن",
+    "agentSessionMinutes": "{n} د",
+    "agentSessionHours": "{n} س",
+    "agentSessionsViewAll": "عرض الكل ({count})",
+    "agentSessionsCount": "{count} جلسة | {count} جلسة",
+    "agentSessionsAutomatic": "تلقائي",
+    "agentSessionsBack": "العودة إلى الوكلاء",
+    "agentModeCoding": "البرمجة",
+    "agentFiles": {
+      "title": "الملفات",
+      "subtitle": "يقرأ الوكيل هذه الملفات في كل تشغيل.",
+      "drop": "اسحب الملفات وأفلتها هنا، أو",
+      "browse": "تصفّح",
+      "accepted": "PDF أو Word أو Excel أو CSV أو صور، بحد أقصى {size} ميغابايت لكل ملف",
+      "uploading": "جارٍ الرفع…",
+      "download": "تنزيل {name}",
+      "remove": "إزالة {name}",
+      "saved": "يُحفظ تلقائيًا. تسري التغييرات من التشغيل التالي."
+    },
+    "agentPersonal": {
+      "worksAsYou": "يعمل نيابة عنك",
+      "worksAsYouHint": "يستخدم صلاحيتك في هذا المشروع، بحد أقصى هنا.",
+      "capSameAsMe": "مثلي تمامًا",
+      "currentRole": "يمكنه الآن التصرف بصفة {role}",
+      "webhookOwnerOnly": "لا يمكن تشغيل هذا الـ webhook إلا برمز API الخاص بك.",
+      "paused": "متوقف مؤقتًا: لم يعد لديك حق الوصول إلى هذا المشروع. أعد تشغيله للمتابعة.",
+      "pausedOwnerNoAccess": "لم يعد مالكه يملك حق الوصول إلى هذا المشروع.",
+      "viaAgent": "عبر {agent}",
+      "viaAnAgent": "عبر وكيل",
+      "oversightTitle": "الوكلاء الشخصيون",
+      "oversightHint": "وكلاء أنشأهم الأعضاء لأنفسهم. يمكنك إيقافهم أو حذفهم؛ تبقى تعليماتهم وعمليات تشغيلهم خاصة.",
+      "oversightEmpty": "لا يوجد وكلاء شخصيون في هذا المشروع.",
+      "triggers": "المشغّلات",
+      "turnOff": "إيقاف"
+    },
+    "agentSetup": {
+      "jobTitle": "إنشاء وكيل عام",
+      "jobSubtitle": "ابدأ من قالب أو بكلماتك. يمكنك تغيير كل شيء لاحقًا.",
+      "describeTitle": "الإعداد عبر الوصف",
+      "describeSubtitle": "أخبره بكلماتك ما الذي يجب فعله. لا يسأل إلا عما يحتاجه.",
+      "pickTemplate": "اختر قالبًا",
+      "createManually": "إنشاء يدويًا",
+      "noTemplates": "لا توجد قوالب تطابق بحثك.",
+      "category": {
+        "everyone": "للجميع",
+        "sales": "المبيعات",
+        "ops": "العمليات",
+        "marketing": "التسويق",
+        "support": "الدعم"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "روبوت الإجابات",
+          "description": "يجيب عن الأسئلة حول جداولك ومستنداتك كلما سأل أحد."
+        },
+        "meeting-prep": {
+          "description": "كل صباح يوم عمل، يجهّز اجتماعات اليوم من جدول اجتماعاتك: العميل، والصفقات المفتوحة، وآخر الملاحظات."
+        },
+        "follow-up-drafter": {
+          "title": "كاتب رسائل المتابعة",
+          "description": "يكتب مسودات رسائل متابعة عندما يحتاج السجل إلى تذكير."
+        },
+        "deal-risk-watcher": {
+          "title": "مراقب مخاطر الصفقات",
+          "description": "يشير إلى الصفقات المتعثرة ويخبر المسؤول بالسبب."
+        },
+        "data-cleaner": {
+          "title": "منظّف البيانات",
+          "description": "يجد التكرارات والقيم الناقصة ويصلحها، مع سجل لكل تغيير."
+        },
+        "campaign-report": {
+          "title": "تقرير الحملة",
+          "description": "كل يوم جمعة يلخّص نتائج الحملات وينشرها على Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "حارس تقويم المحتوى",
+          "description": "يذكّر المسؤولين بالمنشورات القادمة ويشير إلى كل ما تأخر."
+        },
+        "customer-check-in": {
+          "title": "التواصل مع العميل",
+          "description": "يكتب مسودة رسالة للعملاء الذين انقطعوا، جاهزة للمراجعة."
+        }
+      },
+      "rowJob": "المهمة",
+      "rowReads": "يقرأ",
+      "rowRuns": "يعمل",
+      "rowShares": "يشارك",
+      "rowAccess": "الوصول",
+      "accessRead": "يقرأ السجلات",
+      "accessWrite": "يقرأ السجلات ويعدّلها",
+      "accessWeb": "يستخدم الويب",
+      "allTables": "كل الجداول",
+      "notSet": "لم يُحدَّد بعد",
+      "ask": {
+        "when": "متى يعمل؟",
+        "table": "أي جدول يراقب؟",
+        "share": "أين يشارك ما يجده؟",
+        "channel": "إلى أي قناة Slack ينشر؟",
+        "final": "هذا كل ما أحتاجه. أكمل الإعداد لمراجعته وتشغيله."
+      },
+      "channelHint": "اكتب اسم القناة أدناه، مثل #sales.",
+      "finish": "إكمال الإعداد",
+      "day": {
+        "day": "يوم",
+        "weekday": "يوم عمل",
+        "monday": "الاثنين",
+        "tuesday": "الثلاثاء",
+        "wednesday": "الأربعاء",
+        "thursday": "الخميس",
+        "friday": "الجمعة",
+        "saturday": "السبت",
+        "sunday": "الأحد"
+      },
+      "shareChat": "هنا في المحادثة",
+      "shareEmail": "بريد إلكتروني إليك",
+      "shareEmailTo": "بريد إلكتروني إلى {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "المسودة جاهزة. راجع كل شيء ثم شغّله.",
+      "barReview": "راجع كل شيء في الإعدادات، ثم شغّله.",
+      "openSetup": "فتح الإعداد",
+      "placeholderReply": "ردّ أو غيّر أي شيء: «اجعله يوميًا»، «سمّه مراقب الصفقات»",
+      "examples": {
+        "staleDeals": "كل يوم جمعة، اعرض الصفقات المتوقفة وانشرها في #sales",
+        "newContact": "عند إضافة جهة اتصال جديدة، املأ المسمى الوظيفي والشركة",
+        "closingDeals": "كل صباح، أرسل لي بالبريد الصفقات التي تُغلق هذا الأسبوع",
+        "pricing": "أجب عن الأسئلة حول أسعارنا من جدول Docs",
+        "wonThankYou": "عندما تنتقل صفقة إلى مكتسبة، اكتب مسودة شكر للمراجعة",
+        "activities": "كل يوم اثنين، لخّص ما تغيّر في Activities",
+        "duplicates": "ضع علامة على الشركات المكررة وادمجها مع سجل بالتغييرات"
+      },
+      "settingsTitle": "إعداد وكيلك",
+      "namePlaceholder": "مثل: مراقب مخاطر الصفقات",
+      "createAgent": "إنشاء وكيل",
+      "hintName": "امنحه اسمًا للمتابعة",
+      "hintInstructions": "أضف تعليمات للمتابعة",
+      "hintReady": "لم يعمل بعد. راجع كل قسم، ثم {cta}.",
+      "scopeTitle": "النوع",
+      "scopeHint": "يمكنك تغيير هذا ما دام مسودة.",
+      "scopeLocked": "يُثبَّت بمجرد تشغيل الوكيل. لتغييره، انسخ الوكيل: تبدأ النسخة كمسودة.",
+      "deliveryTitle": "تذهب النتائج إلى",
+      "deliveryHint": "إلى أين يرسل ما يجده عندما يعمل من تلقاء نفسه.",
+      "deliveryChannel": "قناة Slack",
+      "deliverySlackMissing": "اربط Slack من التكاملات حتى يتمكن من النشر هناك.",
+      "deliverySlackInvalid": "أدخل قناة Slack، مثل #sales.",
+      "discardTitle": "تجاهل هذه المسودة؟",
+      "discardContent": "سيُنقل المسودة ومحادثة إعدادها إلى سلة المهملات."
     }
   },
   "activity": {
@@ -6363,18 +6514,6 @@
       "pin": "تثبيت التعليق",
       "unpin": "إلغاء تثبيت التعليق",
       "pinnedComment": "تعليق مثبّت",
-      "assignTodo": "إسناد كمهمة",
-      "editTodo": "تعديل المهمة",
-      "removeTodo": "إزالة المهمة",
-      "assignee": "المسؤول",
-      "selectAssignee": "اختر شخصًا",
-      "dueDate": "تاريخ الاستحقاق",
-      "noDueDate": "لا يوجد تاريخ استحقاق",
-      "assign": "إسناد",
-      "assignedTo": "مُسند إلى {name}",
-      "due": "تاريخ الاستحقاق {date}",
-      "markDone": "وضع علامة كمكتمل",
-      "markNotDone": "وضع علامة كغير مكتمل",
       "summarize": "تلخيص",
       "summaryOf": "ملخص {count} تعليق | ملخص {count} تعليقات",
       "summarizing": "جارٍ تلخيص المحادثة...",

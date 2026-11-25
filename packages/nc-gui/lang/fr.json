@@ -3778,7 +3778,7 @@
     "metaApis": "API de métadonnées",
     "maxNumberOfAttachments": "Nombre maximal de pièces jointes",
     "maxAttachmentSizeMb": "Taille maximale de la pièce jointe (Mo)",
-    "notifyUsersWithBaseAccessWhenAdded": "Notifier les utilisateurs ayant accès au projet lorsqu'ils sont ajoutés",
+    "notifyUsersWithBaseAccessWhenAdded": "Prévenir les utilisateurs ayant accès à la base lorsqu'ils sont ajoutés",
     "mimeExamplePng": "Autorise uniquement les images PNG",
     "mimeExamplePdf": "Autorise uniquement les documents PDF",
     "mimeExampleAllImages": "Autorise toutes les images",
@@ -5960,7 +5960,156 @@
       "sizeSmall": "Petite",
       "sizeLarge": "Grande",
       "machineSize": "Taille de la machine",
-      "alwaysOn": "Toujours actif"
+      "alwaysOn": "Toujours actif",
+      "workspaceAgent": "Agent général",
+      "workspaceAgentDescription": "Fonctionne avec vos apps, vos données et vos docs via des intégrations, sur une machine gérée.",
+      "waitingForGithubBody": "Autorisez l'accès dans la fenêtre qui s'est ouverte. Cette page se met à jour toute seule."
+    },
+    "agentSessionNew": "Nouveau chat",
+    "agentSessionJustNow": "Maintenant",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} h",
+    "agentSessionsViewAll": "Voir les {count}",
+    "agentSessionsAutomatic": "Automatique",
+    "agentSessionsBack": "Retour aux agents",
+    "agentModeCoding": "Programmation",
+    "agentFiles": {
+      "title": "Fichiers",
+      "subtitle": "L'agent les lit à chaque exécution.",
+      "drop": "Glissez-déposez des fichiers ici, ou",
+      "browse": "parcourir",
+      "accepted": "PDF, Word, Excel, CSV ou images, jusqu'à {size} Mo chacun",
+      "uploading": "Envoi en cours…",
+      "download": "Télécharger {name}",
+      "remove": "Supprimer {name}",
+      "saved": "Enregistré automatiquement. Les modifications s'appliquent dès la prochaine exécution."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Agit en votre nom",
+      "worksAsYouHint": "Utilise votre accès à ce projet, limité ici.",
+      "capSameAsMe": "Comme moi",
+      "currentRole": "Pour l'instant, il peut agir en tant que {role}",
+      "webhookOwnerOnly": "Seul votre propre jeton API peut déclencher ce webhook.",
+      "paused": "En pause : vous n'aviez plus accès à ce projet. Réactivez-le pour reprendre.",
+      "pausedOwnerNoAccess": "Son propriétaire n'a plus accès à ce projet.",
+      "viaAgent": "via {agent}",
+      "viaAnAgent": "via un agent",
+      "oversightTitle": "Agents personnels",
+      "oversightHint": "Les agents que les membres ont créés pour eux-mêmes. Vous pouvez les désactiver ou les supprimer ; leurs instructions et leurs exécutions restent privées.",
+      "oversightEmpty": "Aucun agent personnel dans ce projet.",
+      "triggers": "Déclencheurs",
+      "turnOff": "Désactiver"
+    },
+    "agentSetup": {
+      "jobTitle": "Créer un agent général",
+      "jobSubtitle": "Partez d'un modèle ou de vos propres mots. Vous pourrez tout modifier plus tard.",
+      "describeTitle": "Configurer en décrivant",
+      "describeSubtitle": "Dites-lui quoi faire avec vos propres mots. Il ne demande que ce dont il a besoin.",
+      "pickTemplate": "Choisir un modèle",
+      "createManually": "Créer manuellement",
+      "noTemplates": "Aucun modèle ne correspond à votre recherche.",
+      "category": {
+        "everyone": "Pour tout le monde",
+        "sales": "Ventes",
+        "ops": "Opérations",
+        "marketing": "Marketing",
+        "support": "Assistance"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Bot de réponse",
+          "description": "Répond aux questions sur vos tables et vos docs dès que quelqu'un en pose une."
+        },
+        "meeting-prep": {
+          "description": "Chaque matin de semaine, prépare les réunions du jour à partir de votre table de réunions : le compte, les affaires en cours et les dernières notes."
+        },
+        "follow-up-drafter": {
+          "title": "Rédacteur de relances",
+          "description": "Rédige des e-mails de relance quand un enregistrement a besoin d'un rappel."
+        },
+        "deal-risk-watcher": {
+          "title": "Veilleur de risque sur les affaires",
+          "description": "Signale les affaires au point mort et en explique la raison au responsable."
+        },
+        "data-cleaner": {
+          "title": "Nettoyeur de données",
+          "description": "Trouve les doublons et les valeurs manquantes et les corrige, avec un journal de chaque changement."
+        },
+        "campaign-report": {
+          "title": "Rapport de campagne",
+          "description": "Chaque vendredi, résume les résultats des campagnes et les publie sur Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "Gardien du calendrier éditorial",
+          "description": "Rappelle aux responsables les publications à venir et signale tout retard."
+        },
+        "customer-check-in": {
+          "title": "Relance client",
+          "description": "Rédige une relance pour les clients devenus silencieux, prête à être relue."
+        }
+      },
+      "rowJob": "Tâche",
+      "rowReads": "Lit",
+      "rowRuns": "S'exécute",
+      "rowShares": "Partage",
+      "rowAccess": "Accès",
+      "accessRead": "Lit les enregistrements",
+      "accessWrite": "Lit et modifie les enregistrements",
+      "accessWeb": "utilise le web",
+      "allTables": "Toutes les tables",
+      "notSet": "Pas encore défini",
+      "ask": {
+        "when": "Quand doit-il s'exécuter ?",
+        "table": "Quelle table doit-il surveiller ?",
+        "share": "Où doit-il partager ce qu'il trouve ?",
+        "channel": "Dans quel canal Slack doit-il publier ?",
+        "final": "C'est tout ce qu'il me faut. Terminez la configuration pour le vérifier et l'activer."
+      },
+      "channelHint": "Saisissez le nom du canal ci-dessous, comme #sales.",
+      "finish": "Terminer la configuration",
+      "day": {
+        "day": "jour",
+        "weekday": "jour de semaine",
+        "monday": "lundi",
+        "tuesday": "mardi",
+        "wednesday": "mercredi",
+        "thursday": "jeudi",
+        "friday": "vendredi",
+        "saturday": "samedi",
+        "sunday": "dimanche"
+      },
+      "shareChat": "Ici dans le chat",
+      "shareEmail": "E-mail pour vous",
+      "shareEmailTo": "E-mail pour {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Brouillon prêt. Vérifiez tout et activez-le.",
+      "barReview": "Vérifiez tout dans les Paramètres, puis activez-le.",
+      "openSetup": "Ouvrir la configuration",
+      "placeholderReply": "Répondez, ou changez ce que vous voulez : « rends-le quotidien », « appelle-le Veilleur d'affaires »",
+      "examples": {
+        "staleDeals": "Chaque vendredi, lister les affaires au point mort et les publier dans #sales",
+        "newContact": "Quand un nouveau contact est ajouté, compléter sa fonction et son entreprise",
+        "closingDeals": "Chaque matin, m'envoyer par e-mail les affaires qui se concluent cette semaine",
+        "pricing": "Répondre aux questions sur nos tarifs à partir de la table Docs",
+        "wonThankYou": "Quand une affaire passe à Gagnée, rédiger un remerciement à relire",
+        "activities": "Chaque lundi, résumer ce qui a changé dans Activities",
+        "duplicates": "Signaler les entreprises en double et les fusionner avec un journal"
+      },
+      "settingsTitle": "Configurez votre agent",
+      "namePlaceholder": "ex. Veilleur de risque sur les affaires",
+      "createAgent": "Créer un agent",
+      "hintName": "Donnez-lui un nom pour continuer",
+      "hintInstructions": "Ajoutez des instructions pour continuer",
+      "hintReady": "Pas encore en cours d'exécution. Vérifiez chaque section, puis {cta}.",
+      "scopeHint": "Vous pouvez modifier cela tant que c'est un brouillon.",
+      "scopeLocked": "Figé une fois l'agent activé. Pour le changer, dupliquez l'agent : la copie démarre en brouillon.",
+      "deliveryTitle": "Les résultats vont à",
+      "deliveryHint": "Où il envoie ce qu'il trouve lorsqu'il s'exécute tout seul.",
+      "deliveryChannel": "Canal Slack",
+      "deliverySlackMissing": "Connectez Slack dans les Intégrations pour qu'il puisse y publier.",
+      "deliverySlackInvalid": "Saisissez un canal Slack, comme #sales.",
+      "discardTitle": "Abandonner ce brouillon ?",
+      "discardContent": "Le brouillon et son chat de configuration seront déplacés vers la corbeille."
     }
   },
   "activity": {
@@ -6292,18 +6441,6 @@
       "pin": "Épingler le commentaire",
       "unpin": "Détacher le commentaire",
       "pinnedComment": "Commentaire épinglé",
-      "assignTodo": "Attribuer comme tâche",
-      "editTodo": "Modifier la tâche",
-      "removeTodo": "Supprimer la tâche",
-      "assignee": "Personne assignée",
-      "selectAssignee": "Sélectionner une personne",
-      "dueDate": "Date d'échéance",
-      "noDueDate": "Aucune date d'échéance",
-      "assign": "Attribuer",
-      "assignedTo": "Attribué à {name}",
-      "due": "Échéance {date}",
-      "markDone": "Marquer comme terminé",
-      "markNotDone": "Marquer comme non terminé",
       "summarize": "Résumer",
       "summaryOf": "Résumé de {count} commentaire | Résumé de {count} commentaires",
       "summarizing": "Résumé du fil en cours...",

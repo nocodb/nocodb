@@ -3801,7 +3801,7 @@
     "metaApis": "API metadata",
     "maxNumberOfAttachments": "Jumlah lampiran maksimum",
     "maxAttachmentSizeMb": "Ukuran lampiran maksimum (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Beri tahu pengguna dengan akses proyek saat mereka ditambahkan",
+    "notifyUsersWithBaseAccessWhenAdded": "Beri tahu pengguna yang punya akses ke basis saat mereka ditambahkan",
     "mimeExamplePng": "Hanya mengizinkan gambar PNG",
     "mimeExamplePdf": "Hanya mengizinkan dokumen PDF",
     "mimeExampleAllImages": "Mengizinkan semua gambar",
@@ -6007,7 +6007,158 @@
       "sizeStandard": "Standar",
       "sizeLarge": "Besar",
       "machineSize": "Ukuran mesin",
-      "alwaysOn": "Selalu aktif"
+      "alwaysOn": "Selalu aktif",
+      "workspaceAgent": "Agen umum",
+      "workspaceAgentDescription": "Bekerja lintas aplikasi, data, dan dokumen Anda melalui integrasi, pada mesin terkelola.",
+      "waitingForGithubBody": "Setujui akses di jendela yang terbuka. Halaman ini memperbarui dirinya sendiri."
+    },
+    "agentSessionNew": "Obrolan baru",
+    "agentSessionJustNow": "Baru saja",
+    "agentSessionMinutes": "{n} mnt",
+    "agentSessionHours": "{n} jam",
+    "agentSessionsViewAll": "Lihat semua {count}",
+    "agentSessionsCount": "{count} sesi | {count} sesi",
+    "agentSessionsAutomatic": "Otomatis",
+    "agentSessionsBack": "Kembali ke agen",
+    "agentModeCoding": "Pemrograman",
+    "agentFiles": {
+      "title": "Berkas",
+      "subtitle": "Agen membaca berkas ini setiap kali berjalan.",
+      "drop": "Seret dan lepas berkas ke sini, atau",
+      "browse": "telusuri",
+      "accepted": "PDF, Word, Excel, CSV, atau gambar, masing-masing hingga {size} MB",
+      "uploading": "Mengunggah…",
+      "download": "Unduh {name}",
+      "remove": "Hapus {name}",
+      "saved": "Disimpan otomatis. Perubahan berlaku mulai proses berikutnya."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Bekerja atas nama Anda",
+      "worksAsYouHint": "Memakai akses Anda di proyek ini, dibatasi di sini.",
+      "capSameAsMe": "Sama seperti saya",
+      "currentRole": "Saat ini ia dapat bertindak sebagai {role}",
+      "webhookOwnerOnly": "Hanya token API Anda sendiri yang dapat memicu webhook ini.",
+      "paused": "Dijeda: Anda tidak lagi punya akses ke proyek ini. Nyalakan lagi untuk melanjutkan.",
+      "pausedOwnerNoAccess": "Pemiliknya tidak lagi punya akses ke proyek ini.",
+      "viaAgent": "melalui {agent}",
+      "viaAnAgent": "melalui sebuah agen",
+      "oversightTitle": "Agen pribadi",
+      "oversightHint": "Agen yang dibuat anggota untuk diri mereka sendiri. Anda bisa mematikan atau menghapusnya; instruksi dan riwayat jalannya tetap privat.",
+      "oversightEmpty": "Tidak ada agen pribadi di proyek ini.",
+      "triggers": "Pemicu",
+      "turnOff": "Matikan"
+    },
+    "agentSetup": {
+      "jobTitle": "Buat agen umum",
+      "jobSubtitle": "Mulai dari templat atau dengan kata-kata Anda sendiri. Semuanya bisa diubah nanti.",
+      "describeTitle": "Siapkan dengan mendeskripsikan",
+      "describeSubtitle": "Katakan dengan bahasa Anda sendiri apa yang harus ia lakukan. Ia hanya menanyakan yang diperlukan.",
+      "pickTemplate": "Pilih templat",
+      "createManually": "Buat manual",
+      "noTemplates": "Tidak ada templat yang cocok dengan pencarian Anda.",
+      "category": {
+        "everyone": "Untuk semua orang",
+        "sales": "Penjualan",
+        "ops": "Operasional",
+        "marketing": "Pemasaran",
+        "support": "Dukungan"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Bot penjawab",
+          "description": "Menjawab pertanyaan tentang tabel dan dokumen Anda setiap kali ada yang bertanya."
+        },
+        "meeting-prep": {
+          "description": "Setiap pagi hari kerja, menyiapkan rapat hari ini dari tabel rapat Anda: klien, kesepakatan terbuka, dan catatan terakhir."
+        },
+        "follow-up-drafter": {
+          "title": "Penyusun tindak lanjut",
+          "description": "Menyusun email tindak lanjut saat sebuah rekaman perlu didorong."
+        },
+        "deal-risk-watcher": {
+          "title": "Pemantau risiko kesepakatan",
+          "description": "Menandai kesepakatan yang mandek dan memberi tahu penanggung jawab alasannya."
+        },
+        "data-cleaner": {
+          "title": "Pembersih data",
+          "description": "Menemukan duplikat dan nilai yang hilang lalu memperbaikinya, dengan catatan setiap perubahan."
+        },
+        "campaign-report": {
+          "title": "Laporan kampanye",
+          "description": "Setiap Jumat merangkum hasil kampanye dan mengirimkannya ke saluran Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "Penjaga kalender konten",
+          "description": "Mengingatkan penanggung jawab tentang unggahan mendatang dan menandai yang lewat tenggat."
+        },
+        "customer-check-in": {
+          "title": "Sapaan pelanggan",
+          "description": "Menyusun pesan sapaan untuk pelanggan yang mendiam, siap ditinjau."
+        }
+      },
+      "rowJob": "Tugas",
+      "rowReads": "Membaca",
+      "rowRuns": "Berjalan",
+      "rowShares": "Membagikan",
+      "rowAccess": "Akses",
+      "accessRead": "Membaca rekaman",
+      "accessWrite": "Membaca dan mengubah rekaman",
+      "accessWeb": "memakai web",
+      "allTables": "Semua tabel",
+      "notSet": "Belum diatur",
+      "ask": {
+        "when": "Kapan ia harus berjalan?",
+        "table": "Tabel mana yang harus ia pantau?",
+        "share": "Di mana ia harus membagikan apa yang ditemukan?",
+        "channel": "Ke saluran Slack mana ia harus mengirim?",
+        "final": "Itu semua yang saya butuhkan. Selesaikan penyiapan untuk meninjaunya dan menyalakannya."
+      },
+      "channelHint": "Ketik nama saluran di bawah, misalnya #sales.",
+      "finish": "Selesaikan penyiapan",
+      "day": {
+        "day": "hari",
+        "weekday": "hari kerja",
+        "monday": "Senin",
+        "tuesday": "Selasa",
+        "wednesday": "Rabu",
+        "thursday": "Kamis",
+        "friday": "Jumat",
+        "saturday": "Sabtu",
+        "sunday": "Minggu"
+      },
+      "shareChat": "Di sini dalam obrolan",
+      "shareEmail": "Email untuk Anda",
+      "shareEmailTo": "Email untuk {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Draf siap. Tinjau semuanya lalu nyalakan.",
+      "barReview": "Tinjau semuanya di Pengaturan, lalu nyalakan.",
+      "openSetup": "Buka penyiapan",
+      "placeholderReply": "Balas, atau ubah apa pun: “jadikan harian”, “beri nama Pemantau kesepakatan”",
+      "examples": {
+        "staleDeals": "Setiap Jumat, daftar kesepakatan yang mandek dan kirim ke #sales",
+        "newContact": "Saat kontak baru ditambahkan, isi jabatan dan perusahaannya",
+        "closingDeals": "Setiap pagi, kirimi saya email berisi kesepakatan yang tutup minggu ini",
+        "pricing": "Jawab pertanyaan tentang harga kami dari tabel Docs",
+        "wonThankYou": "Saat kesepakatan menjadi Menang, susun ucapan terima kasih untuk ditinjau",
+        "activities": "Setiap Senin, rangkum apa yang berubah di Activities",
+        "duplicates": "Tandai perusahaan ganda dan gabungkan dengan catatan log"
+      },
+      "settingsTitle": "Siapkan agen Anda",
+      "namePlaceholder": "mis. Pemantau risiko kesepakatan",
+      "createAgent": "Buat agen",
+      "hintName": "Beri nama untuk melanjutkan",
+      "hintInstructions": "Tambahkan instruksi untuk melanjutkan",
+      "hintReady": "Belum berjalan. Periksa tiap bagian, lalu {cta}.",
+      "scopeTitle": "Jenis",
+      "scopeHint": "Anda bisa mengubah ini selama masih berupa draf.",
+      "scopeLocked": "Tetap setelah agen dinyalakan. Untuk mengubahnya, gandakan agen: salinannya dimulai sebagai draf.",
+      "deliveryTitle": "Hasil dikirim ke",
+      "deliveryHint": "Ke mana ia mengirim temuannya saat berjalan sendiri.",
+      "deliveryChannel": "Saluran Slack",
+      "deliverySlackMissing": "Hubungkan Slack di Integrasi agar ia bisa mengirim ke sana.",
+      "deliverySlackInvalid": "Masukkan saluran Slack, misalnya #sales.",
+      "discardTitle": "Buang draf ini?",
+      "discardContent": "Draf dan obrolan penyiapannya akan dipindahkan ke sampah."
     }
   },
   "activity": {
@@ -6342,18 +6493,6 @@
       "pin": "Sematkan komentar",
       "unpin": "Lepas sematan komentar",
       "pinnedComment": "Komentar yang disematkan",
-      "assignTodo": "Tugaskan sebagai hal yang harus dikerjakan",
-      "editTodo": "Edit hal yang harus dikerjakan",
-      "removeTodo": "Hapus hal yang harus dikerjakan",
-      "assignee": "Penerima tugas",
-      "selectAssignee": "Pilih seseorang",
-      "dueDate": "Tanggal tenggat",
-      "noDueDate": "Tidak ada tanggal tenggat",
-      "assign": "Tugaskan",
-      "assignedTo": "Ditugaskan kepada {name}",
-      "due": "Tenggat {date}",
-      "markDone": "Tandai sebagai selesai",
-      "markNotDone": "Tandai sebagai belum selesai",
       "summarize": "Ringkas",
       "summaryOf": "Ringkasan {count} komentar | Ringkasan {count} komentar",
       "summarizing": "Meringkas utas...",

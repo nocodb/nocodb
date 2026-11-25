@@ -3805,7 +3805,7 @@
     "metaApis": "Metadatuen API-ak",
     "maxNumberOfAttachments": "Eranskin kopuru handiena",
     "maxAttachmentSizeMb": "Eranskinaren gehieneko tamaina (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Jakinarazi proiekturako sarbidea duten erabiltzaileei gehitzen dituztenean",
+    "notifyUsersWithBaseAccessWhenAdded": "Jakinarazi oinarrirako sarbidea duten erabiltzaileei gehitzen direnean",
     "mimeExamplePng": "PNG irudiak soilik onartzen ditu",
     "mimeExamplePdf": "PDF dokumentuak soilik onartzen ditu",
     "mimeExampleAllImages": "Irudi guztiak onartzen ditu",
@@ -6021,7 +6021,158 @@
       "sizeStandard": "Estandarra",
       "sizeLarge": "Handia",
       "machineSize": "Makinaren tamaina",
-      "alwaysOn": "Beti piztuta"
+      "alwaysOn": "Beti piztuta",
+      "workspaceAgent": "Agente orokorra",
+      "workspaceAgentDescription": "Zure aplikazio, datu eta dokumentuekin lan egiten du integrazioen bidez, kudeatutako makina batean.",
+      "waitingForGithubBody": "Onartu sarbidea ireki den leihoan. Orri hau bere kabuz eguneratzen da."
+    },
+    "agentSessionNew": "Txat berria",
+    "agentSessionJustNow": "Orain",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} h",
+    "agentSessionsViewAll": "Ikusi {count} guztiak",
+    "agentSessionsCount": "Saio {count} | {count} saio",
+    "agentSessionsAutomatic": "Automatikoa",
+    "agentSessionsBack": "Itzuli agenteetara",
+    "agentModeCoding": "Programazioa",
+    "agentFiles": {
+      "title": "Fitxategiak",
+      "subtitle": "Agenteak exekuzio bakoitzean irakurtzen ditu.",
+      "drop": "Arrastatu eta jaregin fitxategiak hona, edo",
+      "browse": "arakatu",
+      "accepted": "PDF, Word, Excel, CSV edo irudiak, bakoitza {size} MB arte",
+      "uploading": "Igotzen…",
+      "download": "Deskargatu {name}",
+      "remove": "Kendu {name}",
+      "saved": "Automatikoki gordeta. Aldaketak hurrengo exekuziotik aurrera aplikatzen dira."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Zure izenean lan egiten du",
+      "worksAsYouHint": "Proiektu honetako zure sarbidea erabiltzen du, hemen mugatuta.",
+      "capSameAsMe": "Ni bezala",
+      "currentRole": "Oraingoz {role} gisa jardun dezake",
+      "webhookOwnerOnly": "Zure API tokenak soilik abiaraz dezake webhook hau.",
+      "paused": "Pausatuta: jada ez zenuen proiektu honetarako sarbiderik. Piztu berriro jarraitzeko.",
+      "pausedOwnerNoAccess": "Bere jabeak jada ez du proiektu honetarako sarbiderik.",
+      "viaAgent": "{agent} bidez",
+      "viaAnAgent": "agente baten bidez",
+      "oversightTitle": "Agente pertsonalak",
+      "oversightHint": "Kideek beraientzat sortutako agenteak. Itzali edo ezabatu ditzakezu; haien argibideak eta exekuzioak pribatu mantentzen dira.",
+      "oversightEmpty": "Ez dago agente pertsonalik proiektu honetan.",
+      "triggers": "Abiarazleak",
+      "turnOff": "Itzali"
+    },
+    "agentSetup": {
+      "jobTitle": "Sortu agente orokor bat",
+      "jobSubtitle": "Hasi txantiloi batetik edo zure hitzetatik. Dena alda dezakezu geroago.",
+      "describeTitle": "Konfiguratu deskribatuz",
+      "describeSubtitle": "Esan zure hitzekin zer egin behar duen. Behar duena bakarrik galdetzen du.",
+      "pickTemplate": "Aukeratu txantiloi bat",
+      "createManually": "Sortu eskuz",
+      "noTemplates": "Ez dago zure bilaketarekin bat datorren txantiloirik.",
+      "category": {
+        "everyone": "Guztientzat",
+        "sales": "Salmentak",
+        "ops": "Eragiketak",
+        "marketing": "Marketina",
+        "support": "Laguntza"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Erantzun-bota",
+          "description": "Zure taulei eta dokumentuei buruzko galderak erantzuten ditu norbaitek galdetzen duen bakoitzean."
+        },
+        "meeting-prep": {
+          "description": "Lanegun bakoitzeko goizean, gaurko bilerak prestatzen ditu zure bileren taulatik: bezeroa, irekita dauden akordioak eta azken oharrak."
+        },
+        "follow-up-drafter": {
+          "title": "Jarraipen-mezuen idazlea",
+          "description": "Jarraipen-mezuak idazten ditu erregistro batek bultzada bat behar duenean."
+        },
+        "deal-risk-watcher": {
+          "title": "Akordioen arrisku-zaindaria",
+          "description": "Geldirik dauden akordioak markatzen ditu eta arduradunari zergatik azaltzen dio."
+        },
+        "data-cleaner": {
+          "title": "Datu-garbitzailea",
+          "description": "Bikoiztuak eta falta diren balioak aurkitu eta zuzentzen ditu, aldaketa bakoitzaren erregistroarekin."
+        },
+        "campaign-report": {
+          "title": "Kanpainaren txostena",
+          "description": "Ostiralero kanpainen emaitzak laburbildu eta Slack kanalean argitaratzen ditu."
+        },
+        "content-calendar-keeper": {
+          "title": "Eduki-egutegiaren zaindaria",
+          "description": "Arduradunei datozen argitalpenak gogorarazten dizkie eta epez kanpo dagoen oro markatzen du."
+        },
+        "customer-check-in": {
+          "title": "Bezeroarekiko harremana",
+          "description": "Isildu diren bezeroentzako mezu bat idazten du, berrikusteko prest."
+        }
+      },
+      "rowJob": "Zeregina",
+      "rowReads": "Irakurtzen du",
+      "rowRuns": "Exekutatzen da",
+      "rowShares": "Partekatzen du",
+      "rowAccess": "Sarbidea",
+      "accessRead": "Erregistroak irakurtzen ditu",
+      "accessWrite": "Erregistroak irakurri eta aldatzen ditu",
+      "accessWeb": "weba erabiltzen du",
+      "allTables": "Taula guztiak",
+      "notSet": "Oraindik ezarri gabe",
+      "ask": {
+        "when": "Noiz exekutatu behar du?",
+        "table": "Zein taula zaindu behar du?",
+        "share": "Non partekatu behar du aurkitzen duena?",
+        "channel": "Zein Slack kanaletan argitaratu behar du?",
+        "final": "Hori da behar dudan guztia. Amaitu konfigurazioa berrikusi eta pizteko."
+      },
+      "channelHint": "Idatzi kanalaren izena behean, adibidez #sales.",
+      "finish": "Amaitu konfigurazioa",
+      "day": {
+        "day": "eguna",
+        "weekday": "asteguna",
+        "monday": "astelehena",
+        "tuesday": "asteartea",
+        "wednesday": "asteazkena",
+        "thursday": "osteguna",
+        "friday": "ostirala",
+        "saturday": "larunbata",
+        "sunday": "igandea"
+      },
+      "shareChat": "Hemen txatean",
+      "shareEmail": "Mezu elektronikoa zuri",
+      "shareEmailTo": "Mezu elektronikoa {name}(r)entzat",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Zirriborroa prest. Berrikusi dena eta piztu ezazu.",
+      "barReview": "Berrikusi dena Ezarpenetan eta gero piztu ezazu.",
+      "openSetup": "Ireki konfigurazioa",
+      "placeholderReply": "Erantzun, edo aldatu nahi duzuna: «egin ezazu egunerokoa», «deitu Akordioen zaindaria»",
+      "examples": {
+        "staleDeals": "Ostiralero, zerrendatu geldirik dauden akordioak eta argitaratu #sales kanalean",
+        "newContact": "Kontaktu berri bat gehitzean, bete haren kargua eta enpresa",
+        "closingDeals": "Goizero, bidali niri posta elektronikoz aste honetan ixten diren akordioak",
+        "pricing": "Erantzun gure prezioei buruzko galderei Docs taulatik",
+        "wonThankYou": "Akordio bat Irabazita egoerara pasatzean, idatzi eskerrak emateko zirriborro bat berrikusteko",
+        "activities": "Astelehenero, laburbildu Activities atalean zer aldatu den",
+        "duplicates": "Markatu enpresa bikoiztuak eta batu itzazu erregistro batekin"
+      },
+      "settingsTitle": "Konfiguratu zure agentea",
+      "namePlaceholder": "adib. Akordioen arrisku-zaindaria",
+      "createAgent": "Sortu agentea",
+      "hintName": "Eman izen bat jarraitzeko",
+      "hintInstructions": "Gehitu argibideak jarraitzeko",
+      "hintReady": "Oraindik ez dabil. Egiaztatu atal bakoitza eta gero {cta}.",
+      "scopeTitle": "Mota",
+      "scopeHint": "Zirriborroa den bitartean alda dezakezu hau.",
+      "scopeLocked": "Finkatuta geratzen da agentea piztu ondoren. Aldatzeko, bikoiztu agentea: kopia zirriborro gisa hasten da.",
+      "deliveryTitle": "Emaitzak hona doaz",
+      "deliveryHint": "Bere kabuz exekutatzen denean, aurkitzen duena nora bidaltzen duen.",
+      "deliveryChannel": "Slack kanala",
+      "deliverySlackMissing": "Konektatu Slack Integrazioetan han argitaratu ahal izateko.",
+      "deliverySlackInvalid": "Sartu Slack kanal bat, adibidez #sales.",
+      "discardTitle": "Zirriborro hau baztertu?",
+      "discardContent": "Zirriborroa eta bere konfigurazio-txata zakarrontzira eramango dira."
     }
   },
   "activity": {
@@ -6356,18 +6507,6 @@
       "pin": "Ainguratu iruzkina",
       "unpin": "Kendu iruzkinaren aingura",
       "pinnedComment": "Ainguratutako iruzkina",
-      "assignTodo": "Esleitu zeregin gisa",
-      "editTodo": "Editatu zeregina",
-      "removeTodo": "Kendu zeregina",
-      "assignee": "Arduraduna",
-      "selectAssignee": "Hautatu pertsona bat",
-      "dueDate": "Epemuga",
-      "noDueDate": "Epemugarik ez",
-      "assign": "Esleitu",
-      "assignedTo": "{name} erabiltzaileari esleitua",
-      "due": "Epemuga {date}",
-      "markDone": "Markatu eginda gisa",
-      "markNotDone": "Markatu egin gabe gisa",
       "summarize": "Laburbildu",
       "summaryOf": "Iruzkin {count}(e)n laburpena | {count} iruzkinen laburpena",
       "summarizing": "Haria laburbiltzen...",

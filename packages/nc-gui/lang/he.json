@@ -3806,7 +3806,7 @@
     "metaApis": "ממשקי API של מטא-נתונים",
     "maxNumberOfAttachments": "מספר מקסימלי של קבצים מצורפים",
     "maxAttachmentSizeMb": "גודל מקסימלי של קובץ מצורף (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "שליחת התראה למשתמשים בעלי גישה לפרויקט כשהם מתווספים",
+    "notifyUsersWithBaseAccessWhenAdded": "הודע למשתמשים עם גישה לבסיס כשהם מתווספים",
     "mimeExamplePng": "מתיר תמונות PNG בלבד",
     "mimeExamplePdf": "מתיר מסמכי PDF בלבד",
     "mimeExampleAllImages": "מתיר את כל התמונות",
@@ -6026,7 +6026,158 @@
       "sizeStandard": "רגילה",
       "sizeLarge": "גדולה",
       "machineSize": "גודל המכונה",
-      "alwaysOn": "פעיל תמיד"
+      "alwaysOn": "פעיל תמיד",
+      "workspaceAgent": "סוכן כללי",
+      "workspaceAgentDescription": "עובד עם האפליקציות, הנתונים והמסמכים שלך דרך אינטגרציות, על מכונה מנוהלת.",
+      "waitingForGithubBody": "אשר את הגישה בחלון שנפתח. דף זה מתעדכן מעצמו."
+    },
+    "agentSessionNew": "צ'אט חדש",
+    "agentSessionJustNow": "עכשיו",
+    "agentSessionMinutes": "{n} דק׳",
+    "agentSessionHours": "{n} ש׳",
+    "agentSessionsViewAll": "הצג את כל {count}",
+    "agentSessionsCount": "מפגש {count} | {count} מפגשים",
+    "agentSessionsAutomatic": "אוטומטי",
+    "agentSessionsBack": "חזרה לסוכנים",
+    "agentModeCoding": "תכנות",
+    "agentFiles": {
+      "title": "קבצים",
+      "subtitle": "הסוכן קורא אותם בכל הרצה.",
+      "drop": "גרור ושחרר קבצים לכאן, או",
+      "browse": "עיון",
+      "accepted": "PDF, Word, Excel, CSV או תמונות, עד {size} MB לכל קובץ",
+      "uploading": "מעלה…",
+      "download": "הורדת {name}",
+      "remove": "הסרת {name}",
+      "saved": "נשמר אוטומטית. השינויים חלים מההרצה הבאה."
+    },
+    "agentPersonal": {
+      "worksAsYou": "פועל בשמך",
+      "worksAsYouHint": "משתמש בגישה שלך בפרויקט הזה, מוגבל כאן.",
+      "capSameAsMe": "כמוני",
+      "currentRole": "כרגע הוא יכול לפעול בתור {role}",
+      "webhookOwnerOnly": "רק אסימון ה-API שלך יכול להפעיל את ה-webhook הזה.",
+      "paused": "מושהה: כבר לא הייתה לך גישה לפרויקט הזה. הפעל אותו שוב כדי להמשיך.",
+      "pausedOwnerNoAccess": "לבעליו כבר אין גישה לפרויקט הזה.",
+      "viaAgent": "דרך {agent}",
+      "viaAnAgent": "דרך סוכן",
+      "oversightTitle": "סוכנים אישיים",
+      "oversightHint": "סוכנים שחברים יצרו לעצמם. אפשר לכבות או למחוק אותם; ההוראות וההרצות שלהם נשארות פרטיות.",
+      "oversightEmpty": "אין סוכנים אישיים בפרויקט הזה.",
+      "triggers": "טריגרים",
+      "turnOff": "כיבוי"
+    },
+    "agentSetup": {
+      "jobTitle": "יצירת סוכן כללי",
+      "jobSubtitle": "התחל מתבנית או במילים שלך. אפשר לשנות הכול בהמשך.",
+      "describeTitle": "הגדרה באמצעות תיאור",
+      "describeSubtitle": "ספר לו במילים שלך מה לעשות. הוא שואל רק את מה שהוא צריך.",
+      "pickTemplate": "בחר תבנית",
+      "createManually": "יצירה ידנית",
+      "noTemplates": "אין תבניות שתואמות לחיפוש שלך.",
+      "category": {
+        "everyone": "לכולם",
+        "sales": "מכירות",
+        "ops": "תפעול",
+        "marketing": "שיווק",
+        "support": "תמיכה"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "בוט תשובות",
+          "description": "עונה על שאלות לגבי הטבלאות והמסמכים שלך בכל פעם שמישהו שואל."
+        },
+        "meeting-prep": {
+          "description": "בכל בוקר של יום חול מכין את הפגישות של היום מטבלת הפגישות שלך: הלקוח, עסקאות פתוחות והערות אחרונות."
+        },
+        "follow-up-drafter": {
+          "title": "מנסח מעקבים",
+          "description": "מנסח מיילים להמשך טיפול כשרשומה צריכה דחיפה."
+        },
+        "deal-risk-watcher": {
+          "title": "משגיח סיכוני עסקאות",
+          "description": "מסמן עסקאות שנתקעו ואומר לאחראי למה."
+        },
+        "data-cleaner": {
+          "title": "מנקה נתונים",
+          "description": "מוצא כפילויות וערכים חסרים ומתקן אותם, עם יומן לכל שינוי."
+        },
+        "campaign-report": {
+          "title": "דוח קמפיין",
+          "description": "בכל יום שישי מסכם את תוצאות הקמפיינים ומפרסם אותן ב-Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "שומר לוח התוכן",
+          "description": "מזכיר לאחראים על פוסטים קרובים ומסמן כל מה שבאיחור."
+        },
+        "customer-check-in": {
+          "title": "פנייה ללקוח",
+          "description": "מנסח פנייה ללקוחות שנעלמו, מוכנה לבדיקה."
+        }
+      },
+      "rowJob": "משימה",
+      "rowReads": "קורא",
+      "rowRuns": "רץ",
+      "rowShares": "משתף",
+      "rowAccess": "גישה",
+      "accessRead": "קורא רשומות",
+      "accessWrite": "קורא ומשנה רשומות",
+      "accessWeb": "משתמש ברשת",
+      "allTables": "כל הטבלאות",
+      "notSet": "עדיין לא הוגדר",
+      "ask": {
+        "when": "מתי הוא ירוץ?",
+        "table": "על איזו טבלה הוא ישגיח?",
+        "share": "איפה הוא ישתף את מה שהוא מוצא?",
+        "channel": "לאיזה ערוץ Slack הוא יפרסם?",
+        "final": "זה כל מה שאני צריך. סיים את ההגדרה כדי לבדוק אותו ולהפעיל אותו."
+      },
+      "channelHint": "כתוב למטה את שם הערוץ, למשל #sales.",
+      "finish": "סיום ההגדרה",
+      "day": {
+        "day": "יום",
+        "weekday": "יום חול",
+        "monday": "יום שני",
+        "tuesday": "יום שלישי",
+        "wednesday": "יום רביעי",
+        "thursday": "יום חמישי",
+        "friday": "יום שישי",
+        "saturday": "יום שבת",
+        "sunday": "יום ראשון"
+      },
+      "shareChat": "כאן בצ'אט",
+      "shareEmail": "מייל אליך",
+      "shareEmailTo": "מייל אל {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "הטיוטה מוכנה. בדוק הכול והפעל אותו.",
+      "barReview": "בדוק הכול בהגדרות ואז הפעל אותו.",
+      "openSetup": "פתיחת ההגדרה",
+      "placeholderReply": "השב, או שנה כל דבר: ״הפוך את זה ליומי״, ״קרא לו משגיח עסקאות״",
+      "examples": {
+        "staleDeals": "בכל יום שישי, רשום עסקאות תקועות ופרסם אותן ב-#sales",
+        "newContact": "כשנוסף איש קשר חדש, מלא את התפקיד והחברה שלו",
+        "closingDeals": "בכל בוקר, שלח לי במייל את העסקאות שנסגרות השבוע",
+        "pricing": "ענה על שאלות לגבי התמחור שלנו מתוך טבלת Docs",
+        "wonThankYou": "כשעסקה עוברת לנסגרה בהצלחה, נסח מכתב תודה לבדיקה",
+        "activities": "בכל יום שני, סכם מה השתנה ב-Activities",
+        "duplicates": "סמן חברות כפולות ומזג אותן עם יומן שינויים"
+      },
+      "settingsTitle": "הגדר את הסוכן שלך",
+      "namePlaceholder": "למשל, משגיח סיכוני עסקאות",
+      "createAgent": "יצירת סוכן",
+      "hintName": "תן לו שם כדי להמשיך",
+      "hintInstructions": "הוסף הוראות כדי להמשיך",
+      "hintReady": "עדיין לא רץ. בדוק כל קטע, ואז {cta}.",
+      "scopeTitle": "סוג",
+      "scopeHint": "אפשר לשנות את זה כל עוד זו טיוטה.",
+      "scopeLocked": "נקבע ברגע שהסוכן פועל. כדי לשנות, שכפל את הסוכן: העותק מתחיל כטיוטה.",
+      "deliveryTitle": "התוצאות הולכות אל",
+      "deliveryHint": "לאן הוא שולח את מה שהוא מוצא כשהוא רץ מעצמו.",
+      "deliveryChannel": "ערוץ Slack",
+      "deliverySlackMissing": "חבר את Slack באינטגרציות כדי שיוכל לפרסם שם.",
+      "deliverySlackInvalid": "הזן ערוץ Slack, למשל #sales.",
+      "discardTitle": "לבטל את הטיוטה הזו?",
+      "discardContent": "הטיוטה וצ'אט ההגדרה שלה יועברו לאשפה."
     }
   },
   "activity": {
@@ -6361,18 +6512,6 @@
       "pin": "הצמדת תגובה",
       "unpin": "ביטול הצמדת התגובה",
       "pinnedComment": "תגובה מוצמדת",
-      "assignTodo": "הקצאה כמשימה",
-      "editTodo": "עריכת משימה",
-      "removeTodo": "הסרת משימה",
-      "assignee": "אחראי",
-      "selectAssignee": "בחר אדם",
-      "dueDate": "תאריך יעד",
-      "noDueDate": "אין תאריך יעד",
-      "assign": "הקצאה",
-      "assignedTo": "הוקצה אל {name}",
-      "due": "תאריך יעד {date}",
-      "markDone": "סימון כהושלם",
-      "markNotDone": "סימון כלא הושלם",
       "summarize": "סיכום",
       "summaryOf": "סיכום של {count} תגובה | סיכום של {count} תגובות",
       "summarizing": "מסכם את השרשור...",

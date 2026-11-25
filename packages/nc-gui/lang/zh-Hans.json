@@ -3806,7 +3806,7 @@
     "metaApis": "元数据 API",
     "maxNumberOfAttachments": "附件数量上限",
     "maxAttachmentSizeMb": "附件大小上限（MB）",
-    "notifyUsersWithBaseAccessWhenAdded": "当拥有项目访问权限的用户被添加时通知他们",
+    "notifyUsersWithBaseAccessWhenAdded": "当拥有该库访问权限的用户被添加时通知他们",
     "mimeExamplePng": "仅允许 PNG 图片",
     "mimeExamplePdf": "仅允许 PDF 文档",
     "mimeExampleAllImages": "允许所有图片",
@@ -6027,7 +6027,158 @@
       "sizeStandard": "标准",
       "sizeLarge": "大",
       "machineSize": "机器规格",
-      "alwaysOn": "始终开启"
+      "alwaysOn": "始终开启",
+      "workspaceAgent": "通用智能体",
+      "workspaceAgentDescription": "在托管的机器上，通过集成跨越你的应用、数据和文档开展工作。",
+      "waitingForGithubBody": "请在弹出的窗口中批准访问。本页面会自动更新。"
+    },
+    "agentSessionNew": "新建聊天",
+    "agentSessionJustNow": "刚刚",
+    "agentSessionMinutes": "{n} 分钟",
+    "agentSessionHours": "{n} 小时",
+    "agentSessionsViewAll": "查看全部 {count} 个",
+    "agentSessionsCount": "{count} 个会话 | {count} 个会话",
+    "agentSessionsAutomatic": "自动",
+    "agentSessionsBack": "返回智能体列表",
+    "agentModeCoding": "编程",
+    "agentFiles": {
+      "title": "文件",
+      "subtitle": "智能体每次运行都会读取这些文件。",
+      "drop": "将文件拖放到此处，或",
+      "browse": "浏览",
+      "accepted": "PDF、Word、Excel、CSV 或图片，每个最大 {size} MB",
+      "uploading": "上传中…",
+      "download": "下载 {name}",
+      "remove": "移除 {name}",
+      "saved": "已自动保存。更改从下次运行起生效。"
+    },
+    "agentPersonal": {
+      "worksAsYou": "以你的身份工作",
+      "worksAsYouHint": "使用你在此项目中的访问权限，并在此处设有上限。",
+      "capSameAsMe": "与我相同",
+      "currentRole": "目前它可以以 {role} 的身份执行",
+      "webhookOwnerOnly": "只有你自己的 API 令牌才能触发此 Webhook。",
+      "paused": "已暂停：你已不再拥有此项目的访问权限。重新开启即可继续。",
+      "pausedOwnerNoAccess": "其所有者已不再拥有此项目的访问权限。",
+      "viaAgent": "通过 {agent}",
+      "viaAnAgent": "通过智能体",
+      "oversightTitle": "个人智能体",
+      "oversightHint": "成员为自己创建的智能体。你可以将其关闭或删除；它们的指令和运行记录仍然保持私密。",
+      "oversightEmpty": "此项目中没有个人智能体。",
+      "triggers": "触发器",
+      "turnOff": "关闭"
+    },
+    "agentSetup": {
+      "jobTitle": "创建通用智能体",
+      "jobSubtitle": "从模板或你自己的描述开始。之后可以更改一切。",
+      "describeTitle": "通过描述来设置",
+      "describeSubtitle": "用你自己的话告诉它要做什么。它只会询问必要的信息。",
+      "pickTemplate": "选择一个模板",
+      "createManually": "手动创建",
+      "noTemplates": "没有与搜索匹配的模板。",
+      "category": {
+        "everyone": "面向所有人",
+        "sales": "销售",
+        "ops": "运营",
+        "marketing": "市场营销",
+        "support": "支持"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "问答机器人",
+          "description": "每当有人提问时，回答关于你的表格和文档的问题。"
+        },
+        "meeting-prep": {
+          "description": "每个工作日早晨，根据你的会议表格准备当天的会议：客户、进行中的交易和最近的记录。"
+        },
+        "follow-up-drafter": {
+          "title": "跟进邮件撰写",
+          "description": "当记录需要推动时，起草跟进邮件。"
+        },
+        "deal-risk-watcher": {
+          "title": "交易风险监控",
+          "description": "标记已经停滞的交易，并告诉负责人原因。"
+        },
+        "data-cleaner": {
+          "title": "数据清理",
+          "description": "查找重复项和缺失值并修复，同时记录每一处更改。"
+        },
+        "campaign-report": {
+          "title": "活动报告",
+          "description": "每周五汇总营销活动的结果并发布到 Slack 频道。"
+        },
+        "content-calendar-keeper": {
+          "title": "内容日历管家",
+          "description": "提醒负责人即将发布的内容，并标记所有逾期项。"
+        },
+        "customer-check-in": {
+          "title": "客户回访",
+          "description": "为已经沉默的客户起草一封回访消息，供审阅。"
+        }
+      },
+      "rowJob": "职责",
+      "rowReads": "读取",
+      "rowRuns": "运行",
+      "rowShares": "分享",
+      "rowAccess": "访问",
+      "accessRead": "读取记录",
+      "accessWrite": "读取并修改记录",
+      "accessWeb": "使用网络",
+      "allTables": "所有表格",
+      "notSet": "尚未设置",
+      "ask": {
+        "when": "它应该在什么时候运行？",
+        "table": "它应该关注哪个表格？",
+        "share": "它应该把发现的内容分享到哪里？",
+        "channel": "它应该发布到哪个 Slack 频道？",
+        "final": "我需要的信息就这些。完成设置即可检查并开启它。"
+      },
+      "channelHint": "在下方输入频道名称，例如 #sales。",
+      "finish": "完成设置",
+      "day": {
+        "day": "日",
+        "weekday": "工作日",
+        "monday": "星期一",
+        "tuesday": "星期二",
+        "wednesday": "星期三",
+        "thursday": "星期四",
+        "friday": "星期五",
+        "saturday": "星期六",
+        "sunday": "星期日"
+      },
+      "shareChat": "就在聊天中",
+      "shareEmail": "发邮件给你",
+      "shareEmailTo": "发邮件给 {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "草稿已就绪。检查全部内容后开启它。",
+      "barReview": "在设置中检查全部内容，然后开启它。",
+      "openSetup": "打开设置",
+      "placeholderReply": "回复，或更改任何内容：“改成每天”“把它叫做交易监控”",
+      "examples": {
+        "staleDeals": "每周五，列出停滞的交易并发布到 #sales",
+        "newContact": "当添加新联系人时，补全其职位和公司",
+        "closingDeals": "每天早上，把本周即将成交的交易通过邮件发给我",
+        "pricing": "根据 Docs 表格回答关于我们定价的问题",
+        "wonThankYou": "当交易变为已赢单时，起草一封感谢信供审阅",
+        "activities": "每周一，总结 Activities 中发生的变化",
+        "duplicates": "标记重复的公司并合并，同时记录日志"
+      },
+      "settingsTitle": "设置你的智能体",
+      "namePlaceholder": "例如：交易风险监控",
+      "createAgent": "创建智能体",
+      "hintName": "为它取个名字以继续",
+      "hintInstructions": "添加说明以继续",
+      "hintReady": "尚未运行。检查每个部分，然后{cta}。",
+      "scopeTitle": "类型",
+      "scopeHint": "在它还是草稿时，你可以更改此项。",
+      "scopeLocked": "智能体开启后即固定。若要更改，请复制该智能体：副本将以草稿开始。",
+      "deliveryTitle": "结果发送至",
+      "deliveryHint": "它自行运行时，把发现的内容发送到哪里。",
+      "deliveryChannel": "Slack 频道",
+      "deliverySlackMissing": "请在集成中连接 Slack，它才能发布到那里。",
+      "deliverySlackInvalid": "请输入一个 Slack 频道，例如 #sales。",
+      "discardTitle": "要放弃此草稿吗？",
+      "discardContent": "草稿及其设置聊天将被移至回收站。"
     }
   },
   "activity": {
@@ -6362,18 +6513,6 @@
       "pin": "置顶评论",
       "unpin": "取消置顶评论",
       "pinnedComment": "已置顶的评论",
-      "assignTodo": "指派为待办事项",
-      "editTodo": "编辑待办事项",
-      "removeTodo": "移除待办事项",
-      "assignee": "负责人",
-      "selectAssignee": "选择一个人",
-      "dueDate": "截止日期",
-      "noDueDate": "无截止日期",
-      "assign": "指派",
-      "assignedTo": "已指派给 {name}",
-      "due": "截止 {date}",
-      "markDone": "标记为已完成",
-      "markNotDone": "标记为未完成",
       "summarize": "生成摘要",
       "summaryOf": "{count} 条评论的摘要 | {count} 条评论的摘要",
       "summarizing": "正在生成讨论串摘要...",

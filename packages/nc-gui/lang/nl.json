@@ -3794,7 +3794,7 @@
     "metaApis": "Metadata-API's",
     "maxNumberOfAttachments": "Maximaal aantal bijlagen",
     "maxAttachmentSizeMb": "Maximale bijlagegrootte (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Gebruikers met projecttoegang waarschuwen wanneer ze worden toegevoegd",
+    "notifyUsersWithBaseAccessWhenAdded": "Gebruikers met toegang tot de base waarschuwen wanneer ze worden toegevoegd",
     "mimeExamplePng": "Staat alleen PNG-afbeeldingen toe",
     "mimeExamplePdf": "Staat alleen PDF-documenten toe",
     "mimeExampleAllImages": "Staat alle afbeeldingen toe",
@@ -5978,7 +5978,156 @@
       "sizeStandard": "Standaard",
       "sizeLarge": "Groot",
       "machineSize": "Machinegrootte",
-      "alwaysOn": "Altijd aan"
+      "alwaysOn": "Altijd aan",
+      "workspaceAgent": "Algemene agent",
+      "workspaceAgentDescription": "Werkt via integraties met uw apps, gegevens en docs, op een beheerde machine.",
+      "waitingForGithubBody": "Keur de toegang goed in het venster dat is geopend. Deze pagina werkt zichzelf bij."
+    },
+    "agentSessionNew": "Nieuwe chat",
+    "agentSessionJustNow": "Nu",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} u",
+    "agentSessionsViewAll": "Alle {count} bekijken",
+    "agentSessionsCount": "{count} sessie | {count} sessies",
+    "agentSessionsAutomatic": "Automatisch",
+    "agentSessionsBack": "Terug naar agents",
+    "agentModeCoding": "Programmeren",
+    "agentFiles": {
+      "title": "Bestanden",
+      "subtitle": "De agent leest deze bij elke uitvoering.",
+      "drop": "Sleep bestanden hierheen, of",
+      "browse": "bladeren",
+      "accepted": "PDF, Word, Excel, CSV of afbeeldingen, elk tot {size} MB",
+      "uploading": "Uploaden…",
+      "download": "{name} downloaden",
+      "remove": "{name} verwijderen",
+      "saved": "Automatisch opgeslagen. Wijzigingen gelden vanaf de volgende uitvoering."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Werkt namens u",
+      "worksAsYouHint": "Gebruikt uw toegang in dit project, hier begrensd.",
+      "capSameAsMe": "Hetzelfde als ik",
+      "currentRole": "Op dit moment kan hij optreden als {role}",
+      "webhookOwnerOnly": "Alleen uw eigen API-token kan deze webhook afvuren.",
+      "paused": "Gepauzeerd: u had geen toegang meer tot dit project. Schakel hem weer in om door te gaan.",
+      "pausedOwnerNoAccess": "De eigenaar heeft geen toegang meer tot dit project.",
+      "viaAgent": "via {agent}",
+      "viaAnAgent": "via een agent",
+      "oversightTitle": "Persoonlijke agents",
+      "oversightHint": "Agents die leden voor zichzelf hebben gemaakt. U kunt ze uitschakelen of verwijderen; hun instructies en uitvoeringen blijven privé.",
+      "oversightEmpty": "Geen persoonlijke agents in dit project.",
+      "turnOff": "Uitschakelen"
+    },
+    "agentSetup": {
+      "jobTitle": "Een algemene agent maken",
+      "jobSubtitle": "Begin met een sjabloon of met uw eigen woorden. U kunt later alles wijzigen.",
+      "describeTitle": "Instellen door te beschrijven",
+      "describeSubtitle": "Vertel hem in uw eigen woorden wat hij moet doen. Hij vraagt alleen wat hij nodig heeft.",
+      "pickTemplate": "Kies een sjabloon",
+      "createManually": "Handmatig maken",
+      "noTemplates": "Geen sjablonen gevonden voor uw zoekopdracht.",
+      "category": {
+        "everyone": "Voor iedereen",
+        "sales": "Verkoop",
+        "ops": "Bedrijfsvoering",
+        "marketing": "Marketing",
+        "support": "Ondersteuning"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Antwoordbot",
+          "description": "Beantwoordt vragen over uw tabellen en docs zodra iemand ze stelt."
+        },
+        "meeting-prep": {
+          "description": "Bereidt elke werkdagochtend de vergaderingen van vandaag voor uit uw vergadertabel: de klant, lopende deals en de laatste notities."
+        },
+        "follow-up-drafter": {
+          "title": "Opsteller van opvolgmails",
+          "description": "Stelt opvolgmails op wanneer een record een duwtje nodig heeft."
+        },
+        "deal-risk-watcher": {
+          "title": "Dealrisicobewaker",
+          "description": "Markeert deals die zijn vastgelopen en vertelt de eigenaar waarom."
+        },
+        "data-cleaner": {
+          "title": "Gegevensopschoner",
+          "description": "Vindt duplicaten en ontbrekende waarden en herstelt ze, met een logboek van elke wijziging."
+        },
+        "campaign-report": {
+          "title": "Campagnerapport",
+          "description": "Vat elke vrijdag de campagneresultaten samen en post ze op Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "Beheerder contentkalender",
+          "description": "Herinnert eigenaren aan komende posts en markeert alles wat te laat is."
+        },
+        "customer-check-in": {
+          "title": "Klantcontactmoment",
+          "description": "Stelt een contactmoment op voor klanten die stil zijn gevallen, klaar ter beoordeling."
+        }
+      },
+      "rowJob": "Taak",
+      "rowReads": "Leest",
+      "rowRuns": "Draait",
+      "rowShares": "Deelt",
+      "rowAccess": "Toegang",
+      "accessRead": "Leest records",
+      "accessWrite": "Leest en wijzigt records",
+      "accessWeb": "gebruikt het web",
+      "allTables": "Alle tabellen",
+      "notSet": "Nog niet ingesteld",
+      "ask": {
+        "when": "Wanneer moet hij draaien?",
+        "table": "Welke tabel moet hij in de gaten houden?",
+        "share": "Waar moet hij delen wat hij vindt?",
+        "channel": "In welk Slack-kanaal moet hij posten?",
+        "final": "Dat is alles wat ik nodig heb. Rond de instelling af om hem na te kijken en in te schakelen."
+      },
+      "channelHint": "Typ hieronder de kanaalnaam, zoals #sales.",
+      "finish": "Instellen afronden",
+      "day": {
+        "day": "dag",
+        "weekday": "werkdag",
+        "monday": "maandag",
+        "tuesday": "dinsdag",
+        "wednesday": "woensdag",
+        "thursday": "donderdag",
+        "friday": "vrijdag",
+        "saturday": "zaterdag",
+        "sunday": "zondag"
+      },
+      "shareChat": "Hier in de chat",
+      "shareEmail": "E-mail naar u",
+      "shareEmailTo": "E-mail naar {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Concept klaar. Kijk alles na en schakel hem in.",
+      "barReview": "Kijk alles na in Instellingen en schakel hem daarna in.",
+      "openSetup": "Instellingen openen",
+      "placeholderReply": "Antwoord, of wijzig wat u wilt: “maak het dagelijks”, “noem hem Dealbewaker”",
+      "examples": {
+        "staleDeals": "Zet elke vrijdag de vastgelopen deals op een rij en post ze in #sales",
+        "newContact": "Vul bij een nieuw contact de functie en het bedrijf aan",
+        "closingDeals": "Mail me elke ochtend de deals die deze week sluiten",
+        "pricing": "Beantwoord vragen over onze prijzen op basis van de tabel Docs",
+        "wonThankYou": "Wanneer een deal naar Gewonnen gaat, stel dan een bedankje op ter beoordeling",
+        "activities": "Vat elke maandag samen wat er in Activities is veranderd",
+        "duplicates": "Markeer dubbele bedrijven en voeg ze samen met een logboek"
+      },
+      "settingsTitle": "Stel uw agent in",
+      "namePlaceholder": "bijv. Dealrisicobewaker",
+      "createAgent": "Agent maken",
+      "hintName": "Geef hem een naam om verder te gaan",
+      "hintInstructions": "Voeg instructies toe om verder te gaan",
+      "hintReady": "Draait nog niet. Loop elk onderdeel na en {cta}.",
+      "scopeHint": "U kunt dit wijzigen zolang het een concept is.",
+      "scopeLocked": "Ligt vast zodra de agent aanstaat. Dupliceer de agent om dit te wijzigen: de kopie begint als concept.",
+      "deliveryTitle": "Resultaten gaan naar",
+      "deliveryHint": "Waar hij naartoe stuurt wat hij vindt wanneer hij vanzelf draait.",
+      "deliveryChannel": "Slack-kanaal",
+      "deliverySlackMissing": "Verbind Slack in Integraties zodat hij daar kan posten.",
+      "deliverySlackInvalid": "Voer een Slack-kanaal in, zoals #sales.",
+      "discardTitle": "Dit concept weggooien?",
+      "discardContent": "Het concept en de bijbehorende instelchat gaan naar de prullenbak."
     }
   },
   "activity": {
@@ -6310,18 +6459,6 @@
       "pin": "Opmerking vastmaken",
       "unpin": "Opmerking losmaken",
       "pinnedComment": "Vastgemaakte opmerking",
-      "assignTodo": "Toewijzen als taak",
-      "editTodo": "Taak bewerken",
-      "removeTodo": "Taak verwijderen",
-      "assignee": "Toegewezen persoon",
-      "selectAssignee": "Selecteer een persoon",
-      "dueDate": "Vervaldatum",
-      "noDueDate": "Geen vervaldatum",
-      "assign": "Toewijzen",
-      "assignedTo": "Toegewezen aan {name}",
-      "due": "Vervalt {date}",
-      "markDone": "Markeren als voltooid",
-      "markNotDone": "Markeren als niet voltooid",
       "summarize": "Samenvatten",
       "summaryOf": "Samenvatting van {count} opmerking | Samenvatting van {count} opmerkingen",
       "summarizing": "Thread samenvatten...",

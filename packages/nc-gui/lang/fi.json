@@ -3806,7 +3806,7 @@
     "metaApis": "Metatietojen API:t",
     "maxNumberOfAttachments": "Liitteiden enimmäismäärä",
     "maxAttachmentSizeMb": "Liitteen enimmäiskoko (Mt)",
-    "notifyUsersWithBaseAccessWhenAdded": "Ilmoita projektin käyttöoikeuden saaneille käyttäjille, kun heidät lisätään",
+    "notifyUsersWithBaseAccessWhenAdded": "Ilmoita käyttäjille, joilla on pääsy baseen, kun heidät lisätään",
     "mimeExamplePng": "Sallii vain PNG-kuvat",
     "mimeExamplePdf": "Sallii vain PDF-asiakirjat",
     "mimeExampleAllImages": "Sallii kaikki kuvat",
@@ -6024,7 +6024,158 @@
       "sizeStandard": "Vakio",
       "sizeLarge": "Suuri",
       "machineSize": "Koneen koko",
-      "alwaysOn": "Aina päällä"
+      "alwaysOn": "Aina päällä",
+      "workspaceAgent": "Yleisagentti",
+      "workspaceAgentDescription": "Toimii sovelluksissasi, tiedoissasi ja docs-tiedostoissasi integraatioiden kautta, hallitulla koneella.",
+      "waitingForGithubBody": "Hyväksy pääsy avautuneessa ikkunassa. Tämä sivu päivittyy itsestään."
+    },
+    "agentSessionNew": "Uusi keskustelu",
+    "agentSessionJustNow": "Nyt",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} t",
+    "agentSessionsViewAll": "Näytä kaikki {count}",
+    "agentSessionsCount": "{count} istunto | {count} istuntoa",
+    "agentSessionsAutomatic": "Automaattinen",
+    "agentSessionsBack": "Takaisin agentteihin",
+    "agentModeCoding": "Ohjelmointi",
+    "agentFiles": {
+      "title": "Tiedostot",
+      "subtitle": "Agentti lukee nämä joka ajolla.",
+      "drop": "Vedä ja pudota tiedostot tähän, tai",
+      "browse": "selaa",
+      "accepted": "PDF, Word, Excel, CSV tai kuvia, kukin enintään {size} Mt",
+      "uploading": "Lähetetään…",
+      "download": "Lataa {name}",
+      "remove": "Poista {name}",
+      "saved": "Tallennetaan automaattisesti. Muutokset tulevat voimaan seuraavasta ajosta."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Toimii sinuna",
+      "worksAsYouHint": "Käyttää pääsyäsi tässä projektissa, tässä rajattuna.",
+      "capSameAsMe": "Sama kuin minä",
+      "currentRole": "Juuri nyt se voi toimia roolissa {role}",
+      "webhookOwnerOnly": "Vain oma API-tunnuksesi voi laukaista tämän webhookin.",
+      "paused": "Keskeytetty: sinulla ei enää ollut pääsyä tähän projektiin. Kytke se takaisin päälle jatkaaksesi.",
+      "pausedOwnerNoAccess": "Sen omistajalla ei ole enää pääsyä tähän projektiin.",
+      "viaAgent": "agentin {agent} kautta",
+      "viaAnAgent": "agentin kautta",
+      "oversightTitle": "Henkilökohtaiset agentit",
+      "oversightHint": "Agentit, jotka jäsenet ovat tehneet itselleen. Voit sammuttaa tai poistaa ne; niiden ohjeet ja ajot pysyvät yksityisinä.",
+      "oversightEmpty": "Ei henkilökohtaisia agentteja tässä projektissa.",
+      "triggers": "Käynnistimet",
+      "turnOff": "Sammuta"
+    },
+    "agentSetup": {
+      "jobTitle": "Luo yleisagentti",
+      "jobSubtitle": "Aloita mallista tai omin sanoin. Voit muuttaa kaiken myöhemmin.",
+      "describeTitle": "Määritä kuvailemalla",
+      "describeSubtitle": "Kerro omin sanoin, mitä sen pitää tehdä. Se kysyy vain sen, mitä tarvitsee.",
+      "pickTemplate": "Valitse malli",
+      "createManually": "Luo manuaalisesti",
+      "noTemplates": "Mikään malli ei vastaa hakuasi.",
+      "category": {
+        "everyone": "Kaikille",
+        "sales": "Myynti",
+        "ops": "Toiminta",
+        "marketing": "Markkinointi",
+        "support": "Tuki"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Vastausbotti",
+          "description": "Vastaa taulukoitasi ja docs-tiedostojasi koskeviin kysymyksiin aina kun joku kysyy."
+        },
+        "meeting-prep": {
+          "description": "Valmistelee joka arkiaamu päivän palaverit palaveritaulukostasi: asiakkaan, avoimet kaupat ja viimeisimmät muistiinpanot."
+        },
+        "follow-up-drafter": {
+          "title": "Seurantaviestien laatija",
+          "description": "Luonnostelee seurantasähköpostit, kun tietue kaipaa tönäisyä."
+        },
+        "deal-risk-watcher": {
+          "title": "Kauppariskien vartija",
+          "description": "Merkitsee pysähtyneet kaupat ja kertoo omistajalle syyn."
+        },
+        "data-cleaner": {
+          "title": "Tietojen siivooja",
+          "description": "Löytää kaksoiskappaleet ja puuttuvat arvot ja korjaa ne, lokittaen jokaisen muutoksen."
+        },
+        "campaign-report": {
+          "title": "Kampanjaraportti",
+          "description": "Tekee joka perjantai yhteenvedon kampanjatuloksista ja julkaisee ne Slack-kanavalle."
+        },
+        "content-calendar-keeper": {
+          "title": "Sisältökalenterin vartija",
+          "description": "Muistuttaa omistajia tulevista julkaisuista ja merkitsee myöhässä olevat."
+        },
+        "customer-check-in": {
+          "title": "Asiakkaan yhteydenotto",
+          "description": "Luonnostelee yhteydenoton hiljentyneille asiakkaille, valmiina tarkistettavaksi."
+        }
+      },
+      "rowJob": "Tehtävä",
+      "rowReads": "Lukee",
+      "rowRuns": "Ajaa",
+      "rowShares": "Jakaa",
+      "rowAccess": "Käyttöoikeus",
+      "accessRead": "Lukee tietueita",
+      "accessWrite": "Lukee ja muuttaa tietueita",
+      "accessWeb": "käyttää verkkoa",
+      "allTables": "Kaikki taulukot",
+      "notSet": "Ei vielä asetettu",
+      "ask": {
+        "when": "Milloin sen pitäisi ajaa?",
+        "table": "Mitä taulukkoa sen pitäisi seurata?",
+        "share": "Missä sen pitäisi jakaa löytämänsä?",
+        "channel": "Mihin Slack-kanavaan sen pitäisi julkaista?",
+        "final": "Siinä kaikki mitä tarvitsen. Viimeistele määritys, niin voit tarkistaa sen ja kytkeä sen päälle."
+      },
+      "channelHint": "Kirjoita kanavan nimi alle, esimerkiksi #sales.",
+      "finish": "Viimeistele määritys",
+      "day": {
+        "day": "päivä",
+        "weekday": "arkipäivä",
+        "monday": "maanantai",
+        "tuesday": "tiistai",
+        "wednesday": "keskiviikko",
+        "thursday": "torstai",
+        "friday": "perjantai",
+        "saturday": "lauantai",
+        "sunday": "sunnuntai"
+      },
+      "shareChat": "Täällä keskustelussa",
+      "shareEmail": "Sähköposti sinulle",
+      "shareEmailTo": "Sähköposti vastaanottajalle {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Luonnos valmis. Tarkista kaikki ja kytke se päälle.",
+      "barReview": "Tarkista kaikki Asetuksissa ja kytke se sitten päälle.",
+      "openSetup": "Avaa määritys",
+      "placeholderReply": "Vastaa tai muuta mitä tahansa: ”tee siitä päivittäinen”, ”nimeä se Kauppavartijaksi”",
+      "examples": {
+        "staleDeals": "Listaa joka perjantai pysähtyneet kaupat ja julkaise ne kanavalle #sales",
+        "newContact": "Kun uusi yhteystieto lisätään, täytä hänen tehtävänsä ja yrityksensä",
+        "closingDeals": "Lähetä minulle joka aamu sähköpostilla tällä viikolla päättyvät kaupat",
+        "pricing": "Vastaa hinnoitteluamme koskeviin kysymyksiin Docs-taulukon pohjalta",
+        "wonThankYou": "Kun kauppa siirtyy tilaan Voitettu, luonnostele kiitosviesti tarkistettavaksi",
+        "activities": "Tee joka maanantai yhteenveto siitä, mikä muuttui Activities-taulukossa",
+        "duplicates": "Merkitse kaksoiskappaleyritykset ja yhdistä ne lokin kanssa"
+      },
+      "settingsTitle": "Määritä agenttisi",
+      "namePlaceholder": "esim. Kauppariskien vartija",
+      "createAgent": "Luo agentti",
+      "hintName": "Anna sille nimi jatkaaksesi",
+      "hintInstructions": "Lisää ohjeet jatkaaksesi",
+      "hintReady": "Ei vielä käynnissä. Käy läpi jokainen osio ja {cta}.",
+      "scopeTitle": "Tyyppi",
+      "scopeHint": "Voit muuttaa tätä niin kauan kuin se on luonnos.",
+      "scopeLocked": "Lukittu, kun agentti on päällä. Muuta se monistamalla agentti: kopio alkaa luonnoksena.",
+      "deliveryTitle": "Tulokset menevät",
+      "deliveryHint": "Minne se lähettää löytämänsä, kun se ajaa itsekseen.",
+      "deliveryChannel": "Slack-kanava",
+      "deliverySlackMissing": "Yhdistä Slack Integraatioissa, jotta se voi julkaista siellä.",
+      "deliverySlackInvalid": "Anna Slack-kanava, esimerkiksi #sales.",
+      "discardTitle": "Hylätäänkö tämä luonnos?",
+      "discardContent": "Luonnos ja sen määrityskeskustelu siirretään roskakoriin."
     }
   },
   "activity": {
@@ -6359,18 +6510,6 @@
       "pin": "Kiinnitä kommentti",
       "unpin": "Poista kommentin kiinnitys",
       "pinnedComment": "Kiinnitetty kommentti",
-      "assignTodo": "Määritä tehtäväksi",
-      "editTodo": "Muokkaa tehtävää",
-      "removeTodo": "Poista tehtävä",
-      "assignee": "Vastuuhenkilö",
-      "selectAssignee": "Valitse henkilö",
-      "dueDate": "Määräpäivä",
-      "noDueDate": "Ei määräpäivää",
-      "assign": "Määritä",
-      "assignedTo": "Määritetty käyttäjälle {name}",
-      "due": "Määräpäivä {date}",
-      "markDone": "Merkitse valmiiksi",
-      "markNotDone": "Merkitse keskeneräiseksi",
       "summarize": "Tee yhteenveto",
       "summaryOf": "Yhteenveto {count} kommentista | Yhteenveto {count} kommentista",
       "summarizing": "Tehdään yhteenvetoa ketjusta...",

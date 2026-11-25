@@ -3806,7 +3806,7 @@
     "metaApis": "메타데이터 API",
     "maxNumberOfAttachments": "최대 첨부 파일 수",
     "maxAttachmentSizeMb": "최대 첨부 파일 크기(MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "프로젝트 접근 권한이 있는 사용자가 추가될 때 알림",
+    "notifyUsersWithBaseAccessWhenAdded": "베이스 접근 권한이 있는 사용자가 추가되면 알리기",
     "mimeExamplePng": "PNG 이미지만 허용합니다",
     "mimeExamplePdf": "PDF 문서만 허용합니다",
     "mimeExampleAllImages": "모든 이미지를 허용합니다",
@@ -6023,7 +6023,158 @@
       "sizeStandard": "표준",
       "sizeLarge": "대형",
       "machineSize": "머신 크기",
-      "alwaysOn": "항상 켜짐"
+      "alwaysOn": "항상 켜짐",
+      "workspaceAgent": "일반 에이전트",
+      "workspaceAgentDescription": "관리형 머신에서 연동을 통해 앱, 데이터, 문서를 넘나들며 작업합니다.",
+      "waitingForGithubBody": "열린 창에서 접근을 승인하세요. 이 페이지는 자동으로 갱신됩니다."
+    },
+    "agentSessionNew": "새 채팅",
+    "agentSessionJustNow": "방금",
+    "agentSessionMinutes": "{n}분",
+    "agentSessionHours": "{n}시간",
+    "agentSessionsViewAll": "전체 {count}개 보기",
+    "agentSessionsCount": "세션 {count}개 | 세션 {count}개",
+    "agentSessionsAutomatic": "자동",
+    "agentSessionsBack": "에이전트 목록으로",
+    "agentModeCoding": "코딩",
+    "agentFiles": {
+      "title": "파일",
+      "subtitle": "에이전트가 실행할 때마다 이 파일들을 읽습니다.",
+      "drop": "여기로 파일을 끌어다 놓거나",
+      "browse": "찾아보기",
+      "accepted": "PDF, Word, Excel, CSV 또는 이미지, 각 최대 {size} MB",
+      "uploading": "업로드 중…",
+      "download": "{name} 다운로드",
+      "remove": "{name} 제거",
+      "saved": "자동으로 저장됩니다. 변경 사항은 다음 실행부터 적용됩니다."
+    },
+    "agentPersonal": {
+      "worksAsYou": "내 권한으로 동작",
+      "worksAsYouHint": "이 프로젝트의 내 접근 권한을 사용하며, 여기서 제한됩니다.",
+      "capSameAsMe": "나와 동일",
+      "currentRole": "지금은 {role} 역할로 동작할 수 있습니다",
+      "webhookOwnerOnly": "본인의 API 토큰만 이 웹훅을 실행할 수 있습니다.",
+      "paused": "일시 중지됨: 이 프로젝트에 대한 접근 권한이 없어졌습니다. 다시 켜면 재개됩니다.",
+      "pausedOwnerNoAccess": "소유자가 이 프로젝트에 대한 접근 권한을 잃었습니다.",
+      "viaAgent": "{agent} 경유",
+      "viaAnAgent": "에이전트 경유",
+      "oversightTitle": "개인 에이전트",
+      "oversightHint": "구성원이 자신을 위해 만든 에이전트입니다. 끄거나 삭제할 수 있으며, 지시와 실행 내역은 비공개로 유지됩니다.",
+      "oversightEmpty": "이 프로젝트에는 개인 에이전트가 없습니다.",
+      "triggers": "트리거",
+      "turnOff": "끄기"
+    },
+    "agentSetup": {
+      "jobTitle": "일반 에이전트 만들기",
+      "jobSubtitle": "템플릿으로 시작하거나 직접 설명해 보세요. 나중에 모두 바꿀 수 있습니다.",
+      "describeTitle": "설명으로 설정하기",
+      "describeSubtitle": "무엇을 할지 직접 말로 설명하세요. 필요한 것만 물어봅니다.",
+      "pickTemplate": "템플릿 선택",
+      "createManually": "직접 만들기",
+      "noTemplates": "검색과 일치하는 템플릿이 없습니다.",
+      "category": {
+        "everyone": "모두를 위한",
+        "sales": "영업",
+        "ops": "운영",
+        "marketing": "마케팅",
+        "support": "지원"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "응답 봇",
+          "description": "누군가 물어볼 때마다 테이블과 문서에 대한 질문에 답합니다."
+        },
+        "meeting-prep": {
+          "description": "평일 아침마다 회의 테이블에서 오늘의 회의를 준비합니다. 거래처, 진행 중인 거래, 최근 메모를 정리합니다."
+        },
+        "follow-up-drafter": {
+          "title": "후속 메일 작성",
+          "description": "레코드에 한 번 더 손길이 필요할 때 후속 메일을 작성합니다."
+        },
+        "deal-risk-watcher": {
+          "title": "거래 위험 감시",
+          "description": "멈춰 있는 거래를 표시하고 담당자에게 이유를 알려 줍니다."
+        },
+        "data-cleaner": {
+          "title": "데이터 정리",
+          "description": "중복과 빠진 값을 찾아 고치고, 모든 변경을 기록으로 남깁니다."
+        },
+        "campaign-report": {
+          "title": "캠페인 보고서",
+          "description": "매주 금요일 캠페인 결과를 정리해 Slack 채널에 올립니다."
+        },
+        "content-calendar-keeper": {
+          "title": "콘텐츠 캘린더 관리",
+          "description": "담당자에게 예정된 게시물을 알리고 기한이 지난 것을 표시합니다."
+        },
+        "customer-check-in": {
+          "title": "고객 재연락",
+          "description": "연락이 끊긴 고객에게 보낼 메시지를 검토용으로 작성합니다."
+        }
+      },
+      "rowJob": "역할",
+      "rowReads": "읽기",
+      "rowRuns": "실행",
+      "rowShares": "공유",
+      "rowAccess": "접근",
+      "accessRead": "레코드 읽기",
+      "accessWrite": "레코드 읽기 및 변경",
+      "accessWeb": "웹 사용",
+      "allTables": "모든 테이블",
+      "notSet": "아직 설정되지 않음",
+      "ask": {
+        "when": "언제 실행할까요?",
+        "table": "어느 테이블을 지켜볼까요?",
+        "share": "찾은 내용을 어디에 공유할까요?",
+        "channel": "어느 Slack 채널에 올릴까요?",
+        "final": "필요한 건 이게 전부입니다. 설정을 마치고 내용을 확인한 뒤 켜세요."
+      },
+      "channelHint": "아래에 채널 이름을 입력하세요. 예: #sales.",
+      "finish": "설정 마치기",
+      "day": {
+        "day": "일",
+        "weekday": "평일",
+        "monday": "월요일",
+        "tuesday": "화요일",
+        "wednesday": "수요일",
+        "thursday": "목요일",
+        "friday": "금요일",
+        "saturday": "토요일",
+        "sunday": "일요일"
+      },
+      "shareChat": "여기 채팅에서",
+      "shareEmail": "나에게 메일",
+      "shareEmailTo": "{name}에게 메일",
+      "shareSlack": "Slack {channel}",
+      "barReady": "초안이 준비됐습니다. 모두 확인하고 켜세요.",
+      "barReview": "설정에서 모두 확인한 뒤 켜세요.",
+      "openSetup": "설정 열기",
+      "placeholderReply": "답하거나 무엇이든 바꿔 보세요. 예: “매일로 바꿔 줘”, “이름을 거래 감시로 해 줘”",
+      "examples": {
+        "staleDeals": "매주 금요일, 멈춰 있는 거래를 정리해 #sales에 올려 줘",
+        "newContact": "새 연락처가 추가되면 직함과 회사를 채워 줘",
+        "closingDeals": "매일 아침, 이번 주에 마감되는 거래를 메일로 보내 줘",
+        "pricing": "Docs 테이블을 바탕으로 가격에 대한 질문에 답해 줘",
+        "wonThankYou": "거래가 성사로 바뀌면 검토용 감사 메시지를 작성해 줘",
+        "activities": "매주 월요일, Activities에서 바뀐 내용을 정리해 줘",
+        "duplicates": "중복된 회사를 표시하고 기록을 남기며 병합해 줘"
+      },
+      "settingsTitle": "에이전트 설정",
+      "namePlaceholder": "예: 거래 위험 감시",
+      "createAgent": "에이전트 만들기",
+      "hintName": "계속하려면 이름을 지어 주세요",
+      "hintInstructions": "계속하려면 지시를 추가하세요",
+      "hintReady": "아직 실행되지 않습니다. 각 항목을 확인한 뒤 {cta}.",
+      "scopeTitle": "유형",
+      "scopeHint": "초안인 동안에는 바꿀 수 있습니다.",
+      "scopeLocked": "에이전트를 켜면 고정됩니다. 바꾸려면 에이전트를 복제하세요. 사본은 초안으로 시작합니다.",
+      "deliveryTitle": "결과가 가는 곳",
+      "deliveryHint": "스스로 실행될 때 찾은 내용을 보내는 곳입니다.",
+      "deliveryChannel": "Slack 채널",
+      "deliverySlackMissing": "거기에 올릴 수 있도록 연동에서 Slack 계정을 연결하세요.",
+      "deliverySlackInvalid": "Slack 채널을 입력하세요. 예: #sales.",
+      "discardTitle": "이 초안을 버릴까요?",
+      "discardContent": "초안과 설정 채팅이 휴지통으로 이동합니다."
     }
   },
   "activity": {
@@ -6358,18 +6509,6 @@
       "pin": "댓글 고정",
       "unpin": "댓글 고정 해제",
       "pinnedComment": "고정된 댓글",
-      "assignTodo": "할 일로 할당",
-      "editTodo": "할 일 편집",
-      "removeTodo": "할 일 제거",
-      "assignee": "담당자",
-      "selectAssignee": "사람을 선택하세요",
-      "dueDate": "기한",
-      "noDueDate": "기한 없음",
-      "assign": "할당",
-      "assignedTo": "{name} 님에게 할당됨",
-      "due": "기한 {date}",
-      "markDone": "완료로 표시",
-      "markNotDone": "미완료로 표시",
       "summarize": "요약",
       "summaryOf": "댓글 {count}개 요약 | 댓글 {count}개 요약",
       "summarizing": "스레드를 요약하는 중...",

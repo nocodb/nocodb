@@ -3805,7 +3805,7 @@
     "metaApis": "Metadátové API",
     "maxNumberOfAttachments": "Maximálny počet príloh",
     "maxAttachmentSizeMb": "Maximálna veľkosť prílohy (MB)",
-    "notifyUsersWithBaseAccessWhenAdded": "Upozorniť používateľov s prístupom k projektu, keď sú pridaní",
+    "notifyUsersWithBaseAccessWhenAdded": "Upozorniť používateľov s prístupom k báze, keď sú pridaní",
     "mimeExamplePng": "Povoľuje iba obrázky PNG",
     "mimeExamplePdf": "Povoľuje iba dokumenty PDF",
     "mimeExampleAllImages": "Povoľuje všetky obrázky",
@@ -6017,7 +6017,158 @@
       "sizeStandard": "Štandardný",
       "sizeLarge": "Veľký",
       "machineSize": "Veľkosť stroja",
-      "alwaysOn": "Vždy zapnuté"
+      "alwaysOn": "Vždy zapnuté",
+      "workspaceAgent": "Všeobecný agent",
+      "workspaceAgentDescription": "Pracuje naprieč vašimi aplikáciami, údajmi a dokumentmi cez integrácie, na spravovanom stroji.",
+      "waitingForGithubBody": "Schváľte prístup v okne, ktoré sa otvorilo. Táto stránka sa aktualizuje sama."
+    },
+    "agentSessionNew": "Nový chat",
+    "agentSessionJustNow": "Teraz",
+    "agentSessionMinutes": "{n} min",
+    "agentSessionHours": "{n} h",
+    "agentSessionsViewAll": "Zobraziť všetkých {count}",
+    "agentSessionsCount": "{count} relácia | {count} relácií",
+    "agentSessionsAutomatic": "Automaticky",
+    "agentSessionsBack": "Späť na agentov",
+    "agentModeCoding": "Programovanie",
+    "agentFiles": {
+      "title": "Súbory",
+      "subtitle": "Agent ich číta pri každom behu.",
+      "drop": "Presuňte súbory sem alebo",
+      "browse": "prehľadávať",
+      "accepted": "PDF, Word, Excel, CSV alebo obrázky, každý až {size} MB",
+      "uploading": "Nahráva sa…",
+      "download": "Stiahnuť {name}",
+      "remove": "Odstrániť {name}",
+      "saved": "Ukladá sa automaticky. Zmeny platia od ďalšieho behu."
+    },
+    "agentPersonal": {
+      "worksAsYou": "Koná za vás",
+      "worksAsYouHint": "Používa váš prístup v tomto projekte, tu obmedzený.",
+      "capSameAsMe": "Rovnako ako ja",
+      "currentRole": "Práve teraz môže konať ako {role}",
+      "webhookOwnerOnly": "Tento webhook môže spustiť iba váš vlastný API token.",
+      "paused": "Pozastavené: už ste nemali prístup k tomuto projektu. Znova ho zapnite a pokračujte.",
+      "pausedOwnerNoAccess": "Jeho vlastník už nemá prístup k tomuto projektu.",
+      "viaAgent": "cez {agent}",
+      "viaAnAgent": "cez agenta",
+      "oversightTitle": "Osobní agenti",
+      "oversightHint": "Agenti, ktorých si členovia vytvorili sami pre seba. Môžete ich vypnúť alebo odstrániť; ich pokyny a behy zostávajú súkromné.",
+      "oversightEmpty": "V tomto projekte nie sú žiadni osobní agenti.",
+      "triggers": "Spúšťače",
+      "turnOff": "Vypnúť"
+    },
+    "agentSetup": {
+      "jobTitle": "Vytvoriť všeobecného agenta",
+      "jobSubtitle": "Začnite šablónou alebo vlastnými slovami. Všetko môžete neskôr zmeniť.",
+      "describeTitle": "Nastaviť opisom",
+      "describeSubtitle": "Povedzte mu vlastnými slovami, čo má robiť. Opýta sa len na to, čo potrebuje.",
+      "pickTemplate": "Vyberte šablónu",
+      "createManually": "Vytvoriť ručne",
+      "noTemplates": "Vášmu hľadaniu nezodpovedá žiadna šablóna.",
+      "category": {
+        "everyone": "Pre všetkých",
+        "sales": "Predaj",
+        "ops": "Prevádzka",
+        "marketing": "Marketing",
+        "support": "Podpora"
+      },
+      "templates": {
+        "answer-bot": {
+          "title": "Odpovedací bot",
+          "description": "Odpovedá na otázky o vašich tabuľkách a dokumentoch, kedykoľvek sa niekto spýta."
+        },
+        "meeting-prep": {
+          "description": "Každé ráno v pracovný deň pripraví dnešné stretnutia z vašej tabuľky stretnutí: zákazníka, otvorené obchody a posledné poznámky."
+        },
+        "follow-up-drafter": {
+          "title": "Autor nadväzujúcich správ",
+          "description": "Pripraví nadväzujúce e-maily, keď záznam potrebuje postrčiť."
+        },
+        "deal-risk-watcher": {
+          "title": "Strážca rizika obchodov",
+          "description": "Označí obchody, ktoré uviazli, a povie vlastníkovi prečo."
+        },
+        "data-cleaner": {
+          "title": "Čistič údajov",
+          "description": "Nájde duplicity a chýbajúce hodnoty a opraví ich, so záznamom o každej zmene."
+        },
+        "campaign-report": {
+          "title": "Správa o kampani",
+          "description": "Každý piatok zhrnie výsledky kampaní a pošle ich na Slack."
+        },
+        "content-calendar-keeper": {
+          "title": "Správca obsahového kalendára",
+          "description": "Pripomína vlastníkom nadchádzajúce príspevky a označuje všetko po termíne."
+        },
+        "customer-check-in": {
+          "title": "Kontakt so zákazníkom",
+          "description": "Pripraví správu pre zákazníkov, ktorí stíchli, hotovú na kontrolu."
+        }
+      },
+      "rowJob": "Úloha",
+      "rowReads": "Číta",
+      "rowRuns": "Beží",
+      "rowShares": "Zdieľa",
+      "rowAccess": "Prístup",
+      "accessRead": "Číta záznamy",
+      "accessWrite": "Číta a mení záznamy",
+      "accessWeb": "používa web",
+      "allTables": "Všetky tabuľky",
+      "notSet": "Zatiaľ nenastavené",
+      "ask": {
+        "when": "Kedy sa má spúšťať?",
+        "table": "Ktorú tabuľku má sledovať?",
+        "share": "Kde má zdieľať to, čo nájde?",
+        "channel": "Do ktorého kanála Slack má prispievať?",
+        "final": "To je všetko, čo potrebujem. Dokončite nastavenie, aby ste ho skontrolovali a zapli."
+      },
+      "channelHint": "Nižšie napíšte názov kanála, napríklad #sales.",
+      "finish": "Dokončiť nastavenie",
+      "day": {
+        "day": "deň",
+        "weekday": "pracovný deň",
+        "monday": "pondelok",
+        "tuesday": "utorok",
+        "wednesday": "streda",
+        "thursday": "štvrtok",
+        "friday": "piatok",
+        "saturday": "sobota",
+        "sunday": "nedeľa"
+      },
+      "shareChat": "Tu v chate",
+      "shareEmail": "E-mail vám",
+      "shareEmailTo": "E-mail pre {name}",
+      "shareSlack": "Slack {channel}",
+      "barReady": "Koncept je pripravený. Skontrolujte všetko a zapnite ho.",
+      "barReview": "Skontrolujte všetko v Nastaveniach a potom ho zapnite.",
+      "openSetup": "Otvoriť nastavenie",
+      "placeholderReply": "Odpovedzte alebo čokoľvek zmeňte: „nech beží denne“, „pomenuj ho Strážca obchodov“",
+      "examples": {
+        "staleDeals": "Každý piatok vypíš uviaznuté obchody a pošli ich do #sales",
+        "newContact": "Keď sa pridá nový kontakt, doplň jeho pozíciu a firmu",
+        "closingDeals": "Každé ráno mi pošli e-mailom obchody, ktoré sa uzatvárajú tento týždeň",
+        "pricing": "Odpovedaj na otázky o našich cenách podľa tabuľky Docs",
+        "wonThankYou": "Keď obchod prejde na Vyhraté, priprav poďakovanie na kontrolu",
+        "activities": "Každý pondelok zhrň, čo sa zmenilo v Activities",
+        "duplicates": "Označ duplicitné firmy a zlúč ich so záznamom do protokolu"
+      },
+      "settingsTitle": "Nastavte svojho agenta",
+      "namePlaceholder": "napr. Strážca rizika obchodov",
+      "createAgent": "Vytvoriť agenta",
+      "hintName": "Pomenujte ho a pokračujte",
+      "hintInstructions": "Pridajte pokyny a pokračujte",
+      "hintReady": "Zatiaľ nebeží. Skontrolujte každú sekciu a potom {cta}.",
+      "scopeTitle": "Typ",
+      "scopeHint": "Kým je to koncept, môžete to zmeniť.",
+      "scopeLocked": "Po zapnutí agenta je to pevne dané. Ak to chcete zmeniť, agenta duplikujte: kópia začína ako koncept.",
+      "deliveryTitle": "Výsledky smerujú na",
+      "deliveryHint": "Kam posiela to, čo nájde, keď beží sám.",
+      "deliveryChannel": "Kanál Slack",
+      "deliverySlackMissing": "Pripojte Slack v Integráciách, aby tam mohol prispievať.",
+      "deliverySlackInvalid": "Zadajte kanál Slack, napríklad #sales.",
+      "discardTitle": "Zahodiť tento koncept?",
+      "discardContent": "Koncept a jeho nastavovací chat sa presunú do koša."
     }
   },
   "activity": {
@@ -6352,18 +6503,6 @@
       "pin": "Pripnúť komentár",
       "unpin": "Odopnúť komentár",
       "pinnedComment": "Pripnutý komentár",
-      "assignTodo": "Priradiť ako úlohu",
-      "editTodo": "Upraviť úlohu",
-      "removeTodo": "Odstrániť úlohu",
-      "assignee": "Priradená osoba",
-      "selectAssignee": "Vyberte osobu",
-      "dueDate": "Termín dokončenia",
-      "noDueDate": "Bez termínu",
-      "assign": "Priradiť",
-      "assignedTo": "Priradené používateľovi {name}",
-      "due": "Termín {date}",
-      "markDone": "Označiť ako hotové",
-      "markNotDone": "Označiť ako nehotové",
       "summarize": "Zhrnúť",
       "summaryOf": "Zhrnutie {count} komentára | Zhrnutie {count} komentárov",
       "summarizing": "Zhrnutie vlákna sa pripravuje...",

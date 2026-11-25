@@ -25,6 +25,7 @@ import { hasLimitedRelatedTableAccess } from '~/helpers/tableHelpers';
 import { isSharedViewAccess } from '~/helpers/accessSource';
 import Noco from '~/Noco';
 import { nocoExecute } from '~/utils/nocoExecute';
+import { displayValueUnlessCyclic } from '~/helpers/displayValueCycle';
 import { chunkArray } from '~/utils/tsUtils';
 import { COMPOUND_SELECT_CHUNK_SIZE } from '~/constants';
 import { isRollupDataError } from '~/db/rollupReadFallback';
@@ -154,6 +155,34 @@ export const relationDataFetcher = (param: {
 }) => {
   const { baseModel } = param;
 
+  // Licensed builds skip postProcessData's re-resolution, but a link that is the
+  // related table's display value is part of its pk+pv and must still be read.
+  async function resolveDisplayValueLink(
+    data: any[],
+    model: Model,
+    relationColumnId?: string,
+  ) {
+    const rows = data?.filter(Boolean);
+    if (!rows?.length) return data;
+    await model.getColumns();
+    const relationColumn = relationColumnId
+      ? (await baseModel.model.getColumns()).find(
+          (c) => c.id === relationColumnId,
+        )
+      : undefined;
+    const pv = await displayValueUnlessCyclic(
+      model,
+      await relationColumn?.getColOptions<LinkToAnotherRecordColumn>(),
+    );
+    if (!pv || !isLinksOrLTAR(pv)) return data;
+
+    const resolved = await nocoExecute({ [pv.title]: 1 }, rows);
+    rows.forEach((row, i) => {
+      row[pv.title] = resolved[i]?.[pv.title] ?? null;
+    });
+    return data;
+  }
+
   async function postProcessData(
     context: NcContext,
     {
@@ -172,7 +201,7 @@ export const relationDataFetcher = (param: {
     },
   ) {
     if (Noco.isEE()) {
-      return data;
+      return resolveDisplayValueLink(data, model, relationColumnId);
     }
 
     // Seed the request-scoped cache map. Nothing in THIS function reads it (the

@@ -2365,11 +2365,11 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                       :style="{
                         backgroundColor: tinycolor
                           .mix(
-                            stack.color || '#ccc',
+                            toDisplayOptionColor(stack.color) || '#ccc',
                             '#ffffff',
-                            tinycolor(stack.color || '#ccc').isLight()
+                            tinycolor(toDisplayOptionColor(stack.color) || '#ccc').isLight()
                               ? 70
-                              : tinycolor(stack.color || '#ccc').getBrightness() <= 100
+                              : tinycolor(toDisplayOptionColor(stack.color) || '#ccc').getBrightness() <= 100
                               ? 80
                               : 90,
                           )

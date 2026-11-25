@@ -481,7 +481,9 @@ onMounted(() => {
           :style="{ display: 'flex', alignItems: 'center' }"
           :color="options.find((el) => el.title === val)?.bgColor"
           :closable="editAllowed && (vModel.length > 1 || !column?.rqd)"
-          :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
+          :close-icon="
+            h(MdiCloseCircle, { class: ['ms-close-icon'], style: { color: options.find((el) => el.title === val)?.textColor } })
+          "
           @click="onTagClick($event, onClose)"
           @close="onClose"
         >
@@ -501,7 +503,8 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .ms-close-icon {
-  color: rgba(var(--rgb-base), 0.25);
+  color: rgb(var(--rgb-base));
+  opacity: 0.3;
   cursor: pointer;
   display: flex;
   font-size: 12px;
@@ -522,7 +525,7 @@ onMounted(() => {
 }
 
 .ms-close-icon:hover {
-  color: rgba(var(--rgb-base), 0.45);
+  opacity: 0.55;
 }
 
 .read-only {

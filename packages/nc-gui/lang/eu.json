@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Bertsio-berritu inprimakietan saioa hastea eskatzeko",
     "upgradeToUseFormRequireSigninSubtitle": "Bertsio-berritu {plan} planera erantzuleei inprimakia bidali aurretik saioa hastea eskatzeko.",
     "upgradeToUseSso": "SSO erabiltzeko eguneratu",
-    "upgradeToUseSsoSubtitle": "{plan} planera igotzea Single Sign-On (SSO) konfiguratzeko eta zure taldeari zure identitate-hornitzailearekin saioa hasten uzteko."
+    "upgradeToUseSsoSubtitle": "{plan} planera igotzea Single Sign-On (SSO) konfiguratzeko eta zure taldeari zure identitate-hornitzailearekin saioa hasten uzteko.",
+    "notifyOwnerToUpgrade": "Egin klik laneko eremuaren jabeari plana hobetzeko jakinarazteko.",
+    "comparePlans": "Konparatu planak",
+    "workspaceOnPlan": "{workspace} {plan} planean dago",
+    "planMenuWith": "Hau lortzen duzu honekin:",
+    "planMenuRecordsStorage": "{records} erregistro eta {storage} GB biltegiratze",
+    "planMenuUnlimitedEditors": "Editore mugagabeak",
+    "planMenuAutomationRuns": "Hilean {runs} automatizazio-exekuzio",
+    "planMenuApiCalls": "Hilean {calls} API dei",
+    "planMenuSnapshots": "{count} argazki",
+    "railPitch": "Plus planak {plusRecords} erregistro eta editore mugagabeak ematen dizkizu.",
+    "upgradeToPlan": "Pasatu {plan} planera",
+    "askAdminTitle": "Ez dago zure lizentzian",
+    "askAdminSubtitle": "Eskatu zure administratzaileari lizentzia hobetzeko {detail}",
+    "askAdminSubtitleGeneric": "Eginbide hau ez dago zure uneko lizentzian. Eskatu zure administratzaileari hobetzeko.",
+    "notifyAdmin": "Jakinarazi administratzaileari",
+    "adminNotified": "Administratzaileari jakinarazi zaio",
+    "adminNotifiedSubtitle": "Zure eskaera zure administratzaileari bidali zaio.",
+    "adminAlreadyNotified": "Administratzailea jakinaren gainean dago jada",
+    "adminAlreadyNotifiedSubtitle": "Zure administratzaileak eskaera hau jaso du jada azken 24 orduetan.",
+    "noAdminToNotify": "Ez dago administratzaile aktiborik jakinarazteko. Jarri harremanetan NocoDB instantzia hau kudeatzen duenarekin.",
+    "upgradeRequestDailyLimit": "Gaurko hobekuntza-eskaera kopuru handiena bidali duzu. Saiatu berriro bihar.",
+    "seatLimitTitle": "Eserleku-mugara iritsi zara",
+    "licenseUpgradeRequested": "lizentzia hobetzeko eskatu du",
+    "forAddon": "{addon} gehigarrirako",
+    "seatLimitAdminSubtitle": "Lizentziadun {limit} eserleku guztiak erabilita daude. Hobetu zure lizentzia editore gehiago gehitzeko.",
+    "seatLimitMemberSubtitle": "Lizentziadun {limit} eserleku guztiak erabilita daude. Eskatu zure administratzaileari eserleku gehiago gehitzeko."
   },
   "general": {
     "scrollToBottom": "Behera irristatu",
@@ -1206,18 +1232,18 @@
   },
   "datatype": {
     "ID": "IDa",
-    "ForeignKey": "Kanpo Gakoa",
-    "SingleLineText": "Testu-lerro Bakuna",
+    "ForeignKey": "Kanpo-gakoa",
+    "SingleLineText": "Lerro bakarreko testua",
     "LongText": "Testu luzea",
     "Attachment": "Eranskina",
     "Checkbox": "Kontrol laukia",
-    "MultiSelect": "Aukera anitza",
-    "SingleSelect": "Aukera bakarra",
+    "MultiSelect": "Hautapen anizkoitza",
+    "SingleSelect": "Hautapen bakarra",
     "Collaborator": "Kolaboratzailea",
     "Date": "Data",
     "Year": "Urtea",
     "Time": "Ordua",
-    "PhoneNumber": "Telefono zenbakia",
+    "PhoneNumber": "Telefono-zenbakia",
     "Email": "Eposta",
     "URL": "URL-a",
     "Number": "Zenbakia",
@@ -1225,16 +1251,16 @@
     "Currency": "Moneta",
     "Percent": "Ehunekoa",
     "Duration": "Iraupena",
-    "GeoData": "GeoData",
+    "GeoData": "Datu geografikoak",
     "Rating": "Balorazioa",
     "Formula": "Ekuazioa",
     "Rollup": "Rolap",
     "Count": "Zenbatzea",
     "Lookup": "Lookup",
-    "DateTime": "Data Ordua",
-    "CreatedTime": "Sortze Data",
-    "LastModifiedTime": "Azkeneko aldatze ordua",
-    "AutoNumber": "Zenbaki Automatikoa",
+    "DateTime": "Data eta ordua",
+    "CreatedTime": "Sortze-ordua",
+    "LastModifiedTime": "Azken aldaketaren ordua",
+    "AutoNumber": "Zenbaki automatikoa",
     "Barcode": "Barra-kodea",
     "Button": "Botoia",
     "Password": "Pasahitza",
@@ -1244,7 +1270,25 @@
       "restrict": "Mugatu",
       "setNull": "Ezarri NULLa",
       "setDefault": "Ezarri lehenetsia"
-    }
+    },
+    "LinkToAnotherRecord": "Beste erregistro baterako esteka",
+    "Order": "Ordena",
+    "RichText": "Testu formatuduna",
+    "SmartText": "Testu adimenduna",
+    "Colour": "Kolorea",
+    "Geometry": "Geometria",
+    "JSON": "JSON",
+    "SpecificDBType": "DB mota zehatza",
+    "QrCode": "QR kodea",
+    "Links": "Estekak",
+    "User": "Erabiltzailea",
+    "CreatedBy": "Nork sortua",
+    "LastModifiedBy": "Nork aldatu zuen azkenekoz",
+    "Deleted": "Ezabatuta",
+    "Meta": "Errenkadaren metadatuak",
+    "UUID": "UUID",
+    "AIButton": "AA botoia",
+    "AIPrompt": "AA testua"
   },
   "filterOperation": {
     "isEqual": "honen berdina da",
@@ -1291,7 +1335,17 @@
       "daysAgo": "duela egun kopurua",
       "daysFromNow": "gaurtik aurrerako egun kopurua",
       "exactDate": "data zehatza",
-      "exactMonth": "hilabete zehatza"
+      "exactMonth": "hilabete zehatza",
+      "thisCalendarWeek": "aste hau",
+      "thisCalendarMonth": "hilabete hau",
+      "thisCalendarYear": "urte hau",
+      "lastCalendarWeek": "joan den astea",
+      "lastCalendarMonth": "joan den hilabetea",
+      "lastCalendarYear": "joan den urtea",
+      "nextCalendarWeek": "datorren astea",
+      "nextCalendarMonth": "datorren hilabetea",
+      "nextCalendarYear": "datorren urtea",
+      "dateRange": "data-tartea"
     }
   },
   "title": {
@@ -5867,7 +5921,29 @@
     "workspaceNoAccess": "Lan-espazioa (sarbiderik ez)",
     "yAxis": "Y ardatza",
     "workspaceSettings": "Lan-espazioaren ezarpenak",
-    "wrapLongText": "Doitu testu luzea"
+    "wrapLongText": "Doitu testu luzea",
+    "agentAccessData": "Taulak eta erregistroak",
+    "agentAccessDataHint": "Irakurtzeak arakatu eta kontsultatu egiten ditu. Editatzeak, gainera, erregistroak sortu, aldatu, lotu eta ezabatzen ditu.",
+    "agentAccessDocs": "Dokumentuak",
+    "agentAccessDocsHint": "Base honen dokumentuak. Editatzeak aldatzeko aukera ematen dio.",
+    "agentAccessGithubHint": "Kodea irakurtzen du, adarrak bidaltzen ditu eta pull request-ak irekitzen ditu bere biltegietan",
+    "agentAccessCustom": "Tresna horietako batzuk banaka hautatu ziren. Aukeratu maila bat guztiak batera ezartzeko.",
+    "agentAccessOf": "{what} atzitzeko baimena",
+    "agentCodeStartBranch": "Hasi adar honetatik",
+    "agentCodeStartBranchOf": "{repo} exekuzioak hasten diren adarra",
+    "agentCodeBranchName": "Adarraren izena",
+    "agentCodeBranchNameHint": "Exekuzio bakoitzak bere adarra izango du. {issue} eta {slug} automatikoki betetzen dira.",
+    "agentCodePullRequests": "Pull request-ak",
+    "agentCodePrDraft": "Zirriborroa",
+    "agentCodePrReady": "Berrikusteko prest",
+    "agentCodePrDraftHint": "Zirriborro gisa irekitzen da. Berrikusleei probak gainditzen direnean eskatzen zaie.",
+    "agentCodePrReadyHint": "Berrikusteko prest irekitzen da eta berehala eskatzen die beheko berrikusleei.",
+    "agentCodeReviewers": "Berrikusleak",
+    "agentCodeRemoveReviewer": "Kendu {login}",
+    "agentCodeNoReviewers": "Beste inork ezin du biltegi hauetan berrikusi",
+    "agentCodeNoReviewersSet": "Oraindik ez dago berrikuslerik.",
+    "agentCodeNeverMerge": "Agenteek ez dute inoiz bateratzen eta ez dute inoiz {base} adarrera bidaltzen. Bateratzea beti pertsona batek egiten du.",
+    "agentCodeNeverMergeAny": "Agenteek ez dute inoiz bateratzen eta ez dute inoiz exekuzioa hasten den adarrera bidaltzen. Bateratzea beti pertsona batek egiten du."
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",
@@ -6058,7 +6134,18 @@
       "deleteStack": "Metapila ezabatu",
       "stackedBy": "Pilatuta",
       "chooseGroupingField": "Aukeratu Taldekatzeko Eremua",
-      "autoCollapseEmptyStack": "Auto-kolapsoa: pilaketa hutsa"
+      "autoCollapseEmptyStack": "Auto-kolapsoa: pilaketa hutsa",
+      "createSingleSelectField": "Sortu Hautapen bakarra eremu berri bat",
+      "createUserField": "Sortu Erabiltzailea eremu berri bat",
+      "defaultStackToDo": "Egiteko",
+      "defaultStackInProgress": "Egiten",
+      "defaultStackDone": "Eginda",
+      "loadMoreStacks": "Kargatu multzo gehiago",
+      "linkTypeNotStackable": "Asko-bat esteka batek kanban bat multzoka bana dezake taularen datu-iturria PostgreSQL denean bakarrik. Horren ordez, multzokatu Hautapen bakarra eremu baten, Erabiltzailea eremu baten edo dagokio motako esteka baten arabera.",
+      "chooseStackField": "Aukeratu multzokatzeko eremua",
+      "chooseStackFieldDesc": "Aukeratu board hau multzoka banatzen duen eremua. Haren balio bakoitzak bere multzoa izango du.",
+      "createSingleSelectFieldHint": "txartel bakoitzaren egoera, fasea edo mota erakusteko",
+      "createUserFieldHint": "txartel bakoitzaren arduraduna edo jabea erakusteko"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6173,7 +6260,9 @@
     "inviteThemInstead": "Gonbidatu haiek horren ordez",
     "searchProject": "Bilatu proiektua",
     "blockUser": "Blokeatu erabiltzailea",
-    "unblockUser": "Desblokeatu erabiltzailea"
+    "unblockUser": "Desblokeatu erabiltzailea",
+    "addDateRange": "Gehitu data-tartea",
+    "searchComments": "Bilatu iruzkinetan"
   },
   "tooltip": {
     "shiftClickWeekStep": "H eutsi Shift sakatuta astebetez aurrera egiteko",
@@ -6417,7 +6506,9 @@
     "dataSourceReadOnly": "Datu-iturri hau irakurtzeko soilik da.",
     "mentionFields": "Aipatu eremuak",
     "skipEnabledAfterDelay": "2 segundo igarotakoan gaituko da",
-    "clickToCopyDocumentId": "Egin klik dokumentuaren ID-a kopiatzeko"
+    "clickToCopyDocumentId": "Egin klik dokumentuaren ID-a kopiatzeko",
+    "workflowExecutionInterrupted": "Exekuzio hau ustekabean gelditu da gure aldean. Ez da ezer galdu. Saiatu berriro zegoen urratsetik jarraitzeko.",
+    "workflowExecutionOnHold": "Lan-fluxu hau duen aplikazioa etenda dago. Exekuzioa gelditu zen tokitik jarraituko du aplikazioa berriro martxan jartzen denean."
   },
   "placeholder": {
     "enterVerificationCode": "Sartu sei digitu kodea",
@@ -8295,7 +8386,9 @@
     "userDeleted": "{user} {parent}-etik {type} bat ezabatu: {name}",
     "youDeletedNoParent": "{type}bat ezabatu duzu: {name}",
     "userDeletedNoParent": "{user} {type}bat ezabatu: {name}",
-    "someoneDeleted": "{type} bat ezabatu zen: {name}"
+    "someoneDeleted": "{type} bat ezabatu zen: {name}",
+    "restoreRequiresDocEdit": "Dokumentu hau leheneratzeko hura editatzeko baimena behar da",
+    "withSubPages": "(eta azpiorri {count}) | (eta {count} azpiorri)"
   },
   "payment": {
     "credits": {
@@ -8668,7 +8761,29 @@
       "other": {
         "where": "Gehitu urruneko MCP zerbitzari bat zure bezeroan datu hauekin:",
         "auth": "Hasi konexioa zure bezerotik. NocoDB nabigatzailean irekiko da; han saioa hasiko duzu, bezeroak zeri sar daitekeen hautatuko duzu eta Baimendu hautatuko duzu."
+      },
+      "canDelete": "Datuak ezaba ditzake edo NocoDB-tik kanpo jardun",
+      "lockedNotEditable": "Aplikazio honek baimen horiek saioa hastean eskatu zituen, eta hemen ezin dira aldatu. Haren aukerako tresnak behean alda daitezke.",
+      "copilot": {
+        "where": "VS Code-n, ireki Command Palette, exekutatu MCP: Add Server eta aukeratu HTTP. Bete:",
+        "auth": "VS Code-k NocoDB autentifikatzeko eskatzen duenean, hautatu Allow. Hasi saioa NocoDB-n nabigatzailean eta hautatu Authorize."
       }
+    },
+    "discoveryNote": "{client} tresnak gehienez 100 tresna erabiltzen ditu; beraz, URL honek NocoDB-ren irakurketa-tresnak eta erregistro-idazketak zuzenean zerrendatzen ditu eta gainerakoak eskatutakoan bilatzen ditu.",
+    "windsurf": {
+      "subtitle": "Devin-eko (lehen Windsurf) Cascade agenterako.",
+      "addBody": "Devin-en (lehen Windsurf), ireki Settings › Cascade › MCP servers, hautatu Add custom server eta itsatsi URL hau:",
+      "manualLabel": "Gehitu hau ~/.codeium/windsurf/mcp_config.json fitxategian:",
+      "authBody": "Hautatu Connect nocodb-ren ondoan. Hasi saioa NocoDB-n nabigatzailean, aukeratu Devin-ek zer atzi dezakeen eta zein tresna erabil ditzakeen, eta gero hautatu Authorize.",
+      "tryBody": "Ireki Cascade Devin-en eta eskatu “List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "VS Code-ko GitHub Copilot-erako.",
+      "addBody": "Hautatu {link}, eta gero hautatu Install VS Code irekitzen denean.",
+      "addLink": "Gehitu VS Code-ra",
+      "manualLabel": "Gehitu hau .vscode/mcp.json fitxategian, edo exekutatu MCP: Open User Configuration workspace guztietan gehitzeko:",
+      "authBody": "VS Code-k NocoDB autentifikatzeko eskatzen duenean, hautatu Allow. Hasi saioa NocoDB-n nabigatzailean, aukeratu Copilot-ek zer atzi dezakeen eta zein tresna erabil ditzakeen, eta gero hautatu Authorize.",
+      "tryBody": "Ireki Copilot Chat Agent moduan eta eskatu “List my NocoDB tools”."
     }
   },
   "roadmap": {

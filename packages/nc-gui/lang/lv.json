@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Jauniniet, lai formās pieprasītu pieteikšanos",
     "upgradeToUseFormRequireSigninSubtitle": "Jauniniet uz {plan} plānu, lai pieprasītu respondentiem pieteikties pirms formas iesniegšanas.",
     "upgradeToUseSso": "Jauniniet, lai izmantotu SSO",
-    "upgradeToUseSsoSubtitle": "Jauniniet uz {plan} plānu, lai iestatītu vienoto pieteikšanos (SSO) un ļautu savai komandai pieteikties ar jūsu identitātes nodrošinātāju."
+    "upgradeToUseSsoSubtitle": "Jauniniet uz {plan} plānu, lai iestatītu vienoto pieteikšanos (SSO) un ļautu savai komandai pieteikties ar jūsu identitātes nodrošinātāju.",
+    "notifyOwnerToUpgrade": "Noklikšķiniet, lai aicinātu darbvietas īpašnieku pāriet uz augstāku plānu.",
+    "comparePlans": "Salīdzināt plānus",
+    "workspaceOnPlan": "{workspace} izmanto plānu {plan}",
+    "planMenuWith": "Ko jūs iegūstat ar",
+    "planMenuRecordsStorage": "{records} ieraksti un {storage} GB krātuves",
+    "planMenuUnlimitedEditors": "Neierobežots redaktoru skaits",
+    "planMenuAutomationRuns": "{runs} automatizāciju izpildes mēnesī",
+    "planMenuApiCalls": "{calls} API izsaukumi mēnesī",
+    "planMenuSnapshots": "{count} momentuzņēmumi",
+    "railPitch": "Plus sniedz jums {plusRecords} ierakstus un neierobežotu redaktoru skaitu.",
+    "upgradeToPlan": "Pāriet uz {plan}",
+    "askAdminTitle": "Nav iekļauts jūsu licencē",
+    "askAdminSubtitle": "Lūdziet savam administratoram paplašināt licenci {detail}",
+    "askAdminSubtitleGeneric": "Šī funkcija nav iekļauta jūsu pašreizējā licencē. Lūdziet administratoram to paplašināt.",
+    "notifyAdmin": "Informēt administratoru",
+    "adminNotified": "Administrators informēts",
+    "adminNotifiedSubtitle": "Jūsu pieprasījums ir nosūtīts jūsu administratoram.",
+    "adminAlreadyNotified": "Administrators jau ir informēts",
+    "adminAlreadyNotifiedSubtitle": "Jūsu administrators šo pieprasījumu jau saņēma pēdējo 24 stundu laikā.",
+    "noAdminToNotify": "Nav aktīva administratora, ko informēt. Sazinieties ar to, kurš pārvalda šo NocoDB instanci.",
+    "upgradeRequestDailyLimit": "Šodien esat nosūtījis maksimālo paplašināšanas pieprasījumu skaitu. Mēģiniet vēlreiz rīt.",
+    "seatLimitTitle": "Sasniegts vietu ierobežojums",
+    "licenseUpgradeRequested": "ir pieprasījis licences paplašināšanu",
+    "forAddon": "papildinājumam {addon}",
+    "seatLimitAdminSubtitle": "Visas {limit} licencētās vietas ir aizņemtas. Paplašiniet licenci, lai pievienotu vairāk redaktoru.",
+    "seatLimitMemberSubtitle": "Visas {limit} licencētās vietas ir aizņemtas. Lūdziet administratoram pievienot vairāk vietu."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1205,12 +1231,12 @@
   "datatype": {
     "ID": "ID",
     "ForeignKey": "Ārējā atslēga",
-    "SingleLineText": "Vienrindas teksts",
+    "SingleLineText": "Vienas rindas teksts",
     "LongText": "Garš teksts",
     "Attachment": "Pielikums",
     "Checkbox": "Izvēles rūtiņa",
-    "MultiSelect": "Vairākas izvēles",
-    "SingleSelect": "Viena izvēle",
+    "MultiSelect": "Vairākkārtēja izvēle",
+    "SingleSelect": "Vienkārša izvēle",
     "Collaborator": "Līdzstrādnieks",
     "Date": "Datums",
     "Year": "Gads",
@@ -1223,16 +1249,16 @@
     "Currency": "Valūta",
     "Percent": "Procenti",
     "Duration": "Ilgums",
-    "GeoData": "ĢeoDati",
+    "GeoData": "Ģeodati",
     "Rating": "Vērtējums",
     "Formula": "Formula",
     "Rollup": "Apkopojums",
     "Count": "Skaits",
     "Lookup": "Uzmeklēšana",
     "DateTime": "Datums un laiks",
-    "CreatedTime": "Izveidošanas laiks",
-    "LastModifiedTime": "Modificēšanas laiks",
-    "AutoNumber": "Automātiska numerācija",
+    "CreatedTime": "Izveides laiks",
+    "LastModifiedTime": "Pēdējo izmaiņu laiks",
+    "AutoNumber": "Automātisks numurs",
     "Barcode": "Svītru kods",
     "Button": "Poga",
     "Password": "Parole",
@@ -1242,7 +1268,25 @@
       "restrict": "Ierobežot",
       "setNull": "Iestatīt NULL",
       "setDefault": "Iestatīt Noklusēto vērtību"
-    }
+    },
+    "LinkToAnotherRecord": "Saite uz citu ierakstu",
+    "Order": "Secība",
+    "RichText": "Formatēts teksts",
+    "SmartText": "Viedais teksts",
+    "Colour": "Krāsa",
+    "Geometry": "Ģeometrija",
+    "JSON": "JSON",
+    "SpecificDBType": "Konkrēts DB tips",
+    "QrCode": "QR kods",
+    "Links": "Saites",
+    "User": "Lietotājs",
+    "CreatedBy": "Izveidoja",
+    "LastModifiedBy": "Pēdējais mainīja",
+    "Deleted": "Dzēsts",
+    "Meta": "Rindas metadati",
+    "UUID": "UUID",
+    "AIButton": "MI poga",
+    "AIPrompt": "MI teksts"
   },
   "filterOperation": {
     "isEqual": "ir vienāds",
@@ -1289,7 +1333,17 @@
       "daysAgo": "dienu skaits atpakaļ",
       "daysFromNow": "dienu skaits no šodienas",
       "exactDate": "precīzs datums",
-      "exactMonth": "precīzs mēnesis"
+      "exactMonth": "precīzs mēnesis",
+      "thisCalendarWeek": "šajā nedēļā",
+      "thisCalendarMonth": "šajā mēnesī",
+      "thisCalendarYear": "šajā gadā",
+      "lastCalendarWeek": "pagājušajā nedēļā",
+      "lastCalendarMonth": "pagājušajā mēnesī",
+      "lastCalendarYear": "pagājušajā gadā",
+      "nextCalendarWeek": "nākamajā nedēļā",
+      "nextCalendarMonth": "nākamajā mēnesī",
+      "nextCalendarYear": "nākamajā gadā",
+      "dateRange": "datumu diapazons"
     }
   },
   "title": {
@@ -5865,7 +5919,29 @@
     "workspaceNoAccess": "Darbtelpa (nav piekļuves)",
     "yAxis": "Y ass",
     "workspaceSettings": "Darbtelpas iestatījumi",
-    "wrapLongText": "Aplauzt garu tekstu"
+    "wrapLongText": "Aplauzt garu tekstu",
+    "agentAccessData": "Tabulas un ieraksti",
+    "agentAccessDataHint": "Lasīšana tos pārlūko un veic vaicājumus. Rediģēšana turklāt izveido, maina, saista un dzēš ierakstus.",
+    "agentAccessDocs": "Dokumenti",
+    "agentAccessDocsHint": "Šīs bāzes dokumenti. Ar Rediģēšanu tas var tos mainīt.",
+    "agentAccessGithubHint": "Lasa kodu, nosūta zarus un atver pull request savās repozitorijās",
+    "agentAccessCustom": "Daži no šiem rīkiem tika izvēlēti pa vienam. Izvēlieties līmeni, lai iestatītu tos visus.",
+    "agentAccessOf": "Piekļuve: {what}",
+    "agentCodeStartBranch": "Sākt no zara",
+    "agentCodeStartBranchOf": "Zars, no kura sākas {repo} izpildes",
+    "agentCodeBranchName": "Zara nosaukums",
+    "agentCodeBranchNameHint": "Katra izpilde iegūst savu zaru. {issue} un {slug} tiek aizpildīti automātiski.",
+    "agentCodePullRequests": "Pull request",
+    "agentCodePrDraft": "Melnraksts",
+    "agentCodePrReady": "Gatavs recenzēšanai",
+    "agentCodePrDraftHint": "Tiek atvērts kā melnraksts. Recenzenti tiek aicināti, tiklīdz testi ir izturēti.",
+    "agentCodePrReadyHint": "Tiek atvērts gatavs recenzēšanai un uzreiz aicina zemāk norādītos recenzentus.",
+    "agentCodeReviewers": "Recenzenti",
+    "agentCodeRemoveReviewer": "Noņemt {login}",
+    "agentCodeNoReviewers": "Neviens cits nevar recenzēt šajās repozitorijās",
+    "agentCodeNoReviewersSet": "Recenzentu vēl nav.",
+    "agentCodeNeverMerge": "Aģenti nekad neapvieno un nekad nenosūta uz {base}. Apvienošanu vienmēr veic cilvēks.",
+    "agentCodeNeverMergeAny": "Aģenti nekad neapvieno un nekad nenosūta uz zaru, no kura sākas izpilde. Apvienošanu vienmēr veic cilvēks."
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6057,7 +6133,18 @@
       "deleteStack": "Izdzēst kaudze",
       "stackedBy": "Sakrautas ar",
       "chooseGroupingField": "Izvēlieties grupēšanas lauku",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "Izveidot jaunu Vienkāršas izvēles lauku",
+      "createUserField": "Izveidot jaunu Lietotāja lauku",
+      "defaultStackToDo": "Darāmais",
+      "defaultStackInProgress": "Procesā",
+      "defaultStackDone": "Pabeigts",
+      "loadMoreStacks": "Ielādēt vairāk kaudžu",
+      "linkTypeNotStackable": "Saite daudzi pret vienu var sakārtot kanban kaudzēs tikai tad, ja tabulas datu avots ir PostgreSQL. Tā vietā grupējiet pēc Vienkāršas izvēles lauka, Lietotāja lauka vai pieder-pie saites.",
+      "chooseStackField": "Izvēlieties grupēšanas lauku",
+      "chooseStackFieldDesc": "Izvēlieties lauku, pēc kura šis board tiek sakārtots kaudzēs. Katra tā vērtība iegūst savu kaudzi.",
+      "createSingleSelectFieldHint": "lai rādītu katras kartītes statusu, posmu vai veidu",
+      "createUserFieldHint": "lai rādītu katras kartītes atbildīgo vai īpašnieku"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6171,7 +6258,9 @@
     "invitePeopleCount": "Uzaicināt {count} personu | Uzaicināt {count} personas",
     "inviteThemInstead": "Tā vietā uzaicināt viņus",
     "blockUser": "Bloķēt lietotāju",
-    "unblockUser": "Atbloķēt lietotāju"
+    "unblockUser": "Atbloķēt lietotāju",
+    "addDateRange": "Pievienot datumu diapazonu",
+    "searchComments": "Meklēt komentāros"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6415,7 +6504,9 @@
     "dataSourceReadOnly": "Šis datu avots ir tikai lasāms.",
     "mentionFields": "Pieminēt laukus",
     "skipEnabledAfterDelay": "Tiks iespējots pēc 2 sekundēm",
-    "clickToCopyDocumentId": "Noklikšķiniet, lai kopētu dokumenta ID"
+    "clickToCopyDocumentId": "Noklikšķiniet, lai kopētu dokumenta ID",
+    "workflowExecutionInterrupted": "Šī izpilde negaidīti apstājās mūsu pusē. Nekas netika zaudēts. Mēģiniet vēlreiz, lai turpinātu no soļa, kurā tā bija.",
+    "workflowExecutionOnHold": "Lietotne, kurai pieder šī darbplūsma, ir apturēta. Izpilde turpināsies no vietas, kur apstājās, tiklīdz lietotne atkal būs pieejama."
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8293,7 +8384,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "Šī dokumenta atjaunošanai ir nepieciešama tā rediģēšanas piekļuve",
+    "withSubPages": "(un {count} apakšlapa) | (un {count} apakšlapas)"
   },
   "payment": {
     "credits": {
@@ -8666,7 +8759,29 @@
       "other": {
         "where": "Pievienojiet savā klientā attālu MCP serveri ar šiem datiem:",
         "auth": "Sāciet savienojumu no sava klienta. Pārlūkprogrammā tiek atvērts NocoDB, kur jūs piesakāties, izvēlaties, kam klients drīkst piekļūt, un atlasāt Autorizēt."
+      },
+      "canDelete": "Var dzēst datus vai darboties ārpus NocoDB",
+      "lockedNotEditable": "Šī lietotne pieprasīja šīs atļaujas, kad pierakstījās, un šeit tās nevar mainīt. Tās izvēles rīkus var pārslēgt zemāk.",
+      "copilot": {
+        "where": "VS Code atveriet Command Palette, palaidiet MCP: Add Server un izvēlieties HTTP. Aizpildiet:",
+        "auth": "Kad VS Code lūdz autentificēt NocoDB, atlasiet Allow. Pierakstieties NocoDB pārlūkprogrammā un atlasiet Authorize."
       }
+    },
+    "discoveryNote": "{client} izmanto ne vairāk kā 100 rīkus, tāpēc šis URL uzreiz uzskaita NocoDB lasīšanas rīkus un ierakstu rakstīšanu, bet pārējos atrod pēc pieprasījuma.",
+    "windsurf": {
+      "subtitle": "Cascade aģentam programmā Devin (iepriekš Windsurf).",
+      "addBody": "Programmā Devin (iepriekš Windsurf) atveriet Settings › Cascade › MCP servers, atlasiet Add custom server un ielīmējiet šo URL:",
+      "manualLabel": "Pievienojiet to failam ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Atlasiet Connect blakus nocodb. Pierakstieties NocoDB pārlūkprogrammā, izvēlieties, kam Devin var piekļūt un kādus rīkus tas var izmantot, un pēc tam atlasiet Authorize.",
+      "tryBody": "Atveriet Cascade programmā Devin un palūdziet “List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "GitHub Copilot lietošanai VS Code.",
+      "addBody": "Atlasiet {link} un pēc tam atlasiet Install, kad atveras VS Code.",
+      "addLink": "Pievienot VS Code",
+      "manualLabel": "Pievienojiet to failam .vscode/mcp.json vai palaidiet MCP: Open User Configuration, lai pievienotu to visiem workspace:",
+      "authBody": "Kad VS Code lūdz autentificēt NocoDB, atlasiet Allow. Pierakstieties NocoDB pārlūkprogrammā, izvēlieties, kam Copilot var piekļūt un kādus rīkus tas var izmantot, un pēc tam atlasiet Authorize.",
+      "tryBody": "Atveriet Copilot Chat režīmā Agent un palūdziet “List my NocoDB tools”."
     }
   },
   "roadmap": {

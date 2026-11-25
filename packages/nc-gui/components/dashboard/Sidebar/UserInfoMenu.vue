@@ -180,14 +180,9 @@ const openKeyboardShortcutDialog = () => {
       </a-popover>
 
       <!-- Language, week start, dark colours -->
-      <nuxt-link
-        v-e="['c:user:preferences:open']"
-        class="!no-underline"
-        to="/account/preferences"
-        data-testid="nc-sidebar-user-preferences"
-        @click="saveBackRoute"
-      >
-        <NcMenuItem>
+      <nuxt-link v-e="['c:user:preferences:open']" class="!no-underline" to="/account/preferences" @click="saveBackRoute">
+        <!-- test id on the item, not the link: a-menu renders a hidden copy of the link for key measuring -->
+        <NcMenuItem data-testid="nc-sidebar-user-preferences">
           <GeneralIcon icon="ncSlidersHorizontal" class="menu-icon" />
           <span class="menu-btn">{{ $t('labels.preferences') }}</span>
         </NcMenuItem>

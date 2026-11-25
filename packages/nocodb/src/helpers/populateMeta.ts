@@ -673,6 +673,11 @@ export async function populateMeta(
 
   await NcHelp.executeOperations(viewMetasInsert, source.type);
 
+  await Model.clearListCache(context, {
+    base_id: base.id,
+    source_id: source.id,
+  });
+
   // fix pv column for created grid views
   const models = await Model.list(context, {
     base_id: base.id,

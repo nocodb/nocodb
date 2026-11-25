@@ -17051,6 +17051,102 @@
         ]
       }
     },
+    "/api/v1/health/ready": {
+      "get": {
+        "summary": "Get Application Readiness Status",
+        "operationId": "utils-app-readiness",
+        "description": "Checks the meta database and, when configured, the jobs and cache Redis. The throttler Redis is not checked: rate limiting fails open without it. Returns 503 when any check fails. Use it as a readiness probe; `/api/v1/health` is the liveness probe and checks only that the process is up.",
+        "tags": [
+          "Utils"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "error"
+                      ]
+                    },
+                    "checks": {
+                      "type": "object",
+                      "description": "One entry per dependency checked: `meta_db` always, `redis_job` and `redis_cache` when that Redis is configured. Roles that share a Redis URL share one check.",
+                      "additionalProperties": {
+                        "type": "string",
+                        "enum": [
+                          "ok",
+                          "error"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Ready": {
+                    "value": {
+                      "status": "ok",
+                      "checks": {
+                        "meta_db": "ok",
+                        "redis_job": "ok",
+                        "redis_cache": "ok"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A dependency is unreachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "error"
+                      ]
+                    },
+                    "checks": {
+                      "type": "object",
+                      "description": "One entry per dependency checked: `meta_db` always, `redis_job` and `redis_cache` when that Redis is configured. Roles that share a Redis URL share one check.",
+                      "additionalProperties": {
+                        "type": "string",
+                        "enum": [
+                          "ok",
+                          "error"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Not ready": {
+                    "value": {
+                      "status": "error",
+                      "checks": {
+                        "meta_db": "ok",
+                        "redis_job": "error",
+                        "redis_cache": "error"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/feed": {
       "get": {
         "summary": "Get Feed",

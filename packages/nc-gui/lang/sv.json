@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Uppgradera för att kräva inloggning i formulär",
     "upgradeToUseFormRequireSigninSubtitle": "Uppgradera till {plan}-planen för att kräva att svarande loggar in innan de skickar in ett formulär.",
     "upgradeToUseSso": "Uppgradera för att använda SSO",
-    "upgradeToUseSsoSubtitle": "Uppgradera till {plan} planen för att konfigurera Single Sign-On (SSO) och låta ditt team logga in med din identitetsleverantör."
+    "upgradeToUseSsoSubtitle": "Uppgradera till {plan} planen för att konfigurera Single Sign-On (SSO) och låta ditt team logga in med din identitetsleverantör.",
+    "notifyOwnerToUpgrade": "Klicka för att be arbetsytans ägare att uppgradera abonnemanget.",
+    "comparePlans": "Jämför abonnemang",
+    "workspaceOnPlan": "{workspace} har {plan}",
+    "planMenuWith": "Det här får du med",
+    "planMenuRecordsStorage": "{records} poster och {storage} GB lagring",
+    "planMenuUnlimitedEditors": "Obegränsat antal redigerare",
+    "planMenuAutomationRuns": "{runs} automatiseringskörningar per månad",
+    "planMenuApiCalls": "{calls} API-anrop per månad",
+    "planMenuSnapshots": "{count} ögonblicksbilder",
+    "railPitch": "Plus ger dig {plusRecords} poster och obegränsat antal redigerare.",
+    "upgradeToPlan": "Uppgradera till {plan}",
+    "askAdminTitle": "Ingår inte i din licens",
+    "askAdminSubtitle": "Be din administratör att uppgradera licensen {detail}",
+    "askAdminSubtitleGeneric": "Den här funktionen ingår inte i din nuvarande licens. Be din administratör att uppgradera.",
+    "notifyAdmin": "Meddela administratören",
+    "adminNotified": "Administratören meddelad",
+    "adminNotifiedSubtitle": "Din begäran har skickats till din administratör.",
+    "adminAlreadyNotified": "Administratören är redan meddelad",
+    "adminAlreadyNotifiedSubtitle": "Din administratör har redan fått den här begäran under de senaste 24 timmarna.",
+    "noAdminToNotify": "Ingen aktiv administratör att meddela. Kontakta den som förvaltar den här NocoDB-instansen.",
+    "upgradeRequestDailyLimit": "Du har skickat det maximala antalet uppgraderingsbegäranden för i dag. Försök igen i morgon.",
+    "seatLimitTitle": "Platsgränsen är nådd",
+    "licenseUpgradeRequested": "har begärt en licensuppgradering",
+    "forAddon": "för tillägget {addon}",
+    "seatLimitAdminSubtitle": "Alla {limit} licensierade platser används. Uppgradera din licens för att lägga till fler redigerare.",
+    "seatLimitMemberSubtitle": "Alla {limit} licensierade platser används. Be din administratör att lägga till fler platser."
   },
   "general": {
     "scrollToBottom": "Rulla till botten",
@@ -1206,12 +1232,12 @@
   "datatype": {
     "ID": "Id",
     "ForeignKey": "Främmande nyckel",
-    "SingleLineText": "Enstaka text",
-    "LongText": "Långtext",
+    "SingleLineText": "Text på en rad",
+    "LongText": "Lång text",
     "Attachment": "Bilaga",
     "Checkbox": "Kryssruta",
-    "MultiSelect": "Flera val",
-    "SingleSelect": "Enkelt välj",
+    "MultiSelect": "Flerval",
+    "SingleSelect": "Enkelval",
     "Collaborator": "Medarbetare",
     "Date": "Datum",
     "Year": "År",
@@ -1224,16 +1250,16 @@
     "Currency": "Valuta",
     "Percent": "Procent",
     "Duration": "Varaktighet",
-    "GeoData": "GeoData",
+    "GeoData": "Geodata",
     "Rating": "Betyg",
     "Formula": "Formel",
     "Rollup": "Rulla upp",
     "Count": "Räkna",
     "Lookup": "Slå upp",
-    "DateTime": "Datum Tid",
-    "CreatedTime": "Skapa tid",
+    "DateTime": "Datum och tid",
+    "CreatedTime": "Skapad tid",
     "LastModifiedTime": "Senast ändrad tid",
-    "AutoNumber": "Automatisk nummer",
+    "AutoNumber": "Automatiskt nummer",
     "Barcode": "Streckkod",
     "Button": "Knapp",
     "Password": "Lösenord",
@@ -1243,7 +1269,25 @@
       "restrict": "Begränsa",
       "setNull": "Noll",
       "setDefault": "Sätta som normalt"
-    }
+    },
+    "LinkToAnotherRecord": "Länk till en annan post",
+    "Order": "Ordning",
+    "RichText": "Formaterad text",
+    "SmartText": "Smart text",
+    "Colour": "Färg",
+    "Geometry": "Geometri",
+    "JSON": "JSON",
+    "SpecificDBType": "Specifik DB-typ",
+    "QrCode": "QR-kod",
+    "Links": "Länkar",
+    "User": "Användare",
+    "CreatedBy": "Skapad av",
+    "LastModifiedBy": "Senast ändrad av",
+    "Deleted": "Borttagen",
+    "Meta": "Radmetadata",
+    "UUID": "UUID",
+    "AIButton": "AI-knapp",
+    "AIPrompt": "AI-text"
   },
   "filterOperation": {
     "isEqual": "är jämställd",
@@ -1290,7 +1334,17 @@
       "daysAgo": "antal dagar sedan",
       "daysFromNow": "antal dagar från nu",
       "exactDate": "exakt datum",
-      "exactMonth": "exakt månad"
+      "exactMonth": "exakt månad",
+      "thisCalendarWeek": "den här veckan",
+      "thisCalendarMonth": "den här månaden",
+      "thisCalendarYear": "i år",
+      "lastCalendarWeek": "förra veckan",
+      "lastCalendarMonth": "förra månaden",
+      "lastCalendarYear": "förra året",
+      "nextCalendarWeek": "nästa vecka",
+      "nextCalendarMonth": "nästa månad",
+      "nextCalendarYear": "nästa år",
+      "dateRange": "datumintervall"
     }
   },
   "title": {
@@ -5856,7 +5910,28 @@
     "workspaceNoAccess": "Arbetsyta (ingen åtkomst)",
     "yAxis": "Y-axel",
     "workspaceSettings": "Inställningar för arbetsytan",
-    "wrapLongText": "Radbryt lång text"
+    "wrapLongText": "Radbryt lång text",
+    "agentAccessData": "Tabeller och poster",
+    "agentAccessDataHint": "Läs bläddrar bland dem och frågar dem. Redigera skapar dessutom poster samt ändrar, länkar och tar bort dem.",
+    "agentAccessDocs": "Dokument",
+    "agentAccessDocsHint": "Basens dokument. Med Redigera får den ändra dem.",
+    "agentAccessGithubHint": "Läser kod, pushar brancher och öppnar pull requests i sina repositorier",
+    "agentAccessCustom": "Några av de här verktygen valdes ett och ett. Välj en nivå för att ställa in dem alla.",
+    "agentAccessOf": "Åtkomst till {what}",
+    "agentCodeStartBranch": "Utgå från branch",
+    "agentCodeStartBranchOf": "Branch som körningar för {repo} utgår från",
+    "agentCodeBranchName": "Branchnamn",
+    "agentCodeBranchNameHint": "Varje körning får en egen branch. {issue} och {slug} fylls i åt dig.",
+    "agentCodePrDraft": "Utkast",
+    "agentCodePrReady": "Klar för granskning",
+    "agentCodePrDraftHint": "Öppnas som utkast. Granskarna tillfrågas när testerna går igenom.",
+    "agentCodePrReadyHint": "Öppnas klar för granskning och tillfrågar granskarna nedan direkt.",
+    "agentCodeReviewers": "Granskare",
+    "agentCodeRemoveReviewer": "Ta bort {login}",
+    "agentCodeNoReviewers": "Ingen annan kan granska i de här repositorierna",
+    "agentCodeNoReviewersSet": "Inga granskare än.",
+    "agentCodeNeverMerge": "Agents mergar aldrig och pushar aldrig till {base}. Det är alltid en människa som mergar.",
+    "agentCodeNeverMergeAny": "Agents mergar aldrig och pushar aldrig till den branch som en körning utgår från. Det är alltid en människa som mergar."
   },
   "activity": {
     "useTemplate": "Använd mall",
@@ -6048,7 +6123,18 @@
       "deleteStack": "Ta bort stacken",
       "stackedBy": "Staplade av",
       "chooseGroupingField": "Välj ett grupperingsfält",
-      "autoCollapseEmptyStack": "Automatisk komprimera tom stapel"
+      "autoCollapseEmptyStack": "Automatisk komprimera tom stapel",
+      "createSingleSelectField": "Skapa ett nytt Enkelval-fält",
+      "createUserField": "Skapa ett nytt Användar-fält",
+      "defaultStackToDo": "Att göra",
+      "defaultStackInProgress": "Pågår",
+      "defaultStackDone": "Klart",
+      "loadMoreStacks": "Läs in fler staplar",
+      "linkTypeNotStackable": "En många-till-en-länk kan bara stapla ett kanban när tabellens datakälla är PostgreSQL. Stapla i stället efter ett Enkelval-fält, ett Användar-fält eller en tillhör-länk.",
+      "chooseStackField": "Välj ett fält att stapla efter",
+      "chooseStackFieldDesc": "Välj fältet som staplar det här boardet. Varje värde i det får en egen stapel.",
+      "createSingleSelectFieldHint": "för att visa varje korts status, fas eller typ",
+      "createUserFieldHint": "för att visa varje korts ansvariga eller ägare"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6162,7 +6248,9 @@
     "invitePeopleCount": "Bjud in {count} person | Bjud in {count} personer",
     "inviteThemInstead": "Bjud in dem i stället",
     "blockUser": "Blockera användare",
-    "unblockUser": "Avblockera användare"
+    "unblockUser": "Avblockera användare",
+    "addDateRange": "Lägg till datumintervall",
+    "searchComments": "Sök i kommentarer"
   },
   "tooltip": {
     "shiftClickWeekStep": "Håll Skift för att steg med 1 vecka",
@@ -6406,7 +6494,9 @@
     "dataSourceReadOnly": "Den här datakällan är skrivskyddad.",
     "mentionFields": "Nämn fält",
     "skipEnabledAfterDelay": "Aktiveras efter 2 sekunder",
-    "clickToCopyDocumentId": "Klicka för att kopiera dokument-ID"
+    "clickToCopyDocumentId": "Klicka för att kopiera dokument-ID",
+    "workflowExecutionInterrupted": "Den här körningen stoppades oväntat på vår sida. Inget gick förlorat. Försök igen för att fortsätta från det steg där den befann sig.",
+    "workflowExecutionOnHold": "Appen som det här arbetsflödet hör till är pausad. Körningen fortsätter där den slutade så snart appen är tillbaka."
   },
   "placeholder": {
     "enterVerificationCode": "Ange 6-siffrig kod",
@@ -8284,7 +8374,9 @@
     "userDeleted": "{user} tog bort en {type} från {parent}: {name}",
     "youDeletedNoParent": "Du tog bort en {type}: {name}",
     "userDeletedNoParent": "{user} tog bort en {type}: {name}",
-    "someoneDeleted": "En {type} togs bort: {name}"
+    "someoneDeleted": "En {type} togs bort: {name}",
+    "restoreRequiresDocEdit": "För att återställa det här dokumentet krävs redigeringsbehörighet till det",
+    "withSubPages": "(och {count} undersida) | (och {count} undersidor)"
   },
   "payment": {
     "credits": {
@@ -8656,7 +8748,29 @@
       "other": {
         "where": "Lägg till en fjärransluten MCP-server i din klient med de här uppgifterna:",
         "auth": "Starta anslutningen från din klient. NocoDB öppnas i webbläsaren, där du loggar in, väljer vad klienten får komma åt och väljer Godkänn."
+      },
+      "canDelete": "Kan ta bort data eller agera utanför NocoDB",
+      "lockedNotEditable": "Den här appen bad om de här behörigheterna när den loggade in, och de kan inte ändras här. Dess valfria verktyg kan slås på och av nedan.",
+      "copilot": {
+        "where": "Öppna Command Palette i VS Code, kör MCP: Add Server och välj HTTP. Fyll i:",
+        "auth": "När VS Code ber om att autentisera NocoDB väljer du Allow. Logga in på NocoDB i webbläsaren och välj Authorize."
       }
+    },
+    "discoveryNote": "{client} använder som mest 100 verktyg, så den här URL:en listar NocoDB:s läsverktyg och skrivning av poster direkt och hittar resten vid behov.",
+    "windsurf": {
+      "subtitle": "För Cascade-agenten i Devin (tidigare Windsurf).",
+      "addBody": "Öppna Settings › Cascade › MCP servers i Devin (tidigare Windsurf), välj Add custom server och klistra in den här URL:en:",
+      "manualLabel": "Lägg till det här i ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Välj Connect bredvid nocodb. Logga in på NocoDB i webbläsaren, välj vad Devin får komma åt och vilka verktyg den får använda och välj sedan Authorize.",
+      "tryBody": "Öppna Cascade i Devin och fråga ”List my NocoDB tools”."
+    },
+    "copilot": {
+      "subtitle": "För GitHub Copilot i VS Code.",
+      "addBody": "Välj {link} och välj sedan Install när VS Code öppnas.",
+      "addLink": "Lägg till i VS Code",
+      "manualLabel": "Lägg till det här i .vscode/mcp.json, eller kör MCP: Open User Configuration för att lägga till det för alla workspaces:",
+      "authBody": "När VS Code ber om att autentisera NocoDB väljer du Allow. Logga in på NocoDB i webbläsaren, välj vad Copilot får komma åt och vilka verktyg den får använda och välj sedan Authorize.",
+      "tryBody": "Öppna Copilot Chat i Agent-läge och fråga ”List my NocoDB tools”."
     }
   },
   "roadmap": {

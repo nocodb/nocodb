@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ButtonType, type ColumnType, PlanFeatureTypes, PlanTitles, isSystemColumn } from 'nocodb-sdk'
+import { type ButtonType, type ColumnType, isSystemColumn } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -27,8 +27,6 @@ const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 const isCompact = inject(FieldListCompactInj, ref(false))
 
 const { $e } = useNuxtApp()
-
-const { blockGlobalSearch } = useEeConfig()
 
 const { t } = useI18n()
 
@@ -166,15 +164,6 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
         class="text-nc-content-gray-muted mx-1 flex-none"
       />
       <SmartsheetHeaderIcon v-else :column="option" :class="iconClass" color="text-nc-content-gray-muted" />
-    </template>
-    <template #listItemExtraRight="{ option }">
-      <PaymentUpgradeBadge
-        v-if="option.id === ALL_FIELDS_SEARCH_FIELD && blockGlobalSearch"
-        :feature="PlanFeatureTypes.FEATURE_GLOBAL_SEARCH"
-        :plan-title="PlanTitles.PLUS"
-        remove-click
-        show-as-lock
-      />
     </template>
   </NcList>
 </template>

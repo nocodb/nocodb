@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Mejora tu plan para exigir inicio de sesión en los formularios",
     "upgradeToUseFormRequireSigninSubtitle": "Mejora al plan {plan} para exigir que los encuestados inicien sesión antes de enviar un formulario.",
     "upgradeToUseSso": "Actualizar para usar SSO",
-    "upgradeToUseSsoSubtitle": "Actualice al plan {plan} para configurar el inicio de sesión único (SSO) y permitir que su equipo inicie sesión con su proveedor de identidad."
+    "upgradeToUseSsoSubtitle": "Actualice al plan {plan} para configurar el inicio de sesión único (SSO) y permitir que su equipo inicie sesión con su proveedor de identidad.",
+    "notifyOwnerToUpgrade": "Haz clic para avisar al propietario del espacio de trabajo de que mejore el plan.",
+    "comparePlans": "Comparar planes",
+    "workspaceOnPlan": "{workspace} está en {plan}",
+    "planMenuWith": "Esto es lo que incluye",
+    "planMenuRecordsStorage": "{records} registros y {storage} GB de almacenamiento",
+    "planMenuUnlimitedEditors": "Editores ilimitados",
+    "planMenuAutomationRuns": "{runs} ejecuciones de automatización al mes",
+    "planMenuApiCalls": "{calls} llamadas a la API al mes",
+    "planMenuSnapshots": "{count} instantáneas",
+    "railPitch": "Plus te ofrece {plusRecords} registros y editores ilimitados.",
+    "upgradeToPlan": "Cambiar a {plan}",
+    "askAdminTitle": "No incluido en tu licencia",
+    "askAdminSubtitle": "Pide a tu administrador que mejore la licencia {detail}",
+    "askAdminSubtitleGeneric": "Esta función no está incluida en tu licencia actual. Pide a tu administrador que la mejore.",
+    "notifyAdmin": "Notificar al administrador",
+    "adminNotified": "Administrador notificado",
+    "adminNotifiedSubtitle": "Tu solicitud se ha enviado a tu administrador.",
+    "adminAlreadyNotified": "Administrador ya notificado",
+    "adminAlreadyNotifiedSubtitle": "Tu administrador ya recibió esta solicitud en las últimas 24 horas.",
+    "noAdminToNotify": "No hay ningún administrador activo al que notificar. Ponte en contacto con quien gestiona esta instancia de NocoDB.",
+    "upgradeRequestDailyLimit": "Has enviado el número máximo de solicitudes de mejora de hoy. Inténtalo de nuevo mañana.",
+    "seatLimitTitle": "Límite de puestos alcanzado",
+    "licenseUpgradeRequested": "ha solicitado una mejora de licencia",
+    "forAddon": "para el complemento {addon}",
+    "seatLimitAdminSubtitle": "Las {limit} licencias de puesto están en uso. Mejora tu licencia para añadir más editores.",
+    "seatLimitMemberSubtitle": "Las {limit} licencias de puesto están en uso. Pide a tu administrador que añada más puestos."
   },
   "general": {
     "scrollToBottom": "Desplazar hacia abajo",
@@ -1206,8 +1232,8 @@
   },
   "datatype": {
     "ID": "ID",
-    "ForeignKey": "Clave externa",
-    "SingleLineText": "Texto de una sola línea",
+    "ForeignKey": "Clave foránea",
+    "SingleLineText": "Texto de una línea",
     "LongText": "Texto largo",
     "Attachment": "Archivo adjunto",
     "Checkbox": "Caja de verificación",
@@ -1225,15 +1251,15 @@
     "Currency": "Divisa",
     "Percent": "Por ciento",
     "Duration": "Duración",
-    "GeoData": "GeoData",
+    "GeoData": "Datos geográficos",
     "Rating": "Clasificación",
     "Formula": "Fórmula",
     "Rollup": "Acumulado",
     "Count": "Cuenta",
     "Lookup": "Búsqueda",
     "DateTime": "Fecha y hora",
-    "CreatedTime": "Fecha de creación",
-    "LastModifiedTime": "Fecha de modificación",
+    "CreatedTime": "Hora de creación",
+    "LastModifiedTime": "Hora de última modificación",
     "AutoNumber": "Número automático",
     "Barcode": "Código de barras",
     "Button": "Botón",
@@ -1244,7 +1270,25 @@
       "restrict": "Restringir",
       "setNull": "Nulo",
       "setDefault": "Establecer predeterminado"
-    }
+    },
+    "LinkToAnotherRecord": "Enlace a otro registro",
+    "Order": "Orden",
+    "RichText": "Texto enriquecido",
+    "SmartText": "Texto inteligente",
+    "Colour": "Color",
+    "Geometry": "Geometría",
+    "JSON": "JSON",
+    "SpecificDBType": "Tipo de BD específico",
+    "QrCode": "Código QR",
+    "Links": "Enlaces",
+    "User": "Usuario",
+    "CreatedBy": "Creado por",
+    "LastModifiedBy": "Última modificación por",
+    "Deleted": "Eliminado",
+    "Meta": "Metadatos de fila",
+    "UUID": "UUID",
+    "AIButton": "Botón de IA",
+    "AIPrompt": "Texto de IA"
   },
   "filterOperation": {
     "isEqual": "es igual",
@@ -1291,7 +1335,17 @@
       "daysAgo": "número de días atrás",
       "daysFromNow": "número de días a partir de hoy",
       "exactDate": "fecha exacta",
-      "exactMonth": "mes exacto"
+      "exactMonth": "mes exacto",
+      "thisCalendarWeek": "esta semana",
+      "thisCalendarMonth": "este mes",
+      "thisCalendarYear": "este año",
+      "lastCalendarWeek": "la semana pasada",
+      "lastCalendarMonth": "el mes pasado",
+      "lastCalendarYear": "el año pasado",
+      "nextCalendarWeek": "la semana que viene",
+      "nextCalendarMonth": "el mes que viene",
+      "nextCalendarYear": "el año que viene",
+      "dateRange": "intervalo de fechas"
     }
   },
   "title": {
@@ -5855,7 +5909,28 @@
     "workspaceNoAccess": "Espacio de trabajo (sin acceso)",
     "yAxis": "Eje Y",
     "workspaceSettings": "Configuración del espacio de trabajo",
-    "wrapLongText": "Ajustar el texto largo"
+    "wrapLongText": "Ajustar el texto largo",
+    "agentAccessData": "Tablas y registros",
+    "agentAccessDataHint": "Lectura permite explorarlos y consultarlos. Edición también crea, cambia, enlaza y elimina registros.",
+    "agentAccessDocs": "Documentos",
+    "agentAccessDocsHint": "Los documentos de la base. Con Edición puede modificarlos.",
+    "agentAccessGithubHint": "Lee código, envía ramas y abre pull requests en sus repositorios",
+    "agentAccessCustom": "Algunas de estas herramientas se eligieron una a una. Elige un nivel para configurarlas todas.",
+    "agentAccessOf": "Acceso a {what}",
+    "agentCodeStartBranch": "Partir de la rama",
+    "agentCodeStartBranchOf": "Rama desde la que arrancan las ejecuciones de {repo}",
+    "agentCodeBranchName": "Nombre de la rama",
+    "agentCodeBranchNameHint": "Cada ejecución obtiene su propia rama. {issue} y {slug} se rellenan automáticamente.",
+    "agentCodePrDraft": "Borrador",
+    "agentCodePrReady": "Lista para revisión",
+    "agentCodePrDraftHint": "Se abre como borrador. Se avisa a los revisores cuando pasan las pruebas.",
+    "agentCodePrReadyHint": "Se abre lista para revisión y avisa de inmediato a los revisores indicados abajo.",
+    "agentCodeReviewers": "Revisores",
+    "agentCodeRemoveReviewer": "Quitar a {login}",
+    "agentCodeNoReviewers": "Nadie más puede revisar en estos repositorios",
+    "agentCodeNoReviewersSet": "Aún no hay revisores.",
+    "agentCodeNeverMerge": "Los agentes nunca fusionan ni envían cambios a {base}. La fusión siempre la hace una persona.",
+    "agentCodeNeverMergeAny": "Los agentes nunca fusionan ni envían cambios a la rama desde la que arranca una ejecución. La fusión siempre la hace una persona."
   },
   "activity": {
     "useTemplate": "Usar plantilla",
@@ -6047,7 +6122,18 @@
       "deleteStack": "Borrar pila",
       "stackedBy": "Apilado por",
       "chooseGroupingField": "Elija un campo de agrupación",
-      "autoCollapseEmptyStack": "Auto contraer pila vacía"
+      "autoCollapseEmptyStack": "Auto contraer pila vacía",
+      "createSingleSelectField": "Crear un campo de Selección única",
+      "createUserField": "Crear un campo de Usuario",
+      "defaultStackToDo": "Por hacer",
+      "defaultStackInProgress": "En curso",
+      "defaultStackDone": "Hecho",
+      "loadMoreStacks": "Cargar más pilas",
+      "linkTypeNotStackable": "Un enlace de muchos a uno solo puede agrupar un kanban en pilas cuando el origen de datos de la tabla es PostgreSQL. Agrupa por un campo de Selección única, un campo de Usuario o un enlace de pertenencia.",
+      "chooseStackField": "Elige un campo de agrupación",
+      "chooseStackFieldDesc": "Elige el campo que agrupa este board en pilas. Cada uno de sus valores tendrá su propia pila.",
+      "createSingleSelectFieldHint": "para mostrar el estado, la fase o el tipo de cada tarjeta",
+      "createUserFieldHint": "para mostrar el responsable o el propietario de cada tarjeta"
     },
     "map": {
       "googleMaps": "Google Maps",
@@ -6161,7 +6247,9 @@
     "invitePeopleCount": "Invitar a {count} persona | Invitar a {count} personas",
     "inviteThemInstead": "Invitarles en su lugar",
     "blockUser": "Bloquear usuario",
-    "unblockUser": "Desbloquear usuario"
+    "unblockUser": "Desbloquear usuario",
+    "addDateRange": "Añadir intervalo de fechas",
+    "searchComments": "Buscar comentarios"
   },
   "tooltip": {
     "shiftClickWeekStep": "Mantén pulsado Shift para pasar 1 semana",
@@ -6405,7 +6493,9 @@
     "dataSourceReadOnly": "Esta fuente de datos es de solo lectura.",
     "mentionFields": "Mencionar campos",
     "skipEnabledAfterDelay": "Se activará después de 2 segundos",
-    "clickToCopyDocumentId": "Haz clic para copiar el ID del documento"
+    "clickToCopyDocumentId": "Haz clic para copiar el ID del documento",
+    "workflowExecutionInterrupted": "Esta ejecución se detuvo de forma inesperada por nuestra parte. No se ha perdido nada. Reinténtala para continuar desde el paso en el que estaba.",
+    "workflowExecutionOnHold": "La app a la que pertenece este flujo de trabajo está suspendida. La ejecución continuará donde se quedó en cuanto la app vuelva a estar activa."
   },
   "placeholder": {
     "enterVerificationCode": "Introduzca código de 6 dígitos",
@@ -8283,7 +8373,9 @@
     "userDeleted": "{user} eliminó un {type} de {parent}: {name}",
     "youDeletedNoParent": "Has eliminado un {type}: {name}",
     "userDeletedNoParent": "{user} eliminó un {type}: {name}",
-    "someoneDeleted": "Un {type} fue eliminado: {name}"
+    "someoneDeleted": "Un {type} fue eliminado: {name}",
+    "restoreRequiresDocEdit": "Para restaurar este documento se necesita acceso de edición",
+    "withSubPages": "(y {count} subpágina) | (y {count} subpáginas)"
   },
   "payment": {
     "credits": {
@@ -8656,7 +8748,29 @@
       "other": {
         "where": "Añade un servidor MCP remoto en tu cliente con estos datos:",
         "auth": "Inicia la conexión desde tu cliente. Se abre NocoDB en el navegador, donde inicias sesión, eliges a qué puede acceder el cliente y seleccionas Autorizar."
+      },
+      "canDelete": "Puede eliminar datos o actuar fuera de NocoDB",
+      "lockedNotEditable": "Esta app solicitó estos permisos al iniciar sesión y no se pueden cambiar aquí. Sus herramientas opcionales se pueden activar abajo.",
+      "copilot": {
+        "where": "En VS Code, abre la Command Palette, ejecuta MCP: Add Server y elige HTTP. Rellena:",
+        "auth": "Cuando VS Code pida autenticar NocoDB, selecciona Allow. Inicia sesión en NocoDB en el navegador y selecciona Authorize."
       }
+    },
+    "discoveryNote": "{client} usa como máximo 100 herramientas, así que esta URL muestra directamente las herramientas de lectura y de escritura de registros de NocoDB, y busca el resto cuando se le pide.",
+    "windsurf": {
+      "subtitle": "Para el agente Cascade en Devin (antes Windsurf).",
+      "addBody": "En Devin (antes Windsurf), abre Settings › Cascade › MCP servers, selecciona Add custom server y pega esta URL:",
+      "manualLabel": "Añade esto a ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Selecciona Connect junto a nocodb. Inicia sesión en NocoDB en el navegador, elige a qué puede acceder Devin y qué herramientas puede usar, y luego selecciona Authorize.",
+      "tryBody": "Abre Cascade en Devin y pide «List my NocoDB tools»."
+    },
+    "copilot": {
+      "subtitle": "Para GitHub Copilot en VS Code.",
+      "addBody": "Selecciona {link} y luego Install cuando se abra VS Code.",
+      "addLink": "Añadir a VS Code",
+      "manualLabel": "Añade esto a .vscode/mcp.json, o ejecuta MCP: Open User Configuration para añadirlo en todos los workspaces:",
+      "authBody": "Cuando VS Code pida autenticar NocoDB, selecciona Allow. Inicia sesión en NocoDB en el navegador, elige a qué puede acceder Copilot y qué herramientas puede usar, y luego selecciona Authorize.",
+      "tryBody": "Abre Copilot Chat en modo Agent y pide «List my NocoDB tools»."
     }
   },
   "roadmap": {

@@ -83,6 +83,7 @@ Create one Secret and reference it from each `*.existingSecret`:
 | `containerSecurityContext` | App container security context | See values.yaml |
 | `livenessProbe` | App liveness probe (httpGet /api/v1/health) | See values.yaml |
 | `readinessProbe` | App readiness probe | See values.yaml |
+| `readinessProbe.path` | Set to `/api/v1/health/ready` on an image that serves it to stop routing traffic while the meta DB or Redis is unreachable | `/api/v1/health` |
 | `startupProbe` | App startup probe (generous to cover first-boot migrations) | See values.yaml |
 | `customLivenessProbe` | Replaces the generated liveness probe when set | `{}` |
 | `customReadinessProbe` | Replaces the generated readiness probe when set | `{}` |
@@ -242,6 +243,7 @@ HTTPS and WSS to the sandbox hosts (`*.e2b.app`).
 | `monitoring.sentry.dsn` | Sentry DSN (eval; use existingSecret in prod) | `""` |
 | `monitoring.sentry.existingSecret` | Secret holding the Sentry DSN | `""` |
 | `monitoring.sentry.dsnKey` | Key in existingSecret for the DSN | `NC_SENTRY_DSN` |
+| `monitoring.sentry.environment` | Sentry environment name (defaults to NODE_ENV) | `""` |
 
 ### Escape hatches
 

@@ -260,6 +260,44 @@ export default class SelectOption implements SelectOptionType {
     return options;
   }
 
+  /** Updates only color/order, which live in meta and never reach the data source. */
+  public static async updateStyles(
+    context: NcContext,
+    column: Pick<Column, 'id' | 'fk_model_id'>,
+    styles: Pick<SelectOption, 'id' | 'color' | 'order'>[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    try {
+      for (const { id, color, order } of styles) {
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_SELECT_OPTIONS,
+          { color, order },
+          id,
+        );
+      }
+    } finally {
+      // Cleared even on a partial write. Per-id keys too: get() caches them outside the list.
+      await NocoCache.del(
+        context,
+        styles.map(({ id }) => `${CacheScope.COL_SELECT_OPTION}:${id}`),
+      );
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.COL_SELECT_OPTION}:${column.id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+      // Cached single-query SQL can embed option order (select sorts).
+      await View.clearSingleQueryCache(
+        context,
+        column.fk_model_id,
+        null,
+        ncMeta,
+      );
+    }
+  }
+
   public static async find(
     context: NcContext,
     fk_column_id: string,

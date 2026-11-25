@@ -92,6 +92,9 @@ export async function getLtarDisplayValueContext(
   };
 }
 
+// 50 OR'd link subqueries compile in ~0.2s on SQL Server; 600 take minutes.
+const LINK_DISPLAY_VALUE_FILTER_BATCH = 50;
+
 /**
  * Batch-resolves display values to primary keys for the related table.
  *
@@ -187,6 +190,31 @@ export async function resolveLtarDisplayValuesToPks(
     return texts;
   };
 
+  // Each filter on a link display value is its own `fk IN (subquery)`, which SQL Server can't
+  // compile in hundreds within the request timeout. A `like` row can match in two batches, so
+  // keep each row once.
+  const listByFilters = async (filters: Filter[]) => {
+    const batchSize = dvIsLink
+      ? LINK_DISPLAY_VALUE_FILTER_BATCH
+      : filters.length;
+    const rowsByPk = new Map<string, Record<string, any>>();
+    for (let i = 0; i < filters.length; i += batchSize) {
+      const rows = await relatedBaseModel.list(
+        {
+          ...listOpts,
+          filterArr: filters.slice(i, i + batchSize),
+          apiVersion: NcApiVersion.V3,
+        },
+        listFlags,
+      );
+      for (const row of rows) {
+        const pk = String(pkOf(row));
+        if (!rowsByPk.has(pk)) rowsByPk.set(pk, row);
+      }
+    }
+    return [...rowsByPk.values()];
+  };
+
   // The display value column may be typed (Number, Decimal, Date, …). A
   // submitted value that isn't valid for that type — e.g. matching text "A"
   // against a Number display column — would make `FieldHandler.verifyFilters`
@@ -213,10 +241,7 @@ export async function resolveLtarDisplayValuesToPks(
   const eqFilterArr = await buildVerifiedFilters([...allUniqueValues], 'eq');
 
   if (eqFilterArr.length > 0) {
-    const exactRows = await relatedBaseModel.list(
-      { ...listOpts, filterArr: eqFilterArr, apiVersion: NcApiVersion.V3 },
-      listFlags,
-    );
+    const exactRows = await listByFilters(eqFilterArr);
 
     const exactTexts = await textByRow(exactRows);
     for (const row of exactRows) {
@@ -237,10 +262,7 @@ export async function resolveLtarDisplayValuesToPks(
     const likeFilterArr = await buildVerifiedFilters(unmatchedValues, 'like');
 
     if (likeFilterArr.length > 0) {
-      const candidateRows = await relatedBaseModel.list(
-        { ...listOpts, filterArr: likeFilterArr, apiVersion: NcApiVersion.V3 },
-        listFlags,
-      );
+      const candidateRows = await listByFilters(likeFilterArr);
 
       const lowerToOriginal = new Map<string, string>();
       for (const v of unmatchedValues) {

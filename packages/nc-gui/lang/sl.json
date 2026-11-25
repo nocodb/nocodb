@@ -305,7 +305,33 @@
     "upgradeToUseFormRequireSignin": "Nadgradite, da boste lahko pri obrazcih zahtevali prijavo",
     "upgradeToUseFormRequireSigninSubtitle": "Nadgradite na paket {plan}, da boste od anketirancev zahtevali prijavo pred oddajo obrazca.",
     "upgradeToUseSso": "Nadgradite za uporabo SSO",
-    "upgradeToUseSsoSubtitle": "Nadgradite na paket {plan} za nastavitev enotne prijave (SSO) in omogočite ekipi prijavo prek vašega ponudnika identitete."
+    "upgradeToUseSsoSubtitle": "Nadgradite na paket {plan} za nastavitev enotne prijave (SSO) in omogočite ekipi prijavo prek vašega ponudnika identitete.",
+    "notifyOwnerToUpgrade": "Kliknite, da obvestite lastnika delovnega prostora, naj nadgradi paket.",
+    "comparePlans": "Primerjaj pakete",
+    "workspaceOnPlan": "{workspace} ima paket {plan}",
+    "planMenuWith": "To dobite s paketom",
+    "planMenuRecordsStorage": "{records} zapisov in {storage} GB shrambe",
+    "planMenuUnlimitedEditors": "Neomejeno urednikov",
+    "planMenuAutomationRuns": "{runs} izvedb avtomatizacij na mesec",
+    "planMenuApiCalls": "{calls} klicev API na mesec",
+    "planMenuSnapshots": "{count} posnetkov",
+    "railPitch": "Plus vam da {plusRecords} zapisov in neomejeno urednikov.",
+    "upgradeToPlan": "Nadgradi na {plan}",
+    "askAdminTitle": "Ni vključeno v vašo licenco",
+    "askAdminSubtitle": "Prosite skrbnika, naj nadgradi licenco {detail}",
+    "askAdminSubtitleGeneric": "Ta funkcija ni vključena v vašo trenutno licenco. Prosite skrbnika za nadgradnjo.",
+    "notifyAdmin": "Obvesti skrbnika",
+    "adminNotified": "Skrbnik obveščen",
+    "adminNotifiedSubtitle": "Vaša zahteva je bila poslana vašemu skrbniku.",
+    "adminAlreadyNotified": "Skrbnik je že obveščen",
+    "adminAlreadyNotifiedSubtitle": "Vaš skrbnik je to zahtevo prejel že v zadnjih 24 urah.",
+    "noAdminToNotify": "Ni dejavnega skrbnika za obvestilo. Obrnite se na tistega, ki upravlja to namestitev NocoDB.",
+    "upgradeRequestDailyLimit": "Danes ste poslali največje dovoljeno število zahtev za nadgradnjo. Poskusite znova jutri.",
+    "seatLimitTitle": "Dosežena omejitev mest",
+    "licenseUpgradeRequested": "je zahteval nadgradnjo licence",
+    "forAddon": "za dodatek {addon}",
+    "seatLimitAdminSubtitle": "Vseh {limit} licenčnih mest je v uporabi. Nadgradite licenco, da dodate več urednikov.",
+    "seatLimitMemberSubtitle": "Vseh {limit} licenčnih mest je v uporabi. Prosite skrbnika, naj doda več mest."
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
@@ -1206,12 +1232,12 @@
   "datatype": {
     "ID": "Id",
     "ForeignKey": "Tuji ključ",
-    "SingleLineText": "Besedilo z eno linijo",
+    "SingleLineText": "Enovrstično besedilo",
     "LongText": "Dolgo besedilo",
     "Attachment": "Priponka",
     "Checkbox": "Potrditveno polje",
-    "MultiSelect": "Več izberite",
-    "SingleSelect": "Samski izbor",
+    "MultiSelect": "Večkratna izbira",
+    "SingleSelect": "Enojna izbira",
     "Collaborator": "Sodelavec",
     "Date": "Datum.",
     "Year": "Leto",
@@ -1224,15 +1250,15 @@
     "Currency": "Valuta",
     "Percent": "Odstotek",
     "Duration": "Trajanje",
-    "GeoData": "GeoPodatki",
+    "GeoData": "Geopodatki",
     "Rating": "Ocena",
     "Formula": "Formula",
     "Rollup": "Zavihamo",
     "Count": "Count.",
     "Lookup": "Poglej gor",
-    "DateTime": "Datum čas",
-    "CreatedTime": "Ustvarite čas",
-    "LastModifiedTime": "Zadnji spremenjen čas",
+    "DateTime": "Datum in čas",
+    "CreatedTime": "Čas ustvarjenja",
+    "LastModifiedTime": "Čas zadnje spremembe",
     "AutoNumber": "Samodejna številka",
     "Barcode": "Črtna koda",
     "Button": "Gumb.",
@@ -1243,7 +1269,25 @@
       "restrict": "Omeji",
       "setNull": "Nastavite NULL.",
       "setDefault": "Privzeto nastavljeno"
-    }
+    },
+    "LinkToAnotherRecord": "Povezava z drugim zapisom",
+    "Order": "Vrstni red",
+    "RichText": "Oblikovano besedilo",
+    "SmartText": "Pametno besedilo",
+    "Colour": "Barva",
+    "Geometry": "Geometrija",
+    "JSON": "JSON",
+    "SpecificDBType": "Določen tip zbirke podatkov",
+    "QrCode": "Koda QR",
+    "Links": "Povezave",
+    "User": "Uporabnik",
+    "CreatedBy": "Ustvaril",
+    "LastModifiedBy": "Nazadnje spremenil",
+    "Deleted": "Izbrisano",
+    "Meta": "Metapodatki vrstice",
+    "UUID": "UUID",
+    "AIButton": "Gumb UI",
+    "AIPrompt": "Besedilo UI"
   },
   "filterOperation": {
     "isEqual": "je enak",
@@ -1290,7 +1334,17 @@
       "daysAgo": "število dni nazaj",
       "daysFromNow": "število dni od danes",
       "exactDate": "točen datum",
-      "exactMonth": "točen mesec"
+      "exactMonth": "točen mesec",
+      "thisCalendarWeek": "ta teden",
+      "thisCalendarMonth": "ta mesec",
+      "thisCalendarYear": "to leto",
+      "lastCalendarWeek": "prejšnji teden",
+      "lastCalendarMonth": "prejšnji mesec",
+      "lastCalendarYear": "prejšnje leto",
+      "nextCalendarWeek": "naslednji teden",
+      "nextCalendarMonth": "naslednji mesec",
+      "nextCalendarYear": "naslednje leto",
+      "dateRange": "obdobje"
     }
   },
   "title": {
@@ -5862,7 +5916,29 @@
     "workspaceNoAccess": "Delovni prostor (ni dostopa)",
     "yAxis": "Os Y",
     "workspaceSettings": "Nastavitve delovnega prostora",
-    "wrapLongText": "Prelomi dolgo besedilo"
+    "wrapLongText": "Prelomi dolgo besedilo",
+    "agentAccessData": "Tabele in zapisi",
+    "agentAccessDataHint": "Branje jih prebira in poizveduje po njih. Urejanje jih poleg tega ustvarja, spreminja, povezuje in briše.",
+    "agentAccessDocs": "Dokumenti",
+    "agentAccessDocsHint": "Dokumenti te baze. Z Urejanjem jih lahko spreminja.",
+    "agentAccessGithubHint": "Bere kodo, potiska veje in odpira pull requeste v svojih repozitorijih",
+    "agentAccessCustom": "Nekatera od teh orodij so bila izbrana posamično. Izberite raven, da nastavite vsa naenkrat.",
+    "agentAccessOf": "Dostop: {what}",
+    "agentCodeStartBranch": "Začni od veje",
+    "agentCodeStartBranchOf": "Veja, iz katere se začnejo izvedbe {repo}",
+    "agentCodeBranchName": "Ime veje",
+    "agentCodeBranchNameHint": "Vsaka izvedba dobi svojo vejo. {issue} in {slug} se izpolnita samodejno.",
+    "agentCodePullRequests": "Pull requesti",
+    "agentCodePrDraft": "Osnutek",
+    "agentCodePrReady": "Pripravljeno za pregled",
+    "agentCodePrDraftHint": "Odpre se kot osnutek. Pregledovalci so zaprošeni, ko testi uspejo.",
+    "agentCodePrReadyHint": "Odpre se pripravljeno za pregled in takoj zaprosi spodaj navedene pregledovalce.",
+    "agentCodeReviewers": "Pregledovalci",
+    "agentCodeRemoveReviewer": "Odstrani {login}",
+    "agentCodeNoReviewers": "V teh repozitorijih ne more pregledovati nihče drug",
+    "agentCodeNoReviewersSet": "Še ni pregledovalcev.",
+    "agentCodeNeverMerge": "Agenti nikoli ne združujejo in nikoli ne potiskajo v {base}. Združevanje vedno opravi človek.",
+    "agentCodeNeverMergeAny": "Agenti nikoli ne združujejo in nikoli ne potiskajo v vejo, iz katere se izvedba začne. Združevanje vedno opravi človek."
   },
   "activity": {
     "useTemplate": "Use template",
@@ -6054,7 +6130,18 @@
       "deleteStack": "Brisanje sklada",
       "stackedBy": "Zloženo po",
       "chooseGroupingField": "Izberite polje za združevanje",
-      "autoCollapseEmptyStack": "Auto collapse empty stack"
+      "autoCollapseEmptyStack": "Auto collapse empty stack",
+      "createSingleSelectField": "Ustvari novo polje Enojna izbira",
+      "createUserField": "Ustvari novo polje Uporabnik",
+      "defaultStackToDo": "Za opraviti",
+      "defaultStackInProgress": "V teku",
+      "defaultStackDone": "Končano",
+      "loadMoreStacks": "Naloži več skladov",
+      "linkTypeNotStackable": "Povezava več proti ena lahko kanban razvrsti v sklade le, kadar je vir podatkov tabele PostgreSQL. Namesto tega razvrstite po polju Enojna izbira, polju Uporabnik ali povezavi pripada.",
+      "chooseStackField": "Izberite polje za razvrščanje v sklade",
+      "chooseStackFieldDesc": "Izberite polje, po katerem se ta board razvrsti v sklade. Vsaka njegova vrednost dobi svoj sklad.",
+      "createSingleSelectFieldHint": "za prikaz stanja, faze ali vrste posamezne kartice",
+      "createUserFieldHint": "za prikaz odgovorne osebe ali lastnika posamezne kartice"
     },
     "map": {
       "googleMaps": "Google Zemljevidi",
@@ -6168,7 +6255,9 @@
     "invitePeopleCount": "Povabi {count} osebo | Povabi {count} oseb",
     "inviteThemInstead": "Namesto tega povabi njih",
     "blockUser": "Blokiraj uporabnika",
-    "unblockUser": "Odblokiraj uporabnika"
+    "unblockUser": "Odblokiraj uporabnika",
+    "addDateRange": "Dodaj obdobje",
+    "searchComments": "Iskanje po komentarjih"
   },
   "tooltip": {
     "shiftClickWeekStep": "Hold Shift to step by 1 week",
@@ -6412,7 +6501,9 @@
     "dataSourceReadOnly": "Ta vir podatkov je samo za branje.",
     "mentionFields": "Omeni polja",
     "skipEnabledAfterDelay": "Omogočeno bo čez 2 sekundi",
-    "clickToCopyDocumentId": "Kliknite za kopiranje ID-ja dokumenta"
+    "clickToCopyDocumentId": "Kliknite za kopiranje ID-ja dokumenta",
+    "workflowExecutionInterrupted": "Ta izvedba se je na naši strani nepričakovano ustavila. Nič ni bilo izgubljeno. Poskusite znova, da se nadaljuje od koraka, pri katerem je bila.",
+    "workflowExecutionOnHold": "Aplikacija, ki ji pripada ta potek dela, je začasno ustavljena. Izvedba se nadaljuje tam, kjer se je končala, takoj ko bo aplikacija spet na voljo."
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -8290,7 +8381,9 @@
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",
     "youDeletedNoParent": "You deleted a {type}: {name}",
     "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "someoneDeleted": "A {type} was deleted: {name}",
+    "restoreRequiresDocEdit": "Obnovitev tega dokumenta zahteva pravico do njegovega urejanja",
+    "withSubPages": "(in {count} podstran) | (in {count} podstrani)"
   },
   "payment": {
     "credits": {
@@ -8662,7 +8755,29 @@
       "other": {
         "where": "V svojem odjemalcu dodajte oddaljeni strežnik MCP s temi podatki:",
         "auth": "Povezavo začnite v svojem odjemalcu. NocoDB se odpre v brskalniku, kjer se prijavite, izberete, do česa lahko odjemalec dostopa, in izberete Pooblasti."
+      },
+      "canDelete": "Lahko briše podatke ali deluje zunaj NocoDB",
+      "lockedNotEditable": "Ta aplikacija je ta dovoljenja zahtevala ob prijavi in jih tukaj ni mogoče spremeniti. Njena izbirna orodja lahko preklopite spodaj.",
+      "copilot": {
+        "where": "V VS Code odprite Command Palette, zaženite MCP: Add Server in izberite HTTP. Izpolnite:",
+        "auth": "Ko VS Code zahteva overitev NocoDB, izberite Allow. Prijavite se v NocoDB v brskalniku in izberite Authorize."
       }
+    },
+    "discoveryNote": "{client} uporablja največ 100 orodij, zato ta URL neposredno navaja bralna orodja NocoDB in pisanje zapisov, preostala pa poišče na zahtevo.",
+    "windsurf": {
+      "subtitle": "Za agenta Cascade v Devinu (prej Windsurf).",
+      "addBody": "V Devinu (prej Windsurf) odprite Settings › Cascade › MCP servers, izberite Add custom server in prilepite ta URL:",
+      "manualLabel": "To dodajte v ~/.codeium/windsurf/mcp_config.json:",
+      "authBody": "Poleg nocodb izberite Connect. Prijavite se v NocoDB v brskalniku, izberite, do česa lahko Devin dostopa in katera orodja lahko uporablja, nato pa izberite Authorize.",
+      "tryBody": "Odprite Cascade v Devinu in vprašajte »List my NocoDB tools«."
+    },
+    "copilot": {
+      "subtitle": "Za GitHub Copilot v VS Code.",
+      "addBody": "Izberite {link}, nato pa izberite Install, ko se odpre VS Code.",
+      "addLink": "Dodaj v VS Code",
+      "manualLabel": "To dodajte v .vscode/mcp.json ali zaženite MCP: Open User Configuration, da to dodate za vse workspace:",
+      "authBody": "Ko VS Code zahteva overitev NocoDB, izberite Allow. Prijavite se v NocoDB v brskalniku, izberite, do česa lahko Copilot dostopa in katera orodja lahko uporablja, nato pa izberite Authorize.",
+      "tryBody": "Odprite Copilot Chat v načinu Agent in vprašajte »List my NocoDB tools«."
     }
   },
   "roadmap": {

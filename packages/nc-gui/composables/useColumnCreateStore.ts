@@ -476,9 +476,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           }
 
           if (isSyncedField.value) {
+            const isSelect = [UITypes.SingleSelect, UITypes.MultiSelect].includes(updateData.uidt as UITypes)
             updateData = {
               meta: updateData.meta,
               description: updateData.description,
+              // option color/order only; the backend rejects title changes on synced fields
+              ...(isSelect ? { uidt: updateData.uidt, colOptions: updateData.colOptions } : {}),
             } as typeof updateData
           }
 

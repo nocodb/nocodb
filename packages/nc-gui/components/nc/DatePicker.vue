@@ -9,7 +9,6 @@ interface Props {
   type: 'date' | 'time' | 'year' | 'month'
   isOpen: boolean
   showCurrentDateOption?: boolean | 'disabled'
-  isMondayFirst?: boolean
   timezone?: string
   isJalali?: boolean
 }
@@ -20,11 +19,12 @@ const props = withDefaults(defineProps<Props>(), {
   isCellInputField: false,
   type: 'date',
   isOpen: false,
-  isMondayFirst: true,
   isJalali: false,
 })
 
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'currentDate'])
+
+const { isMondayFirst } = useWeekStart()
 
 const dayjsTz = (value?: string | null | dayjs.Dayjs, format?: string) => {
   if (typeof value === 'object') {
@@ -154,7 +154,7 @@ onMounted(() => {
     v-model:page-date="localStatePageDate"
     v-model:selected-date="localStateSelectedDate"
     :picker-type="pickerType"
-    :is-monday-first="props.isMondayFirst"
+    :is-monday-first="isMondayFirst"
     :is-jalali="props.isJalali"
     is-cell-input-field
     size="medium"

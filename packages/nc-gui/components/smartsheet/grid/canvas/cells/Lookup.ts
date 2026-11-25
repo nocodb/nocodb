@@ -285,7 +285,10 @@ export const LookupCellRenderer: CellRenderer = {
     }
 
     // Chips of a Lookup of a Link — recorded so handleClick can open the linked record.
-    const isLinkLookup = !props.isUnderLookup && lookupColumn.uidt === UITypes.LinkToAnotherRecord && !!lkRelatedTableMeta
+    const isLinkLookup =
+      !props.isUnderLookup &&
+      (lookupColumn.uidt === UITypes.LinkToAnotherRecord || isBtLikeV2Junction(lookupColumn)) &&
+      !!lkRelatedTableMeta
     const linkChips: NonNullable<CellRenderStore['lookupLinks']> = []
 
     const renderProps: CellRendererOptions = {

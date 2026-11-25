@@ -33,6 +33,8 @@ const menuColumn = inject(ColumnInj)
 
 const canvasColumn = inject(CanvasColumnInj, ref())
 
+const reloadDataHook = inject(ReloadViewDataHookInj, undefined)
+
 const column = computed(() => menuColumn?.value || canvasColumn?.value)
 
 const value = useVModel(props, 'value')
@@ -287,6 +289,8 @@ const createLookupsOrRollup = async () => {
     )
 
     await getMeta({ baseId: meta?.value?.base_id as string, tableIdOrTitle: meta?.value?.id as string, force: true })
+
+    reloadDataHook?.trigger({ fieldAdd: true, inPlace: true })
 
     value.value = false
   } catch (e) {

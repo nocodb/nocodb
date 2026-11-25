@@ -26,6 +26,8 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
+const reloadDataHook = inject(ReloadViewDataHookInj, undefined)
+
 const column = toRef(props, 'column')
 
 const isLoading = ref(false)
@@ -113,6 +115,8 @@ const createLookups = async () => {
     )
 
     await getMeta({ baseId: meta?.value?.base_id as string, tableIdOrTitle: meta?.value?.id as string, force: true })
+
+    reloadDataHook?.trigger({ fieldAdd: true, inPlace: true })
 
     message.success(
       selectedFieldsCount.value > 1

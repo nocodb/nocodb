@@ -255,8 +255,9 @@ const validators = computed(() =>
             }
 
             const basePrefix = base?.value?.prefix || ''
-            if ((basePrefix + value).length > tableNameLengthLimit) {
-              return reject(new Error(`Table name exceeds ${tableNameLengthLimit} characters`))
+            const error = getTableNameLengthError(basePrefix + value, tableNameLengthLimit, isPg(sourceId))
+            if (error) {
+              return reject(new Error(error))
             }
             resolve()
           })

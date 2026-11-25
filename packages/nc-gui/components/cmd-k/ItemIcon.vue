@@ -24,6 +24,12 @@ const dotColor = computed(() => {
   // Greys stay grey; anything with a hue is pushed to a solid, theme-readable tone.
   return tinycolor({ h, s: s < 0.08 ? s : Math.max(s, 0.65), l: isDark.value ? 0.66 : 0.52 }).toHexString()
 })
+
+// Pale safe colours (grey, sand, sky) keep their tone, so they get a ring instead of being darkened into their neighbours.
+const isFaintDot = computed(() => {
+  if (props.icon.type !== 'color' || !dotColor.value || isDark.value || dotColor.value.startsWith('var(')) return false
+  return tinycolor.readability(dotColor.value, '#ffffff') < 3
+})
 </script>
 
 <template>
@@ -56,7 +62,11 @@ const dotColor = computed(() => {
     <SmartsheetHeaderIcon :column="icon.column" color="text-current" />
   </div>
   <div v-else-if="icon.type === 'color'" class="nc-cmdk-icon-box">
-    <span class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: dotColor }" />
+    <span
+      class="w-2.5 h-2.5 rounded-full"
+      :class="{ 'border-1 border-solid border-nc-border-gray-dark': isFaintDot }"
+      :style="{ backgroundColor: dotColor }"
+    />
   </div>
   <component
     :is="iconComponent"

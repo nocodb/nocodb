@@ -45,6 +45,8 @@ type EmittingWorkbookReader = ExcelJS.stream.xlsx.WorkbookReader & {
     event: 'entry',
     listener: (entry: { type: string; id?: string }) => void,
   ): void;
+  /** the parsed `<workbookPr>`, which worksheet readers take the date system from */
+  properties?: { model?: { date1904?: boolean } };
 };
 
 // Workbook and rels parts are a few KB; past this, exceljs's own names are used.
@@ -184,6 +186,10 @@ async function* readWorksheets(buf: Buffer): AsyncGenerator<{
   });
 
   for await (const ws of workbookReader) {
+    // exceljs only honours date1904="1", not the equally valid "true"
+    if (workbookReader.properties?.model) {
+      workbookReader.properties.model.date1904 = date1904;
+    }
     const reader = ws as NamedWorksheetReader;
     yield { name: names.get(partNo) ?? reader.name ?? '', reader, date1904 };
   }

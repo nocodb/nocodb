@@ -173,6 +173,10 @@ const searchCountTooltip = computed(() =>
 
 const isSearchErrorVisible = computed(() => !!searchError.value && !!search.value.query?.trim())
 
+const searchErrorMessage = computed(() =>
+  searchError.value === 'timeout' ? t('msg.error.searchTimedOut') : t('msg.error.searchTooMany'),
+)
+
 const isSearchNavigationShown = computed(
   () => isAllFieldsSelected.value && isSearchResultVisible.value && isGrid.value && !isGroupBy.value,
 )
@@ -505,7 +509,8 @@ useSearchCommands({
     <NcTooltip v-if="isSearchButtonVisible" placement="bottom">
       <template #title>
         <div class="flex items-center gap-2">
-          <span>{{ search.query ? `${searchPlaceholder}: ${search.query}` : $t('placeholder.searchRecords') }}</span>
+          <span v-if="isSearchErrorVisible">{{ searchErrorMessage }}</span>
+          <span v-else>{{ search.query ? `${searchPlaceholder}: ${search.query}` : $t('placeholder.searchRecords') }}</span>
           <span class="nc-search-shortcut-tooltip">{{ searchShortcutLabel }}</span>
         </div>
       </template>
@@ -520,7 +525,8 @@ useSearchCommands({
         <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
         <span
           v-if="search.query"
-          class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-nc-fill-primary"
+          class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full"
+          :class="isSearchErrorVisible ? 'bg-nc-content-red-medium' : 'bg-nc-fill-primary'"
           data-testid="nc-global-search-active-indicator"
         />
       </NcButton>
@@ -635,11 +641,7 @@ useSearchCommands({
               <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
             </NcTooltip>
             <template v-else-if="isSearchErrorVisible">
-              <NcTooltip
-                :title="searchError === 'timeout' ? $t('msg.error.searchTimedOut') : $t('msg.error.searchTooMany')"
-                placement="topRight"
-                class="flex px-1"
-              >
+              <NcTooltip :title="searchErrorMessage" placement="topRight" class="flex px-1">
                 <GeneralIcon
                   icon="ncInfo"
                   class="flex-none h-3.5 w-3.5 text-nc-content-red-medium"
@@ -670,7 +672,7 @@ useSearchCommands({
                   class="px-1 text-bodySm whitespace-nowrap tabular-nums text-nc-content-gray-muted"
                   data-testid="nc-search-count"
                 >
-                  <template v-if="!totalRowsWithSearchQuery">{{ $t('labels.noResults') }}</template>
+                  <template v-if="!totalRowsWithSearchQuery">{{ searchCountPending ? '' : $t('labels.noResults') }}</template>
                   <span v-else-if="searchPositionLabel" class="text-nc-content-gray font-semibold">{{
                     searchPositionLabel
                   }}</span>

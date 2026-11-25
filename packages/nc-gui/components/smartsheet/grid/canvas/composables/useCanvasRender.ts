@@ -2165,7 +2165,7 @@ export function useCanvasRender({
           renderRedBorders.push({ rowIndex: rowIdx, column })
         }
 
-        if (isActive ? !recordSelected : !isCellInRange && !recordSelected) {
+        if (!recordSelected && (isActive || !isCellInRange)) {
           paintSearchMatch(ctx, column, value, { x: xOffset - _scrollLeft, y: yOffset, width, height: _rowH }, isActive)
         }
 
@@ -2301,7 +2301,7 @@ export function useCanvasRender({
               renderRedBorders.push({ rowIndex: rowIdx, column })
             }
 
-            if (isActive ? !recordSelected : !isCellInRange && !recordSelected) {
+            if (!recordSelected && (isActive || !isCellInRange)) {
               paintSearchMatch(ctx, column, value, { x: xOffset, y: yOffset, width, height: _rowH }, isActive)
             }
 

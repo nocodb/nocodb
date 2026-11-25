@@ -2,6 +2,7 @@ import { type ColumnType, UITypes, isAutoSaved, isManualSaved, isNumericCol } fr
 import { NO_EDITABLE_CELL } from '../utils/cell'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData, getGroupSampleRow } from '../utils/groupby'
+import { throttleHeldKeys } from '../utils/keyboard'
 
 // column types which support delete even when it's in edit state
 const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.GeoData]
@@ -468,7 +469,7 @@ export function useKeyboardNavigation({
     triggerReRender()
   }
 
-  const handleKeyDown = useThrottleFn(_handleKeyDown, 50)
+  const handleKeyDown = throttleHeldKeys(_handleKeyDown, 50)
 
   useEventListener('keydown', handleKeyDown)
 

@@ -386,6 +386,7 @@ watch(vModel, (newValue) => {
     inputmode="decimal"
     :disabled="disabled"
     @keydown.enter.exact="onInputKeyUp($event, false)"
+    @keydown.tab="onInputKeyUp($event, false)"
     @keydown.left.stop
     @keydown.right.stop
     @keydown.delete.stop

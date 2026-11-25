@@ -124,6 +124,7 @@ export const isShowNullField = (column: ColumnType) => {
   ].includes(column.uidt as UITypes)
 }
 
+/** Text is picked for the colourblind-swapped colour, so paint the chip background with `toDisplayOptionColor` too. */
 export const getSelectTypeOptionTextColor = (
   color: string | null | undefined,
   getColor: GetColorType,

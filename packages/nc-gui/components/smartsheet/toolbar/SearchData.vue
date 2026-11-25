@@ -532,7 +532,16 @@ useSearchCommands({
             overlay-class-name="nc-dropdown-toolbar-search-field-option"
           >
             <div class="flex items-center gap-2 group px-2 cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
-              <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+              <div
+                v-if="isSearchBusy"
+                class="h-3.5 w-3.5 flex items-center justify-center text-nc-content-brand"
+                role="status"
+                :aria-label="$t('general.loading')"
+                data-testid="nc-search-loading"
+              >
+                <GeneralLoader :size="14" />
+              </div>
+              <GeneralIcon v-else icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
               <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
                 <template v-if="!isFieldListCompact">
                   <GeneralIcon v-if="isAllFieldsSelected" icon="fields" class="!w-3.5 !h-3.5 flex-none" />
@@ -596,15 +605,6 @@ useSearchCommands({
             >
               <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
             </NcTooltip>
-            <div
-              v-else-if="isSearchBusy"
-              class="flex items-center px-1 text-nc-content-gray-muted"
-              role="status"
-              :aria-label="$t('general.loading')"
-              data-testid="nc-search-loading"
-            >
-              <GeneralLoader size="small" />
-            </div>
             <template v-else>
               <SmartsheetToolbarSearchDataAllFieldsState
                 v-if="isEeUI"

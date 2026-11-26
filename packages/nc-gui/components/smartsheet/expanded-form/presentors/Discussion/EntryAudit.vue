@@ -74,7 +74,7 @@ const createdBy = computed(() => {
           display_name: props.auditGroup.displayName,
           meta: props.auditGroup.audit?.created_by_meta,
         }"
-        class="w-[28px] h-[28px] aspect-square"
+        class="nc-audit-avatar w-[28px] h-[28px] aspect-square"
       />
       <p class="text-small1 mb-0">
         <!-- mr-1: Vue's whitespace condense drops the newline between the two
@@ -113,7 +113,7 @@ const createdBy = computed(() => {
       </div>
     </div>
     <template v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'">
-      <div class="relative mb-2">
+      <div class="nc-audit-body relative mb-2">
         <GeneralIcon
           icon="ncNode"
           class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-elevated absolute top-1/2 left-0 rtl:(left-auto right-0 translate-x-1/2) transform -translate-y-1/2 -translate-x-1/2"
@@ -125,7 +125,7 @@ const createdBy = computed(() => {
       <SmartsheetExpandedFormPresentorsDiscussionAuditInfoExpressive :audit="props.auditGroup.audit" />
     </template>
     <template v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(props.auditGroup.audit?.op_type)">
-      <div class="relative mb-2">
+      <div class="nc-audit-body relative mb-2">
         <GeneralIcon
           icon="ncNode"
           class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-elevated absolute top-1/2 left-0 rtl:(left-auto right-0 translate-x-1/2) transform -translate-y-1/2 -translate-x-1/2"

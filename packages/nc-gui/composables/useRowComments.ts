@@ -166,9 +166,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   }
 
   /** Row whose comments are on screen — set before the record object may be. */
-  let commentsRowId: string | undefined
+  const commentsRowId = ref<string>()
 
-  async function loadReactions(rowId = commentsRowId) {
+  async function loadReactions(rowId = commentsRowId.value) {
     if (!isCommentExtrasEnabled.value || !isUIAllowed('commentList')) return
 
     if (!rowId) return
@@ -180,7 +180,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         fk_model_id: meta.value.id as string,
       })) as Record<string, CommentReactionItem[]>
 
-      if (rowId === commentsRowId) reactions.value = res ?? {}
+      if (rowId === commentsRowId.value) reactions.value = res ?? {}
     } catch {
       // Reactions are decoration: the comments stay usable without them.
     }
@@ -268,15 +268,25 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
-  /** Fetches when the caller last read this record's comments, then stamps the visit. */
-  async function loadReadState() {
+  /** Row whose read state `lastReadAt` holds. */
+  let readStateRowId: string | undefined
+
+  /**
+   * Fetches when the caller last read this record's comments, then stamps the visit.
+   * `reuseLoaded` keeps a state already loaded for this row, so switching feeds keeps the same "new" marks.
+   */
+  async function loadReadState(reuseLoaded = false) {
+    const rowId = extractPkFromRow(row.value?.row, meta.value?.columns as ColumnType[])
+
+    if (reuseLoaded && rowId && readStateRowId === rowId) return
+
     const seq = ++readStateSeq
 
     lastReadAt.value = null
+    readStateRowId = undefined
 
     if (!isCommentExtrasEnabled.value || !isUIAllowed('commentList')) return
 
-    const rowId = extractPkFromRow(row.value?.row, meta.value?.columns as ColumnType[])
     if (!rowId) return
 
     try {
@@ -289,6 +299,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       if (seq !== readStateSeq) return
 
       lastReadAt.value = res?.last_read_at ?? null
+      readStateRowId = rowId
 
       // The list may still be loading; records that stay empty write nothing.
       await until(() => comments.value.length > 0).toBe(true, { timeout: 5000 })
@@ -390,7 +401,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         }
       })
 
-      commentsRowId = rowId
+      commentsRowId.value = rowId
 
       loadReactions(rowId)
     } catch (e: unknown) {
@@ -726,6 +737,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     resolveComment,
     deleteComment,
     isCommentsLoading,
+    commentsRowId,
     primaryKey,
     parsedHtmlComments,
     row,

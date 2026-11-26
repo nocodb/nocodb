@@ -129,6 +129,7 @@ import {
   captureLinkHooks,
   captureNestedLinkHooks,
   extractCorrespondingLinkColumn,
+  isWebhookIgnored,
 } from '~/db/BaseModelSqlv2/add-remove-links';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2, {
@@ -7330,7 +7331,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const updatedFkColumns = columns.filter(
         (c) => c.uidt === UITypes.ForeignKey && c.column_name in updateObj,
       );
-      if (!updatedFkColumns.length) return null;
+      if (!updatedFkColumns.length || isWebhookIgnored(cookie)) return null;
 
       const rowId = this.extractPksValues(prevData, true);
       const changes: LinkHookChange[] = [];
@@ -7370,6 +7371,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             childId: newFk ?? prevFk,
           })
         ).getRelationContext();
+        // The lookups below query the parent table: skip them when no hook listens
+        if (!(await relationContext.parentBaseModel.hasActiveUpdateHooks()))
+          continue;
         const oldParentId = await this.fkParentPk(
           relationContext,
           prevFk,

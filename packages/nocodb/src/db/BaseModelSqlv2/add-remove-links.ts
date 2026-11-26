@@ -167,7 +167,7 @@ export const extractCorrespondingLinkColumn = async (
  * broadcasting operations to run independently.
  */
 
-const isWebhookIgnored = (req: NcRequest) => {
+export const isWebhookIgnored = (req: NcRequest) => {
   const ignoreWebhook = req?.query?.ignoreWebhook;
   return ignoreWebhook !== undefined && ignoreWebhook !== 'false';
 };

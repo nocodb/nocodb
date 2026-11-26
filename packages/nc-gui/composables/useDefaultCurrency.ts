@@ -1,10 +1,10 @@
 import { USER_DEFAULT_CURRENCY_CODE_KEY, USER_DEFAULT_CURRENCY_LOCALE_KEY, getUserCurrencyDefaults } from 'nocodb-sdk'
 
-/** The currency the signed-in user's new Currency fields start with. USD in en-US unless set. */
+/** The currency the signed-in user's new Currency fields start with: their preference, else the instance default, else USD in en-US. */
 export const useDefaultCurrency = () => {
-  const { user } = useGlobal()
+  const { user, appInfo } = useGlobal()
 
-  const defaultCurrency = computed(() => getUserCurrencyDefaults(user.value?.meta))
+  const defaultCurrency = computed(() => getUserCurrencyDefaults(user.value?.meta, appInfo.value?.defaultCurrency))
 
   const setDefaultCurrency = (value: { currency_code?: string; currency_locale?: string }) =>
     useUsers().updateUserMeta({

@@ -18,6 +18,7 @@ import {
 } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
+import { getInstanceCurrencyDefault } from '~/helpers/instanceCurrencyDefault';
 import { checkReadiness } from '~/helpers/healthCheck';
 import { fetchForDataImport } from '~/helpers/dataImportFetch';
 import { Base, User } from '~/models';
@@ -467,6 +468,7 @@ export class UtilsService {
       ),
       defaultGroupByLimit: defaultGroupByLimitConfig,
       timezone: defaultConnectionConfig.timezone,
+      defaultCurrency: getInstanceCurrencyDefault(),
       ncMin: !!process.env.NC_MIN,
       teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
       globalSearchEnabled: isGlobalSearchEnabled(),

@@ -34,4 +34,21 @@ describe('getUserCurrencyDefaults', () => {
       currency_locale: 'en-US',
     });
   });
+
+  it('uses the instance default when the user has none, value by value', () => {
+    const instance = { currency_code: 'EUR', currency_locale: 'de-DE' };
+    expect(getUserCurrencyDefaults(undefined, instance)).toEqual(instance);
+    expect(
+      getUserCurrencyDefaults(
+        { [USER_DEFAULT_CURRENCY_CODE_KEY]: 'IDR' },
+        instance
+      )
+    ).toEqual({ currency_code: 'IDR', currency_locale: 'de-DE' });
+    expect(
+      getUserCurrencyDefaults(undefined, {
+        currency_code: 'euro',
+        currency_locale: 'fr-FR',
+      })
+    ).toEqual({ currency_code: 'USD', currency_locale: 'fr-FR' });
+  });
 });

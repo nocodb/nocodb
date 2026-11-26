@@ -264,7 +264,7 @@ export const getNumericValue = (value: string, locale?: string) => {
 export const USER_DEFAULT_CURRENCY_CODE_KEY = 'default_currency_code';
 export const USER_DEFAULT_CURRENCY_LOCALE_KEY = 'default_currency_locale';
 
-const isValidCurrencyCode = (code: unknown): code is string => {
+export const isValidCurrencyCode = (code: unknown): code is string => {
   if (typeof code !== 'string' || !/^[A-Z]{3}$/.test(code)) return false;
   try {
     new Intl.NumberFormat('en-US', { style: 'currency', currency: code });
@@ -274,7 +274,7 @@ const isValidCurrencyCode = (code: unknown): code is string => {
   }
 };
 
-const isValidCurrencyLocale = (locale: unknown): locale is string => {
+export const isValidCurrencyLocale = (locale: unknown): locale is string => {
   if (typeof locale !== 'string' || !locale) return false;
   try {
     return Intl.NumberFormat.supportedLocalesOf(locale).length > 0;
@@ -283,12 +283,19 @@ const isValidCurrencyLocale = (locale: unknown): locale is string => {
   }
 };
 
+export interface CurrencyDefaults {
+  currency_code?: string;
+  currency_locale?: string;
+}
+
 /**
  * The currency a new Currency field starts with for this user: their saved
- * preference, else USD in en-US. Invalid saved values fall back one by one.
+ * preference, else the instance default, else USD in en-US. Each value falls
+ * back on its own when invalid.
  */
 export const getUserCurrencyDefaults = (
-  userMeta?: Record<string, any> | string | null
+  userMeta?: Record<string, any> | string | null,
+  instanceDefault?: CurrencyDefaults | null
 ): { currency_code: string; currency_locale: string } => {
   let meta: Record<string, any> = {};
   if (typeof userMeta === 'string') {
@@ -301,11 +308,21 @@ export const getUserCurrencyDefaults = (
     meta = userMeta;
   }
 
-  const code = meta[USER_DEFAULT_CURRENCY_CODE_KEY];
-  const locale = meta[USER_DEFAULT_CURRENCY_LOCALE_KEY];
+  const pick = (isValid: (v: unknown) => v is string, ...values: unknown[]) =>
+    values.find(isValid) as string;
 
   return {
-    currency_code: isValidCurrencyCode(code) ? code : 'USD',
-    currency_locale: isValidCurrencyLocale(locale) ? locale : 'en-US',
+    currency_code: pick(
+      isValidCurrencyCode,
+      meta[USER_DEFAULT_CURRENCY_CODE_KEY],
+      instanceDefault?.currency_code,
+      'USD'
+    ),
+    currency_locale: pick(
+      isValidCurrencyLocale,
+      meta[USER_DEFAULT_CURRENCY_LOCALE_KEY],
+      instanceDefault?.currency_locale,
+      'en-US'
+    ),
   };
 };

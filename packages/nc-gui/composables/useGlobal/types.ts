@@ -2,7 +2,7 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
-import type { MapProvider, RoadmapHqMode, WhiteLabelConfig } from 'nocodb-sdk'
+import type { CurrencyDefaults, MapProvider, RoadmapHqMode, WhiteLabelConfig } from 'nocodb-sdk'
 import type { NcBreakpoint } from '~/lib/constants'
 
 export interface AppInfo {
@@ -11,6 +11,8 @@ export interface AppInfo {
   allowLocalUrl: boolean
   connectToExternalDB: boolean
   defaultLimit: number
+  /** Instance default currency for new currency fields (NC_DEFAULT_CURRENCY_CODE / NC_DEFAULT_CURRENCY_LOCALE). */
+  defaultCurrency?: CurrencyDefaults
   defaultGroupByLimit: {
     limitGroup: number
     limitRecord: number

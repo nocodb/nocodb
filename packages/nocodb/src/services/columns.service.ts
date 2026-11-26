@@ -111,6 +111,7 @@ import {
 import { getReplay, setReplay } from '~/helpers/replayScope';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
+import { getInstanceCurrencyDefault } from '~/helpers/instanceCurrencyDefault';
 import {
   getIdentifierLength,
   getIdentifierLengthUnit,
@@ -1141,7 +1142,10 @@ export class ColumnsService implements IColumnsService {
 
     // req.user can predate a preference change, so read the stored user
     const userMeta = user?.id ? (await User.get(user.id))?.meta : user?.meta;
-    const defaults = getUserCurrencyDefaults(userMeta);
+    const defaults = getUserCurrencyDefaults(
+      userMeta,
+      getInstanceCurrencyDefault(),
+    );
     const filled = {
       ...target,
       currency_code: target.currency_code || defaults.currency_code,

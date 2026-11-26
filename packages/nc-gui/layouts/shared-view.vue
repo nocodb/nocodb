@@ -48,7 +48,7 @@ onMounted(() => {
         '*',
       )
 
-    router.afterEach((to) => notifyLocationChange(location.origin + to.fullPath))
+    router.afterEach((to) => notifyLocationChange(ncAppUrl(to.fullPath)))
     useEventListener(window, 'beforeunload', () => {
       const { href } = document.activeElement as { href?: string }
       if (href) notifyLocationChange(href)

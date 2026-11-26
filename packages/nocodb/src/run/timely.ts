@@ -5,14 +5,30 @@ import express from 'express';
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
 import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
+import { getBasePath, stripBasePathMiddleware } from '~/helpers/basePath';
 handleUncaughtErrors(process);
 
 const server = express();
+server.use(stripBasePathMiddleware());
 server.use(cors());
+const ncGuiPath = path.join(__dirname, 'nc-gui');
+// Under a subpath the shell must be rewritten, so GuiMiddleware serves it.
+const servesRawShell = getBasePath() === '/';
+if (!servesRawShell) {
+  process.env.NC_GUI_DIST_PATH = process.env.NC_GUI_DIST_PATH ?? ncGuiPath;
+}
+const ncGuiStatic = express.static(ncGuiPath, {
+  ...ncStaticOptions,
+  index: servesRawShell ? 'index.html' : false,
+  redirect: servesRawShell,
+});
 server.use(
   process.env.NC_DASHBOARD_URL ?? '/',
   ncStaticCompression(),
-  express.static(path.join(__dirname, 'nc-gui'), ncStaticOptions),
+  (req, res, next) => {
+    if (!servesRawShell && req.path.endsWith('.html')) return next();
+    return ncGuiStatic(req, res, next);
+  },
 );
 server.set('view engine', 'ejs');
 

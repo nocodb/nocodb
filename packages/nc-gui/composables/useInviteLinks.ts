@@ -253,7 +253,7 @@ export const useInviteLinks = createGlobalState(() => {
   function linkUrl(link: InviteLinkType) {
     if (!link?.token) return ''
 
-    return `${window.location.origin}/invite/${link.token}`
+    return ncAppUrl(`/invite/${link.token}`)
   }
 
   /**

@@ -16,5 +16,5 @@ export default defineNuxtPlugin(() => {
   if (!cleanUrl) return
 
   // Redirect without creating a history entry
-  window.location.replace(cleanUrl)
+  window.location.replace(`${ncAppBasePath()}${cleanUrl}`)
 })

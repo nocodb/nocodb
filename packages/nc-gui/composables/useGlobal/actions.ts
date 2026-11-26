@@ -232,7 +232,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions {
     }
 
     if (newTab) {
-      window.open(`${window.location.origin}#${path}`, '_blank')
+      window.open(`${ncAppUrl()}#${path}`, '_blank')
     } else {
       return navigateTo({
         path,

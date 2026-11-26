@@ -4,6 +4,7 @@ import { decode, encode } from 'html-entities'
 import { isValidURL } from 'nocodb-sdk'
 import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 import { getI18n } from '../plugins/a.i18n'
+import { ncAppUrl } from './appBaseUrl'
 export { isValidURL }
 
 const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | string => {
@@ -248,7 +249,7 @@ const isLeavingPageRequired = (url: string) =>
   /^https?:\/\//i.test(url) && ncIsSharedViewOrBase() && !isSameOriginUrl(url) && !isTrustedLinkUrl(url)
 
 export const getLeavingPageUrl = (url: string) => {
-  const leavingUrl = new URL(`${window.location.origin}/leaving`)
+  const leavingUrl = new URL(ncAppUrl('/leaving'))
   leavingUrl.searchParams.set('ncRedirectUrl', url)
   leavingUrl.searchParams.set('ncBackUrl', window.location.href)
   return leavingUrl.toString()

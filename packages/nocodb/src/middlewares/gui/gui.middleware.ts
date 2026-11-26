@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import express from 'express';
 import type { NestMiddleware } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { getBasePath, rewriteIndexHtmlForBasePath } from '~/helpers/basePath';
 import { injectBrandingMeta } from '~/helpers/brandingHtml';
 import { setFrameGuardHeaders } from '~/helpers/frameGuard';
 import { ncStaticCompression, ncStaticOptions } from '~/helpers/staticAssets';
@@ -28,14 +29,23 @@ export class GuiMiddleware implements NestMiddleware {
     try {
       if (!fs.existsSync(path.join(distPath, 'index.html'))) return;
 
-      this.indexHtml = fs.readFileSync(
-        path.join(distPath, 'index.html'),
-        'utf-8',
+      this.indexHtml = rewriteIndexHtmlForBasePath(
+        fs.readFileSync(path.join(distPath, 'index.html'), 'utf-8'),
+        getBasePath(),
       );
 
       const router = express.Router();
       router.use(ncStaticCompression());
-      router.use('/', express.static(distPath, ncStaticOptions));
+      // Under a subpath the raw shell must never be served, only the rewritten one.
+      const servesRawShell = getBasePath() === '/';
+      router.use(
+        '/',
+        express.static(distPath, {
+          ...ncStaticOptions,
+          index: servesRawShell ? 'index.html' : false,
+          redirect: servesRawShell,
+        }),
+      );
       this.staticRouter = router;
     } catch {
       // dist path not available
@@ -54,7 +64,9 @@ export class GuiMiddleware implements NestMiddleware {
     // Non-HTML requests (JS, CSS, images, fonts) are real static files — let
     // express.static serve them, falling through to `next()` when nothing
     // matched. We gate on Accept the same way the SPA fallback always has.
-    const wantsHtml = req.headers.accept?.includes('text/html');
+    const wantsHtml =
+      req.headers.accept?.includes('text/html') ||
+      (getBasePath() !== '/' && /(^|\/)[^/.]*\.html$|\/$/.test(req.path));
     if (!wantsHtml) {
       return this.staticRouter(req, res, next);
     }

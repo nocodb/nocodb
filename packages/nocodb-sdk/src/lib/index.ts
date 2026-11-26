@@ -106,6 +106,7 @@ export * from '~/lib/aggregationCompute';
 export * from '~/lib/connectionConfigUtils';
 export * from '~/lib/dataSourceIntegrationUtils';
 export * from '~/lib/currencyHelpers';
+export * from '~/lib/currencyCodes';
 export * from '~/lib/filterHelpers';
 export * from '~/lib/errorUtils';
 export * from '~/lib/formBuilder';

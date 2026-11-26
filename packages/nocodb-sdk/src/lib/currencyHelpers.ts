@@ -1,4 +1,5 @@
 import { ncIsNumber } from './is';
+import { CURRENCY_CODES } from './currencyCodes';
 
 /**
  * Resolve the display symbol for a currency from its ISO code + locale.
@@ -264,15 +265,8 @@ export const getNumericValue = (value: string, locale?: string) => {
 export const USER_DEFAULT_CURRENCY_CODE_KEY = 'default_currency_code';
 export const USER_DEFAULT_CURRENCY_LOCALE_KEY = 'default_currency_locale';
 
-export const isValidCurrencyCode = (code: unknown): code is string => {
-  if (typeof code !== 'string' || !/^[A-Z]{3}$/.test(code)) return false;
-  try {
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: code });
-    return true;
-  } catch {
-    return false;
-  }
-};
+export const isValidCurrencyCode = (code: unknown): code is string =>
+  typeof code === 'string' && CURRENCY_CODES.includes(code);
 
 export const isValidCurrencyLocale = (locale: unknown): locale is string => {
   if (typeof locale !== 'string' || !locale) return false;

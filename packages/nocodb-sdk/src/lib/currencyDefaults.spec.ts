@@ -29,6 +29,12 @@ describe('getUserCurrencyDefaults', () => {
         [USER_DEFAULT_CURRENCY_LOCALE_KEY]: 'de-DE',
       })
     ).toEqual({ currency_code: 'USD', currency_locale: 'de-DE' });
+    expect(
+      getUserCurrencyDefaults({
+        [USER_DEFAULT_CURRENCY_CODE_KEY]: 'EUD',
+        [USER_DEFAULT_CURRENCY_LOCALE_KEY]: 'de-DE',
+      })
+    ).toEqual({ currency_code: 'USD', currency_locale: 'de-DE' });
     expect(getUserCurrencyDefaults('not json')).toEqual({
       currency_code: 'USD',
       currency_locale: 'en-US',
@@ -46,7 +52,7 @@ describe('getUserCurrencyDefaults', () => {
     ).toEqual({ currency_code: 'IDR', currency_locale: 'de-DE' });
     expect(
       getUserCurrencyDefaults(undefined, {
-        currency_code: 'euro',
+        currency_code: 'ABC',
         currency_locale: 'fr-FR',
       })
     ).toEqual({ currency_code: 'USD', currency_locale: 'fr-FR' });

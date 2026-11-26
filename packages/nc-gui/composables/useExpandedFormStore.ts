@@ -27,7 +27,7 @@ import dayjs from 'dayjs'
 import { dataEventSubscriptionKey } from '~/utils/realtimeUtils'
 import { dropNoopRecordAuditFields, mergeRecordUpdateAuditDetails } from '~/utils/recordAuditUtils'
 import { ltarCellCount, ltarCellShapeOf, resolveDeferredCellValue } from '~/utils/ltarDeferredOps'
-import { createLtarBlueprints, splitLtarBlueprints, validateLtarBlueprints } from '~/utils/dataUtils'
+import { createLtarBlueprints, foldFkOnRowLtarOps, splitLtarBlueprints, validateLtarBlueprints } from '~/utils/dataUtils'
 
 interface AuditTypeExtended extends AuditType {
   created_display_name?: string
@@ -600,6 +600,19 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             return message.info(t('msg.info.updateNotAllowedWithoutPK'))
           }
 
+          // Links whose FK is on this row go in the same UPDATE as the other fields (#9281).
+          const folded = await foldFkOnRowLtarOps({
+            meta: meta.value,
+            queue: rowStore.pendingLtarOps.value,
+            hasOtherFields: Object.keys(updateOrInsertObj).length > 0,
+            getMeta: useMetas().getMeta,
+            readRelatedRecord: (relatedMeta, relatedRowId) =>
+              $api.dbTableRow.read(NOCO, relatedMeta.base_id!, relatedMeta.id!, encodeURIComponent(relatedRowId), {
+                getHiddenColumn: true,
+              }),
+          })
+          Object.assign(updateOrInsertObj, folded.payload)
+
           if (Object.keys(updateOrInsertObj).length) {
             const updatedData = await $api.dbTableRow.update(
               NOCO,
@@ -612,6 +625,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             // If the updated row is now hidden by RLS policy, mark it
             if (updatedData?.__nc_rls_hidden) {
               row.value.row.__nc_rls_hidden = true
+            }
+
+            if (folded.columnIds.length) {
+              // The links are saved: make them the persisted value and drop their queued ops.
+              Object.assign(row.value.row, folded.payload)
+              if (row.value.oldRow) Object.assign(row.value.oldRow, folded.payload, folded.linked)
+              rowStore.pendingLtarOps.value = rowStore.pendingLtarOps.value.filter((o) => !folded.columnIds.includes(o.columnId))
             }
           }
 

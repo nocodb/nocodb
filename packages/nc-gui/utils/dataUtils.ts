@@ -50,6 +50,8 @@ import { isColumnRequiredAndNull, isReadonlyDataCol } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 import { LINKED_RECORD_MAX_DEPTH } from '~/utils/linkedRecordDisplay'
 import type { GetMetaParams } from '~/composables/useMetas'
+import type { PendingLtarOp } from '~/utils/ltarDeferredOps'
+import { resolveDeferredSingleTargetValue } from '~/utils/ltarDeferredOps'
 
 export { isValidValue }
 
@@ -396,6 +398,78 @@ export async function createLtarBlueprints({
   }
 
   return { created, errors, failed }
+}
+
+/**
+ * Turn an existing row's queued edits of links whose foreign key is on the row into FK values for
+ * the row's own update, so the FKs and the other fields are written in one UPDATE (a table CHECK
+ * can tie a field to an FK, and writing each link on its own fails it).
+ * A single link or unlink with no other change stays queued, keeping its link audit and hooks, and
+ * so does a link whose referenced value can't be found.
+ */
+export async function foldFkOnRowLtarOps({
+  meta,
+  queue,
+  hasOtherFields,
+  getMeta,
+  readRelatedRecord,
+}: {
+  meta: TableType
+  queue: PendingLtarOp[]
+  hasOtherFields: boolean
+  getMeta: (params: GetMetaParams) => Promise<TableType | null>
+  readRelatedRecord: (relatedMeta: TableType, rowId: string) => Promise<Record<string, any> | null | undefined>
+}): Promise<{
+  /** FK column title → value, to merge into the update payload */
+  payload: Record<string, any>
+  /** Link column title → its linked record after the update (null when unlinked) */
+  linked: Record<string, Record<string, any> | null>
+  /** Link columns whose queued ops the payload replaces */
+  columnIds: string[]
+}> {
+  const result = {
+    payload: {} as Record<string, any>,
+    linked: {} as Record<string, Record<string, any> | null>,
+    columnIds: [] as string[],
+  }
+  const columns = meta.columns ?? []
+
+  const fkColumns = [...new Set(queue.map((o) => o.columnId))]
+    .map((id) => columns.find((c) => c.id === id))
+    .filter((c): c is ColumnType => isLtarFkOnRow(c))
+
+  // One link/unlink is one UPDATE either way; an unlink + link replayed is two, the first with the FK null.
+  const isLoneOp = !hasOtherFields && fkColumns.length === 1 && queue.filter((o) => o.columnId === fkColumns[0].id).length === 1
+  if (!fkColumns.length || isLoneOp) return result
+
+  for (const column of fkColumns) {
+    const colOpt = column.colOptions as LinkToAnotherRecordType
+    const childCol = columns.find((c) => c.id === colOpt.fk_child_column_id)
+    const relatedMeta = await getMeta({
+      baseId: colOpt.fk_related_base_id || meta.base_id!,
+      tableIdOrTitle: colOpt.fk_related_model_id!,
+    })
+    const parentCol = relatedMeta?.columns?.find((c) => c.id === colOpt.fk_parent_column_id)
+    if (!childCol?.title || !parentCol?.title || !relatedMeta) continue
+
+    const target = resolveDeferredSingleTargetValue(queue, column.id!, null)
+    let value = null
+    if (target) {
+      value = target[parentCol.title]
+      // The picker loads the primary key, not always the referenced column
+      if (value === undefined) {
+        const lastLink = queue.findLast((o) => o.columnId === column.id && o.op === 'link')!
+        value = (await readRelatedRecord(relatedMeta, lastLink.relatedRowId))?.[parentCol.title]
+      }
+      if (value === undefined || value === null) continue
+    }
+
+    result.payload[childCol.title] = value
+    result.linked[column.title!] = target
+    result.columnIds.push(column.id!)
+  }
+
+  return result
 }
 
 // a function to populate insert object and verify if all required fields are present

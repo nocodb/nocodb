@@ -452,6 +452,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
     split_values?: boolean | string;
     search?: string;
+    /** Aggregates added to each group's row; not applied on MSSQL / Oracle. */
+    extraSelects?: Knex.Raw[];
   }) => {
     const { where, ...rest } = baseModel._getListArgs(args as any);
 
@@ -881,6 +883,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     }
 
     qb.select(...selectors);
+    if (
+      args.extraSelects?.length &&
+      !baseModel.isMssql &&
+      !baseModel.isOracle
+    ) {
+      qb.select(...args.extraSelects);
+    }
 
     if (+rest?.shuffle) {
       await baseModel.shuffle({ qb });

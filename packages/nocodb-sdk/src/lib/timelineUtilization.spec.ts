@@ -7,6 +7,7 @@ import {
   dateStringToDayNumber,
   dayNumberWeekday,
   formatUtilizationPercent,
+  groupUtilizationPercent,
   instantToDayNumber,
   isLinkUtilizationPreviewComplete,
   isUtilizationResourceLink,
@@ -14,6 +15,7 @@ import {
   isUtilizationTimeOffLink,
   isUtilizationTimeOffSource,
   MONDAY_TO_FRIDAY,
+  orderGroupsByUtilization,
   remapDateAxisSummaryIds,
   toCapacity,
   utilizationColor,
@@ -252,6 +254,42 @@ describe('timelineUtilization', () => {
         id === 'person' ? null : ids[id]
       )
     ).toBeUndefined();
+  });
+
+  it('remaps a time-off amount field, dropping time off when it has no counterpart', () => {
+    const summary = {
+      fk_column_id: 'hours',
+      aggregation: 'utilization',
+      utilization: {
+        allocated_rate: 'week' as const,
+        available_rate: 'week' as const,
+        fk_resource_column_id: 'person',
+        available_value: 40,
+        time_off: {
+          fk_model_id: 'off',
+          fk_link_column_id: 'offLink',
+          fk_start_column_id: 'offStart',
+          fk_amount_column_id: 'offAmount',
+          amount_unit: 'fraction' as const,
+        },
+      },
+    };
+    const ids: Record<string, string> = {
+      hours: 'h2',
+      person: 'p2',
+      off: 'o2',
+      offLink: 'ol2',
+      offStart: 'os2',
+      offAmount: 'oa2',
+    };
+    expect(
+      remapDateAxisSummaryIds(summary, (id) => ids[id])?.utilization?.time_off
+    ).toMatchObject({ fk_amount_column_id: 'oa2', amount_unit: 'fraction' });
+    expect(
+      remapDateAxisSummaryIds(summary, (id) =>
+        id === 'offAmount' ? null : ids[id]
+      )?.utilization?.time_off
+    ).toBeNull();
   });
 
   it('reports unavailable resources as infinite', () => {
@@ -497,5 +535,211 @@ describe('timelineUtilization', () => {
         available_value: 40,
       })
     ).toBe(true);
+  });
+  describe('partial time off', () => {
+    // Mon–Fri at 8h/day, 8h of work every day of week 1.
+    const busyWeek = {
+      fromDay: week1.startDay,
+      toDay: week1.endDay - 1,
+      allocated: 8,
+      resources: ['a'],
+      available: 8,
+    };
+    const run = (
+      timeOff: Parameters<typeof computeUtilization>[0]['timeOff'],
+      timeOffUnit?: 'hours' | 'fraction'
+    ) =>
+      computeUtilization({
+        buckets: [week1],
+        tasks: [busyWeek],
+        timeOff,
+        timeOffUnit,
+        allocatedRate: 'day',
+        availableRate: 'day',
+        workingDays: MONDAY_TO_FRIDAY,
+      }).groups[0].buckets[0];
+
+    it('treats an empty amount as the whole day, as before', () => {
+      const off = { resource: 'a', fromDay: day('2026-09-08') };
+      const before = run([off]);
+      expect(before).toEqual({ allocated: 40, available: 32, time_off: 1 });
+      expect(run([{ ...off, amount: null }], 'hours')).toEqual(before);
+      expect(run([{ ...off, amount: null }], 'fraction')).toEqual(before);
+    });
+
+    it('takes hours off the day and keeps it out of the PTO count', () => {
+      const cell = run(
+        [{ resource: 'a', fromDay: day('2026-09-08'), amount: 3 }],
+        'hours'
+      );
+      expect(cell).toEqual({ allocated: 40, available: 37, time_off: 0 });
+    });
+
+    it('takes a fraction of the day off', () => {
+      const cell = run(
+        [{ resource: 'a', fromDay: day('2026-09-08'), amount: 0.5 }],
+        'fraction'
+      );
+      expect(cell).toEqual({ allocated: 40, available: 36, time_off: 0 });
+    });
+
+    it('adds overlapping records up to the whole day, which then counts as PTO', () => {
+      const tue = day('2026-09-08');
+      expect(
+        run(
+          [
+            { resource: 'a', fromDay: tue, amount: 0.5 },
+            { resource: 'a', fromDay: tue, amount: 0.25 },
+          ],
+          'fraction'
+        )
+      ).toEqual({ allocated: 40, available: 34, time_off: 0 });
+      // 6h + 5h on an 8h day: capped at the day, never negative.
+      expect(
+        run(
+          [
+            { resource: 'a', fromDay: tue, amount: 6 },
+            { resource: 'a', fromDay: tue, amount: 5 },
+          ],
+          'hours'
+        )
+      ).toEqual({ allocated: 40, available: 32, time_off: 1 });
+      // A partial record on a day already off adds nothing.
+      expect(
+        run(
+          [
+            { resource: 'a', fromDay: tue },
+            { resource: 'a', fromDay: tue, amount: 0.5 },
+          ],
+          'fraction'
+        )
+      ).toEqual({ allocated: 40, available: 32, time_off: 1 });
+    });
+
+    it('ignores a zero amount', () => {
+      expect(
+        run([{ resource: 'a', fromDay: day('2026-09-08'), amount: 0 }], 'hours')
+      ).toEqual({ allocated: 40, available: 40, time_off: 0 });
+    });
+
+    it('applies a reduced-hours period on working days of every week it covers', () => {
+      // Summer hours: 2h off a day across six weeks, of which two are shown.
+      const withWork = computeUtilization({
+        buckets: [week1, week2],
+        tasks: [{ ...busyWeek, toDay: week2.endDay - 1 }],
+        timeOff: [
+          {
+            resource: 'a',
+            fromDay: day('2026-08-24'),
+            toDay: day('2026-10-04'),
+            amount: 2,
+          },
+          // A full day off inside the period wins over its 2h.
+          { resource: 'a', fromDay: day('2026-09-16') },
+        ],
+        timeOffUnit: 'hours',
+        allocatedRate: 'day',
+        availableRate: 'week',
+        workingDays: MONDAY_TO_FRIDAY,
+        resourceCapacity: { a: 40 },
+      });
+      const [w1, w2] = withWork.groups[0].buckets;
+      expect(w1).toMatchObject({ available: 30, time_off: 0 }); // 5 × (8 − 2)
+      expect(w2).toMatchObject({ available: 24, time_off: 1 }); // 4 × 6, Wed off
+      // Saturday and Sunday stay uncounted: allocation is 8h × 5 workdays.
+      expect(w1.allocated).toBe(40);
+    });
+
+    it('stays linear with long partial records', () => {
+      const buckets = Array.from({ length: 150 }, (_, i) => ({
+        startDay: 20000 + i * 24,
+        endDay: 20000 + (i + 1) * 24,
+      }));
+      const tasks = Array.from({ length: 200 }, (_, i) => ({
+        fromDay: 20000,
+        toDay: 23600,
+        allocated: 1,
+        resources: [`r${i}`],
+        available: 8,
+      }));
+      const timeOff = Array.from({ length: 50_000 }, (_, i) => ({
+        resource: `r${i % 200}`,
+        fromDay: 20000 + (i % 3000),
+        toDay: 20000 + (i % 3000) + 400,
+        amount: 0.01,
+      }));
+      const started = Date.now();
+      const res = computeUtilization({
+        buckets,
+        tasks,
+        timeOff,
+        timeOffUnit: 'fraction',
+        allocatedRate: 'day',
+        availableRate: 'day',
+      });
+      expect(res.groups).toHaveLength(200);
+      expect(Date.now() - started).toBeLessThan(2000);
+    });
+  });
+
+  describe('ordering groups by utilization', () => {
+    const totals = new Map([
+      ['a', { allocated: 30, available: 40 }], // 75%
+      ['b', { allocated: 50, available: 40 }], // 125%
+      ['c', { allocated: 10, available: 40 }], // 25%
+      ['d', { allocated: 5, available: 0 }], // ∞
+      ['e', { allocated: 0, available: 0 }], // no value
+    ]);
+    const groups = [
+      { name: 'Empty', keys: [] as string[] },
+      { name: 'A', keys: ['a'] },
+      { name: 'B', keys: ['b'] },
+      { name: 'C', keys: ['c'] },
+      { name: 'D', keys: ['d'] },
+      { name: 'E', keys: ['e'] },
+      { name: 'Idle', keys: ['z'] }, // no work in the window
+    ];
+    const percentOf = (g: (typeof groups)[number]) =>
+      groupUtilizationPercent(g.keys, totals);
+    const names = (setting) =>
+      orderGroupsByUtilization(groups, percentOf, setting).map((g) => g.name);
+
+    it('reads a group with no work as 0% and one with no person as nothing', () => {
+      expect(percentOf(groups[6])).toBe(0);
+      expect(percentOf(groups[0])).toBeNull();
+      expect(percentOf(groups[5])).toBeNull();
+      // Two people under one name: their hours add up.
+      expect(groupUtilizationPercent(['a', 'c'], totals)).toBe(50);
+    });
+
+    it('sorts either way with groups lacking a value last', () => {
+      expect(names({ sort: 'asc' })).toEqual([
+        'Idle',
+        'C',
+        'A',
+        'B',
+        'D',
+        'Empty',
+        'E',
+      ]);
+      expect(names({ sort: 'desc' })).toEqual([
+        'D',
+        'B',
+        'A',
+        'C',
+        'Idle',
+        'Empty',
+        'E',
+      ]);
+    });
+
+    it('filters by a range and keeps the order otherwise', () => {
+      expect(names({ gte: 75 })).toEqual(['A', 'B', 'D']);
+      expect(names({ lte: 30, sort: 'desc' })).toEqual(['C', 'Idle']);
+      expect(names({ gte: 20, lte: 100 })).toEqual(['A', 'C']);
+      expect(names({ sort: null, gte: null })).toEqual(
+        groups.map((g) => g.name)
+      );
+    });
   });
 });

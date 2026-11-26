@@ -2,13 +2,17 @@ import {
   type ColumnType,
   type SelectOptionsType,
   type TableType,
+  type TimelineGroupUtilizationSetting,
   UITypes,
+  type UtilizationValue,
   type ViewType,
   ViewTypes,
   dateFormats,
+  groupUtilizationPercent,
   isBtLikeV2Junction,
   isSingleRecordLinkColumn,
   isUtilizationMultiResourceLink,
+  orderGroupsByUtilization,
   parseProp,
   timeFormats,
 } from 'nocodb-sdk'
@@ -225,3 +229,24 @@ export const splitGroupLabel = (key: string) => {
   if (value && typeof value === 'object') return String(value.display_name || value.email || value.id || '')
   return String(value ?? '')
 }
+
+/**
+ * Split User-field rows ranked by each person's utilization. The server sends
+ * every combination's people with their totals (`__nc_utilization`).
+ */
+export const rankSplitUserRows = (
+  list: Record<string, any>[],
+  col: ColumnType,
+  setting?: TimelineGroupUtilizationSetting | null,
+) =>
+  orderGroupsByUtilization(
+    list,
+    (item) => {
+      const key = item[col.title!]
+      const user = key ? splitGroupValue(String(key)) : null
+      if (!user?.id) return null
+      const totals = new Map<string, UtilizationValue>(Object.entries(item.__nc_utilization ?? {}))
+      return groupUtilizationPercent([String(user.id)], totals)
+    },
+    setting,
+  )

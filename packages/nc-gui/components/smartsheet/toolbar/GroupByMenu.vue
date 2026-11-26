@@ -72,6 +72,11 @@ interface Group {
 
 const _groupBy = ref<Group[]>([])
 
+const topGroupColumn = computed(() => {
+  const id = _groupBy.value[0]?.fk_column_id
+  return id ? metaColumnById.value?.[id] : undefined
+})
+
 // Timeline groups one level; a multi-value field there can split into a group per value.
 const splitCandidateColumn = computed(() => {
   const id = _groupBy.value[0]?.fk_column_id
@@ -695,6 +700,12 @@ useGroupByCommands({
           <SmartsheetToolbarTimelineGroupSplit
             v-if="isEeUI && view?.type === ViewTypes.TIMELINE && splitCandidateColumn"
             :column="splitCandidateColumn"
+            :disabled="isLocked"
+          />
+
+          <SmartsheetToolbarTimelineGroupUtilization
+            v-if="isEeUI && view?.type === ViewTypes.TIMELINE && topGroupColumn"
+            :column="topGroupColumn"
             :disabled="isLocked"
           />
 

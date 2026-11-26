@@ -82,6 +82,15 @@ import {
 // `{{id}}` or a `{{link}}.{{link}}.{{field}}` path
 const FORMULA_REF_CHAIN = /\{\{[^{}]*?\}\}(?:\s*\.\s*\{\{[^{}]*?\}\})*/g;
 
+// Exported rows never reach the app's UI: skip the RLS read-only flag probe.
+const exportCtx = (context: NcContext): NcContext => ({
+  ...context,
+  additionalContext: {
+    ...context.additionalContext,
+    skipRlsReadonlyFlags: true,
+  },
+});
+
 @Injectable()
 export class ExportService {
   protected readonly debugLog = debug('nc:jobs:import');
@@ -89,7 +98,7 @@ export class ExportService {
   constructor(protected datasService: DatasService) {}
 
   async getDataList(context: NcContext, param: any) {
-    return this.datasService.dataList(context, param);
+    return this.datasService.dataList(exportCtx(context), param);
   }
 
   async serializeScripts(context: NcContext) {
@@ -1677,7 +1686,7 @@ export class ExportService {
 
     try {
       for (;;) {
-        const result = await this.datasService.dataList(context, {
+        const result = await this.datasService.dataList(exportCtx(context), {
           model,
           view,
           query: {
@@ -1957,7 +1966,7 @@ export class ExportService {
           ? Math.min(limit, param.maxRows - rows)
           : limit;
 
-        const result = await this.datasService.dataList(context, {
+        const result = await this.datasService.dataList(exportCtx(context), {
           model,
           view,
           query: {
@@ -2050,7 +2059,7 @@ export class ExportService {
       sortArrJson: any;
     },
   ): Promise<void> {
-    const result = await this.datasService.dataList(context, {
+    const result = await this.datasService.dataList(exportCtx(context), {
       model,
       view,
       query: {
@@ -2216,7 +2225,7 @@ export class ExportService {
 
     return new Promise<void>((resolve, reject) => {
       this.datasService
-        .dataList(context, {
+        .dataList(exportCtx(context), {
           model,
           view,
           query: {

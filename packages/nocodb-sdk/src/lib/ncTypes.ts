@@ -25,6 +25,12 @@ export interface NcContext {
     is_agent?: boolean;
     acting_agent?: { id: string; title: string; role_cap?: AgentRoleCap | null };
     agent_chain_depth?: number;
+    /**
+     * Set on the WORKFLOW_USER when a workflow runs "as a role": it carries that
+     * role's `base_roles` and must obey RLS like that role would — so the
+     * read_only write gate must NOT exempt it as a plain platform service actor.
+     */
+    run_as_role?: boolean;
   };
   fk_model_id?: string;
   socket_id?: string;
@@ -100,6 +106,11 @@ export interface NcAdditionalContext {
    * downstream BaseModel ops skip propagating again when this is true.
    */
   isDatePropagating?: boolean;
+  /**
+   * The caller never shows rows to the app's UI (e.g. an export), so reads
+   * skip the RLS read-only flag probe.
+   */
+  skipRlsReadonlyFlags?: boolean;
   /** Allow ad-hoc keys without forcing every caller through this interface. */
   [key: string]: unknown;
 }

@@ -264,6 +264,21 @@ dayjs.extend(timezone);
 
 const logger = new Logger('BaseModelSqlv2');
 
+// `__nc_rls_readonly` tells the app's own UI a row is locked for this user;
+// it is not record data, so it stays out of webhook payloads.
+function withoutRlsReadonlyFlag<T>(d: T): T {
+  if (Array.isArray(d)) {
+    return (
+      d.some((r) => r && '__nc_rls_readonly' in r)
+        ? d.map((r) => withoutRlsReadonlyFlag(r))
+        : d
+    ) as T;
+  }
+  if (!d || typeof d !== 'object' || !('__nc_rls_readonly' in d)) return d;
+  const { __nc_rls_readonly: _, ...rest } = d as Record<string, unknown>;
+  return rest as T;
+}
+
 // Max rows a bulkUpdateAll will snapshot pre-update values for. Bounds the
 // heaviest part of the after.bulkUpdate emission — a formatted record per
 // matched row, held until the UPDATE lands. Not the whole cost: the PK list
@@ -383,7 +398,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected _queryQueue: PQueue;
   protected _columns = {};
   protected _softDeleteColumnName: Promise<string | null> | undefined;
-  protected _rlsConditions: Promise<Filter[]> | undefined;
+  protected _rlsConditions: Partial<
+    Record<'read' | 'write', Promise<Filter[]>>
+  > = {};
   private _trashAwareFkGroupParents = new Map<
     string,
     Promise<TrashAwareFkGroupParent | null>
@@ -513,6 +530,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       fk_display_value_column_id,
       skipPublicRedaction = false,
       applyViewFilters = false,
+      skipRlsReadonlyFlags = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -527,6 +545,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // visible in the view. Opt-in: the public shared-view checks rely on it as
       // the anonymous caller's access boundary.
       applyViewFilters?: boolean;
+      // Internal reads (e.g. a write's previous row) never reach the UI.
+      skipRlsReadonlyFlags?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -630,9 +650,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data.__proto__ = proto;
     }
 
-    return data
+    const result = data
       ? await nocoExecute(ast, data as ResolverObj, {}, parsedQuery)
       : null;
+
+    // Tag as read-only if visible-but-not-editable (EE-only; no-op in CE).
+    if (result && !ignoreRls && !skipRlsReadonlyFlags) {
+      await this.applyRlsReadonlyFlags([result], {
+        apiVersion: apiVersion ?? this.context.api_version,
+      });
+    }
+
+    return result;
   }
 
   public async readByPkFromModel(
@@ -1000,6 +1029,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipSortBasedOnOrderCol?: boolean;
       ignoreRls?: boolean;
       deletedOnly?: boolean;
+      skipRlsReadonlyFlags?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -1231,6 +1261,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         throw e;
       logger.log(e);
       return this.list(args, { ...options, validateFormula: true });
+    }
+
+    // Tag visible-but-not-editable rows so the client can render them as locked
+    // (EE-only; no-op in CE). Best-effort — never blocks the read.
+    if (!ignoreRlsOpt && !options.skipRlsReadonlyFlags && data?.length) {
+      await this.applyRlsReadonlyFlags(data, { apiVersion: args.apiVersion });
     }
 
     return data?.map((d) => {
@@ -4640,6 +4676,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           ignoreViewFilterAndSort: true,
           ignoreRls: args.ignoreRls,
           deletedOnly: args.deletedOnly,
+          skipRlsReadonlyFlags: true,
         },
       );
       chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
@@ -5329,8 +5366,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           true,
         );
 
-        // Resolve RLS conditions for bulkUpdateAll
-        const rlsConditionsBUA = await this.getRlsConditions();
+        // Resolve RLS conditions for bulkUpdateAll (write gate: restricts to the
+        // user's writable/visible set)
+        const rlsConditionsBUA = await this.getRlsConditions('write');
         const rlsFilterGroupBUA = rlsConditionsBUA.length
           ? [new Filter({ children: rlsConditionsBUA, is_group: true })]
           : [];
@@ -5360,6 +5398,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             }),
           );
         }
+
+        // Reject the bulk update if any row in scope is locked read-only by RLS
+        // (EE-only; no-op in CE). No PK list here, so this is a scope-based check.
+        // Mirror the soft-delete scope applied to `qb` below.
+        await this.assertConditionWritable(conditionObj, {
+          includeSoftDeleted: args.includeSoftDeleted,
+        });
 
         await conditionV2(this, conditionObj, qb, undefined, true);
 
@@ -6931,6 +6976,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // write — worst case the webhook gets the live object (a public email may
     // show a blank user), which is strictly better than failing the insert.
     const snapshot = (d: typeof prevData) => {
+      d = withoutRlsReadonlyFlag(d);
       if (!this.context?.is_public || !d || !hookName?.startsWith('after')) {
         return d;
       }
@@ -7298,6 +7344,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
       return;
     }
+
+    // Reject if the FK-holding row is locked read-only by an RLS policy
+    await this.assertLinkRowsWritable({
+      colId,
+      rowId,
+      childIds: [childId],
+      isLink: true,
+    });
 
     const relationManager = await RelationManager.getRelationManager(
       this,
@@ -7937,6 +7991,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
     )
       NcError.get(this.context).fieldNotFound(colId);
+
+    // Reject if the FK-holding row is locked read-only by an RLS policy
+    await this.assertLinkRowsWritable({ colId, rowId, childIds: [childId] });
 
     const relationManager = await RelationManager.getRelationManager(
       this,
@@ -10457,6 +10514,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: params.cookie,
     });
 
+    // Reject if the FK-holding row(s) are locked read-only by an RLS policy
+    await this.assertLinkRowsWritable({
+      colId: params.colId,
+      rowId: params.rowId,
+      childIds: params.childIds,
+      isLink: true,
+    });
+
     return addOrRemoveLinks(this).addLinks(params);
   }
 
@@ -10473,6 +10538,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       permission: PermissionKey.RECORD_FIELD_EDIT,
       user: params.cookie?.user,
       req: params.cookie,
+    });
+
+    // Reject if the FK-holding row(s) are locked read-only by an RLS policy
+    await this.assertLinkRowsWritable({
+      colId: params.colId,
+      rowId: params.rowId,
+      childIds: params.childIds,
     });
 
     return addOrRemoveLinks(this).removeLinks(params);
@@ -12429,26 +12501,86 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   /**
    * Returns RLS (Row-Level Security) filter conditions for the current user.
    *
-   * Memoized per instance — `Model.getBaseModelSQL` constructs a fresh
-   * BaseModelSqlv2 on every call and `this.context` is never reassigned after
-   * construction, so one instance is always one user. A single request can hit
-   * this a dozen times (list + count + each grouped-list query), and the EE
+   * Memoized per instance and per `mode` — `Model.getBaseModelSQL` constructs a
+   * fresh BaseModelSqlv2 on every call and `this.context` is never reassigned
+   * after construction, so one instance is always one user. A single request can
+   * hit this a dozen times (list + count + each grouped-list query), and the EE
    * resolution is a team expansion plus per-policy filter loads.
    *
    * Callers get their own Filter instances because conditionV2 mutates the
    * filters it is handed (`comparison_op` / `value` normalization).
    */
-  public async getRlsConditions(): Promise<Filter[]> {
-    this._rlsConditions ??= this.resolveRlsConditions();
-    return cloneFilters(await this._rlsConditions);
+  public async getRlsConditions(
+    mode: 'read' | 'write' = 'read',
+  ): Promise<Filter[]> {
+    this._rlsConditions[mode] ??= this.resolveRlsConditions(mode);
+    return cloneFilters(await this._rlsConditions[mode]);
   }
 
   /**
    * CE: no-op, no RLS. EE overrides with policy resolution.
+   * `mode` ('read' | 'write') is honored only by the EE override.
    */
-  protected async resolveRlsConditions(): Promise<Filter[]> {
+  protected async resolveRlsConditions(
+    _mode: 'read' | 'write' = 'read',
+  ): Promise<Filter[]> {
     return [];
   }
+
+  /**
+   * Tags rows the user can see but not edit with `__nc_rls_readonly`.
+   * CE version: no-op (no RLS). EE version marks read_only rows.
+   */
+  public async applyRlsReadonlyFlags(
+    _rows: any[],
+    _opts?: { apiVersion?: NcApiVersion; forWrite?: boolean },
+  ): Promise<void> {}
+
+  /**
+   * Throws if any row in a condition-based bulk update scope is locked read-only.
+   * CE version: no-op (no RLS). EE version enforces read_only policies.
+   */
+  public async assertConditionWritable(
+    _scopeFilters: Filter[],
+    _options?: { includeSoftDeleted?: boolean; skipPks?: string },
+  ): Promise<void> {}
+
+  /**
+   * Throws if any of the given rows (by PK value) is locked read-only.
+   * CE version: no-op (no RLS). EE version enforces read_only policies.
+   */
+  public async assertRowsWritable(_pkVals: any[]): Promise<void> {}
+
+  /**
+   * RLS write gate for link mutations: assert that the row(s) whose FK column
+   * is physically rewritten by a link/unlink are not locked read-only.
+   * - bt / oo(bt-side): the FK lives on this table's `rowId` row.
+   * - hm / oo(reverse): the FK lives on the related table's child row(s).
+   * - oo (both sides): additionally displaces whichever row currently holds the
+   *   link — see `assertOoDisplacedRowWritable`.
+   * - mm / mm-like: only junction rows change — no record row is mutated.
+   * CE version: no-op (no RLS). EE resolves the relation and asserts the rows.
+   */
+  public async assertLinkRowsWritable(_params: {
+    colId: string;
+    rowId: string;
+    childIds: (string | number)[];
+    // Only a link displaces a third row; unlink just clears the named row's FK.
+    isLink?: boolean;
+  }): Promise<void> {}
+
+  /**
+   * A one-to-one link is exclusive, so linking nulls the FK of whatever row
+   * currently points at the target. That displaced row is in neither `rowId`
+   * nor `childIds`, so `assertLinkRowsWritable` cannot see it.
+   * CE version: no-op (no RLS). EE resolves the row and asserts it.
+   */
+  protected async assertOoDisplacedRowWritable(_params: {
+    column: Column;
+    colOptions: LinkToAnotherRecordColumn;
+    rowId: string;
+    childIds: (string | number)[];
+  }): Promise<void> {}
 
   /**
    * Returns a knex where-clause callback that excludes soft-deleted records,

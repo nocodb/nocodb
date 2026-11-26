@@ -3,12 +3,14 @@ import express from 'express';
 import cors from 'cors';
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
+import { stripBasePathMiddleware } from '~/helpers/basePath';
 handleUncaughtErrors(process);
 
 // ref: https://github.com/nodejs/node/issues/40702#issuecomment-1103623246
 dns.setDefaultResultOrder('ipv4first');
 
 const server = express();
+server.use(stripBasePathMiddleware());
 server.use(cors());
 
 server.set('view engine', 'ejs');

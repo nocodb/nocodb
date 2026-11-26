@@ -20,8 +20,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const joinAttachmentUrl = (path: string) => {
       // Resolve ncSiteUrl against the page origin first so a relative value
       // like '/' (production default) becomes an absolute base URL.
-      const base = new URL(appInfo.value.ncSiteUrl || '/', window.location.origin)
-      return new URL(path, base).toString()
+      return resolveSiteUrl(appInfo.value.ncSiteUrl, path)
     }
 
     const { row } = useSmartsheetRowStoreOrThrow()

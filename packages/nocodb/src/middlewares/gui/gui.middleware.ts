@@ -36,7 +36,16 @@ export class GuiMiddleware implements NestMiddleware {
 
       const router = express.Router();
       router.use(ncStaticCompression());
-      router.use('/', express.static(distPath, ncStaticOptions));
+      // Under a subpath the raw shell must never be served, only the rewritten one.
+      const servesRawShell = getBasePath() === '/';
+      router.use(
+        '/',
+        express.static(distPath, {
+          ...ncStaticOptions,
+          index: servesRawShell ? 'index.html' : false,
+          redirect: servesRawShell,
+        }),
+      );
       this.staticRouter = router;
     } catch {
       // dist path not available
@@ -55,7 +64,9 @@ export class GuiMiddleware implements NestMiddleware {
     // Non-HTML requests (JS, CSS, images, fonts) are real static files — let
     // express.static serve them, falling through to `next()` when nothing
     // matched. We gate on Accept the same way the SPA fallback always has.
-    const wantsHtml = req.headers.accept?.includes('text/html');
+    const wantsHtml =
+      req.headers.accept?.includes('text/html') ||
+      (getBasePath() !== '/' && /(^|\/)[^/.]*\.html$|\/$/.test(req.path));
     if (!wantsHtml) {
       return this.staticRouter(req, res, next);
     }

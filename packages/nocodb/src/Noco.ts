@@ -30,6 +30,7 @@ import { ncStaticOptions } from '~/helpers/staticAssets';
 import { RedisIoAdapter } from '~/gateways/RedisIoAdapter';
 import { DEFAULT_APP_SETTINGS } from '~/interface/AppSettings';
 import { NC_APP_SETTINGS } from '~/constants';
+import { toAppUrl } from '~/helpers/basePath';
 
 dotenv.config();
 declare const module: any;
@@ -271,7 +272,7 @@ export default class Noco {
       const normalizedPath = dashboardPath.replace(/\/+$/, '');
       server.get(`${normalizedPath}*`, (req, res) => {
         const remaining = req.path.slice(normalizedPath.length) || '/';
-        res.redirect(remaining);
+        res.redirect(toAppUrl(remaining));
       });
     } else {
       // Default root deployment: respond 200 for health checks (HEAD/non-browser GET).

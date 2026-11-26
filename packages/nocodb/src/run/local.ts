@@ -21,6 +21,8 @@ const servesRawShell = getBasePath() === '/';
 const ncGuiStatic = express.static(ncGuiPath, {
   ...ncStaticOptions,
   index: servesRawShell ? 'index.html' : false,
+  // Its `/x` → `/x/` redirect is root-relative and would leave the subpath
+  redirect: servesRawShell,
 });
 server.use('/', ncStaticCompression(), (req, res, next) => {
   if (!servesRawShell && req.path.endsWith('.html')) return next();

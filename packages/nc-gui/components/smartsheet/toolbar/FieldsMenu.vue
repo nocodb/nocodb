@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, GalleryType, KanbanType, ListType, LookupType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, VIEW_META_HIDE_NEW_FIELDS, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'

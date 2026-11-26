@@ -401,7 +401,7 @@ export async function createLtarBlueprints({
 }
 
 /**
- * Turn an existing row's queued edits of links whose foreign key is on the row into FK values for
+ * Turn an existing row's queued belongs-to link edits into FK values for
  * the row's own update, so the FKs and the other fields are written in one UPDATE (a table CHECK
  * can tie a field to an FK, and writing each link on its own fails it).
  * A single link or unlink with no other change stays queued, keeping its link audit and hooks, and
@@ -436,7 +436,10 @@ export async function foldFkOnRowLtarOps({
 
   const fkColumns = [...new Set(queue.map((o) => o.columnId))]
     .map((id) => columns.find((c) => c.id === id))
-    .filter((c): c is ColumnType => isLtarFkOnRow(c))
+    // Not one-to-one: linking one also clears the FK on the row the record was linked to before.
+    .filter(
+      (c): c is ColumnType => isLtarFkOnRow(c) && (c!.colOptions as LinkToAnotherRecordType).type === RelationTypes.BELONGS_TO,
+    )
 
   // One link/unlink is one UPDATE either way; an unlink + link replayed is two, the first with the FK null.
   const isLoneOp = !hasOtherFields && fkColumns.length === 1 && queue.filter((o) => o.columnId === fkColumns[0].id).length === 1

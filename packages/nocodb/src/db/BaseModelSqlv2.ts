@@ -7320,9 +7320,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     cookie: any,
   ) {
     try {
-      if (!(await this.isDataAuditEnabled())) return;
-
       const columns = await this.model.getColumns();
+      const updatedFkColumns = columns.filter(
+        (c) => c.uidt === UITypes.ForeignKey && c.column_name in updateObj,
+      );
+      if (!updatedFkColumns.length || !(await this.isDataAuditEnabled()))
+        return;
+
       const rowId = this.extractPksValues(newData, true);
 
       for (const column of columns) {
@@ -7332,10 +7336,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await column.getColOptions<LinkToAnotherRecordColumn>();
         if (colOptions.type !== RelationTypes.BELONGS_TO) continue;
 
-        const fkColumn = columns.find(
+        const fkColumn = updatedFkColumns.find(
           (c) => c.id === colOptions.fk_child_column_id,
         );
-        if (!fkColumn || !(fkColumn.column_name in updateObj)) continue;
+        if (!fkColumn) continue;
 
         const prevFk = prevData?.[fkColumn.title] ?? null;
         const newFk = newData?.[fkColumn.title] ?? null;
@@ -7346,21 +7350,29 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.id,
           { rowId, childId: newFk ?? prevFk },
         );
-        const { parentTable, parentColumn } =
+        const { parentTable, parentColumn, parentBaseModel, parentTn } =
           relationManager.getRelationContext();
-        // The nested parent record carries its primary key; the FK can reference another column.
-        const parentPk = (parent, fk) =>
-          fk === null
-            ? null
-            : parent
-            ? getCompositePkValue(parentTable.primaryKeys, parent)
-            : parentColumn.pk
-            ? fk
-            : null;
+        // The FK can reference a non-key column: take the key from the nested parent record, else look it up.
+        const parentPk = async (parent, fk) => {
+          if (fk === null) return null;
+          if (parent)
+            return getCompositePkValue(parentTable.primaryKeys, parent);
+          if (parentColumn.pk) return fk;
+          const row = await parentBaseModel.execAndParse(
+            parentBaseModel
+              .dbDriver(parentTn)
+              .select(parentTable.primaryKeys.map((pk) => pk.column_name))
+              .where(parentColumn.column_name, fk)
+              .first(),
+            null,
+            { raw: true, first: true },
+          );
+          return row ? getCompositePkValue(parentTable.primaryKeys, row) : null;
+        };
 
         relationManager.collectFkChangeAudits({
-          oldParentId: parentPk(prevData?.[column.title], prevFk),
-          newParentId: parentPk(newData?.[column.title], newFk),
+          oldParentId: await parentPk(prevData?.[column.title], prevFk),
+          newParentId: await parentPk(newData?.[column.title], newFk),
         });
         await this.writeLinkAudits(
           await relationManager.getAuditUpdateObj(cookie),

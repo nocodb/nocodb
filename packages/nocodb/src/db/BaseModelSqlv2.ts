@@ -7344,20 +7344,46 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           (c) => c.id === colOptions.fk_child_column_id,
         );
         if (!fkColumn) continue;
+        const prevFk = prevData?.[fkColumn.title] ?? null;
         const newFk = updateObj[fkColumn.column_name] ?? null;
-        if (`${prevData?.[fkColumn.title] ?? null}` === `${newFk}`) continue;
-        // Parent rows are read by pk: an FK on another column can't name them
+        if (`${prevFk}` === `${newFk}`) continue;
         const parentColumn = await colOptions.getParentColumn();
-        if (!parentColumn?.pk) continue;
+        if (!parentColumn) continue;
 
-        const parentIds = newFk === null ? [] : [newFk];
+        if (parentColumn.pk) {
+          const parentIds = newFk === null ? [] : [newFk];
+          changes.push({
+            column,
+            rowIds: [rowId],
+            refRowIds: parentIds,
+            linkedRefRowIds: parentIds,
+            // Picks up the current parent, so an unlink notifies it too
+            replace: new Map([[String(rowId), parentIds]]),
+          });
+          continue;
+        }
+
+        // FK on a non-key column: the current parent can't be read by pk, so resolve both
+        const relationContext = (
+          await RelationManager.getRelationManager(this, column.id, {
+            rowId,
+            childId: newFk ?? prevFk,
+          })
+        ).getRelationContext();
+        const oldParentId = await this.fkParentPk(
+          relationContext,
+          prevFk,
+          prevData?.[column.title],
+        );
+        const newParentId = await this.fkParentPk(relationContext, newFk);
+        const linked = ncIsNullOrUndefined(newParentId) ? [] : [newParentId];
         changes.push({
           column,
           rowIds: [rowId],
-          refRowIds: parentIds,
-          linkedRefRowIds: parentIds,
-          // Picks up the current parent, so an unlink notifies it too
-          replace: new Map([[String(rowId), parentIds]]),
+          refRowIds: ncIsNullOrUndefined(oldParentId)
+            ? linked
+            : [oldParentId, ...linked],
+          linkedRefRowIds: linked,
         });
       }
       if (!changes.length) return null;
@@ -7414,29 +7440,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.id,
           { rowId, childId: newFk ?? prevFk },
         );
-        const { parentTable, parentColumn, parentBaseModel, parentTn } =
-          relationManager.getRelationContext();
-        // The FK can reference a non-key column: take the key from the nested parent record, else look it up.
-        const parentPk = async (parent, fk) => {
-          if (fk === null) return null;
-          if (parent)
-            return getCompositePkValue(parentTable.primaryKeys, parent);
-          if (parentColumn.pk) return fk;
-          const row = await parentBaseModel.execAndParse(
-            parentBaseModel
-              .dbDriver(parentTn)
-              .select(parentTable.primaryKeys.map((pk) => pk.column_name))
-              .where(parentColumn.column_name, fk)
-              .first(),
-            null,
-            { raw: true, first: true },
-          );
-          return row ? getCompositePkValue(parentTable.primaryKeys, row) : null;
-        };
-
+        const relationContext = relationManager.getRelationContext();
         relationManager.collectFkChangeAudits({
-          oldParentId: await parentPk(prevData?.[column.title], prevFk),
-          newParentId: await parentPk(newData?.[column.title], newFk),
+          oldParentId: await this.fkParentPk(
+            relationContext,
+            prevFk,
+            prevData?.[column.title],
+          ),
+          newParentId: await this.fkParentPk(
+            relationContext,
+            newFk,
+            newData?.[column.title],
+          ),
         });
         await this.writeLinkAudits(
           await relationManager.getAuditUpdateObj(cookie),
@@ -7446,6 +7461,35 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } catch (e) {
       logger.error(`[updateByPk] link audit failed: ${e.message}`, e.stack);
     }
+  }
+
+  /**
+   * Parent pk for a belongs-to FK value. The FK can reference a non-key column: take the key
+   * from the nested parent record, else look it up. Null when no parent row matches.
+   */
+  protected async fkParentPk(
+    {
+      parentTable,
+      parentColumn,
+      parentBaseModel,
+      parentTn,
+    }: ReturnType<RelationManager['getRelationContext']>,
+    fk: string | null,
+    parent?: Record<string, any>,
+  ): Promise<string | null> {
+    if (ncIsNullOrUndefined(fk)) return null;
+    if (parent) return getCompositePkValue(parentTable.primaryKeys, parent);
+    if (parentColumn.pk) return fk;
+    const row = await parentBaseModel.execAndParse(
+      parentBaseModel
+        .dbDriver(parentTn)
+        .select(parentTable.primaryKeys.map((pk) => pk.column_name))
+        .where(parentColumn.column_name, fk)
+        .first(),
+      null,
+      { raw: true, first: true },
+    );
+    return row ? getCompositePkValue(parentTable.primaryKeys, row) : null;
   }
 
   private async writeLinkAudits(

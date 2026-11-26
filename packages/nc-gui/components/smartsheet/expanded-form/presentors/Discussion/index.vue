@@ -140,8 +140,10 @@ watch([newCommentText, auditsLength], () => {
 })
 
 // A reply lands inside its thread, so only new threads scroll the timeline.
-watch(threadsLength, (length, prevLength) => {
-  if (!!prevLength && length > prevLength && shouldHoldScroll(threads.value[threads.value.length - 1]?.root)) return
+watch([threadsLength, primaryKey], ([length, pk], [prevLength, prevPk]) => {
+  // A record switch replaces the list; only an arrival on the same record is held.
+  const isArrival = pk === prevPk && !!prevLength && length > prevLength
+  if (isArrival && shouldHoldScroll(threads.value[threads.value.length - 1]?.root)) return
 
   scrollToBottom()
 })

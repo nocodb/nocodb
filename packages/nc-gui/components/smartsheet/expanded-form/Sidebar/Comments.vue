@@ -481,9 +481,11 @@ watch(
 )
 
 watch(
-  () => comments.value?.length,
-  (length, prevLength) => {
-    if (!!prevLength && length > prevLength && shouldHoldScroll(comments.value[comments.value.length - 1])) return
+  () => [comments.value?.length ?? 0, primaryKey.value] as const,
+  ([length, pk], [prevLength, prevPk] = [0, undefined]) => {
+    // A record switch replaces the list; only an arrival on the same record is held.
+    const isArrival = pk === prevPk && !!prevLength && length > prevLength
+    if (isArrival && shouldHoldScroll(comments.value[comments.value.length - 1])) return
 
     nextTick(() => {
       // Deep-link target still in scope (only cleared on user post / row

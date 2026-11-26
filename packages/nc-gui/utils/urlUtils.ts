@@ -248,7 +248,7 @@ const isLeavingPageRequired = (url: string) =>
   /^https?:\/\//i.test(url) && ncIsSharedViewOrBase() && !isSameOriginUrl(url) && !isTrustedLinkUrl(url)
 
 export const getLeavingPageUrl = (url: string) => {
-  const leavingUrl = new URL(`${window.location.origin}/leaving`)
+  const leavingUrl = new URL(ncAppUrl('/leaving'))
   leavingUrl.searchParams.set('ncRedirectUrl', url)
   leavingUrl.searchParams.set('ncBackUrl', window.location.href)
   return leavingUrl.toString()

@@ -834,7 +834,7 @@ export function useGlobalCommands(edition?: (ctx: CmdGlobalCommandsContext) => C
       section: sections.value.base,
       icon: { type: 'icon', name: 'ncLink' },
       feedback: t('labels.commandPalette.copied'),
-      run: () => copy(`${window.location.origin}/${base.fk_workspace_id ?? activeWorkspaceId.value}/${base.id}`),
+      run: () => copy(`${ncAppUrl()}/${base.fk_workspace_id ?? activeWorkspaceId.value}/${base.id}`),
     })
 
     // The settings rail's rows, with the rail's own gates (useBaseSettingsNav).

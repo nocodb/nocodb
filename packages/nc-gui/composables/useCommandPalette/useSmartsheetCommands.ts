@@ -448,7 +448,7 @@ export function useSmartsheetCommands(ext: CmdSmartsheetExt = {}) {
         run: () =>
           copy(
             encodeURI(
-              `${location.origin}/${route.params.typeOrId}/${currentView.base_id}/${currentView.fk_model_id}/${currentView.id}`,
+              `${ncAppUrl()}/${route.params.typeOrId}/${currentView.base_id}/${currentView.fk_model_id}/${currentView.id}`,
             ),
           ),
       },
@@ -664,7 +664,7 @@ export function useSmartsheetCommands(ext: CmdSmartsheetExt = {}) {
       icon: { type: 'icon', name: 'ncLink' },
       keywords: ['url', 'share'],
       feedback: t('labels.commandPalette.copied'),
-      run: () => copy(encodeURI(`${location.origin}/${route.params.typeOrId}/${table.base_id}/${table.id}`)),
+      run: () => copy(encodeURI(`${ncAppUrl()}/${route.params.typeOrId}/${table.base_id}/${table.id}`)),
     })
 
     commands.push({

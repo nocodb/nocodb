@@ -57,7 +57,7 @@ export default {
 
     const navigateToHome = () => {
       error.value = null
-      window.location.href = '/'
+      window.location.href = `${ncAppBasePath()}/`
     }
 
     const close = () => {

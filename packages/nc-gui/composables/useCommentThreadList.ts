@@ -668,6 +668,40 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
 
 export { useProvideCommentThreadList }
 
+/**
+ * Moves `?commentId=` from the URL into the list's deep link. The link holds until a switch to a record
+ * other than the one it names, so it survives the linked record loading in an already-open panel.
+ */
+export function useCommentDeepLinkFromRoute(
+  deepLinkCommentId: Ref<string | null>,
+  primaryKey: Ref<unknown>,
+  onLink?: () => void,
+) {
+  const route = useRoute()
+
+  const router = useRouter()
+
+  let linkedRowId: string | undefined
+
+  watch(
+    () => route.query.commentId,
+    (id) => {
+      if (!id) return
+      deepLinkCommentId.value = id as string
+      linkedRowId = route.query.rowId as string | undefined
+      onLink?.()
+      // Keep `path` so the group context survives a reload; only commentId is consumed.
+      const { commentId: _drop, ...rest } = router.currentRoute.value.query
+      router.push({ query: rest })
+    },
+    { immediate: true },
+  )
+
+  watch(primaryKey, (pk, prev) => {
+    if (prev && `${pk}` !== linkedRowId) deepLinkCommentId.value = null
+  })
+}
+
 export function useCommentThreadListOrThrow() {
   const state = useCommentThreadList()
   if (!state) throw new Error('useCommentThreadList is not provided')

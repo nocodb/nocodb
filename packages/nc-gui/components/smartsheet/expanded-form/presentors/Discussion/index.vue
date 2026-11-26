@@ -76,29 +76,11 @@ const commentList = useProvideCommentThreadList({ containerEl: refScrollEl })
 
 const { firstName, commentPlainText, revealComment, isResolvedCollapsed, deepLinkCommentId } = commentList
 
-const route = useRoute()
-
-const router = useRouter()
-
-/** Record the link points at; a switch to any other record drops the link. */
-let deepLinkRowId: string | undefined
-
 /** Reveal a link once; later comments must not re-open a thread the reader closed. */
 let revealedCommentId: string | null = null
 
-// A comment link lands here when the view was left in Discussion; keep the id after stripping it from the URL.
-watch(
-  () => route.query.commentId,
-  (id) => {
-    if (!id) return
-    deepLinkCommentId.value = id as string
-    deepLinkRowId = route.query.rowId as string | undefined
-    revealedCommentId = null
-    const { commentId: _drop, ...rest } = router.currentRoute.value.query
-    router.push({ query: rest })
-  },
-  { immediate: true },
-)
+// A comment link lands here when the view was left in Discussion.
+useCommentDeepLinkFromRoute(deepLinkCommentId, primaryKey, () => (revealedCommentId = null))
 
 watch(
   [deepLinkCommentId, () => comments.value.length],
@@ -109,11 +91,6 @@ watch(
   },
   { immediate: true },
 )
-
-watch(primaryKey, (pk, prev) => {
-  // The first key to arrive, or the record a link names, is the linked record itself.
-  if (prev && `${pk}` !== deepLinkRowId) deepLinkCommentId.value = null
-})
 
 const { unreadComments, firstUnreadRootId, isJumpToUnreadDismissed, isFirstUnreadBelow, jumpToUnread, shouldHoldScroll } =
   useCommentListUnread(commentList, refScrollEl, threads)

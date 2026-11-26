@@ -164,10 +164,6 @@ const comment = ref('')
 
 const searchInputRef = ref<HTMLInputElement>()
 
-const route = useRoute()
-
-const router = useRouter()
-
 const debouncedLoadCommentEditedTooltip = useDebounceFn(loadCommentEditedTooltip, 1000)
 
 function scrollComments() {
@@ -253,33 +249,8 @@ function tryScrollToDeepLinkComment(): boolean {
   return true
 }
 
-/** Record the link points at; a switch to any other record drops the link. */
-let deepLinkRowId: string | undefined
-
-// Capture commentId from the URL into our own ref before stripping it,
-// so subsequent wrapper remounts (caused by isCommentsLoading toggles)
-// still know there's a deep-link in progress. Also fires when the user
-// clicks another notification while the panel is already open.
-watch(
-  () => route.query.commentId,
-  (newId) => {
-    if (!newId) return
-    deepLinkCommentId.value = newId as string
-    deepLinkRowId = route.query.rowId as string | undefined
-    // Preserve `path` so the group context survives a reload after the
-    // comment deep-link is consumed; only commentId needs to be stripped.
-    const { commentId: _drop, ...rest } = router.currentRoute.value.query
-    router.push({ query: rest })
-  },
-  { immediate: true },
-)
-
-// Reset deep-link state when row changes so a new row defaults back to
-// the usual scroll-to-bottom behavior on first open.
-watch(primaryKey, (pk, prev) => {
-  // The first key to arrive, or the record a link names, is the deep-linked record itself.
-  if (prev && `${pk}` !== deepLinkRowId) deepLinkCommentId.value = null
-})
+// The link survives the list remounting while comments load, and a notification clicked with the panel open.
+useCommentDeepLinkFromRoute(deepLinkCommentId, primaryKey)
 
 const SEARCH_HIGHLIGHT = 'nc-comment-search'
 

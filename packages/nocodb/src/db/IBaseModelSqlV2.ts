@@ -509,7 +509,10 @@ export interface IBaseModelSqlV2 {
    */
   formulaDryRunFailed?: boolean;
   getRlsConditions(mode?: 'read' | 'write'): Promise<Filter[]>;
-  applyRlsReadonlyFlags(rows: any[]): Promise<void>;
+  applyRlsReadonlyFlags(
+    rows: any[],
+    opts?: { apiVersion?: NcApiVersion; forWrite?: boolean },
+  ): Promise<void>;
   assertConditionWritable(
     scopeFilters: Filter[],
     options?: { includeSoftDeleted?: boolean; skipPks?: string },

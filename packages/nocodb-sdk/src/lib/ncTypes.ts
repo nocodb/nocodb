@@ -106,6 +106,11 @@ export interface NcAdditionalContext {
    * downstream BaseModel ops skip propagating again when this is true.
    */
   isDatePropagating?: boolean;
+  /**
+   * The caller never shows rows to the app's UI (e.g. an export), so reads
+   * skip the RLS read-only flag probe.
+   */
+  skipRlsReadonlyFlags?: boolean;
   /** Allow ad-hoc keys without forcing every caller through this interface. */
   [key: string]: unknown;
 }

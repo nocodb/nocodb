@@ -264,6 +264,21 @@ dayjs.extend(timezone);
 
 const logger = new Logger('BaseModelSqlv2');
 
+// `__nc_rls_readonly` tells the app's own UI a row is locked for this user;
+// it is not record data, so it stays out of webhook payloads.
+function withoutRlsReadonlyFlag<T>(d: T): T {
+  if (Array.isArray(d)) {
+    return (
+      d.some((r) => r && '__nc_rls_readonly' in r)
+        ? d.map((r) => withoutRlsReadonlyFlag(r))
+        : d
+    ) as T;
+  }
+  if (!d || typeof d !== 'object' || !('__nc_rls_readonly' in d)) return d;
+  const { __nc_rls_readonly: _, ...rest } = d as Record<string, unknown>;
+  return rest as T;
+}
+
 // Max rows a bulkUpdateAll will snapshot pre-update values for. Bounds the
 // heaviest part of the after.bulkUpdate emission — a formatted record per
 // matched row, held until the UPDATE lands. Not the whole cost: the PK list
@@ -515,6 +530,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       fk_display_value_column_id,
       skipPublicRedaction = false,
       applyViewFilters = false,
+      skipRlsReadonlyFlags = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -529,6 +545,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // visible in the view. Opt-in: the public shared-view checks rely on it as
       // the anonymous caller's access boundary.
       applyViewFilters?: boolean;
+      // Internal reads (e.g. a write's previous row) never reach the UI.
+      skipRlsReadonlyFlags?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -637,8 +655,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       : null;
 
     // Tag as read-only if visible-but-not-editable (EE-only; no-op in CE).
-    if (result && !ignoreRls) {
-      await this.applyRlsReadonlyFlags([result]);
+    if (result && !ignoreRls && !skipRlsReadonlyFlags) {
+      await this.applyRlsReadonlyFlags([result], {
+        apiVersion: apiVersion ?? this.context.api_version,
+      });
     }
 
     return result;
@@ -1009,6 +1029,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipSortBasedOnOrderCol?: boolean;
       ignoreRls?: boolean;
       deletedOnly?: boolean;
+      skipRlsReadonlyFlags?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -1244,8 +1265,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // Tag visible-but-not-editable rows so the client can render them as locked
     // (EE-only; no-op in CE). Best-effort — never blocks the read.
-    if (!ignoreRlsOpt && data?.length) {
-      await this.applyRlsReadonlyFlags(data);
+    if (!ignoreRlsOpt && !options.skipRlsReadonlyFlags && data?.length) {
+      await this.applyRlsReadonlyFlags(data, { apiVersion: args.apiVersion });
     }
 
     return data?.map((d) => {
@@ -4655,6 +4676,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           ignoreViewFilterAndSort: true,
           ignoreRls: args.ignoreRls,
           deletedOnly: args.deletedOnly,
+          skipRlsReadonlyFlags: true,
         },
       );
       chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
@@ -6954,6 +6976,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // write — worst case the webhook gets the live object (a public email may
     // show a blank user), which is strictly better than failing the insert.
     const snapshot = (d: typeof prevData) => {
+      d = withoutRlsReadonlyFlag(d);
       if (!this.context?.is_public || !d || !hookName?.startsWith('after')) {
         return d;
       }
@@ -12508,7 +12531,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * Tags rows the user can see but not edit with `__nc_rls_readonly`.
    * CE version: no-op (no RLS). EE version marks read_only rows.
    */
-  public async applyRlsReadonlyFlags(_rows: any[]): Promise<void> {}
+  public async applyRlsReadonlyFlags(
+    _rows: any[],
+    _opts?: { apiVersion?: NcApiVersion; forWrite?: boolean },
+  ): Promise<void> {}
 
   /**
    * Throws if any row in a condition-based bulk update scope is locked read-only.

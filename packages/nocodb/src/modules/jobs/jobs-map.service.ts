@@ -72,6 +72,10 @@ export class JobsMap {
       [JobTypes.HandleWebhook]: {
         this: this.webhookHandlerProcessor,
       },
+      [JobTypes.RetryWebhook]: {
+        this: this.webhookHandlerProcessor,
+        fn: 'retryJob',
+      },
       [JobTypes.DataExport]: {
         this: this.dataExportProcessor,
       },

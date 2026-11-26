@@ -12,6 +12,7 @@ import {
   NcBaseError,
   parseProp,
   UITypes,
+  VIEW_META_HIDE_NEW_FIELDS,
   ViewLockType,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -1051,6 +1052,8 @@ export default class View implements ViewType {
         modifiedInsertObj.show = false;
       } else if (param.column_show?.view_id === view.id) {
         modifiedInsertObj.show = true;
+      } else if (parseProp(view.meta)?.[VIEW_META_HIDE_NEW_FIELDS]) {
+        modifiedInsertObj.show = false;
       } else if (
         view.lock_type === ViewLockType.Personal ||
         view.lock_type === ViewLockType.Locked

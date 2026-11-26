@@ -227,6 +227,26 @@ const updateCoverImageObjectFit = async (val: string) => {
   })
 }
 
+const isHideNewFieldsOn = computed(() => !!parseProp(activeView.value?.meta)?.[VIEW_META_HIDE_NEW_FIELDS])
+
+const isSavingHideNewFields = ref(false)
+
+async function onToggleHideNewFields(isOn: boolean) {
+  if (!activeView.value?.id) return
+
+  isSavingHideNewFields.value = true
+  try {
+    const meta = { ...parseProp(activeView.value.meta), [VIEW_META_HIDE_NEW_FIELDS]: isOn }
+    await viewStore.updateView(activeView.value.id, { meta })
+    activeView.value.meta = meta
+    $e('c:field:hide-new:toggle', { enabled: isOn })
+  } catch {
+    // updateView already shows the error
+  } finally {
+    isSavingHideNewFields.value = false
+  }
+}
+
 const coverImageObjectFitOptions = [
   { value: CoverImageObjectFit.FIT, label: t('labels.fitImage') },
   { value: CoverImageObjectFit.COVER, label: t('labels.coverImageArea') },
@@ -1026,6 +1046,26 @@ useFieldsMenuCommands({
               </template>
             </Draggable>
           </div>
+        </div>
+
+        <div
+          v-if="!isLocalMode && !isPublic && !filterQuery && !isFieldsMenuReadOnly"
+          class="flex items-center justify-between gap-2 px-4 py-2 border-t-1 border-nc-border-gray-medium"
+        >
+          <NcTooltip :title="$t('tooltip.hideNewFields')" placement="left">
+            <span id="nc-fields-hide-new-label" class="text-bodyDefaultSm text-nc-content-gray">
+              {{ $t('title.hideNewFields') }}
+            </span>
+          </NcTooltip>
+          <NcSwitch
+            :checked="isHideNewFieldsOn"
+            :disabled="isSavingHideNewFields"
+            :size="getResponsiveValue('small', 'xsmall')"
+            aria-labelledby="nc-fields-hide-new-label"
+            class="nc-fields-hide-new-fields"
+            data-testid="nc-fields-hide-new-fields"
+            @change="onToggleHideNewFields"
+          />
         </div>
 
         <div

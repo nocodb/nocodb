@@ -1042,6 +1042,14 @@ export default class View implements ViewType {
     for (const view of views) {
       let inserted: { id?: string } | undefined;
 
+      const hidesNewFields =
+        param.column_show?.view_id !== view.id &&
+        !!parseProp(view.meta)?.[VIEW_META_HIDE_NEW_FIELDS];
+      // Map, list, calendar, timeline and gantt insert from this, not modifiedInsertObj.
+      const viewInsertObj = hidesNewFields
+        ? { ...insertObj, show: false }
+        : insertObj;
+
       const modifiedInsertObj = {
         ...insertObj,
         fk_view_id: view.id,
@@ -1052,7 +1060,7 @@ export default class View implements ViewType {
         modifiedInsertObj.show = false;
       } else if (param.column_show?.view_id === view.id) {
         modifiedInsertObj.show = true;
-      } else if (parseProp(view.meta)?.[VIEW_META_HIDE_NEW_FIELDS]) {
+      } else if (hidesNewFields) {
         modifiedInsertObj.show = false;
       } else if (
         view.lock_type === ViewLockType.Personal ||
@@ -1107,7 +1115,7 @@ export default class View implements ViewType {
           inserted = await MapViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_view_id: view.id,
             },
             ncMeta,
@@ -1129,7 +1137,7 @@ export default class View implements ViewType {
           inserted = await ListViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_level_id: level?.id,
               fk_view_id: view.id,
               order: listOrder,
@@ -1149,7 +1157,7 @@ export default class View implements ViewType {
           inserted = await CalendarViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_view_id: view.id,
             },
             ncMeta,
@@ -1159,7 +1167,7 @@ export default class View implements ViewType {
           inserted = await TimelineViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_view_id: view.id,
             },
             ncMeta,
@@ -1169,7 +1177,7 @@ export default class View implements ViewType {
           inserted = await GanttViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_view_id: view.id,
             },
             ncMeta,

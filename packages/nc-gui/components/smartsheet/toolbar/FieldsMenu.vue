@@ -240,8 +240,8 @@ async function onToggleHideNewFields(isOn: boolean) {
     await viewStore.updateView(activeView.value.id, { meta })
     activeView.value.meta = meta
     $e('c:field:hide-new:toggle', { enabled: isOn })
-  } catch {
-    // updateView already shows the error
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isSavingHideNewFields.value = false
   }

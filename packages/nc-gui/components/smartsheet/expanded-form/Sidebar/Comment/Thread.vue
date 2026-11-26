@@ -242,12 +242,7 @@ const {
           <!-- Hover action bar -->
           <div
             v-if="!editCommentValue && !commentItem.id?.startsWith('temp-')"
-            class="nc-comment-actions !hidden !group-hover:flex !group-focus-within:flex absolute right-2 z-10 items-center gap-0.5 rounded-lg p-0.5"
-            :class="
-              avatarOutside
-                ? 'top-1 bg-nc-bg-gray-light'
-                : '-top-3.5 border-1 border-nc-border-gray-medium bg-nc-bg-elevated shadow-sm'
-            "
+            class="nc-comment-actions !hidden !group-hover:flex !group-focus-within:flex absolute right-2 -top-3.5 z-10 items-center gap-0.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated p-0.5 shadow-sm"
             data-testid="nc-comment-actions"
           >
             <SmartsheetExpandedFormSidebarCommentReactionPicker

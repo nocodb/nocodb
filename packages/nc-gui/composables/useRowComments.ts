@@ -268,15 +268,25 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
-  /** Fetches when the caller last read this record's comments, then stamps the visit. */
-  async function loadReadState() {
+  /** Row whose read state `lastReadAt` holds. */
+  let readStateRowId: string | undefined
+
+  /**
+   * Fetches when the caller last read this record's comments, then stamps the visit.
+   * `reuseLoaded` keeps a state already loaded for this row, so switching feeds keeps the same "new" marks.
+   */
+  async function loadReadState(reuseLoaded = false) {
+    const rowId = extractPkFromRow(row.value?.row, meta.value?.columns as ColumnType[])
+
+    if (reuseLoaded && rowId && readStateRowId === rowId) return
+
     const seq = ++readStateSeq
 
     lastReadAt.value = null
+    readStateRowId = undefined
 
     if (!isCommentExtrasEnabled.value || !isUIAllowed('commentList')) return
 
-    const rowId = extractPkFromRow(row.value?.row, meta.value?.columns as ColumnType[])
     if (!rowId) return
 
     try {
@@ -289,6 +299,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       if (seq !== readStateSeq) return
 
       lastReadAt.value = res?.last_read_at ?? null
+      readStateRowId = rowId
 
       // The list may still be loading; records that stay empty write nothing.
       await until(() => comments.value.length > 0).toBe(true, { timeout: 5000 })

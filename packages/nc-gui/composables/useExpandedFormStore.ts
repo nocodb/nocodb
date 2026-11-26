@@ -291,7 +291,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const currentAuditCursor = ref('')
     const hasMoreAudits = ref(false)
 
-    const loadAudits = async (_rowId?: string, showLoading = true) => {
+    const fetchAudits = async (_rowId?: string, showLoading = true) => {
       // No audit in public/shared bases — the backend 403s recordAuditList
       // there, and the audit tab + discussion entries are hidden accordingly.
       if (!isAuditEnabled.value) return
@@ -368,6 +368,21 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       } finally {
         isAuditLoading.value = false
       }
+    }
+
+    // The form and the Discussion view can both ask for the same page; share the request.
+    let auditLoadInFlight: { key: string; promise: Promise<void> } | null = null
+
+    const loadAudits = (_rowId?: string, showLoading = true) => {
+      const pk = _rowId ?? (row.value ? extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[]) : undefined)
+      const key = `${pk ?? ''}|${currentAuditCursor.value}`
+      if (auditLoadInFlight?.key === key) return auditLoadInFlight.promise
+
+      const promise = fetchAudits(_rowId, showLoading).finally(() => {
+        if (auditLoadInFlight?.promise === promise) auditLoadInFlight = null
+      })
+      auditLoadInFlight = { key, promise }
+      return promise
     }
 
     function formatDurationFromDays(days: number): string {

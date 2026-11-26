@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import type { CommentThread } from '~/composables/useRowComments'
+
 /* interface */
 
 const props = defineProps<{
@@ -20,7 +23,6 @@ const {
   commentsDrawer,
   isNew,
   audits,
-  comments,
   auditCommentGroups,
   hasMoreAudits,
   loadMoreAudits,
@@ -58,10 +60,53 @@ watch(primaryKey, () => {
 const showRightSections = computed(() => !props.hideSidebar && !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
 onMounted(() => {
+  // The record loads its history only when it opens in this mode.
+  if (!audits.value.length) resetAuditPages()
+
   scrollToBottom()
 })
 
 /* comments */
+
+const { comments, threads, isCommentExtrasEnabled, acknowledgeUnread } = useRowCommentsOrThrow()
+
+const refScrollEl = ref<HTMLElement>()
+
+const commentList = useProvideCommentThreadList({ containerEl: refScrollEl })
+
+const { firstName, commentPlainText, revealComment, isResolvedCollapsed } = commentList
+
+const { unreadComments, firstUnreadRootId, isJumpToUnreadDismissed, isFirstUnreadBelow, jumpToUnread, shouldHoldScroll } =
+  useCommentListUnread(commentList, refScrollEl, threads)
+
+const showJumpToUnread = computed(
+  () => !!unreadComments.value.length && isFirstUnreadBelow.value && !isJumpToUnreadDismissed.value,
+)
+
+const pinnedComment = computed(() =>
+  isCommentExtrasEnabled.value ? comments.value.find((c) => !!getCommentMeta(c).pinned) : undefined,
+)
+
+type TimelineEntry =
+  | { type: 'thread'; key: string; at?: string; thread: CommentThread }
+  | { type: 'audit'; key: string; at?: string; auditGroup: any }
+
+// A thread sits at its first comment's time; its replies stay inside it.
+const timelineEntries = computed<TimelineEntry[]>(() => {
+  const entries: TimelineEntry[] = threads.value.map((thread) => ({
+    type: 'thread',
+    key: thread.root.id!,
+    at: thread.root.created_at,
+    thread,
+  }))
+
+  for (const group of auditCommentGroups.value) {
+    if (group.type !== 'audit') continue
+    entries.push({ type: 'audit', key: `audit-${group.audit.id}`, at: group.created_at, auditGroup: group })
+  }
+
+  return entries.sort((a, b) => dayjs(a.at).valueOf() - dayjs(b.at).valueOf())
+})
 
 const refAuditsEnd = useTemplateRef('refAuditsEnd')
 const refRichComment = useTemplateRef('refRichComment')
@@ -71,6 +116,9 @@ const shouldSkipAuditsScroll = ref(false)
 function handleCreatingNewComment() {
   if (isAttachmentUploading.value) return
   if (!newCommentText.value.trim() && !pendingAttachments.value.length) return
+
+  // Whoever answers has read what was there.
+  acknowledgeUnread()
 
   saveComment(newCommentText.value, [...pendingAttachments.value])
   newCommentText.value = ''
@@ -85,9 +133,16 @@ function initLoadMoreAudits() {
 }
 
 const auditsLength = computed(() => audits.value.length)
-const commentsLength = computed(() => comments.value.length)
+const threadsLength = computed(() => threads.value.length)
 
-watch([newCommentText, auditsLength, commentsLength], () => {
+watch([newCommentText, auditsLength], () => {
+  scrollToBottom()
+})
+
+// A reply lands inside its thread, so only new threads scroll the timeline.
+watch(threadsLength, (length, prevLength) => {
+  if (!!prevLength && length > prevLength && shouldHoldScroll(threads.value[threads.value.length - 1]?.root)) return
+
   scrollToBottom()
 })
 
@@ -113,12 +168,31 @@ export default {
 <template>
   <div class="h-full flex flex-row nc-discussion-mode-container">
     <div
+      ref="refScrollEl"
       class="relative h-full overflow-y-auto nc-scrollbar-thin flex flex-col items-center justify-start overflow-x-hidden"
       :class="{
         'w-full': !showRightSections,
         'flex-1': showRightSections,
       }"
     >
+      <div
+        v-if="pinnedComment"
+        class="nc-discussion-pinned-bar w-[680px] max-w-full sticky top-0 z-20 pl-3 pr-6 2xl:px-0 pt-3 pb-1 bg-nc-bg-default"
+      >
+        <button
+          type="button"
+          class="nc-comment-pinned w-full flex items-center gap-2 rounded-lg border-1 border-nc-border-brand-medium bg-nc-bg-brand px-2.5 py-1.5 text-left text-small cursor-pointer hover:border-nc-border-brand shadow-sm"
+          data-testid="nc-comment-pinned"
+          @click="revealComment(pinnedComment.id!)"
+        >
+          <GeneralIcon icon="ncPin" class="flex-none w-3.5 h-3.5 text-nc-content-brand" />
+          <span class="min-w-0 flex-1 truncate text-nc-content-gray">
+            <span class="font-semibold">{{ firstName(pinnedComment) }}:</span>
+            {{ commentPlainText(pinnedComment) }}
+          </span>
+          <GeneralIcon icon="chevronRight" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
+        </button>
+      </div>
       <div class="w-[680px] max-w-full flex-grow flex flex-col pl-3 pr-6 2xl:px-0">
         <div
           class="w-full h-0 flex-grow ml-15.8 rtl:(mr-15.8 ml-0 border-l-0 border-r-1) border-l-1 border-nc-border-gray-dark"
@@ -137,18 +211,29 @@ export default {
         </div>
       </div>
       <div class="w-[680px] max-w-full pb-4">
-        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full pl-3 pr-6 2xl:px-0">
-          <template v-if="group.type === 'audit'">
-            <SmartsheetExpandedFormPresentorsDiscussionEntryAudit :audit-group="group" />
-          </template>
-          <template v-else>
-            <SmartsheetExpandedFormPresentorsDiscussionEntryComment :comment="group" />
-          </template>
+        <div v-for="entry in timelineEntries" :key="entry.key" class="w-full pl-3 pr-6 2xl:px-0">
+          <SmartsheetExpandedFormPresentorsDiscussionEntryAudit v-if="entry.type === 'audit'" :audit-group="entry.auditGroup" />
+          <SmartsheetExpandedFormPresentorsDiscussionEntryThread
+            v-else
+            :thread="entry.thread"
+            :show-new-divider="entry.thread.root.id === firstUnreadRootId"
+            :compact="isResolvedCollapsed(entry.thread)"
+          />
         </div>
         <div
           v-if="isUIAllowed('commentEdit')"
           class="w-full border-t border-nc-border-gray-medium pl-3 pr-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-elevated z-10"
         >
+          <button
+            v-if="showJumpToUnread"
+            type="button"
+            class="nc-comment-jump-unread absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 flex items-center gap-1.5 rounded-full bg-nc-fill-primary px-3 py-1 text-xs font-semibold text-white shadow-md cursor-pointer hover:bg-nc-fill-primary-hover whitespace-nowrap"
+            data-testid="nc-comment-jump-unread"
+            @click="jumpToUnread"
+          >
+            <GeneralIcon icon="arrowDown" class="w-3.5 h-3.5" />
+            {{ $t('activity.commentThread.newComments', { count: unreadComments.length }, unreadComments.length) }}
+          </button>
           <div class="font-bold my-3">{{ $t('activity.addComment') }}</div>
           <div
             @paste="isCommentAttachmentsEnabled ? handleAttachmentPaste($event) : undefined"
@@ -198,6 +283,18 @@ export default {
           </div>
         </div>
         <div v-else class="w-full pl-3 pr-6 2xl:px-0">
+          <div class="sticky bottom-4 z-20 h-0">
+            <button
+              v-if="showJumpToUnread"
+              type="button"
+              class="nc-comment-jump-unread absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 flex items-center gap-1.5 rounded-full bg-nc-fill-primary px-3 py-1 text-xs font-semibold text-white shadow-md cursor-pointer hover:bg-nc-fill-primary-hover whitespace-nowrap"
+              data-testid="nc-comment-jump-unread"
+              @click="jumpToUnread"
+            >
+              <GeneralIcon icon="arrowDown" class="w-3.5 h-3.5" />
+              {{ $t('activity.commentThread.newComments', { count: unreadComments.length }, unreadComments.length) }}
+            </button>
+          </div>
           <div class="w-full h-4 flex-grow ml-15.8 -mb-4 border-l-1 border-nc-border-gray-dark" />
         </div>
 

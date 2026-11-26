@@ -102,6 +102,7 @@ async function onSelectDefaultCurrency(value: { currency_code?: string; currency
   isSavingCurrency.value = true
   try {
     await setDefaultCurrency(value)
+    $e('c:user:default-currency:change', { ...defaultCurrency.value, source: 'preferences' })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -245,21 +246,6 @@ onMounted(async () => {
                 </div>
                 <div class="nc-settings-item-action md:!self-center w-full md:!w-50 flex flex-col gap-2">
                   <NcSelect
-                    :value="defaultCurrency.currency_code"
-                    class="w-full"
-                    show-search
-                    :filter-option="filterCurrencyOption"
-                    :disabled="isSavingCurrency"
-                    :aria-label="$t('title.currencyCode')"
-                    data-testid="nc-pref-currency-code"
-                    dropdown-class-name="nc-pref-currency-code-dropdown"
-                    @update:value="(v: string) => onSelectDefaultCurrency({ currency_code: v })"
-                  >
-                    <a-select-option v-for="code of currencyCodes" :key="code" :value="code" :label="code">
-                      {{ code }}
-                    </a-select-option>
-                  </NcSelect>
-                  <NcSelect
                     :value="defaultCurrency.currency_locale"
                     class="w-full"
                     show-search
@@ -280,6 +266,21 @@ onMounted(async () => {
                         <template #title>{{ option.text }}</template>
                         {{ option.text }}
                       </NcTooltip>
+                    </a-select-option>
+                  </NcSelect>
+                  <NcSelect
+                    :value="defaultCurrency.currency_code"
+                    class="w-full"
+                    show-search
+                    :filter-option="filterCurrencyOption"
+                    :disabled="isSavingCurrency"
+                    :aria-label="$t('title.currencyCode')"
+                    data-testid="nc-pref-currency-code"
+                    dropdown-class-name="nc-pref-currency-code-dropdown"
+                    @update:value="(v: string) => onSelectDefaultCurrency({ currency_code: v })"
+                  >
+                    <a-select-option v-for="code of currencyCodes" :key="code" :value="code" :label="code">
+                      {{ code }}
                     </a-select-option>
                   </NcSelect>
                 </div>

@@ -247,6 +247,7 @@ export class UiPostOperations
           column: payload,
           user: req.user,
           req,
+          applyUserCurrencyDefault: true,
         });
       case 'columnUpdate':
         return await this.columnsService.columnUpdate(context, {
@@ -254,6 +255,7 @@ export class UiPostOperations
           column: payload,
           user: req.user,
           req,
+          applyUserCurrencyDefault: true,
         });
       case 'columnDelete':
         return await this.columnsService.columnDelete(context, {

@@ -1160,6 +1160,8 @@ export class ColumnsService implements IColumnsService {
       forceUpdateSystem?: boolean;
       bypassSyncedFieldGuard?: boolean;
       columnWebhookManager?: ColumnWebhookManager;
+      /** A person is creating the field: a currency field without settings takes their default currency. */
+      applyUserCurrencyDefault?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model | Column<any>> {
@@ -1173,7 +1175,10 @@ export class ColumnsService implements IColumnsService {
     // state (including unlicensed on-prem, which bypasses the EE method body).
     await this.preColumnUpdate(context, param, column);
 
-    if (!isCurrencyDisplay(column.uidt, column.meta)) {
+    if (
+      param.applyUserCurrencyDefault &&
+      !isCurrencyDisplay(column.uidt, column.meta)
+    ) {
       await this.fillCurrencyDefaults(param.column, param.user);
     }
 
@@ -4622,6 +4627,8 @@ export class ColumnsService implements IColumnsService {
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
       operationSource?: OperationSource;
+      /** A person is creating the field: a currency field without settings takes their default currency. */
+      applyUserCurrencyDefault?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
@@ -4657,7 +4664,7 @@ export class ColumnsService implements IColumnsService {
     // rejected before any write, on every route (v2 columns + v3 fields).
     await this.preColumnAdd(context, param);
 
-    if (!param.keepIntegrationBinding) {
+    if (param.applyUserCurrencyDefault) {
       await this.fillCurrencyDefaults(param.column, param.user);
     }
 

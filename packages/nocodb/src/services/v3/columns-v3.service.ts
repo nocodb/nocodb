@@ -902,6 +902,7 @@ export class ColumnsV3Service {
         apiVersion: NcApiVersion.V3,
         req: param.req,
         columnWebhookManager: columnWebhookManager,
+        applyUserCurrencyDefault: true,
       },
       ncMeta,
     );
@@ -1111,6 +1112,7 @@ export class ColumnsV3Service {
         column,
         apiVersion: NcApiVersion.V3,
         columnWebhookManager: columnWebhookManager,
+        applyUserCurrencyDefault: true,
       },
       ncMeta,
     );

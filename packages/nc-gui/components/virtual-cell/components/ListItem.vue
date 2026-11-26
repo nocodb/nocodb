@@ -262,9 +262,14 @@ const utilization = computed(() => props.row?.[LINK_UTILIZATION_ROW_KEY] ?? null
 }
 
 .nc-link-record-cell {
-  // The field-name tooltip covers these; a cell's own `title` would stack a second one on it
+  // The field-name tooltip covers the whole cell, so a cell's own tooltip would stack on it —
+  // links stay clickable, they carry no tooltip of their own
   & > * {
     @apply pointer-events-none;
+  }
+
+  :deep(a) {
+    @apply pointer-events-auto;
   }
 
   :deep(.nc-cell),

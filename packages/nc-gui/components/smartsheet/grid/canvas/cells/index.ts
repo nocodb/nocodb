@@ -5,7 +5,6 @@ import {
   UITypes,
   type UserType,
   type ViewType,
-  ViewTypes,
   isAIPromptCol,
   isBtLikeV2Junction,
   isLinksOrLTAR,
@@ -51,6 +50,7 @@ import { UUIDCellRenderer } from './UUID'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
+import { getLinkTargetGridViewId } from '~/utils/linkViewUtils'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -117,6 +117,8 @@ export function useGridCellHandler(params: {
   // interface record-detail sheet when configured (provided by the viz host).
   const linkRecordExpand = inject(LinkRecordExpandInj, ref(null))
 
+  const { getViewColumns } = useSmartsheetStore() ?? {}
+
   // Interface pages never open the data-app expanded form for a LINKED record
   // (a chip click): the related table sits outside the page surface, and its
   // raw reads/comments 403 for interface collaborators. Gated at this single
@@ -125,7 +127,6 @@ export function useGridCellHandler(params: {
   // exception: a chip whose column has "Click into record details" configured
   // opens the LINKED record's interface record-detail sheet (call sites pass
   // their LTAR column).
-  const { getViewColumns } = useSmartsheetStore() ?? {}
 
   // `viewLinkColumn`: the link field whose limited-to view sets the form's fields (a Lookup passes its inner link)
   const openDetachedExpandedForm = (
@@ -144,9 +145,8 @@ export function useGridCellHandler(params: {
 
     const colOptions =
       viewLinkColumn && isLinksOrLTAR(viewLinkColumn) ? (viewLinkColumn.colOptions as LinkToAnotherRecordType) : undefined
-    // Only a grid target view sets the fields; card views' `show` is just what's on the card
-    const targetView = state.meta?.views?.find((v) => v.id === colOptions?.fk_target_view_id)
-    const viewId = targetView?.type === ViewTypes.GRID ? targetView.id : undefined
+    // No grid target view: the form falls back to the column's default-view meta
+    const viewId = getLinkTargetGridViewId(state.meta?.views, colOptions)
     const baseId = colOptions?.fk_related_base_id || viewLinkColumn?.base_id
 
     if (!viewId || !baseId || !getViewColumns || isPublic.value) {

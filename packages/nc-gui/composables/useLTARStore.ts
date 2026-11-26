@@ -18,6 +18,7 @@ import {
 import type { ComputedRef, Ref } from 'vue'
 import type { LtarCellShape } from '~/utils/ltarDeferredOps'
 import { linkedRecordTitleFormatter } from '~/utils/dataUtils'
+import { getLinkTargetGridViewId } from '~/utils/linkViewUtils'
 import { recordTitleOf, resolveDisplayLeafColumn, resolveLinkedRecordDisplay } from '~/utils/linkedRecordDisplay'
 import {
   applyLtarCellOp,
@@ -339,10 +340,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       await nextTick()
 
-      // Only a grid target view sets the fields; card views' `show` is just what's on the card
-      const targetView = (relatedTableMeta.value?.views ?? []).find((v) => v.id === colOptions.value.fk_target_view_id)
+      // No grid target view: the rows follow the related table's first grid view
       const viewId =
-        (targetView?.type === ViewTypes.GRID ? targetView.id : undefined) ??
+        getLinkTargetGridViewId(relatedTableMeta.value?.views, colOptions.value) ??
         getFirstNonPersonalView(relatedTableMeta.value?.views ?? [], { includeViewType: ViewTypes.GRID })?.id ??
         ''
       if (!viewId) return

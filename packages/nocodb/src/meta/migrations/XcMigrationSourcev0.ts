@@ -141,7 +141,7 @@ import * as nc_202611111200_auth_token_hash from './v0/nc_202611111200_auth_toke
 import * as nc_202611141200_automation_executions_triggered_by from './v0/nc_202611141200_automation_executions_triggered_by';
 import * as nc_202611131200_gallery_view_columns_group_by from './v0/nc_202611131200_gallery_view_columns_group_by';
 import * as nc_202611151411_user_comments_notifications_preference_last_read_at from './v0/nc_202611151411_user_comments_notifications_preference_last_read_at';
-import * as nc_202611141200_rls_policy_access_level from './v0/nc_202611141200_rls_policy_access_level';
+import * as nc_202611231200_rls_policy_access_level from './v0/nc_202611231200_rls_policy_access_level';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -294,7 +294,7 @@ export default class XcMigrationSourcev0 {
       'nc_202611141200_automation_executions_triggered_by',
       'nc_202611131200_gallery_view_columns_group_by',
       'nc_202611151411_user_comments_notifications_preference_last_read_at',
-      'nc_202611141200_rls_policy_access_level',
+      'nc_202611231200_rls_policy_access_level',
     ]);
   }
 
@@ -590,8 +590,8 @@ export default class XcMigrationSourcev0 {
         return nc_202611131200_gallery_view_columns_group_by;
       case 'nc_202611151411_user_comments_notifications_preference_last_read_at':
         return nc_202611151411_user_comments_notifications_preference_last_read_at;
-      case 'nc_202611141200_rls_policy_access_level':
-        return nc_202611141200_rls_policy_access_level;
+      case 'nc_202611231200_rls_policy_access_level':
+        return nc_202611231200_rls_policy_access_level;
     }
   }
 }

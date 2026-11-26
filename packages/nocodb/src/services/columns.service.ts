@@ -697,10 +697,17 @@ function validateLongTextMetaExclusivity(
   }
 }
 
+// Field types that can be shown as another type keep its settings in `display_column_meta`
+const DISPLAY_AS_TYPES: unknown[] = [
+  UITypes.Formula,
+  UITypes.Rollup,
+  UITypes.Lookup,
+];
+
 function isCurrencyDisplay(uidt: unknown, rawMeta: unknown) {
   return (
     uidt === UITypes.Currency ||
-    (uidt === UITypes.Formula &&
+    (DISPLAY_AS_TYPES.includes(uidt) &&
       parseProp(rawMeta)?.display_type === UITypes.Currency)
   );
 }
@@ -1126,9 +1133,10 @@ export class ColumnsService implements IColumnsService {
     const meta = parseProp((column as any)?.meta);
     if (!isCurrencyDisplay(column?.uidt, meta)) return;
 
-    // A formula keeps its display settings one level down
-    const isFormula = column.uidt === UITypes.Formula;
-    const target = isFormula ? parseProp(meta.display_column_meta?.meta) : meta;
+    const isDisplayAs = DISPLAY_AS_TYPES.includes(column.uidt);
+    const target = isDisplayAs
+      ? parseProp(meta.display_column_meta?.meta)
+      : meta;
     if (target.currency_code && target.currency_locale) return;
 
     // req.user can predate a preference change, so read the stored user
@@ -1140,7 +1148,7 @@ export class ColumnsService implements IColumnsService {
       currency_locale: target.currency_locale || defaults.currency_locale,
     };
 
-    (column as any).meta = isFormula
+    (column as any).meta = isDisplayAs
       ? {
           ...meta,
           display_column_meta: { ...meta.display_column_meta, meta: filled },

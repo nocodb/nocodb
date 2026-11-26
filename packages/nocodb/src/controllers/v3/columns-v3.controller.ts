@@ -43,6 +43,7 @@ export class ColumnsV3Controller {
       column: body,
       req,
       user: req.user,
+      applyUserCurrencyDefault: true,
     });
   }
 

@@ -886,20 +886,21 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               {{ isMobileMode ? $t('title.linkMore') : $t('title.linkMoreRecords') }}
             </div>
           </NcButton>
-          <NcTooltip v-if="linkedRecordsWhere && childrenCachedTotalRows > 0" :disabled="!isMobileMode">
+          <NcTooltip v-if="linkedRecordsWhere && childrenCachedTotalRows > 0">
             <template #title>{{ $t('labels.viewAllInTable') }}</template>
             <NcButton
               v-e="['c:link:records:table:open']"
               data-testid="nc-child-list-button-view-in-table"
-              class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
+              class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !w-7 !min-w-7"
               size="small"
               type="secondary"
+              icon-only
+              :aria-label="$t('labels.viewAllInTable')"
               @click="openLinkedRecordsInTable"
             >
-              <div class="flex items-center gap-1">
+              <template #icon>
                 <GeneralIcon icon="externalLink" class="h-4 w-4" />
-                <span v-if="!isMobileMode">{{ $t('labels.viewAllInTable') }}</span>
-              </div>
+              </template>
             </NcButton>
           </NcTooltip>
         </div>
@@ -928,7 +929,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         :state="isNewRecord ? newRowState : {}"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
-        :view-columns="isNewRecord ? targetViewColumns : undefined"
+        :view-columns="targetViewColumns"
         skip-reload
         maintain-default-view-order
         :blueprint-mode="isBlueprintMode"

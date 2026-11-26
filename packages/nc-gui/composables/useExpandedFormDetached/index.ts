@@ -1,4 +1,4 @@
-import type { TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 
 export interface UseExpandedFormDetachedProps {
   'isOpen'?: boolean
@@ -9,6 +9,8 @@ export interface UseExpandedFormDetachedProps {
   'useMetaFields'?: boolean
   'rowId'?: string
   'view'?: ViewType
+  /** Columns of the view the opening link field is limited to; replace the default view's show/order */
+  'viewColumns'?: ColumnType[]
   'onCancel'?: Function
   'onUpdate:modelValue'?: Function
   'maintainDefaultViewOrder'?: boolean

@@ -1,11 +1,13 @@
 import {
   type ColumnType,
+  type LinkToAnotherRecordType,
   type TableType,
   UITypes,
   type UserType,
   type ViewType,
   isAIPromptCol,
   isBtLikeV2Junction,
+  isLinksOrLTAR,
 } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
@@ -122,7 +124,14 @@ export function useGridCellHandler(params: {
   // exception: a chip whose column has "Click into record details" configured
   // opens the LINKED record's interface record-detail sheet (call sites pass
   // their LTAR column).
-  const openDetachedExpandedForm = (state: Parameters<typeof openDetachedExpandedFormRaw>[0], ltarColumn?: ColumnType) => {
+  const { getViewColumns } = useSmartsheetStore() ?? {}
+
+  // `viewLinkColumn`: the link field whose limited-to view sets the form's fields (a Lookup passes its inner link)
+  const openDetachedExpandedForm = (
+    state: Parameters<typeof openDetachedExpandedFormRaw>[0],
+    ltarColumn?: ColumnType,
+    viewLinkColumn: ColumnType | undefined = ltarColumn,
+  ) => {
     if (interfacePageDataApi) {
       const api = linkRecordExpand.value
       if (ltarColumn && state.row?.row && state.meta?.id && api?.isEnabled(ltarColumn)) {
@@ -131,7 +140,20 @@ export function useGridCellHandler(params: {
       }
       return false
     }
-    openDetachedExpandedFormRaw(state)
+
+    const colOptions =
+      viewLinkColumn && isLinksOrLTAR(viewLinkColumn) ? (viewLinkColumn.colOptions as LinkToAnotherRecordType) : undefined
+    const viewId = colOptions?.fk_target_view_id
+    const baseId = colOptions?.fk_related_base_id || viewLinkColumn?.base_id
+
+    if (!viewId || !baseId || !getViewColumns || isPublic.value) {
+      openDetachedExpandedFormRaw(state)
+      return true
+    }
+
+    getViewColumns(baseId, viewId)
+      .then((viewColumns) => openDetachedExpandedFormRaw({ ...state, viewColumns: viewColumns ?? [] }))
+      .catch(() => openDetachedExpandedFormRaw(state))
     return true
   }
 

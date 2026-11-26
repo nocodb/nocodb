@@ -43,7 +43,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     maintainDefaultViewOrder: Ref<boolean>,
     useMetaFields: boolean,
     allowNullFieldIds?: string[],
-    // A link field's target view (new-record form): its show/order replace the default view's
+    // The view an opening link field is limited to: its show/order replace the default view's
     viewColumns?: Ref<ColumnType[] | undefined>,
   ) => {
     const { $e, $state, $api, $ncSocket } = useNuxtApp()

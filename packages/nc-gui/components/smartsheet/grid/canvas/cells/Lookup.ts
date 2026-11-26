@@ -563,6 +563,7 @@ export const LookupCellRenderer: CellRenderer = {
     if (cellRenderStore && linkChips.length) {
       cellRenderStore.lookupLinks = linkChips
       cellRenderStore.lookupLinkMeta = lkRelatedTableMeta
+      cellRenderStore.lookupLinkColumn = lookupColumn
 
       if (!props.isPublic && selected && mousePosition && linkChips.some((box) => isBoxHovered(box, mousePosition))) {
         setCursor?.('pointer')
@@ -608,6 +609,7 @@ export const LookupCellRenderer: CellRenderer = {
               loadRow: true,
             },
             column.columnObj,
+            cellRenderStore?.lookupLinkColumn,
           )
         }
       }

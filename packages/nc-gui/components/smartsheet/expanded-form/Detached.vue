@@ -18,6 +18,7 @@ const shouldClose = (isVisible: boolean, i: number) => {
       :use-meta-fields="state.useMetaFields"
       :maintain-default-view-order="state.maintainDefaultViewOrder"
       :view="state.view"
+      :view-columns="state.viewColumns"
       :skip-reload="state.skipReload"
       :template-mode="state.templateMode"
       :template-name="state.templateName"

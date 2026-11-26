@@ -21,7 +21,12 @@ const emit = defineEmits(['unlink'])
 
 const { item, value, column, readonly: readonlyProp } = toRefs(props)
 
-const { relatedTableMeta, externalBaseUserRoles, openBlueprintEditor: openLtarBlueprintEditor } = useLTARStoreOrThrow()!
+const {
+  relatedTableMeta,
+  externalBaseUserRoles,
+  targetViewColumns,
+  openBlueprintEditor: openLtarBlueprintEditor,
+} = useLTARStoreOrThrow()!
 
 const injectedColumn = inject(ColumnInj, ref())
 
@@ -118,6 +123,7 @@ function openExpandedForm() {
     row: { row: item.value, rowMeta: {}, oldRow: { ...item.value } },
     meta: relatedTableMeta.value,
     rowId,
+    viewColumns: targetViewColumns.value,
     useMetaFields: true,
     maintainDefaultViewOrder: true,
     loadRow: !isPublic.value,

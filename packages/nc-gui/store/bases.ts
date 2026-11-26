@@ -13,8 +13,6 @@ export const useBases = defineStore('basesStore', () => {
 
   const { loadRoles } = useRoles()
 
-  const { isUIAllowed } = useRoles()
-
   const baseCreateMode = ref<NcBaseCreateMode | null>(null)
 
   const baseRoles = ref<Record<string, any>>({})
@@ -189,8 +187,6 @@ export const useBases = defineStore('basesStore', () => {
       // Set only on success, so its presence means the workspace's list is complete.
       workspaceBasesMap.value.set(activeWorkspace?.id ?? workspace?.id, new Map(bases.value))
 
-      await updateIfBaseOrderIsNullOrDuplicate()
-
       return _projects
     } catch (e: any) {
       console.error(e)
@@ -358,46 +354,6 @@ export const useBases = defineStore('basesStore', () => {
         ...(query || {}),
       },
     })
-  }
-
-  async function updateIfBaseOrderIsNullOrDuplicate() {
-    if (!isUIAllowed('baseReorder')) return
-
-    const basesArray = Array.from(bases.value.values())
-
-    const baseOrderSet = new Set()
-    let hasNullOrDuplicates = false
-
-    // Check if basesArray contains null or duplicate order
-    for (const base of basesArray) {
-      if (base.order === null || baseOrderSet.has(base.order)) {
-        hasNullOrDuplicates = true
-        break
-      }
-      baseOrderSet.add(base.order)
-    }
-
-    if (!hasNullOrDuplicates) return
-
-    // update the local state and return updated bases payload
-    const updatedBasesOrder = basesArray.map((base, i) => {
-      bases.value.set(base.id!, { ...base, order: i + 1 })
-
-      return {
-        id: base.id,
-        order: i + 1,
-      }
-    })
-
-    try {
-      await Promise.all(
-        updatedBasesOrder.map(async (base) => {
-          await api.base.update(base.id!, { order: base.order })
-        }),
-      )
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    }
   }
 
   // A store has no component of its own: only hook when created inside one.

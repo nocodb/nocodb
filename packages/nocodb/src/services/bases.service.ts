@@ -44,6 +44,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { TablesService } from '~/services/tables.service';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 import NocoSocket from '~/socket/NocoSocket';
+import { applyUserBaseOrder } from '~/helpers/baseUserOrder';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -80,7 +81,10 @@ export class BasesService {
     // `getProjectsList` selects `nc_bases.*`, so the row carries `password`
     // (a legacy stored value — no shared-base password feature exists). Strip it
     // here too, not just on baseGet.
-    return bases.map((base) => sanitizeBase(base));
+    return applyUserBaseOrder(
+      param.user?.id,
+      bases.map((base) => sanitizeBase(base)),
+    );
   }
 
   async getProject(context: NcContext, param: { baseId: string }) {

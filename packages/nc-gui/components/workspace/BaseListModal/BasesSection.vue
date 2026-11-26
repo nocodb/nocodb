@@ -16,7 +16,6 @@ const props = defineProps<{
 const { isFilterApplied } = toRefs(props)
 
 const { t } = useI18n()
-const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
 
 // Get reorder action from provider
@@ -54,7 +53,8 @@ const basesById = computed(() =>
 )
 
 const canReorder = computed(() => {
-  return !isMobileMode.value && isUIAllowed('baseReorder') && props.bases.length > 1
+  // the order is per user, so anyone who sees the list can arrange it
+  return !isMobileMode.value && props.bases.length > 1
 })
 
 // Determine if indicator icons should be shown based on section type
@@ -77,7 +77,7 @@ function markItem(id: string) {
 }
 
 const initSortable = (el: Element) => {
-  if (isMobileMode.value || !isUIAllowed('baseReorder')) return
+  if (isMobileMode.value) return
   if (sortable) sortable.destroy()
 
   sortable = Sortable.create(el as HTMLElement, {
@@ -114,18 +114,7 @@ const initSortable = (el: Element) => {
       const itemBefore = itemBeforeEl && basesById.value[itemBeforeEl.dataset.id as string]
       const itemAfter = itemAfterEl && basesById.value[itemAfterEl.dataset.id as string]
 
-      let newOrder: number
-
-      // Calculate new order using fractional ordering
-      if (children.length - 1 === newIndex) {
-        newOrder = (itemBefore?.order ?? 0) + 1
-      } else if (newIndex === 0) {
-        newOrder = (itemAfter?.order ?? 1) / 2
-      } else {
-        newOrder = ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
-      }
-
-      onReorder(item, newOrder)
+      onReorder(item, { before: itemBefore || undefined, after: itemAfter || undefined })
       markItem(item.id!)
     },
     ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),

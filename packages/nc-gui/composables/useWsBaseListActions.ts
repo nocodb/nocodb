@@ -145,13 +145,40 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     }
   }
 
-  const onReorder = async (base: NcProject, newOrder: number) => {
+  const saveUserOrder = (base: NcProject, order: number) =>
+    $api.base.userMetaUpdate(base.id!, { order }, { baseURL: getBaseUrl(base.fk_workspace_id!) ?? undefined })
+
+  // Each user orders their own list. Drop between two ordered neighbours to take their midpoint;
+  // otherwise number the user's whole list once, in its new arrangement.
+  const onReorder = async (base: NcProject, { before, after }: { before?: NcProject; after?: NcProject }) => {
+    const workspaceBases = isEeUI ? workspaceBasesMap.value.get(base.fk_workspace_id!) : bases.value
+    const all = [...(workspaceBases?.values() ?? [])].sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity) || 0)
+    const previous = new Map(all.map((b) => [b.id!, b.order]))
+
+    let changes: Array<{ base: NcProject; order: number }>
+    if (before?.order != null && after?.order != null && before.order < after.order) {
+      changes = [{ base, order: (before.order + after.order) / 2 }]
+    } else if (!before && after?.order != null && after.order > 0) {
+      changes = [{ base, order: after.order / 2 }]
+    } else if (before?.order != null && !after) {
+      changes = [{ base, order: before.order + 1 }]
+    } else {
+      const rest = all.filter((b) => b.id !== base.id)
+      const at = before
+        ? rest.findIndex((b) => b.id === before.id) + 1
+        : after
+        ? rest.findIndex((b) => b.id === after.id)
+        : rest.length
+      rest.splice(Math.max(0, at), 0, base)
+      changes = rest.map((b, i) => ({ base: b, order: i + 1 })).filter((c) => c.order !== previous.get(c.base.id!))
+    }
+
     try {
-      updateBaseInWorkspace(base, { order: newOrder })
-      await $api.base.update(base.id!, { order: newOrder })
+      changes.forEach(({ base: b, order }) => updateBaseInWorkspace(b, { order }))
+      await Promise.all(changes.map(({ base: b, order }) => saveUserOrder(b, order)))
       $e('a:base:reorder')
     } catch (e: any) {
-      updateBaseInWorkspace(base, { order: base.order })
+      changes.forEach(({ base: b }) => updateBaseInWorkspace(b, { order: previous.get(b.id!) }))
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }

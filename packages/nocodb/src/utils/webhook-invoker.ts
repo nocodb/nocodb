@@ -17,6 +17,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { Filter } from '~/models';
+import type { WebhookAddJob, WebhookRetryState } from '~/interface/Jobs';
 import { getFilteredAgents } from '~/utils/ssrf';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getWebhookMaxBodySize } from '~/utils/nc-config/constants';
@@ -57,6 +58,86 @@ interface WebhookResponseLog {
 export type HookPayloadType = Omit<HookType, 'operation'> & {
   operation: string;
 };
+
+// Limits the saved hook delivery settings are clamped to.
+export const WEBHOOK_TIMEOUT_DEFAULT_MS = 30_000;
+export const WEBHOOK_TIMEOUT_MIN_MS = 1_000;
+export const WEBHOOK_TIMEOUT_MAX_MS = 60_000;
+export const WEBHOOK_MAX_RETRIES = 10;
+export const WEBHOOK_RETRY_INTERVAL_DEFAULT_MS = 60_000;
+export const WEBHOOK_RETRY_INTERVAL_MIN_MS = 1_000;
+export const WEBHOOK_RETRY_INTERVAL_MAX_MS = 60 * 60_000;
+
+const RETRYABLE_ERROR_CODES = new Set([
+  'ECONNABORTED',
+  'ETIMEDOUT',
+  'ECONNRESET',
+  'ECONNREFUSED',
+  'EAI_AGAIN',
+  'ENETUNREACH',
+  'EHOSTUNREACH',
+  'EPIPE',
+  'ERR_NETWORK',
+]);
+
+function clampMs(value: unknown, min: number, max: number, fallback: number) {
+  const n = Number(value);
+  if (ncIsNullOrUndefined(value) || !Number.isFinite(n) || n <= 0) {
+    return fallback;
+  }
+  return Math.min(max, Math.max(min, Math.floor(n)));
+}
+
+export function getWebhookDeliveryPolicy(
+  hook: Pick<HookType, 'timeout' | 'retries' | 'retry_interval'>,
+) {
+  const retries = Number(hook?.retries);
+  return {
+    timeout: clampMs(
+      hook?.timeout,
+      WEBHOOK_TIMEOUT_MIN_MS,
+      WEBHOOK_TIMEOUT_MAX_MS,
+      WEBHOOK_TIMEOUT_DEFAULT_MS,
+    ),
+    retries:
+      Number.isFinite(retries) && retries > 0
+        ? Math.min(WEBHOOK_MAX_RETRIES, Math.floor(retries))
+        : 0,
+    retryInterval: clampMs(
+      hook?.retry_interval,
+      WEBHOOK_RETRY_INTERVAL_MIN_MS,
+      WEBHOOK_RETRY_INTERVAL_MAX_MS,
+      WEBHOOK_RETRY_INTERVAL_DEFAULT_MS,
+    ),
+  };
+}
+
+// Network failures, timeouts, 408, 429 and 5xx; never other 4xx.
+export function isRetryableWebhookError(e: any) {
+  const status = e?.response?.status;
+  if (status) return status >= 500 || status === 429 || status === 408;
+  if (e?.message?.includes?.('private IP address')) return false;
+  return (
+    RETRYABLE_ERROR_CODES.has(e?.code) ||
+    !!e?.message?.includes?.('socket hang up')
+  );
+}
+
+// Retry-After (seconds or HTTP date) can only lengthen the saved interval.
+export function getWebhookRetryDelay(e: any, retryInterval: number) {
+  const header = e?.response?.headers?.['retry-after'];
+  let retryAfterMs = 0;
+  if (!ncIsNullOrUndefined(header) && header !== '') {
+    const seconds = Number(header);
+    retryAfterMs = Number.isFinite(seconds)
+      ? seconds * 1000
+      : Date.parse(header) - Date.now();
+  }
+  return Math.min(
+    WEBHOOK_RETRY_INTERVAL_MAX_MS,
+    Math.max(retryInterval, Number.isFinite(retryAfterMs) ? retryAfterMs : 0),
+  );
+}
 
 export class WebhookInvoker {
   protected logger = new Logger(WebhookInvoker.name);
@@ -173,11 +254,22 @@ export class WebhookInvoker {
             return headersObj;
           }, {})
         : {},
+    };
+
+    return this.withTransportOptions(reqPayload, hook);
+  }
+
+  withTransportOptions<T extends { url?: string }>(
+    req: T,
+    hook: Pick<HookType, 'timeout'>,
+  ) {
+    return {
+      ...req,
       withCredentials: true,
-      ...(!ncIsNullOrUndefined(url)
-        ? getFilteredAgents({ url, source: OperationSource.HOOKS })
+      ...(!ncIsNullOrUndefined(req.url)
+        ? getFilteredAgents({ url: req.url, source: OperationSource.HOOKS })
         : {}),
-      timeout: 30 * 1000,
+      timeout: getWebhookDeliveryPolicy(hook).timeout,
       // Bound the request/response body so axios can't buffer an unbounded
       // native Buffer (default maxContentLength is -1 = unlimited). A webhook
       // flood at full worker concurrency previously OOM-killed the worker.
@@ -186,8 +278,152 @@ export class WebhookInvoker {
       maxContentLength: getWebhookMaxBodySize(),
       maxBodyLength: getWebhookMaxBodySize(),
     };
+  }
 
-    return reqPayload;
+  /**
+   * Queues the next attempt of a failed URL delivery as a delayed job, when
+   * the hook has retries left and the failure is retryable. Returns a note
+   * for the attempt's hook log, or null when the hook has no retries.
+   */
+  async scheduleUrlRetry(
+    context: NcContext,
+    {
+      hook,
+      error,
+      reqPayload,
+      attempt,
+      addJob,
+      log,
+      ncSiteUrl,
+    }: {
+      hook: Pick<
+        HookType,
+        'id' | 'fk_model_id' | 'timeout' | 'retries' | 'retry_interval'
+      >;
+      error: any;
+      reqPayload: WebhookRetryState['request'];
+      attempt: number;
+      addJob?: WebhookAddJob;
+      log: WebhookRetryState['log'];
+      ncSiteUrl?: string;
+    },
+  ): Promise<string | null> {
+    const { retries, retryInterval } = getWebhookDeliveryPolicy(hook);
+    if (!retries) return null;
+
+    const total = retries + 1;
+    if (!addJob || attempt >= total || !isRetryableWebhookError(error)) {
+      return `attempt ${attempt} of ${total}, not retried`;
+    }
+
+    const delay = getWebhookRetryDelay(error, retryInterval);
+    const retry: WebhookRetryState = {
+      attempt: attempt + 1,
+      request: {
+        url: reqPayload.url,
+        method: reqPayload.method,
+        params: reqPayload.params,
+        headers: reqPayload.headers,
+        data: reqPayload.data,
+      },
+      log,
+    };
+
+    try {
+      await addJob(
+        JobTypes.HandleWebhook,
+        {
+          context,
+          hookId: hook.id,
+          modelId: hook.fk_model_id,
+          ncSiteUrl,
+          retry,
+        },
+        { delay },
+      );
+    } catch (e) {
+      this.logger.error(e.message, e.stack);
+      return `attempt ${attempt} of ${total}, retry could not be queued`;
+    }
+
+    return `attempt ${attempt} of ${total}, retrying in ${Math.ceil(
+      delay / 1000,
+    )}s`;
+  }
+
+  /** Sends a queued redelivery of a URL hook and logs it like invoke(). */
+  async retryUrlDelivery(
+    context: NcContext,
+    {
+      hook,
+      retry,
+      addJob,
+      ncSiteUrl,
+    }: {
+      hook: Hook;
+      retry: WebhookRetryState;
+      addJob?: WebhookAddJob;
+      ncSiteUrl?: string;
+    },
+  ) {
+    const startTime = process.hrtime();
+    const reqPayload = this.withTransportOptions(retry.request, hook);
+    let hookLog: HookLogType;
+
+    try {
+      const { requestPayload, responsePayload } = await handleHttpWebHook({
+        reqPayload,
+      });
+      if (webhookLogLevel === 'ALL' || (isEE && !webhookLogLevel)) {
+        hookLog = {
+          ...hook,
+          ...retry.log,
+          fk_hook_id: hook.id,
+          type: 'URL',
+          payload: JSON.stringify(requestPayload),
+          response: JSON.stringify(responsePayload),
+        } as HookLogType;
+      }
+    } catch (e) {
+      this.logger.debug(e.message, e.stack);
+      const note = await this.scheduleUrlRetry(context, {
+        hook,
+        error: e,
+        reqPayload,
+        attempt: retry.attempt,
+        addJob,
+        log: retry.log,
+        ncSiteUrl,
+      });
+      if (['ERROR', 'ALL'].includes(webhookLogLevel) || isEE) {
+        hookLog = {
+          ...hook,
+          ...retry.log,
+          fk_hook_id: hook.id,
+          type: 'URL',
+          payload: JSON.stringify(
+            this.extractReqPayloadForLog(reqPayload, e.response),
+          ),
+          error_code: e.error_code ?? e.code,
+          error_message: note ? `${e.message} (${note})` : e.message,
+          error: JSON.stringify(e),
+          response: e.response
+            ? JSON.stringify(this.extractResPayloadForLog(e.response))
+            : null,
+        } as HookLogType;
+      }
+    } finally {
+      if (hookLog) {
+        hookLog.execution_time = this.parseHrtimeToMilliSeconds(
+          process.hrtime(startTime),
+        );
+        await HookLog.insert(context, { ...hookLog, test_call: false }).catch(
+          (e) => {
+            this.logger.error(e.message, e.stack);
+          },
+        );
+      }
+    }
   }
 
   constructHookDataForNonURLHooks({
@@ -337,7 +573,7 @@ export class WebhookInvoker {
       throwErrorOnFailure?: boolean;
       testHook?: boolean;
       ncSiteUrl?: string;
-      addJob?: (name: string, data: any) => Promise<void>;
+      addJob?: WebhookAddJob;
     },
   ): Promise<void> {
     const {
@@ -706,6 +942,30 @@ export class WebhookInvoker {
       } else {
         this.logger.debug(e.message, e.stack);
       }
+      const conditions = filters
+        ? JSON.stringify(
+            addDummyRootAndNest(
+              filterBuilder().build(this.flattenFilter(filters)) as Filter[],
+            ),
+          )
+        : null;
+      const attemptNote =
+        notification?.type === 'URL' && reqPayload && !testHook
+          ? await this.scheduleUrlRetry(context, {
+              hook,
+              error: e,
+              reqPayload,
+              attempt: 1,
+              addJob,
+              log: {
+                event: hook.event as string,
+                operation: hookName?.split('.')?.[1],
+                triggered_by: user?.email,
+                conditions,
+              },
+              ncSiteUrl,
+            })
+          : null;
       if (['ERROR', 'ALL'].includes(webhookLogLevel) || isEE) {
         hookLog = {
           ...hook,
@@ -718,18 +978,12 @@ export class WebhookInvoker {
           ),
           fk_hook_id: hook.id,
           error_code: e.error_code ?? e.code,
-          error_message: e.message,
+          error_message: attemptNote
+            ? `${e.message} (${attemptNote})`
+            : e.message,
           error: JSON.stringify(e),
           triggered_by: user?.email,
-          conditions: filters
-            ? JSON.stringify(
-                addDummyRootAndNest(
-                  filterBuilder().build(
-                    this.flattenFilter(filters),
-                  ) as Filter[],
-                ),
-              )
-            : null,
+          conditions,
           response: e.response
             ? JSON.stringify(this.extractResPayloadForLog(e.response))
             : null,

@@ -413,7 +413,33 @@ export interface HandleWebhookJobData extends JobData {
   ncSiteUrl: string;
   prevData;
   newData;
+  // set on a queued redelivery of a failed URL hook
+  retry?: WebhookRetryState;
 }
+
+// A redelivery resends the exact request of the first attempt.
+export interface WebhookRetryState {
+  attempt: number;
+  request: {
+    url: string;
+    method: string;
+    params?: Record<string, any>;
+    headers?: Record<string, any>;
+    data?: any;
+  };
+  log: {
+    event?: string;
+    operation?: string;
+    triggered_by?: string;
+    conditions?: string;
+  };
+}
+
+export type WebhookAddJob = (
+  name: string,
+  data: any,
+  options?: { delay?: number },
+) => Promise<unknown>;
 
 export interface DataExportJobData extends JobData {
   options?: {

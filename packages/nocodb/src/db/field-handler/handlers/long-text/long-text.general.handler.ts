@@ -13,6 +13,7 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+import { ncTextFilterValue } from '~/db/field-handler/utils/handlerUtils';
 
 export class LongTextGeneralHandler extends GenericFieldHandler {
   /**
@@ -66,8 +67,7 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
    * MySQL preserves case-sensitive `eq` / `neq` via LongTextMysqlHandler's
    * `filterEq` / `filterNeq` overrides (`BINARY ?? = ?`).
    *
-   * A number or boolean value (a `filterArrJson` filter, e.g. from a workflow
-   * variable) is compared as text: PG has no `text = integer` operator.
+   * A number or boolean value compares as text (`ncTextFilterValue`).
    */
   override async filter(
     knex: CustomKnex,
@@ -79,13 +79,8 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
       options.customWhereClause ??
       this.getFieldExpression(knex, column, options.alias);
 
-    const val =
-      typeof filter.value === 'number' || typeof filter.value === 'boolean'
-        ? String(filter.value)
-        : filter.value;
-
     return this.handleFilter(
-      { val, sourceField: field },
+      { val: ncTextFilterValue(filter.value), sourceField: field },
       { knex, filter, column },
       options,
     );

@@ -47,6 +47,7 @@ import {
   ncLikeEscapeClause,
   ncLikePatternForRef,
   ncSplitFilterValue,
+  ncTextFilterValue,
 } from '~/db/field-handler/utils/handlerUtils';
 
 export default async function conditionV2(
@@ -297,6 +298,15 @@ const CASE_INSENSITIVE_UIDTS = new Set<UITypes>([
   UITypes.URL,
   UITypes.PhoneNumber,
   UITypes.SingleSelect,
+]);
+
+// Text types that compile below rather than through FieldHandler (LongText
+// does; its handler applies the same conversion).
+const PLAIN_TEXT_UIDTS = new Set<UITypes>([
+  UITypes.SingleLineText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
 ]);
 
 const parseConditionV2 = async (
@@ -742,7 +752,11 @@ const parseConditionV2 = async (
           ? `${alias}.${column.column_name}`
           : column.column_name,
       );
-      let _val = customWhereClause ? customWhereClause : filter.value;
+      let _val = customWhereClause
+        ? customWhereClause
+        : PLAIN_TEXT_UIDTS.has(column.uidt)
+        ? ncTextFilterValue(filter.value)
+        : filter.value;
       handleCurrentUserFilter(context, {
         column,
         filter,

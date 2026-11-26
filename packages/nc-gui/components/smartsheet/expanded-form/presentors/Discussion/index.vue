@@ -74,7 +74,37 @@ const refScrollEl = ref<HTMLElement>()
 
 const commentList = useProvideCommentThreadList({ containerEl: refScrollEl })
 
-const { firstName, commentPlainText, revealComment, isResolvedCollapsed } = commentList
+const { firstName, commentPlainText, revealComment, isResolvedCollapsed, deepLinkCommentId } = commentList
+
+const route = useRoute()
+
+const router = useRouter()
+
+// A comment link lands here when the view was left in Discussion; keep the id after stripping it from the URL.
+watch(
+  () => route.query.commentId,
+  (id) => {
+    if (!id) return
+    deepLinkCommentId.value = id as string
+    const { commentId: _drop, ...rest } = router.currentRoute.value.query
+    router.push({ query: rest })
+  },
+  { immediate: true },
+)
+
+watch(
+  [deepLinkCommentId, () => comments.value.length],
+  ([id]) => {
+    if (!id || !comments.value.some((c) => c.id === id)) return
+    nextTick(() => revealComment(id))
+  },
+  { immediate: true },
+)
+
+watch(primaryKey, (_pk, prev) => {
+  // The first key to arrive is the linked record itself.
+  if (prev) deepLinkCommentId.value = null
+})
 
 const { unreadComments, firstUnreadRootId, isJumpToUnreadDismissed, isFirstUnreadBelow, jumpToUnread, shouldHoldScroll } =
   useCommentListUnread(commentList, refScrollEl, threads)
@@ -117,6 +147,8 @@ function handleCreatingNewComment() {
   if (isAttachmentUploading.value) return
   if (!newCommentText.value.trim() && !pendingAttachments.value.length) return
 
+  deepLinkCommentId.value = null
+
   // Whoever answers has read what was there.
   acknowledgeUnread()
 
@@ -150,6 +182,8 @@ watch([threadsLength, primaryKey], ([length, pk], [prevLength, prevPk]) => {
 
 function scrollToBottom() {
   setTimeout(() => {
+    // Stay on a linked comment until the reader posts or changes record.
+    if (deepLinkCommentId.value) return
     if (shouldSkipAuditsScroll.value) {
       shouldSkipAuditsScroll.value = false
       return

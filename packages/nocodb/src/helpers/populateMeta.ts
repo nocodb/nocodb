@@ -129,6 +129,23 @@ async function isMMRelationExist(
   return isExist;
 }
 
+// Linking inserts only the two FKs, so every other junction column must accept that.
+export function canLinkThroughJunction(
+  normalColumns: Column[],
+  belongsToCols: Column<LinkToAnotherRecordColumn>[],
+) {
+  const fkIds = new Set(
+    belongsToCols.map((c) => c.colOptions?.fk_child_column_id),
+  );
+  return normalColumns.every(
+    (c) =>
+      fkIds.has(c.id) ||
+      !c.rqd ||
+      c.ai ||
+      (c.cdf !== null && c.cdf !== undefined && c.cdf !== ''),
+  );
+}
+
 // @ts-ignore
 export async function extractAndGenerateManyToManyRelations(
   context: NcContext,
@@ -148,11 +165,15 @@ export async function extractAndGenerateManyToManyRelations(
       }
     }
 
+    // Wider junctions (extra data columns) get the links but stay visible, so those columns stay reachable.
+    const isHiddenJunction = normalColumns.length < 5;
+
     // todo: impl better method to identify m2m relation
     if (
       belongsToCols?.length === 2 &&
-      normalColumns.length < 5 &&
       assocModel.primaryKeys.length === 2 &&
+      (isHiddenJunction ||
+        canLinkThroughJunction(normalColumns, belongsToCols)) &&
       // check if both belongsToCol target primary keys
       assocModel.primaryKeys.every((pk) =>
         belongsToCols.some((c) => c.colOptions?.fk_child_column_id === pk.id),
@@ -257,6 +278,12 @@ export async function extractAndGenerateManyToManyRelations(
                 })
               : undefined,
         });
+      }
+
+      if (!isHiddenJunction) {
+        if (assocModel.mm)
+          await Model.markAsMmTable(context, assocModel.id, false);
+        continue;
       }
 
       await Model.markAsMmTable(context, assocModel.id, true);

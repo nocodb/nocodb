@@ -110,6 +110,11 @@ import {
 import { getReplay, setReplay } from '~/helpers/replayScope';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
+import {
+  getIdentifierLength,
+  getIdentifierLengthUnit,
+  truncateIdentifier,
+} from '~/helpers/identifierLength';
 import { extractProps } from '~/helpers/extractProps';
 import { isRowDataUnchanged } from '~/helpers/isRowDataUnchanged';
 import { isTableVisible } from '~/helpers/tableHelpers';
@@ -562,22 +567,41 @@ export async function getJunctionTableName(
     0,
     15,
   )}_${childTable.slice(0, 15)}`;
-  let suffix: number = null;
-  // check table name avail or not, if not then add incremental suffix
-  while (
-    await Noco.ncMeta.metaGet2(
-      (parent as any).fk_workspace_id,
-      parent.base_id,
-      MetaTable.MODELS,
-      {
-        table_name: `${tableName}${suffix ?? ''}`,
+
+  const context = {
+    workspace_id: (parent as any).fk_workspace_id,
+    base_id: parent.base_id,
+  };
+  const connectionConfig = await (
+    await Source.get(context, parent.source_id)
+  ).getConnectionConfig();
+  const sqlClientType = connectionConfig?.client;
+  const limit = SqlUiFactory.create(connectionConfig).tableNameLengthLimit;
+
+  // Compare names as the DB stores them: pg cuts identifiers at 63 bytes, so
+  // multibyte names that differ only past the cut collide.
+  const taken = new Set(
+    (
+      await Model.list(context, {
+        base_id: parent.base_id,
         source_id: parent.source_id,
-      },
-    )
-  ) {
-    suffix = suffix ? suffix + 1 : 1;
+        includeDeleted: true,
+      })
+    ).map((m) => truncateIdentifier(m.table_name, limit, sqlClientType)),
+  );
+
+  let suffix = '';
+  const candidate = () =>
+    `${truncateIdentifier(
+      tableName,
+      limit - getIdentifierLength(suffix, sqlClientType),
+      sqlClientType,
+    )}${suffix}`;
+  // check table name avail or not, if not then add incremental suffix
+  for (let i = 1; taken.has(candidate()); i++) {
+    suffix = `${i}`;
   }
-  return `${tableName}${suffix ?? ''}`;
+  return candidate();
 }
 
 // todo: move to swagger.json/types
@@ -1482,9 +1506,18 @@ export class ColumnsService implements IColumnsService {
       param.column.title = param.column.title.trim();
     }
 
-    if (param.column.column_name && !isMetaOnlyUpdateAllowed) {
+    // An unchanged name is already valid in the DB; trimming it would rename it.
+    if (
+      param.column.column_name &&
+      !isMetaOnlyUpdateAllowed &&
+      param.column.column_name !== column.column_name
+    ) {
       // - 5 is a buffer for suffix
-      let colName = param.column.column_name.slice(0, mxColumnLength - 5);
+      let colName = truncateIdentifier(
+        param.column.column_name,
+        mxColumnLength - 5,
+        sqlClientType,
+      );
       let suffix = 1;
       while (
         !(await Column.checkTitleAvailable(context, {
@@ -1493,7 +1526,11 @@ export class ColumnsService implements IColumnsService {
           exclude_id: param.columnId,
         }))
       ) {
-        colName = param.column.column_name.slice(0, mxColumnLength - 5);
+        colName = truncateIdentifier(
+          param.column.column_name,
+          mxColumnLength - 5,
+          sqlClientType,
+        );
         colName += `_${suffix++}`;
       }
       param.column.column_name = colName;
@@ -1503,10 +1540,16 @@ export class ColumnsService implements IColumnsService {
       !isMetaOnlyUpdateAllowed &&
       !isVirtualCol(param.column) &&
       param.column.column_name &&
-      param.column.column_name.length > mxColumnLength
+      getIdentifierLength(param.column.column_name, sqlClientType) >
+        mxColumnLength
     ) {
       NcError.get(context).invalidRequestBody(
-        `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
+        `Column name ${
+          param.column.column_name
+        } exceeds ${mxColumnLength} ${getIdentifierLengthUnit(
+          param.column.column_name,
+          sqlClientType,
+        )}`,
       );
     }
 
@@ -4662,7 +4705,11 @@ export class ColumnsService implements IColumnsService {
 
       if (param.column.column_name) {
         // - 5 is a buffer for suffix
-        let colName = param.column.column_name.slice(0, mxColumnLength - 5);
+        let colName = truncateIdentifier(
+          param.column.column_name,
+          mxColumnLength - 5,
+          sqlClientType,
+        );
         let suffix = 1;
         while (
           !(await Column.checkTitleAvailable(context, {
@@ -4670,7 +4717,11 @@ export class ColumnsService implements IColumnsService {
             fk_model_id: param.tableId,
           }))
         ) {
-          colName = param.column.column_name.slice(0, mxColumnLength - 5);
+          colName = truncateIdentifier(
+            param.column.column_name,
+            mxColumnLength - 5,
+            sqlClientType,
+          );
           colName += `_${suffix++}`;
         }
         param.column.column_name = colName;
@@ -4678,10 +4729,16 @@ export class ColumnsService implements IColumnsService {
 
       if (
         param.column.column_name &&
-        param.column.column_name.length > mxColumnLength
+        getIdentifierLength(param.column.column_name, sqlClientType) >
+          mxColumnLength
       ) {
         NcError.get(context).invalidRequestBody(
-          `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
+          `Column name ${
+            param.column.column_name
+          } exceeds ${mxColumnLength} ${getIdentifierLengthUnit(
+            param.column.column_name,
+            sqlClientType,
+          )}`,
         );
       }
 
@@ -6245,7 +6302,10 @@ export class ColumnsService implements IColumnsService {
                   ncMeta,
                 );
 
-                if (!custom && mmTable && mmParentCol && mmChildCol) {
+                // A visible junction is a user table: drop only the mm columns, not its FKs or links.
+                const teardownJunction = !custom && (!mmTable || mmTable.mm);
+
+                if (teardownJunction && mmTable && mmParentCol && mmChildCol) {
                   await this.deleteHmOrBtRelation(
                     context,
                     {
@@ -6393,7 +6453,7 @@ export class ColumnsService implements IColumnsService {
                   columns: await table.getCachedColumns(),
                 });
 
-                if (!custom) {
+                if (teardownJunction) {
                   if (mmTable) {
                     // delete bt columns in m2m table
                     await mmTable.getColumns(ncMeta);
@@ -6586,11 +6646,13 @@ export class ColumnsService implements IColumnsService {
 
     const displayValueColumn = await pickDefaultDisplayValue(table.columns);
     if (displayValueColumn) {
+      // includeDeleted: trash purge deletes fields of a table that is itself trashed.
       await Model.updatePrimaryColumn(
         context,
         displayValueColumn.fk_model_id,
         displayValueColumn.id,
         ncMeta,
+        { includeDeleted: !!table.deleted },
       );
     }
 

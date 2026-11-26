@@ -35,6 +35,7 @@ import {
 import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import {
+  canLinkThroughJunction,
   getNcSystemColumnUidts,
   mapNcSystemColumns,
   NC_CONVERTIBLE_SYSTEM_UIDTS,
@@ -1539,11 +1540,19 @@ export class MetaDiffsService {
         }
       }
 
+      // Wider junctions (extra data columns) must be keyed by the two FKs; they get the links but stay visible.
+      const isHiddenJunction = normalColumns.length < 5;
+      const isKeyedByFkPair = assocModel.primaryKeys.every((pk) =>
+        belongsToCols.some((c) => c.colOptions?.fk_child_column_id === pk.id),
+      );
+
       // todo: impl better method to identify m2m relation
       if (
         belongsToCols?.length === 2 &&
-        normalColumns.length < 5 &&
-        assocModel.primaryKeys.length === 2
+        assocModel.primaryKeys.length === 2 &&
+        (isHiddenJunction ||
+          (isKeyedByFkPair &&
+            canLinkThroughJunction(normalColumns, belongsToCols)))
       ) {
         // Ensure colOptions are populated
         if (!belongsToCols[0].colOptions || !belongsToCols[1].colOptions) {
@@ -1659,6 +1668,12 @@ export class MetaDiffsService {
                   })
                 : undefined,
           });
+        }
+
+        if (!isHiddenJunction) {
+          if (assocModel.mm)
+            await Model.markAsMmTable(context, assocModel.id, false);
+          continue;
         }
 
         await Model.markAsMmTable(context, assocModel.id, true);

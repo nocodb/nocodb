@@ -262,6 +262,11 @@ export interface SearchIndexBuildJobData extends JobData {
   explicit?: boolean;
   /** A wait for a slot: skipped once the index has been built elsewhere. */
   retry?: boolean;
+  /**
+   * The backfill's in-flight slot this build holds, released where it ends.
+   * Unset on a build no backfill queued.
+   */
+  inFlight?: { index: number; holder: string };
 }
 
 /** Rows a flush re-indexes in place of the table's marks. */

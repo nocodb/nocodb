@@ -136,6 +136,26 @@ const leastGreatestFn =
     pt.callee.name = name;
   };
 
+// MariaDB's REGEXP_SUBSTR/REGEXP_REPLACE take no position/occurrence/match-type
+// args, so case sensitivity comes from the inline `(?-i)` flag (MySQL ICU and
+// MariaDB PCRE both accept it) instead of the 'c' match type.
+// A literal containing `?` is a `_utf8mb4 X'…'` literal whose collation differs
+// from the connection's, so CONCAT with '(?-i)' would yield an unusable mixed
+// collation; the flag is folded into that literal instead.
+async function caseSensitivePattern({ fn, knex, pt }: MapFnArgs) {
+  const arg = pt.arguments[1];
+  if (
+    arg?.type === 'Literal' &&
+    typeof arg.value === 'string' &&
+    arg.value.includes('?')
+  ) {
+    return fn({ ...arg, value: `(?-i)${arg.value}` });
+  }
+  const pattern = (await fn(arg)).builder;
+  // `\\?` keeps knex from reading the flag's `?` as a binding.
+  return { builder: knex.raw(`CONCAT('(\\?-i)', ?)`, [pattern]) };
+}
+
 const mysql2 = {
   ...commonFns,
   // as pg: COUNT counts number-typed arguments, COUNTA non-blank ones; mysql
@@ -417,26 +437,21 @@ const mysql2 = {
       builder: knex.raw(`(? REGEXP ?)`, [source, pattern]),
     };
   },
-  // MariaDB's REGEXP_SUBSTR/REGEXP_REPLACE take no position/occurrence/match-type
-  // args, so case sensitivity comes from the inline `(?-i)` flag (MySQL ICU and
-  // MariaDB PCRE both accept it) instead of the 'c' match type. `\\?` keeps knex
-  // from reading the flag's `?` as a binding.
-  REGEX_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
+  REGEX_EXTRACT: async (args: MapFnArgs) => {
+    const { fn, knex, pt } = args;
     const source = (await fn(pt.arguments[0])).builder;
-    const pattern = (await fn(pt.arguments[1])).builder;
+    const pattern = (await caseSensitivePattern(args)).builder;
     return {
-      builder: knex.raw(`REGEXP_SUBSTR(?, CONCAT('(\\?-i)', ?))`, [
-        source,
-        pattern,
-      ]),
+      builder: knex.raw(`REGEXP_SUBSTR(?, ?)`, [source, pattern]),
     };
   },
-  REGEX_REPLACE: async ({ fn, knex, pt }: MapFnArgs) => {
+  REGEX_REPLACE: async (args: MapFnArgs) => {
+    const { fn, knex, pt } = args;
     const source = (await fn(pt.arguments[0])).builder;
-    const pattern = (await fn(pt.arguments[1])).builder;
+    const pattern = (await caseSensitivePattern(args)).builder;
     const replacement = (await fn(pt.arguments[2])).builder;
     return {
-      builder: knex.raw(`REGEXP_REPLACE(?, CONCAT('(\\?-i)', ?), ?)`, [
+      builder: knex.raw(`REGEXP_REPLACE(?, ?, ?)`, [
         source,
         pattern,
         replacement,

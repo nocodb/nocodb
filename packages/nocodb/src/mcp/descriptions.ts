@@ -132,8 +132,8 @@ EXAMPLES:
 
 // Same syntax as `whereDescription`, without the 5.5KB operator manual. That
 // manual is carried once, by queryRecords.where; every other filter param
-// points here. All the tools involved are read-only, so they are always listed
-// together and the reference always resolves.
+// points here. A per-tool grant can omit queryRecords; the pointer's example
+// is then all the caller gets.
 export const whereDescriptionRef = `Filter records using NocoDB query syntax, e.g. (status,eq,active)~and(amount,gte,100).
 
 For the complete operator list, date sub-operators, quoting rules and examples, see the \`where\` parameter of the \`queryRecords\` tool — the syntax is identical.`;

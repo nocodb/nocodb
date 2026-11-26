@@ -25,6 +25,33 @@ import { NcError } from '~/helpers/ncError';
 
 const logger = new Logger('GenericS3');
 
+/**
+ * `@aws-sdk/lib-storage` percent-encodes every key segment of the upload
+ * `Location`, and `getPathFromUrl()` encodes it again, so the stored url
+ * resolves to a key that does not exist (NoSuchKey). Decode per segment:
+ * `decodeURI` would leave `,` `&` `+` `(` `)` encoded.
+ */
+function decodeLocationPath(location: string): string {
+  const match = /^(https?:\/\/[^/]+)(\/.*)$/i.exec(location ?? '');
+  if (!match) return location;
+
+  const [, origin, pathname] = match;
+  return (
+    origin +
+    pathname
+      .split('/')
+      .map((segment) => {
+        try {
+          return decodeURIComponent(segment);
+        } catch {
+          // a provider-built Location may carry a raw `%`
+          return segment;
+        }
+      })
+      .join('/')
+  );
+}
+
 interface GenericObjectStorageInput {
   bucket: string;
   region?: string;
@@ -57,7 +84,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
   }
 
   protected patchUploadReturnKey(key: string): string {
-    return key;
+    return decodeLocationPath(key);
   }
 
   public async test(): Promise<boolean> {

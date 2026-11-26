@@ -1191,8 +1191,15 @@ export default class Model implements TableType {
     tableId: string,
     columnId: string,
     ncMeta = Noco.ncMeta,
+    { includeDeleted = false }: { includeDeleted?: boolean } = {},
   ) {
-    const model = await this.getWithInfo(context, { id: tableId }, ncMeta);
+    const model = await this.getWithInfo(
+      context,
+      { id: tableId, includeDeleted },
+      ncMeta,
+    );
+    if (!model) NcError.tableNotFound(tableId);
+
     const newPvCol = model.columnsById[columnId];
 
     if (!newPvCol) NcError.fieldNotFound(columnId);

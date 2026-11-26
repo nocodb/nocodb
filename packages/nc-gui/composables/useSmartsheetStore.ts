@@ -213,21 +213,16 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     // narrowing for the realtime gate below.
     const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
-    const { isFeatureEnabled } = useBetaFeatureToggle()
-
     // Server-side search over every visible field: Postgres grid (ungrouped) and gallery views,
-    // unless global search is off on the server or its experimental flag is off. Elsewhere the
-    // box searches one field, built into `xWhere` below. A plan without global search gets it
-    // too, on small tables only (`plan_limit` past that).
+    // unless global search is off on the server. Elsewhere the box searches one field, built
+    // into `xWhere` below. A plan without global search gets it too, read live up to its own
+    // record limit (`plan_limit` past that). CE reads text fields live on any database.
     const isAllFieldsSearchSupported = computed(
       () =>
-        isEeUI &&
-        !!appInfo.value.globalSearchEnabled &&
-        isFeatureEnabled(FEATURE_FLAG.GLOBAL_SEARCH) &&
+        (!isEeUI || (!!appInfo.value.globalSearchEnabled && baseStore.isPg((meta.value as TableType)?.source_id))) &&
         !isPublic.value &&
         !interfacePageDataApi &&
-        (isGrid.value || isGallery.value) &&
-        baseStore.isPg((meta.value as TableType)?.source_id),
+        (isGrid.value || isGallery.value),
     )
 
     const isAllFieldsSearch = computed(() => isAllFieldsSearchSupported.value && search.value.field === ALL_FIELDS_SEARCH_FIELD)

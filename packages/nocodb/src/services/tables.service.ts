@@ -74,6 +74,11 @@ import { sanitizeColumnName, validatePayload } from '~/helpers';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
+import {
+  getIdentifierLength,
+  getIdentifierLengthUnit,
+  truncateIdentifier,
+} from '~/helpers/identifierLength';
 import { OperationName } from '~/command-registry/op-names';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
@@ -281,7 +286,7 @@ export class TablesService {
     }
 
     if (
-      this.getTableNameLength(param.table.table_name, sqlClientType) >
+      getIdentifierLength(param.table.table_name, sqlClientType) >
       tableNameLengthLimit
     ) {
       NcError.get(context).invalidRequestBody(
@@ -368,7 +373,7 @@ export class TablesService {
     // name on pg would otherwise be refused as too long. A requested name that
     // is already over the limit is left alone so the length check rejects it.
     const nameLength = (name: string) =>
-      this.getTableNameLength(name, param.sqlClientType);
+      getIdentifierLength(name, param.sqlClientType);
     const maxLength =
       param.maxLength && nameLength(param.desired) <= param.maxLength
         ? param.maxLength
@@ -397,26 +402,15 @@ export class TablesService {
     return candidate(i);
   }
 
-  // pg (NAMEDATALEN) and Oracle cap identifiers in bytes, the rest in characters.
-  private getTableNameLength(name: string, sqlClientType?: string): number {
-    if (sqlClientType === 'pg' || sqlClientType === 'oracledb') {
-      return Buffer.byteLength(name, 'utf8');
-    }
-    return name.length;
-  }
-
-  // Say "bytes" only when that differs from the character count, so an
-  // ASCII name keeps the existing message.
   private tableNameTooLongMessage(
     name: string,
     limit: number,
     sqlClientType?: string,
   ): string {
-    const unit =
-      this.getTableNameLength(name, sqlClientType) !== name.length
-        ? 'bytes'
-        : 'characters';
-    return `Table name exceeds ${limit} ${unit}`;
+    return `Table name exceeds ${limit} ${getIdentifierLengthUnit(
+      name,
+      sqlClientType,
+    )}`;
   }
 
   // Trims a system-derived name to the limit, keeping a custom-object marker.
@@ -425,19 +419,15 @@ export class TablesService {
     limit: number,
     sqlClientType: string,
   ): string {
-    if (this.getTableNameLength(name, sqlClientType) <= limit) return name;
+    if (getIdentifierLength(name, sqlClientType) <= limit) return name;
 
     const marker = isCustomObjectName(name) ? CUSTOM_OBJECT_SUFFIX : '';
-    const budget = limit - this.getTableNameLength(marker, sqlClientType);
-    // Cut by code point so a multibyte or astral character is never split.
-    const chars = Array.from(name.slice(0, name.length - marker.length));
-    while (
-      chars.length &&
-      this.getTableNameLength(chars.join(''), sqlClientType) > budget
-    ) {
-      chars.pop();
-    }
-    const cut = chars.join('');
+    const budget = limit - getIdentifierLength(marker, sqlClientType);
+    const cut = truncateIdentifier(
+      name.slice(0, name.length - marker.length),
+      budget,
+      sqlClientType,
+    );
     // Drop a trailing `_` left by the cut: `<name>_` is what pg truncates
     // another table's `<name>_order_idx` index to.
     const stripped = cut.replace(/[\s_]+$/, '');
@@ -1273,7 +1263,7 @@ export class TablesService {
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
 
     if (
-      this.getTableNameLength(tableCreatePayLoad.table_name, sqlClientType) >
+      getIdentifierLength(tableCreatePayLoad.table_name, sqlClientType) >
       tableNameLengthLimit
     ) {
       NcError.get(context).invalidRequestBody(
@@ -1307,7 +1297,11 @@ export class TablesService {
 
         // - 5 is a buffer for suffix
         column.column_name = sanitizeColumnName(
-          column.column_name.slice(0, mxColumnLength - 5),
+          truncateIdentifier(
+            column.column_name,
+            mxColumnLength - 5,
+            sqlClientType,
+          ),
           source.type,
         );
 
@@ -1321,9 +1315,11 @@ export class TablesService {
         }
         uniqueColumnNameCount[column.column_name] = 1;
 
-        if (column.column_name.length > mxColumnLength) {
-          column.column_name = column.column_name.slice(0, mxColumnLength);
-        }
+        column.column_name = truncateIdentifier(
+          column.column_name,
+          mxColumnLength,
+          sqlClientType,
+        );
       }
 
       if (column.title && column.title.length > 255) {

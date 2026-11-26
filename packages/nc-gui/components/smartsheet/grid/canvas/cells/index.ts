@@ -1,11 +1,13 @@
 import {
   type ColumnType,
+  type LinkToAnotherRecordType,
   type TableType,
   UITypes,
   type UserType,
   type ViewType,
   isAIPromptCol,
   isBtLikeV2Junction,
+  isLinksOrLTAR,
 } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
@@ -48,6 +50,7 @@ import { UUIDCellRenderer } from './UUID'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
+import { getLinkTargetGridViewId } from '~/utils/linkViewUtils'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -114,6 +117,8 @@ export function useGridCellHandler(params: {
   // interface record-detail sheet when configured (provided by the viz host).
   const linkRecordExpand = inject(LinkRecordExpandInj, ref(null))
 
+  const { getViewColumns } = useSmartsheetStore() ?? {}
+
   // Interface pages never open the data-app expanded form for a LINKED record
   // (a chip click): the related table sits outside the page surface, and its
   // raw reads/comments 403 for interface collaborators. Gated at this single
@@ -122,7 +127,13 @@ export function useGridCellHandler(params: {
   // exception: a chip whose column has "Click into record details" configured
   // opens the LINKED record's interface record-detail sheet (call sites pass
   // their LTAR column).
-  const openDetachedExpandedForm = (state: Parameters<typeof openDetachedExpandedFormRaw>[0], ltarColumn?: ColumnType) => {
+
+  // `viewLinkColumn`: the link field whose limited-to view sets the form's fields (a Lookup passes its inner link)
+  const openDetachedExpandedForm = (
+    state: Parameters<typeof openDetachedExpandedFormRaw>[0],
+    ltarColumn?: ColumnType,
+    viewLinkColumn: ColumnType | undefined = ltarColumn,
+  ) => {
     if (interfacePageDataApi) {
       const api = linkRecordExpand.value
       if (ltarColumn && state.row?.row && state.meta?.id && api?.isEnabled(ltarColumn)) {
@@ -131,7 +142,21 @@ export function useGridCellHandler(params: {
       }
       return false
     }
-    openDetachedExpandedFormRaw(state)
+
+    const colOptions =
+      viewLinkColumn && isLinksOrLTAR(viewLinkColumn) ? (viewLinkColumn.colOptions as LinkToAnotherRecordType) : undefined
+    // No grid target view: the form falls back to the column's default-view meta
+    const viewId = getLinkTargetGridViewId(state.meta?.views, colOptions)
+    const baseId = colOptions?.fk_related_base_id || viewLinkColumn?.base_id
+
+    if (!viewId || !baseId || !getViewColumns || isPublic.value) {
+      openDetachedExpandedFormRaw(state)
+      return true
+    }
+
+    getViewColumns(baseId, viewId)
+      .then((viewColumns) => openDetachedExpandedFormRaw({ ...state, viewColumns: viewColumns ?? [] }))
+      .catch(() => openDetachedExpandedFormRaw(state))
     return true
   }
 

@@ -18,6 +18,7 @@ import {
 import type { ComputedRef, Ref } from 'vue'
 import type { LtarCellShape } from '~/utils/ltarDeferredOps'
 import { linkedRecordTitleFormatter } from '~/utils/dataUtils'
+import { getLinkTargetGridViewId } from '~/utils/linkViewUtils'
 import { recordTitleOf, resolveDisplayLeafColumn, resolveLinkedRecordDisplay } from '~/utils/linkedRecordDisplay'
 import {
   applyLtarCellOp,
@@ -286,7 +287,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       )
     }
 
-    const loadRelatedTableMeta = async () => {
+    // Settles once the related meta and the target view's columns are loaded; forms wait on it
+    let relatedTableMetaLoad: Promise<void> = Promise.resolve()
+
+    const loadRelatedTableMeta = () => {
+      const load = loadRelatedTableMetaAndViewColumns()
+      relatedTableMetaLoad = load.catch(() => {})
+      return load
+    }
+
+    const whenTargetViewColumnsLoaded = () => relatedTableMetaLoad
+
+    async function loadRelatedTableMetaAndViewColumns() {
       const relatedBaseId = colOptions.value.fk_related_base_id || column.value.base_id
       if (!relatedBaseId) {
         console.error('Cannot load related table meta: base_id not found')
@@ -328,8 +340,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       await nextTick()
 
+      // No grid target view: the rows follow the related table's first grid view
       const viewId =
-        colOptions.value.fk_target_view_id ??
+        getLinkTargetGridViewId(relatedTableMeta.value?.views, colOptions.value) ??
         getFirstNonPersonalView(relatedTableMeta.value?.views ?? [], { includeViewType: ViewTypes.GRID })?.id ??
         ''
       if (!viewId) return
@@ -448,7 +461,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (hasCustomDisplayValue && col.id === colOptions.fk_display_value_column_id) return false
 
         // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
-        return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
+        if (isSystemColumn(col) || isPrimary(col) || isLinksOrLTAR(col) || isAttachment(col) || isLookup(col)) return false
+
+        // Skip fields the link field's view hides (default view's visibility when its columns aren't loaded)
+        const viewCol = isPublic.value ? undefined : targetViewColumnsById.value[col.id!]
+        return viewCol ? !!viewCol.show : !!(col.meta?.defaultViewColVisibility ?? true)
       })
 
       // Resolve a stable sort order for each extra field:
@@ -1917,6 +1934,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       relatedTableMeta,
       isLinkedTableAccessible,
       loadRelatedTableMeta,
+      whenTargetViewColumnsLoaded,
       targetViewColumns,
       targetViewColumnsById,
       relatedTableDisplayValueProp,

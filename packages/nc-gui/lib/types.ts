@@ -836,6 +836,7 @@ interface CellRenderStore {
   /** Chips of a Lookup of a Link, and the linked table they open into */
   lookupLinks?: { x: number; y: number; width: number; height: number; value: Record<string, any> }[]
   lookupLinkMeta?: TableType
+  lookupLinkColumn?: ColumnType
   [key: string]: any
 }
 
@@ -886,7 +887,11 @@ interface CellRenderer {
     cellRenderStore: CellRenderStore
     isPublic?: boolean
     /** False when nothing opened (an Interface column with no detail page) */
-    openDetachedExpandedForm: (props: UseExpandedFormDetachedProps, ltarColumn?: ColumnType) => boolean
+    openDetachedExpandedForm: (
+      props: UseExpandedFormDetachedProps,
+      ltarColumn?: ColumnType,
+      viewLinkColumn?: ColumnType,
+    ) => boolean
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
     openSmartText?: (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => void
     formula?: boolean

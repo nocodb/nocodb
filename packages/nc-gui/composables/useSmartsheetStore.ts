@@ -447,6 +447,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const viewColumnsMap = reactive<Record<string, Record<string, any>[]>>({})
     const pendingRequests = new Map()
+    // Bumped by view_column events, so a request started before one doesn't cache stale columns
+    const viewColumnsGeneration = new Map<string, number>()
 
     const getViewColumnsKey = (baseId: string, viewId: string) => `${baseId}:${viewId}`
 
@@ -461,6 +463,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         return pendingRequests.get(key)
       }
 
+      const generation = viewColumnsGeneration.get(key) ?? 0
+      const isCurrent = () => (viewColumnsGeneration.get(key) ?? 0) === generation
+
       const promise = (async () => {
         try {
           const workspaceId = base.value?.fk_workspace_id
@@ -472,11 +477,14 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
             operation: 'viewColumnList',
             viewId,
           })
-          viewColumnsMap[key] = result?.list ?? []
-          pendingRequests.delete(key)
-          return result?.list ?? []
+          const list = result?.list ?? []
+          if (isCurrent()) {
+            viewColumnsMap[key] = list
+            pendingRequests.delete(key)
+          }
+          return list
         } catch (error) {
-          pendingRequests.delete(key)
+          if (isCurrent()) pendingRequests.delete(key)
           throw error
         }
       })()
@@ -485,6 +493,20 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
       return promise
     }
+
+    // A view's fields changed: drop its cached columns so the next read refetches
+    const viewColumnsEventListener = (evt: string, payload: { fk_view_id?: string } | undefined) => {
+      if ((evt !== 'view_column_update' && evt !== 'view_column_refresh') || !payload?.fk_view_id) return
+      const suffix = `:${payload.fk_view_id}`
+      for (const key of new Set([...Object.keys(viewColumnsMap), ...pendingRequests.keys()])) {
+        if (!key.endsWith(suffix)) continue
+        delete viewColumnsMap[key]
+        pendingRequests.delete(key)
+        viewColumnsGeneration.set(key, (viewColumnsGeneration.get(key) ?? 0) + 1)
+      }
+    }
+    $eventBus.realtimeViewMetaEventBus.on(viewColumnsEventListener)
+    onScopeDispose(() => $eventBus.realtimeViewMetaEventBus.off(viewColumnsEventListener))
 
     // The fields the server searches: the view's visible ones plus the display value.
     const allFieldsSearchColumns = computed(() => {

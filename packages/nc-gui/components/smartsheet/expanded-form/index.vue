@@ -33,6 +33,8 @@ interface Props {
   expandForm?: (row: Row) => void
   maintainDefaultViewOrder?: boolean
   allowNullFieldIds?: string[]
+  // Columns of the view that decides which meta fields show (a link field's target view)
+  viewColumns?: ColumnType[]
 }
 
 const props = defineProps<Props>()
@@ -146,6 +148,7 @@ const expandedFormStore = useProvideExpandedFormStore(
   maintainDefaultViewOrder,
   !!props.useMetaFields,
   props.allowNullFieldIds,
+  toRef(props, 'viewColumns'),
 )
 
 const {

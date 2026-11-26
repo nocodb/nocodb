@@ -262,6 +262,16 @@ const utilization = computed(() => props.row?.[LINK_UTILIZATION_ROW_KEY] ?? null
 }
 
 .nc-link-record-cell {
+  // The field-name tooltip covers the whole cell, so a cell's own tooltip would stack on it —
+  // links stay clickable, they carry no tooltip of their own
+  & > * {
+    @apply pointer-events-none;
+  }
+
+  :deep(a) {
+    @apply pointer-events-auto;
+  }
+
   :deep(.nc-cell),
   :deep(.nc-virtual-cell) {
     @apply !text-small !text-nc-content-gray-subtle2 ml-1;
@@ -330,13 +340,18 @@ const utilization = computed(() => props.row?.[LINK_UTILIZATION_ROW_KEY] ?? null
   }
 }
 .nc-link-record-cell-tooltip {
-  @apply !bg-transparent !hover:bg-transparent;
+  @apply !bg-transparent !hover:bg-transparent !text-nc-content-inverted-primary;
+
+  :deep(.nc-cell-icon),
+  :deep(.name) {
+    @apply !text-nc-content-inverted-primary;
+  }
 
   :deep(.nc-cell-icon) {
-    @apply !ml-0;
+    @apply !ml-0 !w-3.5 !h-3.5;
   }
   :deep(.name) {
-    @apply !text-small;
+    @apply !text-xs !font-400;
   }
 }
 </style>

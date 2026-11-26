@@ -21,7 +21,13 @@ const emit = defineEmits(['unlink'])
 
 const { item, value, column, readonly: readonlyProp } = toRefs(props)
 
-const { relatedTableMeta, externalBaseUserRoles, openBlueprintEditor: openLtarBlueprintEditor } = useLTARStoreOrThrow()!
+const {
+  relatedTableMeta,
+  externalBaseUserRoles,
+  targetViewColumns,
+  whenTargetViewColumnsLoaded,
+  openBlueprintEditor: openLtarBlueprintEditor,
+} = useLTARStoreOrThrow()!
 
 const injectedColumn = inject(ColumnInj, ref())
 
@@ -90,7 +96,7 @@ function openBlueprintEditor() {
   openLtarBlueprintEditor(item.value, { breadcrumbs: parentBreadcrumbs.value, linkOnParentSave: !isTemplateMode.value })
 }
 
-function openExpandedForm() {
+async function openExpandedForm() {
   if (isClickDisabled.value) return
 
   // Blueprint records open in blueprint editor instead
@@ -113,11 +119,14 @@ function openExpandedForm() {
 
   if (!rowId) return
 
+  await whenTargetViewColumnsLoaded()
+
   open({
     isOpen: true,
     row: { row: item.value, rowMeta: {}, oldRow: { ...item.value } },
     meta: relatedTableMeta.value,
     rowId,
+    viewColumns: targetViewColumns.value,
     useMetaFields: true,
     maintainDefaultViewOrder: true,
     loadRow: !isPublic.value,

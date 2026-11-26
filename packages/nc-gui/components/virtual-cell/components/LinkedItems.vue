@@ -84,6 +84,7 @@ const {
   isLinkedTableAccessible,
   row,
   loadRelatedTableMeta,
+  whenTargetViewColumnsLoaded,
   resetChildrenListOffsetCount,
   attachmentCol,
   fields,
@@ -110,6 +111,7 @@ const {
   canReorder,
   reorderLink,
   getRelatedTableRowId,
+  targetViewColumns,
 } = useLTARStoreOrThrow()
 
 const { withLoading } = useLoadingTrigger()
@@ -273,7 +275,7 @@ const newRowState = computed(() =>
 
 const colTitle = computed(() => injectedColumn.value?.title || '')
 
-const onClick = (row: Row) => {
+const onClick = async (row: Row) => {
   if (isPublic.value || isForm.value) return
   // A linked record not created yet opens in its own editor
   if ((row as Record<string, any>)?._isBlueprint) {
@@ -292,15 +294,17 @@ const onClick = (row: Row) => {
   // A New record form closed without saving leaves these set; reset them so this row opens as itself.
   isNewRecord.value = false
   isBlueprintMode.value = false
+  await whenTargetViewColumnsLoaded()
   expandedFormRow.value = row
   expandedFormDlg.value = true
 }
-const addNewRecord = () => {
+const addNewRecord = async () => {
   if (readOnly.value) return
   if (showRecordPlanLimitExceededModal()) return
   // Don't allow creating new record if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
 
+  await whenTargetViewColumnsLoaded()
   expandedFormRow.value = {}
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
@@ -722,7 +726,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                     <GeneralIcon icon="ncDrag" class="!h-4 !w-4" />
                   </div>
                   <LazyVirtualCellComponentsListItem
-                    class="flex-1 min-w-0"
+                    class="flex-1 min-w-0 !border-b-transparent"
                     :attachment="attachmentCol"
                     :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                     :fields="fields"
@@ -885,20 +889,21 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               {{ isMobileMode ? $t('title.linkMore') : $t('title.linkMoreRecords') }}
             </div>
           </NcButton>
-          <NcTooltip v-if="linkedRecordsWhere && childrenCachedTotalRows > 0" :disabled="!isMobileMode">
+          <NcTooltip v-if="linkedRecordsWhere && childrenCachedTotalRows > 0">
             <template #title>{{ $t('labels.viewAllInTable') }}</template>
             <NcButton
               v-e="['c:link:records:table:open']"
               data-testid="nc-child-list-button-view-in-table"
-              class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
+              class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !w-7 !min-w-7"
               size="small"
               type="secondary"
+              icon-only
+              :aria-label="$t('labels.viewAllInTable')"
               @click="openLinkedRecordsInTable"
             >
-              <div class="flex items-center gap-1">
+              <template #icon>
                 <GeneralIcon icon="externalLink" class="h-4 w-4" />
-                <span v-if="!isMobileMode">{{ $t('labels.viewAllInTable') }}</span>
-              </div>
+              </template>
             </NcButton>
           </NcTooltip>
         </div>
@@ -927,6 +932,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         :state="isNewRecord ? newRowState : {}"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
+        :view-columns="targetViewColumns"
         skip-reload
         maintain-default-view-order
         :blueprint-mode="isBlueprintMode"

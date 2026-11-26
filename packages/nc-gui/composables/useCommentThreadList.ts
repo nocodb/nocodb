@@ -134,18 +134,6 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
     return createdBy(commentItem).split(' ')[0]
   }
 
-  function commentPlainText(commentItem: CommentTypeExtended) {
-    return (commentItem.comment ?? '')
-      .replace(/@\(([^)]+)\)/g, (_match, inner: string) => {
-        const [, email, name] = inner.split('|')
-        return `@${name || email || ''}`
-      })
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/[*_~`>#]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-  }
-
   /* annotations */
 
   // Annotations are EE-only — hide the label pills entirely in CE.
@@ -576,7 +564,6 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
     getUserRoleLabel,
     createdBy,
     firstName,
-    commentPlainText,
     imageAnnotations,
     annotationLabels,
     annotationRefByCommentId,

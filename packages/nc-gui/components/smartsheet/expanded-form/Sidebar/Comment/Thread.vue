@@ -36,7 +36,6 @@ const {
   getUserRoleLabel,
   createdBy,
   firstName,
-  commentPlainText,
   imageAnnotations,
   annotationLabels,
   annotationRefByCommentId,

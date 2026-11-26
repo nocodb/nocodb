@@ -93,7 +93,6 @@ const {
   revealComment,
   handleResetHoverEffect,
   firstName,
-  commentPlainText,
   handleKeyPress,
 } = commentList
 

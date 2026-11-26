@@ -74,7 +74,7 @@ const refScrollEl = ref<HTMLElement>()
 
 const commentList = useProvideCommentThreadList({ containerEl: refScrollEl })
 
-const { firstName, commentPlainText, revealComment, isResolvedCollapsed, deepLinkCommentId } = commentList
+const { firstName, revealComment, isResolvedCollapsed, deepLinkCommentId } = commentList
 
 /** Reveal a link once; later comments must not re-open a thread the reader closed. */
 let revealedCommentId: string | null = null

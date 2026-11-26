@@ -453,6 +453,9 @@ export function useInfiniteData(args: {
   /** Chunks a search reload reads together with its count. */
   const SEARCH_FIRST_CHUNKS = [0, 1]
 
+  /** Bumped by each loadSearchedFirstChunks, so a stale one doesn't release a newer one's chunks. */
+  let searchFirstChunksRun = 0
+
   const _fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
     const dataCache = getDataCache(path)
 
@@ -2198,6 +2201,7 @@ export function useInfiniteData(args: {
   async function loadSearchedFirstChunks(path: Array<number>) {
     const dataCache = getDataCache(path)
     let pageInfo: PaginatedType | undefined
+    const run = ++searchFirstChunksRun
     const reset = () => SEARCH_FIRST_CHUNKS.forEach((chunkId) => (dataCache.chunkStates.value[chunkId] = undefined))
     SEARCH_FIRST_CHUNKS.forEach((chunkId) => (dataCache.chunkStates.value[chunkId] = 'loading'))
     try {
@@ -2215,6 +2219,10 @@ export function useInfiniteData(args: {
         rows,
         count: pageInfo.totalRows ?? 0,
         searchState: (pageInfo as Record<string, unknown>)[SEARCH_STATE_FIELD] as SearchState | undefined,
+        // For a caller that drops the rows: unless a newer search reload took the chunks over.
+        release: () => {
+          if (run === searchFirstChunksRun) reset()
+        },
       }
     } catch (error) {
       reset()
@@ -2247,9 +2255,13 @@ export function useInfiniteData(args: {
     const isSearchCount = !path.length && !!fetchTotalRowsWithSearchQuery.value
     if (isSearchCount) searchCountPending.value++
 
+    // Its chunks stay 'loading' until applied: no refresh refetches a loading chunk.
+    let firstChunk: Awaited<ReturnType<typeof loadSearchedFirstChunks>>
+    let isFirstChunkApplied = false
+
     try {
       // A search reload: the first chunk carries the count, so the search runs once, not twice.
-      const firstChunk =
+      firstChunk =
         searchQueryParams.value.search &&
         !path.length &&
         !interfaceDataApi &&
@@ -2352,6 +2364,7 @@ export function useInfiniteData(args: {
             (dataCache.chunkStates.value[chunkId] = chunkId * CHUNK_SIZE < Math.max(count as number, 1) ? 'loaded' : undefined),
         )
         invalidateChunksAt(dataCache.chunkStates.value, removed, CHUNK_SIZE, SEARCH_FIRST_CHUNKS)
+        isFirstChunkApplied = true
       }
 
       callbacks?.syncVisibleData?.()
@@ -2381,6 +2394,8 @@ export function useInfiniteData(args: {
       }
       return false
     } finally {
+      // Superseded (e.g. search fell back to another field) or failed after the rows came back.
+      if (firstChunk && !isFirstChunkApplied) firstChunk.release()
       if (isSearchCount) searchCountPending.value--
     }
   }

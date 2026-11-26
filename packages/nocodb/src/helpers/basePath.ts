@@ -47,8 +47,10 @@ export function toAppUrl(
   basePath = getBasePath(),
   siteUrl: string | undefined = ncSiteUrl,
 ): string {
-  if (basePath === '/' || !siteUrl) return path;
-  const p = path.startsWith('/') ? path : `/${path}`;
+  // Collapse leading slashes: `//host/x` would be a protocol-relative redirect.
+  const safe = path.replace(/^[/\\]+/, '/');
+  if (basePath === '/' || !siteUrl) return safe;
+  const p = safe.startsWith('/') ? safe : `/${safe}`;
   return `${siteUrl.replace(/\/+$/, '')}${p}`;
 }
 

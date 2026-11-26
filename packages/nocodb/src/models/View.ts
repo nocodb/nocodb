@@ -1018,6 +1018,8 @@ export default class View implements ViewType {
         show: boolean;
         view_id?: any;
       };
+      // Set by callers that re-add an existing field, not a new one.
+      skip_hide_new_fields?: boolean;
     } & Pick<ColumnReqType, 'column_order'>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -1028,10 +1030,11 @@ export default class View implements ViewType {
       show: param.column_show.show,
     };
     const views = await this.list(context, param.fk_model_id, false, ncMeta);
-    const model = await Model.get(context, param.fk_model_id, false, ncMeta);
-    const tableHidesNewFields = !!parseProp(model?.meta)?.[
-      TABLE_META_HIDE_NEW_FIELDS
-    ];
+    const tableHidesNewFields =
+      !param.skip_hide_new_fields &&
+      !!parseProp(
+        (await Model.get(context, param.fk_model_id, false, ncMeta))?.meta,
+      )?.[TABLE_META_HIDE_NEW_FIELDS];
 
     const tableColumns = await Column.list(
       context,

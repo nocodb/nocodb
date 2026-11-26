@@ -799,23 +799,25 @@ const isMmTable = computed(() => !!table.value?.mm)
                     />
                     <template v-if="canUserEditEmote && table.type === 'table'">
                       <NcDivider />
-                      <NcMenuItem
-                        :data-testid="`sidebar-table-hide-new-fields-${table.title}`"
-                        class="nc-table-hide-new-fields !h-auto !py-2"
-                        :disabled="isSavingHideNewFields"
-                        @click="onToggleHideNewFields"
-                      >
-                        <div class="flex gap-2 items-start w-full">
-                          <GeneralIcon icon="eyeSlash" class="opacity-80 mt-0.5" />
-                          <div class="flex-1 flex flex-col gap-0.5">
-                            <span>{{ $t('title.hideNewFieldsInAllViews') }}</span>
-                            <span class="max-w-52 text-bodySm text-nc-content-gray-subtle2 !whitespace-normal !leading-4">
-                              {{ $t('tooltip.hideNewFields') }}
-                            </span>
+                      <NcTooltip :title="tableIconEditReason ? $t(tableIconEditReason) : ''" :disabled="!tableIconEditReason">
+                        <NcMenuItem
+                          :data-testid="`sidebar-table-hide-new-fields-${table.title}`"
+                          class="nc-table-hide-new-fields !h-auto !py-2"
+                          :disabled="!!(isSavingHideNewFields || isMobileMode || tableIconEditReason)"
+                          @click="onToggleHideNewFields"
+                        >
+                          <div class="flex gap-2 items-start w-full">
+                            <GeneralIcon icon="eyeSlash" class="opacity-80 mt-0.5" />
+                            <div class="flex-1 flex flex-col gap-0.5">
+                              <span>{{ $t('title.hideNewFieldsInAllViews') }}</span>
+                              <span class="max-w-52 text-bodySm text-nc-content-gray-subtle2 !whitespace-normal !leading-4">
+                                {{ $t('tooltip.hideNewFields') }}
+                              </span>
+                            </div>
+                            <NcSwitch :checked="isHideNewFieldsOn" size="xsmall" class="pointer-events-none mt-0.5" />
                           </div>
-                          <NcSwitch :checked="isHideNewFieldsOn" size="xsmall" class="pointer-events-none mt-0.5" />
-                        </div>
-                      </NcMenuItem>
+                        </NcMenuItem>
+                      </NcTooltip>
                     </template>
                     <NcDivider />
 

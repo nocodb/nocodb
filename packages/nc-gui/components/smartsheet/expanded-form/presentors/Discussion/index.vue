@@ -68,7 +68,7 @@ onMounted(() => {
 
 /* comments */
 
-const { comments, threads, isCommentExtrasEnabled, acknowledgeUnread } = useRowCommentsOrThrow()
+const { comments, commentsRowId, threads, isCommentExtrasEnabled, acknowledgeUnread } = useRowCommentsOrThrow()
 
 const refScrollEl = ref<HTMLElement>()
 
@@ -158,9 +158,9 @@ watch([newCommentText, auditsLength], () => {
 })
 
 // A reply lands inside its thread, so only new threads scroll the timeline.
-watch([threadsLength, primaryKey], ([length, pk], [prevLength, prevPk]) => {
-  // A record switch replaces the list; only an arrival on the same record is held.
-  const isArrival = pk === prevPk && !!prevLength && length > prevLength
+watch([threadsLength, commentsRowId], ([length, rowId], [prevLength, prevRowId]) => {
+  // Keyed on the list's row, not primaryKey: the row and its comments load separately on prev/next.
+  const isArrival = rowId === prevRowId && !!prevLength && length > prevLength
   if (isArrival && shouldHoldScroll(threads.value[threads.value.length - 1]?.root)) return
 
   scrollToBottom()

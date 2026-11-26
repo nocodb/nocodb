@@ -113,19 +113,19 @@ const createdBy = computed(() => {
       </div>
     </div>
     <template v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'">
-      <div class="relative mb-2">
+      <div class="relative">
         <GeneralIcon
           icon="ncNode"
           class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-elevated absolute top-1/2 left-0 rtl:(left-auto right-0 translate-x-1/2) transform -translate-y-1/2 -translate-x-1/2"
         />
-        <p class="text-sm font-weight-500 mb-1 ml-6.5">{{ $t('activity.recordWasCreated') }}</p>
+        <p class="text-sm font-weight-500 mb-0 ml-6.5">{{ $t('activity.recordWasCreated') }}</p>
       </div>
     </template>
     <template v-else-if="['DATA_UPDATE', 'DATA_CASCADE_UPDATE'].includes(props.auditGroup.audit?.op_type)">
       <SmartsheetExpandedFormPresentorsDiscussionAuditInfoExpressive :audit="props.auditGroup.audit" />
     </template>
     <template v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(props.auditGroup.audit?.op_type)">
-      <div class="relative mb-2">
+      <div class="relative">
         <GeneralIcon
           icon="ncNode"
           class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-elevated absolute top-1/2 left-0 rtl:(left-auto right-0 translate-x-1/2) transform -translate-y-1/2 -translate-x-1/2"

@@ -49,6 +49,7 @@ const {
   saveComment: _saveComment,
   parsedHtmlComments,
   primaryKey,
+  commentsRowId,
   threads,
   isCommentExtrasEnabled,
   isCommentUnread,
@@ -455,9 +456,9 @@ watch(
   { immediate: true },
 )
 
-watch([() => comments.value?.length ?? 0, primaryKey], ([length, pk], [prevLength, prevPk]) => {
-  // A record switch replaces the list; only an arrival on the same record is held.
-  const isArrival = pk === prevPk && !!prevLength && length > prevLength
+watch([() => comments.value?.length ?? 0, commentsRowId], ([length, rowId], [prevLength, prevRowId]) => {
+  // Keyed on the list's row, not primaryKey: the row and its comments load separately on prev/next.
+  const isArrival = rowId === prevRowId && !!prevLength && length > prevLength
   if (isArrival && shouldHoldScroll(comments.value[comments.value.length - 1])) return
 
   nextTick(() => {

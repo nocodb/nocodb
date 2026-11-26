@@ -166,9 +166,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
   }
 
   /** Row whose comments are on screen — set before the record object may be. */
-  let commentsRowId: string | undefined
+  const commentsRowId = ref<string>()
 
-  async function loadReactions(rowId = commentsRowId) {
+  async function loadReactions(rowId = commentsRowId.value) {
     if (!isCommentExtrasEnabled.value || !isUIAllowed('commentList')) return
 
     if (!rowId) return
@@ -180,7 +180,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         fk_model_id: meta.value.id as string,
       })) as Record<string, CommentReactionItem[]>
 
-      if (rowId === commentsRowId) reactions.value = res ?? {}
+      if (rowId === commentsRowId.value) reactions.value = res ?? {}
     } catch {
       // Reactions are decoration: the comments stay usable without them.
     }
@@ -401,7 +401,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         }
       })
 
-      commentsRowId = rowId
+      commentsRowId.value = rowId
 
       loadReactions(rowId)
     } catch (e: unknown) {
@@ -737,6 +737,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     resolveComment,
     deleteComment,
     isCommentsLoading,
+    commentsRowId,
     primaryKey,
     parsedHtmlComments,
     row,

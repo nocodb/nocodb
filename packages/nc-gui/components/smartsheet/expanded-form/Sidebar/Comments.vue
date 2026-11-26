@@ -480,26 +480,23 @@ watch(
   { immediate: true },
 )
 
-watch(
-  () => [comments.value?.length ?? 0, primaryKey.value] as const,
-  ([length, pk], [prevLength, prevPk] = [0, undefined]) => {
-    // A record switch replaces the list; only an arrival on the same record is held.
-    const isArrival = pk === prevPk && !!prevLength && length > prevLength
-    if (isArrival && shouldHoldScroll(comments.value[comments.value.length - 1])) return
+watch([() => comments.value?.length ?? 0, primaryKey], ([length, pk], [prevLength, prevPk]) => {
+  // A record switch replaces the list; only an arrival on the same record is held.
+  const isArrival = pk === prevPk && !!prevLength && length > prevLength
+  if (isArrival && shouldHoldScroll(comments.value[comments.value.length - 1])) return
 
-    nextTick(() => {
-      // Deep-link target still in scope (only cleared on user post / row
-      // change) — keep anchoring on it rather than snapping to bottom.
-      if (deepLinkCommentId.value) {
-        tryScrollToDeepLinkComment()
-        return
-      }
-      // A reply lands inside its thread, not at the end of the list.
-      if (comments.value[comments.value.length - 1]?.parent_comment_id) return
-      scrollComments()
-    })
-  },
-)
+  nextTick(() => {
+    // Deep-link target still in scope (only cleared on user post / row
+    // change) — keep anchoring on it rather than snapping to bottom.
+    if (deepLinkCommentId.value) {
+      tryScrollToDeepLinkComment()
+      return
+    }
+    // A reply lands inside its thread, not at the end of the list.
+    if (comments.value[comments.value.length - 1]?.parent_comment_id) return
+    scrollComments()
+  })
+})
 
 watch(primaryKey, () => {
   searchQuery.value = ''

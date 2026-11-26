@@ -208,3 +208,32 @@ export const suggestManagedAppNextVersion = (currentVersion?: string) => {
 export const BASE_META_APP_FIRST = 'appFirst'
 
 export const isAppFirstBase = (base?: Pick<BaseType, 'meta'> | null) => !!parseProp(base?.meta)?.[BASE_META_APP_FIRST]
+
+/**
+ * The per-user order changes for dropping `base` between `before` and `after` in the base list:
+ * their midpoint when both are ordered and distinct, otherwise the whole list numbered once in its
+ * new arrangement, keeping only the bases whose order changes.
+ */
+export function computeBaseReorder(
+  all: NcProject[],
+  base: NcProject,
+  { before, after }: { before?: NcProject; after?: NcProject },
+): Array<{ base: NcProject; order: number }> {
+  if (before?.order != null && after?.order != null && before.order < after.order) {
+    return [{ base, order: (before.order + after.order) / 2 }]
+  }
+  if (!before && after?.order != null && after.order > 0) return [{ base, order: after.order / 2 }]
+  if (before?.order != null && !after) return [{ base, order: before.order + 1 }]
+
+  const sorted = [...all].sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity) || 0)
+  const moving = sorted.find((b) => b.id === base.id) ?? base
+  const rest = sorted.filter((b) => b.id !== base.id)
+  const at = before
+    ? rest.findIndex((b) => b.id === before.id) + 1
+    : after
+    ? rest.findIndex((b) => b.id === after.id)
+    : rest.length
+  rest.splice(Math.max(0, at), 0, moving)
+
+  return rest.map((b, i) => ({ base: b, order: i + 1 })).filter((change) => change.order !== change.base.order)
+}

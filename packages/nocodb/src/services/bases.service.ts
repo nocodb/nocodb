@@ -167,16 +167,19 @@ export class BasesService {
       context,
     });
 
+    // each member keeps their own order, so the shared one must not overwrite it
+    const { order: _order, ...broadcast } = sanitizeBase({
+      ...base,
+      ...data,
+    });
+
     NocoSocket.broadcastEventToBaseUsers(
       context,
       {
         event: EventType.USER_EVENT,
         payload: {
           action: 'base_update',
-          payload: sanitizeBase({
-            ...base,
-            ...data,
-          }),
+          payload: broadcast,
         },
       },
       context.socket_id,

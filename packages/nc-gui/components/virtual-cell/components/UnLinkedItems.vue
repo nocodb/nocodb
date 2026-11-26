@@ -84,6 +84,7 @@ const {
   isPendingUnlink,
   pendingUnlinkRows,
   getRelatedTableRowId,
+  targetViewColumns,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState, pendingLtarOps } = useSmartsheetRowStoreOrThrow()
@@ -785,6 +786,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         :link-on-parent-save="isBlueprintMode"
         :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         use-meta-fields
+        :view-columns="targetViewColumns"
         maintain-default-view-order
         skip-reload
         :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Record' : 'Create & Link'"

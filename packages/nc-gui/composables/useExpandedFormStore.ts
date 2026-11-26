@@ -43,6 +43,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     maintainDefaultViewOrder: Ref<boolean>,
     useMetaFields: boolean,
     allowNullFieldIds?: string[],
+    // A link field's target view: its show/order replace the default view's for meta fields
+    viewColumns?: Ref<ColumnType[] | undefined>,
   ) => {
     const { $e, $state, $api, $ncSocket } = useNuxtApp()
 
@@ -195,6 +197,27 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
      *
      * @returns {ColumnType[]} The computed list of fields.
      */
+    const viewColumnsById = computed(() => {
+      if (!viewColumns?.value?.length) return null
+      return viewColumns.value.reduce((map, col) => {
+        map[col.fk_column_id!] = col
+        return map
+      }, {} as Record<string, ColumnType>)
+    })
+
+    const isMetaFieldVisible = (col: ColumnType) => {
+      if (viewColumnsById.value) {
+        const viewCol = viewColumnsById.value[col.id!]
+        return viewCol ? !!viewCol.show : true
+      }
+      return !!(col.meta?.defaultViewColVisibility ?? true)
+    }
+
+    const metaFieldOrder = (col: ColumnType) => {
+      if (viewColumnsById.value) return viewColumnsById.value[col.id!]?.order ?? Infinity
+      return col.meta?.defaultViewColOrder ?? Infinity
+    }
+
     const fields = computed(() => {
       // Give preference to props.useMetaFields instead of fieldsFromParent
       if (useMetaFields) {
@@ -204,13 +227,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
               (col) =>
                 !isHiddenCol(col, meta.value ?? {}) &&
                 !isSystemColumn(col) &&
-                !!(col.meta?.defaultViewColVisibility ?? true) &&
+                isMetaFieldVisible(col) &&
                 // if new record, then hide readonly fields
                 (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
             )
-            .sort((a, b) => {
-              return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-            })
+            .sort((a, b) => metaFieldOrder(a) - metaFieldOrder(b))
         }
 
         return (meta.value.columns ?? []).filter(
@@ -221,7 +242,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             // exclude system columns
             !isSystemColumn(col) &&
             // exclude hidden columns
-            !!(col.meta?.defaultViewColVisibility ?? true),
+            isMetaFieldVisible(col),
         )
       }
 
@@ -253,9 +274,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
       if (useMetaFields) {
         return maintainDefaultViewOrder.value
-          ? _hiddenFields.sort((a, b) => {
-              return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-            })
+          ? _hiddenFields.sort((a, b) => metaFieldOrder(a) - metaFieldOrder(b))
           : _hiddenFields
       }
       // record from same view and same table (not linked)

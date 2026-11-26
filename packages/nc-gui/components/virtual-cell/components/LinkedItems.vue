@@ -110,6 +110,7 @@ const {
   canReorder,
   reorderLink,
   getRelatedTableRowId,
+  targetViewColumns,
 } = useLTARStoreOrThrow()
 
 const { withLoading } = useLoadingTrigger()
@@ -927,6 +928,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
         :state="isNewRecord ? newRowState : {}"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
+        :view-columns="targetViewColumns"
         skip-reload
         maintain-default-view-order
         :blueprint-mode="isBlueprintMode"

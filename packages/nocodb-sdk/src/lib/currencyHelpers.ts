@@ -259,3 +259,53 @@ export const getNumericValue = (value: string, locale?: string) => {
     isValid,
   };
 };
+
+/** User meta keys for the currency a user's new Currency fields start with. */
+export const USER_DEFAULT_CURRENCY_CODE_KEY = 'default_currency_code';
+export const USER_DEFAULT_CURRENCY_LOCALE_KEY = 'default_currency_locale';
+
+const isValidCurrencyCode = (code: unknown): code is string => {
+  if (typeof code !== 'string' || !/^[A-Z]{3}$/.test(code)) return false;
+  try {
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: code });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const isValidCurrencyLocale = (locale: unknown): locale is string => {
+  if (typeof locale !== 'string' || !locale) return false;
+  try {
+    return Intl.NumberFormat.supportedLocalesOf(locale).length > 0;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * The currency a new Currency field starts with for this user: their saved
+ * preference, else USD in en-US. Invalid saved values fall back one by one.
+ */
+export const getUserCurrencyDefaults = (
+  userMeta?: Record<string, any> | string | null
+): { currency_code: string; currency_locale: string } => {
+  let meta: Record<string, any> = {};
+  if (typeof userMeta === 'string') {
+    try {
+      meta = JSON.parse(userMeta) ?? {};
+    } catch {
+      meta = {};
+    }
+  } else if (userMeta && typeof userMeta === 'object') {
+    meta = userMeta;
+  }
+
+  const code = meta[USER_DEFAULT_CURRENCY_CODE_KEY];
+  const locale = meta[USER_DEFAULT_CURRENCY_LOCALE_KEY];
+
+  return {
+    currency_code: isValidCurrencyCode(code) ? code : 'USD',
+    currency_locale: isValidCurrencyLocale(locale) ? locale : 'en-US',
+  };
+};

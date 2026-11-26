@@ -12,6 +12,8 @@ const { weekStart, setWeekStart } = useWeekStart()
 
 const { isColorblindPaletteOn, setColorblindPalette } = useColorblindPalette()
 
+const { defaultCurrency, setDefaultCurrency } = useDefaultCurrency()
+
 const { locale, t } = useI18n()
 
 const { $e } = useNuxtApp()
@@ -19,6 +21,10 @@ const { $e } = useNuxtApp()
 const isSavingWeekStart = ref(false)
 
 const isSavingColorblindPalette = ref(false)
+
+const isSavingCurrency = ref(false)
+
+const currencyLocaleList = ref<{ text: string; value: string }[]>([])
 
 const themeOptions = computed(() => [
   { value: 'light' as ThemeMode, label: t('general.light') },
@@ -39,6 +45,10 @@ const weekStartOptions = computed(() => {
     { value: 'monday', label: monday! },
   ]
 })
+
+function filterCurrencyOption(input: string, option: any) {
+  return searchCompare([option?.value, option?.label], input)
+}
 
 function filterLanguage(input: string, option: any) {
   return String(option?.label ?? '')
@@ -87,6 +97,21 @@ async function onToggleColorblindPalette(isOn: boolean) {
     isSavingColorblindPalette.value = false
   }
 }
+
+async function onSelectDefaultCurrency(value: { currency_code?: string; currency_locale?: string }) {
+  isSavingCurrency.value = true
+  try {
+    await setDefaultCurrency(value)
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isSavingCurrency.value = false
+  }
+}
+
+onMounted(async () => {
+  currencyLocaleList.value = await currencyLocales()
+})
 </script>
 
 <template>
@@ -212,6 +237,52 @@ async function onToggleColorblindPalette(isOn: boolean) {
                   data-testid="nc-pref-week-start"
                   @update:value="onSelectWeekStart"
                 />
+              </div>
+              <div class="nc-settings-item md:!items-center">
+                <div class="nc-settings-item-content flex-1">
+                  <div class="nc-settings-item-title">{{ $t('labels.preferencesPage.defaultCurrency') }}</div>
+                  <div class="nc-settings-item-subtitle">{{ $t('labels.preferencesPage.defaultCurrencySubtitle') }}</div>
+                </div>
+                <div class="nc-settings-item-action md:!self-center w-full md:!w-50 flex flex-col gap-2">
+                  <NcSelect
+                    :value="defaultCurrency.currency_code"
+                    class="w-full"
+                    show-search
+                    :filter-option="filterCurrencyOption"
+                    :disabled="isSavingCurrency"
+                    :aria-label="$t('title.currencyCode')"
+                    data-testid="nc-pref-currency-code"
+                    dropdown-class-name="nc-pref-currency-code-dropdown"
+                    @update:value="(v: string) => onSelectDefaultCurrency({ currency_code: v })"
+                  >
+                    <a-select-option v-for="code of currencyCodes" :key="code" :value="code" :label="code">
+                      {{ code }}
+                    </a-select-option>
+                  </NcSelect>
+                  <NcSelect
+                    :value="defaultCurrency.currency_locale"
+                    class="w-full"
+                    show-search
+                    :filter-option="filterCurrencyOption"
+                    :disabled="isSavingCurrency"
+                    :aria-label="$t('title.currencyLocale')"
+                    data-testid="nc-pref-currency-locale"
+                    dropdown-class-name="nc-pref-currency-locale-dropdown"
+                    @update:value="(v: string) => onSelectDefaultCurrency({ currency_locale: v })"
+                  >
+                    <a-select-option
+                      v-for="option of currencyLocaleList"
+                      :key="option.value"
+                      :value="option.value"
+                      :label="option.text"
+                    >
+                      <NcTooltip show-on-truncate-only class="truncate">
+                        <template #title>{{ option.text }}</template>
+                        {{ option.text }}
+                      </NcTooltip>
+                    </a-select-option>
+                  </NcSelect>
+                </div>
               </div>
             </div>
           </div>

@@ -3211,6 +3211,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         Object.keys(updateObj),
       );
 
+      const fkOnlyUpdate = btColumn && Object.keys(data || {}).length === 1;
+      const fireFkLinkHooks = fkOnlyUpdate
+        ? null
+        : await this.captureFkLinkHooks(prevData, updateObj, cookie);
+
       await this.execAndParse(query, null, { raw: true });
       await trackOldParents?.();
 
@@ -3233,7 +3238,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
       const newData = await readNewData(hookReader);
 
-      if (btColumn && Object.keys(data || {}).length === 1) {
+      if (fkOnlyUpdate) {
         await this.addChild({
           colId: btColumn.id,
           rowId: newId,
@@ -3247,6 +3252,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         await this.afterUpdate(prevData, newData, cookie, updateObj);
         await this.auditFkLinkChanges(prevData, newData, updateObj, cookie);
+        await fireFkLinkHooks?.();
       }
       return hookReader === this ? newData : await readNewData(this);
     } catch (e) {
@@ -7307,6 +7313,64 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await relationManager.getAuditUpdateObj(cookie),
       'addChild',
     );
+  }
+
+  /**
+   * Update hooks for the parents a multi-field update links or unlinks through
+   * belongs-to FKs, as the link API fires them. Call before the write; the
+   * updated row gets its event from afterUpdate.
+   */
+  protected async captureFkLinkHooks(
+    prevData: Record<string, any>,
+    updateObj: Record<string, any>,
+    cookie: any,
+  ): Promise<Awaited<ReturnType<typeof captureLinkHooks>> | null> {
+    try {
+      const columns = await this.model.getColumns();
+      const updatedFkColumns = columns.filter(
+        (c) => c.uidt === UITypes.ForeignKey && c.column_name in updateObj,
+      );
+      if (!updatedFkColumns.length) return null;
+
+      const rowId = this.extractPksValues(prevData, true);
+      const changes: LinkHookChange[] = [];
+      for (const column of columns) {
+        if (column.uidt !== UITypes.LinkToAnotherRecord || isLinkV2(column))
+          continue;
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+        if (colOptions.type !== RelationTypes.BELONGS_TO) continue;
+        const fkColumn = updatedFkColumns.find(
+          (c) => c.id === colOptions.fk_child_column_id,
+        );
+        if (!fkColumn) continue;
+        const newFk = updateObj[fkColumn.column_name] ?? null;
+        if (`${prevData?.[fkColumn.title] ?? null}` === `${newFk}`) continue;
+        // Parent rows are read by pk: an FK on another column can't name them
+        const parentColumn = await colOptions.getParentColumn();
+        if (!parentColumn?.pk) continue;
+
+        const parentIds = newFk === null ? [] : [newFk];
+        changes.push({
+          column,
+          rowIds: [rowId],
+          refRowIds: parentIds,
+          linkedRefRowIds: parentIds,
+          // Picks up the current parent, so an unlink notifies it too
+          replace: new Map([[String(rowId), parentIds]]),
+        });
+      }
+      if (!changes.length) return null;
+      return await captureLinkHooks({
+        baseModel: this,
+        changes,
+        req: cookie,
+        notifiedRowIds: [rowId],
+      });
+    } catch (e) {
+      logger.error(`[updateByPk] link hooks failed: ${e.message}`, e.stack);
+      return null;
+    }
   }
 
   /**

@@ -328,8 +328,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       await nextTick()
 
+      // Only a grid target view sets the fields; card views' `show` is just what's on the card
+      const targetView = (relatedTableMeta.value?.views ?? []).find((v) => v.id === colOptions.value.fk_target_view_id)
       const viewId =
-        colOptions.value.fk_target_view_id ??
+        (targetView?.type === ViewTypes.GRID ? targetView.id : undefined) ??
         getFirstNonPersonalView(relatedTableMeta.value?.views ?? [], { includeViewType: ViewTypes.GRID })?.id ??
         ''
       if (!viewId) return

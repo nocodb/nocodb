@@ -5,6 +5,7 @@ import {
   UITypes,
   type UserType,
   type ViewType,
+  ViewTypes,
   isAIPromptCol,
   isBtLikeV2Junction,
   isLinksOrLTAR,
@@ -143,7 +144,9 @@ export function useGridCellHandler(params: {
 
     const colOptions =
       viewLinkColumn && isLinksOrLTAR(viewLinkColumn) ? (viewLinkColumn.colOptions as LinkToAnotherRecordType) : undefined
-    const viewId = colOptions?.fk_target_view_id
+    // Only a grid target view sets the fields; card views' `show` is just what's on the card
+    const targetView = state.meta?.views?.find((v) => v.id === colOptions?.fk_target_view_id)
+    const viewId = targetView?.type === ViewTypes.GRID ? targetView.id : undefined
     const baseId = colOptions?.fk_related_base_id || viewLinkColumn?.base_id
 
     if (!viewId || !baseId || !getViewColumns || isPublic.value) {

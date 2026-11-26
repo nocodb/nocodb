@@ -723,7 +723,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                     <GeneralIcon icon="ncDrag" class="!h-4 !w-4" />
                   </div>
                   <LazyVirtualCellComponentsListItem
-                    class="flex-1 min-w-0"
+                    class="flex-1 min-w-0 !border-b-transparent"
                     :attachment="attachmentCol"
                     :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                     :fields="fields"

@@ -367,6 +367,12 @@ export default {
   @apply !w-5 !h-5 !min-w-5 !text-[9px];
 }
 
+/* No trailing margin, so every gap in the timeline is the same 16px */
+.nc-discussion-audit :deep(.nc-audit-body),
+.nc-discussion-audit :deep(.nc-audit-body > p) {
+  @apply !mb-0;
+}
+
 [theme='dark'] .expanded-form-comment-input {
   background-color: var(--nc-bg-input) !important;
 }

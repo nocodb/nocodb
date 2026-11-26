@@ -105,7 +105,7 @@ const pinnedComment = computed(() =>
 
 type TimelineEntry =
   | { type: 'thread'; key: string; at?: string; thread: CommentThread }
-  | { type: 'audit'; key: string; at?: string; auditGroup: any }
+  | { type: 'audit'; key: string; at?: string; auditGroup: (typeof auditCommentGroups.value)[number] }
 
 // A thread sits at its first comment's time; its replies stay inside it.
 const timelineEntries = computed<TimelineEntry[]>(() => {

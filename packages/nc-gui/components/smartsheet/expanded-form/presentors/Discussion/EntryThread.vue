@@ -10,7 +10,11 @@ defineProps<{
 </script>
 
 <template>
-  <div class="nc-discussion-thread-entry relative my-4" :data-testid="`nc-discussion-thread-${thread.root.id}`">
+  <div
+    class="nc-discussion-thread-entry relative"
+    :class="showNewDivider ? 'nc-discussion-thread-entry-unread mt-8 mb-4' : 'my-4'"
+    :data-testid="`nc-discussion-thread-${thread.root.id}`"
+  >
     <div
       v-if="showNewDivider"
       class="nc-comment-new-divider absolute -top-4 left-11.5 right-0 rtl:(left-0 right-11.5) -translate-y-1/2 flex items-center gap-2 text-[11px] font-semibold uppercase text-nc-content-red-medium z-1"
@@ -20,7 +24,8 @@ defineProps<{
       <span class="bg-nc-bg-default px-1">{{ $t('activity.commentThread.newDivider') }}</span>
       <span class="h-px flex-1 bg-nc-border-red" />
     </div>
-    <div class="absolute left-0 top-1 rtl:(left-auto right-0)">
+    <!-- Centred on the card's first row -->
+    <div class="absolute left-0 rtl:(left-auto right-0)" :class="compact ? 'top-px' : 'top-[11px]'">
       <div
         class="w-[28px] h-[28px] flex items-center justify-center bg-nc-bg-elevated rounded-full border-1 border-nc-border-gray-medium shadow-sm"
       >
@@ -48,6 +53,10 @@ defineProps<{
     content: '';
     @apply absolute -bottom-4 left-15.8 h-4 border-l-1 border-nc-border-gray-dark;
   }
+}
+
+.nc-discussion-thread-entry-unread::before {
+  @apply -top-8 h-8;
 }
 
 .nc-discussion-thread-compact :deep(.nc-comment-resolved-row) {

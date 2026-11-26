@@ -80,12 +80,20 @@ const route = useRoute()
 
 const router = useRouter()
 
+/** Record the link points at; a switch to any other record drops the link. */
+let deepLinkRowId: string | undefined
+
+/** Reveal a link once; later comments must not re-open a thread the reader closed. */
+let revealedCommentId: string | null = null
+
 // A comment link lands here when the view was left in Discussion; keep the id after stripping it from the URL.
 watch(
   () => route.query.commentId,
   (id) => {
     if (!id) return
     deepLinkCommentId.value = id as string
+    deepLinkRowId = route.query.rowId as string | undefined
+    revealedCommentId = null
     const { commentId: _drop, ...rest } = router.currentRoute.value.query
     router.push({ query: rest })
   },
@@ -95,15 +103,16 @@ watch(
 watch(
   [deepLinkCommentId, () => comments.value.length],
   ([id]) => {
-    if (!id || !comments.value.some((c) => c.id === id)) return
+    if (!id || id === revealedCommentId || !comments.value.some((c) => c.id === id)) return
+    revealedCommentId = id
     nextTick(() => revealComment(id))
   },
   { immediate: true },
 )
 
-watch(primaryKey, (_pk, prev) => {
-  // The first key to arrive is the linked record itself.
-  if (prev) deepLinkCommentId.value = null
+watch(primaryKey, (pk, prev) => {
+  // The first key to arrive, or the record a link names, is the linked record itself.
+  if (prev && `${pk}` !== deepLinkRowId) deepLinkCommentId.value = null
 })
 
 const { unreadComments, firstUnreadRootId, isJumpToUnreadDismissed, isFirstUnreadBelow, jumpToUnread, shouldHoldScroll } =
@@ -182,12 +191,12 @@ watch([threadsLength, primaryKey], ([length, pk], [prevLength, prevPk]) => {
 
 function scrollToBottom() {
   setTimeout(() => {
-    // Stay on a linked comment until the reader posts or changes record.
-    if (deepLinkCommentId.value) return
     if (shouldSkipAuditsScroll.value) {
       shouldSkipAuditsScroll.value = false
       return
     }
+    // Stay on a linked comment until the reader posts or changes record.
+    if (deepLinkCommentId.value) return
     refAuditsEnd.value?.scrollIntoView({
       behavior: 'smooth',
     })

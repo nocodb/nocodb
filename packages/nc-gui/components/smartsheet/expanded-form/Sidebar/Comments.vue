@@ -253,6 +253,9 @@ function tryScrollToDeepLinkComment(): boolean {
   return true
 }
 
+/** Record the link points at; a switch to any other record drops the link. */
+let deepLinkRowId: string | undefined
+
 // Capture commentId from the URL into our own ref before stripping it,
 // so subsequent wrapper remounts (caused by isCommentsLoading toggles)
 // still know there's a deep-link in progress. Also fires when the user
@@ -262,6 +265,7 @@ watch(
   (newId) => {
     if (!newId) return
     deepLinkCommentId.value = newId as string
+    deepLinkRowId = route.query.rowId as string | undefined
     // Preserve `path` so the group context survives a reload after the
     // comment deep-link is consumed; only commentId needs to be stripped.
     const { commentId: _drop, ...rest } = router.currentRoute.value.query
@@ -272,9 +276,9 @@ watch(
 
 // Reset deep-link state when row changes so a new row defaults back to
 // the usual scroll-to-bottom behavior on first open.
-watch(primaryKey, (_pk, prev) => {
-  // The first key to arrive is the deep-linked record itself.
-  if (prev) deepLinkCommentId.value = null
+watch(primaryKey, (pk, prev) => {
+  // The first key to arrive, or the record a link names, is the deep-linked record itself.
+  if (prev && `${pk}` !== deepLinkRowId) deepLinkCommentId.value = null
 })
 
 const SEARCH_HIGHLIGHT = 'nc-comment-search'

@@ -84,6 +84,7 @@ const {
   isLinkedTableAccessible,
   row,
   loadRelatedTableMeta,
+  whenTargetViewColumnsLoaded,
   resetChildrenListOffsetCount,
   attachmentCol,
   fields,
@@ -274,7 +275,7 @@ const newRowState = computed(() =>
 
 const colTitle = computed(() => injectedColumn.value?.title || '')
 
-const onClick = (row: Row) => {
+const onClick = async (row: Row) => {
   if (isPublic.value || isForm.value) return
   // A linked record not created yet opens in its own editor
   if ((row as Record<string, any>)?._isBlueprint) {
@@ -293,15 +294,17 @@ const onClick = (row: Row) => {
   // A New record form closed without saving leaves these set; reset them so this row opens as itself.
   isNewRecord.value = false
   isBlueprintMode.value = false
+  await whenTargetViewColumnsLoaded()
   expandedFormRow.value = row
   expandedFormDlg.value = true
 }
-const addNewRecord = () => {
+const addNewRecord = async () => {
   if (readOnly.value) return
   if (showRecordPlanLimitExceededModal()) return
   // Don't allow creating new record if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
 
+  await whenTargetViewColumnsLoaded()
   expandedFormRow.value = {}
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true

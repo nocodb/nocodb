@@ -486,6 +486,16 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return promise
     }
 
+    // A view's fields changed: drop its cached columns so the next read refetches
+    const viewColumnsEventListener = (evt: string, payload: { fk_view_id?: string } | undefined) => {
+      if ((evt !== 'view_column_update' && evt !== 'view_column_refresh') || !payload?.fk_view_id) return
+      for (const key of Object.keys(viewColumnsMap)) {
+        if (key.endsWith(`:${payload.fk_view_id}`)) delete viewColumnsMap[key]
+      }
+    }
+    $eventBus.realtimeViewMetaEventBus.on(viewColumnsEventListener)
+    onScopeDispose(() => $eventBus.realtimeViewMetaEventBus.off(viewColumnsEventListener))
+
     // The fields the server searches: the view's visible ones plus the display value.
     const allFieldsSearchColumns = computed(() => {
       const columns = (meta.value as TableType)?.columns ?? []

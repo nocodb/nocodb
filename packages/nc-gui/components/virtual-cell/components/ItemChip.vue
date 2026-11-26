@@ -25,6 +25,7 @@ const {
   relatedTableMeta,
   externalBaseUserRoles,
   targetViewColumns,
+  whenTargetViewColumnsLoaded,
   openBlueprintEditor: openLtarBlueprintEditor,
 } = useLTARStoreOrThrow()!
 
@@ -95,7 +96,7 @@ function openBlueprintEditor() {
   openLtarBlueprintEditor(item.value, { breadcrumbs: parentBreadcrumbs.value, linkOnParentSave: !isTemplateMode.value })
 }
 
-function openExpandedForm() {
+async function openExpandedForm() {
   if (isClickDisabled.value) return
 
   // Blueprint records open in blueprint editor instead
@@ -117,6 +118,8 @@ function openExpandedForm() {
   const rowId = extractPkFromRow(item.value, relatedTableMeta.value.columns as ColumnType[])
 
   if (!rowId) return
+
+  await whenTargetViewColumnsLoaded()
 
   open({
     isOpen: true,

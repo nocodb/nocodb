@@ -63,6 +63,7 @@ const {
   row,
   resetChildrenExcludedOffsetCount,
   loadRelatedTableMeta,
+  whenTargetViewColumnsLoaded,
   attachmentCol,
   fields,
   refreshCurrentRow,
@@ -298,11 +299,12 @@ const onClick = (refRow: any, id: string) => {
   }
 }
 
-const addNewRecord = () => {
+const addNewRecord = async () => {
   if (showRecordPlanLimitExceededModal()) return
   // Don't allow creating new record if linked table is not accessible
   if (!isLinkedTableAccessible.value) return
 
+  await whenTargetViewColumnsLoaded()
   expandedFormRow.value = {}
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
@@ -311,12 +313,13 @@ const addNewRecord = () => {
   isBlueprintMode.value = isNew.value && isExpandedFormOpen.value && !isLtarFkOnRow(injectedColumn?.value)
 }
 
-function expandExistingRecord(record: Record<string, any>) {
+async function expandExistingRecord(record: Record<string, any>) {
   if (!isLinkedTableAccessible.value) return
 
   // A New record form closed without saving leaves these set; reset them so this row opens as itself.
   isNewRecord.value = false
   isBlueprintMode.value = false
+  await whenTargetViewColumnsLoaded()
   expandedFormRow.value = record
   expandedFormDlg.value = true
 }

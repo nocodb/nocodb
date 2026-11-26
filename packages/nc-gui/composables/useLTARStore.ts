@@ -286,7 +286,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       )
     }
 
-    const loadRelatedTableMeta = async () => {
+    // Settles once the related meta and the target view's columns are loaded; forms wait on it
+    let relatedTableMetaLoad: Promise<void> = Promise.resolve()
+
+    const loadRelatedTableMeta = () => {
+      const load = loadRelatedTableMetaAndViewColumns()
+      relatedTableMetaLoad = load.catch(() => {})
+      return load
+    }
+
+    const whenTargetViewColumnsLoaded = () => relatedTableMetaLoad
+
+    async function loadRelatedTableMetaAndViewColumns() {
       const relatedBaseId = colOptions.value.fk_related_base_id || column.value.base_id
       if (!relatedBaseId) {
         console.error('Cannot load related table meta: base_id not found')
@@ -1923,6 +1934,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       relatedTableMeta,
       isLinkedTableAccessible,
       loadRelatedTableMeta,
+      whenTargetViewColumnsLoaded,
       targetViewColumns,
       targetViewColumnsById,
       relatedTableDisplayValueProp,

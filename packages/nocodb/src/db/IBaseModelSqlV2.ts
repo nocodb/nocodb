@@ -510,6 +510,8 @@ export interface IBaseModelSqlV2 {
   formulaDryRunFailed?: boolean;
   getRlsConditions(mode?: 'read' | 'write'): Promise<Filter[]>;
   applyRlsReadonlyFlags(rows: any[]): Promise<void>;
+  assertConditionWritable(scopeFilters: Filter[]): Promise<void>;
+  assertRowsWritable(pkVals: any[]): Promise<void>;
   getSoftDeleteFilter(tableAlias?: string): Promise<Knex.QueryCallback | null>;
   usesGroupingKeyQuery(column: Column): Promise<boolean>;
   getTrashAwareFkGroupParent(

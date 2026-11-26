@@ -27,6 +27,7 @@ import {
   isFkBelongsToLink,
   isKanbanJunctionLink,
   isLinksOrLTAR,
+  isLinkV2,
   isMMOrMMLike,
   isOrderCol,
   isSelfLinkCol,
@@ -3245,6 +3246,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.forgetSearchIndexWritten([newId]);
       } else {
         await this.afterUpdate(prevData, newData, cookie, updateObj);
+        await this.auditFkLinkChanges(prevData, newData, updateObj, cookie);
       }
       return hookReader === this ? newData : await readNewData(this);
     } catch (e) {
@@ -7305,6 +7307,69 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await relationManager.getAuditUpdateObj(cookie),
       'addChild',
     );
+  }
+
+  /**
+   * Link/unlink audits for the belongs-to FKs a multi-field update changed: the update's own audit
+   * leaves out FK (system) columns. Audits only; the update has written the FKs.
+   */
+  protected async auditFkLinkChanges(
+    prevData: Record<string, any>,
+    newData: Record<string, any>,
+    updateObj: Record<string, any>,
+    cookie: any,
+  ) {
+    try {
+      if (!(await this.isDataAuditEnabled())) return;
+
+      const columns = await this.model.getColumns();
+      const rowId = this.extractPksValues(newData, true);
+
+      for (const column of columns) {
+        if (column.uidt !== UITypes.LinkToAnotherRecord || isLinkV2(column))
+          continue;
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+        if (colOptions.type !== RelationTypes.BELONGS_TO) continue;
+
+        const fkColumn = columns.find(
+          (c) => c.id === colOptions.fk_child_column_id,
+        );
+        if (!fkColumn || !(fkColumn.column_name in updateObj)) continue;
+
+        const prevFk = prevData?.[fkColumn.title] ?? null;
+        const newFk = newData?.[fkColumn.title] ?? null;
+        if (`${prevFk}` === `${newFk}`) continue;
+
+        const relationManager = await RelationManager.getRelationManager(
+          this,
+          column.id,
+          { rowId, childId: newFk ?? prevFk },
+        );
+        const { parentTable, parentColumn } =
+          relationManager.getRelationContext();
+        // The nested parent record carries its primary key; the FK can reference another column.
+        const parentPk = (parent, fk) =>
+          fk === null
+            ? null
+            : parent
+            ? getCompositePkValue(parentTable.primaryKeys, parent)
+            : parentColumn.pk
+            ? fk
+            : null;
+
+        relationManager.collectFkChangeAudits({
+          oldParentId: parentPk(prevData?.[column.title], prevFk),
+          newParentId: parentPk(newData?.[column.title], newFk),
+        });
+        await this.writeLinkAudits(
+          await relationManager.getAuditUpdateObj(cookie),
+          'updateByPk',
+        );
+      }
+    } catch (e) {
+      logger.error(`[updateByPk] link audit failed: ${e.message}`, e.stack);
+    }
   }
 
   private async writeLinkAudits(

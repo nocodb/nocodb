@@ -1641,6 +1641,39 @@ export class RelationManager {
     }
   }
 
+  /** Audits for a belongs-to FK an update already wrote: unlink from the old parent, link to the new one. */
+  collectFkChangeAudits({
+    oldParentId,
+    newParentId,
+  }: {
+    oldParentId: string | null;
+    newParentId: string | null;
+  }) {
+    const { relationColOptions: colOptions, childId } = this.relationContext;
+
+    for (const [parentId, opSubType] of [
+      [oldParentId, AuditOperationSubTypes.UNLINK_RECORD],
+      [newParentId, AuditOperationSubTypes.LINK_RECORD],
+    ] as const) {
+      if (parentId === null || parentId === undefined) continue;
+
+      this.auditUpdateObj.push({
+        rowId: parentId,
+        refRowId: childId,
+        opSubType,
+        type: colOptions.type as RelationTypes,
+        direction: 'parent_child',
+      });
+      this.auditUpdateObj.push({
+        rowId: childId,
+        refRowId: parentId,
+        opSubType,
+        type: getOppositeRelationType(colOptions.type),
+        direction: 'child_parent',
+      });
+    }
+  }
+
   async getAuditUpdateObj(req: any) {
     const { childTable, parentTable, relationColumn, baseModel } =
       this.relationContext;

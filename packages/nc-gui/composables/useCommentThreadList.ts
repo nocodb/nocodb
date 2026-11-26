@@ -32,7 +32,7 @@ interface CommentThreadListOptions {
 
 /**
  * UI state shared by the comment threads of one list (the sidebar feed, the
- * Discussion timeline): expansion, the reply / edit / to-do forms, and the
+ * Discussion timeline): expansion, the reply and edit forms, and the
  * helpers each thread item renders with.
  */
 const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((options: CommentThreadListOptions) => {
@@ -69,7 +69,6 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
     row,
     threads,
     isCommentExtrasEnabled,
-    setCommentTask,
     isCommentUnread,
     acknowledgeUnread,
   } = useRowCommentsOrThrow()
@@ -113,16 +112,6 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
     const role = getUserRole(email)
     const key = RoleLabels[role as keyof typeof RoleLabels] ?? role
     return t(`objects.roleType.${key}`, key)
-  }
-
-  /** To-dos go to people who can open this record. */
-  const assignableUsers = computed(() =>
-    baseUsers.value.filter((u) => !u.deleted && getUserRole(u.email!) !== ProjectRoles.NO_ACCESS),
-  )
-
-  function userName(userId?: string | null) {
-    const found = baseUsers.value.find((u) => u.id === userId)
-    return found ? extractUserDisplayNameOrEmail(found) : t('labels.sharedSource')
   }
 
   function createdBy(comment: CommentType & { created_display_name_short?: string }) {
@@ -551,25 +540,6 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
     loadComments()
   }
 
-  /* to-do */
-
-  /** Comment whose to-do form is open. */
-  const taskFormCommentId = ref<string | null>(null)
-
-  function toggleTaskDone(commentItem: CommentTypeExtended, done: boolean) {
-    setCommentTask(commentItem.id!, { done })
-  }
-
-  function saveTask(commentItem: CommentTypeExtended, value: { assignee: string; due: string | null }) {
-    taskFormCommentId.value = null
-    setCommentTask(commentItem.id!, { task: value })
-  }
-
-  function removeTask(commentItem: CommentTypeExtended) {
-    taskFormCommentId.value = null
-    setCommentTask(commentItem.id!, { task: null })
-  }
-
   /* misc */
 
   async function copyComment(comment: CommentType) {
@@ -596,7 +566,6 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
   /** Clears the per-record UI state when another record opens. */
   function resetThreadState() {
     threadExpansion.value = {}
-    taskFormCommentId.value = null
     cancelReply()
   }
 
@@ -604,9 +573,7 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
     hasEditPermission,
     hideCopyUrl,
     hideRoleInfo,
-    assignableUsers,
     getUserRoleLabel,
-    userName,
     createdBy,
     firstName,
     commentPlainText,
@@ -656,10 +623,6 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
     onEditCancel,
     onEditBlur,
     onEditComment,
-    taskFormCommentId,
-    toggleTaskDone,
-    saveTask,
-    removeTask,
     copyComment,
     handleKeyPress,
     resetThreadState,

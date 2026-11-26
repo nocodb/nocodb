@@ -33,9 +33,7 @@ const {
   hasEditPermission,
   hideCopyUrl,
   hideRoleInfo,
-  assignableUsers,
   getUserRoleLabel,
-  userName,
   createdBy,
   firstName,
   commentPlainText,
@@ -77,10 +75,6 @@ const {
   onEditCancel,
   onEditBlur,
   onEditComment,
-  taskFormCommentId,
-  toggleTaskDone,
-  saveTask,
-  removeTask,
   copyComment,
   handleKeyPress,
 } = useCommentThreadListOrThrow()
@@ -341,16 +335,6 @@ const {
                         }}
                       </div>
                     </NcMenuItem>
-                    <NcMenuItem data-testid="nc-comment-task-menu" @click="taskFormCommentId = commentItem.id!">
-                      <div class="flex gap-2 items-center">
-                        <GeneralIcon icon="ncCheckSquare" />
-                        {{
-                          getCommentMeta(commentItem).task
-                            ? $t('activity.commentThread.editTodo')
-                            : $t('activity.commentThread.assignTodo')
-                        }}
-                      </div>
-                    </NcMenuItem>
                   </template>
                   <NcMenuItem
                     v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
@@ -487,23 +471,6 @@ const {
                   {{ $t('general.view') }}
                 </span>
               </div>
-
-              <SmartsheetExpandedFormSidebarCommentTaskForm
-                v-if="taskFormCommentId === commentItem.id"
-                :task="getCommentMeta(commentItem).task"
-                :users="assignableUsers"
-                @save="saveTask(commentItem, $event)"
-                @remove="removeTask(commentItem)"
-                @cancel="taskFormCommentId = null"
-              />
-              <SmartsheetExpandedFormSidebarCommentTask
-                v-else-if="isCommentExtrasEnabled && getCommentMeta(commentItem).task"
-                :task="getCommentMeta(commentItem).task!"
-                :assignee-name="userName(getCommentMeta(commentItem).task!.assignee)"
-                :can-edit="hasEditPermission"
-                @toggle="toggleTaskDone(commentItem, $event)"
-                @edit="taskFormCommentId = commentItem.id!"
-              />
 
               <SmartsheetExpandedFormSidebarCommentReactions
                 v-if="isCommentExtrasEnabled"

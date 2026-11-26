@@ -1371,6 +1371,11 @@ export function useCopyPaste({
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
+    if (rowObj?.rowMeta?.isRlsReadonly && !rowObj.rowMeta?.isRlsHidden) {
+      message.toast(t('objects.permissions.rlsPolicy.recordReadonlyToast'))
+      return
+    }
+
     if (
       !col ||
       !col?.columnObj ||

@@ -508,7 +508,8 @@ export interface IBaseModelSqlV2 {
    * to avoid amplifying requests to an overwhelmed external source.
    */
   formulaDryRunFailed?: boolean;
-  getRlsConditions(): Promise<Filter[]>;
+  getRlsConditions(mode?: 'read' | 'write'): Promise<Filter[]>;
+  applyRlsReadonlyFlags(rows: any[]): Promise<void>;
   getSoftDeleteFilter(tableAlias?: string): Promise<Knex.QueryCallback | null>;
   usesGroupingKeyQuery(column: Column): Promise<boolean>;
   getTrashAwareFkGroupParent(

@@ -448,7 +448,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (hasCustomDisplayValue && col.id === colOptions.fk_display_value_column_id) return false
 
         // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
-        return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
+        if (isSystemColumn(col) || isPrimary(col) || isLinksOrLTAR(col) || isAttachment(col) || isLookup(col)) return false
+
+        // Skip fields the link field's view hides (default view's visibility when its columns aren't loaded)
+        const viewCol = isPublic.value ? undefined : targetViewColumnsById.value[col.id!]
+        return viewCol ? !!viewCol.show : !!(col.meta?.defaultViewColVisibility ?? true)
       })
 
       // Resolve a stable sort order for each extra field:

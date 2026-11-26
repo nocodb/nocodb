@@ -436,6 +436,8 @@ export interface WebhookRetryState {
     headers?: Record<string, any>;
     data?: any;
   };
+  // getWebhookDeliveryConfigHash() of the hook at the first attempt
+  configHash: string;
   log: {
     event?: string;
     operation?: string;

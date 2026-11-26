@@ -1046,9 +1046,12 @@ export default class View implements ViewType {
         param.column_show?.view_id !== view.id &&
         !!parseProp(view.meta)?.[VIEW_META_HIDE_NEW_FIELDS];
       // Map, list, calendar, timeline and gantt insert from this, not modifiedInsertObj.
-      const viewInsertObj = hidesNewFields
-        ? { ...insertObj, show: false }
-        : insertObj;
+      const viewInsertObj =
+        param.column_show?.view_id === view.id
+          ? { ...insertObj, show: true }
+          : hidesNewFields
+          ? { ...insertObj, show: false }
+          : insertObj;
 
       const modifiedInsertObj = {
         ...insertObj,

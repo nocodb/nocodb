@@ -234,7 +234,11 @@ export default {
       </div>
       <div class="w-[680px] max-w-full pb-4">
         <div v-for="entry in timelineEntries" :key="entry.key" class="w-full pl-3 pr-6 2xl:px-0">
-          <SmartsheetExpandedFormPresentorsDiscussionEntryAudit v-if="entry.type === 'audit'" :audit-group="entry.auditGroup" />
+          <SmartsheetExpandedFormPresentorsDiscussionEntryAudit
+            v-if="entry.type === 'audit'"
+            :audit-group="entry.auditGroup"
+            class="nc-discussion-audit !py-2"
+          />
           <SmartsheetExpandedFormPresentorsDiscussionEntryThread
             v-else
             :thread="entry.thread"
@@ -356,6 +360,11 @@ export default {
 }
 .nc-sidebar-resize-handle:hover {
   @apply bg-nc-border-gray-medium;
+}
+
+/* History events take a smaller avatar than comments */
+.nc-discussion-audit :deep(.nc-audit-avatar) {
+  @apply !w-5 !h-5 !min-w-5 !text-[9px];
 }
 
 [theme='dark'] .expanded-form-comment-input {

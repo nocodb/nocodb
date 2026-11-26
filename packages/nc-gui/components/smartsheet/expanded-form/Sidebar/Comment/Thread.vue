@@ -6,6 +6,8 @@ defineProps<{
   thread: CommentThread
   /** Draw the "New" line above this thread. */
   showNewDivider?: boolean
+  /** The host draws the root author's avatar outside the card (Discussion). */
+  avatarOutside?: boolean
 }>()
 
 const { user, appInfo } = useGlobal()
@@ -151,6 +153,7 @@ const {
         >
           <div class="flex items-start gap-3">
             <GeneralUserIcon
+              v-if="!(avatarOutside && commentItem === thread.root)"
               :user="{
                 display_name: commentItem?.created_display_name,
                 email: commentItem?.created_by_email,
@@ -239,7 +242,12 @@ const {
           <!-- Hover action bar -->
           <div
             v-if="!editCommentValue && !commentItem.id?.startsWith('temp-')"
-            class="nc-comment-actions !hidden !group-hover:flex !group-focus-within:flex absolute right-2 -top-3.5 z-10 items-center gap-0.5 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated p-0.5 shadow-sm"
+            class="nc-comment-actions !hidden !group-hover:flex !group-focus-within:flex absolute right-2 z-10 items-center gap-0.5 rounded-lg p-0.5"
+            :class="
+              avatarOutside
+                ? 'top-1 bg-nc-bg-gray-light'
+                : '-top-3.5 border-1 border-nc-border-gray-medium bg-nc-bg-elevated shadow-sm'
+            "
             data-testid="nc-comment-actions"
           >
             <SmartsheetExpandedFormSidebarCommentReactionPicker
@@ -434,7 +442,7 @@ const {
               </SmartsheetExpandedFormRichComment>
             </div>
 
-            <div v-else class="space-y-1.5" :class="commentItem === thread.root ? 'pl-9' : 'pl-7'">
+            <div v-else class="space-y-1.5" :class="commentItem !== thread.root ? 'pl-7' : avatarOutside ? '' : 'pl-9'">
               <div
                 v-if="annotationRefByCommentId[commentItem.id!] && commentItem.id === annotationRefByCommentId[commentItem.id!].rootId"
                 class="nc-annotation-attachment inline-flex max-w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-1"

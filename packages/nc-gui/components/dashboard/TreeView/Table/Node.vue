@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { type BaseType, PlanFeatureTypes, PlanTitles, PresencePageType, type TableType } from 'nocodb-sdk'
+import {
+  type BaseType,
+  PlanFeatureTypes,
+  PlanTitles,
+  PresencePageType,
+  TABLE_META_HIDE_NEW_FIELDS,
+  type TableType,
+} from 'nocodb-sdk'
 import type { SidebarTableNode, ViewPageType } from '~/lib/types'
 
 const props = withDefaults(
@@ -182,6 +189,39 @@ const setIcon = async (icon: string, table: TableType) => {
     $e('a:table:icon:navdraw', { icon })
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const hideNewFieldsOverride = ref<boolean>()
+
+const isHideNewFieldsOn = computed(
+  () => hideNewFieldsOverride.value ?? !!parseProp(table.value?.meta)?.[TABLE_META_HIDE_NEW_FIELDS],
+)
+
+const isSavingHideNewFields = ref(false)
+
+async function onToggleHideNewFields() {
+  if (!table.value?.id || isSavingHideNewFields.value) return
+
+  const tableId = table.value.id
+  const baseId = table.value.base_id!
+  const isOn = !isHideNewFieldsOn.value
+  const meta = { ...parseProp(table.value.meta), [TABLE_META_HIDE_NEW_FIELDS]: isOn }
+
+  isSavingHideNewFields.value = true
+  hideNewFieldsOverride.value = isOn
+  try {
+    await $api.internal.postOperation(table.value.fk_workspace_id!, baseId, { operation: 'tableUpdate', tableId }, { meta })
+    baseTables.value.set(
+      baseId,
+      (baseTables.value.get(baseId) ?? []).map((t) => (t.id === tableId ? { ...t, meta } : t)),
+    )
+    $e('c:table:hide-new-fields:toggle', { enabled: isOn })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    hideNewFieldsOverride.value = undefined
+    isSavingHideNewFields.value = false
   }
 }
 
@@ -757,6 +797,26 @@ const isMmTable = computed(() => !!table.value?.mm)
                       :order="table.order"
                       @close-modal="isOptionsOpen = false"
                     />
+                    <template v-if="canUserEditEmote && table.type === 'table'">
+                      <NcDivider />
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-hide-new-fields-${table.title}`"
+                        class="nc-table-hide-new-fields !h-auto !py-2"
+                        :disabled="isSavingHideNewFields"
+                        @click="onToggleHideNewFields"
+                      >
+                        <div class="flex gap-2 items-start w-full">
+                          <GeneralIcon icon="eyeSlash" class="opacity-80 mt-0.5" />
+                          <div class="flex-1 flex flex-col gap-0.5">
+                            <span>{{ $t('title.hideNewFieldsInAllViews') }}</span>
+                            <span class="max-w-52 text-bodySm text-nc-content-gray-subtle2 !whitespace-normal !leading-4">
+                              {{ $t('tooltip.hideNewFields') }}
+                            </span>
+                          </div>
+                          <NcSwitch :checked="isHideNewFieldsOn" size="xsmall" class="pointer-events-none mt-0.5" />
+                        </div>
+                      </NcMenuItem>
+                    </template>
                     <NcDivider />
 
                     <NcTooltip

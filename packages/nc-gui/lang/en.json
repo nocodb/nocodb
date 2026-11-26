@@ -1446,7 +1446,7 @@
     "expand": "Expand",
     "systemFields": "System fields",
     "hideSystemFields": "Hide system fields",
-    "hideNewFields": "Hide new fields",
+    "hideNewFieldsInAllViews": "Hide new fields in all views",
     "removeFile": "Remove File",
     "hasMany": "Has Many",
     "manyToMany": "Many to Many",
@@ -7630,7 +7630,7 @@
     "createAgent": "Create agent"
   },
   "tooltip": {
-    "hideNewFields": "New fields start hidden in this view. Fields added from this view still show.",
+    "hideNewFields": "New fields start hidden, except in the view they're added from.",
     "doubleClickToFitAllColumns": "Double-click to fit all columns",
     "filterEqCaseSensitive": "Matches exact letter case. Use “is like” to ignore case.",
     "filterNeqCaseSensitive": "Matches exact letter case. Use “is not like” to ignore case.",

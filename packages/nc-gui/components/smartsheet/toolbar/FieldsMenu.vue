@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, GalleryType, KanbanType, ListType, LookupType } from 'nocodb-sdk'
-import { UITypes, VIEW_META_HIDE_NEW_FIELDS, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -225,26 +225,6 @@ const updateCoverImageObjectFit = async (val: string) => {
   await updateViewMeta(activeView.value?.id, activeView.value?.type, {
     meta: payload,
   })
-}
-
-const isHideNewFieldsOn = computed(() => !!parseProp(activeView.value?.meta)?.[VIEW_META_HIDE_NEW_FIELDS])
-
-const isSavingHideNewFields = ref(false)
-
-async function onToggleHideNewFields(isOn: boolean) {
-  if (!activeView.value?.id) return
-
-  isSavingHideNewFields.value = true
-  try {
-    const meta = { ...parseProp(activeView.value.meta), [VIEW_META_HIDE_NEW_FIELDS]: isOn }
-    await viewStore.updateView(activeView.value.id, { meta })
-    activeView.value.meta = meta
-    $e('c:field:hide-new:toggle', { enabled: isOn })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isSavingHideNewFields.value = false
-  }
 }
 
 const coverImageObjectFitOptions = [
@@ -1046,26 +1026,6 @@ useFieldsMenuCommands({
               </template>
             </Draggable>
           </div>
-        </div>
-
-        <div
-          v-if="!isLocalMode && !isPublic && !filterQuery && !isFieldsMenuReadOnly"
-          class="flex items-center justify-between gap-2 px-4 py-2 border-t-1 border-nc-border-gray-medium"
-        >
-          <NcTooltip :title="$t('tooltip.hideNewFields')" placement="left">
-            <span id="nc-fields-hide-new-label" class="text-bodyDefaultSm text-nc-content-gray">
-              {{ $t('title.hideNewFields') }}
-            </span>
-          </NcTooltip>
-          <NcSwitch
-            :checked="isHideNewFieldsOn"
-            :disabled="isSavingHideNewFields"
-            :size="getResponsiveValue('small', 'xsmall')"
-            aria-labelledby="nc-fields-hide-new-label"
-            class="nc-fields-hide-new-fields"
-            data-testid="nc-fields-hide-new-fields"
-            @change="onToggleHideNewFields"
-          />
         </div>
 
         <div

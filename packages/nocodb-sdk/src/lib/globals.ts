@@ -38,8 +38,8 @@ export const enumColors = {
   },
 };
 
-/** View meta key: new fields start hidden in this view, except in the view they were created from. */
-export const VIEW_META_HIDE_NEW_FIELDS = 'hide_new_fields';
+/** Table meta key: new fields start hidden in every view except the one they were created from. */
+export const TABLE_META_HIDE_NEW_FIELDS = 'hide_new_fields';
 
 export enum ViewTypes {
   FORM = 1,

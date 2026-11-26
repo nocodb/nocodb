@@ -11,8 +11,8 @@ import {
   NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
   NcBaseError,
   parseProp,
+  TABLE_META_HIDE_NEW_FIELDS,
   UITypes,
-  VIEW_META_HIDE_NEW_FIELDS,
   ViewLockType,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -1028,6 +1028,10 @@ export default class View implements ViewType {
       show: param.column_show.show,
     };
     const views = await this.list(context, param.fk_model_id, false, ncMeta);
+    const model = await Model.get(context, param.fk_model_id, false, ncMeta);
+    const tableHidesNewFields = !!parseProp(model?.meta)?.[
+      TABLE_META_HIDE_NEW_FIELDS
+    ];
 
     const tableColumns = await Column.list(
       context,
@@ -1043,8 +1047,7 @@ export default class View implements ViewType {
       let inserted: { id?: string } | undefined;
 
       const hidesNewFields =
-        param.column_show?.view_id !== view.id &&
-        !!parseProp(view.meta)?.[VIEW_META_HIDE_NEW_FIELDS];
+        tableHidesNewFields && param.column_show?.view_id !== view.id;
       // Map, list, calendar, timeline and gantt insert from this, not modifiedInsertObj.
       const viewInsertObj =
         param.column_show?.view_id === view.id

@@ -11,8 +11,6 @@ defineProps<{
 }>()
 
 defineSlots<{
-  /** After the author and time, e.g. a doc comment's "Whole page" tag. */
-  'header-extra'?: (props: { comment: CommentTypeExtended; isRoot: boolean }) => any
   /** Above the comment text, e.g. the doc text a comment is anchored to. */
   'before-body'?: (props: { comment: CommentTypeExtended; isRoot: boolean }) => any
 }>()
@@ -251,7 +249,6 @@ function onDeleteClick(commentItem: CommentTypeExtended) {
                   {{ $t('activity.commentThread.resolvedByName', { name: commentItem.resolved_display_name_short }) }}
                 </span>
               </NcTooltip>
-              <slot name="header-extra" :comment="commentItem" :is-root="commentItem === thread.root" />
             </div>
           </div>
 

@@ -405,7 +405,8 @@ export async function createLtarBlueprints({
  * the row's own update, so the FKs and the other fields are written in one UPDATE (a table CHECK
  * can tie a field to an FK, and writing each link on its own fails it).
  * A single link or unlink with no other change stays queued, keeping its link audit and hooks, and
- * so does a link whose referenced value can't be found.
+ * so does a link whose referenced value can't be found, including when reading it fails: the
+ * fields still save, and the link is sent on its own after them.
  */
 export async function foldFkOnRowLtarOps({
   meta,
@@ -451,7 +452,7 @@ export async function foldFkOnRowLtarOps({
     const relatedMeta = await getMeta({
       baseId: colOpt.fk_related_base_id || meta.base_id!,
       tableIdOrTitle: colOpt.fk_related_model_id!,
-    })
+    }).catch(() => null)
     const parentCol = relatedMeta?.columns?.find((c) => c.id === colOpt.fk_parent_column_id)
     if (!childCol?.title || !parentCol?.title || !relatedMeta) continue
 
@@ -462,7 +463,8 @@ export async function foldFkOnRowLtarOps({
       // The picker loads the primary key, not always the referenced column
       if (value === undefined) {
         const lastLink = queue.findLast((o) => o.columnId === column.id && o.op === 'link')!
-        value = (await readRelatedRecord(relatedMeta, lastLink.relatedRowId))?.[parentCol.title]
+        const related = await readRelatedRecord(relatedMeta, lastLink.relatedRowId).catch(() => null)
+        value = related?.[parentCol.title]
       }
       if (value === undefined || value === null) continue
     }

@@ -20,10 +20,13 @@ const props = withDefaults(
     // Keep the send button enabled even when the editor is empty (e.g. a
     // comment that only carries attachments).
     extraSaveEnabled?: boolean
+    /** Count the send button as a record-comment save; off where the host emits its own event. */
+    trackSave?: boolean
   }>(),
   {
     hideOptions: true,
     extraSaveEnabled: false,
+    trackSave: true,
   },
 )
 
@@ -294,6 +297,11 @@ const saveComment = (e) => {
   emits('save')
 }
 
+const onSaveClick = (e) => {
+  if (props.trackSave) $e('a:row-expand:comment:save')
+  saveComment(e)
+}
+
 defineExpose({
   setEditorContent,
   focusEditor,
@@ -348,12 +356,11 @@ defineExpose({
           <slot name="bottom-bar-start" />
         </div>
         <NcButton
-          v-e="['a:row-expand:comment:save']"
           :aria-label="$t('general.send')"
           :disabled="!vModel?.length && !extraSaveEnabled"
           class="!disabled:bg-nc-bg-gray-light nc-comment-save-btn !h-7 !w-7 !shadow-none"
           size="xsmall"
-          @click="saveComment"
+          @click="onSaveClick"
         >
           <GeneralIcon icon="ncSendAlt" />
         </NcButton>

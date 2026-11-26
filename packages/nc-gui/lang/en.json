@@ -7308,7 +7308,10 @@
       "createdRecord": "created this record",
       "updatedLinks": "updated links in {field}",
       "updatedRecord": "updated this record",
-      "addReaction": "Add reaction"
+      "addReaction": "Add reaction",
+      "wholePage": "Whole page",
+      "commentOnPage": "Comment on this page, or {'@'} to mention someone",
+      "commentOnSelection": "Comment on the selected text..."
     },
     "blockUser": "Block user",
     "unblockUser": "Unblock user",

@@ -27,6 +27,7 @@ import {
   isFkBelongsToLink,
   isKanbanJunctionLink,
   isLinksOrLTAR,
+  isLinkV2,
   isMMOrMMLike,
   isOrderCol,
   isSelfLinkCol,
@@ -128,6 +129,7 @@ import {
   captureLinkHooks,
   captureNestedLinkHooks,
   extractCorrespondingLinkColumn,
+  isWebhookIgnored,
 } from '~/db/BaseModelSqlv2/add-remove-links';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2, {
@@ -3210,6 +3212,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         Object.keys(updateObj),
       );
 
+      const fkOnlyUpdate = btColumn && Object.keys(data || {}).length === 1;
+      const fireFkLinkHooks = fkOnlyUpdate
+        ? null
+        : await this.captureFkLinkHooks(prevData, updateObj, cookie);
+
       await this.execAndParse(query, null, { raw: true });
       await trackOldParents?.();
 
@@ -3232,7 +3239,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
       const newData = await readNewData(hookReader);
 
-      if (btColumn && Object.keys(data || {}).length === 1) {
+      if (fkOnlyUpdate) {
         await this.addChild({
           colId: btColumn.id,
           rowId: newId,
@@ -3245,6 +3252,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.forgetSearchIndexWritten([newId]);
       } else {
         await this.afterUpdate(prevData, newData, cookie, updateObj);
+        await this.auditFkLinkChanges(prevData, newData, updateObj, cookie);
+        await fireFkLinkHooks?.();
       }
       return hookReader === this ? newData : await readNewData(this);
     } catch (e) {
@@ -7305,6 +7314,186 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await relationManager.getAuditUpdateObj(cookie),
       'addChild',
     );
+  }
+
+  /**
+   * Update hooks for the parents a multi-field update links or unlinks through
+   * belongs-to FKs, as the link API fires them. Call before the write; the
+   * updated row gets its event from afterUpdate.
+   */
+  protected async captureFkLinkHooks(
+    prevData: Record<string, any>,
+    updateObj: Record<string, any>,
+    cookie: any,
+  ): Promise<Awaited<ReturnType<typeof captureLinkHooks>> | null> {
+    try {
+      const columns = await this.model.getColumns();
+      const updatedFkColumns = columns.filter(
+        (c) => c.uidt === UITypes.ForeignKey && c.column_name in updateObj,
+      );
+      if (!updatedFkColumns.length || isWebhookIgnored(cookie)) return null;
+
+      const rowId = this.extractPksValues(prevData, true);
+      const changes: LinkHookChange[] = [];
+      for (const column of columns) {
+        if (column.uidt !== UITypes.LinkToAnotherRecord || isLinkV2(column))
+          continue;
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+        if (colOptions.type !== RelationTypes.BELONGS_TO) continue;
+        const fkColumn = updatedFkColumns.find(
+          (c) => c.id === colOptions.fk_child_column_id,
+        );
+        if (!fkColumn) continue;
+        const prevFk = prevData?.[fkColumn.title] ?? null;
+        const newFk = updateObj[fkColumn.column_name] ?? null;
+        if (`${prevFk}` === `${newFk}`) continue;
+        const parentColumn = await colOptions.getParentColumn();
+        if (!parentColumn) continue;
+
+        if (parentColumn.pk) {
+          const parentIds = newFk === null ? [] : [newFk];
+          changes.push({
+            column,
+            rowIds: [rowId],
+            refRowIds: parentIds,
+            linkedRefRowIds: parentIds,
+            // Picks up the current parent, so an unlink notifies it too
+            replace: new Map([[String(rowId), parentIds]]),
+          });
+          continue;
+        }
+
+        // FK on a non-key column: the current parent can't be read by pk, so resolve both
+        const relationContext = (
+          await RelationManager.getRelationManager(this, column.id, {
+            rowId,
+            childId: newFk ?? prevFk,
+          })
+        ).getRelationContext();
+        // The lookups below query the parent table: skip them when no hook listens
+        if (!(await relationContext.parentBaseModel.hasActiveUpdateHooks()))
+          continue;
+        const oldParentId = await this.fkParentPk(
+          relationContext,
+          prevFk,
+          prevData?.[column.title],
+        );
+        const newParentId = await this.fkParentPk(relationContext, newFk);
+        const linked = ncIsNullOrUndefined(newParentId) ? [] : [newParentId];
+        changes.push({
+          column,
+          rowIds: [rowId],
+          refRowIds: ncIsNullOrUndefined(oldParentId)
+            ? linked
+            : [oldParentId, ...linked],
+          linkedRefRowIds: linked,
+        });
+      }
+      if (!changes.length) return null;
+      return await captureLinkHooks({
+        baseModel: this,
+        changes,
+        req: cookie,
+        notifiedRowIds: [rowId],
+      });
+    } catch (e) {
+      logger.error(`[updateByPk] link hooks failed: ${e.message}`, e.stack);
+      return null;
+    }
+  }
+
+  /**
+   * Link/unlink audits for the belongs-to FKs a multi-field update changed: the update's own audit
+   * leaves out FK (system) columns. Audits only; the update has written the FKs.
+   */
+  protected async auditFkLinkChanges(
+    prevData: Record<string, any>,
+    newData: Record<string, any>,
+    updateObj: Record<string, any>,
+    cookie: any,
+  ) {
+    try {
+      const columns = await this.model.getColumns();
+      const updatedFkColumns = columns.filter(
+        (c) => c.uidt === UITypes.ForeignKey && c.column_name in updateObj,
+      );
+      if (!updatedFkColumns.length || !(await this.isDataAuditEnabled()))
+        return;
+
+      const rowId = this.extractPksValues(newData, true);
+
+      for (const column of columns) {
+        if (column.uidt !== UITypes.LinkToAnotherRecord || isLinkV2(column))
+          continue;
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
+        if (colOptions.type !== RelationTypes.BELONGS_TO) continue;
+
+        const fkColumn = updatedFkColumns.find(
+          (c) => c.id === colOptions.fk_child_column_id,
+        );
+        if (!fkColumn) continue;
+
+        const prevFk = prevData?.[fkColumn.title] ?? null;
+        const newFk = newData?.[fkColumn.title] ?? null;
+        if (`${prevFk}` === `${newFk}`) continue;
+
+        const relationManager = await RelationManager.getRelationManager(
+          this,
+          column.id,
+          { rowId, childId: newFk ?? prevFk },
+        );
+        const relationContext = relationManager.getRelationContext();
+        relationManager.collectFkChangeAudits({
+          oldParentId: await this.fkParentPk(
+            relationContext,
+            prevFk,
+            prevData?.[column.title],
+          ),
+          newParentId: await this.fkParentPk(
+            relationContext,
+            newFk,
+            newData?.[column.title],
+          ),
+        });
+        await this.writeLinkAudits(
+          await relationManager.getAuditUpdateObj(cookie),
+          'updateByPk',
+        );
+      }
+    } catch (e) {
+      logger.error(`[updateByPk] link audit failed: ${e.message}`, e.stack);
+    }
+  }
+
+  /**
+   * Parent pk for a belongs-to FK value. The FK can reference a non-key column: take the key
+   * from the nested parent record, else look it up. Null when no parent row matches.
+   */
+  protected async fkParentPk(
+    {
+      parentTable,
+      parentColumn,
+      parentBaseModel,
+      parentTn,
+    }: ReturnType<RelationManager['getRelationContext']>,
+    fk: string | null,
+    parent?: Record<string, any>,
+  ): Promise<string | null> {
+    if (ncIsNullOrUndefined(fk)) return null;
+    if (parent) return getCompositePkValue(parentTable.primaryKeys, parent);
+    if (parentColumn.pk) return fk;
+    const row = await parentBaseModel.execAndParse(
+      parentBaseModel
+        .dbDriver(parentTn)
+        .select(parentTable.primaryKeys.map((pk) => pk.column_name))
+        .where(parentColumn.column_name, fk)
+        .first(),
+      null,
+      { raw: true, first: true },
+    );
+    return row ? getCompositePkValue(parentTable.primaryKeys, row) : null;
   }
 
   private async writeLinkAudits(

@@ -16,6 +16,7 @@ import {
 } from 'nocodb-sdk';
 import type { ClientType, NcRequest, Validation } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { DBQueryClient } from '~/dbQueryClient';
@@ -639,6 +640,27 @@ export class PublicDatasService {
     return await baseModel.groupByCount(listArgs);
   }
 
+  /** One page of groups and the group count; EE ranks a timeline's groups by utilization. */
+  protected async groupByPage(
+    _context: NcContext,
+    param: {
+      model: Model;
+      view?: View;
+      source: Source;
+      baseModel: BaseModelSqlv2;
+      listArgs: Parameters<BaseModelSqlv2['groupBy']>[0] &
+        Record<string, unknown>;
+    },
+  ): Promise<{ data: Record<string, unknown>[]; count: number }> {
+    const { baseModel, listArgs } = param;
+    const data = await baseModel.groupBy(listArgs);
+    // A split list already holds every group: counting would run it again.
+    const count = data.some((r) => '__nc_split_id' in r)
+      ? data.length
+      : await baseModel.groupByCount(listArgs);
+    return { data, count };
+  }
+
   async getDataGroupBy(
     context: NcContext,
     param: { model: Model; view: View; query?: any },
@@ -680,11 +702,13 @@ export class PublicDatasService {
           : null;
       }
 
-      const data = await baseModel.groupBy(listArgs);
-      // A split list already holds every group: counting would run it again.
-      const count = data.some((r) => '__nc_split_id' in r)
-        ? data.length
-        : await baseModel.groupByCount(listArgs);
+      const { data, count } = await this.groupByPage(context, {
+        model,
+        view,
+        source,
+        baseModel,
+        listArgs,
+      });
 
       return new PagedResponseImpl(data, {
         ...query,

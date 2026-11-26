@@ -8,7 +8,9 @@ import {
   type TableType,
   type ViewType,
   isColumnInError,
+  isGroupUtilizationOrderActive,
   isSupportedDisplayValueColumn,
+  parseProp,
 } from 'nocodb-sdk'
 import { GROUP_BY_MAX_LEVELS, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -17,6 +19,7 @@ import type { InterfacePageDataApi } from '../lib/interfaceData'
 import {
   findKeyColor,
   isTimelineGroupSplit,
+  rankSplitUserRows,
   splitGroupLabel,
   splitGroupRows,
   splitGroupValue,
@@ -430,6 +433,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return group
     }
 
+    // Extra query for the top-level group list, set by the view (a timeline's utilization window).
+    const groupListParams = ref<(() => Record<string, unknown>) | null>(null)
+
     // A view and its group list both load the root groups on mount: share one request.
     const groupLoadsInFlight = new WeakMap<Group, Promise<void>>()
 
@@ -523,6 +529,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           )
         }
 
+        const extraParams = !group.nestedIn.length && !interfaceDataApi ? groupListParams.value?.() ?? {} : {}
+        // The server ranks the groups by utilization; split User groups are ranked here.
+        const utilizationSetting = Object.keys(extraParams).length
+          ? parseProp((view.value?.view as { meta?: unknown } | undefined)?.meta)?.group_by_utilization
+          : undefined
+        const isRanked = isGroupUtilizationOrderActive(utilizationSetting)
+
         const isSplit = isTimelineGroupSplit(view.value, groupby.column)
         // A link splits on the server, one group per linked record; a User field splits here.
         const isServerSplit = isSplit && isLinksOrLTAR(groupby.column)
@@ -547,6 +560,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 offset,
                 limit: groupLimit,
                 ...params,
+                ...extraParams,
                 ...(isSplit ? { offset } : {}),
                 ...(isServerSplit ? { split_values: true } : {}),
                 ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
@@ -561,6 +575,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                   offset,
                   limit: groupLimit,
                   ...params,
+                  ...extraParams,
                   ...(isSplit ? { offset } : {}),
                   ...(isServerSplit ? { split_values: true } : {}),
                   where: effectiveWhere,
@@ -615,14 +630,25 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           if (pageInfo && !pageInfo.isLastPage) {
             message.warning(t('msg.warning.splitGroupsTruncated', { limit: combinations.length }))
           }
-          const list = splitGroupRows(combinations, groupby.column)
+          let list = splitGroupRows(combinations, groupby.column)
+          if (isRanked) list = rankSplitUserRows(list, groupby.column, utilizationSetting)
           const keys = new Set(list.map((item) => valueToTitle(item[groupby.column.title!], groupby.column)))
           response = { ...response, list, pageInfo: { page: 1, pageSize: keys.size || 1, totalRows: keys.size } }
         }
 
         group = await processGroupData(response, group)
 
-        if (isSplit && group?.children) {
+        if (isRanked && group?.children) {
+          // The ranked order, also when a page of groups replaces another.
+          const order = new Map<string, number>()
+          ;(response.list ?? []).forEach((item: Record<string, any>, i: number) => {
+            const key = String(valueToTitle(item[groupby.column.title!], groupby.column))
+            if (!order.has(key)) order.set(key, i)
+          })
+          group.children.sort((a, b) => (order.get(String(a.key)) ?? 0) - (order.get(String(b.key)) ?? 0))
+        }
+
+        if (isSplit && group?.children && !isRanked) {
           // Every value's group, in the group-by's order; empty first, as the server sorts it.
           const direction = groupby.sort === 'desc' ? -1 : 1
           group.children.sort((a, b) => {
@@ -1132,6 +1158,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     return {
       rootGroup,
       groupBy,
+      groupListParams,
       syncedGroupBy,
       localGroupBy,
       canSyncGroupBy,

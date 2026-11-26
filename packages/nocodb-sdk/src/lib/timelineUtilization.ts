@@ -42,6 +42,9 @@ export interface UtilizationColorCondition {
   color: UtilizationColor;
 }
 
+/** How a time-off amount reads: hours off per counted day, or a share of the day (0.5 = half). */
+export type UtilizationTimeOffAmountUnit = 'hours' | 'fraction';
+
 export interface UtilizationTimeOffConfig {
   /** Table holding the time-off records. */
   fk_model_id: string;
@@ -50,6 +53,10 @@ export interface UtilizationTimeOffConfig {
   fk_start_column_id: string;
   /** Absent → each record is a single day. */
   fk_end_column_id?: string | null;
+  /** Amount off on each counted day of a record; absent, or empty on a record → the whole day. */
+  fk_amount_column_id?: string | null;
+  /** Absent → 'hours'. */
+  amount_unit?: UtilizationTimeOffAmountUnit;
   label?: string;
 }
 
@@ -69,6 +76,18 @@ export interface DateAxisUtilizationConfig {
   time_off?: UtilizationTimeOffConfig | null;
   color_conditions?: UtilizationColorCondition[];
   default_color?: UtilizationColor;
+}
+
+/**
+ * Timeline groups ordered or filtered by their utilization over the loaded
+ * window. Saved in the timeline view's meta (`group_by_utilization`).
+ */
+export interface TimelineGroupUtilizationSetting {
+  sort?: 'asc' | 'desc' | null;
+  /** Only groups at or above this percentage. */
+  gte?: number | null;
+  /** Only groups at or below this percentage. */
+  lte?: number | null;
 }
 
 type LinkColumn = Pick<ColumnType, 'uidt' | 'colOptions' | 'meta'>;
@@ -146,7 +165,10 @@ export const MONDAY_TO_FRIDAY = [1, 2, 3, 4, 5];
 export interface UtilizationValue {
   allocated: number;
   available: number;
-  /** Days in the bucket that are time off and have work scheduled. */
+  /**
+   * Days in the bucket that are time off and have work scheduled. A day with
+   * partial time off counts only once nothing of it is left.
+   */
   time_off?: number;
 }
 
@@ -267,6 +289,16 @@ export interface UtilizationTimeOff {
   resource: string;
   fromDay: number;
   toDay?: number | null;
+  /** Off on each counted day, in `timeOffUnit`; absent → the whole day. */
+  amount?: number | null;
+}
+
+/** A record's time-off amount: `null` = the whole day, `0` = nothing off. */
+export function toTimeOffAmount(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(n, 0);
 }
 
 export interface UtilizationBucketDays {
@@ -280,6 +312,8 @@ export interface ComputeUtilizationParams {
   buckets: UtilizationBucketDays[];
   tasks: UtilizationTask[];
   timeOff?: UtilizationTimeOff[];
+  /** Unit of `UtilizationTimeOff.amount`; absent → 'hours'. */
+  timeOffUnit?: UtilizationTimeOffAmountUnit;
   allocatedRate: UtilizationAllocatedRate;
   availableRate: UtilizationAvailableRate;
   /** Working hours when a task carries none. */
@@ -344,7 +378,10 @@ export function computeUtilization(
     /** Hours of tasks with no counted day, kept on the days they cover. */
     uncounted: Float64Array | null;
     work: Int32Array;
+    /** Records off for the whole day. */
     off: Int32Array | null;
+    /** Partial time off, in `timeOffUnit`. */
+    part: Float64Array | null;
     capacity: number | null;
   }
 
@@ -357,6 +394,7 @@ export function computeUtilization(
         uncounted: null,
         work: new Int32Array(dayCount + 1),
         off: null,
+        part: null,
         capacity: null,
       };
       byResource.set(key, acc);
@@ -424,10 +462,18 @@ export function computeUtilization(
       Math.min(Math.max(t.toDay ?? t.fromDay, t.fromDay), windowEnd - 1) -
       windowStart;
     if (to < from) continue;
-    if (!acc.off) acc.off = new Int32Array(dayCount + 1);
-    acc.off[from] += 1;
-    acc.off[to + 1] -= 1;
+    const amount = toTimeOffAmount(t.amount);
+    if (amount === null) {
+      if (!acc.off) acc.off = new Int32Array(dayCount + 1);
+      acc.off[from] += 1;
+      acc.off[to + 1] -= 1;
+    } else if (amount > 0) {
+      if (!acc.part) acc.part = new Float64Array(dayCount + 1);
+      acc.part[from] += amount;
+      acc.part[to + 1] -= amount;
+    }
   }
+  const byFraction = params.timeOffUnit === 'fraction';
 
   const capFactor = perDayFactor(params.availableRate, mask);
   const fallbackCapacity = Number(params.availableValue) || 0;
@@ -456,19 +502,29 @@ export function computeUtilization(
     let uncounted = 0;
     let work = 0;
     let off = 0;
+    let part = 0;
     for (let i = 0; i < dayCount; i++) {
       allocated += acc.allocated[i];
       if (acc.uncounted) uncounted += acc.uncounted[i];
       work += acc.work[i];
       if (acc.off) off += acc.off[i];
+      if (acc.part) part += acc.part[i];
       const b = bucketOfDay[i];
       if (b < 0) continue;
       const cell = groupBuckets[b];
       cell.allocated += uncounted;
       if (counted[i]) {
         cell.allocated += allocated;
-        if (off <= 0) cell.available += capacityPerDay;
-        if (off > 0 && work > 0) cell.time_off++;
+        let left = off > 0 ? 0 : capacityPerDay;
+        // Overlapping partial records add up, to at most the whole day.
+        if (left > 0 && part > 1e-9) {
+          left -= byFraction
+            ? capacityPerDay * Math.min(part, 1)
+            : Math.min(part, capacityPerDay);
+        }
+        const dayOff = off > 0 || (part > 1e-9 && left <= 1e-9);
+        if (!dayOff) cell.available += left;
+        if (dayOff && work > 0) cell.time_off++;
       }
     }
 
@@ -519,6 +575,90 @@ export function utilizationPercent(
   const available = Number(value?.available) || 0;
   if (available <= 0) return allocated > 0 ? Infinity : null;
   return (allocated / available) * 100;
+}
+
+const toFiniteOrNull = (v: unknown): number | null => {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+/** Whether a timeline's groups are ordered or filtered by utilization. */
+export function isGroupUtilizationOrderActive(
+  setting?: TimelineGroupUtilizationSetting | null
+): boolean {
+  if (!setting) return false;
+  return (
+    setting.sort === 'asc' ||
+    setting.sort === 'desc' ||
+    toFiniteOrNull(setting.gte) !== null ||
+    toFiniteOrNull(setting.lte) !== null
+  );
+}
+
+/**
+ * Utilization of a group holding these resources (several when people share
+ * a name). No resource → `null`; resources with no work in the window → 0%.
+ */
+export function groupUtilizationPercent(
+  keys: string[],
+  totals: Map<string, UtilizationValue>
+): number | null {
+  if (!keys.length) return null;
+  let allocated = 0;
+  let available = 0;
+  let found = false;
+  for (const key of keys) {
+    const t = totals.get(key);
+    if (!t) continue;
+    found = true;
+    allocated += Number(t.allocated) || 0;
+    available += Number(t.available) || 0;
+  }
+  if (!found) return 0;
+  return utilizationPercent({ allocated, available });
+}
+
+/**
+ * Orders and filters groups by utilization, keeping their current order on
+ * ties. A group without a value (`null`) goes last and fails any filter.
+ */
+export function orderGroupsByUtilization<T>(
+  items: T[],
+  percentOf: (item: T) => number | null | undefined,
+  setting?: TimelineGroupUtilizationSetting | null
+): T[] {
+  if (!isGroupUtilizationOrderActive(setting)) return items;
+  const gte = toFiniteOrNull(setting?.gte);
+  const lte = toFiniteOrNull(setting?.lte);
+  const rows = items.map((item, index) => {
+    const p = percentOf(item);
+    return {
+      item,
+      index,
+      percent: p === undefined || Number.isNaN(p) ? null : p,
+    };
+  });
+  const kept = rows.filter(
+    (r) =>
+      (gte === null && lte === null) ||
+      (r.percent !== null &&
+        (gte === null || r.percent >= gte) &&
+        (lte === null || r.percent <= lte))
+  );
+  const direction =
+    setting?.sort === 'desc' ? -1 : setting?.sort === 'asc' ? 1 : 0;
+  if (direction) {
+    kept.sort((a, b) => {
+      if (a.percent === null || b.percent === null) {
+        if (a.percent === b.percent) return a.index - b.index;
+        return a.percent === null ? 1 : -1;
+      }
+      if (a.percent === b.percent) return a.index - b.index;
+      return (a.percent < b.percent ? -1 : 1) * direction;
+    });
+  }
+  return kept.map((r) => r.item);
 }
 
 export function utilizationColor(
@@ -593,14 +733,22 @@ export function remapDateAxisSummaryIds(
     const link = mapId(off.fk_link_column_id);
     const start = mapId(off.fk_start_column_id);
     const end = off.fk_end_column_id ? mapId(off.fk_end_column_id) : null;
+    const amount = off.fk_amount_column_id
+      ? mapId(off.fk_amount_column_id)
+      : null;
     timeOff =
-      model && link && start && (!off.fk_end_column_id || end)
+      model &&
+      link &&
+      start &&
+      (!off.fk_end_column_id || end) &&
+      (!off.fk_amount_column_id || amount)
         ? {
             ...off,
             fk_model_id: model,
             fk_link_column_id: link,
             fk_start_column_id: start,
             fk_end_column_id: end,
+            ...(off.fk_amount_column_id ? { fk_amount_column_id: amount } : {}),
           }
         : null;
   }
@@ -655,7 +803,5 @@ export function isLinkUtilizationPreviewComplete(
   config?: LinkUtilizationPreviewConfig | null
 ): boolean {
   if (!config?.fk_from_column_id || !config.fk_hours_column_id) return false;
-  return (
-    !!config.fk_available_column_id || Number(config.available_value) > 0
-  );
+  return !!config.fk_available_column_id || Number(config.available_value) > 0;
 }

@@ -1484,6 +1484,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     filterArr?: Filter[];
     sortArr?: Sort[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
+    extraSelects?: Knex.Raw[];
   }) {
     // The client filters get their own group: a top-level 'or' filter would
     // otherwise OR past the RLS group.

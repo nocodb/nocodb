@@ -108,8 +108,7 @@ const [DefineCard, ReuseCard] = createReusableTemplate<{ record: RowType }>()
 
 const viewGroupBy = useViewGroupBy()
 
-// Interface pages keep the flat gallery: their viz config has no group-by.
-const isGroupedGallery = computed(() => !interfacePageDataApi && !!viewGroupBy?.isGroupBy.value)
+const isGroupedGallery = computed(() => !!viewGroupBy?.isGroupBy.value)
 
 const GROUP_ROWS_PAGE_SIZE = 24
 
@@ -346,7 +345,10 @@ async function refreshGroup(group?: Group, savedPk?: string, prevCount?: number)
 async function patchSavedRow(held: RowType, pk: string) {
   if (!meta.value?.base_id || !meta.value.id || !view.value?.id) return false
   try {
-    const fresh = await $api.dbViewRow.read('noco', meta.value.base_id, meta.value.id, view.value.id, pk)
+    const fresh = interfacePageDataApi
+      ? await interfacePageDataApi.fetchRecord(pk)
+      : await $api.dbViewRow.read('noco', meta.value.base_id, meta.value.id, view.value.id, pk)
+    if (!fresh) return false
     const sortTitles = sorts.value.map((s) => meta.value?.columns?.find((c) => c.id === s.fk_column_id)?.title)
     if (sortTitles.some((title) => title && JSON.stringify(fresh[title]) !== JSON.stringify(held.row[title]))) return false
     Object.assign(held.row, fresh)
@@ -399,14 +401,19 @@ async function interfaceDuplicateRow() {
   if (!clonedData) return
 
   // `before` is the pk of the card one position down, so the copy lands right
-  // after the original (grid record-menu parity).
-  const rowBelow = cachedRows.value.get(target.index + 1)
+  // after the original (grid record-menu parity). Grouped cards live in their group, not the flat cache.
+  const grouped = isGroupedGallery.value && contextMenuRowId.value ? findGroupedRow(`${contextMenuRowId.value}`) : undefined
+  const rowBelow = grouped
+    ? grouped.group.rows?.[grouped.group.rows.indexOf(grouped.row) + 1]
+    : cachedRows.value.get(target.index + 1)
   const beforeRowId = rowBelow ? extractPkFromRow(rowBelow.row, meta.value?.columns as ColumnType[]) : undefined
 
   const newRow: RowType = { row: clonedData, oldRow: {}, rowMeta: { new: true, rowIndex: target.index + 1 } }
 
-  const inserted = await insertRow(newRow, {}, {}, false, beforeRowId)
-  if (inserted) message.toast(t('msg.success.rowDuplicated'))
+  const inserted = await insertRow(newRow, {}, {}, !!grouped, beforeRowId)
+  if (!inserted) return
+  if (grouped) await refreshGroup(viewGroupBy?.rootGroup.value)
+  message.toast(t('msg.success.rowDuplicated'))
 }
 
 /** Interface: deep link to this record — the current page URL with its rowId. */

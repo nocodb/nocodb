@@ -103,6 +103,7 @@ const TABLE_VIZ_DEST_SUPPORT: Record<
     ViewSettingOverrideOptions.FIELD_VISIBILITY,
     ViewSettingOverrideOptions.FIELD_ORDER,
     ViewSettingOverrideOptions.FILTER_CONDITION,
+    ViewSettingOverrideOptions.GROUP,
     ViewSettingOverrideOptions.SORT,
     ViewSettingOverrideOptions.ROW_COLORING,
   ],

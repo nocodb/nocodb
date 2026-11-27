@@ -398,14 +398,19 @@ async function interfaceDuplicateRow() {
   if (!clonedData) return
 
   // `before` is the pk of the card one position down, so the copy lands right
-  // after the original (grid record-menu parity).
-  const rowBelow = cachedRows.value.get(target.index + 1)
+  // after the original (grid record-menu parity). Grouped cards live in their group, not the flat cache.
+  const grouped = isGroupedGallery.value && contextMenuRowId.value ? findGroupedRow(`${contextMenuRowId.value}`) : undefined
+  const rowBelow = grouped
+    ? grouped.group.rows?.[grouped.group.rows.indexOf(grouped.row) + 1]
+    : cachedRows.value.get(target.index + 1)
   const beforeRowId = rowBelow ? extractPkFromRow(rowBelow.row, meta.value?.columns as ColumnType[]) : undefined
 
   const newRow: RowType = { row: clonedData, oldRow: {}, rowMeta: { new: true, rowIndex: target.index + 1 } }
 
-  const inserted = await insertRow(newRow, {}, {}, false, beforeRowId)
-  if (inserted) message.toast(t('msg.success.rowDuplicated'))
+  const inserted = await insertRow(newRow, {}, {}, !!grouped, beforeRowId)
+  if (!inserted) return
+  if (grouped) await refreshGroup(viewGroupBy?.rootGroup.value)
+  message.toast(t('msg.success.rowDuplicated'))
 }
 
 /** Interface: deep link to this record — the current page URL with its rowId. */

@@ -43,6 +43,9 @@ export const WEBHOOK_RESPONSE_STATUS_CODES = [
 /** Response headers a Respond node may not set: cookies, CORS and framing are ours. */
 export const WEBHOOK_RESPONSE_BLOCKED_HEADERS = [
   'set-cookie',
+  // The server picks the type from the body type; an author-set type could serve HTML.
+  'content-type',
+  'x-content-type-options',
   'content-length',
   'transfer-encoding',
   'connection',

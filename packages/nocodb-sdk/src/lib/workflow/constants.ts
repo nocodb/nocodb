@@ -40,35 +40,69 @@ export const WEBHOOK_RESPONSE_STATUS_CODES = [
   200, 201, 202, 204, 400, 401, 403, 404, 405, 409, 422, 429, 500, 503,
 ] as const;
 
-/** Response headers a Respond node may not set: cookies, CORS and framing are ours. */
-export const WEBHOOK_RESPONSE_BLOCKED_HEADERS = [
-  'set-cookie',
-  // The server picks the type from the body type; an author-set type could serve HTML.
-  'content-type',
-  'x-content-type-options',
-  'content-length',
-  'transfer-encoding',
-  'connection',
-  'keep-alive',
-  'upgrade',
-  'host',
-  'vary',
-  'strict-transport-security',
-  'content-security-policy',
-  'x-frame-options',
-  // Act on the app's origin for whoever opens the webhook URL
-  'clear-site-data',
-  'refresh',
-  'link',
+/**
+ * Response headers a Respond node may set; anything else could act on the app's
+ * origin for whoever opens the webhook URL (NEL, WWW-Authenticate, cookies, CORS, …).
+ */
+export const WEBHOOK_RESPONSE_ALLOWED_HEADERS = [
+  'cache-control',
+  'location',
+  'retry-after',
+  'etag',
+  'last-modified',
+  'content-language',
+  'content-disposition',
 ];
-export const WEBHOOK_RESPONSE_BLOCKED_HEADER_PREFIXES = ['access-control-'];
+/** Custom headers are allowed, except these, which the server owns. */
+export const WEBHOOK_RESPONSE_ALLOWED_HEADER_PREFIX = 'x-';
+export const WEBHOOK_RESPONSE_RESERVED_X_HEADERS = [
+  'x-content-type-options',
+  'x-frame-options',
+  'x-xss-protection',
+  'x-dns-prefetch-control',
+  'x-permitted-cross-domain-policies',
+  'x-download-options',
+  'x-powered-by',
+  'x-forwarded-for',
+  'x-forwarded-host',
+  'x-forwarded-proto',
+  'x-real-ip',
+];
+/** Cache-Control may only keep the reply out of shared caches. */
+const WEBHOOK_RESPONSE_CACHE_DIRECTIVES = [
+  'no-store',
+  'no-cache',
+  'private',
+  'must-revalidate',
+];
 
-export function isBlockedWebhookResponseHeader(name: string): boolean {
-  const lower = name.trim().toLowerCase();
+export function isAllowedWebhookResponseHeader(
+  name: string,
+  value?: unknown
+): boolean {
+  const lower = String(name ?? '')
+    .trim()
+    .toLowerCase();
+  if (!lower) return false;
+  if (lower === 'cache-control') {
+    return String(value ?? '')
+      .split(',')
+      .map((d) => d.trim().toLowerCase())
+      .filter(Boolean)
+      .every((d) => WEBHOOK_RESPONSE_CACHE_DIRECTIVES.includes(d));
+  }
+  if (WEBHOOK_RESPONSE_ALLOWED_HEADERS.includes(lower)) return true;
   return (
-    WEBHOOK_RESPONSE_BLOCKED_HEADERS.includes(lower) ||
-    WEBHOOK_RESPONSE_BLOCKED_HEADER_PREFIXES.some((p) => lower.startsWith(p))
+    lower.startsWith(WEBHOOK_RESPONSE_ALLOWED_HEADER_PREFIX) &&
+    !WEBHOOK_RESPONSE_RESERVED_X_HEADERS.includes(lower)
   );
+}
+
+export function isBlockedWebhookResponseHeader(
+  name: string,
+  value?: unknown
+): boolean {
+  return !isAllowedWebhookResponseHeader(name, value);
 }
 
 export const GeneralNodeID = {

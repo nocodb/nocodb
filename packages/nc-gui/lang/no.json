@@ -521,7 +521,6 @@
     "condition": "Betingelse",
     "after": "Etter",
     "search": "Søk",
-    "searchIn": "Søk I",
     "notification": "Melding",
     "confirm": "Confirm",
     "generate": "Generate",
@@ -2928,7 +2927,8 @@
     "agentIdColon": "Agent-ID: {agentId}",
     "agentState": {
       "active": "Live",
-      "paused": "Satt på pause"
+      "paused": "Satt på pause",
+      "draft": "Utkast"
     },
     "agentTriggerNewChat": "Ny chat med",
     "agentChannelAdd": "Koble til en kanal",
@@ -5150,7 +5150,9 @@
       "recentChats": "Nylige chatter",
       "searchChats": "Søk i chatter",
       "noChats": "Ingen chatter ennå",
-      "noChatsMatch": "Ingen chatter samsvarer med søket ditt"
+      "noChatsMatch": "Ingen chatter samsvarer med søket ditt",
+      "agentsPickToChat": "Velg en agent til venstre for å chatte med den.",
+      "noWorkflowsOrScripts": "Ingen workflows eller skript ennå."
     },
     "showMoreConnections": "Vis {count} flere tilkoblinger",
     "chooseSignInProvider": "Velg en leverandør for å fortsette",
@@ -6070,7 +6072,8 @@
           "description": "Svarer på spørsmål om tabellene og docs-ene dine hver gang noen spør."
         },
         "meeting-prep": {
-          "description": "Hver ukedagsmorgen forbereder den dagens møter fra møtetabellen din: kunden, åpne avtaler og de siste notatene."
+          "description": "Hver ukedagsmorgen forbereder den dagens møter fra møtetabellen din: kunden, åpne avtaler og de siste notatene.",
+          "title": "Møteforberedelse"
         },
         "follow-up-drafter": {
           "title": "Oppfølgingsskribent",
@@ -6095,6 +6098,26 @@
         "customer-check-in": {
           "title": "Kundeoppfølging",
           "description": "Lager et utkast til oppfølging for kunder som har blitt stille, klart til gjennomgang."
+        },
+        "weekly-digest": {
+          "title": "Ukentlig sammendrag",
+          "description": "Oppsummerer det som har endret seg i tabellene dine og publiserer det hver mandag."
+        },
+        "morning-brief": {
+          "title": "Morgenbrief",
+          "description": "Gjør det som har endret seg i tabellene og dokumentene dine om til en kort plan, hver hverdagsmorgen."
+        },
+        "record-enricher": {
+          "title": "Postberiker",
+          "description": "Fyller ut manglende opplysninger på nye poster fra nettet."
+        },
+        "reorder-alerts": {
+          "title": "Varsler om etterbestilling",
+          "description": "Følger med på lagernivåene og lager utkast til innkjøpsordrer før du går tom."
+        },
+        "ticket-triage": {
+          "title": "Sakstriage",
+          "description": "Merker nye forespørsler, setter prioritet og sender dem til rett person."
         }
       },
       "rowJob": "Oppgave",
@@ -6158,8 +6181,128 @@
       "deliverySlackMissing": "Koble til Slack under Integrasjoner slik at den kan poste der.",
       "deliverySlackInvalid": "Oppgi en Slack-kanal, for eksempel #sales.",
       "discardTitle": "Forkaste dette utkastet?",
-      "discardContent": "Utkastet og oppsettchatten flyttes til papirkurven."
-    }
+      "discardContent": "Utkastet og oppsettchatten flyttes til papirkurven.",
+      "whenSchedule": "Hver {day} kl. {time}",
+      "whenRecord": "Når en post endres i {table}",
+      "whenRecordAny": "Når en post endres",
+      "whenManual": "Bare når du spør",
+      "turnOn": "Slå på agenten"
+    },
+    "agentsPopover": {
+      "tooltip": "Agenter for {table}",
+      "recentSessions": "Nylige økter",
+      "sessions": "Økter",
+      "noSessions": "Ingen økter ennå",
+      "activeAgo": "Aktiv {time}",
+      "nothingMatches": "Ingenting samsvarer med \"{query}\""
+    },
+    "automate": {
+      "title": "Automatiser",
+      "tooltip": "Automatiser {table}",
+      "allWorkflows": "Alle workflows",
+      "workflowsInTable": "Workflows i tabellen",
+      "startWhen": "Start når…",
+      "searchTriggers": "Søk, f.eks. \"opprettet\", \"knapp\"",
+      "searchAutomations": "Søk i automatiseringer",
+      "otherTrigger": "Annen utløser…",
+      "noMatches": "Ingen treff",
+      "failed": "Mislyktes",
+      "lastRunFailed": "Siste kjøring mislyktes",
+      "ranAgo": "Kjørte {time}",
+      "neverRan": "Har aldri kjørt",
+      "newTitle": "{trigger} i {table}",
+      "triggers": {
+        "created": "En post opprettes",
+        "updated": "En post oppdateres",
+        "createdOrUpdated": "En post opprettes eller oppdateres",
+        "deleted": "En post slettes",
+        "entersView": "Kommer inn i en visning",
+        "matches": "Oppfyller betingelser",
+        "fieldChanged": "Et felt endres",
+        "formSubmitted": "Sender inn et skjema",
+        "buttonClicked": "Klikker på en knapp",
+        "comment": "Kommenterer en post"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Spør AI",
+      "askNocoAi": "Spør NocoAI: «{query}»",
+      "app": {
+        "openLive": "Åpne live-appen",
+        "copyLink": "Kopier applenke",
+        "share": "Del app…",
+        "refreshPreview": "Oppdater forhåndsvisningen",
+        "switchViewport": "Bytt størrelse på forhåndsvisningen",
+        "fullScreen": "Forhåndsvisning i fullskjerm",
+        "exitFullScreen": "Avslutt fullskjerm"
+      },
+      "base": {
+        "createSync": "Opprett synkronisering…",
+        "createSnapshot": "Opprett snapshot…",
+        "emptyTrash": "Tøm papirkurven…",
+        "duplicate": "Dupliser base…"
+      },
+      "account": {
+        "profile": "Profil",
+        "changeLanguage": "Bytt språk…"
+      },
+      "agent": {
+        "enable": "Aktiver agent",
+        "disable": "Deaktiver agent",
+        "duplicate": "Dupliser agent",
+        "copyId": "Kopier agent-ID",
+        "delete": "Slett agent…",
+        "openSettings": "Agentinnstillinger…",
+        "newChat": "Ny chat",
+        "toggleFiles": "Vis eller skjul filer",
+        "copyLink": "Kopier agentlenke"
+      },
+      "addToBookmarks": "Legg {object} til i bokmerker",
+      "addedToBookmarks": "Lagt til i bokmerker",
+      "addRecord": "Legg til post",
+      "addField": "Legg til felt…",
+      "addFilter": "Legg til filter…",
+      "addSort": "Legg til sortering…",
+      "addColourCondition": "Legg til fargebetingelse",
+      "askAiAboutRecord": "Spør AI om denne posten",
+      "addComment": "Legg til kommentar…",
+      "apiReference": "API-referanse…",
+      "assignToMe": "Tildel til meg"
+    },
+    "chartPaletteColorblindNote": "Innstillingen din for fargeblindhet viser diagrammer i en trygg palett. Alle andre ser paletten du velger.",
+    "alsoDisconnectApps": "Koble også fra apper",
+    "assigneeField": "Ansvarlig",
+    "colorConditionCount": "{n} betingelse | {n} betingelser",
+    "collapseSubgroups": "Skjul undergrupper",
+    "chooseSearchField": "Søk i ett felt",
+    "allowCsvImport": "Tillat import fra CSV",
+    "codingAgent": "Kodeagent",
+    "codingAgentSettingsNoAccessTitle": "Repositories og maskiner krever redaktørtilgang",
+    "agentTriggerWebhook": "Når en webhook mottas",
+    "agentTriggerWebhookHint": "Kjører når URL-en kalles med et API-token. URL-en vises på utløseren når den er lagt til.",
+    "agentTriggerWebhookCopy": "Kopier webhook-URL",
+    "agentsOnLargerScreen": "Agenter åpnes på en større skjerm",
+    "codingAgentAddRepo": "Legg til repository",
+    "codingAgentAddRepos": "Legg til {count}",
+    "codingAgentManageRepos": "Administrer repositories",
+    "codingAgentRepoPickTitle": "Start i",
+    "codingAgentNoRepo": "Ingen repository",
+    "codingAgentRepoAdded": "Lagt til",
+    "codingAgentRepoDefault": "Standard ({repo})",
+    "codingAgentRepoDefaultShort": "Standardrepository",
+    "codingAgentRepoDisconnected": "Tilkoblingen dekker ikke lenger dette repositoryet. Koble til på nytt for å starte økter her.",
+    "codingAgentOpenRepo": "Åpne repository",
+    "codingAgentRemoveRepoTitle": "Fjerne repository?",
+    "codingAgentNoReposTitle": "Legg til et repository for å starte",
+    "codingAgentNoReposBody": "En kodeagent jobber i repositoriene dine. Legg til ett for å starte en økt.",
+    "codingAgentNoReposAskCreator": "En kodeagent jobber i repositoriene dine. Be en prosjektoppretter om å legge til ett.",
+    "codingAgentUnavailableTitle": "Coding er ikke tilgjengelig her",
+    "codingAgentUnavailableBody": "Dette er en kodeagent, og planen til dette arbeidsområdet inkluderer ikke Coding. Oppgrader for å fortsette å bruke den.",
+    "codingAgentSettingsNoAccess": "Repositories og maskiner er synlige for redaktører og oppover. Be en prosjekteier om tilgang.",
+    "codingAgentOffTitle": "Denne agenten er slått av",
+    "codingAgentOffBody": "Slå den på for å starte en økt.",
+    "codingAgentOffAskEditor": "Be en prosjektoppretter om å slå den på for å starte en økt.",
+    "codingAgentTurnOn": "Slå på"
   },
   "activity": {
     "useTemplate": "Bruk mal",

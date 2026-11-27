@@ -521,7 +521,6 @@
     "condition": "สภาพ",
     "after": "หลังจาก",
     "search": "ค้นหา",
-    "searchIn": "ค้นหาใน",
     "notification": "การแจ้ง",
     "confirm": "ยืนยัน",
     "generate": "Generate",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "รหัสเอเจนต์: {agentId}",
     "agentState": {
       "active": "ถ่ายทอดสด",
-      "paused": "หยุดชั่วคราว"
+      "paused": "หยุดชั่วคราว",
+      "draft": "ฉบับร่าง"
     },
     "agentTriggerNewChat": "แชตใหม่กับ",
     "agentChannelAdd": "เชื่อมต่อช่องทาง",
@@ -5163,7 +5163,9 @@
       "recentChats": "แชทล่าสุด",
       "searchChats": "ค้นหาแชท",
       "noChats": "ยังไม่มีแชท",
-      "noChatsMatch": "ไม่มีแชทที่ตรงกับการค้นหาของคุณ"
+      "noChatsMatch": "ไม่มีแชทที่ตรงกับการค้นหาของคุณ",
+      "agentsPickToChat": "เลือกเอเจนต์ทางด้านซ้ายเพื่อเริ่มแชท",
+      "noWorkflowsOrScripts": "ยังไม่มีเวิร์กโฟลว์หรือสคริปต์"
     },
     "showMoreConnections": "แสดงการเชื่อมต่ออีก {count} รายการ",
     "chooseSignInProvider": "เลือกผู้ให้บริการเพื่อดำเนินการต่อ",
@@ -6087,7 +6089,8 @@
           "description": "ตอบคำถามเกี่ยวกับตารางและเอกสารของคุณทุกครั้งที่มีคนถาม"
         },
         "meeting-prep": {
-          "description": "ทุกเช้าวันทำการ เตรียมการประชุมของวันนี้จากตารางการประชุมของคุณ ทั้งลูกค้า ดีลที่เปิดอยู่ และบันทึกล่าสุด"
+          "description": "ทุกเช้าวันทำการ เตรียมการประชุมของวันนี้จากตารางการประชุมของคุณ ทั้งลูกค้า ดีลที่เปิดอยู่ และบันทึกล่าสุด",
+          "title": "เตรียมการประชุม"
         },
         "follow-up-drafter": {
           "title": "ผู้ร่างอีเมลติดตาม",
@@ -6112,6 +6115,26 @@
         "customer-check-in": {
           "title": "การติดต่อลูกค้า",
           "description": "ร่างข้อความติดต่อกลับหาลูกค้าที่เงียบหายไป พร้อมให้ตรวจทาน"
+        },
+        "weekly-digest": {
+          "title": "สรุปรายสัปดาห์",
+          "description": "สรุปสิ่งที่เปลี่ยนแปลงในตารางของคุณและโพสต์ทุกวันจันทร์"
+        },
+        "morning-brief": {
+          "title": "สรุปตอนเช้า",
+          "description": "เปลี่ยนสิ่งที่เปลี่ยนแปลงในตารางและเอกสารของคุณให้เป็นแผนสั้น ๆ ทุกเช้าวันทำงาน"
+        },
+        "record-enricher": {
+          "title": "ตัวเติมข้อมูลระเบียน",
+          "description": "เติมรายละเอียดที่ขาดหายไปในระเบียนใหม่จากเว็บ"
+        },
+        "reorder-alerts": {
+          "title": "การแจ้งเตือนสั่งซื้อซ้ำ",
+          "description": "เฝ้าดูระดับสต็อกและร่างใบสั่งซื้อก่อนของจะหมด"
+        },
+        "ticket-triage": {
+          "title": "การคัดแยกตั๋วงาน",
+          "description": "ติดแท็กคำขอใหม่ กำหนดลำดับความสำคัญ และส่งต่อให้คนที่เหมาะสม"
         }
       },
       "rowJob": "หน้าที่",
@@ -6176,8 +6199,129 @@
       "deliverySlackMissing": "เชื่อมต่อ Slack ในการเชื่อมต่อ เพื่อให้โพสต์ที่นั่นได้",
       "deliverySlackInvalid": "กรอกช่อง Slack เช่น #sales",
       "discardTitle": "ทิ้งร่างนี้ไหม",
-      "discardContent": "ร่างและแชทการตั้งค่าจะถูกย้ายไปถังขยะ"
-    }
+      "discardContent": "ร่างและแชทการตั้งค่าจะถูกย้ายไปถังขยะ",
+      "whenSchedule": "ทุก {day} เวลา {time}",
+      "whenRecord": "เมื่อระเบียนใน {table} เปลี่ยนแปลง",
+      "whenRecordAny": "เมื่อระเบียนเปลี่ยนแปลง",
+      "whenManual": "เฉพาะเมื่อถูกขอเท่านั้น",
+      "turnOn": "เปิดใช้งานเอเจนต์"
+    },
+    "agentsPopover": {
+      "tooltip": "เอเจนต์สำหรับ {table}",
+      "recentSessions": "เซสชันล่าสุด",
+      "sessions": "เซสชัน",
+      "noSessions": "ยังไม่มีเซสชัน",
+      "activeAgo": "ใช้งานเมื่อ {time}",
+      "nothingMatches": "ไม่มีรายการที่ตรงกับ \"{query}\""
+    },
+    "automate": {
+      "title": "ทำให้อัตโนมัติ",
+      "tooltip": "ทำให้ {table} อัตโนมัติ",
+      "allWorkflows": "เวิร์กโฟลว์ทั้งหมด",
+      "workflowsInTable": "เวิร์กโฟลว์ในตาราง",
+      "startWhen": "เริ่มเมื่อ…",
+      "searchTriggers": "ค้นหา เช่น \"สร้าง\", \"ปุ่ม\"",
+      "searchAutomations": "ค้นหาการทำงานอัตโนมัติ",
+      "otherTrigger": "ทริกเกอร์อื่น…",
+      "noMatches": "ไม่พบรายการที่ตรงกัน",
+      "failed": "ล้มเหลว",
+      "lastRunFailed": "การรันครั้งล่าสุดล้มเหลว",
+      "ranAgo": "รันเมื่อ {time}",
+      "neverRan": "ไม่เคยรัน",
+      "newTitle": "{trigger} ใน {table}",
+      "triggers": {
+        "created": "เมื่อสร้างระเบียน",
+        "updated": "เมื่ออัปเดตระเบียน",
+        "createdOrUpdated": "เมื่อสร้างหรืออัปเดตระเบียน",
+        "deleted": "เมื่อลบระเบียน",
+        "entersView": "เข้าสู่มุมมอง",
+        "matches": "ตรงตามเงื่อนไข",
+        "fieldChanged": "ฟิลด์เปลี่ยนแปลง",
+        "formSubmitted": "ส่งฟอร์ม",
+        "buttonClicked": "คลิกปุ่ม",
+        "comment": "แสดงความคิดเห็นในระเบียน"
+      }
+    },
+    "commandPalette": {
+      "askAi": "ถาม AI",
+      "askNocoAi": "ถาม NocoAI: \"{query}\"",
+      "app": {
+        "openLive": "เปิดแอปที่ใช้งานจริง",
+        "copyLink": "คัดลอกลิงก์แอป",
+        "share": "แชร์แอป…",
+        "refreshPreview": "รีเฟรชตัวอย่าง",
+        "switchViewport": "สลับขนาดตัวอย่าง",
+        "fullScreen": "ตัวอย่างแบบเต็มหน้าจอ",
+        "exitFullScreen": "ออกจากโหมดเต็มหน้าจอ"
+      },
+      "base": {
+        "createSync": "สร้างการซิงค์…",
+        "createSnapshot": "สร้างสแนปช็อต…",
+        "emptyTrash": "ล้างถังขยะ…",
+        "duplicate": "ทำสำเนา base…"
+      },
+      "account": {
+        "profile": "โปรไฟล์",
+        "changeLanguage": "เปลี่ยนภาษา…"
+      },
+      "agent": {
+        "enable": "เปิดใช้งานเอเจนต์",
+        "disable": "ปิดใช้งานเอเจนต์",
+        "duplicate": "ทำสำเนาเอเจนต์",
+        "copyId": "คัดลอก ID ของเอเจนต์",
+        "delete": "ลบเอเจนต์…",
+        "openSettings": "การตั้งค่าเอเจนต์…",
+        "newChat": "แชทใหม่",
+        "toggleFiles": "แสดงหรือซ่อนไฟล์",
+        "copyLink": "คัดลอกลิงก์ของเอเจนต์"
+      },
+      "addToBookmarks": "เพิ่ม {object} ลงบุ๊กมาร์ก",
+      "addedToBookmarks": "เพิ่มลงบุ๊กมาร์กแล้ว",
+      "addRecord": "เพิ่มระเบียน",
+      "addField": "เพิ่มฟิลด์…",
+      "addFilter": "เพิ่มตัวกรอง…",
+      "addSort": "เพิ่มการเรียงลำดับ…",
+      "addColourCondition": "เพิ่มเงื่อนไขสี",
+      "askAiAboutRecord": "ถาม AI เกี่ยวกับระเบียนนี้",
+      "addComment": "เพิ่มความคิดเห็น…",
+      "apiReference": "เอกสารอ้างอิง API…",
+      "assignToMe": "มอบหมายให้ฉัน"
+    },
+    "chartPaletteColorblindNote": "การตั้งค่าตาบอดสีของคุณจะแสดงแผนภูมิด้วยชุดสีที่ปลอดภัย คนอื่นจะเห็นชุดสีที่คุณเลือก",
+    "alsoDisconnectApps": "ยกเลิกการเชื่อมต่อแอปด้วย",
+    "assigneeField": "ผู้รับผิดชอบ",
+    "colorConditionCount": "{n} เงื่อนไข | {n} เงื่อนไข",
+    "collapseSubgroups": "ยุบกลุ่มย่อย",
+    "chooseSearchField": "ค้นหาในฟิลด์เดียว",
+    "allowCsvImport": "อนุญาตให้นำเข้าจาก CSV",
+    "codingAgent": "เอเจนต์เขียนโค้ด",
+    "codingAgentSettingsNoAccessTitle": "ที่เก็บโค้ดและเครื่องต้องใช้สิทธิ์ผู้แก้ไข",
+    "agentTriggerWebhook": "เมื่อได้รับ webhook",
+    "agentTriggerWebhookHint": "ทำงานเมื่อมีการเรียก URL ด้วยโทเค็น API โดย URL จะแสดงบนทริกเกอร์เมื่อเพิ่มแล้ว",
+    "agentTriggerWebhookCopy": "คัดลอก URL ของ webhook",
+    "agentsOnLargerScreen": "เอเจนต์จะเปิดบนหน้าจอที่ใหญ่ขึ้น",
+    "codingAgentAddRepo": "เพิ่มที่เก็บโค้ด",
+    "codingAgentAddRepos": "เพิ่ม {count}",
+    "codingAgentManageRepos": "จัดการที่เก็บโค้ด",
+    "codingAgentRepoPickTitle": "เริ่มใน",
+    "codingAgentNoRepo": "ไม่มีที่เก็บโค้ด",
+    "codingAgentRepoAdded": "เพิ่มแล้ว",
+    "codingAgentRepoDefault": "ค่าเริ่มต้น ({repo})",
+    "codingAgentRepoDefaultShort": "ที่เก็บโค้ดเริ่มต้น",
+    "codingAgentRepoDisconnected": "การเชื่อมต่อไม่ครอบคลุมที่เก็บโค้ดนี้อีกต่อไป เชื่อมต่อใหม่เพื่อเริ่มเซสชันที่นี่",
+    "codingAgentOpenRepo": "เปิดที่เก็บโค้ด",
+    "codingAgentRemoveRepoTitle": "นำที่เก็บโค้ดออกหรือไม่",
+    "codingAgentNoReposTitle": "เพิ่มที่เก็บโค้ดเพื่อเริ่มต้น",
+    "codingAgentNoReposBody": "เอเจนต์เขียนโค้ดทำงานในที่เก็บโค้ดของคุณ เพิ่มสักแห่งเพื่อเริ่มเซสชัน",
+    "codingAgentNoReposAskCreator": "เอเจนต์เขียนโค้ดทำงานในที่เก็บโค้ดของคุณ ขอให้ผู้สร้างโปรเจกต์เพิ่มสักแห่ง",
+    "codingAgentTriggerRepo": "ที่เก็บโค้ด",
+    "codingAgentUnavailableTitle": "ไม่สามารถใช้ Coding ที่นี่ได้",
+    "codingAgentUnavailableBody": "นี่คือเอเจนต์เขียนโค้ด และแผนของพื้นที่ทำงานนี้ไม่รวม Coding อัปเกรดเพื่อใช้งานต่อ",
+    "codingAgentSettingsNoAccess": "ที่เก็บโค้ดและเครื่องจะมองเห็นได้โดยผู้แก้ไขขึ้นไป ขอสิทธิ์เข้าถึงจากเจ้าของโปรเจกต์",
+    "codingAgentOffTitle": "เอเจนต์นี้ถูกปิดอยู่",
+    "codingAgentOffBody": "เปิดใช้งานเพื่อเริ่มเซสชัน",
+    "codingAgentOffAskEditor": "ขอให้ผู้สร้างโปรเจกต์เปิดใช้งานเพื่อเริ่มเซสชัน",
+    "codingAgentTurnOn": "เปิดใช้งาน"
   },
   "activity": {
     "useTemplate": "Use template",

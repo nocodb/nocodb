@@ -521,7 +521,6 @@
     "condition": "ಅವಸ್ಥೆ",
     "after": "ನಂತರ",
     "search": "ಹುಡುಕಿ",
-    "searchIn": "ಅಸಡ್ಡೆ",
     "notification": "ಅದ್ದಾರಿ",
     "confirm": "ಸ್ಥಿರೀಕರಿಸಿ",
     "generate": "ರಚಿಸಿ",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "ಏಜೆಂಟ್ ಐಡಿ: {agentId}",
     "agentState": {
       "active": "ನೇರ ಪ್ರಸಾರ",
-      "paused": "ವಿರಾಮಗೊಂಡಿದೆ"
+      "paused": "ವಿರಾಮಗೊಂಡಿದೆ",
+      "draft": "ಕರಡು"
     },
     "agentTriggerNewChat": "ಇವರೊಂದಿಗೆ ಹೊಸ ಚಾಟ್",
     "agentChannelAdd": "ಒಂದು ಚಾನೆಲ್ ಸಂಪರ್ಕಿಸಿ",
@@ -5161,7 +5161,9 @@
       "recentChats": "ಇತ್ತೀಚಿನ ಚಾಟ್‌ಗಳು",
       "searchChats": "ಚಾಟ್‌ಗಳನ್ನು ಹುಡುಕಿ",
       "noChats": "ಇನ್ನೂ ಯಾವುದೇ ಚಾಟ್‌ಗಳಿಲ್ಲ",
-      "noChatsMatch": "ನಿಮ್ಮ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಚಾಟ್ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ"
+      "noChatsMatch": "ನಿಮ್ಮ ಹುಡುಕಾಟಕ್ಕೆ ಯಾವುದೇ ಚಾಟ್ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ",
+      "agentsPickToChat": "ಚಾಟ್ ಮಾಡಲು ಎಡಭಾಗದಲ್ಲಿ ಒಂದು ಏಜೆಂಟ್ ಆಯ್ಕೆಮಾಡಿ.",
+      "noWorkflowsOrScripts": "ಇನ್ನೂ ಯಾವುದೇ ಕಾರ್ಯಹರಿವು ಅಥವಾ ಸ್ಕ್ರಿಪ್ಟ್ ಇಲ್ಲ."
     },
     "showMoreConnections": "ಇನ್ನೂ {count} ಸಂಪರ್ಕಗಳನ್ನು ತೋರಿಸಿ",
     "chooseSignInProvider": "ಮುಂದುವರಿಯಲು ಒಬ್ಬ ಪೂರೈಕೆದಾರರನ್ನು ಆಯ್ಕೆಮಾಡಿ",
@@ -6086,7 +6088,8 @@
           "description": "ಯಾರಾದರೂ ಕೇಳಿದಾಗಲೆಲ್ಲಾ ನಿಮ್ಮ ಕೋಷ್ಟಕಗಳು ಮತ್ತು ದಾಖಲೆಗಳ ಕುರಿತ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸುತ್ತದೆ."
         },
         "meeting-prep": {
-          "description": "ಪ್ರತಿ ಕೆಲಸದ ದಿನದ ಬೆಳಿಗ್ಗೆ ನಿಮ್ಮ ಸಭೆಗಳ ಕೋಷ್ಟಕದಿಂದ ಇಂದಿನ ಸಭೆಗಳನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತದೆ: ಗ್ರಾಹಕ, ತೆರೆದ ವ್ಯವಹಾರಗಳು ಮತ್ತು ಕೊನೆಯ ಟಿಪ್ಪಣಿಗಳು."
+          "description": "ಪ್ರತಿ ಕೆಲಸದ ದಿನದ ಬೆಳಿಗ್ಗೆ ನಿಮ್ಮ ಸಭೆಗಳ ಕೋಷ್ಟಕದಿಂದ ಇಂದಿನ ಸಭೆಗಳನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತದೆ: ಗ್ರಾಹಕ, ತೆರೆದ ವ್ಯವಹಾರಗಳು ಮತ್ತು ಕೊನೆಯ ಟಿಪ್ಪಣಿಗಳು.",
+          "title": "ಸಭೆಯ ಸಿದ್ಧತೆ"
         },
         "follow-up-drafter": {
           "title": "ಅನುಸರಣೆ ಬರಹಗಾರ",
@@ -6111,6 +6114,26 @@
         "customer-check-in": {
           "title": "ಗ್ರಾಹಕ ಸಂಪರ್ಕ",
           "description": "ಮೌನವಾದ ಗ್ರಾಹಕರಿಗೆ ಸಂದೇಶವನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತದೆ, ಪರಿಶೀಲನೆಗೆ ಸಿದ್ಧ."
+        },
+        "weekly-digest": {
+          "title": "ಸಾಪ್ತಾಹಿಕ ಸಾರಾಂಶ",
+          "description": "ನಿಮ್ಮ ಕೋಷ್ಟಕಗಳಲ್ಲಿ ಆದ ಬದಲಾವಣೆಗಳನ್ನು ಸಾರಾಂಶಗೊಳಿಸಿ ಪ್ರತಿ ಸೋಮವಾರ ಪ್ರಕಟಿಸುತ್ತದೆ."
+        },
+        "morning-brief": {
+          "title": "ಬೆಳಗಿನ ಸಾರಾಂಶ",
+          "description": "ಪ್ರತಿ ಕೆಲಸದ ದಿನದ ಬೆಳಗ್ಗೆ ನಿಮ್ಮ ಕೋಷ್ಟಕಗಳು ಮತ್ತು ದಾಖಲೆಪತ್ರಗಳಲ್ಲಿ ಆದ ಬದಲಾವಣೆಗಳನ್ನು ಸಣ್ಣ ಯೋಜನೆಯಾಗಿ ಪರಿವರ್ತಿಸುತ್ತದೆ."
+        },
+        "record-enricher": {
+          "title": "ದಾಖಲೆ ಸಮೃದ್ಧಗೊಳಿಸುವಿಕೆ",
+          "description": "ಹೊಸ ದಾಖಲೆಗಳಲ್ಲಿ ಕಾಣೆಯಾದ ವಿವರಗಳನ್ನು ವೆಬ್‌ನಿಂದ ತುಂಬುತ್ತದೆ."
+        },
+        "reorder-alerts": {
+          "title": "ಮರುಆದೇಶ ಎಚ್ಚರಿಕೆಗಳು",
+          "description": "ದಾಸ್ತಾನು ಮಟ್ಟವನ್ನು ಗಮನಿಸಿ, ಮುಗಿಯುವ ಮೊದಲು ಖರೀದಿ ಆದೇಶಗಳನ್ನು ಸಿದ್ಧಪಡಿಸುತ್ತದೆ."
+        },
+        "ticket-triage": {
+          "title": "ಟಿಕೆಟ್ ವಿಂಗಡಣೆ",
+          "description": "ಹೊಸ ವಿನಂತಿಗಳಿಗೆ ಟ್ಯಾಗ್ ಹಾಕಿ, ಆದ್ಯತೆ ನಿಗದಿಪಡಿಸಿ, ಸರಿಯಾದ ವ್ಯಕ್ತಿಗೆ ಕಳುಹಿಸುತ್ತದೆ."
         }
       },
       "rowJob": "ಕೆಲಸ",
@@ -6175,8 +6198,129 @@
       "deliverySlackMissing": "ಅಲ್ಲಿ ಪೋಸ್ಟ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುವಂತೆ ಸಂಯೋಜನೆಗಳಲ್ಲಿ Slack ಸಂಪರ್ಕಿಸಿ.",
       "deliverySlackInvalid": "ಒಂದು Slack ಚಾನೆಲ್ ನಮೂದಿಸಿ, ಉದಾಹರಣೆಗೆ #sales.",
       "discardTitle": "ಈ ಕರಡನ್ನು ತ್ಯಜಿಸಬೇಕೆ?",
-      "discardContent": "ಕರಡು ಮತ್ತು ಅದರ ಸಿದ್ಧತೆ ಚಾಟ್ ಕಸದ ಬುಟ್ಟಿಗೆ ಸರಿಸಲಾಗುತ್ತದೆ."
-    }
+      "discardContent": "ಕರಡು ಮತ್ತು ಅದರ ಸಿದ್ಧತೆ ಚಾಟ್ ಕಸದ ಬುಟ್ಟಿಗೆ ಸರಿಸಲಾಗುತ್ತದೆ.",
+      "whenSchedule": "ಪ್ರತಿ {day} {time} ಕ್ಕೆ",
+      "whenRecord": "{table} ನಲ್ಲಿ ದಾಖಲೆ ಬದಲಾದಾಗ",
+      "whenRecordAny": "ದಾಖಲೆ ಬದಲಾದಾಗ",
+      "whenManual": "ಕೇಳಿದಾಗ ಮಾತ್ರ",
+      "turnOn": "ಏಜೆಂಟ್ ಆನ್ ಮಾಡಿ"
+    },
+    "agentsPopover": {
+      "tooltip": "{table} ಗಾಗಿ ಏಜೆಂಟ್‌ಗಳು",
+      "recentSessions": "ಇತ್ತೀಚಿನ ಅವಧಿಗಳು",
+      "sessions": "ಅವಧಿಗಳು",
+      "noSessions": "ಇನ್ನೂ ಯಾವುದೇ ಅವಧಿಗಳಿಲ್ಲ",
+      "activeAgo": "ಸಕ್ರಿಯ {time}",
+      "nothingMatches": "\"{query}\" ಗೆ ಯಾವುದೂ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ"
+    },
+    "automate": {
+      "title": "ಸ್ವಯಂಚಾಲಿತಗೊಳಿಸಿ",
+      "tooltip": "{table} ಅನ್ನು ಸ್ವಯಂಚಾಲಿತಗೊಳಿಸಿ",
+      "allWorkflows": "ಎಲ್ಲಾ ಕಾರ್ಯಹರಿವುಗಳು",
+      "workflowsInTable": "ಕೋಷ್ಟಕದಲ್ಲಿನ ಕಾರ್ಯಹರಿವುಗಳು",
+      "startWhen": "ಯಾವಾಗ ಪ್ರಾರಂಭಿಸಬೇಕು…",
+      "searchTriggers": "ಹುಡುಕಿ, ಉದಾ. \"ರಚಿಸಲಾಗಿದೆ\", \"ಗುಂಡಿ\"",
+      "searchAutomations": "ಸ್ವಯಂಚಾಲನೆಗಳನ್ನು ಹುಡುಕಿ",
+      "otherTrigger": "ಬೇರೆ ಟ್ರಿಗರ್…",
+      "noMatches": "ಹೊಂದಿಕೆಗಳಿಲ್ಲ",
+      "failed": "ವಿಫಲವಾಗಿದೆ",
+      "lastRunFailed": "ಕೊನೆಯ ಚಾಲನೆ ವಿಫಲವಾಗಿದೆ",
+      "ranAgo": "ಚಲಿಸಿದ್ದು {time}",
+      "neverRan": "ಎಂದಿಗೂ ಚಲಿಸಿಲ್ಲ",
+      "newTitle": "{table} ನಲ್ಲಿ {trigger}",
+      "triggers": {
+        "created": "ದಾಖಲೆ ರಚನೆಯಾಗುತ್ತದೆ",
+        "updated": "ದಾಖಲೆ ನವೀಕರಣಗೊಳ್ಳುತ್ತದೆ",
+        "createdOrUpdated": "ದಾಖಲೆ ರಚನೆಯಾಗುತ್ತದೆ ಅಥವಾ ನವೀಕರಣಗೊಳ್ಳುತ್ತದೆ",
+        "deleted": "ದಾಖಲೆ ಅಳಿಸಲ್ಪಡುತ್ತದೆ",
+        "entersView": "ವೀಕ್ಷಣೆಗೆ ಪ್ರವೇಶಿಸುತ್ತದೆ",
+        "matches": "ಷರತ್ತುಗಳಿಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತದೆ",
+        "fieldChanged": "ಕ್ಷೇತ್ರ ಬದಲಾಗುತ್ತದೆ",
+        "formSubmitted": "ಫಾರ್ಮ್ ಸಲ್ಲಿಸುತ್ತದೆ",
+        "buttonClicked": "ಗುಂಡಿಯನ್ನು ಕ್ಲಿಕ್ ಮಾಡುತ್ತದೆ",
+        "comment": "ದಾಖಲೆಗೆ ಕಾಮೆಂಟ್ ಮಾಡುತ್ತದೆ"
+      }
+    },
+    "commandPalette": {
+      "askAi": "AI ಅನ್ನು ಕೇಳಿ",
+      "askNocoAi": "NocoAI ಅನ್ನು ಕೇಳಿ: “{query}”",
+      "app": {
+        "openLive": "ಲೈವ್ ಅಪ್ಲಿಕೇಶನ್ ತೆರೆಯಿರಿ",
+        "copyLink": "ಅಪ್ಲಿಕೇಶನ್ ಲಿಂಕ್ ನಕಲಿಸಿ",
+        "share": "ಅಪ್ಲಿಕೇಶನ್ ಹಂಚಿಕೊಳ್ಳಿ…",
+        "refreshPreview": "ಮುನ್ನೋಟವನ್ನು ರಿಫ್ರೆಶ್ ಮಾಡಿ",
+        "switchViewport": "ಮುನ್ನೋಟದ ಗಾತ್ರ ಬದಲಾಯಿಸಿ",
+        "fullScreen": "ಪೂರ್ಣ ಪರದೆಯ ಮುನ್ನೋಟ",
+        "exitFullScreen": "ಪೂರ್ಣ ಪರದೆಯಿಂದ ನಿರ್ಗಮಿಸಿ"
+      },
+      "base": {
+        "createSync": "ಸಿಂಕ್ ರಚಿಸಿ…",
+        "createSnapshot": "ಸ್ನ್ಯಾಪ್‌ಶಾಟ್ ರಚಿಸಿ…",
+        "emptyTrash": "ಕಸದ ಬುಟ್ಟಿ ಖಾಲಿ ಮಾಡಿ…",
+        "duplicate": "ಬೇಸ್ ನಕಲು ಮಾಡಿ…"
+      },
+      "account": {
+        "profile": "ಪ್ರೊಫೈಲ್",
+        "changeLanguage": "ಭಾಷೆ ಬದಲಾಯಿಸಿ…"
+      },
+      "agent": {
+        "enable": "ಏಜೆಂಟ್ ಸಕ್ರಿಯಗೊಳಿಸಿ",
+        "disable": "ಏಜೆಂಟ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
+        "duplicate": "ಏಜೆಂಟ್ ನಕಲು ಮಾಡಿ",
+        "copyId": "ಏಜೆಂಟ್ ID ನಕಲಿಸಿ",
+        "delete": "ಏಜೆಂಟ್ ಅಳಿಸಿ…",
+        "openSettings": "ಏಜೆಂಟ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು…",
+        "newChat": "ಹೊಸ ಚಾಟ್",
+        "toggleFiles": "ಫೈಲ್‌ಗಳನ್ನು ತೋರಿಸಿ ಅಥವಾ ಮರೆಮಾಡಿ",
+        "copyLink": "ಏಜೆಂಟ್ ಲಿಂಕ್ ನಕಲಿಸಿ"
+      },
+      "addToBookmarks": "{object} ಅನ್ನು ಬುಕ್‌ಮಾರ್ಕ್‌ಗಳಿಗೆ ಸೇರಿಸಿ",
+      "addedToBookmarks": "ಬುಕ್‌ಮಾರ್ಕ್‌ಗಳಿಗೆ ಸೇರಿಸಲಾಗಿದೆ",
+      "addRecord": "ದಾಖಲೆ ಸೇರಿಸಿ",
+      "addField": "ಕ್ಷೇತ್ರ ಸೇರಿಸಿ…",
+      "addFilter": "ಫಿಲ್ಟರ್ ಸೇರಿಸಿ…",
+      "addSort": "ವಿಂಗಡಣೆ ಸೇರಿಸಿ…",
+      "addColourCondition": "ಬಣ್ಣದ ಷರತ್ತು ಸೇರಿಸಿ",
+      "askAiAboutRecord": "ಈ ದಾಖಲೆಯ ಬಗ್ಗೆ AI ಅನ್ನು ಕೇಳಿ",
+      "addComment": "ಕಾಮೆಂಟ್ ಸೇರಿಸಿ…",
+      "apiReference": "API ಉಲ್ಲೇಖ…",
+      "assignToMe": "ನನಗೆ ನಿಯೋಜಿಸಿ"
+    },
+    "chartPaletteColorblindNote": "ನಿಮ್ಮ ವರ್ಣಾಂಧತೆ ಆದ್ಯತೆಯು ನಕ್ಷೆಗಳನ್ನು ಸುರಕ್ಷಿತ ಬಣ್ಣಪಟ್ಟಿಯಲ್ಲಿ ತೋರಿಸುತ್ತದೆ. ಉಳಿದವರೆಲ್ಲರೂ ನೀವು ಆಯ್ಕೆಮಾಡಿದ ಬಣ್ಣಪಟ್ಟಿಯನ್ನು ನೋಡುತ್ತಾರೆ.",
+    "alsoDisconnectApps": "ಅಪ್ಲಿಕೇಶನ್‌ಗಳ ಸಂಪರ್ಕವನ್ನೂ ಕಡಿತಗೊಳಿಸಿ",
+    "assigneeField": "ಜವಾಬ್ದಾರ ವ್ಯಕ್ತಿ",
+    "colorConditionCount": "{n} ಷರತ್ತು | {n} ಷರತ್ತುಗಳು",
+    "collapseSubgroups": "ಉಪಗುಂಪುಗಳನ್ನು ಮಡಚಿ",
+    "chooseSearchField": "ಒಂದು ಕ್ಷೇತ್ರದಲ್ಲಿ ಹುಡುಕಿ",
+    "allowCsvImport": "CSV ಇಂದ ಆಮದು ಅನುಮತಿಸಿ",
+    "codingAgent": "ಕೋಡಿಂಗ್ ಏಜೆಂಟ್",
+    "codingAgentSettingsNoAccessTitle": "ರೆಪೊಸಿಟರಿಗಳು ಮತ್ತು ಯಂತ್ರಗಳಿಗೆ ಸಂಪಾದಕ ಪ್ರವೇಶ ಬೇಕು",
+    "agentTriggerWebhook": "webhook ಸ್ವೀಕರಿಸಿದಾಗ",
+    "agentTriggerWebhookHint": "ಅದರ URL ಅನ್ನು API ಟೋಕನ್‌ನೊಂದಿಗೆ ಕರೆದಾಗ ಚಲಿಸುತ್ತದೆ. ಟ್ರಿಗರ್ ಸೇರಿಸಿದ ನಂತರ ಅದರ ಮೇಲೆ URL ಕಾಣಿಸುತ್ತದೆ.",
+    "agentTriggerWebhookCopy": "webhook ನ URL ನಕಲಿಸಿ",
+    "agentsOnLargerScreen": "ಏಜೆಂಟ್‌ಗಳು ದೊಡ್ಡ ಪರದೆಯಲ್ಲಿ ತೆರೆಯುತ್ತವೆ",
+    "codingAgentAddRepo": "ರೆಪೊಸಿಟರಿ ಸೇರಿಸಿ",
+    "codingAgentAddRepos": "{count} ಸೇರಿಸಿ",
+    "codingAgentManageRepos": "ರೆಪೊಸಿಟರಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+    "codingAgentRepoPickTitle": "ಇಲ್ಲಿ ಪ್ರಾರಂಭಿಸಿ",
+    "codingAgentNoRepo": "ರೆಪೊಸಿಟರಿ ಇಲ್ಲ",
+    "codingAgentRepoAdded": "ಸೇರಿಸಲಾಗಿದೆ",
+    "codingAgentRepoDefault": "ಪೂರ್ವನಿಯೋಜಿತ ({repo})",
+    "codingAgentRepoDefaultShort": "ಪೂರ್ವನಿಯೋಜಿತ ರೆಪೊಸಿಟರಿ",
+    "codingAgentRepoDisconnected": "ಈ ಸಂಪರ್ಕವು ಇನ್ನು ಈ ರೆಪೊಸಿಟರಿಯನ್ನು ಒಳಗೊಂಡಿಲ್ಲ. ಇಲ್ಲಿ ಅವಧಿಗಳನ್ನು ಪ್ರಾರಂಭಿಸಲು ಮತ್ತೆ ಸಂಪರ್ಕಿಸಿ.",
+    "codingAgentOpenRepo": "ರೆಪೊಸಿಟರಿ ತೆರೆಯಿರಿ",
+    "codingAgentRemoveRepoTitle": "ರೆಪೊಸಿಟರಿ ತೆಗೆದುಹಾಕುವುದೇ?",
+    "codingAgentNoReposTitle": "ಪ್ರಾರಂಭಿಸಲು ರೆಪೊಸಿಟರಿ ಸೇರಿಸಿ",
+    "codingAgentNoReposBody": "ಕೋಡಿಂಗ್ ಏಜೆಂಟ್ ನಿಮ್ಮ ರೆಪೊಸಿಟರಿಗಳಲ್ಲಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ. ಅವಧಿ ಪ್ರಾರಂಭಿಸಲು ಒಂದನ್ನು ಸೇರಿಸಿ.",
+    "codingAgentNoReposAskCreator": "ಕೋಡಿಂಗ್ ಏಜೆಂಟ್ ನಿಮ್ಮ ರೆಪೊಸಿಟರಿಗಳಲ್ಲಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ. ಒಂದನ್ನು ಸೇರಿಸಲು ಯೋಜನೆಯ ರಚನಕಾರರನ್ನು ಕೇಳಿ.",
+    "codingAgentTriggerRepo": "ರೆಪೊಸಿಟರಿ",
+    "codingAgentUnavailableTitle": "ಇಲ್ಲಿ Coding ಲಭ್ಯವಿಲ್ಲ",
+    "codingAgentUnavailableBody": "ಇದು ಕೋಡಿಂಗ್ ಏಜೆಂಟ್, ಮತ್ತು ಈ ಕಾರ್ಯಕ್ಷೇತ್ರದ ಯೋಜನೆಯಲ್ಲಿ Coding ಸೇರಿಲ್ಲ. ಬಳಸುವುದನ್ನು ಮುಂದುವರಿಸಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
+    "codingAgentSettingsNoAccess": "ರೆಪೊಸಿಟರಿಗಳು ಮತ್ತು ಯಂತ್ರಗಳು ಸಂಪಾದಕರು ಹಾಗೂ ಮೇಲಿನವರಿಗೆ ಕಾಣಿಸುತ್ತವೆ. ಪ್ರವೇಶಕ್ಕಾಗಿ ಯೋಜನೆಯ ಮಾಲೀಕರನ್ನು ಕೇಳಿ.",
+    "codingAgentOffTitle": "ಈ ಏಜೆಂಟ್ ಆಫ್ ಆಗಿದೆ",
+    "codingAgentOffBody": "ಅವಧಿ ಪ್ರಾರಂಭಿಸಲು ಇದನ್ನು ಆನ್ ಮಾಡಿ.",
+    "codingAgentOffAskEditor": "ಅವಧಿ ಪ್ರಾರಂಭಿಸಲು ಇದನ್ನು ಆನ್ ಮಾಡುವಂತೆ ಯೋಜನೆಯ ರಚನಕಾರರನ್ನು ಕೇಳಿ.",
+    "codingAgentTurnOn": "ಆನ್ ಮಾಡಿ"
   },
   "activity": {
     "useTemplate": "Use template",

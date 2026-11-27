@@ -521,7 +521,6 @@
     "condition": "Điều kiện",
     "after": "Sau",
     "search": "Tìm kiếm",
-    "searchIn": "Tìm kiếm trong",
     "notification": "Thông báo",
     "confirm": "Xác nhận",
     "generate": "Generate",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "ID tác nhân: {agentId}",
     "agentState": {
       "active": "Trực tiếp",
-      "paused": "Đã tạm dừng"
+      "paused": "Đã tạm dừng",
+      "draft": "Bản nháp"
     },
     "agentTriggerNewChat": "Cuộc trò chuyện mới với",
     "agentChannelAdd": "Kết nối một kênh",
@@ -5157,7 +5157,9 @@
       "recentChats": "Cuộc trò chuyện gần đây",
       "searchChats": "Tìm trong các cuộc trò chuyện",
       "noChats": "Chưa có cuộc trò chuyện nào",
-      "noChatsMatch": "Không có cuộc trò chuyện nào khớp với tìm kiếm của bạn"
+      "noChatsMatch": "Không có cuộc trò chuyện nào khớp với tìm kiếm của bạn",
+      "agentsPickToChat": "Chọn một tác nhân ở bên trái để trò chuyện.",
+      "noWorkflowsOrScripts": "Chưa có quy trình hay tập lệnh nào."
     },
     "showMoreConnections": "Hiển thị thêm {count} kết nối",
     "chooseSignInProvider": "Chọn một nhà cung cấp để tiếp tục",
@@ -6083,7 +6085,8 @@
           "description": "Trả lời câu hỏi về các bảng và tài liệu của bạn mỗi khi có ai hỏi."
         },
         "meeting-prep": {
-          "description": "Mỗi sáng ngày làm việc, chuẩn bị các cuộc họp hôm nay từ bảng cuộc họp của bạn: khách hàng, thương vụ đang mở và ghi chú gần nhất."
+          "description": "Mỗi sáng ngày làm việc, chuẩn bị các cuộc họp hôm nay từ bảng cuộc họp của bạn: khách hàng, thương vụ đang mở và ghi chú gần nhất.",
+          "title": "Chuẩn bị cuộc họp"
         },
         "follow-up-drafter": {
           "title": "Người soạn thư theo dõi",
@@ -6108,6 +6111,26 @@
         "customer-check-in": {
           "title": "Hỏi thăm khách hàng",
           "description": "Soạn thư hỏi thăm cho khách hàng đã im ắng, sẵn sàng để xem lại."
+        },
+        "weekly-digest": {
+          "title": "Tóm tắt hằng tuần",
+          "description": "Tổng hợp những thay đổi trong bảng của bạn và đăng vào mỗi thứ Hai."
+        },
+        "morning-brief": {
+          "title": "Tóm tắt buổi sáng",
+          "description": "Biến những thay đổi trong bảng và tài liệu của bạn thành một kế hoạch ngắn, vào mỗi sáng ngày làm việc."
+        },
+        "record-enricher": {
+          "title": "Làm giàu bản ghi",
+          "description": "Điền các thông tin còn thiếu của bản ghi mới từ web."
+        },
+        "reorder-alerts": {
+          "title": "Cảnh báo đặt hàng lại",
+          "description": "Theo dõi mức tồn kho và soạn đơn mua hàng trước khi hết hàng."
+        },
+        "ticket-triage": {
+          "title": "Phân loại yêu cầu hỗ trợ",
+          "description": "Gắn thẻ yêu cầu mới, đặt mức ưu tiên và chuyển đến đúng người."
         }
       },
       "rowJob": "Nhiệm vụ",
@@ -6172,8 +6195,129 @@
       "deliverySlackMissing": "Kết nối Slack trong phần Tích hợp để nó đăng được ở đó.",
       "deliverySlackInvalid": "Nhập một kênh Slack, ví dụ #sales.",
       "discardTitle": "Bỏ bản nháp này?",
-      "discardContent": "Bản nháp và cuộc trò chuyện thiết lập sẽ được chuyển vào thùng rác."
-    }
+      "discardContent": "Bản nháp và cuộc trò chuyện thiết lập sẽ được chuyển vào thùng rác.",
+      "whenSchedule": "Mỗi {day} lúc {time}",
+      "whenRecord": "Khi một bản ghi thay đổi trong {table}",
+      "whenRecordAny": "Khi một bản ghi thay đổi",
+      "whenManual": "Chỉ khi được yêu cầu",
+      "turnOn": "Bật tác nhân"
+    },
+    "agentsPopover": {
+      "tooltip": "Tác nhân cho {table}",
+      "recentSessions": "Phiên gần đây",
+      "sessions": "Phiên",
+      "noSessions": "Chưa có phiên nào",
+      "activeAgo": "Hoạt động {time}",
+      "nothingMatches": "Không có gì khớp với \"{query}\""
+    },
+    "automate": {
+      "title": "Tự động hóa",
+      "tooltip": "Tự động hóa {table}",
+      "allWorkflows": "Tất cả quy trình",
+      "workflowsInTable": "Quy trình trong bảng",
+      "startWhen": "Bắt đầu khi…",
+      "searchTriggers": "Tìm kiếm, ví dụ \"đã tạo\", \"nút\"",
+      "searchAutomations": "Tìm kiếm tự động hóa",
+      "otherTrigger": "Trình kích hoạt khác…",
+      "noMatches": "Không có kết quả khớp",
+      "failed": "Thất bại",
+      "lastRunFailed": "Lần chạy gần nhất thất bại",
+      "ranAgo": "Đã chạy {time}",
+      "neverRan": "Chưa từng chạy",
+      "newTitle": "{trigger} trong {table}",
+      "triggers": {
+        "created": "Bản ghi được tạo",
+        "updated": "Bản ghi được cập nhật",
+        "createdOrUpdated": "Bản ghi được tạo hoặc cập nhật",
+        "deleted": "Bản ghi bị xóa",
+        "entersView": "Vào một chế độ xem",
+        "matches": "Khớp điều kiện",
+        "fieldChanged": "Trường thay đổi",
+        "formSubmitted": "Gửi một biểu mẫu",
+        "buttonClicked": "Nhấp vào một nút",
+        "comment": "Bình luận về một bản ghi"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Hỏi AI",
+      "askNocoAi": "Hỏi NocoAI: “{query}”",
+      "app": {
+        "openLive": "Mở ứng dụng trực tiếp",
+        "copyLink": "Sao chép liên kết ứng dụng",
+        "share": "Chia sẻ ứng dụng…",
+        "refreshPreview": "Làm mới bản xem trước",
+        "switchViewport": "Đổi kích thước xem trước",
+        "fullScreen": "Xem trước toàn màn hình",
+        "exitFullScreen": "Thoát toàn màn hình"
+      },
+      "base": {
+        "createSync": "Tạo đồng bộ…",
+        "createSnapshot": "Tạo ảnh chụp nhanh…",
+        "emptyTrash": "Dọn sạch thùng rác…",
+        "duplicate": "Nhân bản base…"
+      },
+      "account": {
+        "profile": "Hồ sơ",
+        "changeLanguage": "Đổi ngôn ngữ…"
+      },
+      "agent": {
+        "enable": "Kích hoạt tác nhân",
+        "disable": "Vô hiệu hóa tác nhân",
+        "duplicate": "Tạo bản sao tác nhân",
+        "copyId": "Sao chép ID tác nhân",
+        "delete": "Xóa tác nhân…",
+        "openSettings": "Cài đặt tác nhân…",
+        "newChat": "Trò chuyện mới",
+        "toggleFiles": "Hiện hoặc ẩn tệp",
+        "copyLink": "Sao chép liên kết tác nhân"
+      },
+      "addToBookmarks": "Thêm {object} vào dấu trang",
+      "addedToBookmarks": "Đã thêm vào dấu trang",
+      "addRecord": "Thêm bản ghi",
+      "addField": "Thêm trường…",
+      "addFilter": "Thêm bộ lọc…",
+      "addSort": "Thêm sắp xếp…",
+      "addColourCondition": "Thêm điều kiện màu",
+      "askAiAboutRecord": "Hỏi AI về bản ghi này",
+      "addComment": "Thêm bình luận…",
+      "apiReference": "Tài liệu API…",
+      "assignToMe": "Giao cho tôi"
+    },
+    "chartPaletteColorblindNote": "Tùy chọn mù màu của bạn hiển thị biểu đồ bằng bảng màu an toàn. Mọi người khác thấy bảng màu bạn chọn.",
+    "alsoDisconnectApps": "Ngắt kết nối cả ứng dụng",
+    "assigneeField": "Người phụ trách",
+    "colorConditionCount": "{n} điều kiện | {n} điều kiện",
+    "collapseSubgroups": "Thu gọn nhóm con",
+    "chooseSearchField": "Tìm trong một trường",
+    "allowCsvImport": "Cho phép nhập từ CSV",
+    "codingAgent": "Tác nhân lập trình",
+    "codingAgentSettingsNoAccessTitle": "Kho mã và máy cần quyền Người chỉnh sửa",
+    "agentTriggerWebhook": "Khi nhận được webhook",
+    "agentTriggerWebhookHint": "Chạy khi URL của nó được gọi bằng mã thông báo API. URL hiển thị trên trình kích hoạt ngay khi được thêm.",
+    "agentTriggerWebhookCopy": "Sao chép URL webhook",
+    "agentsOnLargerScreen": "Tác nhân mở trên màn hình lớn hơn",
+    "codingAgentAddRepo": "Thêm kho mã",
+    "codingAgentAddRepos": "Thêm {count}",
+    "codingAgentManageRepos": "Quản lý kho mã",
+    "codingAgentRepoPickTitle": "Bắt đầu trong",
+    "codingAgentNoRepo": "Không có kho mã",
+    "codingAgentRepoAdded": "Đã thêm",
+    "codingAgentRepoDefault": "Mặc định ({repo})",
+    "codingAgentRepoDefaultShort": "Kho mã mặc định",
+    "codingAgentRepoDisconnected": "Kết nối không còn bao gồm kho mã này. Hãy kết nối lại để bắt đầu phiên tại đây.",
+    "codingAgentOpenRepo": "Mở kho mã",
+    "codingAgentRemoveRepoTitle": "Xóa kho mã?",
+    "codingAgentNoReposTitle": "Thêm một kho mã để bắt đầu",
+    "codingAgentNoReposBody": "Tác nhân lập trình làm việc trong các kho mã của bạn. Thêm một kho để bắt đầu phiên.",
+    "codingAgentNoReposAskCreator": "Tác nhân lập trình làm việc trong các kho mã của bạn. Hãy nhờ người tạo dự án thêm một kho.",
+    "codingAgentTriggerRepo": "Kho mã",
+    "codingAgentUnavailableTitle": "Coding không khả dụng ở đây",
+    "codingAgentUnavailableBody": "Đây là tác nhân lập trình và gói của không gian làm việc này không bao gồm Coding. Hãy nâng cấp để tiếp tục sử dụng.",
+    "codingAgentSettingsNoAccess": "Kho mã và máy chỉ hiển thị với Người chỉnh sửa trở lên. Hãy xin quyền truy cập từ chủ sở hữu dự án.",
+    "codingAgentOffTitle": "Tác nhân này đang tắt",
+    "codingAgentOffBody": "Bật nó để bắt đầu phiên.",
+    "codingAgentOffAskEditor": "Hãy nhờ người tạo dự án bật nó để bắt đầu phiên.",
+    "codingAgentTurnOn": "Bật"
   },
   "activity": {
     "useTemplate": "Use template",

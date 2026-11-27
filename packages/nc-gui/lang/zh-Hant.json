@@ -521,7 +521,6 @@
     "condition": "條件",
     "after": "後",
     "search": "搜尋",
-    "searchIn": "搜索於",
     "notification": "通知",
     "confirm": "確認",
     "generate": "生成",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "代理程式 ID：{agentId}",
     "agentState": {
       "active": "直播",
-      "paused": "已暫停"
+      "paused": "已暫停",
+      "draft": "草稿"
     },
     "agentTriggerNewChat": "發起新對話",
     "agentChannelAdd": "連接一個頻道",
@@ -5162,7 +5162,9 @@
       "recentChats": "最近的對話",
       "searchChats": "搜尋對話",
       "noChats": "尚無對話",
-      "noChatsMatch": "沒有符合搜尋條件的對話"
+      "noChatsMatch": "沒有符合搜尋條件的對話",
+      "agentsPickToChat": "在左側選擇一個智慧代理開始聊天。",
+      "noWorkflowsOrScripts": "尚無工作流程或指令碼。"
     },
     "showMoreConnections": "再顯示 {count} 個連線",
     "chooseSignInProvider": "選擇一個服務供應商以繼續",
@@ -6089,7 +6091,8 @@
           "description": "每當有人提問時，回答關於你的表格與文件的問題。"
         },
         "meeting-prep": {
-          "description": "每個工作日早晨，根據你的會議表格準備當天的會議：客戶、進行中的交易與最近的紀錄。"
+          "description": "每個工作日早晨，根據你的會議表格準備當天的會議：客戶、進行中的交易與最近的紀錄。",
+          "title": "會議準備"
         },
         "follow-up-drafter": {
           "title": "跟進郵件撰寫",
@@ -6114,6 +6117,26 @@
         "customer-check-in": {
           "title": "客戶回訪",
           "description": "為已經沉默的客戶草擬一封回訪訊息，供審閱。"
+        },
+        "weekly-digest": {
+          "title": "每週摘要",
+          "description": "彙整表格中的變更，並於每週一發布。"
+        },
+        "morning-brief": {
+          "title": "早晨簡報",
+          "description": "每個工作日早晨，將表格和文件中的變更整理成一份簡短計畫。"
+        },
+        "record-enricher": {
+          "title": "記錄資訊補齊",
+          "description": "從網路補齊新記錄中缺少的資訊。"
+        },
+        "reorder-alerts": {
+          "title": "補貨提醒",
+          "description": "監看庫存水位，在缺貨前草擬採購單。"
+        },
+        "ticket-triage": {
+          "title": "工單分流",
+          "description": "為新請求加上標籤、設定優先順序，並轉給適合的人。"
         }
       },
       "rowJob": "職責",
@@ -6178,8 +6201,129 @@
       "deliverySlackMissing": "請在整合中連接 Slack，它才能發布到那裡。",
       "deliverySlackInvalid": "請輸入一個 Slack 頻道，例如 #sales。",
       "discardTitle": "要捨棄此草稿嗎？",
-      "discardContent": "草稿與其設定聊天將移至回收桶。"
-    }
+      "discardContent": "草稿與其設定聊天將移至回收桶。",
+      "whenSchedule": "每{day} {time}",
+      "whenRecord": "當 {table} 中的記錄變更時",
+      "whenRecordAny": "當記錄變更時",
+      "whenManual": "僅在被要求時",
+      "turnOn": "開啟智慧代理"
+    },
+    "agentsPopover": {
+      "tooltip": "{table} 的智慧代理",
+      "recentSessions": "最近的工作階段",
+      "sessions": "工作階段",
+      "noSessions": "尚無工作階段",
+      "activeAgo": "活躍於 {time}",
+      "nothingMatches": "沒有符合「{query}」的項目"
+    },
+    "automate": {
+      "title": "自動化",
+      "tooltip": "自動化 {table}",
+      "allWorkflows": "所有工作流程",
+      "workflowsInTable": "表格中的工作流程",
+      "startWhen": "何時開始…",
+      "searchTriggers": "搜尋，例如「建立」「按鈕」",
+      "searchAutomations": "搜尋自動化",
+      "otherTrigger": "其他觸發器…",
+      "noMatches": "沒有相符項目",
+      "failed": "失敗",
+      "lastRunFailed": "上次執行失敗",
+      "ranAgo": "執行於 {time}",
+      "neverRan": "從未執行",
+      "newTitle": "{table} 中的{trigger}",
+      "triggers": {
+        "created": "建立記錄時",
+        "updated": "更新記錄時",
+        "createdOrUpdated": "建立或更新記錄時",
+        "deleted": "刪除記錄時",
+        "entersView": "進入檢視",
+        "matches": "符合條件",
+        "fieldChanged": "欄位變更",
+        "formSubmitted": "送出表單",
+        "buttonClicked": "點擊按鈕",
+        "comment": "在記錄上留言"
+      }
+    },
+    "commandPalette": {
+      "askAi": "詢問 AI",
+      "askNocoAi": "詢問 NocoAI：「{query}」",
+      "app": {
+        "openLive": "開啟線上應用程式",
+        "copyLink": "複製應用程式連結",
+        "share": "分享應用程式…",
+        "refreshPreview": "重新整理預覽",
+        "switchViewport": "切換預覽視區",
+        "fullScreen": "全螢幕預覽",
+        "exitFullScreen": "結束全螢幕"
+      },
+      "base": {
+        "createSync": "建立同步…",
+        "createSnapshot": "建立快照…",
+        "emptyTrash": "清空垃圾桶…",
+        "duplicate": "複製 Base…"
+      },
+      "account": {
+        "profile": "個人檔案",
+        "changeLanguage": "變更語言…"
+      },
+      "agent": {
+        "enable": "啟用智慧代理",
+        "disable": "停用智慧代理",
+        "duplicate": "建立智慧代理副本",
+        "copyId": "複製智慧代理 ID",
+        "delete": "刪除智慧代理…",
+        "openSettings": "智慧代理設定…",
+        "newChat": "新增聊天",
+        "toggleFiles": "顯示或隱藏檔案",
+        "copyLink": "複製智慧代理連結"
+      },
+      "addToBookmarks": "將 {object} 加入書籤",
+      "addedToBookmarks": "已加入書籤",
+      "addRecord": "新增記錄",
+      "addField": "新增欄位…",
+      "addFilter": "新增篩選…",
+      "addSort": "新增排序…",
+      "addColourCondition": "新增顏色條件",
+      "askAiAboutRecord": "詢問 AI 關於這筆記錄",
+      "addComment": "新增留言…",
+      "apiReference": "API 參考…",
+      "assignToMe": "指派給我"
+    },
+    "chartPaletteColorblindNote": "你的色盲偏好會以安全色盤顯示圖表。其他人看到的是你選擇的色盤。",
+    "alsoDisconnectApps": "同時中斷應用程式連線",
+    "assigneeField": "負責人",
+    "colorConditionCount": "{n} 個條件 | {n} 個條件",
+    "collapseSubgroups": "摺疊子群組",
+    "chooseSearchField": "在單一欄位中搜尋",
+    "allowCsvImport": "允許從 CSV 匯入",
+    "codingAgent": "程式設計智慧代理",
+    "codingAgentSettingsNoAccessTitle": "存放庫與機器需要編輯者存取權",
+    "agentTriggerWebhook": "收到 Webhook 時",
+    "agentTriggerWebhookHint": "當其 URL 以 API 權杖被呼叫時執行。加入觸發器後，URL 會顯示在觸發器上。",
+    "agentTriggerWebhookCopy": "複製 Webhook URL",
+    "agentsOnLargerScreen": "智慧代理會在較大的螢幕上開啟",
+    "codingAgentAddRepo": "新增存放庫",
+    "codingAgentAddRepos": "新增 {count} 個",
+    "codingAgentManageRepos": "管理存放庫",
+    "codingAgentRepoPickTitle": "開始於",
+    "codingAgentNoRepo": "沒有存放庫",
+    "codingAgentRepoAdded": "已新增",
+    "codingAgentRepoDefault": "預設 ({repo})",
+    "codingAgentRepoDefaultShort": "預設存放庫",
+    "codingAgentRepoDisconnected": "此連線已不再涵蓋此存放庫。請重新連線以在此開始工作階段。",
+    "codingAgentOpenRepo": "開啟存放庫",
+    "codingAgentRemoveRepoTitle": "要移除此存放庫嗎？",
+    "codingAgentNoReposTitle": "新增存放庫以開始",
+    "codingAgentNoReposBody": "程式設計智慧代理會在你的存放庫中工作。新增一個即可開始工作階段。",
+    "codingAgentNoReposAskCreator": "程式設計智慧代理會在你的存放庫中工作。請專案建立者新增一個。",
+    "codingAgentTriggerRepo": "存放庫",
+    "codingAgentUnavailableTitle": "此處無法使用 Coding",
+    "codingAgentUnavailableBody": "這是程式設計智慧代理，而此工作區的方案不包含 Coding。請升級以繼續使用。",
+    "codingAgentSettingsNoAccess": "存放庫與機器對編輯者以上的角色可見。請向專案擁有者申請存取權。",
+    "codingAgentOffTitle": "此智慧代理已關閉",
+    "codingAgentOffBody": "開啟它即可開始工作階段。",
+    "codingAgentOffAskEditor": "請專案建立者開啟它，以便開始工作階段。",
+    "codingAgentTurnOn": "開啟"
   },
   "activity": {
     "useTemplate": "使用範本",

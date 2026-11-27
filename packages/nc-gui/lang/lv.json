@@ -521,7 +521,6 @@
     "condition": "Nosacījums",
     "after": "Pēc",
     "search": "Meklēt",
-    "searchIn": "Meklēt iekš",
     "notification": "Paziņojums",
     "confirm": "Apstipriniet",
     "generate": "Izveidot",
@@ -2928,7 +2927,8 @@
     "agentIdColon": "Aģenta ID: {agentId}",
     "agentState": {
       "active": "Tiešraidē",
-      "paused": "Apturēts"
+      "paused": "Apturēts",
+      "draft": "Melnraksts"
     },
     "agentTriggerNewChat": "Jauna tērzēšana ar",
     "agentChannelAdd": "Pievienot kanālu",
@@ -5155,7 +5155,9 @@
       "recentChats": "Nesenās sarunas",
       "searchChats": "Meklēt sarunās",
       "noChats": "Vēl nav sarunu",
-      "noChatsMatch": "Neviena saruna neatbilst jūsu meklējumam"
+      "noChatsMatch": "Neviena saruna neatbilst jūsu meklējumam",
+      "agentsPickToChat": "Izvēlieties aģentu kreisajā pusē, lai ar to tērzētu.",
+      "noWorkflowsOrScripts": "Vēl nav darbplūsmu vai skriptu."
     },
     "showMoreConnections": "Rādīt vēl {count} savienojumus",
     "chooseSignInProvider": "Izvēlieties pakalpojumu sniedzēju, lai turpinātu",
@@ -6081,7 +6083,8 @@
           "description": "Atbild uz jautājumiem par jūsu tabulām un dokumentiem, kad vien kāds jautā."
         },
         "meeting-prep": {
-          "description": "Katru darba dienas rītu sagatavo šodienas tikšanās no jūsu tikšanos tabulas: klientu, atvērtos darījumus un pēdējās piezīmes."
+          "description": "Katru darba dienas rītu sagatavo šodienas tikšanās no jūsu tikšanos tabulas: klientu, atvērtos darījumus un pēdējās piezīmes.",
+          "title": "Sapulces sagatavošana"
         },
         "follow-up-drafter": {
           "title": "Atgādinājumu sagatavotājs",
@@ -6106,6 +6109,26 @@
         "customer-check-in": {
           "title": "Saziņa ar klientu",
           "description": "Sagatavo ziņu klientiem, kas apklusuši, gatavu pārskatīšanai."
+        },
+        "weekly-digest": {
+          "title": "Nedēļas kopsavilkums",
+          "description": "Apkopo izmaiņas jūsu tabulās un publicē tās katru pirmdienu."
+        },
+        "morning-brief": {
+          "title": "Rīta kopsavilkums",
+          "description": "Katru darba dienas rītu pārvērš izmaiņas jūsu tabulās un dokumentos īsā plānā."
+        },
+        "record-enricher": {
+          "title": "Ierakstu bagātinātājs",
+          "description": "Aizpilda trūkstošo informāciju jaunajos ierakstos no tīmekļa."
+        },
+        "reorder-alerts": {
+          "title": "Papildināšanas brīdinājumi",
+          "description": "Seko krājumu līmenim un sagatavo pasūtījumus, pirms krājumi beidzas."
+        },
+        "ticket-triage": {
+          "title": "Pieteikumu šķirošana",
+          "description": "Iezīmē jaunos pieprasījumus, nosaka prioritāti un novirza tos īstajai personai."
         }
       },
       "rowJob": "Uzdevums",
@@ -6170,8 +6193,129 @@
       "deliverySlackMissing": "Pievienojiet Slack sadaļā Integrācijas, lai tas varētu tur publicēt.",
       "deliverySlackInvalid": "Ievadiet Slack kanālu, piemēram, #sales.",
       "discardTitle": "Atmest šo melnrakstu?",
-      "discardContent": "Melnraksts un tā iestatīšanas saruna tiks pārvietoti uz atkritni."
-    }
+      "discardContent": "Melnraksts un tā iestatīšanas saruna tiks pārvietoti uz atkritni.",
+      "whenSchedule": "Katru {day} plkst. {time}",
+      "whenRecord": "Kad ieraksts mainās tabulā {table}",
+      "whenRecordAny": "Kad ieraksts mainās",
+      "whenManual": "Tikai pēc pieprasījuma",
+      "turnOn": "Ieslēgt aģentu"
+    },
+    "agentsPopover": {
+      "tooltip": "Aģenti tabulai {table}",
+      "recentSessions": "Nesenās sesijas",
+      "sessions": "Sesijas",
+      "noSessions": "Vēl nav sesiju",
+      "activeAgo": "Aktīvs {time}",
+      "nothingMatches": "Nekas neatbilst vaicājumam \"{query}\""
+    },
+    "automate": {
+      "title": "Automatizēt",
+      "tooltip": "Automatizēt {table}",
+      "allWorkflows": "Visas darbplūsmas",
+      "workflowsInTable": "Darbplūsmas tabulā",
+      "startWhen": "Sākt, kad…",
+      "searchTriggers": "Meklēt, piem., \"izveidots\", \"poga\"",
+      "searchAutomations": "Meklēt automatizācijas",
+      "otherTrigger": "Cits aktivizētājs…",
+      "noMatches": "Nav atbilstību",
+      "failed": "Neizdevās",
+      "lastRunFailed": "Pēdējā izpilde neizdevās",
+      "ranAgo": "Izpildīts {time}",
+      "neverRan": "Nekad nav izpildīts",
+      "newTitle": "{trigger} tabulā {table}",
+      "triggers": {
+        "created": "Ieraksts tiek izveidots",
+        "updated": "Ieraksts tiek atjaunināts",
+        "createdOrUpdated": "Ieraksts tiek izveidots vai atjaunināts",
+        "deleted": "Ieraksts tiek dzēsts",
+        "entersView": "Nonāk skatījumā",
+        "matches": "Atbilst nosacījumiem",
+        "fieldChanged": "Lauks mainās",
+        "formSubmitted": "Iesniedz veidlapu",
+        "buttonClicked": "Noklikšķina uz pogas",
+        "comment": "Komentē ierakstu"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Jautāt MI",
+      "askNocoAi": "Jautāt NocoAI: “{query}”",
+      "app": {
+        "openLive": "Atvērt darbojošos lietotni",
+        "copyLink": "Kopēt lietotnes saiti",
+        "share": "Kopīgot lietotni…",
+        "refreshPreview": "Atsvaidzināt priekšskatījumu",
+        "switchViewport": "Mainīt priekšskatījuma izmēru",
+        "fullScreen": "Pilnekrāna priekšskatījums",
+        "exitFullScreen": "Iziet no pilnekrāna"
+      },
+      "base": {
+        "createSync": "Izveidot sinhronizāciju…",
+        "createSnapshot": "Izveidot momentuzņēmumu…",
+        "emptyTrash": "Iztukšot atkritni…",
+        "duplicate": "Dublēt bāzi…"
+      },
+      "account": {
+        "profile": "Profils",
+        "changeLanguage": "Mainīt valodu…"
+      },
+      "agent": {
+        "enable": "Iespējot aģentu",
+        "disable": "Atspējot aģentu",
+        "duplicate": "Dublēt aģentu",
+        "copyId": "Kopēt aģenta ID",
+        "delete": "Dzēst aģentu…",
+        "openSettings": "Aģenta iestatījumi…",
+        "newChat": "Jauna tērzēšana",
+        "toggleFiles": "Rādīt vai paslēpt failus",
+        "copyLink": "Kopēt aģenta saiti"
+      },
+      "addToBookmarks": "Pievienot {object} grāmatzīmēm",
+      "addedToBookmarks": "Pievienots grāmatzīmēm",
+      "addRecord": "Pievienot ierakstu",
+      "addField": "Pievienot lauku…",
+      "addFilter": "Pievienot filtru…",
+      "addSort": "Pievienot kārtošanu…",
+      "addColourCondition": "Pievienot krāsas nosacījumu",
+      "askAiAboutRecord": "Jautāt MI par šo ierakstu",
+      "addComment": "Pievienot komentāru…",
+      "apiReference": "API atsauce…",
+      "assignToMe": "Piešķirt man"
+    },
+    "chartPaletteColorblindNote": "Jūsu krāsu akluma iestatījums rāda diagrammas drošā paletē. Visi pārējie redz jūsu izvēlēto paleti.",
+    "alsoDisconnectApps": "Atvienot arī lietotnes",
+    "assigneeField": "Atbildīgais",
+    "colorConditionCount": "{n} nosacījums | {n} nosacījumi",
+    "collapseSubgroups": "Sakļaut apakšgrupas",
+    "chooseSearchField": "Meklēt vienā laukā",
+    "allowCsvImport": "Atļaut importu no CSV",
+    "codingAgent": "Kodēšanas aģents",
+    "codingAgentSettingsNoAccessTitle": "Repozitorijiem un mašīnām nepieciešama redaktora piekļuve",
+    "agentTriggerWebhook": "Kad saņemts webhook",
+    "agentTriggerWebhookHint": "Darbojas, kad tā URL tiek izsaukts ar API pilnvaru. URL parādās pie aktivizētāja, tiklīdz tas ir pievienots.",
+    "agentTriggerWebhookCopy": "Kopēt webhook URL",
+    "agentsOnLargerScreen": "Aģenti atveras lielākā ekrānā",
+    "codingAgentAddRepo": "Pievienot repozitoriju",
+    "codingAgentAddRepos": "Pievienot {count}",
+    "codingAgentManageRepos": "Pārvaldīt repozitorijus",
+    "codingAgentRepoPickTitle": "Sākt šeit:",
+    "codingAgentNoRepo": "Nav repozitorija",
+    "codingAgentRepoAdded": "Pievienots",
+    "codingAgentRepoDefault": "Noklusējums ({repo})",
+    "codingAgentRepoDefaultShort": "Noklusējuma repozitorijs",
+    "codingAgentRepoDisconnected": "Savienojums vairs neaptver šo repozitoriju. Izveidojiet to no jauna, lai šeit sāktu sesijas.",
+    "codingAgentOpenRepo": "Atvērt repozitoriju",
+    "codingAgentRemoveRepoTitle": "Noņemt repozitoriju?",
+    "codingAgentNoReposTitle": "Pievienojiet repozitoriju, lai sāktu",
+    "codingAgentNoReposBody": "Kodēšanas aģents strādā jūsu repozitorijos. Pievienojiet kādu, lai sāktu sesiju.",
+    "codingAgentNoReposAskCreator": "Kodēšanas aģents strādā jūsu repozitorijos. Palūdziet projekta izveidotājam pievienot kādu.",
+    "codingAgentTriggerRepo": "Repozitorijs",
+    "codingAgentUnavailableTitle": "Coding šeit nav pieejams",
+    "codingAgentUnavailableBody": "Šis ir kodēšanas aģents, un šīs darbvietas plāns neietver Coding. Jauniniet plānu, lai turpinātu to lietot.",
+    "codingAgentSettingsNoAccess": "Repozitorijus un mašīnas redz redaktori un augstākas lomas. Palūdziet piekļuvi projekta īpašniekam.",
+    "codingAgentOffTitle": "Šis aģents ir izslēgts",
+    "codingAgentOffBody": "Ieslēdziet to, lai sāktu sesiju.",
+    "codingAgentOffAskEditor": "Palūdziet projekta izveidotājam to ieslēgt, lai sāktu sesiju.",
+    "codingAgentTurnOn": "Ieslēgt"
   },
   "activity": {
     "useTemplate": "Use template",

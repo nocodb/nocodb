@@ -521,7 +521,6 @@
     "condition": "Skick",
     "after": "Efter",
     "search": "Sök",
-    "searchIn": "Sök I",
     "notification": "Underrättelse",
     "confirm": "Bekräfta",
     "generate": "Generera",
@@ -2929,7 +2928,8 @@
     "agentIdColon": "Agent-ID: {agentId}",
     "agentState": {
       "active": "Live",
-      "paused": "Pausad"
+      "paused": "Pausad",
+      "draft": "Utkast"
     },
     "agentTriggerNewChat": "Ny chatt med",
     "agentChannelAdd": "Anslut en kanal",
@@ -5151,7 +5151,9 @@
       "recentChats": "Senaste chattar",
       "searchChats": "Sök bland chattar",
       "noChats": "Inga chattar ännu",
-      "noChatsMatch": "Inga chattar matchar din sökning"
+      "noChatsMatch": "Inga chattar matchar din sökning",
+      "agentsPickToChat": "Välj en agent till vänster för att chatta med den.",
+      "noWorkflowsOrScripts": "Inga workflows eller skript ännu."
     },
     "showMoreConnections": "Visa {count} anslutningar till",
     "chooseSignInProvider": "Välj en leverantör för att fortsätta",
@@ -6070,7 +6072,8 @@
           "description": "Svarar på frågor om dina tabeller och docs så fort någon frågar."
         },
         "meeting-prep": {
-          "description": "Varje vardagsmorgon förbereder den dagens möten från din mötestabell: kunden, öppna affärer och de senaste anteckningarna."
+          "description": "Varje vardagsmorgon förbereder den dagens möten från din mötestabell: kunden, öppna affärer och de senaste anteckningarna.",
+          "title": "Mötesförberedelse"
         },
         "follow-up-drafter": {
           "title": "Uppföljningsskribent",
@@ -6095,6 +6098,26 @@
         "customer-check-in": {
           "title": "Kundåterkoppling",
           "description": "Skriver ett utkast till återkoppling för kunder som blivit tysta, klart för granskning."
+        },
+        "weekly-digest": {
+          "title": "Veckosammanfattning",
+          "description": "Sammanfattar det som ändrats i dina tabeller och publicerar det varje måndag."
+        },
+        "morning-brief": {
+          "title": "Morgonbriefing",
+          "description": "Gör det som ändrats i dina tabeller och dokument till en kort plan, varje vardagsmorgon."
+        },
+        "record-enricher": {
+          "title": "Postberikare",
+          "description": "Fyller i uppgifter som saknas på nya poster med hjälp av webben."
+        },
+        "reorder-alerts": {
+          "title": "Påfyllningsaviseringar",
+          "description": "Bevakar lagernivåer och förbereder inköpsordrar innan lagret tar slut."
+        },
+        "ticket-triage": {
+          "title": "Ärendetriage",
+          "description": "Taggar nya ärenden, sätter prioritet och skickar dem till rätt person."
         }
       },
       "rowJob": "Uppgift",
@@ -6159,8 +6182,128 @@
       "deliverySlackMissing": "Anslut Slack under Integrationer så att den kan posta där.",
       "deliverySlackInvalid": "Ange en Slack-kanal, till exempel #sales.",
       "discardTitle": "Kasta det här utkastet?",
-      "discardContent": "Utkastet och dess inställningschatt flyttas till papperskorgen."
-    }
+      "discardContent": "Utkastet och dess inställningschatt flyttas till papperskorgen.",
+      "whenSchedule": "Varje {day} kl. {time}",
+      "whenRecord": "När en post ändras i {table}",
+      "whenRecordAny": "När en post ändras",
+      "whenManual": "Endast på begäran",
+      "turnOn": "Slå på agenten"
+    },
+    "agentsPopover": {
+      "tooltip": "Agenter för {table}",
+      "recentSessions": "Senaste sessionerna",
+      "sessions": "Sessioner",
+      "noSessions": "Inga sessioner ännu",
+      "activeAgo": "Aktiv {time}",
+      "nothingMatches": "Inget matchar \"{query}\""
+    },
+    "automate": {
+      "title": "Automatisera",
+      "tooltip": "Automatisera {table}",
+      "allWorkflows": "Alla workflows",
+      "workflowsInTable": "Workflows i tabellen",
+      "startWhen": "Starta när…",
+      "searchTriggers": "Sök, t.ex. \"skapad\", \"knapp\"",
+      "searchAutomations": "Sök automatiseringar",
+      "otherTrigger": "Annan utlösare…",
+      "noMatches": "Inga träffar",
+      "failed": "Misslyckades",
+      "lastRunFailed": "Senaste körningen misslyckades",
+      "ranAgo": "Kördes {time}",
+      "neverRan": "Har aldrig körts",
+      "newTitle": "{trigger} i {table}",
+      "triggers": {
+        "created": "En post skapas",
+        "updated": "En post uppdateras",
+        "createdOrUpdated": "En post skapas eller uppdateras",
+        "deleted": "En post raderas",
+        "entersView": "Kommer in i en vy",
+        "matches": "Uppfyller villkor",
+        "fieldChanged": "Ett fält ändras",
+        "formSubmitted": "Skickar in ett formulär",
+        "buttonClicked": "Klickar på en knapp",
+        "comment": "Kommenterar en post"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Fråga AI",
+      "askNocoAi": "Fråga NocoAI: ”{query}”",
+      "app": {
+        "openLive": "Öppna live-appen",
+        "copyLink": "Kopiera applänk",
+        "share": "Dela app…",
+        "refreshPreview": "Uppdatera förhandsvisningen",
+        "switchViewport": "Byt storlek på förhandsvisningen",
+        "fullScreen": "Förhandsvisning i helskärm",
+        "exitFullScreen": "Avsluta helskärm"
+      },
+      "base": {
+        "createSync": "Skapa synkronisering…",
+        "createSnapshot": "Skapa snapshot…",
+        "emptyTrash": "Töm papperskorgen…",
+        "duplicate": "Duplicera bas…"
+      },
+      "account": {
+        "profile": "Profil",
+        "changeLanguage": "Byt språk…"
+      },
+      "agent": {
+        "enable": "Aktivera agent",
+        "disable": "Inaktivera agent",
+        "duplicate": "Duplicera agent",
+        "copyId": "Kopiera agent-ID",
+        "delete": "Radera agent…",
+        "openSettings": "Agentinställningar…",
+        "newChat": "Ny chatt",
+        "toggleFiles": "Visa eller dölj filer",
+        "copyLink": "Kopiera agentlänk"
+      },
+      "addToBookmarks": "Lägg till {object} i bokmärken",
+      "addedToBookmarks": "Tillagd i bokmärken",
+      "addRecord": "Lägg till post",
+      "addField": "Lägg till fält…",
+      "addFilter": "Lägg till filter…",
+      "addSort": "Lägg till sortering…",
+      "addColourCondition": "Lägg till färgvillkor",
+      "askAiAboutRecord": "Fråga AI om den här posten",
+      "addComment": "Lägg till kommentar…",
+      "apiReference": "API-referens…",
+      "assignToMe": "Tilldela mig"
+    },
+    "chartPaletteColorblindNote": "Din inställning för färgblindhet visar diagram i en säker palett. Alla andra ser den palett du väljer.",
+    "alsoDisconnectApps": "Koppla även från appar",
+    "assigneeField": "Ansvarig",
+    "colorConditionCount": "{n} villkor | {n} villkor",
+    "collapseSubgroups": "Fäll ihop undergrupper",
+    "chooseSearchField": "Sök i ett enda fält",
+    "allowCsvImport": "Tillåt import från CSV",
+    "codingAgent": "Kodningsagent",
+    "codingAgentSettingsNoAccessTitle": "Repositories och maskiner kräver redaktörsåtkomst",
+    "agentTriggerWebhook": "När en webhook tas emot",
+    "agentTriggerWebhookHint": "Körs när dess URL anropas med en API-token. URL:en visas på utlösaren när den har lagts till.",
+    "agentTriggerWebhookCopy": "Kopiera webhook-URL",
+    "agentsOnLargerScreen": "Agenter öppnas på en större skärm",
+    "codingAgentAddRepo": "Lägg till repository",
+    "codingAgentAddRepos": "Lägg till {count}",
+    "codingAgentManageRepos": "Hantera repositories",
+    "codingAgentRepoPickTitle": "Starta i",
+    "codingAgentNoRepo": "Inget repository",
+    "codingAgentRepoAdded": "Tillagd",
+    "codingAgentRepoDefault": "Standard ({repo})",
+    "codingAgentRepoDefaultShort": "Standardrepository",
+    "codingAgentRepoDisconnected": "Anslutningen omfattar inte längre detta repository. Återanslut för att starta sessioner här.",
+    "codingAgentOpenRepo": "Öppna repository",
+    "codingAgentRemoveRepoTitle": "Ta bort repository?",
+    "codingAgentNoReposTitle": "Lägg till ett repository för att börja",
+    "codingAgentNoReposBody": "En kodningsagent arbetar i dina repositories. Lägg till ett för att starta en session.",
+    "codingAgentNoReposAskCreator": "En kodningsagent arbetar i dina repositories. Be en projektskapare att lägga till ett.",
+    "codingAgentUnavailableTitle": "Coding är inte tillgängligt här",
+    "codingAgentUnavailableBody": "Det här är en kodningsagent och den här arbetsytans plan omfattar inte Coding. Uppgradera för att fortsätta använda den.",
+    "codingAgentSettingsNoAccess": "Repositories och maskiner är synliga för redaktörer och uppåt. Be en projektägare om åtkomst.",
+    "codingAgentOffTitle": "Den här agenten är avstängd",
+    "codingAgentOffBody": "Slå på den för att starta en session.",
+    "codingAgentOffAskEditor": "Be en projektskapare att slå på den för att starta en session.",
+    "codingAgentTurnOn": "Slå på"
   },
   "activity": {
     "useTemplate": "Använd mall",

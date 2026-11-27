@@ -521,7 +521,6 @@
     "condition": "Стан",
     "after": "Після",
     "search": "Пошук",
-    "searchIn": "Шукати в",
     "notification": "Сповіщення",
     "confirm": "Підтвердити",
     "generate": "Генерувати",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "Ідентифікатор агента: {agentId}",
     "agentState": {
       "active": "У прямому ефірі",
-      "paused": "Призупинено"
+      "paused": "Призупинено",
+      "draft": "Чернетка"
     },
     "agentTriggerNewChat": "Новий чат з",
     "agentChannelAdd": "Підключити канал",
@@ -5163,7 +5163,9 @@
       "recentChats": "Останні чати",
       "searchChats": "Пошук у чатах",
       "noChats": "Чатів поки немає",
-      "noChatsMatch": "Жоден чат не відповідає вашому пошуку"
+      "noChatsMatch": "Жоден чат не відповідає вашому пошуку",
+      "agentsPickToChat": "Виберіть агента ліворуч, щоб почати з ним чат.",
+      "noWorkflowsOrScripts": "Поки немає ні робочих процесів, ні скриптів."
     },
     "showMoreConnections": "Показати ще {count} підключень",
     "chooseSignInProvider": "Виберіть постачальника, щоб продовжити",
@@ -6091,7 +6093,8 @@
           "description": "Відповідає на запитання про ваші таблиці та документи, щойно хтось запитає."
         },
         "meeting-prep": {
-          "description": "Щоранку буднього дня готує сьогоднішні зустрічі з вашої таблиці зустрічей: клієнта, відкриті угоди та останні нотатки."
+          "description": "Щоранку буднього дня готує сьогоднішні зустрічі з вашої таблиці зустрічей: клієнта, відкриті угоди та останні нотатки.",
+          "title": "Підготовка до зустрічі"
         },
         "follow-up-drafter": {
           "title": "Укладач нагадувань",
@@ -6116,6 +6119,26 @@
         "customer-check-in": {
           "title": "Звернення до клієнта",
           "description": "Готує звернення до клієнтів, які затихли, готове до перевірки."
+        },
+        "weekly-digest": {
+          "title": "Щотижневе зведення",
+          "description": "Підсумовує зміни у ваших таблицях і публікує їх щопонеділка."
+        },
+        "morning-brief": {
+          "title": "Ранкове зведення",
+          "description": "Щоранку в робочі дні перетворює зміни у ваших таблицях і документах на короткий план."
+        },
+        "record-enricher": {
+          "title": "Збагачення записів",
+          "description": "Доповнює відсутні дані в нових записах з інтернету."
+        },
+        "reorder-alerts": {
+          "title": "Сповіщення про поповнення запасів",
+          "description": "Стежить за залишками на складі та готує замовлення на закупівлю, поки запаси не скінчилися."
+        },
+        "ticket-triage": {
+          "title": "Сортування звернень",
+          "description": "Позначає нові звернення, визначає пріоритет і спрямовує їх потрібній людині."
         }
       },
       "rowJob": "Завдання",
@@ -6180,8 +6203,129 @@
       "deliverySlackMissing": "Підключіть Slack в Інтеграціях, щоб він міг там публікувати.",
       "deliverySlackInvalid": "Укажіть канал Slack, наприклад #sales.",
       "discardTitle": "Відкинути цю чернетку?",
-      "discardContent": "Чернетка та чат її налаштування будуть переміщені до кошика."
-    }
+      "discardContent": "Чернетка та чат її налаштування будуть переміщені до кошика.",
+      "whenSchedule": "Щоразу {day} о {time}",
+      "whenRecord": "Коли запис змінюється в {table}",
+      "whenRecordAny": "Коли запис змінюється",
+      "whenManual": "Лише на запит",
+      "turnOn": "Увімкнути агента"
+    },
+    "agentsPopover": {
+      "tooltip": "Агенти для {table}",
+      "recentSessions": "Нещодавні сесії",
+      "sessions": "Сесії",
+      "noSessions": "Сесій поки немає",
+      "activeAgo": "Активний {time}",
+      "nothingMatches": "Нічого не знайдено за запитом \"{query}\""
+    },
+    "automate": {
+      "title": "Автоматизувати",
+      "tooltip": "Автоматизувати {table}",
+      "allWorkflows": "Усі робочі процеси",
+      "workflowsInTable": "Робочі процеси в таблиці",
+      "startWhen": "Запускати, коли…",
+      "searchTriggers": "Пошук, наприклад \"створено\", \"кнопка\"",
+      "searchAutomations": "Пошук автоматизацій",
+      "otherTrigger": "Інший тригер…",
+      "noMatches": "Збігів немає",
+      "failed": "Не вдалося",
+      "lastRunFailed": "Останній запуск завершився помилкою",
+      "ranAgo": "Запущено {time}",
+      "neverRan": "Жодного разу не запускався",
+      "newTitle": "{trigger} у {table}",
+      "triggers": {
+        "created": "Запис створено",
+        "updated": "Запис оновлено",
+        "createdOrUpdated": "Запис створено або оновлено",
+        "deleted": "Запис видалено",
+        "entersView": "Потрапляє у вигляд",
+        "matches": "Відповідає умовам",
+        "fieldChanged": "Поле змінюється",
+        "formSubmitted": "Надсилає форму",
+        "buttonClicked": "Натискає кнопку",
+        "comment": "Коментує запис"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Запитати ШІ",
+      "askNocoAi": "Запитати NocoAI: «{query}»",
+      "app": {
+        "openLive": "Відкрити робочий застосунок",
+        "copyLink": "Копіювати посилання на застосунок",
+        "share": "Поділитися застосунком…",
+        "refreshPreview": "Оновити попередній перегляд",
+        "switchViewport": "Змінити розмір попереднього перегляду",
+        "fullScreen": "Попередній перегляд на весь екран",
+        "exitFullScreen": "Вийти з повноекранного режиму"
+      },
+      "base": {
+        "createSync": "Створити синхронізацію…",
+        "createSnapshot": "Створити знімок…",
+        "emptyTrash": "Очистити кошик…",
+        "duplicate": "Дублювати базу…"
+      },
+      "account": {
+        "profile": "Профіль",
+        "changeLanguage": "Змінити мову…"
+      },
+      "agent": {
+        "enable": "Увімкнути агента",
+        "disable": "Вимкнути агента",
+        "duplicate": "Дублювати агента",
+        "copyId": "Копіювати ID агента",
+        "delete": "Видалити агента…",
+        "openSettings": "Налаштування агента…",
+        "newChat": "Новий чат",
+        "toggleFiles": "Показати або сховати файли",
+        "copyLink": "Копіювати посилання на агента"
+      },
+      "addToBookmarks": "Додати {object} до закладок",
+      "addedToBookmarks": "Додано до закладок",
+      "addRecord": "Додати запис",
+      "addField": "Додати поле…",
+      "addFilter": "Додати фільтр…",
+      "addSort": "Додати сортування…",
+      "addColourCondition": "Додати умову кольору",
+      "askAiAboutRecord": "Запитати ШІ про цей запис",
+      "addComment": "Додати коментар…",
+      "apiReference": "Довідник API…",
+      "assignToMe": "Призначити мені"
+    },
+    "chartPaletteColorblindNote": "Через ваше налаштування для дальтонізму діаграми показуються в безпечній палітрі. Усі інші бачать палітру, яку ви обрали.",
+    "alsoDisconnectApps": "Також від'єднати застосунки",
+    "assigneeField": "Відповідальний",
+    "colorConditionCount": "{n} умова | {n} умов",
+    "collapseSubgroups": "Згорнути підгрупи",
+    "chooseSearchField": "Шукати в одному полі",
+    "allowCsvImport": "Дозволити імпорт із CSV",
+    "codingAgent": "Агент для коду",
+    "codingAgentSettingsNoAccessTitle": "Для репозиторіїв і машин потрібен доступ редактора",
+    "agentTriggerWebhook": "Коли отримано вебхук",
+    "agentTriggerWebhookHint": "Запускається, коли його URL викликають з токеном API. URL з'являється біля тригера, щойно його додано.",
+    "agentTriggerWebhookCopy": "Копіювати URL вебхука",
+    "agentsOnLargerScreen": "Агенти відкриваються на більшому екрані",
+    "codingAgentAddRepo": "Додати репозиторій",
+    "codingAgentAddRepos": "Додати {count}",
+    "codingAgentManageRepos": "Керування репозиторіями",
+    "codingAgentRepoPickTitle": "Запустити в",
+    "codingAgentNoRepo": "Немає репозиторію",
+    "codingAgentRepoAdded": "Додано",
+    "codingAgentRepoDefault": "За замовчуванням ({repo})",
+    "codingAgentRepoDefaultShort": "Репозиторій за замовчуванням",
+    "codingAgentRepoDisconnected": "Підключення більше не охоплює цей репозиторій. Підключіть його знову, щоб починати сесії тут.",
+    "codingAgentOpenRepo": "Відкрити репозиторій",
+    "codingAgentRemoveRepoTitle": "Видалити репозиторій?",
+    "codingAgentNoReposTitle": "Додайте репозиторій, щоб почати",
+    "codingAgentNoReposBody": "Агент для коду працює у ваших репозиторіях. Додайте репозиторій, щоб почати сесію.",
+    "codingAgentNoReposAskCreator": "Агент для коду працює у ваших репозиторіях. Попросіть творця проєкту додати його.",
+    "codingAgentTriggerRepo": "Репозиторій",
+    "codingAgentUnavailableTitle": "Coding тут недоступний",
+    "codingAgentUnavailableBody": "Це агент для коду, а тариф цієї робочої області не включає Coding. Перейдіть на вищий тариф, щоб продовжити ним користуватися.",
+    "codingAgentSettingsNoAccess": "Репозиторії та машини видно редакторам і вище. Попросіть доступ у власника проєкту.",
+    "codingAgentOffTitle": "Цього агента вимкнено",
+    "codingAgentOffBody": "Увімкніть його, щоб почати сесію.",
+    "codingAgentOffAskEditor": "Попросіть творця проєкту ввімкнути його, щоб почати сесію.",
+    "codingAgentTurnOn": "Увімкнути"
   },
   "activity": {
     "useTemplate": "Використовувати шаблон",

@@ -521,7 +521,6 @@
     "condition": "Voorwaarde",
     "after": "Na",
     "search": "Zoeken",
-    "searchIn": "Zoeken In",
     "notification": "Melding",
     "confirm": "Bevestig",
     "generate": "genereren",
@@ -2923,7 +2922,8 @@
     "agentIdColon": "Agent-ID: {agentId}",
     "agentState": {
       "active": "Live",
-      "paused": "Gepauzeerd"
+      "paused": "Gepauzeerd",
+      "draft": "Concept"
     },
     "agentTriggerNewChat": "Nieuwe chat met",
     "agentChannelAdd": "Een kanaal koppelen",
@@ -5130,7 +5130,9 @@
       "recentChats": "Recente chats",
       "searchChats": "Chats zoeken",
       "noChats": "Nog geen chats",
-      "noChatsMatch": "Geen chats komen overeen met je zoekopdracht"
+      "noChatsMatch": "Geen chats komen overeen met je zoekopdracht",
+      "agentsPickToChat": "Kies links een agent om mee te chatten.",
+      "noWorkflowsOrScripts": "Nog geen workflows of scripts."
     },
     "showMoreConnections": "{count} verbindingen meer tonen",
     "chooseSignInProvider": "Kies een provider om door te gaan",
@@ -6039,7 +6041,8 @@
           "description": "Beantwoordt vragen over uw tabellen en docs zodra iemand ze stelt."
         },
         "meeting-prep": {
-          "description": "Bereidt elke werkdagochtend de vergaderingen van vandaag voor uit uw vergadertabel: de klant, lopende deals en de laatste notities."
+          "description": "Bereidt elke werkdagochtend de vergaderingen van vandaag voor uit uw vergadertabel: de klant, lopende deals en de laatste notities.",
+          "title": "Vergadervoorbereiding"
         },
         "follow-up-drafter": {
           "title": "Opsteller van opvolgmails",
@@ -6064,6 +6067,26 @@
         "customer-check-in": {
           "title": "Klantcontactmoment",
           "description": "Stelt een contactmoment op voor klanten die stil zijn gevallen, klaar ter beoordeling."
+        },
+        "weekly-digest": {
+          "title": "Wekelijks overzicht",
+          "description": "Vat samen wat er in je tabellen is veranderd en plaatst dat elke maandag."
+        },
+        "morning-brief": {
+          "title": "Ochtendbriefing",
+          "description": "Zet wat er in je tabellen en documenten is veranderd elke werkdagochtend om in een kort plan."
+        },
+        "record-enricher": {
+          "title": "Recordverrijker",
+          "description": "Vult ontbrekende gegevens van nieuwe records aan vanaf het web."
+        },
+        "reorder-alerts": {
+          "title": "Bestelmeldingen",
+          "description": "Houdt voorraadniveaus in de gaten en stelt inkooporders op voordat de voorraad op is."
+        },
+        "ticket-triage": {
+          "title": "Ticket-triage",
+          "description": "Labelt nieuwe verzoeken, stelt de prioriteit in en stuurt ze naar de juiste persoon."
         }
       },
       "rowJob": "Taak",
@@ -6127,8 +6150,128 @@
       "deliverySlackMissing": "Verbind Slack in Integraties zodat hij daar kan posten.",
       "deliverySlackInvalid": "Voer een Slack-kanaal in, zoals #sales.",
       "discardTitle": "Dit concept weggooien?",
-      "discardContent": "Het concept en de bijbehorende instelchat gaan naar de prullenbak."
-    }
+      "discardContent": "Het concept en de bijbehorende instelchat gaan naar de prullenbak.",
+      "whenSchedule": "Elke {day} om {time}",
+      "whenRecord": "Wanneer een record verandert in {table}",
+      "whenRecordAny": "Wanneer een record verandert",
+      "whenManual": "Alleen op verzoek",
+      "turnOn": "Agent inschakelen"
+    },
+    "agentsPopover": {
+      "tooltip": "Agents voor {table}",
+      "recentSessions": "Recente sessies",
+      "sessions": "Sessies",
+      "noSessions": "Nog geen sessies",
+      "activeAgo": "Actief {time}",
+      "nothingMatches": "Niets komt overeen met \"{query}\""
+    },
+    "automate": {
+      "title": "Automatiseren",
+      "tooltip": "{table} automatiseren",
+      "allWorkflows": "Alle workflows",
+      "workflowsInTable": "Workflows in tabel",
+      "startWhen": "Starten wanneer…",
+      "searchTriggers": "Zoeken, bijv. \"aangemaakt\", \"knop\"",
+      "searchAutomations": "Automatiseringen zoeken",
+      "otherTrigger": "Andere trigger…",
+      "noMatches": "Geen resultaten",
+      "failed": "Mislukt",
+      "lastRunFailed": "Laatste uitvoering is mislukt",
+      "ranAgo": "Uitgevoerd {time}",
+      "neverRan": "Nooit uitgevoerd",
+      "newTitle": "{trigger} in tabel {table}",
+      "triggers": {
+        "created": "Record wordt aangemaakt",
+        "updated": "Record wordt bijgewerkt",
+        "createdOrUpdated": "Record wordt aangemaakt of bijgewerkt",
+        "deleted": "Record wordt verwijderd",
+        "entersView": "Komt in een weergave",
+        "matches": "Voldoet aan voorwaarden",
+        "fieldChanged": "Veld verandert",
+        "formSubmitted": "Verzendt een formulier",
+        "buttonClicked": "Klikt op een knop",
+        "comment": "Plaatst een reactie bij een record"
+      }
+    },
+    "commandPalette": {
+      "askAi": "AI vragen",
+      "askNocoAi": "NocoAI vragen: “{query}”",
+      "app": {
+        "openLive": "Live app openen",
+        "copyLink": "App-link kopiëren",
+        "share": "App delen…",
+        "refreshPreview": "Voorbeeld vernieuwen",
+        "switchViewport": "Voorbeeldformaat wisselen",
+        "fullScreen": "Voorbeeld op volledig scherm",
+        "exitFullScreen": "Volledig scherm verlaten"
+      },
+      "base": {
+        "createSync": "Synchronisatie maken…",
+        "createSnapshot": "Snapshot maken…",
+        "emptyTrash": "Prullenbak legen…",
+        "duplicate": "Base dupliceren…"
+      },
+      "account": {
+        "profile": "Profiel",
+        "changeLanguage": "Taal wijzigen…"
+      },
+      "agent": {
+        "enable": "Agent inschakelen",
+        "disable": "Agent uitschakelen",
+        "duplicate": "Agent dupliceren",
+        "copyId": "Agent-ID kopiëren",
+        "delete": "Agent verwijderen…",
+        "openSettings": "Agentinstellingen…",
+        "newChat": "Nieuwe chat",
+        "toggleFiles": "Bestanden tonen of verbergen",
+        "copyLink": "Agentlink kopiëren"
+      },
+      "addToBookmarks": "{object} toevoegen aan bladwijzers",
+      "addedToBookmarks": "Toegevoegd aan bladwijzers",
+      "addRecord": "Record toevoegen",
+      "addField": "Veld toevoegen…",
+      "addFilter": "Filter toevoegen…",
+      "addSort": "Sortering toevoegen…",
+      "addColourCondition": "Kleurvoorwaarde toevoegen",
+      "askAiAboutRecord": "AI vragen over dit record",
+      "addComment": "Reactie toevoegen…",
+      "apiReference": "API-referentie…",
+      "assignToMe": "Aan mij toewijzen"
+    },
+    "chartPaletteColorblindNote": "Door je voorkeur voor kleurenblindheid worden grafieken in een veilig palet getoond. Alle anderen zien het palet dat jij kiest.",
+    "alsoDisconnectApps": "Ook apps loskoppelen",
+    "assigneeField": "Toegewezen aan",
+    "colorConditionCount": "{n} voorwaarde | {n} voorwaarden",
+    "collapseSubgroups": "Subgroepen samenvouwen",
+    "chooseSearchField": "In één veld zoeken",
+    "allowCsvImport": "Importeren vanuit CSV toestaan",
+    "codingAgent": "Coding-agent",
+    "codingAgentSettingsNoAccessTitle": "Repository's en machines vereisen Editor-toegang",
+    "agentTriggerWebhook": "Wanneer een webhook wordt ontvangen",
+    "agentTriggerWebhookHint": "Wordt uitgevoerd wanneer de URL met een API-token wordt aangeroepen. De URL verschijnt bij de trigger zodra die is toegevoegd.",
+    "agentTriggerWebhookCopy": "Webhook-URL kopiëren",
+    "agentsOnLargerScreen": "Agents openen op een groter scherm",
+    "codingAgentAddRepo": "Repository toevoegen",
+    "codingAgentAddRepos": "{count} toevoegen",
+    "codingAgentManageRepos": "Repository's beheren",
+    "codingAgentRepoPickTitle": "Starten in",
+    "codingAgentNoRepo": "Geen repository",
+    "codingAgentRepoAdded": "Toegevoegd",
+    "codingAgentRepoDefault": "Standaard ({repo})",
+    "codingAgentRepoDefaultShort": "Standaardrepository",
+    "codingAgentRepoDisconnected": "De verbinding dekt deze repository niet meer. Maak opnieuw verbinding om hier sessies te starten.",
+    "codingAgentOpenRepo": "Repository openen",
+    "codingAgentRemoveRepoTitle": "Repository verwijderen?",
+    "codingAgentNoReposTitle": "Voeg een repository toe om te beginnen",
+    "codingAgentNoReposBody": "Een coding-agent werkt in je repository's. Voeg er een toe om een sessie te starten.",
+    "codingAgentNoReposAskCreator": "Een coding-agent werkt in je repository's. Vraag een projectmaker om er een toe te voegen.",
+    "codingAgentUnavailableTitle": "Coding is hier niet beschikbaar",
+    "codingAgentUnavailableBody": "Dit is een coding-agent en het abonnement van deze werkruimte bevat Coding niet. Upgrade om hem te blijven gebruiken.",
+    "codingAgentSettingsNoAccess": "Repository's en machines zijn zichtbaar voor editors en hoger. Vraag een projecteigenaar om toegang.",
+    "codingAgentOffTitle": "Deze agent is uitgeschakeld",
+    "codingAgentOffBody": "Schakel hem in om een sessie te starten.",
+    "codingAgentOffAskEditor": "Vraag een projectmaker om hem in te schakelen om een sessie te starten.",
+    "codingAgentTurnOn": "Inschakelen"
   },
   "activity": {
     "useTemplate": "Sjabloon gebruiken",

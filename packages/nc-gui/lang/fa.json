@@ -521,7 +521,6 @@
     "condition": "شرط",
     "after": "بعد از",
     "search": "جست‌و‌جو کردن",
-    "searchIn": "جست‌و‌جو در",
     "notification": "اعلان",
     "confirm": "تایید",
     "generate": "تولید کردن",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "شناسه عامل: {agentId}",
     "agentState": {
       "active": "زنده",
-      "paused": "متوقف‌شده"
+      "paused": "متوقف‌شده",
+      "draft": "پیش‌نویس"
     },
     "agentTriggerNewChat": "گفت‌وگوی جدید با",
     "agentChannelAdd": "اتصال یک کانال",
@@ -5162,7 +5162,9 @@
       "recentChats": "گفت‌وگوهای اخیر",
       "searchChats": "جست‌وجوی گفت‌وگوها",
       "noChats": "هنوز گفت‌وگویی نیست",
-      "noChatsMatch": "هیچ گفت‌وگویی با جست‌وجوی شما مطابقت ندارد"
+      "noChatsMatch": "هیچ گفت‌وگویی با جست‌وجوی شما مطابقت ندارد",
+      "agentsPickToChat": "برای گفت‌وگو، عاملی را از سمت چپ انتخاب کنید.",
+      "noWorkflowsOrScripts": "هنوز گردش‌کار یا اسکریپتی وجود ندارد."
     },
     "showMoreConnections": "نمایش {count} اتصال دیگر",
     "chooseSignInProvider": "برای ادامه یک ارائه‌دهنده را انتخاب کنید",
@@ -6088,7 +6090,8 @@
           "description": "هر وقت کسی بپرسد، به پرسش‌های مربوط به جدول‌ها و مستندات شما پاسخ می‌دهد."
         },
         "meeting-prep": {
-          "description": "هر صبح روز کاری، جلسه‌های امروز را از جدول جلسه‌های شما آماده می‌کند: مشتری، معامله‌های باز و آخرین یادداشت‌ها."
+          "description": "هر صبح روز کاری، جلسه‌های امروز را از جدول جلسه‌های شما آماده می‌کند: مشتری، معامله‌های باز و آخرین یادداشت‌ها.",
+          "title": "آماده‌سازی جلسه"
         },
         "follow-up-drafter": {
           "title": "نویسنده‌ی پیگیری‌ها",
@@ -6113,6 +6116,26 @@
         "customer-check-in": {
           "title": "پیگیری مشتری",
           "description": "برای مشتریانی که ساکت شده‌اند پیام پیگیری می‌نویسد، آماده‌ی بازبینی."
+        },
+        "weekly-digest": {
+          "title": "خلاصهٔ هفتگی",
+          "description": "تغییرات جدول‌های شما را خلاصه می‌کند و هر دوشنبه منتشر می‌کند."
+        },
+        "morning-brief": {
+          "title": "خلاصهٔ صبحگاهی",
+          "description": "هر صبح روزهای کاری، تغییرات جدول‌ها و سندهای شما را به یک برنامهٔ کوتاه تبدیل می‌کند."
+        },
+        "record-enricher": {
+          "title": "غنی‌سازی رکوردها",
+          "description": "جزئیات ناقص رکوردهای جدید را از وب تکمیل می‌کند."
+        },
+        "reorder-alerts": {
+          "title": "هشدارهای سفارش مجدد",
+          "description": "موجودی انبار را زیر نظر می‌گیرد و پیش از اتمام کالا سفارش خرید تنظیم می‌کند."
+        },
+        "ticket-triage": {
+          "title": "دسته‌بندی تیکت‌ها",
+          "description": "درخواست‌های جدید را برچسب می‌زند، اولویت را تعیین می‌کند و به فرد مناسب می‌سپارد."
         }
       },
       "rowJob": "وظیفه",
@@ -6177,8 +6200,129 @@
       "deliverySlackMissing": "Slack را در یکپارچه‌سازی‌ها متصل کنید تا بتواند آنجا منتشر کند.",
       "deliverySlackInvalid": "یک کانال Slack وارد کنید، مثل #sales.",
       "discardTitle": "این پیش‌نویس دور ریخته شود؟",
-      "discardContent": "پیش‌نویس و گفت‌وگوی راه‌اندازی آن به زباله‌دان منتقل می‌شود."
-    }
+      "discardContent": "پیش‌نویس و گفت‌وگوی راه‌اندازی آن به زباله‌دان منتقل می‌شود.",
+      "whenSchedule": "هر {day} ساعت {time}",
+      "whenRecord": "وقتی رکوردی در {table} تغییر می‌کند",
+      "whenRecordAny": "وقتی رکوردی تغییر می‌کند",
+      "whenManual": "فقط در صورت درخواست",
+      "turnOn": "روشن کردن عامل"
+    },
+    "agentsPopover": {
+      "tooltip": "عامل‌های {table}",
+      "recentSessions": "نشست‌های اخیر",
+      "sessions": "نشست‌ها",
+      "noSessions": "هنوز نشستی وجود ندارد",
+      "activeAgo": "فعال {time}",
+      "nothingMatches": "چیزی با \"{query}\" مطابقت ندارد"
+    },
+    "automate": {
+      "title": "خودکارسازی",
+      "tooltip": "خودکارسازی {table}",
+      "allWorkflows": "همهٔ گردش‌کارها",
+      "workflowsInTable": "گردش‌کارها در جدول",
+      "startWhen": "شروع وقتی…",
+      "searchTriggers": "جست‌وجو، مثلاً \"ایجاد شد\"، \"دکمه\"",
+      "searchAutomations": "جست‌وجوی خودکارسازی‌ها",
+      "otherTrigger": "ماشهٔ دیگر…",
+      "noMatches": "بدون تطابق",
+      "failed": "ناموفق",
+      "lastRunFailed": "آخرین اجرا ناموفق بود",
+      "ranAgo": "اجرا شد {time}",
+      "neverRan": "هرگز اجرا نشده",
+      "newTitle": "{trigger} در {table}",
+      "triggers": {
+        "created": "رکورد ایجاد می‌شود",
+        "updated": "رکورد به‌روزرسانی می‌شود",
+        "createdOrUpdated": "رکورد ایجاد یا به‌روزرسانی می‌شود",
+        "deleted": "رکورد حذف می‌شود",
+        "entersView": "وارد نمایی می‌شود",
+        "matches": "با شرط‌ها مطابقت دارد",
+        "fieldChanged": "فیلد تغییر می‌کند",
+        "formSubmitted": "فرمی ارسال می‌کند",
+        "buttonClicked": "روی دکمه‌ای کلیک می‌کند",
+        "comment": "روی رکوردی نظر می‌دهد"
+      }
+    },
+    "commandPalette": {
+      "askAi": "از هوش مصنوعی بپرس",
+      "askNocoAi": "از NocoAI بپرس: «{query}»",
+      "app": {
+        "openLive": "باز کردن برنامهٔ زنده",
+        "copyLink": "کپی پیوند برنامه",
+        "share": "هم‌رسانی برنامه…",
+        "refreshPreview": "تازه‌سازی پیش‌نمایش",
+        "switchViewport": "تغییر اندازهٔ پیش‌نمایش",
+        "fullScreen": "پیش‌نمایش تمام‌صفحه",
+        "exitFullScreen": "خروج از تمام‌صفحه"
+      },
+      "base": {
+        "createSync": "ساخت همگام‌سازی…",
+        "createSnapshot": "ساخت عکس لحظه‌ای…",
+        "emptyTrash": "خالی کردن زباله‌دان…",
+        "duplicate": "تکثیر پایه…"
+      },
+      "account": {
+        "profile": "نمایه",
+        "changeLanguage": "تغییر زبان…"
+      },
+      "agent": {
+        "enable": "فعال‌سازی عامل",
+        "disable": "غیرفعال‌سازی عامل",
+        "duplicate": "تکثیر عامل",
+        "copyId": "کپی شناسهٔ عامل",
+        "delete": "حذف عامل…",
+        "openSettings": "تنظیمات عامل…",
+        "newChat": "گفت‌وگوی جدید",
+        "toggleFiles": "نمایش یا پنهان کردن فایل‌ها",
+        "copyLink": "کپی پیوند عامل"
+      },
+      "addToBookmarks": "افزودن {object} به نشانک‌ها",
+      "addedToBookmarks": "به نشانک‌ها افزوده شد",
+      "addRecord": "افزودن رکورد",
+      "addField": "افزودن فیلد…",
+      "addFilter": "افزودن فیلتر…",
+      "addSort": "افزودن مرتب‌سازی…",
+      "addColourCondition": "افزودن شرط رنگ",
+      "askAiAboutRecord": "از هوش مصنوعی دربارهٔ این رکورد بپرس",
+      "addComment": "افزودن نظر…",
+      "apiReference": "مرجع API…",
+      "assignToMe": "واگذاری به من"
+    },
+    "chartPaletteColorblindNote": "تنظیم کوررنگی شما نمودارها را با پالت امن نشان می‌دهد. بقیه پالتی را می‌بینند که شما انتخاب می‌کنید.",
+    "alsoDisconnectApps": "قطع ارتباط برنامه‌ها نیز",
+    "assigneeField": "مسئول",
+    "colorConditionCount": "{n} شرط | {n} شرط",
+    "collapseSubgroups": "جمع کردن زیرگروه‌ها",
+    "chooseSearchField": "جست‌وجو در یک فیلد",
+    "allowCsvImport": "اجازهٔ درون‌ریزی از CSV",
+    "codingAgent": "عامل کدنویسی",
+    "codingAgentSettingsNoAccessTitle": "مخزن‌ها و ماشین‌ها به دسترسی ویرایشگر نیاز دارند",
+    "agentTriggerWebhook": "وقتی وب‌هوک دریافت شود",
+    "agentTriggerWebhookHint": "وقتی URL آن با توکن API فراخوانی شود اجرا می‌شود. URL پس از افزودن ماشه روی آن نمایش داده می‌شود.",
+    "agentTriggerWebhookCopy": "کپی URL وب‌هوک",
+    "agentsOnLargerScreen": "عامل‌ها در صفحهٔ بزرگ‌تر باز می‌شوند",
+    "codingAgentAddRepo": "افزودن مخزن",
+    "codingAgentAddRepos": "افزودن {count}",
+    "codingAgentManageRepos": "مدیریت مخزن‌ها",
+    "codingAgentRepoPickTitle": "شروع در",
+    "codingAgentNoRepo": "بدون مخزن",
+    "codingAgentRepoAdded": "افزوده شد",
+    "codingAgentRepoDefault": "پیش‌فرض ({repo})",
+    "codingAgentRepoDefaultShort": "مخزن پیش‌فرض",
+    "codingAgentRepoDisconnected": "این اتصال دیگر شامل این مخزن نیست. برای شروع نشست در اینجا دوباره وصل شوید.",
+    "codingAgentOpenRepo": "باز کردن مخزن",
+    "codingAgentRemoveRepoTitle": "مخزن حذف شود؟",
+    "codingAgentNoReposTitle": "برای شروع، مخزنی اضافه کنید",
+    "codingAgentNoReposBody": "عامل کدنویسی در مخزن‌های شما کار می‌کند. برای شروع نشست، مخزنی اضافه کنید.",
+    "codingAgentNoReposAskCreator": "عامل کدنویسی در مخزن‌های شما کار می‌کند. از سازندهٔ پروژه بخواهید مخزنی اضافه کند.",
+    "codingAgentTriggerRepo": "مخزن",
+    "codingAgentUnavailableTitle": "Coding اینجا در دسترس نیست",
+    "codingAgentUnavailableBody": "این یک عامل کدنویسی است و طرح این فضای کاری شامل Coding نیست. برای ادامهٔ استفاده ارتقا دهید.",
+    "codingAgentSettingsNoAccess": "مخزن‌ها و ماشین‌ها برای ویرایشگران و بالاتر قابل مشاهده‌اند. از مالک پروژه درخواست دسترسی کنید.",
+    "codingAgentOffTitle": "این عامل خاموش است",
+    "codingAgentOffBody": "برای شروع نشست آن را روشن کنید.",
+    "codingAgentOffAskEditor": "برای شروع نشست، از سازندهٔ پروژه بخواهید آن را روشن کند.",
+    "codingAgentTurnOn": "روشن کردن"
   },
   "activity": {
     "useTemplate": "Use template",

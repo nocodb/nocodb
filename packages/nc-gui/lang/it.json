@@ -521,7 +521,6 @@
     "condition": "Condizione",
     "after": "Dopo",
     "search": "Cerca",
-    "searchIn": "Cerca in",
     "notification": "Notifica",
     "confirm": "Conferma",
     "generate": "Genera",
@@ -2929,7 +2928,8 @@
     "agentIdColon": "ID agente: {agentId}",
     "agentState": {
       "active": "In diretta",
-      "paused": "In pausa"
+      "paused": "In pausa",
+      "draft": "Bozza"
     },
     "agentTriggerNewChat": "Nuova chat con",
     "agentChannelAdd": "Collega un canale",
@@ -5152,7 +5152,9 @@
       "recentChats": "Chat recenti",
       "searchChats": "Cerca nelle chat",
       "noChats": "Ancora nessuna chat",
-      "noChatsMatch": "Nessuna chat corrisponde alla tua ricerca"
+      "noChatsMatch": "Nessuna chat corrisponde alla tua ricerca",
+      "agentsPickToChat": "Scegli un agente a sinistra per chattare con lui.",
+      "noWorkflowsOrScripts": "Ancora nessun workflow o script."
     },
     "showMoreConnections": "Mostra altre {count} connessioni",
     "chooseSignInProvider": "Scegli un provider per continuare",
@@ -6074,7 +6076,8 @@
           "description": "Risponde alle domande sulle tue tabelle e sui tuoi docs ogni volta che qualcuno le pone."
         },
         "meeting-prep": {
-          "description": "Ogni mattina feriale prepara le riunioni di oggi dalla tua tabella delle riunioni: il cliente, le trattative aperte e le ultime note."
+          "description": "Ogni mattina feriale prepara le riunioni di oggi dalla tua tabella delle riunioni: il cliente, le trattative aperte e le ultime note.",
+          "title": "Preparazione riunioni"
         },
         "follow-up-drafter": {
           "title": "Redattore di solleciti",
@@ -6099,6 +6102,26 @@
         "customer-check-in": {
           "title": "Ricontatto cliente",
           "description": "Prepara un messaggio di ricontatto per i clienti diventati silenziosi, pronto da rivedere."
+        },
+        "weekly-digest": {
+          "title": "Riepilogo settimanale",
+          "description": "Riassume ciò che è cambiato nelle tue tabelle e lo pubblica ogni lunedì."
+        },
+        "morning-brief": {
+          "title": "Riepilogo mattutino",
+          "description": "Trasforma ciò che è cambiato nelle tue tabelle e nei tuoi documenti in un breve piano, ogni mattina feriale."
+        },
+        "record-enricher": {
+          "title": "Arricchimento record",
+          "description": "Completa i dettagli mancanti dei nuovi record attingendo dal web."
+        },
+        "reorder-alerts": {
+          "title": "Avvisi di riordino",
+          "description": "Monitora le scorte e prepara gli ordini d'acquisto prima che si esauriscano."
+        },
+        "ticket-triage": {
+          "title": "Smistamento ticket",
+          "description": "Etichetta le nuove richieste, imposta la priorità e le indirizza alla persona giusta."
         }
       },
       "rowJob": "Compito",
@@ -6163,8 +6186,128 @@
       "deliverySlackMissing": "Collega Slack nelle Integrazioni per fargli pubblicare lì.",
       "deliverySlackInvalid": "Inserisci un canale Slack, come #sales.",
       "discardTitle": "Eliminare questa bozza?",
-      "discardContent": "La bozza e la chat di configurazione verranno spostate nel cestino."
-    }
+      "discardContent": "La bozza e la chat di configurazione verranno spostate nel cestino.",
+      "whenSchedule": "Ogni {day} alle {time}",
+      "whenRecord": "Quando un record cambia in {table}",
+      "whenRecordAny": "Quando un record cambia",
+      "whenManual": "Solo su richiesta",
+      "turnOn": "Attiva l'agente"
+    },
+    "agentsPopover": {
+      "tooltip": "Agenti per {table}",
+      "recentSessions": "Sessioni recenti",
+      "sessions": "Sessioni",
+      "noSessions": "Ancora nessuna sessione",
+      "activeAgo": "Attivo {time}",
+      "nothingMatches": "Nessun risultato per \"{query}\""
+    },
+    "automate": {
+      "title": "Automatizza",
+      "tooltip": "Automatizza {table}",
+      "allWorkflows": "Tutti i workflow",
+      "workflowsInTable": "Workflow nella tabella",
+      "startWhen": "Avvia quando…",
+      "searchTriggers": "Cerca, ad es. \"creato\", \"pulsante\"",
+      "searchAutomations": "Cerca automazioni",
+      "otherTrigger": "Altro trigger…",
+      "noMatches": "Nessun risultato",
+      "failed": "Non riuscito",
+      "lastRunFailed": "Ultima esecuzione non riuscita",
+      "ranAgo": "Eseguito {time}",
+      "neverRan": "Mai eseguito",
+      "newTitle": "{trigger} nella tabella {table}",
+      "triggers": {
+        "created": "Un record viene creato",
+        "updated": "Un record viene aggiornato",
+        "createdOrUpdated": "Un record viene creato o aggiornato",
+        "deleted": "Un record viene eliminato",
+        "entersView": "Entra in una vista",
+        "matches": "Soddisfa le condizioni",
+        "fieldChanged": "Un campo cambia",
+        "formSubmitted": "Invia un modulo",
+        "buttonClicked": "Fa clic su un pulsante",
+        "comment": "Commenta un record"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Chiedi all'IA",
+      "askNocoAi": "Chiedi a NocoAI: «{query}»",
+      "app": {
+        "openLive": "Apri l'app live",
+        "copyLink": "Copia il link dell'app",
+        "share": "Condividi app…",
+        "refreshPreview": "Aggiorna anteprima",
+        "switchViewport": "Cambia dimensione anteprima",
+        "fullScreen": "Anteprima a schermo intero",
+        "exitFullScreen": "Esci da schermo intero"
+      },
+      "base": {
+        "createSync": "Crea sincronizzazione…",
+        "createSnapshot": "Crea snapshot…",
+        "emptyTrash": "Svuota il cestino…",
+        "duplicate": "Duplica base…"
+      },
+      "account": {
+        "profile": "Profilo",
+        "changeLanguage": "Cambia lingua…"
+      },
+      "agent": {
+        "enable": "Abilita agente",
+        "disable": "Disabilita agente",
+        "duplicate": "Duplica agente",
+        "copyId": "Copia l'ID dell'agente",
+        "delete": "Elimina agente…",
+        "openSettings": "Impostazioni agente…",
+        "newChat": "Nuova chat",
+        "toggleFiles": "Mostra o nascondi i file",
+        "copyLink": "Copia il link dell'agente"
+      },
+      "addToBookmarks": "Aggiungi {object} ai segnalibri",
+      "addedToBookmarks": "Aggiunto ai segnalibri",
+      "addRecord": "Aggiungi record",
+      "addField": "Aggiungi campo…",
+      "addFilter": "Aggiungi filtro…",
+      "addSort": "Aggiungi ordinamento…",
+      "addColourCondition": "Aggiungi condizione di colore",
+      "askAiAboutRecord": "Chiedi all'IA di questo record",
+      "addComment": "Aggiungi commento…",
+      "apiReference": "Riferimento API…",
+      "assignToMe": "Assegna a me"
+    },
+    "chartPaletteColorblindNote": "La tua preferenza per il daltonismo mostra i grafici con una palette sicura. Tutti gli altri vedono la palette che scegli.",
+    "alsoDisconnectApps": "Disconnetti anche le app",
+    "assigneeField": "Assegnatario",
+    "colorConditionCount": "{n} condizione | {n} condizioni",
+    "collapseSubgroups": "Comprimi i sottogruppi",
+    "chooseSearchField": "Cerca in un solo campo",
+    "allowCsvImport": "Consenti l'importazione da CSV",
+    "codingAgent": "Agente di codice",
+    "codingAgentSettingsNoAccessTitle": "I repository e le macchine richiedono l'accesso Editor",
+    "agentTriggerWebhook": "Quando si riceve un webhook",
+    "agentTriggerWebhookHint": "Viene eseguito quando il suo URL viene chiamato con un token API. L'URL compare sul trigger una volta aggiunto.",
+    "agentTriggerWebhookCopy": "Copia l'URL del webhook",
+    "agentsOnLargerScreen": "Gli agenti si aprono su uno schermo più grande",
+    "codingAgentAddRepo": "Aggiungi repository",
+    "codingAgentAddRepos": "Aggiungi {count}",
+    "codingAgentManageRepos": "Gestisci i repository",
+    "codingAgentRepoPickTitle": "Avvia in",
+    "codingAgentNoRepo": "Nessun repository",
+    "codingAgentRepoAdded": "Aggiunto",
+    "codingAgentRepoDefault": "Predefinito ({repo})",
+    "codingAgentRepoDefaultShort": "Repository predefinito",
+    "codingAgentRepoDisconnected": "La connessione non copre più questo repository. Riconnettila per avviare sessioni qui.",
+    "codingAgentOpenRepo": "Apri repository",
+    "codingAgentRemoveRepoTitle": "Rimuovere il repository?",
+    "codingAgentNoReposTitle": "Aggiungi un repository per iniziare",
+    "codingAgentNoReposBody": "Un agente di codice lavora nei tuoi repository. Aggiungine uno per avviare una sessione.",
+    "codingAgentNoReposAskCreator": "Un agente di codice lavora nei tuoi repository. Chiedi a un creatore del progetto di aggiungerne uno.",
+    "codingAgentUnavailableTitle": "Coding non è disponibile qui",
+    "codingAgentUnavailableBody": "Questo è un agente di codice e il piano di questo spazio di lavoro non include Coding. Esegui l'upgrade per continuare a usarlo.",
+    "codingAgentSettingsNoAccess": "I repository e le macchine sono visibili agli editor e ai ruoli superiori. Chiedi l'accesso a un proprietario del progetto.",
+    "codingAgentOffTitle": "Questo agente è disattivato",
+    "codingAgentOffBody": "Attivalo per avviare una sessione.",
+    "codingAgentOffAskEditor": "Chiedi a un creatore del progetto di attivarlo per avviare una sessione.",
+    "codingAgentTurnOn": "Attiva"
   },
   "activity": {
     "useTemplate": "Usa modello",

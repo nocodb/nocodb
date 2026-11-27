@@ -436,3 +436,11 @@ export {
   LoopData,
   VariableGeneratorContext,
 };
+
+/** What a Respond node (or the default) sends back to a waiting webhook caller. */
+export interface WorkflowWebhookReply {
+  statusCode: number;
+  headers?: Record<string, string>;
+  bodyType: 'json' | 'text' | 'none';
+  body?: unknown;
+}

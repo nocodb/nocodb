@@ -27,6 +27,43 @@ export enum WorkflowSkipReason {
   CHAIN_DEPTH_EXCEEDED = 'chain_depth_exceeded',
 }
 
+/** Webhook trigger that can hold the request open for a Respond node. */
+export const WEBHOOK_TRIGGER_NODE_TYPE = 'core.trigger.webhook';
+/** Sends the reply to a webhook trigger's waiting caller. */
+export const RESPOND_NODE_TYPE = 'core.flow.respond';
+
+/** Seconds a waiting webhook caller is held open. */
+export const WEBHOOK_RESPONSE_TIMEOUT_DEFAULT = 10;
+export const WEBHOOK_RESPONSE_TIMEOUT_MAX = 20;
+
+export const WEBHOOK_RESPONSE_STATUS_CODES = [
+  200, 201, 202, 204, 400, 401, 403, 404, 405, 409, 422, 429, 500, 503,
+] as const;
+
+/** Response headers a Respond node may not set: cookies, CORS and framing are ours. */
+export const WEBHOOK_RESPONSE_BLOCKED_HEADERS = [
+  'set-cookie',
+  'content-length',
+  'transfer-encoding',
+  'connection',
+  'keep-alive',
+  'upgrade',
+  'host',
+  'vary',
+  'strict-transport-security',
+  'content-security-policy',
+  'x-frame-options',
+];
+export const WEBHOOK_RESPONSE_BLOCKED_HEADER_PREFIXES = ['access-control-'];
+
+export function isBlockedWebhookResponseHeader(name: string): boolean {
+  const lower = name.trim().toLowerCase();
+  return (
+    WEBHOOK_RESPONSE_BLOCKED_HEADERS.includes(lower) ||
+    WEBHOOK_RESPONSE_BLOCKED_HEADER_PREFIXES.some((p) => lower.startsWith(p))
+  );
+}
+
 export const GeneralNodeID = {
   TRIGGER: 'core.trigger',
   PLUS: 'core.plus',

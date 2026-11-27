@@ -5836,6 +5836,8 @@
           "cancelled": "When {workflow} is cancelled",
           "several": "When {workflow} ends"
         },
+        "replyWith": "Reply {status}",
+        "waitsForReply": "Waits up to {seconds}s for a reply",
         "sendTo": "To {to}",
         "scriptLines": "{n} line of code | {n} lines of code",
         "inTable": "In {table}",
@@ -6078,6 +6080,7 @@
       "pendingRunsBody": "{count} run(s) of this workflow are paused or scheduled to continue later. What should happen to them after you publish?",
       "pendingRunsKeep": "Let them finish using the version they started with",
       "pendingRunsStop": "Stop them",
+      "respondNeedsWaitingWebhook": "Replies only when the trigger is \"When webhook received\" with \"Wait for response\" on.",
       "onFailure": {
         "title": "On failure",
         "retryIfFails": "Retry if this step fails",

@@ -570,6 +570,8 @@ export interface ExecuteWorkflowJobData extends JobData {
   triggerNodeId?: string; // Optional: specific trigger node to start from
   triggerInputs: any; // Data passed to the trigger node
   executionId?: string;
+  /** A webhook caller is waiting on this key for the run's reply. */
+  responseKey?: string;
 }
 
 export interface ResumeWorkflowJobData extends JobData {

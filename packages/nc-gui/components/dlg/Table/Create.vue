@@ -642,7 +642,13 @@ watch(_baseId, () => {
             'px-5 -mt-2': aiMode,
           }"
         >
-          <NcButton v-if="!enableDescription && !aiMode" size="small" type="text" @click.stop="toggleDescription">
+          <NcButton
+            v-if="!enableDescription && !aiMode"
+            size="small"
+            type="text"
+            class="-ml-1.75"
+            @click.stop="toggleDescription"
+          >
             <div class="flex !text-nc-content-gray-subtle items-center gap-2">
               <GeneralIcon icon="plus" class="h-4 w-4" />
 

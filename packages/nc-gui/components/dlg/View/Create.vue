@@ -1937,6 +1937,7 @@ watch(activeBaseId, () => {
           v-if="!enableDescription && !aiMode && isNecessaryColumnsPresent && kanbanStep === 'details'"
           size="small"
           type="text"
+          class="-ml-1.75"
           @click.stop="toggleDescription"
         >
           <div class="flex !text-nc-content-gray-subtle items-center gap-2">

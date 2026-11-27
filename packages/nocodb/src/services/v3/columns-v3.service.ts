@@ -902,6 +902,7 @@ export class ColumnsV3Service {
         apiVersion: NcApiVersion.V3,
         req: param.req,
         columnWebhookManager: columnWebhookManager,
+        applyUserCurrencyDefault: true,
       },
       ncMeta,
     );
@@ -1037,6 +1038,8 @@ export class ColumnsV3Service {
       user: UserType;
       reuse?: ReusableParams;
       columnWebhookManager?: ColumnWebhookManager;
+      /** A person is creating the field: a currency field without settings takes their default currency. */
+      applyUserCurrencyDefault?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {

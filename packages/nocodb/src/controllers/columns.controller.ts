@@ -41,6 +41,7 @@ export class ColumnsController {
       column: body,
       req,
       user: req.user,
+      applyUserCurrencyDefault: true,
     });
   }
 
@@ -60,6 +61,7 @@ export class ColumnsController {
       column: body,
       req,
       user: req.user,
+      applyUserCurrencyDefault: true,
     });
   }
 

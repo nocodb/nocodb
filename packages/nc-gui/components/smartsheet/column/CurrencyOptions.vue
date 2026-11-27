@@ -40,7 +40,8 @@ const validators = {
   ],
 }
 
-const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, isPg } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, isPg, isEdit, column } =
+  useColumnCreateStoreOrThrow()
 
 setAdditionalValidations({
   ...validators,
@@ -66,9 +67,16 @@ function filterOption(input: string, option: { value: string; key: string }) {
   return searchCompare([option.value, option.key], input)
 }
 
+const { defaultCurrency } = useDefaultCurrency()
+
+// A field that was already a currency keeps its saved settings; only a new one starts from the user's default.
+const wasCurrency =
+  isEdit.value && (column.value?.uidt === UITypes.Currency || parseProp(column.value?.meta)?.display_type === UITypes.Currency)
+
 // set default value
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Currency),
+  ...(wasCurrency ? {} : defaultCurrency.value),
   ...(vModel.value.meta || {}),
 }
 

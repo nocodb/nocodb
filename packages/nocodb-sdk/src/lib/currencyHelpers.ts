@@ -1,4 +1,5 @@
 import { ncIsNumber } from './is';
+import { CURRENCY_CODES } from './currencyCodes';
 
 /**
  * Resolve the display symbol for a currency from its ISO code + locale.
@@ -257,5 +258,65 @@ export const getNumericValue = (value: string, locale?: string) => {
     pointDecimalValue: isValid ? valueToParse : undefined,
     numericValue: isValid ? numericValue : undefined,
     isValid,
+  };
+};
+
+/** User meta keys for the currency a user's new Currency fields start with. */
+export const USER_DEFAULT_CURRENCY_CODE_KEY = 'default_currency_code';
+export const USER_DEFAULT_CURRENCY_LOCALE_KEY = 'default_currency_locale';
+
+export const isValidCurrencyCode = (code: unknown): code is string =>
+  typeof code === 'string' && CURRENCY_CODES.includes(code);
+
+export const isValidCurrencyLocale = (locale: unknown): locale is string => {
+  if (typeof locale !== 'string' || !locale) return false;
+  try {
+    return Intl.NumberFormat.supportedLocalesOf(locale).length > 0;
+  } catch {
+    return false;
+  }
+};
+
+export interface CurrencyDefaults {
+  currency_code?: string;
+  currency_locale?: string;
+}
+
+/**
+ * The currency a new Currency field starts with for this user: their saved
+ * preference, else the instance default, else USD in en-US. Each value falls
+ * back on its own when invalid.
+ */
+export const getUserCurrencyDefaults = (
+  userMeta?: Record<string, any> | string | null,
+  instanceDefault?: CurrencyDefaults | null
+): { currency_code: string; currency_locale: string } => {
+  let meta: Record<string, any> = {};
+  if (typeof userMeta === 'string') {
+    try {
+      meta = JSON.parse(userMeta) ?? {};
+    } catch {
+      meta = {};
+    }
+  } else if (userMeta && typeof userMeta === 'object') {
+    meta = userMeta;
+  }
+
+  const pick = (isValid: (v: unknown) => v is string, ...values: unknown[]) =>
+    values.find(isValid) as string;
+
+  return {
+    currency_code: pick(
+      isValidCurrencyCode,
+      meta[USER_DEFAULT_CURRENCY_CODE_KEY],
+      instanceDefault?.currency_code,
+      'USD'
+    ),
+    currency_locale: pick(
+      isValidCurrencyLocale,
+      meta[USER_DEFAULT_CURRENCY_LOCALE_KEY],
+      instanceDefault?.currency_locale,
+      'en-US'
+    ),
   };
 };

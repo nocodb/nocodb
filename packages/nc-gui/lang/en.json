@@ -7828,7 +7828,7 @@
     "requiredEnforcedOnFormSubmit": "Enforced when this page opens as a form to create a record",
     "linkUnlinkDisabledEditFieldsForm": "This option is disabled when fields are edited through a form",
     "linkUnlinkDisabledEditFieldsOff": "This option is disabled when field editing is off",
-    "addRecordFormNeedsEditableField": "Allow editing this field to add records through a form",
+    "addRecordFormNeedsEditableField": "Turn on Allow inline editing to add records through a form",
     "addRecordFormDisabledColumnNotInline": "This option is disabled when this column isn't editable inline",
     "readOnlyFieldCannotBeEditedInline": "Read-only fields can't be edited inline",
     "readOnlyFieldCannotBeRequired": "Read-only fields can't be required",

@@ -56,6 +56,10 @@ export const WEBHOOK_RESPONSE_BLOCKED_HEADERS = [
   'strict-transport-security',
   'content-security-policy',
   'x-frame-options',
+  // Act on the app's origin for whoever opens the webhook URL
+  'clear-site-data',
+  'refresh',
+  'link',
 ];
 export const WEBHOOK_RESPONSE_BLOCKED_HEADER_PREFIXES = ['access-control-'];
 

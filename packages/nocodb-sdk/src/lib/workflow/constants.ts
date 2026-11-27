@@ -51,7 +51,6 @@ export const WEBHOOK_RESPONSE_ALLOWED_HEADERS = [
   'etag',
   'last-modified',
   'content-language',
-  'content-disposition',
 ];
 /** Custom headers are allowed, except these, which the server owns. */
 export const WEBHOOK_RESPONSE_ALLOWED_HEADER_PREFIX = 'x-';
@@ -67,6 +66,13 @@ export const WEBHOOK_RESPONSE_RESERVED_X_HEADERS = [
   'x-forwarded-host',
   'x-forwarded-proto',
   'x-real-ip',
+];
+/** Reverse proxies act on these (internal redirects, file serving), so they are refused too. */
+export const WEBHOOK_RESPONSE_RESERVED_X_PREFIXES = [
+  'x-accel-',
+  'x-sendfile',
+  'x-lighttpd-',
+  'x-forwarded-',
 ];
 /** Cache-Control may only keep the reply out of shared caches. */
 const WEBHOOK_RESPONSE_CACHE_DIRECTIVES = [
@@ -94,7 +100,8 @@ export function isAllowedWebhookResponseHeader(
   if (WEBHOOK_RESPONSE_ALLOWED_HEADERS.includes(lower)) return true;
   return (
     lower.startsWith(WEBHOOK_RESPONSE_ALLOWED_HEADER_PREFIX) &&
-    !WEBHOOK_RESPONSE_RESERVED_X_HEADERS.includes(lower)
+    !WEBHOOK_RESPONSE_RESERVED_X_HEADERS.includes(lower) &&
+    !WEBHOOK_RESPONSE_RESERVED_X_PREFIXES.some((p) => lower.startsWith(p))
   );
 }
 

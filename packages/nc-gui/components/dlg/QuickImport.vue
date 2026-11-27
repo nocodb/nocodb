@@ -829,7 +829,7 @@ watch(
                     </NcTooltip>
                     <GeneralLoader class="flex text-nc-content-brand" size="medium" />
                   </template>
-                  <NcButton v-else type="text" size="xsmall" class="!px-2 -mr-1.5" @click="formatJson()">
+                  <NcButton v-else type="text" size="xsmall" class="!px-2 -mr-2" @click="formatJson()">
                     {{ $t('general.format') }}
                   </NcButton>
                 </div>

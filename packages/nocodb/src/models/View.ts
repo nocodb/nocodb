@@ -11,6 +11,7 @@ import {
   NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
   NcBaseError,
   parseProp,
+  TABLE_META_HIDE_NEW_FIELDS,
   UITypes,
   ViewLockType,
   ViewTypes,
@@ -1018,6 +1019,8 @@ export default class View implements ViewType {
         show: boolean;
         view_id?: any;
       };
+      // Set by callers that re-add an existing field, not a new one.
+      skip_hide_new_fields?: boolean;
     } & Pick<ColumnReqType, 'column_order'>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -1028,6 +1031,11 @@ export default class View implements ViewType {
       show: param.column_show.show,
     };
     const views = await this.list(context, param.fk_model_id, false, ncMeta);
+    const tableHidesNewFields =
+      !param.skip_hide_new_fields &&
+      !!parseProp(
+        (await Model.get(context, param.fk_model_id, false, ncMeta))?.meta,
+      )?.[TABLE_META_HIDE_NEW_FIELDS];
 
     const tableColumns = await Column.list(
       context,
@@ -1042,6 +1050,16 @@ export default class View implements ViewType {
     for (const view of views) {
       let inserted: { id?: string } | undefined;
 
+      const hidesNewFields =
+        tableHidesNewFields && param.column_show?.view_id !== view.id;
+      // Map, list, calendar, timeline and gantt insert from this, not modifiedInsertObj.
+      const viewInsertObj =
+        param.column_show?.view_id === view.id
+          ? { ...insertObj, show: true }
+          : hidesNewFields
+          ? { ...insertObj, show: false }
+          : insertObj;
+
       const modifiedInsertObj = {
         ...insertObj,
         fk_view_id: view.id,
@@ -1052,6 +1070,8 @@ export default class View implements ViewType {
         modifiedInsertObj.show = false;
       } else if (param.column_show?.view_id === view.id) {
         modifiedInsertObj.show = true;
+      } else if (hidesNewFields) {
+        modifiedInsertObj.show = false;
       } else if (
         view.lock_type === ViewLockType.Personal ||
         view.lock_type === ViewLockType.Locked
@@ -1105,7 +1125,7 @@ export default class View implements ViewType {
           inserted = await MapViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_view_id: view.id,
             },
             ncMeta,
@@ -1127,7 +1147,7 @@ export default class View implements ViewType {
           inserted = await ListViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_level_id: level?.id,
               fk_view_id: view.id,
               order: listOrder,
@@ -1147,7 +1167,7 @@ export default class View implements ViewType {
           inserted = await CalendarViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_view_id: view.id,
             },
             ncMeta,
@@ -1157,7 +1177,7 @@ export default class View implements ViewType {
           inserted = await TimelineViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_view_id: view.id,
             },
             ncMeta,
@@ -1167,7 +1187,7 @@ export default class View implements ViewType {
           inserted = await GanttViewColumn.insert(
             context,
             {
-              ...insertObj,
+              ...viewInsertObj,
               fk_view_id: view.id,
             },
             ncMeta,

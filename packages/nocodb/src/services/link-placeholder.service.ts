@@ -172,6 +172,7 @@ export class LinkPlaceholderService {
           fk_model_id: originalCol.fk_model_id,
           order: placeholderCol.order,
           column_show: { show: true },
+          skip_hide_new_fields: true,
         },
         ncMeta,
       );

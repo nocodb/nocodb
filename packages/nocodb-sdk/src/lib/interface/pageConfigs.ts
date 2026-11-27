@@ -111,9 +111,9 @@ export interface InterfaceVizEditability {
 /**
  * Group-key ordering for a grid viz's `group_by` — by the group VALUE
  * (`asc`/`desc`) or by the group's RECORD COUNT (`count-asc`/`count-desc`),
- * matching the grid view's `group_by_sort`. Grid only: the other grouping
- * vizzes order groups client-side (list) or have no direction control, so
- * they'd silently ignore — or misapply — a count direction.
+ * matching the grid/gallery view's `group_by_sort`. Grid and gallery only: the
+ * other grouping vizzes order groups client-side (list) or have no direction
+ * control, so they'd silently ignore — or misapply — a count direction.
  */
 export type InterfaceGridGroupByDirection =
   | 'asc'
@@ -176,6 +176,9 @@ export interface InterfaceGalleryVizConfig
   display_field_names?: boolean;
   /** Skip blank (non-virtual) fields on cards — no empty label/value gaps. */
   hide_empty_card_fields?: boolean;
+  group_by?: InterfaceGridGroupByConfig[];
+  /** Drop the null/uncategorized group when grouping (mirrors the gallery view's `hide_empty_groups` meta). */
+  hide_empty_groups?: boolean;
 }
 
 /**

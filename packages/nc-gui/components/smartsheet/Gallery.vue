@@ -108,8 +108,7 @@ const [DefineCard, ReuseCard] = createReusableTemplate<{ record: RowType }>()
 
 const viewGroupBy = useViewGroupBy()
 
-// Interface pages keep the flat gallery: their viz config has no group-by.
-const isGroupedGallery = computed(() => !interfacePageDataApi && !!viewGroupBy?.isGroupBy.value)
+const isGroupedGallery = computed(() => !!viewGroupBy?.isGroupBy.value)
 
 const GROUP_ROWS_PAGE_SIZE = 24
 
@@ -343,7 +342,10 @@ async function refreshGroup(group?: Group, savedPk?: string, prevCount?: number)
 async function patchSavedRow(held: RowType, pk: string) {
   if (!meta.value?.base_id || !meta.value.id || !view.value?.id) return false
   try {
-    const fresh = await $api.dbViewRow.read('noco', meta.value.base_id, meta.value.id, view.value.id, pk)
+    const fresh = interfacePageDataApi
+      ? await interfacePageDataApi.fetchRecord(pk)
+      : await $api.dbViewRow.read('noco', meta.value.base_id, meta.value.id, view.value.id, pk)
+    if (!fresh) return false
     const sortTitles = sorts.value.map((s) => meta.value?.columns?.find((c) => c.id === s.fk_column_id)?.title)
     if (sortTitles.some((title) => title && JSON.stringify(fresh[title]) !== JSON.stringify(held.row[title]))) return false
     Object.assign(held.row, fresh)

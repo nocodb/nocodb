@@ -599,7 +599,7 @@ export class MailService {
               (productName) =>
                 submitterCopy
                   ? `${productName} Forms: Your response to ${formView.title}`
-                  : `${productName} Forms: Someone has responded to ${formView.title}`,
+                  : `${productName} Forms: Someone has responded to ${formView.title} (${model.title})`,
               branding,
             ),
             html: await this.renderMail(

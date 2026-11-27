@@ -71,6 +71,7 @@ export const WEBHOOK_RESPONSE_RESERVED_X_PREFIXES = [
   'x-lighttpd-',
   'x-forwarded-',
   'x-litespeed-',
+  'x-envoy-',
 ];
 /** Cache-Control may only keep the reply out of shared caches. */
 const WEBHOOK_RESPONSE_CACHE_DIRECTIVES = [

@@ -1408,6 +1408,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
         >
           <template v-if="hasPosterCover(record)">
             <LazyCellAttachmentPreviewThumbnail
+              :key="attachments(record)[0]?.path ?? attachments(record)[0]?.url"
               :attachment="attachments(record)[0]"
               class="nc-gallery-poster-image !absolute !inset-0"
               image-class="!w-full !h-full"

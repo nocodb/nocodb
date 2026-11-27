@@ -521,7 +521,6 @@
     "condition": "Pogoj",
     "after": "Po tem",
     "search": "Iskanje",
-    "searchIn": "Iskanje v",
     "notification": "Obvestilo",
     "confirm": "Potrdite",
     "generate": "Ustvarjanje",
@@ -2929,7 +2928,8 @@
     "agentIdColon": "ID agenta: {agentId}",
     "agentState": {
       "active": "V živo",
-      "paused": "Zaustavljeno"
+      "paused": "Zaustavljeno",
+      "draft": "Osnutek"
     },
     "agentTriggerNewChat": "Nov klepet z",
     "agentChannelAdd": "Poveži kanal",
@@ -5155,7 +5155,9 @@
       "recentChats": "Nedavni klepeti",
       "searchChats": "Išči po klepetih",
       "noChats": "Še ni klepetov",
-      "noChatsMatch": "Noben klepet se ne ujema z vašim iskanjem"
+      "noChatsMatch": "Noben klepet se ne ujema z vašim iskanjem",
+      "agentsPickToChat": "Na levi izberite agenta za klepet z njim.",
+      "noWorkflowsOrScripts": "Še ni delovnih tokov ali skript."
     },
     "showMoreConnections": "Pokaži še {count} povezav",
     "chooseSignInProvider": "Za nadaljevanje izberite ponudnika",
@@ -6078,7 +6080,8 @@
           "description": "Odgovarja na vprašanja o vaših tabelah in dokumentih, kadar koli kdo vpraša."
         },
         "meeting-prep": {
-          "description": "Vsako delovno jutro pripravi današnje sestanke iz vaše tabele sestankov: stranko, odprte posle in zadnje zapiske."
+          "description": "Vsako delovno jutro pripravi današnje sestanke iz vaše tabele sestankov: stranko, odprte posle in zadnje zapiske.",
+          "title": "Priprava na sestanek"
         },
         "follow-up-drafter": {
           "title": "Pisec ponovnih stikov",
@@ -6103,6 +6106,26 @@
         "customer-check-in": {
           "title": "Stik s stranko",
           "description": "Pripravi sporočilo za stranke, ki so utihnile, pripravljeno v pregled."
+        },
+        "weekly-digest": {
+          "title": "Tedenski povzetek",
+          "description": "Povzame spremembe v vaših tabelah in jih objavi vsak ponedeljek."
+        },
+        "morning-brief": {
+          "title": "Jutranji pregled",
+          "description": "Vsako jutro ob delavnikih spremembe v vaših tabelah in dokumentih spremeni v kratek načrt."
+        },
+        "record-enricher": {
+          "title": "Bogatenje zapisov",
+          "description": "Dopolni manjkajoče podatke pri novih zapisih s spleta."
+        },
+        "reorder-alerts": {
+          "title": "Opozorila o dopolnitvi zalog",
+          "description": "Spremlja zaloge in pripravi naročilnice, preden zmanjka blaga."
+        },
+        "ticket-triage": {
+          "title": "Triaža zahtevkov",
+          "description": "Označi nove zahteve, nastavi prednost in jih usmeri pravi osebi."
         }
       },
       "rowJob": "Naloga",
@@ -6167,8 +6190,129 @@
       "deliverySlackMissing": "Povežite Slack v Integracijah, da bo lahko objavljal tam.",
       "deliverySlackInvalid": "Vnesite kanal Slack, na primer #sales.",
       "discardTitle": "Zavreči ta osnutek?",
-      "discardContent": "Osnutek in njegov klepet o nastavitvi bosta premaknjena v koš."
-    }
+      "discardContent": "Osnutek in njegov klepet o nastavitvi bosta premaknjena v koš.",
+      "whenSchedule": "Vsak {day} ob {time}",
+      "whenRecord": "Ko se zapis spremeni v {table}",
+      "whenRecordAny": "Ko se zapis spremeni",
+      "whenManual": "Samo na zahtevo",
+      "turnOn": "Vklopi agenta"
+    },
+    "agentsPopover": {
+      "tooltip": "Agenti za {table}",
+      "recentSessions": "Nedavne seje",
+      "sessions": "Seje",
+      "noSessions": "Še ni sej",
+      "activeAgo": "Aktiven {time}",
+      "nothingMatches": "Nič ne ustreza iskanju \"{query}\""
+    },
+    "automate": {
+      "title": "Avtomatiziraj",
+      "tooltip": "Avtomatiziraj {table}",
+      "allWorkflows": "Vsi delovni tokovi",
+      "workflowsInTable": "Delovni tokovi v tabeli",
+      "startWhen": "Začni, ko…",
+      "searchTriggers": "Iskanje, npr. \"ustvarjeno\", \"gumb\"",
+      "searchAutomations": "Išči avtomatizacije",
+      "otherTrigger": "Drug sprožilec…",
+      "noMatches": "Ni zadetkov",
+      "failed": "Ni uspelo",
+      "lastRunFailed": "Zadnji zagon ni uspel",
+      "ranAgo": "Zagnano {time}",
+      "neverRan": "Nikoli zagnano",
+      "newTitle": "{trigger} v {table}",
+      "triggers": {
+        "created": "Zapis je ustvarjen",
+        "updated": "Zapis je posodobljen",
+        "createdOrUpdated": "Zapis je ustvarjen ali posodobljen",
+        "deleted": "Zapis je izbrisan",
+        "entersView": "Vstopi v pogled",
+        "matches": "Izpolnjuje pogoje",
+        "fieldChanged": "Polje se spremeni",
+        "formSubmitted": "Pošlje obrazec",
+        "buttonClicked": "Klikne gumb",
+        "comment": "Komentira zapis"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Vprašaj AI",
+      "askNocoAi": "Vprašaj NocoAI: „{query}“",
+      "app": {
+        "openLive": "Odpri aplikacijo v živo",
+        "copyLink": "Kopiraj povezavo do aplikacije",
+        "share": "Deli aplikacijo…",
+        "refreshPreview": "Osveži predogled",
+        "switchViewport": "Zamenjaj velikost predogleda",
+        "fullScreen": "Predogled čez cel zaslon",
+        "exitFullScreen": "Izhod iz celozaslonskega načina"
+      },
+      "base": {
+        "createSync": "Ustvari sinhronizacijo…",
+        "createSnapshot": "Ustvari posnetek…",
+        "emptyTrash": "Izprazni smetnjak…",
+        "duplicate": "Podvoji bazo…"
+      },
+      "account": {
+        "profile": "Profil",
+        "changeLanguage": "Spremeni jezik…"
+      },
+      "agent": {
+        "enable": "Omogoči agenta",
+        "disable": "Onemogoči agenta",
+        "duplicate": "Podvoji agenta",
+        "copyId": "Kopiraj ID agenta",
+        "delete": "Izbriši agenta…",
+        "openSettings": "Nastavitve agenta…",
+        "newChat": "Nov klepet",
+        "toggleFiles": "Prikaži ali skrij datoteke",
+        "copyLink": "Kopiraj povezavo do agenta"
+      },
+      "addToBookmarks": "Dodaj {object} med zaznamke",
+      "addedToBookmarks": "Dodano med zaznamke",
+      "addRecord": "Dodaj zapis",
+      "addField": "Dodaj polje…",
+      "addFilter": "Dodaj filter…",
+      "addSort": "Dodaj razvrščanje…",
+      "addColourCondition": "Dodaj barvni pogoj",
+      "askAiAboutRecord": "Vprašaj AI o tem zapisu",
+      "addComment": "Dodaj komentar…",
+      "apiReference": "API referenca…",
+      "assignToMe": "Dodeli meni"
+    },
+    "chartPaletteColorblindNote": "Vaša nastavitev za barvno slepoto prikazuje grafikone v varni paleti. Vsi drugi vidijo paleto, ki jo izberete.",
+    "alsoDisconnectApps": "Prekini tudi povezavo z aplikacijami",
+    "assigneeField": "Odgovorna oseba",
+    "colorConditionCount": "{n} pogoj | {n} pogojev",
+    "collapseSubgroups": "Strni podskupine",
+    "chooseSearchField": "Išči v enem polju",
+    "allowCsvImport": "Dovoli uvoz iz CSV",
+    "codingAgent": "Agent za kodo",
+    "codingAgentSettingsNoAccessTitle": "Repozitoriji in stroji zahtevajo dostop urednika",
+    "agentTriggerWebhook": "Ko je prejet webhook",
+    "agentTriggerWebhookHint": "Zažene se, ko je njegov URL poklican z API žetonom. URL se prikaže pri sprožilcu, ko je ta dodan.",
+    "agentTriggerWebhookCopy": "Kopiraj URL webhooka",
+    "agentsOnLargerScreen": "Agenti se odprejo na večjem zaslonu",
+    "codingAgentAddRepo": "Dodaj repozitorij",
+    "codingAgentAddRepos": "Dodaj {count}",
+    "codingAgentManageRepos": "Upravljaj repozitorije",
+    "codingAgentRepoPickTitle": "Začni v",
+    "codingAgentNoRepo": "Ni repozitorija",
+    "codingAgentRepoAdded": "Dodano",
+    "codingAgentRepoDefault": "Privzeto ({repo})",
+    "codingAgentRepoDefaultShort": "Privzeti repozitorij",
+    "codingAgentRepoDisconnected": "Povezava ne zajema več tega repozitorija. Znova jo vzpostavite, da tukaj začnete seje.",
+    "codingAgentOpenRepo": "Odpri repozitorij",
+    "codingAgentRemoveRepoTitle": "Odstraniti repozitorij?",
+    "codingAgentNoReposTitle": "Dodajte repozitorij za začetek",
+    "codingAgentNoReposBody": "Agent za kodo dela v vaših repozitorijih. Dodajte ga za začetek seje.",
+    "codingAgentNoReposAskCreator": "Agent za kodo dela v vaših repozitorijih. Prosite ustvarjalca projekta, naj ga doda.",
+    "codingAgentTriggerRepo": "Repozitorij",
+    "codingAgentUnavailableTitle": "Coding tukaj ni na voljo",
+    "codingAgentUnavailableBody": "To je agent za kodo, načrt tega delovnega prostora pa ne vključuje Coding. Nadgradite ga za nadaljnjo uporabo.",
+    "codingAgentSettingsNoAccess": "Repozitorije in stroje vidijo uredniki in višje vloge. Za dostop prosite lastnika projekta.",
+    "codingAgentOffTitle": "Ta agent je izklopljen",
+    "codingAgentOffBody": "Vklopite ga za začetek seje.",
+    "codingAgentOffAskEditor": "Prosite ustvarjalca projekta, naj ga vklopi, da začnete sejo.",
+    "codingAgentTurnOn": "Vklopi"
   },
   "activity": {
     "useTemplate": "Use template",

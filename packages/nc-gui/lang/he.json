@@ -521,7 +521,6 @@
     "condition": "מצב",
     "after": "אחרי",
     "search": "חפש",
-    "searchIn": "חיפוש ב",
     "notification": "הודעה",
     "confirm": "אישור",
     "generate": "יצירה",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "מזהה הסוכן: {agentId}",
     "agentState": {
       "active": "בשידור חי",
-      "paused": "מושהה"
+      "paused": "מושהה",
+      "draft": "טיוטה"
     },
     "agentTriggerNewChat": "צ'אט חדש עם",
     "agentChannelAdd": "חיבור ערוץ",
@@ -5163,7 +5163,9 @@
       "recentChats": "צ'אטים אחרונים",
       "searchChats": "חיפוש בצ'אטים",
       "noChats": "אין עדיין צ'אטים",
-      "noChatsMatch": "אין צ'אטים התואמים לחיפוש שלך"
+      "noChatsMatch": "אין צ'אטים התואמים לחיפוש שלך",
+      "agentsPickToChat": "בחר סוכן משמאל כדי לשוחח איתו.",
+      "noWorkflowsOrScripts": "אין עדיין תהליכי עבודה או סקריפטים."
     },
     "showMoreConnections": "הצגת {count} חיבורים נוספים",
     "chooseSignInProvider": "בחרו ספק כדי להמשיך",
@@ -6088,7 +6090,8 @@
           "description": "עונה על שאלות לגבי הטבלאות והמסמכים שלך בכל פעם שמישהו שואל."
         },
         "meeting-prep": {
-          "description": "בכל בוקר של יום חול מכין את הפגישות של היום מטבלת הפגישות שלך: הלקוח, עסקאות פתוחות והערות אחרונות."
+          "description": "בכל בוקר של יום חול מכין את הפגישות של היום מטבלת הפגישות שלך: הלקוח, עסקאות פתוחות והערות אחרונות.",
+          "title": "הכנה לפגישה"
         },
         "follow-up-drafter": {
           "title": "מנסח מעקבים",
@@ -6113,6 +6116,26 @@
         "customer-check-in": {
           "title": "פנייה ללקוח",
           "description": "מנסח פנייה ללקוחות שנעלמו, מוכנה לבדיקה."
+        },
+        "weekly-digest": {
+          "title": "סיכום שבועי",
+          "description": "מסכם את מה שהשתנה בטבלאות שלך ומפרסם זאת בכל יום שני."
+        },
+        "morning-brief": {
+          "title": "תדרוך בוקר",
+          "description": "הופך את מה שהשתנה בטבלאות ובמסמכים שלך לתוכנית קצרה, בכל בוקר של יום עבודה."
+        },
+        "record-enricher": {
+          "title": "העשרת רשומות",
+          "description": "משלים פרטים חסרים ברשומות חדשות מהרשת."
+        },
+        "reorder-alerts": {
+          "title": "התראות הזמנה מחדש",
+          "description": "עוקב אחר רמות המלאי ומכין הזמנות רכש לפני שהמלאי נגמר."
+        },
+        "ticket-triage": {
+          "title": "מיון פניות",
+          "description": "מתייג בקשות חדשות, קובע עדיפות ומנתב אותן לאדם הנכון."
         }
       },
       "rowJob": "משימה",
@@ -6177,8 +6200,129 @@
       "deliverySlackMissing": "חבר את Slack באינטגרציות כדי שיוכל לפרסם שם.",
       "deliverySlackInvalid": "הזן ערוץ Slack, למשל #sales.",
       "discardTitle": "לבטל את הטיוטה הזו?",
-      "discardContent": "הטיוטה וצ'אט ההגדרה שלה יועברו לאשפה."
-    }
+      "discardContent": "הטיוטה וצ'אט ההגדרה שלה יועברו לאשפה.",
+      "whenSchedule": "כל {day} בשעה {time}",
+      "whenRecord": "כאשר רשומה משתנה ב־{table}",
+      "whenRecordAny": "כאשר רשומה משתנה",
+      "whenManual": "רק כשמבקשים",
+      "turnOn": "הפעלת סוכן"
+    },
+    "agentsPopover": {
+      "tooltip": "סוכנים עבור {table}",
+      "recentSessions": "סשנים אחרונים",
+      "sessions": "סשנים",
+      "noSessions": "אין עדיין סשנים",
+      "activeAgo": "פעיל {time}",
+      "nothingMatches": "אין התאמה ל־\"{query}\""
+    },
+    "automate": {
+      "title": "אוטומציה",
+      "tooltip": "אוטומציה ל־{table}",
+      "allWorkflows": "כל תהליכי העבודה",
+      "workflowsInTable": "תהליכי עבודה בטבלה",
+      "startWhen": "התחל כאשר…",
+      "searchTriggers": "חיפוש, למשל \"נוצר\", \"כפתור\"",
+      "searchAutomations": "חיפוש אוטומציות",
+      "otherTrigger": "טריגר אחר…",
+      "noMatches": "אין התאמות",
+      "failed": "נכשל",
+      "lastRunFailed": "ההרצה האחרונה נכשלה",
+      "ranAgo": "רץ {time}",
+      "neverRan": "מעולם לא רץ",
+      "newTitle": "{trigger} ב־{table}",
+      "triggers": {
+        "created": "רשומה נוצרת",
+        "updated": "רשומה מתעדכנת",
+        "createdOrUpdated": "רשומה נוצרת או מתעדכנת",
+        "deleted": "רשומה נמחקת",
+        "entersView": "נכנס לתצוגה",
+        "matches": "עומד בתנאים",
+        "fieldChanged": "שדה משתנה",
+        "formSubmitted": "שולח טופס",
+        "buttonClicked": "לוחץ על כפתור",
+        "comment": "מגיב על רשומה"
+      }
+    },
+    "commandPalette": {
+      "askAi": "שאל את הבינה המלאכותית",
+      "askNocoAi": "שאל את NocoAI: \"{query}\"",
+      "app": {
+        "openLive": "פתיחת האפליקציה החיה",
+        "copyLink": "העתקת קישור האפליקציה",
+        "share": "שיתוף אפליקציה…",
+        "refreshPreview": "רענון התצוגה המקדימה",
+        "switchViewport": "החלפת גודל התצוגה המקדימה",
+        "fullScreen": "תצוגה מקדימה במסך מלא",
+        "exitFullScreen": "יציאה ממסך מלא"
+      },
+      "base": {
+        "createSync": "יצירת סנכרון…",
+        "createSnapshot": "יצירת תמונת מצב…",
+        "emptyTrash": "ריקון האשפה…",
+        "duplicate": "שכפול בסיס…"
+      },
+      "account": {
+        "profile": "פרופיל",
+        "changeLanguage": "שינוי שפה…"
+      },
+      "agent": {
+        "enable": "הפעלת סוכן",
+        "disable": "השבתת סוכן",
+        "duplicate": "שכפול סוכן",
+        "copyId": "העתקת מזהה הסוכן",
+        "delete": "מחיקת סוכן…",
+        "openSettings": "הגדרות סוכן…",
+        "newChat": "צ'אט חדש",
+        "toggleFiles": "הצגה או הסתרה של קבצים",
+        "copyLink": "העתקת קישור הסוכן"
+      },
+      "addToBookmarks": "הוספת {object} לסימניות",
+      "addedToBookmarks": "נוסף לסימניות",
+      "addRecord": "הוספת רשומה",
+      "addField": "הוספת שדה…",
+      "addFilter": "הוספת מסנן…",
+      "addSort": "הוספת מיון…",
+      "addColourCondition": "הוספת תנאי צבע",
+      "askAiAboutRecord": "שאל את הבינה המלאכותית על הרשומה הזו",
+      "addComment": "הוספת תגובה…",
+      "apiReference": "מדריך API…",
+      "assignToMe": "הקצה אליי"
+    },
+    "chartPaletteColorblindNote": "ההעדפה שלך לעיוורון צבעים מציגה תרשימים בלוח צבעים בטוח. כל האחרים רואים את לוח הצבעים שבחרת.",
+    "alsoDisconnectApps": "לנתק גם אפליקציות",
+    "assigneeField": "אחראי",
+    "colorConditionCount": "תנאי {n} | {n} תנאים",
+    "collapseSubgroups": "כיווץ תת־קבוצות",
+    "chooseSearchField": "חיפוש בשדה אחד",
+    "allowCsvImport": "לאפשר ייבוא מ־CSV",
+    "codingAgent": "סוכן קוד",
+    "codingAgentSettingsNoAccessTitle": "מאגרים ומכונות דורשים גישת עורך",
+    "agentTriggerWebhook": "כאשר מתקבל webhook",
+    "agentTriggerWebhookHint": "רץ כאשר כתובת ה־URL שלו נקראת עם אסימון API. כתובת ה־URL מוצגת על הטריגר ברגע שהוא נוסף.",
+    "agentTriggerWebhookCopy": "העתקת כתובת ה־URL של ה־webhook",
+    "agentsOnLargerScreen": "הסוכנים נפתחים במסך גדול יותר",
+    "codingAgentAddRepo": "הוספת מאגר",
+    "codingAgentAddRepos": "הוספת {count}",
+    "codingAgentManageRepos": "ניהול מאגרים",
+    "codingAgentRepoPickTitle": "התחלה ב־",
+    "codingAgentNoRepo": "אין מאגר",
+    "codingAgentRepoAdded": "נוסף",
+    "codingAgentRepoDefault": "ברירת מחדל ({repo})",
+    "codingAgentRepoDefaultShort": "מאגר ברירת המחדל",
+    "codingAgentRepoDisconnected": "החיבור כבר אינו כולל את המאגר הזה. חבר אותו מחדש כדי להתחיל כאן סשנים.",
+    "codingAgentOpenRepo": "פתיחת מאגר",
+    "codingAgentRemoveRepoTitle": "להסיר את המאגר?",
+    "codingAgentNoReposTitle": "הוסף מאגר כדי להתחיל",
+    "codingAgentNoReposBody": "סוכן קוד עובד במאגרים שלך. הוסף מאגר כדי להתחיל סשן.",
+    "codingAgentNoReposAskCreator": "סוכן קוד עובד במאגרים שלך. בקש מיוצר הפרויקט להוסיף מאגר.",
+    "codingAgentTriggerRepo": "מאגר",
+    "codingAgentUnavailableTitle": "Coding אינו זמין כאן",
+    "codingAgentUnavailableBody": "זהו סוכן קוד, והתוכנית של סביבת העבודה הזו אינה כוללת Coding. שדרג כדי להמשיך להשתמש בו.",
+    "codingAgentSettingsNoAccess": "מאגרים ומכונות גלויים לעורכים ומעלה. בקש גישה מבעל הפרויקט.",
+    "codingAgentOffTitle": "הסוכן הזה כבוי",
+    "codingAgentOffBody": "הפעל אותו כדי להתחיל סשן.",
+    "codingAgentOffAskEditor": "בקש מיוצר הפרויקט להפעיל אותו כדי להתחיל סשן.",
+    "codingAgentTurnOn": "הפעלה"
   },
   "activity": {
     "useTemplate": "השתמש בתבנית",

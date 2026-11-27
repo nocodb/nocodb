@@ -521,7 +521,6 @@
     "condition": "Baldintza",
     "after": "Ondoren",
     "search": "Bilatu",
-    "searchIn": "Bilatu barruan",
     "notification": "Jakinarazpena",
     "confirm": "Berretsi",
     "generate": "Sortu",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "Agentearen IDa: {agentId}",
     "agentState": {
       "active": "Zuzenean",
-      "paused": "Pausatuta"
+      "paused": "Pausatuta",
+      "draft": "Zirriborroa"
     },
     "agentTriggerNewChat": "Txat berria honekin",
     "agentChannelAdd": "Konektatu kanal bat",
@@ -5157,7 +5157,9 @@
       "recentChats": "Azken txatak",
       "searchChats": "Bilatu txatetan",
       "noChats": "Oraindik ez dago txatik",
-      "noChatsMatch": "Ez dago zure bilaketarekin bat datorren txatik"
+      "noChatsMatch": "Ez dago zure bilaketarekin bat datorren txatik",
+      "agentsPickToChat": "Hautatu ezkerreko agente bat harekin txateatzeko.",
+      "noWorkflowsOrScripts": "Oraindik ez dago lan-fluxurik edo script-ik."
     },
     "showMoreConnections": "Erakutsi beste {count} konexio",
     "chooseSignInProvider": "Aukeratu hornitzaile bat jarraitzeko",
@@ -6083,7 +6085,8 @@
           "description": "Zure taulei eta dokumentuei buruzko galderak erantzuten ditu norbaitek galdetzen duen bakoitzean."
         },
         "meeting-prep": {
-          "description": "Lanegun bakoitzeko goizean, gaurko bilerak prestatzen ditu zure bileren taulatik: bezeroa, irekita dauden akordioak eta azken oharrak."
+          "description": "Lanegun bakoitzeko goizean, gaurko bilerak prestatzen ditu zure bileren taulatik: bezeroa, irekita dauden akordioak eta azken oharrak.",
+          "title": "Bileraren prestaketa"
         },
         "follow-up-drafter": {
           "title": "Jarraipen-mezuen idazlea",
@@ -6108,6 +6111,26 @@
         "customer-check-in": {
           "title": "Bezeroarekiko harremana",
           "description": "Isildu diren bezeroentzako mezu bat idazten du, berrikusteko prest."
+        },
+        "weekly-digest": {
+          "title": "Asteko laburpena",
+          "description": "Zure tauletan aldatu dena laburbiltzen du eta astelehenero argitaratzen du."
+        },
+        "morning-brief": {
+          "title": "Goizeko laburpena",
+          "description": "Zure tauletan eta dokumentuetan aldatu dena plan labur bihurtzen du, astegun goiz guztietan."
+        },
+        "record-enricher": {
+          "title": "Erregistroen aberasgarria",
+          "description": "Erregistro berrietan falta diren xehetasunak webetik betetzen ditu."
+        },
+        "reorder-alerts": {
+          "title": "Berriro eskatzeko abisuak",
+          "description": "Stock-mailak zaintzen ditu eta erosketa-eskaerak prestatzen ditu agortu aurretik."
+        },
+        "ticket-triage": {
+          "title": "Txartelen sailkapena",
+          "description": "Eskaera berriak etiketatzen ditu, lehentasuna ezartzen du eta pertsona egokiari bideratzen dizkio."
         }
       },
       "rowJob": "Zeregina",
@@ -6172,8 +6195,129 @@
       "deliverySlackMissing": "Konektatu Slack Integrazioetan han argitaratu ahal izateko.",
       "deliverySlackInvalid": "Sartu Slack kanal bat, adibidez #sales.",
       "discardTitle": "Zirriborro hau baztertu?",
-      "discardContent": "Zirriborroa eta bere konfigurazio-txata zakarrontzira eramango dira."
-    }
+      "discardContent": "Zirriborroa eta bere konfigurazio-txata zakarrontzira eramango dira.",
+      "whenSchedule": "{day} bakoitzean {time}",
+      "whenRecord": "{table} taulan erregistro bat aldatzen denean",
+      "whenRecordAny": "Erregistro bat aldatzen denean",
+      "whenManual": "Eskatzen denean soilik",
+      "turnOn": "Piztu agentea"
+    },
+    "agentsPopover": {
+      "tooltip": "{table} taularen agenteak",
+      "recentSessions": "Azken saioak",
+      "sessions": "Saioak",
+      "noSessions": "Oraindik ez dago saiorik",
+      "activeAgo": "Aktibo {time}",
+      "nothingMatches": "Ezer ez dator bat \"{query}\" bilaketarekin"
+    },
+    "automate": {
+      "title": "Automatizatu",
+      "tooltip": "Automatizatu {table}",
+      "allWorkflows": "Lan-fluxu guztiak",
+      "workflowsInTable": "Taulako lan-fluxuak",
+      "startWhen": "Hasi noiz…",
+      "searchTriggers": "Bilatu, adib. \"sortua\", \"botoia\"",
+      "searchAutomations": "Bilatu automatizazioak",
+      "otherTrigger": "Beste abiarazle bat…",
+      "noMatches": "Bat etortzerik ez",
+      "failed": "Huts egin du",
+      "lastRunFailed": "Azken exekuzioak huts egin du",
+      "ranAgo": "Exekutatua {time}",
+      "neverRan": "Ez da inoiz exekutatu",
+      "newTitle": "{trigger} {table} taulan",
+      "triggers": {
+        "created": "Erregistro bat sortzen da",
+        "updated": "Erregistro bat eguneratzen da",
+        "createdOrUpdated": "Erregistro bat sortu edo eguneratzen da",
+        "deleted": "Erregistro bat ezabatzen da",
+        "entersView": "Ikuspegi batera sartzen da",
+        "matches": "Baldintzak betetzen ditu",
+        "fieldChanged": "Eremu bat aldatzen da",
+        "formSubmitted": "Inprimaki bat bidaltzen du",
+        "buttonClicked": "Botoi bat sakatzen du",
+        "comment": "Erregistro bati iruzkina egiten dio"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Galdetu AIri",
+      "askNocoAi": "Galdetu NocoAIri: «{query}»",
+      "app": {
+        "openLive": "Ireki aplikazio bizia",
+        "copyLink": "Kopiatu aplikazioaren esteka",
+        "share": "Partekatu aplikazioa…",
+        "refreshPreview": "Freskatu aurrebista",
+        "switchViewport": "Aldatu aurrebistaren tamaina",
+        "fullScreen": "Pantaila osoko aurrebista",
+        "exitFullScreen": "Irten pantaila osotik"
+      },
+      "base": {
+        "createSync": "Sortu sinkronizazioa…",
+        "createSnapshot": "Sortu argazkia…",
+        "emptyTrash": "Hustu zakarrontzia…",
+        "duplicate": "Bikoiztu basea…"
+      },
+      "account": {
+        "profile": "Profila",
+        "changeLanguage": "Aldatu hizkuntza…"
+      },
+      "agent": {
+        "enable": "Gaitu agentea",
+        "disable": "Desgaitu agentea",
+        "duplicate": "Bikoiztu agentea",
+        "copyId": "Kopiatu agentearen IDa",
+        "delete": "Ezabatu agentea…",
+        "openSettings": "Agentearen ezarpenak…",
+        "newChat": "Txat berria",
+        "toggleFiles": "Erakutsi edo ezkutatu fitxategiak",
+        "copyLink": "Kopiatu agentearen esteka"
+      },
+      "addToBookmarks": "Gehitu {object} laster-marketara",
+      "addedToBookmarks": "Laster-marketara gehituta",
+      "addRecord": "Gehitu erregistroa",
+      "addField": "Gehitu eremua…",
+      "addFilter": "Gehitu iragazkia…",
+      "addSort": "Gehitu ordenatzea…",
+      "addColourCondition": "Gehitu kolore-baldintza",
+      "askAiAboutRecord": "Galdetu AIri erregistro honi buruz",
+      "addComment": "Gehitu iruzkina…",
+      "apiReference": "API erreferentzia…",
+      "assignToMe": "Esleitu niri"
+    },
+    "chartPaletteColorblindNote": "Zure kolore-itsutasun hobespenak grafikoak paleta seguru batean erakusten ditu. Gainerako guztiek zuk aukeratutako paleta ikusten dute.",
+    "alsoDisconnectApps": "Deskonektatu aplikazioak ere",
+    "assigneeField": "Arduraduna",
+    "colorConditionCount": "Baldintza {n} | {n} baldintza",
+    "collapseSubgroups": "Tolestu azpitaldeak",
+    "chooseSearchField": "Bilatu eremu bakarrean",
+    "allowCsvImport": "Baimendu CSV-tik inportatzea",
+    "codingAgent": "Kodetze-agentea",
+    "codingAgentSettingsNoAccessTitle": "Biltegiek eta makinek Editore sarbidea behar dute",
+    "agentTriggerWebhook": "Webhook bat jasotzean",
+    "agentTriggerWebhookHint": "Bere URL API token batekin deitzen denean exekutatzen da. URL abiarazlean agertzen da gehitu bezain laster.",
+    "agentTriggerWebhookCopy": "Kopiatu webhook-aren URL",
+    "agentsOnLargerScreen": "Agenteak pantaila handiago batean irekitzen dira",
+    "codingAgentAddRepo": "Gehitu biltegia",
+    "codingAgentAddRepos": "Gehitu {count}",
+    "codingAgentManageRepos": "Kudeatu biltegiak",
+    "codingAgentRepoPickTitle": "Hasi hemen:",
+    "codingAgentNoRepo": "Biltegirik ez",
+    "codingAgentRepoAdded": "Gehituta",
+    "codingAgentRepoDefault": "Lehenetsia ({repo})",
+    "codingAgentRepoDefaultShort": "Biltegi lehenetsia",
+    "codingAgentRepoDisconnected": "Konexioak jada ez du biltegi hau hartzen. Konektatu berriro hemen saioak hasteko.",
+    "codingAgentOpenRepo": "Ireki biltegia",
+    "codingAgentRemoveRepoTitle": "Biltegia kendu?",
+    "codingAgentNoReposTitle": "Gehitu biltegi bat hasteko",
+    "codingAgentNoReposBody": "Kodetze-agenteak zure biltegietan egiten du lan. Gehitu bat saio bat hasteko.",
+    "codingAgentNoReposAskCreator": "Kodetze-agenteak zure biltegietan egiten du lan. Eskatu proiektuaren sortzaile bati bat gehitzeko.",
+    "codingAgentTriggerRepo": "Biltegia",
+    "codingAgentUnavailableTitle": "Coding ez dago erabilgarri hemen",
+    "codingAgentUnavailableBody": "Hau kodetze-agente bat da, eta lan-eremu honen planak ez du Coding barne hartzen. Berritu erabiltzen jarraitzeko.",
+    "codingAgentSettingsNoAccess": "Biltegiak eta makinak editoreek eta goragokoek ikus ditzakete. Eskatu sarbidea proiektuaren jabe bati.",
+    "codingAgentOffTitle": "Agente hau itzalita dago",
+    "codingAgentOffBody": "Piztu saio bat hasteko.",
+    "codingAgentOffAskEditor": "Eskatu proiektuaren sortzaile bati pizteko, saio bat hasteko.",
+    "codingAgentTurnOn": "Piztu"
   },
   "activity": {
     "useTemplate": "Erabili txantiloia",

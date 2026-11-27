@@ -521,7 +521,6 @@
     "condition": "Condition",
     "after": "Après",
     "search": "Rechercher",
-    "searchIn": "Chercher dans",
     "notification": "Notification",
     "confirm": "Confirmer",
     "generate": "Générer",
@@ -2924,7 +2923,8 @@
     "agentIdColon": "ID de l'agent : {agentId}",
     "agentState": {
       "active": "En direct",
-      "paused": "En pause"
+      "paused": "En pause",
+      "draft": "Brouillon"
     },
     "agentTriggerNewChat": "Nouvelle discussion avec",
     "agentChannelAdd": "Connecter un canal",
@@ -5112,7 +5112,9 @@
       "recentChats": "Conversations récentes",
       "searchChats": "Rechercher dans les conversations",
       "noChats": "Aucune conversation pour l'instant",
-      "noChatsMatch": "Aucune conversation ne correspond à votre recherche"
+      "noChatsMatch": "Aucune conversation ne correspond à votre recherche",
+      "agentsPickToChat": "Choisissez un agent à gauche pour discuter avec lui.",
+      "noWorkflowsOrScripts": "Aucun workflow ni script pour l'instant."
     },
     "showMoreConnections": "Afficher {count} connexions de plus",
     "chooseSignInProvider": "Choisissez un fournisseur pour continuer",
@@ -6021,7 +6023,8 @@
           "description": "Répond aux questions sur vos tables et vos docs dès que quelqu'un en pose une."
         },
         "meeting-prep": {
-          "description": "Chaque matin de semaine, prépare les réunions du jour à partir de votre table de réunions : le compte, les affaires en cours et les dernières notes."
+          "description": "Chaque matin de semaine, prépare les réunions du jour à partir de votre table de réunions : le compte, les affaires en cours et les dernières notes.",
+          "title": "Préparation de réunion"
         },
         "follow-up-drafter": {
           "title": "Rédacteur de relances",
@@ -6046,6 +6049,26 @@
         "customer-check-in": {
           "title": "Relance client",
           "description": "Rédige une relance pour les clients devenus silencieux, prête à être relue."
+        },
+        "weekly-digest": {
+          "title": "Résumé hebdomadaire",
+          "description": "Résume ce qui a changé dans vos tables et le publie chaque lundi."
+        },
+        "morning-brief": {
+          "title": "Point du matin",
+          "description": "Transforme ce qui a changé dans vos tables et vos docs en un bref plan, chaque matin de semaine."
+        },
+        "record-enricher": {
+          "title": "Enrichisseur d'enregistrements",
+          "description": "Complète les informations manquantes des nouveaux enregistrements à partir du web."
+        },
+        "reorder-alerts": {
+          "title": "Alertes de réapprovisionnement",
+          "description": "Surveille les niveaux de stock et rédige les bons de commande avant la rupture."
+        },
+        "ticket-triage": {
+          "title": "Tri des tickets",
+          "description": "Étiquette les nouvelles demandes, définit la priorité et les achemine vers la bonne personne."
         }
       },
       "rowJob": "Tâche",
@@ -6109,8 +6132,127 @@
       "deliverySlackMissing": "Connectez Slack dans les Intégrations pour qu'il puisse y publier.",
       "deliverySlackInvalid": "Saisissez un canal Slack, comme #sales.",
       "discardTitle": "Abandonner ce brouillon ?",
-      "discardContent": "Le brouillon et son chat de configuration seront déplacés vers la corbeille."
-    }
+      "discardContent": "Le brouillon et son chat de configuration seront déplacés vers la corbeille.",
+      "whenSchedule": "Chaque {day} à {time}",
+      "whenRecord": "Lorsqu'un enregistrement change dans {table}",
+      "whenRecordAny": "Lorsqu'un enregistrement change",
+      "whenManual": "Uniquement sur demande",
+      "turnOn": "Activer l'agent"
+    },
+    "agentsPopover": {
+      "tooltip": "Agents pour {table}",
+      "recentSessions": "Sessions récentes",
+      "noSessions": "Aucune session pour l'instant",
+      "activeAgo": "Actif {time}",
+      "nothingMatches": "Aucun résultat pour \"{query}\""
+    },
+    "automate": {
+      "title": "Automatiser",
+      "tooltip": "Automatiser {table}",
+      "allWorkflows": "Tous les workflows",
+      "workflowsInTable": "Workflows dans la table",
+      "startWhen": "Démarrer quand…",
+      "searchTriggers": "Rechercher, par ex. \"créé\", \"bouton\"",
+      "searchAutomations": "Rechercher des automatisations",
+      "otherTrigger": "Autre déclencheur…",
+      "noMatches": "Aucun résultat",
+      "failed": "Échec",
+      "lastRunFailed": "La dernière exécution a échoué",
+      "ranAgo": "Exécuté {time}",
+      "neverRan": "Jamais exécuté",
+      "newTitle": "{trigger} dans {table}",
+      "triggers": {
+        "created": "Un enregistrement est créé",
+        "updated": "Un enregistrement est mis à jour",
+        "createdOrUpdated": "Un enregistrement est créé ou mis à jour",
+        "deleted": "Un enregistrement est supprimé",
+        "entersView": "Entre dans une vue",
+        "matches": "Correspond aux conditions",
+        "fieldChanged": "Un champ change",
+        "formSubmitted": "Soumet un formulaire",
+        "buttonClicked": "Clique sur un bouton",
+        "comment": "Commente un enregistrement"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Demander à l'IA",
+      "askNocoAi": "Demander à NocoAI : « {query} »",
+      "app": {
+        "openLive": "Ouvrir l'app en direct",
+        "copyLink": "Copier le lien de l'app",
+        "share": "Partager l'app…",
+        "refreshPreview": "Actualiser l'aperçu",
+        "switchViewport": "Changer la taille d'aperçu",
+        "fullScreen": "Aperçu en plein écran",
+        "exitFullScreen": "Quitter le plein écran"
+      },
+      "base": {
+        "createSync": "Créer une synchronisation…",
+        "createSnapshot": "Créer un instantané…",
+        "emptyTrash": "Vider la corbeille…",
+        "duplicate": "Dupliquer la base…"
+      },
+      "account": {
+        "profile": "Profil",
+        "changeLanguage": "Changer de langue…"
+      },
+      "agent": {
+        "enable": "Activer l'agent",
+        "disable": "Désactiver l'agent",
+        "duplicate": "Dupliquer l'agent",
+        "copyId": "Copier l'ID de l'agent",
+        "delete": "Supprimer l'agent…",
+        "openSettings": "Paramètres de l'agent…",
+        "newChat": "Nouveau chat",
+        "toggleFiles": "Afficher ou masquer les fichiers",
+        "copyLink": "Copier le lien de l'agent"
+      },
+      "addToBookmarks": "Ajouter {object} aux signets",
+      "addedToBookmarks": "Ajouté aux signets",
+      "addRecord": "Ajouter un enregistrement",
+      "addField": "Ajouter un champ…",
+      "addFilter": "Ajouter un filtre…",
+      "addSort": "Ajouter un tri…",
+      "addColourCondition": "Ajouter une condition de couleur",
+      "askAiAboutRecord": "Interroger l'IA sur cet enregistrement",
+      "addComment": "Ajouter un commentaire…",
+      "apiReference": "Référence API…",
+      "assignToMe": "M'assigner"
+    },
+    "chartPaletteColorblindNote": "Votre préférence daltonisme affiche les graphiques dans une palette adaptée. Les autres voient la palette que vous choisissez.",
+    "alsoDisconnectApps": "Déconnecter aussi les apps",
+    "assigneeField": "Responsable",
+    "collapseSubgroups": "Réduire les sous-groupes",
+    "chooseSearchField": "Rechercher dans un seul champ",
+    "allowCsvImport": "Autoriser l'import depuis CSV",
+    "codingAgent": "Agent de codage",
+    "codingAgentSettingsNoAccessTitle": "Les dépôts et les machines nécessitent un accès éditeur",
+    "agentTriggerWebhook": "À la réception d'un webhook",
+    "agentTriggerWebhookHint": "S'exécute lorsque son URL est appelée avec un jeton API. L'URL s'affiche sur le déclencheur une fois celui-ci ajouté.",
+    "agentTriggerWebhookCopy": "Copier l'URL du webhook",
+    "agentsOnLargerScreen": "Les agents s'ouvrent sur un écran plus grand",
+    "codingAgentAddRepo": "Ajouter un dépôt",
+    "codingAgentAddRepos": "Ajouter {count}",
+    "codingAgentManageRepos": "Gérer les dépôts",
+    "codingAgentRepoPickTitle": "Démarrer dans",
+    "codingAgentNoRepo": "Aucun dépôt",
+    "codingAgentRepoAdded": "Ajouté",
+    "codingAgentRepoDefault": "Par défaut ({repo})",
+    "codingAgentRepoDefaultShort": "Dépôt par défaut",
+    "codingAgentRepoDisconnected": "La connexion ne couvre plus ce dépôt. Reconnectez-la pour démarrer des sessions ici.",
+    "codingAgentOpenRepo": "Ouvrir le dépôt",
+    "codingAgentRemoveRepoTitle": "Supprimer le dépôt ?",
+    "codingAgentNoReposTitle": "Ajoutez un dépôt pour démarrer",
+    "codingAgentNoReposBody": "Un agent de codage travaille dans vos dépôts. Ajoutez-en un pour démarrer une session.",
+    "codingAgentNoReposAskCreator": "Un agent de codage travaille dans vos dépôts. Demandez à un créateur du projet d'en ajouter un.",
+    "codingAgentTriggerRepo": "Dépôt",
+    "codingAgentUnavailableTitle": "Coding n'est pas disponible ici",
+    "codingAgentUnavailableBody": "Ceci est un agent de codage, et le forfait de cet espace de travail n'inclut pas Coding. Passez à une offre supérieure pour continuer à l'utiliser.",
+    "codingAgentSettingsNoAccess": "Les dépôts et les machines sont visibles par les éditeurs et les rôles supérieurs. Demandez l'accès à un propriétaire du projet.",
+    "codingAgentOffTitle": "Cet agent est désactivé",
+    "codingAgentOffBody": "Activez-le pour démarrer une session.",
+    "codingAgentOffAskEditor": "Demandez à un créateur du projet de l'activer pour démarrer une session.",
+    "codingAgentTurnOn": "Activer"
   },
   "activity": {
     "useTemplate": "Utiliser le modèle",

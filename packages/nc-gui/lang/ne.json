@@ -521,7 +521,6 @@
     "condition": "अवस्था",
     "after": "पछि",
     "search": "खोज्नुहोस्",
-    "searchIn": "मा खोज्नुहोस्",
     "notification": "सूचना",
     "confirm": "पुष्टि गर्नुहोस्",
     "generate": "उत्पादन गर्नुहोस्",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "एजेन्ट आईडी: {agentId}",
     "agentState": {
       "active": "प्रत्यक्ष",
-      "paused": "रोकिएको"
+      "paused": "रोकिएको",
+      "draft": "मस्यौदा"
     },
     "agentTriggerNewChat": "यीसँग नयाँ च्याट",
     "agentChannelAdd": "एउटा च्यानल जडान गर्नुहोस्",
@@ -5161,7 +5161,9 @@
       "recentChats": "हालका च्याटहरू",
       "searchChats": "च्याट खोज्नुहोस्",
       "noChats": "अहिलेसम्म कुनै च्याट छैन",
-      "noChatsMatch": "तपाईंको खोजीसँग कुनै च्याट मेल खाएन"
+      "noChatsMatch": "तपाईंको खोजीसँग कुनै च्याट मेल खाएन",
+      "agentsPickToChat": "कुराकानी गर्न बायाँपट्टिबाट एजेन्ट छान्नुहोस्।",
+      "noWorkflowsOrScripts": "अहिलेसम्म कुनै वर्कफ्लो वा स्क्रिप्ट छैन।"
     },
     "showMoreConnections": "थप {count} जडानहरू देखाउनुहोस्",
     "chooseSignInProvider": "जारी राख्न एउटा प्रदायक छान्नुहोस्",
@@ -6086,7 +6088,8 @@
           "description": "कसैले सोध्दा तपाईंका तालिका र कागजातबारे प्रश्नको उत्तर दिन्छ।"
         },
         "meeting-prep": {
-          "description": "हरेक कार्यदिनको बिहान तपाईंको बैठक तालिकाबाट आजका बैठकहरू तयार पार्छ: ग्राहक, खुला सम्झौता र पछिल्ला टिपोटहरू।"
+          "description": "हरेक कार्यदिनको बिहान तपाईंको बैठक तालिकाबाट आजका बैठकहरू तयार पार्छ: ग्राहक, खुला सम्झौता र पछिल्ला टिपोटहरू।",
+          "title": "बैठकको तयारी"
         },
         "follow-up-drafter": {
           "title": "फलो-अप लेखक",
@@ -6111,6 +6114,26 @@
         "customer-check-in": {
           "title": "ग्राहक सम्पर्क",
           "description": "चुप लागेका ग्राहकहरूका लागि सन्देश तयार पार्छ, समीक्षाका लागि तयार।"
+        },
+        "weekly-digest": {
+          "title": "साप्ताहिक सारांश",
+          "description": "तपाईंका तालिकामा भएका परिवर्तनको सारांश बनाउँछ र हरेक सोमबार पोस्ट गर्छ।"
+        },
+        "morning-brief": {
+          "title": "बिहानको सारांश",
+          "description": "हरेक कार्यदिनको बिहान तपाईंका तालिका र कागजातमा भएका परिवर्तनलाई छोटो योजनामा बदल्छ।"
+        },
+        "record-enricher": {
+          "title": "रेकर्ड समृद्ध गर्ने",
+          "description": "नयाँ रेकर्डमा छुटेका विवरण वेबबाट भर्छ।"
+        },
+        "reorder-alerts": {
+          "title": "पुनः अर्डर सूचना",
+          "description": "मौज्दात स्तर हेर्छ र सामान सकिनुअघि खरिद अर्डर तयार गर्छ।"
+        },
+        "ticket-triage": {
+          "title": "टिकट छनोट",
+          "description": "नयाँ अनुरोधमा ट्याग लगाउँछ, प्राथमिकता तोक्छ र सही व्यक्तिकहाँ पठाउँछ।"
         }
       },
       "rowJob": "काम",
@@ -6175,8 +6198,129 @@
       "deliverySlackMissing": "त्यहाँ पठाउन सकोस् भनेर एकीकरणमा Slack जोड्नुहोस्।",
       "deliverySlackInvalid": "एउटा Slack च्यानल लेख्नुहोस्, जस्तै #sales।",
       "discardTitle": "यो मस्यौदा हटाउने?",
-      "discardContent": "मस्यौदा र त्यसको सेटअप च्याट रद्दीटोकरीमा सारिनेछ।"
-    }
+      "discardContent": "मस्यौदा र त्यसको सेटअप च्याट रद्दीटोकरीमा सारिनेछ।",
+      "whenSchedule": "हरेक {day} {time} बजे",
+      "whenRecord": "{table} मा रेकर्ड परिवर्तन हुँदा",
+      "whenRecordAny": "रेकर्ड परिवर्तन हुँदा",
+      "whenManual": "सोधिएको बेला मात्र",
+      "turnOn": "एजेन्ट सक्रिय गर्नुहोस्"
+    },
+    "agentsPopover": {
+      "tooltip": "{table} का एजेन्टहरू",
+      "recentSessions": "हालका सत्रहरू",
+      "sessions": "सत्रहरू",
+      "noSessions": "अहिलेसम्म कुनै सत्र छैन",
+      "activeAgo": "सक्रिय {time}",
+      "nothingMatches": "\"{query}\" सँग केही मिल्दैन"
+    },
+    "automate": {
+      "title": "स्वचालित गर्नुहोस्",
+      "tooltip": "{table} स्वचालित गर्नुहोस्",
+      "allWorkflows": "सबै वर्कफ्लो",
+      "workflowsInTable": "तालिकाका वर्कफ्लो",
+      "startWhen": "कहिले सुरु गर्ने…",
+      "searchTriggers": "खोज्नुहोस्, जस्तै \"सिर्जना\", \"बटन\"",
+      "searchAutomations": "स्वचालन खोज्नुहोस्",
+      "otherTrigger": "अर्को ट्रिगर…",
+      "noMatches": "कुनै मिल्दो छैन",
+      "failed": "असफल",
+      "lastRunFailed": "अघिल्लो पटक चल्दा असफल भयो",
+      "ranAgo": "चल्यो {time}",
+      "neverRan": "कहिल्यै चलेको छैन",
+      "newTitle": "{table} मा {trigger}",
+      "triggers": {
+        "created": "रेकर्ड सिर्जना हुन्छ",
+        "updated": "रेकर्ड अद्यावधिक हुन्छ",
+        "createdOrUpdated": "रेकर्ड सिर्जना वा अद्यावधिक हुन्छ",
+        "deleted": "रेकर्ड मेटिन्छ",
+        "entersView": "दृश्यमा प्रवेश गर्छ",
+        "matches": "सर्तहरूसँग मिल्छ",
+        "fieldChanged": "क्षेत्र परिवर्तन हुन्छ",
+        "formSubmitted": "फारम पेस गर्छ",
+        "buttonClicked": "बटन थिच्छ",
+        "comment": "रेकर्डमा टिप्पणी गर्छ"
+      }
+    },
+    "commandPalette": {
+      "askAi": "AI लाई सोध्नुहोस्",
+      "askNocoAi": "NocoAI लाई सोध्नुहोस्: “{query}”",
+      "app": {
+        "openLive": "प्रत्यक्ष एप खोल्नुहोस्",
+        "copyLink": "एप लिङ्क प्रतिलिपि गर्नुहोस्",
+        "share": "एप साझा गर्नुहोस्…",
+        "refreshPreview": "पूर्वावलोकन ताजा गर्नुहोस्",
+        "switchViewport": "पूर्वावलोकनको आकार बदल्नुहोस्",
+        "fullScreen": "पूर्ण स्क्रिन पूर्वावलोकन",
+        "exitFullScreen": "पूर्ण स्क्रिनबाट बाहिर निस्कनुहोस्"
+      },
+      "base": {
+        "createSync": "सिंक सिर्जना गर्नुहोस्…",
+        "createSnapshot": "स्न्यापसट सिर्जना गर्नुहोस्…",
+        "emptyTrash": "रद्दीटोकरी खाली गर्नुहोस्…",
+        "duplicate": "बेसको प्रतिलिपि बनाउनुहोस्…"
+      },
+      "account": {
+        "profile": "प्रोफाइल",
+        "changeLanguage": "भाषा परिवर्तन गर्नुहोस्…"
+      },
+      "agent": {
+        "enable": "एजेन्ट सक्षम गर्नुहोस्",
+        "disable": "एजेन्ट निष्क्रिय गर्नुहोस्",
+        "duplicate": "एजेन्टको प्रतिलिपि बनाउनुहोस्",
+        "copyId": "एजेन्ट ID प्रतिलिपि गर्नुहोस्",
+        "delete": "एजेन्ट मेट्नुहोस्…",
+        "openSettings": "एजेन्ट सेटिङ…",
+        "newChat": "नयाँ च्याट",
+        "toggleFiles": "फाइल देखाउनुहोस् वा लुकाउनुहोस्",
+        "copyLink": "एजेन्ट लिङ्क प्रतिलिपि गर्नुहोस्"
+      },
+      "addToBookmarks": "{object} लाई बुकमार्कमा थप्नुहोस्",
+      "addedToBookmarks": "बुकमार्कमा थपियो",
+      "addRecord": "रेकर्ड थप्नुहोस्",
+      "addField": "क्षेत्र थप्नुहोस्…",
+      "addFilter": "फिल्टर थप्नुहोस्…",
+      "addSort": "क्रमबद्धता थप्नुहोस्…",
+      "addColourCondition": "रङ सर्त थप्नुहोस्",
+      "askAiAboutRecord": "यस रेकर्डबारे AI लाई सोध्नुहोस्",
+      "addComment": "टिप्पणी थप्नुहोस्…",
+      "apiReference": "API सन्दर्भ…",
+      "assignToMe": "मलाई असाइन गर्नुहोस्"
+    },
+    "chartPaletteColorblindNote": "तपाईंको वर्णान्धता प्राथमिकताले चार्टलाई सुरक्षित रङ-सङ्ग्रहमा देखाउँछ। अरू सबैले तपाईंले छानेको रङ-सङ्ग्रह देख्छन्।",
+    "alsoDisconnectApps": "एपहरू पनि विच्छेद गर्नुहोस्",
+    "assigneeField": "जिम्मेवार व्यक्ति",
+    "colorConditionCount": "{n} सर्त | {n} सर्तहरू",
+    "collapseSubgroups": "उप-समूह खुम्च्याउनुहोस्",
+    "chooseSearchField": "एउटै क्षेत्रमा खोज्नुहोस्",
+    "allowCsvImport": "CSV बाट आयात गर्न अनुमति दिनुहोस्",
+    "codingAgent": "कोडिङ एजेन्ट",
+    "codingAgentSettingsNoAccessTitle": "रिपोजिटरी र मेसिनलाई सम्पादक पहुँच चाहिन्छ",
+    "agentTriggerWebhook": "webhook प्राप्त हुँदा",
+    "agentTriggerWebhookHint": "यसको URL लाई API टोकनसहित बोलाइँदा चल्छ। ट्रिगर थपेपछि त्यसमा URL देखिन्छ।",
+    "agentTriggerWebhookCopy": "webhook को URL प्रतिलिपि गर्नुहोस्",
+    "agentsOnLargerScreen": "एजेन्टहरू ठूलो स्क्रिनमा खुल्छन्",
+    "codingAgentAddRepo": "रिपोजिटरी थप्नुहोस्",
+    "codingAgentAddRepos": "{count} थप्नुहोस्",
+    "codingAgentManageRepos": "रिपोजिटरी व्यवस्थापन गर्नुहोस्",
+    "codingAgentRepoPickTitle": "यहाँ सुरु गर्नुहोस्",
+    "codingAgentNoRepo": "कुनै रिपोजिटरी छैन",
+    "codingAgentRepoAdded": "थपियो",
+    "codingAgentRepoDefault": "पूर्वनिर्धारित ({repo})",
+    "codingAgentRepoDefaultShort": "पूर्वनिर्धारित रिपोजिटरी",
+    "codingAgentRepoDisconnected": "यो जडानले अब यस रिपोजिटरीलाई समेट्दैन। यहाँ सत्र सुरु गर्न फेरि जडान गर्नुहोस्।",
+    "codingAgentOpenRepo": "रिपोजिटरी खोल्नुहोस्",
+    "codingAgentRemoveRepoTitle": "रिपोजिटरी हटाउने?",
+    "codingAgentNoReposTitle": "सुरु गर्न रिपोजिटरी थप्नुहोस्",
+    "codingAgentNoReposBody": "कोडिङ एजेन्ट तपाईंका रिपोजिटरीमा काम गर्छ। सत्र सुरु गर्न एउटा थप्नुहोस्।",
+    "codingAgentNoReposAskCreator": "कोडिङ एजेन्ट तपाईंका रिपोजिटरीमा काम गर्छ। परियोजना सिर्जनाकर्तालाई एउटा थप्न अनुरोध गर्नुहोस्।",
+    "codingAgentTriggerRepo": "रिपोजिटरी",
+    "codingAgentUnavailableTitle": "यहाँ Coding उपलब्ध छैन",
+    "codingAgentUnavailableBody": "यो कोडिङ एजेन्ट हो, र यस कार्यक्षेत्रको योजनामा Coding समावेश छैन। प्रयोग जारी राख्न स्तरवृद्धि गर्नुहोस्।",
+    "codingAgentSettingsNoAccess": "रिपोजिटरी र मेसिन सम्पादक र माथिका भूमिकालाई देखिन्छन्। परियोजना मालिकसँग पहुँच माग्नुहोस्।",
+    "codingAgentOffTitle": "यो एजेन्ट निष्क्रिय छ",
+    "codingAgentOffBody": "सत्र सुरु गर्न यसलाई सक्रिय गर्नुहोस्।",
+    "codingAgentOffAskEditor": "सत्र सुरु गर्न परियोजना सिर्जनाकर्तालाई यो सक्रिय गर्न अनुरोध गर्नुहोस्।",
+    "codingAgentTurnOn": "सक्रिय गर्नुहोस्"
   },
   "activity": {
     "useTemplate": "Use template",

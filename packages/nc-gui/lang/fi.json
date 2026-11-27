@@ -521,7 +521,6 @@
     "condition": "Kunto",
     "after": "Jälkeen",
     "search": "Hae",
-    "searchIn": "Etsi kohteesta",
     "notification": "Ilmoitus",
     "confirm": "Vahvista",
     "generate": "Luo",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "Agentin tunnus: {agentId}",
     "agentState": {
       "active": "Live",
-      "paused": "Keskeytetty"
+      "paused": "Keskeytetty",
+      "draft": "Luonnos"
     },
     "agentTriggerNewChat": "Uusi keskustelu agentin kanssa",
     "agentChannelAdd": "Yhdistä kanava",
@@ -5160,7 +5160,9 @@
       "recentChats": "Viimeisimmät keskustelut",
       "searchChats": "Hae keskusteluista",
       "noChats": "Ei vielä keskusteluja",
-      "noChatsMatch": "Mikään keskustelu ei vastaa hakuasi"
+      "noChatsMatch": "Mikään keskustelu ei vastaa hakuasi",
+      "agentsPickToChat": "Valitse vasemmalta agentti, jonka kanssa keskustelet.",
+      "noWorkflowsOrScripts": "Ei vielä työnkulkuja tai skriptejä."
     },
     "showMoreConnections": "Näytä {count} yhteyttä lisää",
     "chooseSignInProvider": "Valitse palveluntarjoaja jatkaaksesi",
@@ -6086,7 +6088,8 @@
           "description": "Vastaa taulukoitasi ja docs-tiedostojasi koskeviin kysymyksiin aina kun joku kysyy."
         },
         "meeting-prep": {
-          "description": "Valmistelee joka arkiaamu päivän palaverit palaveritaulukostasi: asiakkaan, avoimet kaupat ja viimeisimmät muistiinpanot."
+          "description": "Valmistelee joka arkiaamu päivän palaverit palaveritaulukostasi: asiakkaan, avoimet kaupat ja viimeisimmät muistiinpanot.",
+          "title": "Kokousvalmistelu"
         },
         "follow-up-drafter": {
           "title": "Seurantaviestien laatija",
@@ -6111,6 +6114,26 @@
         "customer-check-in": {
           "title": "Asiakkaan yhteydenotto",
           "description": "Luonnostelee yhteydenoton hiljentyneille asiakkaille, valmiina tarkistettavaksi."
+        },
+        "weekly-digest": {
+          "title": "Viikkokatsaus",
+          "description": "Tiivistää taulukoissasi tapahtuneet muutokset ja julkaisee ne joka maanantai."
+        },
+        "morning-brief": {
+          "title": "Aamukatsaus",
+          "description": "Tekee taulukoissasi ja dokumenteissasi tapahtuneista muutoksista lyhyen suunnitelman joka arkiaamu."
+        },
+        "record-enricher": {
+          "title": "Tietueiden rikastaja",
+          "description": "Täydentää uusien tietueiden puuttuvat tiedot verkosta."
+        },
+        "reorder-alerts": {
+          "title": "Täydennyshälytykset",
+          "description": "Seuraa varastosaldoja ja laatii ostotilaukset ennen kuin varasto loppuu."
+        },
+        "ticket-triage": {
+          "title": "Tikettien lajittelu",
+          "description": "Merkitsee uudet pyynnöt, asettaa prioriteetin ja ohjaa ne oikealle henkilölle."
         }
       },
       "rowJob": "Tehtävä",
@@ -6175,8 +6198,129 @@
       "deliverySlackMissing": "Yhdistä Slack Integraatioissa, jotta se voi julkaista siellä.",
       "deliverySlackInvalid": "Anna Slack-kanava, esimerkiksi #sales.",
       "discardTitle": "Hylätäänkö tämä luonnos?",
-      "discardContent": "Luonnos ja sen määrityskeskustelu siirretään roskakoriin."
-    }
+      "discardContent": "Luonnos ja sen määrityskeskustelu siirretään roskakoriin.",
+      "whenSchedule": "Joka {day} klo {time}",
+      "whenRecord": "Kun tietue muuttuu taulukossa {table}",
+      "whenRecordAny": "Kun tietue muuttuu",
+      "whenManual": "Vain pyydettäessä",
+      "turnOn": "Ota agentti käyttöön"
+    },
+    "agentsPopover": {
+      "tooltip": "Agentit taulukolle {table}",
+      "recentSessions": "Viimeisimmät istunnot",
+      "sessions": "Istunnot",
+      "noSessions": "Ei vielä istuntoja",
+      "activeAgo": "Aktiivinen {time}",
+      "nothingMatches": "Mikään ei vastaa hakua \"{query}\""
+    },
+    "automate": {
+      "title": "Automatisoi",
+      "tooltip": "Automatisoi {table}",
+      "allWorkflows": "Kaikki työnkulut",
+      "workflowsInTable": "Työnkulut taulukossa",
+      "startWhen": "Käynnistä kun…",
+      "searchTriggers": "Hae, esim. \"luotu\", \"painike\"",
+      "searchAutomations": "Hae automaatioita",
+      "otherTrigger": "Muu liipaisin…",
+      "noMatches": "Ei osumia",
+      "failed": "Epäonnistui",
+      "lastRunFailed": "Viimeisin suoritus epäonnistui",
+      "ranAgo": "Suoritettu {time}",
+      "neverRan": "Ei ole koskaan suoritettu",
+      "newTitle": "{trigger} taulukossa {table}",
+      "triggers": {
+        "created": "Tietue luodaan",
+        "updated": "Tietue päivitetään",
+        "createdOrUpdated": "Tietue luodaan tai päivitetään",
+        "deleted": "Tietue poistetaan",
+        "entersView": "Siirtyy näkymään",
+        "matches": "Täyttää ehdot",
+        "fieldChanged": "Kenttä muuttuu",
+        "formSubmitted": "Lähettää lomakkeen",
+        "buttonClicked": "Napsauttaa painiketta",
+        "comment": "Kommentoi tietuetta"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Kysy tekoälyltä",
+      "askNocoAi": "Kysy NocoAI:lta: ”{query}”",
+      "app": {
+        "openLive": "Avaa live-sovellus",
+        "copyLink": "Kopioi sovelluksen linkki",
+        "share": "Jaa sovellus…",
+        "refreshPreview": "Päivitä esikatselu",
+        "switchViewport": "Vaihda esikatselun kokoa",
+        "fullScreen": "Esikatselu koko näytöllä",
+        "exitFullScreen": "Poistu koko näytön tilasta"
+      },
+      "base": {
+        "createSync": "Luo synkronointi…",
+        "createSnapshot": "Luo snapshot…",
+        "emptyTrash": "Tyhjennä roskakori…",
+        "duplicate": "Monista base…"
+      },
+      "account": {
+        "profile": "Profiili",
+        "changeLanguage": "Vaihda kieli…"
+      },
+      "agent": {
+        "enable": "Ota agentti käyttöön",
+        "disable": "Poista agentti käytöstä",
+        "duplicate": "Monista agentti",
+        "copyId": "Kopioi agentin tunnus",
+        "delete": "Poista agentti…",
+        "openSettings": "Agentin asetukset…",
+        "newChat": "Uusi keskustelu",
+        "toggleFiles": "Näytä tai piilota tiedostot",
+        "copyLink": "Kopioi agentin linkki"
+      },
+      "addToBookmarks": "Lisää {object} kirjanmerkkeihin",
+      "addedToBookmarks": "Lisätty kirjanmerkkeihin",
+      "addRecord": "Lisää tietue",
+      "addField": "Lisää kenttä…",
+      "addFilter": "Lisää suodatin…",
+      "addSort": "Lisää lajittelu…",
+      "addColourCondition": "Lisää väriehto",
+      "askAiAboutRecord": "Kysy tekoälyltä tästä tietueesta",
+      "addComment": "Lisää kommentti…",
+      "apiReference": "API-viite…",
+      "assignToMe": "Määritä minulle"
+    },
+    "chartPaletteColorblindNote": "Värisokeusasetuksesi näyttää kaaviot turvallisella paletilla. Kaikki muut näkevät valitsemasi paletin.",
+    "alsoDisconnectApps": "Katkaise myös sovellusten yhteys",
+    "assigneeField": "Vastuuhenkilö",
+    "colorConditionCount": "{n} ehto | {n} ehtoa",
+    "collapseSubgroups": "Tiivistä alaryhmät",
+    "chooseSearchField": "Hae yhdestä kentästä",
+    "allowCsvImport": "Salli tuonti CSV-tiedostosta",
+    "codingAgent": "Koodausagentti",
+    "codingAgentSettingsNoAccessTitle": "Repositoriot ja koneet vaativat muokkaajan käyttöoikeuden",
+    "agentTriggerWebhook": "Kun webhook vastaanotetaan",
+    "agentTriggerWebhookHint": "Suoritetaan, kun sen URL-osoitetta kutsutaan API-tunnuksella. URL näkyy liipaisimessa, kun se on lisätty.",
+    "agentTriggerWebhookCopy": "Kopioi webhookin URL",
+    "agentsOnLargerScreen": "Agentit avautuvat suuremmalla näytöllä",
+    "codingAgentAddRepo": "Lisää repositorio",
+    "codingAgentAddRepos": "Lisää {count}",
+    "codingAgentManageRepos": "Hallitse repositorioita",
+    "codingAgentRepoPickTitle": "Aloita kohteessa",
+    "codingAgentNoRepo": "Ei repositoriota",
+    "codingAgentRepoAdded": "Lisätty",
+    "codingAgentRepoDefault": "Oletus ({repo})",
+    "codingAgentRepoDefaultShort": "Oletusrepositorio",
+    "codingAgentRepoDisconnected": "Yhteys ei enää kata tätä repositoriota. Yhdistä uudelleen aloittaaksesi istuntoja täällä.",
+    "codingAgentOpenRepo": "Avaa repositorio",
+    "codingAgentRemoveRepoTitle": "Poistetaanko repositorio?",
+    "codingAgentNoReposTitle": "Lisää repositorio aloittaaksesi",
+    "codingAgentNoReposBody": "Koodausagentti työskentelee repositorioissasi. Lisää sellainen aloittaaksesi istunnon.",
+    "codingAgentNoReposAskCreator": "Koodausagentti työskentelee repositorioissasi. Pyydä projektin luojaa lisäämään sellainen.",
+    "codingAgentTriggerRepo": "Repositorio",
+    "codingAgentUnavailableTitle": "Coding ei ole käytettävissä täällä",
+    "codingAgentUnavailableBody": "Tämä on koodausagentti, eikä tämän työtilan tilaus sisällä Codingia. Päivitä tilaus jatkaaksesi sen käyttöä.",
+    "codingAgentSettingsNoAccess": "Repositoriot ja koneet näkyvät muokkaajille ja sitä ylemmille rooleille. Pyydä käyttöoikeutta projektin omistajalta.",
+    "codingAgentOffTitle": "Tämä agentti on pois käytöstä",
+    "codingAgentOffBody": "Ota se käyttöön aloittaaksesi istunnon.",
+    "codingAgentOffAskEditor": "Pyydä projektin luojaa ottamaan se käyttöön, jotta voit aloittaa istunnon.",
+    "codingAgentTurnOn": "Ota käyttöön"
   },
   "activity": {
     "useTemplate": "Käytä mallia",

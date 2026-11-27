@@ -521,7 +521,6 @@
     "condition": "상태",
     "after": "후에",
     "search": "검색",
-    "searchIn": "검색",
     "notification": "알림",
     "confirm": "확인",
     "generate": "생성",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "에이전트 ID: {agentId}",
     "agentState": {
       "active": "라이브",
-      "paused": "일시 중지됨"
+      "paused": "일시 중지됨",
+      "draft": "초안"
     },
     "agentTriggerNewChat": "새 채팅 상대",
     "agentChannelAdd": "채널 연결",
@@ -5161,7 +5161,9 @@
       "recentChats": "최근 대화",
       "searchChats": "대화 검색",
       "noChats": "아직 대화가 없습니다",
-      "noChatsMatch": "검색과 일치하는 대화가 없습니다"
+      "noChatsMatch": "검색과 일치하는 대화가 없습니다",
+      "agentsPickToChat": "왼쪽에서 대화할 에이전트를 선택하세요.",
+      "noWorkflowsOrScripts": "아직 워크플로나 스크립트가 없습니다."
     },
     "showMoreConnections": "연결 {count}개 더 보기",
     "chooseSignInProvider": "계속하려면 제공업체를 선택하세요",
@@ -6085,7 +6087,8 @@
           "description": "누군가 물어볼 때마다 테이블과 문서에 대한 질문에 답합니다."
         },
         "meeting-prep": {
-          "description": "평일 아침마다 회의 테이블에서 오늘의 회의를 준비합니다. 거래처, 진행 중인 거래, 최근 메모를 정리합니다."
+          "description": "평일 아침마다 회의 테이블에서 오늘의 회의를 준비합니다. 거래처, 진행 중인 거래, 최근 메모를 정리합니다.",
+          "title": "회의 준비"
         },
         "follow-up-drafter": {
           "title": "후속 메일 작성",
@@ -6110,6 +6113,26 @@
         "customer-check-in": {
           "title": "고객 재연락",
           "description": "연락이 끊긴 고객에게 보낼 메시지를 검토용으로 작성합니다."
+        },
+        "weekly-digest": {
+          "title": "주간 요약",
+          "description": "테이블에서 바뀐 내용을 요약해 매주 월요일에 게시합니다."
+        },
+        "morning-brief": {
+          "title": "모닝 브리핑",
+          "description": "평일 아침마다 테이블과 문서에서 바뀐 내용을 짧은 계획으로 정리합니다."
+        },
+        "record-enricher": {
+          "title": "항목 보강",
+          "description": "웹에서 새 항목의 누락된 정보를 채웁니다."
+        },
+        "reorder-alerts": {
+          "title": "재주문 알림",
+          "description": "재고 수준을 확인하고 재고가 떨어지기 전에 발주서를 작성합니다."
+        },
+        "ticket-triage": {
+          "title": "티켓 분류",
+          "description": "새 요청에 태그를 달고 우선순위를 정해 적합한 담당자에게 전달합니다."
         }
       },
       "rowJob": "역할",
@@ -6174,8 +6197,129 @@
       "deliverySlackMissing": "거기에 올릴 수 있도록 연동에서 Slack 계정을 연결하세요.",
       "deliverySlackInvalid": "Slack 채널을 입력하세요. 예: #sales.",
       "discardTitle": "이 초안을 버릴까요?",
-      "discardContent": "초안과 설정 채팅이 휴지통으로 이동합니다."
-    }
+      "discardContent": "초안과 설정 채팅이 휴지통으로 이동합니다.",
+      "whenSchedule": "매주 {day} {time}",
+      "whenRecord": "{table}에서 항목이 변경될 때",
+      "whenRecordAny": "항목이 변경될 때",
+      "whenManual": "요청할 때만",
+      "turnOn": "에이전트 켜기"
+    },
+    "agentsPopover": {
+      "tooltip": "{table}의 에이전트",
+      "recentSessions": "최근 세션",
+      "sessions": "세션",
+      "noSessions": "아직 세션이 없습니다",
+      "activeAgo": "활성 {time}",
+      "nothingMatches": "\"{query}\"과(와) 일치하는 항목이 없습니다"
+    },
+    "automate": {
+      "title": "자동화",
+      "tooltip": "{table} 자동화",
+      "allWorkflows": "모든 워크플로",
+      "workflowsInTable": "테이블의 워크플로",
+      "startWhen": "시작 조건…",
+      "searchTriggers": "검색, 예: \"생성됨\", \"버튼\"",
+      "searchAutomations": "자동화 검색",
+      "otherTrigger": "다른 트리거…",
+      "noMatches": "일치 항목 없음",
+      "failed": "실패",
+      "lastRunFailed": "마지막 실행 실패",
+      "ranAgo": "실행 {time}",
+      "neverRan": "실행된 적 없음",
+      "newTitle": "{table}의 {trigger}",
+      "triggers": {
+        "created": "항목이 생성됨",
+        "updated": "항목이 업데이트됨",
+        "createdOrUpdated": "항목이 생성되거나 업데이트됨",
+        "deleted": "항목이 삭제됨",
+        "entersView": "뷰에 들어옴",
+        "matches": "조건을 충족함",
+        "fieldChanged": "필드가 변경됨",
+        "formSubmitted": "폼을 제출함",
+        "buttonClicked": "버튼을 클릭함",
+        "comment": "항목에 댓글을 남김"
+      }
+    },
+    "commandPalette": {
+      "askAi": "AI에게 묻기",
+      "askNocoAi": "NocoAI에게 묻기: “{query}”",
+      "app": {
+        "openLive": "라이브 앱 열기",
+        "copyLink": "앱 링크 복사",
+        "share": "앱 공유…",
+        "refreshPreview": "미리보기 새로고침",
+        "switchViewport": "미리보기 화면 크기 전환",
+        "fullScreen": "전체 화면 미리보기",
+        "exitFullScreen": "전체 화면 종료"
+      },
+      "base": {
+        "createSync": "동기화 만들기…",
+        "createSnapshot": "스냅샷 만들기…",
+        "emptyTrash": "휴지통 비우기…",
+        "duplicate": "베이스 복제…"
+      },
+      "account": {
+        "profile": "프로필",
+        "changeLanguage": "언어 변경…"
+      },
+      "agent": {
+        "enable": "에이전트 활성화",
+        "disable": "에이전트 비활성화",
+        "duplicate": "에이전트 복제",
+        "copyId": "에이전트 ID 복사",
+        "delete": "에이전트 삭제…",
+        "openSettings": "에이전트 설정…",
+        "newChat": "새 채팅",
+        "toggleFiles": "파일 표시 또는 숨기기",
+        "copyLink": "에이전트 링크 복사"
+      },
+      "addToBookmarks": "{object}을(를) 북마크에 추가",
+      "addedToBookmarks": "북마크에 추가됨",
+      "addRecord": "항목 추가",
+      "addField": "필드 추가…",
+      "addFilter": "필터 추가…",
+      "addSort": "정렬 추가…",
+      "addColourCondition": "색상 조건 추가",
+      "askAiAboutRecord": "이 항목에 대해 AI에게 묻기",
+      "addComment": "댓글 추가…",
+      "apiReference": "API 참조…",
+      "assignToMe": "나에게 할당"
+    },
+    "chartPaletteColorblindNote": "색각 이상 설정에 따라 차트가 안전한 팔레트로 표시됩니다. 다른 사람에게는 선택한 팔레트가 표시됩니다.",
+    "alsoDisconnectApps": "앱 연결도 해제",
+    "assigneeField": "담당자",
+    "colorConditionCount": "조건 {n}개 | 조건 {n}개",
+    "collapseSubgroups": "하위 그룹 접기",
+    "chooseSearchField": "한 필드에서 검색",
+    "allowCsvImport": "CSV 파일에서 가져오기 허용",
+    "codingAgent": "코딩 에이전트",
+    "codingAgentSettingsNoAccessTitle": "저장소와 머신에는 편집자 권한이 필요합니다",
+    "agentTriggerWebhook": "웹훅을 받았을 때",
+    "agentTriggerWebhookHint": "URL 이 API 토큰과 함께 호출되면 실행됩니다. 트리거를 추가하면 URL 이 트리거에 표시됩니다.",
+    "agentTriggerWebhookCopy": "웹훅 URL 복사",
+    "agentsOnLargerScreen": "에이전트는 더 큰 화면에서 열립니다",
+    "codingAgentAddRepo": "저장소 추가",
+    "codingAgentAddRepos": "{count}개 추가",
+    "codingAgentManageRepos": "저장소 관리",
+    "codingAgentRepoPickTitle": "시작 위치",
+    "codingAgentNoRepo": "저장소 없음",
+    "codingAgentRepoAdded": "추가됨",
+    "codingAgentRepoDefault": "기본값 ({repo})",
+    "codingAgentRepoDefaultShort": "기본 저장소",
+    "codingAgentRepoDisconnected": "연결이 더 이상 이 저장소를 포함하지 않습니다. 여기서 세션을 시작하려면 다시 연결하세요.",
+    "codingAgentOpenRepo": "저장소 열기",
+    "codingAgentRemoveRepoTitle": "저장소를 제거할까요?",
+    "codingAgentNoReposTitle": "시작하려면 저장소를 추가하세요",
+    "codingAgentNoReposBody": "코딩 에이전트는 저장소에서 작업합니다. 세션을 시작하려면 저장소를 추가하세요.",
+    "codingAgentNoReposAskCreator": "코딩 에이전트는 저장소에서 작업합니다. 프로젝트 생성자에게 저장소 추가를 요청하세요.",
+    "codingAgentTriggerRepo": "저장소",
+    "codingAgentUnavailableTitle": "여기서는 Coding을 사용할 수 없습니다",
+    "codingAgentUnavailableBody": "이것은 코딩 에이전트이며 이 작업공간의 플랜에는 Coding이 포함되어 있지 않습니다. 계속 사용하려면 업그레이드하세요.",
+    "codingAgentSettingsNoAccess": "저장소와 머신은 편집자 이상에게 표시됩니다. 프로젝트 소유자에게 접근 권한을 요청하세요.",
+    "codingAgentOffTitle": "이 에이전트는 꺼져 있습니다",
+    "codingAgentOffBody": "세션을 시작하려면 켜세요.",
+    "codingAgentOffAskEditor": "세션을 시작하려면 프로젝트 생성자에게 켜 달라고 요청하세요.",
+    "codingAgentTurnOn": "켜기"
   },
   "activity": {
     "useTemplate": "Use template",

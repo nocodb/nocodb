@@ -521,7 +521,6 @@
     "condition": "Feltétel",
     "after": "Utána",
     "search": "Keresés",
-    "searchIn": "Keresés",
     "notification": "Értesítés",
     "confirm": "Megerősítés",
     "generate": "Generálás",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "Ügynök azonosítója: {agentId}",
     "agentState": {
       "active": "Élő",
-      "paused": "Szüneteltetve"
+      "paused": "Szüneteltetve",
+      "draft": "Piszkozat"
     },
     "agentTriggerNewChat": "Új csevegés ezzel:",
     "agentChannelAdd": "Csatorna csatlakoztatása",
@@ -5157,7 +5157,9 @@
       "recentChats": "Legutóbbi beszélgetések",
       "searchChats": "Keresés a beszélgetésekben",
       "noChats": "Még nincsenek beszélgetések",
-      "noChatsMatch": "Egy beszélgetés sem felel meg a keresésednek"
+      "noChatsMatch": "Egy beszélgetés sem felel meg a keresésednek",
+      "agentsPickToChat": "Válasszon balra egy ügynököt, hogy beszélgessen vele.",
+      "noWorkflowsOrScripts": "Még nincsenek munkafolyamatok vagy szkriptek."
     },
     "showMoreConnections": "További {count} kapcsolat megjelenítése",
     "chooseSignInProvider": "Válassz szolgáltatót a folytatáshoz",
@@ -6082,7 +6084,8 @@
           "description": "Válaszol a tábláival és dokumentumaival kapcsolatos kérdésekre, amikor valaki kérdez."
         },
         "meeting-prep": {
-          "description": "Minden hétköznap reggel előkészíti a napi megbeszéléseket a megbeszélések táblájából: az ügyfelet, a nyitott üzleteket és a legutóbbi jegyzeteket."
+          "description": "Minden hétköznap reggel előkészíti a napi megbeszéléseket a megbeszélések táblájából: az ügyfelet, a nyitott üzleteket és a legutóbbi jegyzeteket.",
+          "title": "Értekezlet-előkészítés"
         },
         "follow-up-drafter": {
           "title": "Utánkövetés-fogalmazó",
@@ -6107,6 +6110,26 @@
         "customer-check-in": {
           "title": "Ügyfélmegkeresés",
           "description": "Megírja az elcsendesedett ügyfelek megkeresésének piszkozatát, átnézésre készen."
+        },
+        "weekly-digest": {
+          "title": "Heti összefoglaló",
+          "description": "Összefoglalja a táblákban történt változásokat, és minden hétfőn közzéteszi."
+        },
+        "morning-brief": {
+          "title": "Reggeli összefoglaló",
+          "description": "Minden hétköznap reggel rövid tervvé alakítja a tábláiban és dokumentumaiban történt változásokat."
+        },
+        "record-enricher": {
+          "title": "Rekordgazdagító",
+          "description": "Kiegészíti az új rekordok hiányzó adatait a webről."
+        },
+        "reorder-alerts": {
+          "title": "Utánrendelési értesítések",
+          "description": "Figyeli a készletszinteket, és megrendeléseket készít elő, mielőtt elfogyna a készlet."
+        },
+        "ticket-triage": {
+          "title": "Hibajegyek rendezése",
+          "description": "Címkézi az új kéréseket, prioritást állít be, és a megfelelő személyhez irányítja őket."
         }
       },
       "rowJob": "Feladat",
@@ -6171,8 +6194,129 @@
       "deliverySlackMissing": "Csatlakoztassa a Slack alkalmazást az Integrációkban, hogy oda írhasson.",
       "deliverySlackInvalid": "Adjon meg egy Slack-csatornát, például #sales.",
       "discardTitle": "Elveti ezt a piszkozatot?",
-      "discardContent": "A piszkozat és a hozzá tartozó beállítási csevegés a kukába kerül."
-    }
+      "discardContent": "A piszkozat és a hozzá tartozó beállítási csevegés a kukába kerül.",
+      "whenSchedule": "Minden {day} {time} órakor",
+      "whenRecord": "Amikor egy rekord megváltozik itt: {table}",
+      "whenRecordAny": "Amikor egy rekord megváltozik",
+      "whenManual": "Csak kérésre",
+      "turnOn": "Ügynök bekapcsolása"
+    },
+    "agentsPopover": {
+      "tooltip": "Ügynökök ehhez: {table}",
+      "recentSessions": "Legutóbbi munkamenetek",
+      "sessions": "Munkamenetek",
+      "noSessions": "Még nincsenek munkamenetek",
+      "activeAgo": "Aktív {time}",
+      "nothingMatches": "Semmi sem egyezik ezzel: \"{query}\""
+    },
+    "automate": {
+      "title": "Automatizálás",
+      "tooltip": "{table} automatizálása",
+      "allWorkflows": "Minden munkafolyamat",
+      "workflowsInTable": "Munkafolyamatok a táblában",
+      "startWhen": "Indítás, amikor…",
+      "searchTriggers": "Keresés, pl. \"létrehozva\", \"gomb\"",
+      "searchAutomations": "Automatizálások keresése",
+      "otherTrigger": "Más trigger…",
+      "noMatches": "Nincs találat",
+      "failed": "Sikertelen",
+      "lastRunFailed": "A legutóbbi futás sikertelen volt",
+      "ranAgo": "Lefutott {time}",
+      "neverRan": "Soha nem futott",
+      "newTitle": "{trigger} itt: {table}",
+      "triggers": {
+        "created": "Rekord jön létre",
+        "updated": "Rekord frissül",
+        "createdOrUpdated": "Rekord jön létre vagy frissül",
+        "deleted": "Rekord törlődik",
+        "entersView": "Nézetbe kerül",
+        "matches": "Megfelel a feltételeknek",
+        "fieldChanged": "Mező változik",
+        "formSubmitted": "Űrlapot küld be",
+        "buttonClicked": "Gombra kattint",
+        "comment": "Hozzászól egy rekordhoz"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Kérdezze az MI-t",
+      "askNocoAi": "Kérdezze a NocoAI-t: „{query}”",
+      "app": {
+        "openLive": "Élő alkalmazás megnyitása",
+        "copyLink": "Alkalmazás hivatkozásának másolása",
+        "share": "Alkalmazás megosztása…",
+        "refreshPreview": "Előnézet frissítése",
+        "switchViewport": "Előnézet méretének váltása",
+        "fullScreen": "Teljes képernyős előnézet",
+        "exitFullScreen": "Kilépés a teljes képernyőből"
+      },
+      "base": {
+        "createSync": "Szinkronizálás létrehozása…",
+        "createSnapshot": "Pillanatkép létrehozása…",
+        "emptyTrash": "Kuka ürítése…",
+        "duplicate": "Base kettőzése…"
+      },
+      "account": {
+        "profile": "Profil",
+        "changeLanguage": "Nyelv módosítása…"
+      },
+      "agent": {
+        "enable": "Ügynök engedélyezése",
+        "disable": "Ügynök letiltása",
+        "duplicate": "Ügynök kettőzése",
+        "copyId": "Ügynök azonosítójának másolása",
+        "delete": "Ügynök törlése…",
+        "openSettings": "Ügynök beállításai…",
+        "newChat": "Új csevegés",
+        "toggleFiles": "Fájlok megjelenítése vagy elrejtése",
+        "copyLink": "Ügynök hivatkozásának másolása"
+      },
+      "addToBookmarks": "{object} hozzáadása a könyvjelzőkhöz",
+      "addedToBookmarks": "Hozzáadva a könyvjelzőkhöz",
+      "addRecord": "Rekord hozzáadása",
+      "addField": "Mező hozzáadása…",
+      "addFilter": "Szűrő hozzáadása…",
+      "addSort": "Rendezés hozzáadása…",
+      "addColourCondition": "Színfeltétel hozzáadása",
+      "askAiAboutRecord": "Kérdezze az MI-t erről a rekordról",
+      "addComment": "Hozzászólás hozzáadása…",
+      "apiReference": "API-referencia…",
+      "assignToMe": "Hozzárendelés magamhoz"
+    },
+    "chartPaletteColorblindNote": "A színvakságra vonatkozó beállítása biztonságos palettával jeleníti meg a diagramokat. Mindenki más az Ön által választott palettát látja.",
+    "alsoDisconnectApps": "Az alkalmazások leválasztása is",
+    "assigneeField": "Felelős",
+    "colorConditionCount": "{n} feltétel | {n} feltétel",
+    "collapseSubgroups": "Alcsoportok összecsukása",
+    "chooseSearchField": "Keresés egyetlen mezőben",
+    "allowCsvImport": "Importálás engedélyezése CSV-ből",
+    "codingAgent": "Kódoló ügynök",
+    "codingAgentSettingsNoAccessTitle": "A tárolókhoz és gépekhez szerkesztői hozzáférés szükséges",
+    "agentTriggerWebhook": "Amikor webhook érkezik",
+    "agentTriggerWebhookHint": "Akkor fut, amikor az URL-jét API tokennel hívják meg. Az URL a trigger hozzáadása után jelenik meg rajta.",
+    "agentTriggerWebhookCopy": "Webhook URL másolása",
+    "agentsOnLargerScreen": "Az ügynökök nagyobb képernyőn nyílnak meg",
+    "codingAgentAddRepo": "Tároló hozzáadása",
+    "codingAgentAddRepos": "{count} hozzáadása",
+    "codingAgentManageRepos": "Tárolók kezelése",
+    "codingAgentRepoPickTitle": "Indítás itt:",
+    "codingAgentNoRepo": "Nincs tároló",
+    "codingAgentRepoAdded": "Hozzáadva",
+    "codingAgentRepoDefault": "Alapértelmezett ({repo})",
+    "codingAgentRepoDefaultShort": "Alapértelmezett tároló",
+    "codingAgentRepoDisconnected": "A kapcsolat már nem terjed ki erre a tárolóra. Csatlakoztassa újra, hogy itt munkameneteket indíthasson.",
+    "codingAgentOpenRepo": "Tároló megnyitása",
+    "codingAgentRemoveRepoTitle": "Eltávolítja a tárolót?",
+    "codingAgentNoReposTitle": "Adjon hozzá egy tárolót a kezdéshez",
+    "codingAgentNoReposBody": "A kódoló ügynök az Ön tárolóiban dolgozik. Adjon hozzá egyet a munkamenet indításához.",
+    "codingAgentNoReposAskCreator": "A kódoló ügynök az Ön tárolóiban dolgozik. Kérje meg a projekt létrehozóját, hogy adjon hozzá egyet.",
+    "codingAgentTriggerRepo": "Tároló",
+    "codingAgentUnavailableTitle": "A Coding itt nem érhető el",
+    "codingAgentUnavailableBody": "Ez egy kódoló ügynök, és ennek a munkaterületnek a csomagja nem tartalmazza a Coding funkciót. Váltson magasabb csomagra a további használathoz.",
+    "codingAgentSettingsNoAccess": "A tárolók és a gépek a szerkesztők és a magasabb szerepkörök számára láthatók. Kérjen hozzáférést a projekt tulajdonosától.",
+    "codingAgentOffTitle": "Ez az ügynök ki van kapcsolva",
+    "codingAgentOffBody": "Kapcsolja be a munkamenet indításához.",
+    "codingAgentOffAskEditor": "Kérje meg a projekt létrehozóját, hogy kapcsolja be a munkamenet indításához.",
+    "codingAgentTurnOn": "Bekapcsolás"
   },
   "activity": {
     "useTemplate": "Sablon használata",

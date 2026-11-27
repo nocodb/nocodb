@@ -521,7 +521,6 @@
     "condition": "Kondisi",
     "after": "Setelah",
     "search": "Mencari",
-    "searchIn": "Mencari",
     "notification": "Pemberitahuan",
     "confirm": "Konfirmasi",
     "generate": "Menghasilkan",
@@ -2928,7 +2927,8 @@
     "agentIdColon": "ID agen: {agentId}",
     "agentState": {
       "active": "Langsung",
-      "paused": "Dijeda"
+      "paused": "Dijeda",
+      "draft": "Draf"
     },
     "agentTriggerNewChat": "Obrolan baru dengan",
     "agentChannelAdd": "Hubungkan saluran",
@@ -5147,7 +5147,9 @@
       "recentChats": "Obrolan terbaru",
       "searchChats": "Cari obrolan",
       "noChats": "Belum ada obrolan",
-      "noChatsMatch": "Tidak ada obrolan yang cocok dengan pencarian Anda"
+      "noChatsMatch": "Tidak ada obrolan yang cocok dengan pencarian Anda",
+      "agentsPickToChat": "Pilih agen di sebelah kiri untuk mengobrol dengannya.",
+      "noWorkflowsOrScripts": "Belum ada alur kerja atau skrip."
     },
     "showMoreConnections": "Tampilkan {count} koneksi lainnya",
     "chooseSignInProvider": "Pilih penyedia untuk melanjutkan",
@@ -6069,7 +6071,8 @@
           "description": "Menjawab pertanyaan tentang tabel dan dokumen Anda setiap kali ada yang bertanya."
         },
         "meeting-prep": {
-          "description": "Setiap pagi hari kerja, menyiapkan rapat hari ini dari tabel rapat Anda: klien, kesepakatan terbuka, dan catatan terakhir."
+          "description": "Setiap pagi hari kerja, menyiapkan rapat hari ini dari tabel rapat Anda: klien, kesepakatan terbuka, dan catatan terakhir.",
+          "title": "Persiapan rapat"
         },
         "follow-up-drafter": {
           "title": "Penyusun tindak lanjut",
@@ -6094,6 +6097,26 @@
         "customer-check-in": {
           "title": "Sapaan pelanggan",
           "description": "Menyusun pesan sapaan untuk pelanggan yang mendiam, siap ditinjau."
+        },
+        "weekly-digest": {
+          "title": "Ringkasan mingguan",
+          "description": "Merangkum apa yang berubah di tabel Anda dan mempostingnya setiap Senin."
+        },
+        "morning-brief": {
+          "title": "Ringkasan pagi",
+          "description": "Mengubah apa yang berubah di tabel dan dokumen Anda menjadi rencana singkat, setiap pagi hari kerja."
+        },
+        "record-enricher": {
+          "title": "Pemerkaya catatan",
+          "description": "Melengkapi detail yang kurang pada catatan baru dari web."
+        },
+        "reorder-alerts": {
+          "title": "Peringatan pemesanan ulang",
+          "description": "Memantau tingkat stok dan menyusun pesanan pembelian sebelum stok habis."
+        },
+        "ticket-triage": {
+          "title": "Triase tiket",
+          "description": "Memberi tag pada permintaan baru, menetapkan prioritas, dan meneruskannya ke orang yang tepat."
         }
       },
       "rowJob": "Tugas",
@@ -6158,8 +6181,129 @@
       "deliverySlackMissing": "Hubungkan Slack di Integrasi agar ia bisa mengirim ke sana.",
       "deliverySlackInvalid": "Masukkan saluran Slack, misalnya #sales.",
       "discardTitle": "Buang draf ini?",
-      "discardContent": "Draf dan obrolan penyiapannya akan dipindahkan ke sampah."
-    }
+      "discardContent": "Draf dan obrolan penyiapannya akan dipindahkan ke sampah.",
+      "whenSchedule": "Setiap {day} pukul {time}",
+      "whenRecord": "Saat catatan berubah di {table}",
+      "whenRecordAny": "Saat catatan berubah",
+      "whenManual": "Hanya saat diminta",
+      "turnOn": "Aktifkan agen"
+    },
+    "agentsPopover": {
+      "tooltip": "Agen untuk {table}",
+      "recentSessions": "Sesi terbaru",
+      "sessions": "Sesi",
+      "noSessions": "Belum ada sesi",
+      "activeAgo": "Aktif {time}",
+      "nothingMatches": "Tidak ada yang cocok dengan \"{query}\""
+    },
+    "automate": {
+      "title": "Otomatiskan",
+      "tooltip": "Otomatiskan {table}",
+      "allWorkflows": "Semua alur kerja",
+      "workflowsInTable": "Alur kerja di tabel",
+      "startWhen": "Mulai saat…",
+      "searchTriggers": "Cari, mis. \"dibuat\", \"tombol\"",
+      "searchAutomations": "Cari otomatisasi",
+      "otherTrigger": "Pemicu lain…",
+      "noMatches": "Tidak ada kecocokan",
+      "failed": "Gagal",
+      "lastRunFailed": "Proses terakhir gagal",
+      "ranAgo": "Dijalankan {time}",
+      "neverRan": "Belum pernah dijalankan",
+      "newTitle": "{trigger} di {table}",
+      "triggers": {
+        "created": "Catatan dibuat",
+        "updated": "Catatan diperbarui",
+        "createdOrUpdated": "Catatan dibuat atau diperbarui",
+        "deleted": "Catatan dihapus",
+        "entersView": "Masuk ke tampilan",
+        "matches": "Memenuhi kondisi",
+        "fieldChanged": "Bidang berubah",
+        "formSubmitted": "Mengirim formulir",
+        "buttonClicked": "Mengklik tombol",
+        "comment": "Mengomentari catatan"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Tanya AI",
+      "askNocoAi": "Tanya NocoAI: “{query}”",
+      "app": {
+        "openLive": "Buka aplikasi langsung",
+        "copyLink": "Salin tautan aplikasi",
+        "share": "Bagikan aplikasi…",
+        "refreshPreview": "Segarkan pratinjau",
+        "switchViewport": "Ganti ukuran pratinjau",
+        "fullScreen": "Pratinjau layar penuh",
+        "exitFullScreen": "Keluar dari layar penuh"
+      },
+      "base": {
+        "createSync": "Buat sinkronisasi…",
+        "createSnapshot": "Buat snapshot…",
+        "emptyTrash": "Kosongkan sampah…",
+        "duplicate": "Duplikat base…"
+      },
+      "account": {
+        "profile": "Profil",
+        "changeLanguage": "Ubah bahasa…"
+      },
+      "agent": {
+        "enable": "Aktifkan agen",
+        "disable": "Nonaktifkan agen",
+        "duplicate": "Duplikat agen",
+        "copyId": "Salin ID agen",
+        "delete": "Hapus agen…",
+        "openSettings": "Pengaturan agen…",
+        "newChat": "Obrolan baru",
+        "toggleFiles": "Tampilkan atau sembunyikan berkas",
+        "copyLink": "Salin tautan agen"
+      },
+      "addToBookmarks": "Tambahkan {object} ke markah",
+      "addedToBookmarks": "Ditambahkan ke markah",
+      "addRecord": "Tambahkan catatan",
+      "addField": "Tambahkan bidang…",
+      "addFilter": "Tambahkan filter…",
+      "addSort": "Tambahkan urutan…",
+      "addColourCondition": "Tambahkan kondisi warna",
+      "askAiAboutRecord": "Tanya AI tentang catatan ini",
+      "addComment": "Tambahkan komentar…",
+      "apiReference": "Referensi API…",
+      "assignToMe": "Tugaskan ke saya"
+    },
+    "chartPaletteColorblindNote": "Preferensi buta warna Anda menampilkan bagan dengan palet yang aman. Orang lain melihat palet yang Anda pilih.",
+    "alsoDisconnectApps": "Putuskan juga koneksi aplikasi",
+    "assigneeField": "Penanggung jawab",
+    "colorConditionCount": "{n} kondisi | {n} kondisi",
+    "collapseSubgroups": "Ciutkan subgrup",
+    "chooseSearchField": "Cari di satu bidang",
+    "allowCsvImport": "Izinkan impor dari CSV",
+    "codingAgent": "Agen pengodean",
+    "codingAgentSettingsNoAccessTitle": "Repositori dan mesin memerlukan akses Editor",
+    "agentTriggerWebhook": "Saat webhook diterima",
+    "agentTriggerWebhookHint": "Berjalan saat URL-nya dipanggil dengan token API. URL muncul pada pemicu setelah ditambahkan.",
+    "agentTriggerWebhookCopy": "Salin URL webhook",
+    "agentsOnLargerScreen": "Agen terbuka di layar yang lebih besar",
+    "codingAgentAddRepo": "Tambahkan repositori",
+    "codingAgentAddRepos": "Tambahkan {count}",
+    "codingAgentManageRepos": "Kelola repositori",
+    "codingAgentRepoPickTitle": "Mulai di",
+    "codingAgentNoRepo": "Tidak ada repositori",
+    "codingAgentRepoAdded": "Ditambahkan",
+    "codingAgentRepoDefault": "Bawaan ({repo})",
+    "codingAgentRepoDefaultShort": "Repositori bawaan",
+    "codingAgentRepoDisconnected": "Koneksi tidak lagi mencakup repositori ini. Hubungkan kembali untuk memulai sesi di sini.",
+    "codingAgentOpenRepo": "Buka repositori",
+    "codingAgentRemoveRepoTitle": "Hapus repositori?",
+    "codingAgentNoReposTitle": "Tambahkan repositori untuk memulai",
+    "codingAgentNoReposBody": "Agen pengodean bekerja di repositori Anda. Tambahkan satu untuk memulai sesi.",
+    "codingAgentNoReposAskCreator": "Agen pengodean bekerja di repositori Anda. Minta pembuat proyek untuk menambahkan satu.",
+    "codingAgentTriggerRepo": "Repositori",
+    "codingAgentUnavailableTitle": "Coding tidak tersedia di sini",
+    "codingAgentUnavailableBody": "Ini adalah agen pengodean, dan paket ruang kerja ini tidak mencakup Coding. Tingkatkan paket untuk terus menggunakannya.",
+    "codingAgentSettingsNoAccess": "Repositori dan mesin terlihat oleh Editor ke atas. Minta akses kepada pemilik proyek.",
+    "codingAgentOffTitle": "Agen ini dinonaktifkan",
+    "codingAgentOffBody": "Aktifkan untuk memulai sesi.",
+    "codingAgentOffAskEditor": "Minta pembuat proyek untuk mengaktifkannya agar Anda dapat memulai sesi.",
+    "codingAgentTurnOn": "Aktifkan"
   },
   "activity": {
     "useTemplate": "Gunakan templat",

@@ -521,7 +521,6 @@
     "condition": "Koşul",
     "after": "Sonra",
     "search": "Ara",
-    "searchIn": "Ara",
     "notification": "Bildirim",
     "confirm": "Onayla",
     "generate": "Oluştur",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "Ajan kimliği: {agentId}",
     "agentState": {
       "active": "Canlı",
-      "paused": "Duraklatıldı"
+      "paused": "Duraklatıldı",
+      "draft": "Taslak"
     },
     "agentTriggerNewChat": "Şununla yeni sohbet",
     "agentChannelAdd": "Bir kanal bağla",
@@ -5157,7 +5157,9 @@
       "recentChats": "Son sohbetler",
       "searchChats": "Sohbetlerde ara",
       "noChats": "Henüz sohbet yok",
-      "noChatsMatch": "Aramanızla eşleşen sohbet yok"
+      "noChatsMatch": "Aramanızla eşleşen sohbet yok",
+      "agentsPickToChat": "Sohbet etmek için soldan bir ajan seçin.",
+      "noWorkflowsOrScripts": "Henüz iş akışı veya betik yok."
     },
     "showMoreConnections": "{count} bağlantı daha göster",
     "chooseSignInProvider": "Devam etmek için bir sağlayıcı seçin",
@@ -6080,7 +6082,8 @@
           "description": "Biri sorduğunda tablolarınız ve belgelerinizle ilgili soruları yanıtlar."
         },
         "meeting-prep": {
-          "description": "Her hafta içi sabah, toplantı tablonuzdan bugünkü toplantıları hazırlar: müşteri, açık fırsatlar ve son notlar."
+          "description": "Her hafta içi sabah, toplantı tablonuzdan bugünkü toplantıları hazırlar: müşteri, açık fırsatlar ve son notlar.",
+          "title": "Toplantı hazırlığı"
         },
         "follow-up-drafter": {
           "title": "Takip yazarı",
@@ -6105,6 +6108,26 @@
         "customer-check-in": {
           "title": "Müşteri iletişimi",
           "description": "Sessizleşen müşteriler için incelemeye hazır bir iletişim taslağı yazar."
+        },
+        "weekly-digest": {
+          "title": "Haftalık özet",
+          "description": "Tablolarınızda değişenleri özetler ve her pazartesi paylaşır."
+        },
+        "morning-brief": {
+          "title": "Sabah özeti",
+          "description": "Her hafta içi sabah, tablolarınızda ve dokümanlarınızda değişenleri kısa bir plana dönüştürür."
+        },
+        "record-enricher": {
+          "title": "Kayıt zenginleştirici",
+          "description": "Yeni kayıtlardaki eksik bilgileri web'den tamamlar."
+        },
+        "reorder-alerts": {
+          "title": "Yeniden sipariş uyarıları",
+          "description": "Stok seviyelerini izler ve stok bitmeden satın alma siparişlerini hazırlar."
+        },
+        "ticket-triage": {
+          "title": "Talep önceliklendirme",
+          "description": "Yeni talepleri etiketler, öncelik belirler ve doğru kişiye yönlendirir."
         }
       },
       "rowJob": "Görev",
@@ -6169,8 +6192,129 @@
       "deliverySlackMissing": "Oraya gönderebilmesi için Entegrasyonlar'dan Slack bağlantısını kurun.",
       "deliverySlackInvalid": "Bir Slack kanalı girin, örneğin #sales.",
       "discardTitle": "Bu taslak atılsın mı?",
-      "discardContent": "Taslak ve kurulum sohbeti çöp kutusuna taşınacak."
-    }
+      "discardContent": "Taslak ve kurulum sohbeti çöp kutusuna taşınacak.",
+      "whenSchedule": "Her {day} saat {time}",
+      "whenRecord": "{table} tablosunda bir kayıt değiştiğinde",
+      "whenRecordAny": "Bir kayıt değiştiğinde",
+      "whenManual": "Yalnızca istendiğinde",
+      "turnOn": "Ajanı aç"
+    },
+    "agentsPopover": {
+      "tooltip": "{table} için ajanlar",
+      "recentSessions": "Son oturumlar",
+      "sessions": "Oturumlar",
+      "noSessions": "Henüz oturum yok",
+      "activeAgo": "Etkin {time}",
+      "nothingMatches": "\"{query}\" ile eşleşen bir şey yok"
+    },
+    "automate": {
+      "title": "Otomatikleştir",
+      "tooltip": "{table} tablosunu otomatikleştir",
+      "allWorkflows": "Tüm iş akışları",
+      "workflowsInTable": "Tablodaki iş akışları",
+      "startWhen": "Şu durumda başlat…",
+      "searchTriggers": "Ara, ör. \"oluşturuldu\", \"düğme\"",
+      "searchAutomations": "Otomasyonlarda ara",
+      "otherTrigger": "Başka tetikleyici…",
+      "noMatches": "Eşleşme yok",
+      "failed": "Başarısız",
+      "lastRunFailed": "Son çalıştırma başarısız oldu",
+      "ranAgo": "Çalıştırıldı {time}",
+      "neverRan": "Hiç çalışmadı",
+      "newTitle": "{table} içinde {trigger}",
+      "triggers": {
+        "created": "Kayıt oluşturulur",
+        "updated": "Kayıt güncellenir",
+        "createdOrUpdated": "Kayıt oluşturulur veya güncellenir",
+        "deleted": "Kayıt silinir",
+        "entersView": "Bir görünüme girer",
+        "matches": "Koşulları karşılar",
+        "fieldChanged": "Alan değişir",
+        "formSubmitted": "Form gönderir",
+        "buttonClicked": "Bir düğmeye tıklar",
+        "comment": "Bir kaydı yorumlar"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Yapay zekâya sor",
+      "askNocoAi": "NocoAI'ye sor: “{query}”",
+      "app": {
+        "openLive": "Canlı uygulamayı aç",
+        "copyLink": "Uygulama bağlantısını kopyala",
+        "share": "Uygulamayı paylaş…",
+        "refreshPreview": "Önizlemeyi yenile",
+        "switchViewport": "Önizleme boyutunu değiştir",
+        "fullScreen": "Tam ekran önizleme",
+        "exitFullScreen": "Tam ekrandan çık"
+      },
+      "base": {
+        "createSync": "Senkronizasyon oluştur…",
+        "createSnapshot": "Anlık görüntü oluştur…",
+        "emptyTrash": "Çöp kutusunu boşalt…",
+        "duplicate": "Tabanı çoğalt…"
+      },
+      "account": {
+        "profile": "Profil",
+        "changeLanguage": "Dili değiştir…"
+      },
+      "agent": {
+        "enable": "Ajanı etkinleştir",
+        "disable": "Ajanı devre dışı bırak",
+        "duplicate": "Ajanı çoğalt",
+        "copyId": "Ajan kimliğini kopyala",
+        "delete": "Ajanı sil…",
+        "openSettings": "Ajan ayarları…",
+        "newChat": "Yeni sohbet",
+        "toggleFiles": "Dosyaları göster veya gizle",
+        "copyLink": "Ajan bağlantısını kopyala"
+      },
+      "addToBookmarks": "{object} öğesini yer imlerine ekle",
+      "addedToBookmarks": "Yer imlerine eklendi",
+      "addRecord": "Kayıt ekle",
+      "addField": "Alan ekle…",
+      "addFilter": "Filtre ekle…",
+      "addSort": "Sıralama ekle…",
+      "addColourCondition": "Renk koşulu ekle",
+      "askAiAboutRecord": "Bu kayıt hakkında yapay zekâya sor",
+      "addComment": "Yorum ekle…",
+      "apiReference": "API referansı…",
+      "assignToMe": "Bana ata"
+    },
+    "chartPaletteColorblindNote": "Renk körlüğü tercihiniz grafikleri güvenli bir palette gösterir. Diğer herkes sizin seçtiğiniz paleti görür.",
+    "alsoDisconnectApps": "Uygulamaların bağlantısını da kes",
+    "assigneeField": "Sorumlu",
+    "colorConditionCount": "{n} koşul | {n} koşul",
+    "collapseSubgroups": "Alt grupları daralt",
+    "chooseSearchField": "Tek bir alanda ara",
+    "allowCsvImport": "CSV'den içe aktarmaya izin ver",
+    "codingAgent": "Kod ajanı",
+    "codingAgentSettingsNoAccessTitle": "Depolar ve makineler için Düzenleyici erişimi gerekir",
+    "agentTriggerWebhook": "Webhook alındığında",
+    "agentTriggerWebhookHint": "URL'si bir API belirteciyle çağrıldığında çalışır. URL, tetikleyici eklendikten sonra üzerinde görünür.",
+    "agentTriggerWebhookCopy": "Webhook URL'sini kopyala",
+    "agentsOnLargerScreen": "Ajanlar daha büyük bir ekranda açılır",
+    "codingAgentAddRepo": "Depo ekle",
+    "codingAgentAddRepos": "{count} ekle",
+    "codingAgentManageRepos": "Depoları yönet",
+    "codingAgentRepoPickTitle": "Şurada başlat",
+    "codingAgentNoRepo": "Depo yok",
+    "codingAgentRepoAdded": "Eklendi",
+    "codingAgentRepoDefault": "Varsayılan ({repo})",
+    "codingAgentRepoDefaultShort": "Varsayılan depo",
+    "codingAgentRepoDisconnected": "Bağlantı artık bu depoyu kapsamıyor. Burada oturum başlatmak için yeniden bağlayın.",
+    "codingAgentOpenRepo": "Depoyu aç",
+    "codingAgentRemoveRepoTitle": "Depo kaldırılsın mı?",
+    "codingAgentNoReposTitle": "Başlamak için bir depo ekleyin",
+    "codingAgentNoReposBody": "Kod ajanı depolarınızda çalışır. Oturum başlatmak için bir depo ekleyin.",
+    "codingAgentNoReposAskCreator": "Kod ajanı depolarınızda çalışır. Bir proje oluşturucudan depo eklemesini isteyin.",
+    "codingAgentTriggerRepo": "Depo",
+    "codingAgentUnavailableTitle": "Coding burada kullanılamıyor",
+    "codingAgentUnavailableBody": "Bu bir kod ajanı ve bu çalışma alanının planı Coding'i içermiyor. Kullanmaya devam etmek için yükseltin.",
+    "codingAgentSettingsNoAccess": "Depolar ve makineler düzenleyiciler ve üstü için görünür. Bir proje sahibinden erişim isteyin.",
+    "codingAgentOffTitle": "Bu ajan kapalı",
+    "codingAgentOffBody": "Oturum başlatmak için açın.",
+    "codingAgentOffAskEditor": "Oturum başlatmak için bir proje oluşturucudan açmasını isteyin.",
+    "codingAgentTurnOn": "Aç"
   },
   "activity": {
     "useTemplate": "Şablon kullan",

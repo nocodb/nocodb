@@ -521,7 +521,6 @@
     "condition": "Condiție",
     "after": "După",
     "search": "Caută",
-    "searchIn": "Căutați în",
     "notification": "Notificare",
     "confirm": "Confirmă",
     "generate": "Generează",
@@ -2928,7 +2927,8 @@
     "agentIdColon": "ID agent: {agentId}",
     "agentState": {
       "active": "În direct",
-      "paused": "În pauză"
+      "paused": "În pauză",
+      "draft": "Ciornă"
     },
     "agentTriggerNewChat": "Chat nou cu",
     "agentChannelAdd": "Conectează un canal",
@@ -5143,7 +5143,9 @@
       "recentChats": "Conversații recente",
       "searchChats": "Caută în conversații",
       "noChats": "Încă nu există conversații",
-      "noChatsMatch": "Nicio conversație nu se potrivește căutării tale"
+      "noChatsMatch": "Nicio conversație nu se potrivește căutării tale",
+      "agentsPickToChat": "Alege un agent din stânga pentru a discuta cu el.",
+      "noWorkflowsOrScripts": "Încă nu există fluxuri de lucru sau scripturi."
     },
     "showMoreConnections": "Afișează încă {count} conexiuni",
     "chooseSignInProvider": "Alege un furnizor pentru a continua",
@@ -6063,7 +6065,8 @@
           "description": "Răspunde la întrebări despre tabelele și documentele tale ori de câte ori cineva întreabă."
         },
         "meeting-prep": {
-          "description": "În fiecare dimineață de zi lucrătoare pregătește întâlnirile de azi din tabelul tău de întâlniri: clientul, tranzacțiile deschise și ultimele notițe."
+          "description": "În fiecare dimineață de zi lucrătoare pregătește întâlnirile de azi din tabelul tău de întâlniri: clientul, tranzacțiile deschise și ultimele notițe.",
+          "title": "Pregătirea ședinței"
         },
         "follow-up-drafter": {
           "title": "Redactor de reveniri",
@@ -6088,6 +6091,26 @@
         "customer-check-in": {
           "title": "Reluarea legăturii cu clientul",
           "description": "Pregătește un mesaj de reluare a legăturii pentru clienții care au tăcut, gata de verificat."
+        },
+        "weekly-digest": {
+          "title": "Rezumat săptămânal",
+          "description": "Rezumă ce s-a schimbat în tabelele tale și publică rezumatul în fiecare luni."
+        },
+        "morning-brief": {
+          "title": "Rezumat de dimineață",
+          "description": "Transformă în fiecare dimineață de zi lucrătoare ce s-a schimbat în tabelele și documentele tale într-un plan scurt."
+        },
+        "record-enricher": {
+          "title": "Îmbogățirea înregistrărilor",
+          "description": "Completează detaliile lipsă ale înregistrărilor noi folosind web-ul."
+        },
+        "reorder-alerts": {
+          "title": "Alerte de reaprovizionare",
+          "description": "Urmărește nivelurile de stoc și pregătește comenzi de achiziție înainte să rămâi fără."
+        },
+        "ticket-triage": {
+          "title": "Trierea tichetelor",
+          "description": "Etichetează cererile noi, stabilește prioritatea și le direcționează către persoana potrivită."
         }
       },
       "rowJob": "Sarcină",
@@ -6152,8 +6175,129 @@
       "deliverySlackMissing": "Conectează Slack în Integrări ca să poată publica acolo.",
       "deliverySlackInvalid": "Introdu un canal Slack, de exemplu #sales.",
       "discardTitle": "Renunți la această ciornă?",
-      "discardContent": "Ciorna și discuția de configurare vor fi mutate la coșul de gunoi."
-    }
+      "discardContent": "Ciorna și discuția de configurare vor fi mutate la coșul de gunoi.",
+      "whenSchedule": "În fiecare {day} la {time}",
+      "whenRecord": "Când o înregistrare se modifică în {table}",
+      "whenRecordAny": "Când o înregistrare se modifică",
+      "whenManual": "Doar la cerere",
+      "turnOn": "Activează agentul"
+    },
+    "agentsPopover": {
+      "tooltip": "Agenți pentru {table}",
+      "recentSessions": "Sesiuni recente",
+      "sessions": "Sesiuni",
+      "noSessions": "Încă nu există sesiuni",
+      "activeAgo": "Activ {time}",
+      "nothingMatches": "Nimic nu corespunde cu \"{query}\""
+    },
+    "automate": {
+      "title": "Automatizează",
+      "tooltip": "Automatizează {table}",
+      "allWorkflows": "Toate fluxurile de lucru",
+      "workflowsInTable": "Fluxuri de lucru în tabel",
+      "startWhen": "Pornește când…",
+      "searchTriggers": "Caută, de ex. \"creat\", \"buton\"",
+      "searchAutomations": "Caută automatizări",
+      "otherTrigger": "Alt declanșator…",
+      "noMatches": "Nicio potrivire",
+      "failed": "Eșuat",
+      "lastRunFailed": "Ultima rulare a eșuat",
+      "ranAgo": "A rulat {time}",
+      "neverRan": "Nu a rulat niciodată",
+      "newTitle": "{trigger} în {table}",
+      "triggers": {
+        "created": "O înregistrare este creată",
+        "updated": "O înregistrare este actualizată",
+        "createdOrUpdated": "O înregistrare este creată sau actualizată",
+        "deleted": "O înregistrare este ștearsă",
+        "entersView": "Intră într-o vizualizare",
+        "matches": "Îndeplinește condițiile",
+        "fieldChanged": "Un câmp se modifică",
+        "formSubmitted": "Trimite un formular",
+        "buttonClicked": "Apasă un buton",
+        "comment": "Comentează la o înregistrare"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Întreabă AI",
+      "askNocoAi": "Întreabă NocoAI: „{query}”",
+      "app": {
+        "openLive": "Deschide aplicația live",
+        "copyLink": "Copiază linkul aplicației",
+        "share": "Partajează aplicația…",
+        "refreshPreview": "Reîmprospătează previzualizarea",
+        "switchViewport": "Schimbă dimensiunea previzualizării",
+        "fullScreen": "Previzualizare pe ecran complet",
+        "exitFullScreen": "Ieși din ecranul complet"
+      },
+      "base": {
+        "createSync": "Creează sincronizare…",
+        "createSnapshot": "Creează instantaneu…",
+        "emptyTrash": "Golește coșul de gunoi…",
+        "duplicate": "Duplică baza…"
+      },
+      "account": {
+        "profile": "Profil",
+        "changeLanguage": "Schimbă limba…"
+      },
+      "agent": {
+        "enable": "Activează agentul",
+        "disable": "Dezactivează agentul",
+        "duplicate": "Duplică agentul",
+        "copyId": "Copiază ID-ul agentului",
+        "delete": "Șterge agentul…",
+        "openSettings": "Setările agentului…",
+        "newChat": "Chat nou",
+        "toggleFiles": "Afișează sau ascunde fișierele",
+        "copyLink": "Copiază linkul agentului"
+      },
+      "addToBookmarks": "Adaugă {object} la marcaje",
+      "addedToBookmarks": "Adăugat la marcaje",
+      "addRecord": "Adaugă înregistrare",
+      "addField": "Adaugă câmp…",
+      "addFilter": "Adaugă filtru…",
+      "addSort": "Adaugă sortare…",
+      "addColourCondition": "Adaugă condiție de culoare",
+      "askAiAboutRecord": "Întreabă AI despre această înregistrare",
+      "addComment": "Adaugă comentariu…",
+      "apiReference": "Referință API…",
+      "assignToMe": "Atribuie-mi mie"
+    },
+    "chartPaletteColorblindNote": "Preferința ta pentru daltonism afișează graficele într-o paletă sigură. Toți ceilalți văd paleta aleasă de tine.",
+    "alsoDisconnectApps": "Deconectează și aplicațiile",
+    "assigneeField": "Responsabil",
+    "colorConditionCount": "{n} condiție | {n} condiții",
+    "collapseSubgroups": "Restrânge subgrupurile",
+    "chooseSearchField": "Caută într-un singur câmp",
+    "allowCsvImport": "Permite importul din CSV",
+    "codingAgent": "Agent de cod",
+    "codingAgentSettingsNoAccessTitle": "Depozitele și mașinile necesită acces de editor",
+    "agentTriggerWebhook": "Când se primește un webhook",
+    "agentTriggerWebhookHint": "Rulează când URL-ul său este apelat cu un token API. URL-ul apare pe declanșator imediat ce acesta este adăugat.",
+    "agentTriggerWebhookCopy": "Copiază URL-ul webhook-ului",
+    "agentsOnLargerScreen": "Agenții se deschid pe un ecran mai mare",
+    "codingAgentAddRepo": "Adaugă depozit",
+    "codingAgentAddRepos": "Adaugă {count}",
+    "codingAgentManageRepos": "Gestionează depozitele",
+    "codingAgentRepoPickTitle": "Pornește în",
+    "codingAgentNoRepo": "Niciun depozit",
+    "codingAgentRepoAdded": "Adăugat",
+    "codingAgentRepoDefault": "Implicit ({repo})",
+    "codingAgentRepoDefaultShort": "Depozit implicit",
+    "codingAgentRepoDisconnected": "Conexiunea nu mai acoperă acest depozit. Reconectează-o pentru a porni sesiuni aici.",
+    "codingAgentOpenRepo": "Deschide depozitul",
+    "codingAgentRemoveRepoTitle": "Elimini depozitul?",
+    "codingAgentNoReposTitle": "Adaugă un depozit pentru a începe",
+    "codingAgentNoReposBody": "Un agent de cod lucrează în depozitele tale. Adaugă unul pentru a porni o sesiune.",
+    "codingAgentNoReposAskCreator": "Un agent de cod lucrează în depozitele tale. Cere unui creator al proiectului să adauge unul.",
+    "codingAgentTriggerRepo": "Depozit",
+    "codingAgentUnavailableTitle": "Coding nu este disponibil aici",
+    "codingAgentUnavailableBody": "Acesta este un agent de cod, iar planul acestui spațiu de lucru nu include Coding. Treci la un plan superior pentru a-l folosi în continuare.",
+    "codingAgentSettingsNoAccess": "Depozitele și mașinile sunt vizibile pentru editori și rolurile superioare. Cere acces unui proprietar al proiectului.",
+    "codingAgentOffTitle": "Acest agent este dezactivat",
+    "codingAgentOffBody": "Activează-l pentru a porni o sesiune.",
+    "codingAgentOffAskEditor": "Cere unui creator al proiectului să îl activeze pentru a porni o sesiune.",
+    "codingAgentTurnOn": "Activează"
   },
   "activity": {
     "useTemplate": "Folosește șablon",

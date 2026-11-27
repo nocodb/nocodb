@@ -521,7 +521,6 @@
     "condition": "Podmínka",
     "after": "Po",
     "search": "Hledat",
-    "searchIn": "Hledat v",
     "notification": "Oznámení",
     "confirm": "Potvrdit",
     "generate": "Generovat",
@@ -2929,7 +2928,8 @@
     "agentIdColon": "ID agenta: {agentId}",
     "agentState": {
       "active": "Živě",
-      "paused": "Pozastaveno"
+      "paused": "Pozastaveno",
+      "draft": "Koncept"
     },
     "agentTriggerNewChat": "Nový chat s",
     "agentChannelAdd": "Připojit kanál",
@@ -5153,7 +5153,9 @@
       "recentChats": "Nedávné konverzace",
       "searchChats": "Hledat v konverzacích",
       "noChats": "Zatím žádné konverzace",
-      "noChatsMatch": "Vašemu hledání neodpovídají žádné konverzace"
+      "noChatsMatch": "Vašemu hledání neodpovídají žádné konverzace",
+      "agentsPickToChat": "Vyberte vlevo agenta, se kterým chcete chatovat.",
+      "noWorkflowsOrScripts": "Zatím žádné workflow ani skripty."
     },
     "showMoreConnections": "Zobrazit o {count} spojení více",
     "chooseSignInProvider": "Vyberte poskytovatele a pokračujte",
@@ -6075,7 +6077,8 @@
           "description": "Odpovídá na otázky o vašich tabulkách a dokumentech, kdykoli se někdo zeptá."
         },
         "meeting-prep": {
-          "description": "Každé ráno v pracovní den připraví dnešní schůzky z vaší tabulky schůzek: zákazníka, otevřené obchody a poslední poznámky."
+          "description": "Každé ráno v pracovní den připraví dnešní schůzky z vaší tabulky schůzek: zákazníka, otevřené obchody a poslední poznámky.",
+          "title": "Příprava na schůzku"
         },
         "follow-up-drafter": {
           "title": "Autor navazujících zpráv",
@@ -6100,6 +6103,26 @@
         "customer-check-in": {
           "title": "Kontakt se zákazníkem",
           "description": "Připraví zprávu pro zákazníky, kteří ztichli, hotovou ke kontrole."
+        },
+        "weekly-digest": {
+          "title": "Týdenní přehled",
+          "description": "Shrne změny ve vašich tabulkách a každé pondělí je zveřejní."
+        },
+        "morning-brief": {
+          "title": "Ranní přehled",
+          "description": "Každé ráno v pracovní dny promění změny ve vašich tabulkách a dokumentech v krátký plán."
+        },
+        "record-enricher": {
+          "title": "Obohacování záznamů",
+          "description": "Doplňuje chybějící údaje u nových záznamů z webu."
+        },
+        "reorder-alerts": {
+          "title": "Upozornění na doobjednání",
+          "description": "Sleduje stav zásob a připravuje objednávky dřív, než dojdou."
+        },
+        "ticket-triage": {
+          "title": "Třídění ticketů",
+          "description": "Označí nové požadavky, nastaví prioritu a předá je správné osobě."
         }
       },
       "rowJob": "Úkol",
@@ -6164,8 +6187,129 @@
       "deliverySlackMissing": "Připojte Slack v Integracích, aby tam mohl přispívat.",
       "deliverySlackInvalid": "Zadejte kanál Slack, například #sales.",
       "discardTitle": "Zahodit tento koncept?",
-      "discardContent": "Koncept a jeho nastavovací chat se přesunou do koše."
-    }
+      "discardContent": "Koncept a jeho nastavovací chat se přesunou do koše.",
+      "whenSchedule": "Každé {day} v {time}",
+      "whenRecord": "Když se změní záznam v {table}",
+      "whenRecordAny": "Když se změní záznam",
+      "whenManual": "Jen na vyžádání",
+      "turnOn": "Zapnout agenta"
+    },
+    "agentsPopover": {
+      "tooltip": "Agenti pro {table}",
+      "recentSessions": "Nedávné relace",
+      "sessions": "Relace",
+      "noSessions": "Zatím žádné relace",
+      "activeAgo": "Aktivní {time}",
+      "nothingMatches": "Nic neodpovídá dotazu \"{query}\""
+    },
+    "automate": {
+      "title": "Automatizovat",
+      "tooltip": "Automatizovat {table}",
+      "allWorkflows": "Všechny workflow",
+      "workflowsInTable": "Workflow v tabulce",
+      "startWhen": "Spustit, když…",
+      "searchTriggers": "Hledat, např. \"vytvořeno\", \"tlačítko\"",
+      "searchAutomations": "Hledat automatizace",
+      "otherTrigger": "Jiný spouštěč…",
+      "noMatches": "Žádné shody",
+      "failed": "Selhalo",
+      "lastRunFailed": "Poslední spuštění selhalo",
+      "ranAgo": "Spuštěno {time}",
+      "neverRan": "Nikdy nespuštěno",
+      "newTitle": "{trigger} v {table}",
+      "triggers": {
+        "created": "Záznam je vytvořen",
+        "updated": "Záznam je aktualizován",
+        "createdOrUpdated": "Záznam je vytvořen nebo aktualizován",
+        "deleted": "Záznam je smazán",
+        "entersView": "Vstoupí do pohledu",
+        "matches": "Splňuje podmínky",
+        "fieldChanged": "Pole se změní",
+        "formSubmitted": "Odešle formulář",
+        "buttonClicked": "Klikne na tlačítko",
+        "comment": "Okomentuje záznam"
+      }
+    },
+    "commandPalette": {
+      "askAi": "Zeptat se AI",
+      "askNocoAi": "Zeptat se NocoAI: „{query}“",
+      "app": {
+        "openLive": "Otevřít živou aplikaci",
+        "copyLink": "Kopírovat odkaz na aplikaci",
+        "share": "Sdílet aplikaci…",
+        "refreshPreview": "Obnovit náhled",
+        "switchViewport": "Přepnout velikost náhledu",
+        "fullScreen": "Náhled na celou obrazovku",
+        "exitFullScreen": "Ukončit celou obrazovku"
+      },
+      "base": {
+        "createSync": "Vytvořit synchronizaci…",
+        "createSnapshot": "Vytvořit snapshot…",
+        "emptyTrash": "Vysypat koš…",
+        "duplicate": "Duplikovat base…"
+      },
+      "account": {
+        "profile": "Profil",
+        "changeLanguage": "Změnit jazyk…"
+      },
+      "agent": {
+        "enable": "Povolit agenta",
+        "disable": "Zakázat agenta",
+        "duplicate": "Duplikovat agenta",
+        "copyId": "Kopírovat ID agenta",
+        "delete": "Smazat agenta…",
+        "openSettings": "Nastavení agenta…",
+        "newChat": "Nový chat",
+        "toggleFiles": "Zobrazit nebo skrýt soubory",
+        "copyLink": "Kopírovat odkaz na agenta"
+      },
+      "addToBookmarks": "Přidat {object} do záložek",
+      "addedToBookmarks": "Přidáno do záložek",
+      "addRecord": "Přidat záznam",
+      "addField": "Přidat pole…",
+      "addFilter": "Přidat filtr…",
+      "addSort": "Přidat řazení…",
+      "addColourCondition": "Přidat barevnou podmínku",
+      "askAiAboutRecord": "Zeptat se AI na tento záznam",
+      "addComment": "Přidat komentář…",
+      "apiReference": "Reference API…",
+      "assignToMe": "Přiřadit mně"
+    },
+    "chartPaletteColorblindNote": "Vaše nastavení pro barvoslepost zobrazuje grafy v bezpečné paletě. Všichni ostatní vidí paletu, kterou zvolíte.",
+    "alsoDisconnectApps": "Odpojit také aplikace",
+    "assigneeField": "Řešitel",
+    "colorConditionCount": "{n} podmínka | {n} podmínek",
+    "collapseSubgroups": "Sbalit podskupiny",
+    "chooseSearchField": "Hledat v jednom poli",
+    "allowCsvImport": "Povolit import z CSV",
+    "codingAgent": "Kódovací agent",
+    "codingAgentSettingsNoAccessTitle": "Repozitáře a stroje vyžadují přístup editora",
+    "agentTriggerWebhook": "Při přijetí webhooku",
+    "agentTriggerWebhookHint": "Spustí se, když je jeho URL zavolána s API tokenem. URL se zobrazí u spouštěče, jakmile je přidán.",
+    "agentTriggerWebhookCopy": "Kopírovat URL webhooku",
+    "agentsOnLargerScreen": "Agenti se otevírají na větší obrazovce",
+    "codingAgentAddRepo": "Přidat repozitář",
+    "codingAgentAddRepos": "Přidat {count}",
+    "codingAgentManageRepos": "Spravovat repozitáře",
+    "codingAgentRepoPickTitle": "Spustit v",
+    "codingAgentNoRepo": "Žádný repozitář",
+    "codingAgentRepoAdded": "Přidáno",
+    "codingAgentRepoDefault": "Výchozí ({repo})",
+    "codingAgentRepoDefaultShort": "Výchozí repozitář",
+    "codingAgentRepoDisconnected": "Připojení už tento repozitář nepokrývá. Připojte ho znovu, abyste zde mohli spouštět relace.",
+    "codingAgentOpenRepo": "Otevřít repozitář",
+    "codingAgentRemoveRepoTitle": "Odebrat repozitář?",
+    "codingAgentNoReposTitle": "Přidejte repozitář a začněte",
+    "codingAgentNoReposBody": "Kódovací agent pracuje ve vašich repozitářích. Přidejte nějaký a spusťte relaci.",
+    "codingAgentNoReposAskCreator": "Kódovací agent pracuje ve vašich repozitářích. Požádejte zakladatele projektu, aby nějaký přidal.",
+    "codingAgentTriggerRepo": "Repozitář",
+    "codingAgentUnavailableTitle": "Coding zde není dostupný",
+    "codingAgentUnavailableBody": "Toto je kódovací agent a tarif tohoto pracovního prostoru nezahrnuje Coding. Pro další používání přejděte na vyšší tarif.",
+    "codingAgentSettingsNoAccess": "Repozitáře a stroje vidí editoři a vyšší role. Požádejte o přístup vlastníka projektu.",
+    "codingAgentOffTitle": "Tento agent je vypnutý",
+    "codingAgentOffBody": "Zapněte ho a spusťte relaci.",
+    "codingAgentOffAskEditor": "Požádejte zakladatele projektu, aby ho zapnul, abyste mohli spustit relaci.",
+    "codingAgentTurnOn": "Zapnout"
   },
   "activity": {
     "useTemplate": "Použít šablonu",

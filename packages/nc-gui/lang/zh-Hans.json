@@ -521,7 +521,6 @@
     "condition": "条件",
     "after": "后",
     "search": "搜索",
-    "searchIn": "搜索范围",
     "notification": "通知",
     "confirm": "确认",
     "generate": "生成",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "智能体 ID：{agentId}",
     "agentState": {
       "active": "直播",
-      "paused": "已暂停"
+      "paused": "已暂停",
+      "draft": "草稿"
     },
     "agentTriggerNewChat": "发起新对话",
     "agentChannelAdd": "连接一个频道",
@@ -5162,7 +5162,9 @@
       "recentChats": "最近的对话",
       "searchChats": "搜索对话",
       "noChats": "暂无对话",
-      "noChatsMatch": "没有与搜索匹配的对话"
+      "noChatsMatch": "没有与搜索匹配的对话",
+      "agentsPickToChat": "在左侧选择一个智能体开始聊天。",
+      "noWorkflowsOrScripts": "暂无工作流或脚本。"
     },
     "showMoreConnections": "再显示 {count} 个连接",
     "chooseSignInProvider": "选择一个服务商以继续",
@@ -6089,7 +6091,8 @@
           "description": "每当有人提问时，回答关于你的表格和文档的问题。"
         },
         "meeting-prep": {
-          "description": "每个工作日早晨，根据你的会议表格准备当天的会议：客户、进行中的交易和最近的记录。"
+          "description": "每个工作日早晨，根据你的会议表格准备当天的会议：客户、进行中的交易和最近的记录。",
+          "title": "会议准备"
         },
         "follow-up-drafter": {
           "title": "跟进邮件撰写",
@@ -6114,6 +6117,26 @@
         "customer-check-in": {
           "title": "客户回访",
           "description": "为已经沉默的客户起草一封回访消息，供审阅。"
+        },
+        "weekly-digest": {
+          "title": "每周摘要",
+          "description": "汇总表格中的变化，并在每周一发布。"
+        },
+        "morning-brief": {
+          "title": "早间简报",
+          "description": "每个工作日早晨，把表格和文档中的变化整理成一份简短计划。"
+        },
+        "record-enricher": {
+          "title": "记录信息补全",
+          "description": "从网络上补全新记录中缺失的信息。"
+        },
+        "reorder-alerts": {
+          "title": "补货提醒",
+          "description": "监控库存水平，在缺货前起草采购订单。"
+        },
+        "ticket-triage": {
+          "title": "工单分流",
+          "description": "为新请求打标签、设置优先级，并转给合适的人。"
         }
       },
       "rowJob": "职责",
@@ -6178,8 +6201,129 @@
       "deliverySlackMissing": "请在集成中连接 Slack，它才能发布到那里。",
       "deliverySlackInvalid": "请输入一个 Slack 频道，例如 #sales。",
       "discardTitle": "要放弃此草稿吗？",
-      "discardContent": "草稿及其设置聊天将被移至回收站。"
-    }
+      "discardContent": "草稿及其设置聊天将被移至回收站。",
+      "whenSchedule": "每{day} {time}",
+      "whenRecord": "当 {table} 中的记录发生变化时",
+      "whenRecordAny": "当记录发生变化时",
+      "whenManual": "仅在被要求时",
+      "turnOn": "开启智能体"
+    },
+    "agentsPopover": {
+      "tooltip": "{table} 的智能体",
+      "recentSessions": "最近的会话",
+      "sessions": "会话",
+      "noSessions": "暂无会话",
+      "activeAgo": "活跃于 {time}",
+      "nothingMatches": "没有与“{query}”匹配的内容"
+    },
+    "automate": {
+      "title": "自动化",
+      "tooltip": "自动化 {table}",
+      "allWorkflows": "所有工作流",
+      "workflowsInTable": "表格中的工作流",
+      "startWhen": "何时开始…",
+      "searchTriggers": "搜索，例如“创建”“按钮”",
+      "searchAutomations": "搜索自动化",
+      "otherTrigger": "其他触发器…",
+      "noMatches": "没有匹配项",
+      "failed": "失败",
+      "lastRunFailed": "上次运行失败",
+      "ranAgo": "运行于 {time}",
+      "neverRan": "从未运行",
+      "newTitle": "{table} 中的{trigger}",
+      "triggers": {
+        "created": "创建记录时",
+        "updated": "更新记录时",
+        "createdOrUpdated": "创建或更新记录时",
+        "deleted": "删除记录时",
+        "entersView": "进入视图",
+        "matches": "符合条件",
+        "fieldChanged": "字段发生变化",
+        "formSubmitted": "提交表单",
+        "buttonClicked": "点击按钮",
+        "comment": "评论记录"
+      }
+    },
+    "commandPalette": {
+      "askAi": "问 AI",
+      "askNocoAi": "询问 NocoAI：“{query}”",
+      "app": {
+        "openLive": "打开在线应用",
+        "copyLink": "复制应用链接",
+        "share": "分享应用…",
+        "refreshPreview": "刷新预览",
+        "switchViewport": "切换预览视口",
+        "fullScreen": "全屏预览",
+        "exitFullScreen": "退出全屏"
+      },
+      "base": {
+        "createSync": "创建同步…",
+        "createSnapshot": "创建快照…",
+        "emptyTrash": "清空回收站…",
+        "duplicate": "复制 Base…"
+      },
+      "account": {
+        "profile": "个人资料",
+        "changeLanguage": "更改语言…"
+      },
+      "agent": {
+        "enable": "启用智能体",
+        "disable": "停用智能体",
+        "duplicate": "创建智能体副本",
+        "copyId": "复制智能体 ID",
+        "delete": "删除智能体…",
+        "openSettings": "智能体设置…",
+        "newChat": "新建聊天",
+        "toggleFiles": "显示或隐藏文件",
+        "copyLink": "复制智能体链接"
+      },
+      "addToBookmarks": "将 {object} 添加到书签",
+      "addedToBookmarks": "已添加到书签",
+      "addRecord": "添加记录",
+      "addField": "添加字段…",
+      "addFilter": "添加筛选…",
+      "addSort": "添加排序…",
+      "addColourCondition": "添加颜色条件",
+      "askAiAboutRecord": "就这条记录问 AI",
+      "addComment": "添加评论…",
+      "apiReference": "API 参考…",
+      "assignToMe": "指派给我"
+    },
+    "chartPaletteColorblindNote": "你的色盲偏好会以安全调色板显示图表。其他人看到的是你选择的调色板。",
+    "alsoDisconnectApps": "同时断开应用连接",
+    "assigneeField": "负责人",
+    "colorConditionCount": "{n} 个条件 | {n} 个条件",
+    "collapseSubgroups": "折叠子分组",
+    "chooseSearchField": "在单个字段中搜索",
+    "allowCsvImport": "允许从 CSV 导入",
+    "codingAgent": "编程智能体",
+    "codingAgentSettingsNoAccessTitle": "仓库和机器需要编辑者权限",
+    "agentTriggerWebhook": "收到 Webhook 时",
+    "agentTriggerWebhookHint": "当其 URL 带 API 令牌被调用时运行。添加触发器后，URL 会显示在触发器上。",
+    "agentTriggerWebhookCopy": "复制 Webhook URL",
+    "agentsOnLargerScreen": "智能体在更大的屏幕上打开",
+    "codingAgentAddRepo": "添加仓库",
+    "codingAgentAddRepos": "添加 {count} 个",
+    "codingAgentManageRepos": "管理仓库",
+    "codingAgentRepoPickTitle": "开始于",
+    "codingAgentNoRepo": "没有仓库",
+    "codingAgentRepoAdded": "已添加",
+    "codingAgentRepoDefault": "默认 ({repo})",
+    "codingAgentRepoDefaultShort": "默认仓库",
+    "codingAgentRepoDisconnected": "此连接已不再涵盖该仓库。请重新连接以在此开始会话。",
+    "codingAgentOpenRepo": "打开仓库",
+    "codingAgentRemoveRepoTitle": "要移除该仓库吗？",
+    "codingAgentNoReposTitle": "添加仓库以开始",
+    "codingAgentNoReposBody": "编程智能体在你的仓库中工作。添加一个即可开始会话。",
+    "codingAgentNoReposAskCreator": "编程智能体在你的仓库中工作。请项目创建者添加一个。",
+    "codingAgentTriggerRepo": "仓库",
+    "codingAgentUnavailableTitle": "此处无法使用 Coding",
+    "codingAgentUnavailableBody": "这是一个编程智能体，而此工作区的套餐不包含 Coding。请升级以继续使用。",
+    "codingAgentSettingsNoAccess": "仓库和机器对编辑者及以上角色可见。请向项目所有者申请访问权限。",
+    "codingAgentOffTitle": "此智能体已关闭",
+    "codingAgentOffBody": "开启它即可开始会话。",
+    "codingAgentOffAskEditor": "请项目创建者开启它，以便开始会话。",
+    "codingAgentTurnOn": "开启"
   },
   "activity": {
     "useTemplate": "使用模板",

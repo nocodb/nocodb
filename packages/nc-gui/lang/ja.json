@@ -521,7 +521,6 @@
     "condition": "条件",
     "after": "後",
     "search": "検索",
-    "searchIn": "検索対象",
     "notification": "通知",
     "confirm": "確認",
     "generate": "生成",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "エージェント ID: {agentId}",
     "agentState": {
       "active": "ライブ",
-      "paused": "一時停止中"
+      "paused": "一時停止中",
+      "draft": "下書き"
     },
     "agentTriggerNewChat": "新しいチャット相手",
     "agentChannelAdd": "チャンネルを接続",
@@ -5161,7 +5161,9 @@
       "recentChats": "最近のチャット",
       "searchChats": "チャットを検索",
       "noChats": "チャットはまだありません",
-      "noChatsMatch": "検索条件に一致するチャットはありません"
+      "noChatsMatch": "検索条件に一致するチャットはありません",
+      "agentsPickToChat": "左からエージェントを選んでチャットを始めてください。",
+      "noWorkflowsOrScripts": "ワークフローもスクリプトもまだありません。"
     },
     "showMoreConnections": "さらに {count} 件の接続を表示",
     "chooseSignInProvider": "続行するプロバイダーを選択してください",
@@ -6087,7 +6089,8 @@
           "description": "誰かが質問したときに、テーブルやドキュメントについて回答します。"
         },
         "meeting-prep": {
-          "description": "平日の毎朝、会議テーブルから当日の会議を準備します。取引先、進行中の商談、直近のメモをまとめます。"
+          "description": "平日の毎朝、会議テーブルから当日の会議を準備します。取引先、進行中の商談、直近のメモをまとめます。",
+          "title": "会議の準備"
         },
         "follow-up-drafter": {
           "title": "フォローアップ作成",
@@ -6112,6 +6115,26 @@
         "customer-check-in": {
           "title": "顧客フォローアップ",
           "description": "連絡が途絶えた顧客への確認文を、レビュー用に下書きします。"
+        },
+        "weekly-digest": {
+          "title": "週次ダイジェスト",
+          "description": "テーブルの変更内容をまとめ、毎週月曜日に投稿します。"
+        },
+        "morning-brief": {
+          "title": "朝のブリーフィング",
+          "description": "テーブルやドキュメントの変更内容を、平日の毎朝、短いプランにまとめます。"
+        },
+        "record-enricher": {
+          "title": "レコードの情報補完",
+          "description": "新しいレコードの不足している情報をウェブから補完します。"
+        },
+        "reorder-alerts": {
+          "title": "再発注アラート",
+          "description": "在庫状況を監視し、在庫切れになる前に発注書を作成します。"
+        },
+        "ticket-triage": {
+          "title": "チケットのトリアージ",
+          "description": "新しいリクエストにタグを付け、優先度を設定し、適切な担当者に振り分けます。"
         }
       },
       "rowJob": "役割",
@@ -6176,8 +6199,129 @@
       "deliverySlackMissing": "そこに投稿できるよう、連携で Slack を接続してください。",
       "deliverySlackInvalid": "Slack チャンネルを入力してください（例: #sales）。",
       "discardTitle": "この下書きを破棄しますか？",
-      "discardContent": "下書きとそのセットアップチャットはゴミ箱に移動します。"
-    }
+      "discardContent": "下書きとそのセットアップチャットはゴミ箱に移動します。",
+      "whenSchedule": "毎週{day} {time}",
+      "whenRecord": "{table} でレコードが変更されたとき",
+      "whenRecordAny": "レコードが変更されたとき",
+      "whenManual": "依頼されたときのみ",
+      "turnOn": "エージェントをオンにする"
+    },
+    "agentsPopover": {
+      "tooltip": "{table} のエージェント",
+      "recentSessions": "最近のセッション",
+      "sessions": "セッション",
+      "noSessions": "セッションはまだありません",
+      "activeAgo": "アクティブ {time}",
+      "nothingMatches": "「{query}」に一致するものはありません"
+    },
+    "automate": {
+      "title": "自動化",
+      "tooltip": "{table} を自動化",
+      "allWorkflows": "すべてのワークフロー",
+      "workflowsInTable": "テーブル内のワークフロー",
+      "startWhen": "開始条件…",
+      "searchTriggers": "検索（例:「作成」「ボタン」）",
+      "searchAutomations": "オートメーションを検索",
+      "otherTrigger": "その他のトリガー…",
+      "noMatches": "一致なし",
+      "failed": "失敗",
+      "lastRunFailed": "前回の実行が失敗しました",
+      "ranAgo": "実行 {time}",
+      "neverRan": "実行履歴なし",
+      "newTitle": "{table} の{trigger}",
+      "triggers": {
+        "created": "レコードが作成される",
+        "updated": "レコードが更新される",
+        "createdOrUpdated": "レコードが作成または更新される",
+        "deleted": "レコードが削除される",
+        "entersView": "ビューに入る",
+        "matches": "条件に一致する",
+        "fieldChanged": "フィールドが変更される",
+        "formSubmitted": "フォームを送信する",
+        "buttonClicked": "ボタンをクリックする",
+        "comment": "レコードにコメントする"
+      }
+    },
+    "commandPalette": {
+      "askAi": "AI に質問",
+      "askNocoAi": "NocoAI に質問:「{query}」",
+      "app": {
+        "openLive": "ライブアプリを開く",
+        "copyLink": "アプリのリンクをコピー",
+        "share": "アプリを共有…",
+        "refreshPreview": "プレビューを更新",
+        "switchViewport": "プレビューの表示サイズを切り替え",
+        "fullScreen": "全画面プレビュー",
+        "exitFullScreen": "全画面表示を終了"
+      },
+      "base": {
+        "createSync": "同期を作成…",
+        "createSnapshot": "スナップショットを作成…",
+        "emptyTrash": "ゴミ箱を空にする…",
+        "duplicate": "ベースを複製…"
+      },
+      "account": {
+        "profile": "プロフィール",
+        "changeLanguage": "言語を変更…"
+      },
+      "agent": {
+        "enable": "エージェントを有効にする",
+        "disable": "エージェントを無効にする",
+        "duplicate": "エージェントを複製",
+        "copyId": "エージェント ID をコピー",
+        "delete": "エージェントを削除…",
+        "openSettings": "エージェント設定…",
+        "newChat": "新しいチャット",
+        "toggleFiles": "ファイルの表示・非表示",
+        "copyLink": "エージェントのリンクをコピー"
+      },
+      "addToBookmarks": "{object} をブックマークに追加",
+      "addedToBookmarks": "ブックマークに追加しました",
+      "addRecord": "レコードを追加",
+      "addField": "フィールドを追加…",
+      "addFilter": "フィルターを追加…",
+      "addSort": "並べ替えを追加…",
+      "addColourCondition": "色の条件を追加",
+      "askAiAboutRecord": "このレコードについて AI に質問",
+      "addComment": "コメントを追加…",
+      "apiReference": "API リファレンス…",
+      "assignToMe": "自分に割り当てる"
+    },
+    "chartPaletteColorblindNote": "色覚特性の設定により、グラフは安全なパレットで表示されます。他のユーザーには選択したパレットが表示されます。",
+    "alsoDisconnectApps": "アプリの接続も解除する",
+    "assigneeField": "担当者",
+    "colorConditionCount": "{n} 件の条件 | {n} 件の条件",
+    "collapseSubgroups": "サブグループを折りたたむ",
+    "chooseSearchField": "1 つのフィールドで検索",
+    "allowCsvImport": "CSV からのインポートを許可",
+    "codingAgent": "コーディングエージェント",
+    "codingAgentSettingsNoAccessTitle": "リポジトリとマシンには編集者権限が必要です",
+    "agentTriggerWebhook": "Webhook を受信したとき",
+    "agentTriggerWebhookHint": "URL が API トークン付きで呼び出されると実行されます。URL は、トリガーを追加するとトリガー上に表示されます。",
+    "agentTriggerWebhookCopy": "Webhook の URL をコピー",
+    "agentsOnLargerScreen": "エージェントは大きい画面で開きます",
+    "codingAgentAddRepo": "リポジトリを追加",
+    "codingAgentAddRepos": "{count} 件を追加",
+    "codingAgentManageRepos": "リポジトリを管理",
+    "codingAgentRepoPickTitle": "開始する場所",
+    "codingAgentNoRepo": "リポジトリなし",
+    "codingAgentRepoAdded": "追加済み",
+    "codingAgentRepoDefault": "デフォルト ({repo})",
+    "codingAgentRepoDefaultShort": "デフォルトのリポジトリ",
+    "codingAgentRepoDisconnected": "この接続はこのリポジトリを対象外になりました。ここでセッションを開始するには再接続してください。",
+    "codingAgentOpenRepo": "リポジトリを開く",
+    "codingAgentRemoveRepoTitle": "リポジトリを削除しますか？",
+    "codingAgentNoReposTitle": "開始するにはリポジトリを追加してください",
+    "codingAgentNoReposBody": "コーディングエージェントはリポジトリ内で作業します。セッションを開始するにはリポジトリを追加してください。",
+    "codingAgentNoReposAskCreator": "コーディングエージェントはリポジトリ内で作業します。プロジェクトの作成者に追加を依頼してください。",
+    "codingAgentTriggerRepo": "リポジトリ",
+    "codingAgentUnavailableTitle": "Coding はここでは利用できません",
+    "codingAgentUnavailableBody": "これはコーディングエージェントですが、このワークスペースのプランには Coding が含まれていません。引き続き使用するにはアップグレードしてください。",
+    "codingAgentSettingsNoAccess": "リポジトリとマシンは編集者以上に表示されます。プロジェクトのオーナーにアクセス権を依頼してください。",
+    "codingAgentOffTitle": "このエージェントはオフになっています",
+    "codingAgentOffBody": "セッションを開始するにはオンにしてください。",
+    "codingAgentOffAskEditor": "セッションを開始するには、プロジェクトの作成者にオンにするよう依頼してください。",
+    "codingAgentTurnOn": "オンにする"
   },
   "activity": {
     "useTemplate": "テンプレートを使用",

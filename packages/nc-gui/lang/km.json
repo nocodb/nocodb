@@ -520,7 +520,6 @@
     "condition": "លក្ខខណ្ឌ",
     "after": "បន្ទាប់ពី",
     "search": "ស្វែងរក",
-    "searchIn": "ស្វែងរកក្នុង",
     "notification": "ជូនដំណឹង",
     "confirm": "បញ្ជាក់",
     "generate": "ផលិត",
@@ -2929,7 +2928,8 @@
     "agentIdColon": "លេខសម្គាល់ភ្នាក់ងារ៖ {agentId}",
     "agentState": {
       "active": "ផ្សាយបន្តផ្ទាល់",
-      "paused": "បានផ្អាក"
+      "paused": "បានផ្អាក",
+      "draft": "សេចក្តីព្រាង"
     },
     "agentTriggerNewChat": "ការជជែកថ្មីជាមួយ",
     "agentChannelAdd": "តភ្ជាប់ឆានែលមួយ",
@@ -5138,7 +5138,9 @@
       "recentChats": "ការជជែកថ្មីៗ",
       "searchChats": "ស្វែងរកការជជែក",
       "noChats": "មិនទាន់មានការជជែក",
-      "noChatsMatch": "គ្មានការជជែកណាត្រូវនឹងការស្វែងរករបស់អ្នក"
+      "noChatsMatch": "គ្មានការជជែកណាត្រូវនឹងការស្វែងរករបស់អ្នក",
+      "agentsPickToChat": "ជ្រើសរើសភ្នាក់ងារនៅខាងឆ្វេង ដើម្បីជជែកជាមួយវា។",
+      "noWorkflowsOrScripts": "មិនទាន់មានលំហូរការងារ ឬស្គ្រីបនៅឡើយ។"
     },
     "showMoreConnections": "បង្ហាញការតភ្ជាប់ {count} បន្ថែមទៀត",
     "chooseSignInProvider": "ជ្រើសរើសអ្នកផ្ដល់សេវាដើម្បីបន្ត",
@@ -6054,7 +6056,8 @@
           "description": "ឆ្លើយសំណួរអំពីតារាង និងឯកសាររបស់អ្នក រាល់ពេលមានអ្នកសួរ។"
         },
         "meeting-prep": {
-          "description": "រៀងរាល់ព្រឹកថ្ងៃធ្វើការ រៀបចំកិច្ចប្រជុំថ្ងៃនេះពីតារាងកិច្ចប្រជុំរបស់អ្នក៖ អតិថិជន កិច្ចព្រមព្រៀងដែលកំពុងបើក និងកំណត់ចំណាំចុងក្រោយ។"
+          "description": "រៀងរាល់ព្រឹកថ្ងៃធ្វើការ រៀបចំកិច្ចប្រជុំថ្ងៃនេះពីតារាងកិច្ចប្រជុំរបស់អ្នក៖ អតិថិជន កិច្ចព្រមព្រៀងដែលកំពុងបើក និងកំណត់ចំណាំចុងក្រោយ។",
+          "title": "ការរៀបចំកិច្ចប្រជុំ"
         },
         "follow-up-drafter": {
           "title": "អ្នកព្រាងសារតាមដាន",
@@ -6079,6 +6082,26 @@
         "customer-check-in": {
           "title": "ការទាក់ទងអតិថិជន",
           "description": "ព្រាងសារទាក់ទងទៅអតិថិជនដែលស្ងាត់ឈឹង ត្រៀមរួចសម្រាប់ការពិនិត្យ។"
+        },
+        "weekly-digest": {
+          "title": "សេចក្តីសង្ខេបប្រចាំសប្តាហ៍",
+          "description": "សង្ខេបអ្វីដែលបានផ្លាស់ប្តូរក្នុងតារាងរបស់អ្នក ហើយផ្សាយរៀងរាល់ថ្ងៃច័ន្ទ។"
+        },
+        "morning-brief": {
+          "title": "សេចក្តីសង្ខេបពេលព្រឹក",
+          "description": "បំប្លែងអ្វីដែលបានផ្លាស់ប្តូរក្នុងតារាង និងឯកសាររបស់អ្នកទៅជាផែនការខ្លី រៀងរាល់ព្រឹកថ្ងៃធ្វើការ។"
+        },
+        "record-enricher": {
+          "title": "កម្មវិធីបំពេញកំណត់ត្រា",
+          "description": "បំពេញព័ត៌មានដែលខ្វះនៅក្នុងកំណត់ត្រាថ្មីពីអ៊ីនធឺណិត។"
+        },
+        "reorder-alerts": {
+          "title": "ការជូនដំណឹងបញ្ជាទិញឡើងវិញ",
+          "description": "តាមដានកម្រិតស្តុក និងរៀបចំបញ្ជាទិញមុនពេលអស់ស្តុក។"
+        },
+        "ticket-triage": {
+          "title": "ការចាត់ថ្នាក់សំបុត្រ",
+          "description": "ដាក់ស្លាកលើសំណើថ្មី កំណត់អាទិភាព និងបញ្ជូនទៅអ្នកដែលត្រឹមត្រូវ។"
         }
       },
       "rowJob": "ភារកិច្ច",
@@ -6143,8 +6166,129 @@
       "deliverySlackMissing": "សូមតភ្ជាប់ Slack ក្នុងការតភ្ជាប់ ដើម្បីឱ្យវាអាចផ្សាយនៅទីនោះ។",
       "deliverySlackInvalid": "សូមបញ្ចូលបណ្ដាញ Slack ដូចជា #sales។",
       "discardTitle": "បោះបង់សេចក្ដីព្រាងនេះឬ?",
-      "discardContent": "សេចក្ដីព្រាង និងការជជែកដំឡើងរបស់វានឹងត្រូវផ្លាស់ទៅធុងសំរាម។"
-    }
+      "discardContent": "សេចក្ដីព្រាង និងការជជែកដំឡើងរបស់វានឹងត្រូវផ្លាស់ទៅធុងសំរាម។",
+      "whenSchedule": "រៀងរាល់ {day} នៅម៉ោង {time}",
+      "whenRecord": "ពេលកំណត់ត្រាផ្លាស់ប្តូរក្នុង {table}",
+      "whenRecordAny": "ពេលកំណត់ត្រាផ្លាស់ប្តូរ",
+      "whenManual": "តែពេលស្នើសុំប៉ុណ្ណោះ",
+      "turnOn": "បើកភ្នាក់ងារ"
+    },
+    "agentsPopover": {
+      "tooltip": "ភ្នាក់ងារសម្រាប់ {table}",
+      "recentSessions": "វគ្គថ្មីៗ",
+      "sessions": "វគ្គ",
+      "noSessions": "មិនទាន់មានវគ្គនៅឡើយ",
+      "activeAgo": "សកម្ម {time}",
+      "nothingMatches": "គ្មានអ្វីត្រូវនឹង \"{query}\""
+    },
+    "automate": {
+      "title": "ធ្វើស្វ័យប្រវត្តិកម្ម",
+      "tooltip": "ធ្វើស្វ័យប្រវត្តិកម្ម {table}",
+      "allWorkflows": "លំហូរការងារទាំងអស់",
+      "workflowsInTable": "លំហូរការងារក្នុងតារាង",
+      "startWhen": "ចាប់ផ្តើមនៅពេល…",
+      "searchTriggers": "ស្វែងរក ឧ. \"បានបង្កើត\", \"ប៊ូតុង\"",
+      "searchAutomations": "ស្វែងរកស្វ័យប្រវត្តិកម្ម",
+      "otherTrigger": "គន្លឹះចាប់ផ្តើមផ្សេង…",
+      "noMatches": "គ្មានលទ្ធផលត្រូវគ្នា",
+      "failed": "បរាជ័យ",
+      "lastRunFailed": "ដំណើរការចុងក្រោយបានបរាជ័យ",
+      "ranAgo": "បានដំណើរការ {time}",
+      "neverRan": "មិនធ្លាប់ដំណើរការ",
+      "newTitle": "{trigger} ក្នុង {table}",
+      "triggers": {
+        "created": "កំណត់ត្រាត្រូវបានបង្កើត",
+        "updated": "កំណត់ត្រាត្រូវបានធ្វើបច្ចុប្បន្នភាព",
+        "createdOrUpdated": "កំណត់ត្រាត្រូវបានបង្កើត ឬធ្វើបច្ចុប្បន្នភាព",
+        "deleted": "កំណត់ត្រាត្រូវបានលុប",
+        "entersView": "ចូលក្នុងទិដ្ឋភាព",
+        "matches": "ត្រូវនឹងលក្ខខណ្ឌ",
+        "fieldChanged": "វាលផ្លាស់ប្តូរ",
+        "formSubmitted": "ដាក់ស្នើទម្រង់",
+        "buttonClicked": "ចុចប៊ូតុង",
+        "comment": "បញ្ចេញមតិលើកំណត់ត្រា"
+      }
+    },
+    "commandPalette": {
+      "askAi": "សួរ AI",
+      "askNocoAi": "សួរ NocoAI៖ “{query}”",
+      "app": {
+        "openLive": "បើកកម្មវិធីផ្ទាល់",
+        "copyLink": "ចម្លងតំណភ្ជាប់កម្មវិធី",
+        "share": "ចែករំលែកកម្មវិធី…",
+        "refreshPreview": "ផ្ទុកការមើលជាមុនឡើងវិញ",
+        "switchViewport": "ប្តូរទំហំការមើលជាមុន",
+        "fullScreen": "មើលជាមុនពេញអេក្រង់",
+        "exitFullScreen": "ចាកចេញពីអេក្រង់ពេញ"
+      },
+      "base": {
+        "createSync": "បង្កើតការធ្វើសមកាលកម្ម…",
+        "createSnapshot": "បង្កើតរូបថតស្ថានភាព…",
+        "emptyTrash": "សម្អាតធុងសំរាម…",
+        "duplicate": "ចម្លង Base…"
+      },
+      "account": {
+        "profile": "ប្រវត្តិរូប",
+        "changeLanguage": "ប្តូរភាសា…"
+      },
+      "agent": {
+        "enable": "បើកដំណើរការភ្នាក់ងារ",
+        "disable": "បិទភ្នាក់ងារ",
+        "duplicate": "ចម្លងភ្នាក់ងារ",
+        "copyId": "ចម្លង ID ភ្នាក់ងារ",
+        "delete": "លុបភ្នាក់ងារ…",
+        "openSettings": "ការកំណត់ភ្នាក់ងារ…",
+        "newChat": "ជជែកថ្មី",
+        "toggleFiles": "បង្ហាញ ឬលាក់ឯកសារ",
+        "copyLink": "ចម្លងតំណភ្ជាប់ភ្នាក់ងារ"
+      },
+      "addToBookmarks": "បន្ថែម {object} ទៅចំណាំ",
+      "addedToBookmarks": "បានបន្ថែមទៅចំណាំ",
+      "addRecord": "បន្ថែមកំណត់ត្រា",
+      "addField": "បន្ថែមវាល…",
+      "addFilter": "បន្ថែមតម្រង…",
+      "addSort": "បន្ថែមការតម្រៀប…",
+      "addColourCondition": "បន្ថែមលក្ខខណ្ឌពណ៌",
+      "askAiAboutRecord": "សួរ AI អំពីកំណត់ត្រានេះ",
+      "addComment": "បន្ថែមមតិ…",
+      "apiReference": "ឯកសារយោង API…",
+      "assignToMe": "ចាត់តាំងឱ្យខ្ញុំ"
+    },
+    "chartPaletteColorblindNote": "ការកំណត់ពិការភ្នែកពណ៌របស់អ្នកបង្ហាញគំនូសតាងជាមួយក្តារលាយពណ៌សុវត្ថិភាព។ អ្នកដទៃទាំងអស់ឃើញក្តារលាយពណ៌ដែលអ្នកជ្រើសរើស។",
+    "alsoDisconnectApps": "ផ្តាច់កម្មវិធីផងដែរ",
+    "assigneeField": "អ្នកទទួលបន្ទុក",
+    "colorConditionCount": "{n} លក្ខខណ្ឌ | {n} លក្ខខណ្ឌ",
+    "collapseSubgroups": "បង្រួមក្រុមរង",
+    "chooseSearchField": "ស្វែងរកក្នុងវាលតែមួយ",
+    "allowCsvImport": "អនុញ្ញាតការនាំចូលពី CSV",
+    "codingAgent": "ភ្នាក់ងារសរសេរកូដ",
+    "codingAgentSettingsNoAccessTitle": "ឃ្លាំងកូដ និងម៉ាស៊ីនត្រូវការសិទ្ធិអ្នកកែសម្រួល",
+    "agentTriggerWebhook": "ពេលទទួលបាន webhook",
+    "agentTriggerWebhookHint": "ដំណើរការនៅពេល URL របស់វាត្រូវបានហៅជាមួយ API token។ URL បង្ហាញនៅលើគន្លឹះចាប់ផ្តើម បន្ទាប់ពីបន្ថែមរួច។",
+    "agentTriggerWebhookCopy": "ចម្លង URL របស់ webhook",
+    "agentsOnLargerScreen": "ភ្នាក់ងារបើកនៅលើអេក្រង់ធំជាង",
+    "codingAgentAddRepo": "បន្ថែមឃ្លាំងកូដ",
+    "codingAgentAddRepos": "បន្ថែម {count}",
+    "codingAgentManageRepos": "គ្រប់គ្រងឃ្លាំងកូដ",
+    "codingAgentRepoPickTitle": "ចាប់ផ្តើមក្នុង",
+    "codingAgentNoRepo": "គ្មានឃ្លាំងកូដ",
+    "codingAgentRepoAdded": "បានបន្ថែម",
+    "codingAgentRepoDefault": "លំនាំដើម ({repo})",
+    "codingAgentRepoDefaultShort": "ឃ្លាំងកូដលំនាំដើម",
+    "codingAgentRepoDisconnected": "ការតភ្ជាប់លែងគ្របដណ្តប់ឃ្លាំងកូដនេះទៀតហើយ។ សូមតភ្ជាប់ឡើងវិញដើម្បីចាប់ផ្តើមវគ្គនៅទីនេះ។",
+    "codingAgentOpenRepo": "បើកឃ្លាំងកូដ",
+    "codingAgentRemoveRepoTitle": "លុបឃ្លាំងកូដ?",
+    "codingAgentNoReposTitle": "បន្ថែមឃ្លាំងកូដដើម្បីចាប់ផ្តើម",
+    "codingAgentNoReposBody": "ភ្នាក់ងារសរសេរកូដធ្វើការក្នុងឃ្លាំងកូដរបស់អ្នក។ បន្ថែមមួយដើម្បីចាប់ផ្តើមវគ្គ។",
+    "codingAgentNoReposAskCreator": "ភ្នាក់ងារសរសេរកូដធ្វើការក្នុងឃ្លាំងកូដរបស់អ្នក។ សូមស្នើអ្នកបង្កើតគម្រោងឲ្យបន្ថែមមួយ។",
+    "codingAgentTriggerRepo": "ឃ្លាំងកូដ",
+    "codingAgentUnavailableTitle": "Coding មិនមាននៅទីនេះទេ",
+    "codingAgentUnavailableBody": "នេះជាភ្នាក់ងារសរសេរកូដ ហើយគម្រោងតម្លៃរបស់កន្លែងធ្វើការនេះមិនរួមបញ្ចូល Coding ទេ។ សូមដំឡើងកម្រិតដើម្បីបន្តប្រើ។",
+    "codingAgentSettingsNoAccess": "ឃ្លាំងកូដ និងម៉ាស៊ីនអាចមើលឃើញដោយអ្នកកែសម្រួល និងខ្ពស់ជាង។ សូមស្នើសិទ្ធិពីម្ចាស់គម្រោង។",
+    "codingAgentOffTitle": "ភ្នាក់ងារនេះត្រូវបានបិទ",
+    "codingAgentOffBody": "បើកវាដើម្បីចាប់ផ្តើមវគ្គ។",
+    "codingAgentOffAskEditor": "សូមស្នើអ្នកបង្កើតគម្រោងឲ្យបើកវា ដើម្បីចាប់ផ្តើមវគ្គ។",
+    "codingAgentTurnOn": "បើក"
   },
   "activity": {
     "useTemplate": "Use template",

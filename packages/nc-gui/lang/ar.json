@@ -521,7 +521,6 @@
     "condition": "شرط",
     "after": "بعد",
     "search": "البحث",
-    "searchIn": "البحث في",
     "notification": "إشعار",
     "confirm": "تأكيد",
     "generate": "توليد",
@@ -2930,7 +2929,8 @@
     "agentIdColon": "معرّف الوكيل: {agentId}",
     "agentState": {
       "active": "مباشر",
-      "paused": "متوقف مؤقتًا"
+      "paused": "متوقف مؤقتًا",
+      "draft": "مسودة"
     },
     "agentTriggerNewChat": "محادثة جديدة مع",
     "agentChannelAdd": "توصيل قناة",
@@ -5163,7 +5163,9 @@
       "recentChats": "المحادثات الأخيرة",
       "searchChats": "البحث في المحادثات",
       "noChats": "لا توجد محادثات بعد",
-      "noChatsMatch": "لا توجد محادثات مطابقة لبحثك"
+      "noChatsMatch": "لا توجد محادثات مطابقة لبحثك",
+      "agentsPickToChat": "اختر وكيلاً من اليسار للدردشة معه.",
+      "noWorkflowsOrScripts": "لا توجد سير عمل أو نصوص برمجية بعد."
     },
     "showMoreConnections": "إظهار {count} اتصالات إضافية",
     "chooseSignInProvider": "اختر مزوداً للمتابعة",
@@ -6090,7 +6092,8 @@
           "description": "يجيب عن الأسئلة حول جداولك ومستنداتك كلما سأل أحد."
         },
         "meeting-prep": {
-          "description": "كل صباح يوم عمل، يجهّز اجتماعات اليوم من جدول اجتماعاتك: العميل، والصفقات المفتوحة، وآخر الملاحظات."
+          "description": "كل صباح يوم عمل، يجهّز اجتماعات اليوم من جدول اجتماعاتك: العميل، والصفقات المفتوحة، وآخر الملاحظات.",
+          "title": "التحضير للاجتماع"
         },
         "follow-up-drafter": {
           "title": "كاتب رسائل المتابعة",
@@ -6115,6 +6118,26 @@
         "customer-check-in": {
           "title": "التواصل مع العميل",
           "description": "يكتب مسودة رسالة للعملاء الذين انقطعوا، جاهزة للمراجعة."
+        },
+        "weekly-digest": {
+          "title": "الموجز الأسبوعي",
+          "description": "يلخّص ما تغيّر في جداولك وينشره كل يوم اثنين."
+        },
+        "morning-brief": {
+          "title": "موجز الصباح",
+          "description": "يحوّل ما تغيّر في جداولك ومستنداتك إلى خطة قصيرة كل صباح في أيام العمل."
+        },
+        "record-enricher": {
+          "title": "إثراء السجلات",
+          "description": "يملأ التفاصيل الناقصة في السجلات الجديدة من الويب."
+        },
+        "reorder-alerts": {
+          "title": "تنبيهات إعادة الطلب",
+          "description": "يراقب مستويات المخزون ويعدّ أوامر الشراء قبل نفاد الكمية."
+        },
+        "ticket-triage": {
+          "title": "فرز التذاكر",
+          "description": "يضع وسوماً على الطلبات الجديدة ويحدد الأولوية ويوجّهها إلى الشخص المناسب."
         }
       },
       "rowJob": "المهمة",
@@ -6179,8 +6202,129 @@
       "deliverySlackMissing": "اربط Slack من التكاملات حتى يتمكن من النشر هناك.",
       "deliverySlackInvalid": "أدخل قناة Slack، مثل #sales.",
       "discardTitle": "تجاهل هذه المسودة؟",
-      "discardContent": "سيُنقل المسودة ومحادثة إعدادها إلى سلة المهملات."
-    }
+      "discardContent": "سيُنقل المسودة ومحادثة إعدادها إلى سلة المهملات.",
+      "whenSchedule": "كل {day} في {time}",
+      "whenRecord": "عند تغيّر سجل في {table}",
+      "whenRecordAny": "عند تغيّر سجل",
+      "whenManual": "عند الطلب فقط",
+      "turnOn": "تشغيل الوكيل"
+    },
+    "agentsPopover": {
+      "tooltip": "وكلاء {table}",
+      "recentSessions": "الجلسات الأخيرة",
+      "sessions": "الجلسات",
+      "noSessions": "لا توجد جلسات بعد",
+      "activeAgo": "نشط {time}",
+      "nothingMatches": "لا شيء يطابق \"{query}\""
+    },
+    "automate": {
+      "title": "أتمتة",
+      "tooltip": "أتمتة {table}",
+      "allWorkflows": "كل سير العمل",
+      "workflowsInTable": "سير العمل في الجدول",
+      "startWhen": "ابدأ عندما…",
+      "searchTriggers": "ابحث، مثل \"أُنشئ\"، \"زر\"",
+      "searchAutomations": "البحث في الأتمتة",
+      "otherTrigger": "مشغّل آخر…",
+      "noMatches": "لا توجد تطابقات",
+      "failed": "فشل",
+      "lastRunFailed": "فشل آخر تشغيل",
+      "ranAgo": "شُغّل {time}",
+      "neverRan": "لم يُشغَّل مطلقاً",
+      "newTitle": "{trigger} في {table}",
+      "triggers": {
+        "created": "إنشاء سجل",
+        "updated": "تحديث سجل",
+        "createdOrUpdated": "إنشاء سجل أو تحديثه",
+        "deleted": "حذف سجل",
+        "entersView": "يدخل عرضاً",
+        "matches": "يطابق الشروط",
+        "fieldChanged": "تغيّر حقل",
+        "formSubmitted": "يرسل نموذجاً",
+        "buttonClicked": "ينقر على زر",
+        "comment": "يعلّق على سجل"
+      }
+    },
+    "commandPalette": {
+      "askAi": "اسأل الذكاء الاصطناعي",
+      "askNocoAi": "اسأل NocoAI: «{query}»",
+      "app": {
+        "openLive": "فتح التطبيق المباشر",
+        "copyLink": "نسخ رابط التطبيق",
+        "share": "مشاركة التطبيق…",
+        "refreshPreview": "تحديث المعاينة",
+        "switchViewport": "تبديل حجم المعاينة",
+        "fullScreen": "معاينة بملء الشاشة",
+        "exitFullScreen": "إنهاء ملء الشاشة"
+      },
+      "base": {
+        "createSync": "إنشاء مزامنة…",
+        "createSnapshot": "إنشاء لقطة…",
+        "emptyTrash": "إفراغ سلة المهملات…",
+        "duplicate": "تكرار القاعدة…"
+      },
+      "account": {
+        "profile": "الملف الشخصي",
+        "changeLanguage": "تغيير اللغة…"
+      },
+      "agent": {
+        "enable": "تفعيل الوكيل",
+        "disable": "تعطيل الوكيل",
+        "duplicate": "تكرار الوكيل",
+        "copyId": "نسخ معرّف الوكيل",
+        "delete": "حذف الوكيل…",
+        "openSettings": "إعدادات الوكيل…",
+        "newChat": "دردشة جديدة",
+        "toggleFiles": "إظهار الملفات أو إخفاؤها",
+        "copyLink": "نسخ رابط الوكيل"
+      },
+      "addToBookmarks": "إضافة {object} إلى الإشارات المرجعية",
+      "addedToBookmarks": "تمت الإضافة إلى الإشارات المرجعية",
+      "addRecord": "إضافة سجل",
+      "addField": "إضافة حقل…",
+      "addFilter": "إضافة عامل تصفية…",
+      "addSort": "إضافة ترتيب…",
+      "addColourCondition": "إضافة شرط لون",
+      "askAiAboutRecord": "اسأل الذكاء الاصطناعي عن هذا السجل",
+      "addComment": "إضافة تعليق…",
+      "apiReference": "مرجع API…",
+      "assignToMe": "إسناد إليّ"
+    },
+    "chartPaletteColorblindNote": "يعرض تفضيل عمى الألوان لديك المخططات بلوحة ألوان آمنة. ويرى الجميع لوحة الألوان التي تختارها.",
+    "alsoDisconnectApps": "فصل التطبيقات أيضاً",
+    "assigneeField": "المسؤول",
+    "colorConditionCount": "{n} شرط | {n} شروط",
+    "collapseSubgroups": "طي المجموعات الفرعية",
+    "chooseSearchField": "البحث في حقل واحد",
+    "allowCsvImport": "السماح بالاستيراد من CSV",
+    "codingAgent": "وكيل البرمجة",
+    "codingAgentSettingsNoAccessTitle": "تتطلب المستودعات والأجهزة وصول المحرر",
+    "agentTriggerWebhook": "عند استلام خطاف ويب",
+    "agentTriggerWebhookHint": "يعمل عند استدعاء عنوان URL الخاص به برمز API. يظهر عنوان URL على المشغّل بمجرد إضافته.",
+    "agentTriggerWebhookCopy": "نسخ عنوان URL الخاص بخطاف الويب",
+    "agentsOnLargerScreen": "تُفتح الوكلاء على شاشة أكبر",
+    "codingAgentAddRepo": "إضافة مستودع",
+    "codingAgentAddRepos": "إضافة {count}",
+    "codingAgentManageRepos": "إدارة المستودعات",
+    "codingAgentRepoPickTitle": "البدء في",
+    "codingAgentNoRepo": "لا يوجد مستودع",
+    "codingAgentRepoAdded": "تمت الإضافة",
+    "codingAgentRepoDefault": "الافتراضي ({repo})",
+    "codingAgentRepoDefaultShort": "المستودع الافتراضي",
+    "codingAgentRepoDisconnected": "لم يعد الاتصال يشمل هذا المستودع. أعد الاتصال لبدء الجلسات هنا.",
+    "codingAgentOpenRepo": "فتح المستودع",
+    "codingAgentRemoveRepoTitle": "إزالة المستودع؟",
+    "codingAgentNoReposTitle": "أضف مستودعاً للبدء",
+    "codingAgentNoReposBody": "يعمل وكيل البرمجة في مستودعاتك. أضف مستودعاً لبدء جلسة.",
+    "codingAgentNoReposAskCreator": "يعمل وكيل البرمجة في مستودعاتك. اطلب من أحد منشئي المشروع إضافة مستودع.",
+    "codingAgentTriggerRepo": "مستودع",
+    "codingAgentUnavailableTitle": "Coding غير متاح هنا",
+    "codingAgentUnavailableBody": "هذا وكيل برمجة، وخطة مساحة العمل هذه لا تتضمن Coding. قم بالترقية لمواصلة استخدامه.",
+    "codingAgentSettingsNoAccess": "المستودعات والأجهزة مرئية للمحررين وما فوق. اطلب الوصول من أحد مالكي المشروع.",
+    "codingAgentOffTitle": "هذا الوكيل متوقف",
+    "codingAgentOffBody": "شغّله لبدء جلسة.",
+    "codingAgentOffAskEditor": "اطلب من أحد منشئي المشروع تشغيله لبدء جلسة.",
+    "codingAgentTurnOn": "تشغيل"
   },
   "activity": {
     "useTemplate": "استخدام القالب",

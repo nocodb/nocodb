@@ -367,6 +367,7 @@ onUnmounted(() => {
           key="back"
           type="text"
           size="small"
+          class="-ml-1.75"
           @click="
             () => {
               dialogShow = false

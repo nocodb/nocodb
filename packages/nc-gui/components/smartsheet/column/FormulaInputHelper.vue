@@ -1234,7 +1234,7 @@ const validationErrorDisplay = computed(() => {
   </div>
   <template v-if="isAiFeaturesEnabled && !isRollupMode">
     <div v-if="aiMode === AI_MODE.NONE" class="w-full flex justify-end mt-2">
-      <NcButton size="small" type="text" :loading="aiLoading" @click="enableAI">
+      <NcButton size="small" type="text" class="-mr-1.75" :loading="aiLoading" @click="enableAI">
         <template #icon>
           <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-purple-medium h-4 w-4" />
         </template>

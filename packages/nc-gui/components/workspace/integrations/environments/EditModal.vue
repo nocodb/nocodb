@@ -153,6 +153,7 @@ async function onSave() {
           v-if="!enableDescription"
           type="text"
           size="small"
+          class="-ml-1.75"
           data-testid="nc-environment-add-description-btn"
           @click.stop="toggleDescription"
         >

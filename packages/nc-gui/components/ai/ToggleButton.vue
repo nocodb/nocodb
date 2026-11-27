@@ -48,6 +48,7 @@ const disableTooltip = computed(() => {
       size="small"
       class="-my-1 !text-nc-content-purple-dark hover:text-nc-content-purple-dark flex-none"
       :class="{
+        '-mr-1.75': !aiMode,
         '!pointer-events-none !cursor-not-allowed': aiLoading,
         '!bg-nc-bg-purple-dark hover:!bg-nc-bg-gray-light': aiMode,
       }"

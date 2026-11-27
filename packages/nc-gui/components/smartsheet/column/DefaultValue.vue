@@ -99,7 +99,7 @@ const handleShowInput = () => {
         <NcButton
           size="small"
           type="text"
-          class="!text-nc-content-gray-subtle"
+          class="!text-nc-content-gray-subtle -ml-1.75"
           data-testid="nc-show-default-value-btn"
           :disabled="isSystem || isSyncedField || vModel.unique"
           @click.stop="handleShowInput"

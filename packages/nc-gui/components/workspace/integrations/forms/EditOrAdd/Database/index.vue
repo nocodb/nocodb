@@ -789,7 +789,7 @@ watch(
                     <NcButton
                       type="text"
                       size="small"
-                      class="nc-extdb-btn-import-url !rounded-md !px-2 flex-none -my-1.5"
+                      class="nc-extdb-btn-import-url !rounded-md !px-2 flex-none -my-1.5 -mr-2"
                       @click.stop="importURLDlg = true"
                     >
                       <div class="flex items-center gap-2">

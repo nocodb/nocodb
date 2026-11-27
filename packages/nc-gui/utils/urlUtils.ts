@@ -169,6 +169,21 @@ export const addMissingUrlSchma = (url?: string) => {
   return `https://${url}`
 }
 
+/** A URL field value as a one-image list, the shape card covers read from attachment fields. */
+export const urlToCoverAttachments = (value: unknown): { url: string; title: string; mimetype: string }[] => {
+  if (typeof value !== 'string') return []
+
+  const url = addMissingUrlSchma(value)
+  if (!/^https?:\/\//i.test(url)) return []
+
+  let title = url
+  try {
+    title = decodeURIComponent(new URL(url).pathname.split('/').filter(Boolean).pop() || url)
+  } catch {}
+
+  return [{ url, title, mimetype: 'image/*' }]
+}
+
 export const isSameOriginUrl = (url: string, addMissingUrlSchema = false) => {
   if (addMissingUrlSchema) {
     url = addMissingUrlSchma(url)

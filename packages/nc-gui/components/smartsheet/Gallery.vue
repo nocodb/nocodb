@@ -431,6 +431,12 @@ const attachments = (record: any): Attachment[] => {
 
   let parsed: Attachment[] = []
 
+  if (coverImageColumn.value?.uidt === UITypes.URL) {
+    parsed = urlToCoverAttachments(raw)
+    attachmentCache.set(record, { raw, parsed })
+    return parsed
+  }
+
   try {
     const att = typeof raw === 'string' ? JSON.parse(raw) : raw
 

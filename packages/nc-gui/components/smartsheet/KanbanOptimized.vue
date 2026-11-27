@@ -692,6 +692,8 @@ eventBus.on(smartsheetEventHandler)
 const attachments = (record: any): Attachment[] => {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
 
+  if (coverImageColumn.value.uidt === UITypes.URL) return urlToCoverAttachments(record.row[coverImageColumn.value.title])
+
   try {
     const att =
       typeof record.row[coverImageColumn.value.title] === 'string'

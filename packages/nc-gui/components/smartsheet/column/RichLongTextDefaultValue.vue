@@ -57,7 +57,7 @@ const handleShowInput = () => {
         size="small"
         type="text"
         :disabled="isSyncedField || vModel.unique"
-        class="text-nc-content-gray-subtle"
+        class="text-nc-content-gray-subtle -ml-1.75"
         data-testid="nc-show-default-value-btn"
         @click.stop="handleShowInput"
       >

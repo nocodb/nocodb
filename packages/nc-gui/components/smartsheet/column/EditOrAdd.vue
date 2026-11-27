@@ -1624,7 +1624,7 @@ const unique = computed({
               '!pb-4': embedMode,
             }"
           >
-            <NcButton v-if="!isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
+            <NcButton v-if="!isSystem" size="small" type="text" class="-ml-1.75" @click.stop="triggerDescriptionEnable">
               <div class="flex !text-nc-content-gray-subtle items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 
@@ -1643,7 +1643,13 @@ const unique = computed({
               'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
             }"
           >
-            <NcButton v-if="!enableDescription && !isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
+            <NcButton
+              v-if="!enableDescription && !isSystem"
+              size="small"
+              type="text"
+              class="-ml-1.75"
+              @click.stop="triggerDescriptionEnable"
+            >
               <div class="flex !text-nc-content-gray-subtle items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 

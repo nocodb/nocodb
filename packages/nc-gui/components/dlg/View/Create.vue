@@ -1467,6 +1467,7 @@ watch(activeBaseId, () => {
                       v-if="range.fk_to_column_id === null"
                       size="small"
                       type="text"
+                      class="-ml-1.75"
                       @click="click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => (range.fk_to_column_id = undefined))"
                     >
                       <div class="flex items-center gap-1">
@@ -1656,6 +1657,7 @@ watch(activeBaseId, () => {
                   v-if="range.fk_to_column_id === null"
                   size="small"
                   type="text"
+                  class="-ml-1.75"
                   @click="range.fk_to_column_id = undefined"
                 >
                   <div class="flex items-center gap-1">

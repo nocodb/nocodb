@@ -829,7 +829,7 @@ watch(
                     </NcTooltip>
                     <GeneralLoader class="flex text-nc-content-brand" size="medium" />
                   </template>
-                  <NcButton v-else type="text" size="xsmall" class="!px-2" @click="formatJson()">
+                  <NcButton v-else type="text" size="xsmall" class="!px-2 -mr-1.5" @click="formatJson()">
                     {{ $t('general.format') }}
                   </NcButton>
                 </div>
@@ -944,6 +944,7 @@ watch(
           key="back"
           type="text"
           size="small"
+          class="-ml-1.75"
           :disabled="importLoading"
           @click="templateEditorModal = false"
         >
@@ -951,7 +952,7 @@ watch(
           {{ $t('general.back') }}
         </NcButton>
 
-        <NcButton v-else key="cancel" type="text" size="small" @click="onClickCancel">
+        <NcButton v-else key="cancel" type="text" size="small" class="-ml-1.75" @click="onClickCancel">
           <GeneralIcon v-if="showBackBtn" icon="chevronLeft" class="mr-1" />
 
           {{ showBackBtn ? $t('general.back') : $t('general.cancel') }}

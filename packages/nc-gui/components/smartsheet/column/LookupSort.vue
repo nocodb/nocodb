@@ -176,7 +176,14 @@ defineExpose({ sorts })
     />
 
     <div>
-      <NcButton v-if="availableColumns.length" type="text" size="small" data-testid="nc-lookup-sort-add" @click.stop="addSort">
+      <NcButton
+        v-if="availableColumns.length"
+        type="text"
+        size="small"
+        class="-ml-1.75"
+        data-testid="nc-lookup-sort-add"
+        @click.stop="addSort"
+      >
         <div class="flex items-center gap-1">
           <component :is="iconMap.plus" class="w-4 h-4" />
           {{ $t('activity.addSort') }}

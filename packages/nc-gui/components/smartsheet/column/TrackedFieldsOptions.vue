@@ -122,7 +122,7 @@ setAdditionalValidations({
             v-e="['c:field:lmt:select-tracked-fields']"
             size="small"
             type="text"
-            class="self-start"
+            class="self-start -ml-1.75"
             :disabled="!isSpecificFields"
             data-testid="nc-lmt-select-tracked-fields"
           >

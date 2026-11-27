@@ -1004,7 +1004,7 @@ const handleScrollIntoView = () => {
         <NcButton
           size="small"
           type="text"
-          class="!text-nc-content-gray-muted !hover:text-nc-content-gray-subtle"
+          class="-ml-1.75 !text-nc-content-gray-muted !hover:text-nc-content-gray-subtle"
           @click.stop="advancedOptions = !advancedOptions"
         >
           <div class="flex items-center gap-2">

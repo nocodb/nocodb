@@ -42,7 +42,9 @@ export class ColumnUpdateCoverImageDependencyHandler
     if (!oldCol?.id || !newCol?.id) return undefined;
 
     if (!COVER_IMAGE_TYPES.includes(oldCol.uidt)) return undefined;
-    if (COVER_IMAGE_TYPES.includes(newCol.uidt)) return undefined;
+    // Attachment → URL leaves attachment JSON in the cells, so only → Attachment keeps it.
+    if (newCol.uidt === oldCol.uidt || newCol.uidt === UITypes.Attachment)
+      return undefined;
 
     return {};
   }

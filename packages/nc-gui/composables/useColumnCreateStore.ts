@@ -545,7 +545,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           if (
             meta.value?.id &&
             coverTypes.includes(column.value.uidt as string) &&
-            !coverTypes.includes(formState.value.uidt as string)
+            column.value.uidt !== formState.value.uidt &&
+            formState.value.uidt !== UITypes.Attachment
           ) {
             viewsStore.updateViewCoverImageColumnId({
               metaId: meta.value.id as string,

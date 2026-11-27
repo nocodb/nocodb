@@ -434,7 +434,7 @@ const attachments = (record: any): Attachment[] => {
 
   let parsed: Attachment[] = []
 
-  if (coverImageColumn.value?.uidt === UITypes.URL) {
+  if (isUrlCover.value) {
     parsed = urlToCoverAttachments(raw)
     attachmentCache.set(record, { raw, parsed })
     return parsed

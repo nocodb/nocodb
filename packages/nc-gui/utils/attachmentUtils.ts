@@ -69,7 +69,7 @@ export const createThumbnail = async (file: File): Promise<string | null> => {
   })
 }
 
-export async function isURLExpired(url?: string, referrerPolicy?: ReferrerPolicy) {
+export async function isURLExpired(url?: string) {
   if (!url) return { isExpired: false, status: 0, error: 'URL is empty' }
   try {
     const response = await fetch(url, {
@@ -78,7 +78,6 @@ export async function isURLExpired(url?: string, referrerPolicy?: ReferrerPolicy
         Range: 'bytes=0-0', // Request only the first byte
       },
       cache: 'no-store',
-      ...(referrerPolicy ? { referrerPolicy } : {}),
     })
 
     return {

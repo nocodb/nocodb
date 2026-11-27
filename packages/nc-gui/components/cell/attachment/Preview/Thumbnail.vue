@@ -54,8 +54,9 @@ const index = ref(0)
 
 const onError = async () => {
   index.value++
-  if (index.value >= srcs.value.length) {
-    const isURLExp = await isURLExpired(srcs.value[0], props.referrerPolicy)
+  // Expiry only applies to signed attachment urls; a referrer policy marks a third-party URL cover.
+  if (index.value >= srcs.value.length && !props.referrerPolicy) {
+    const isURLExp = await isURLExpired(srcs.value[0])
     if (isURLExp.isExpired) {
       emit('error')
     }

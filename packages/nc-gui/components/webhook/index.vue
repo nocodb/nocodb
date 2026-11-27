@@ -1124,6 +1124,13 @@ const clampInt = (value: unknown, min: number, max: number, fallback: number) =>
   return Math.min(max, Math.max(min, Math.floor(n)))
 }
 
+// Stored ms as seconds; unset or <= 0 delivers with the default, as the backend does.
+const msToSeconds = (ms: unknown, max: number, fallback: number) => {
+  const n = Number(ms)
+  if (ms === null || ms === undefined || ms === '' || !Number.isFinite(n) || n <= 0) return fallback
+  return clampInt(n / 1000, 1, max, fallback)
+}
+
 const retriesValue = computed({
   get: () => clampInt(hookRef.retries, 0, WEBHOOK_MAX_RETRIES, 0),
   set: (value) => {
@@ -1132,7 +1139,7 @@ const retriesValue = computed({
 })
 
 const retryIntervalSeconds = computed({
-  get: () => clampInt(Number(hookRef.retry_interval) / 1000, 1, WEBHOOK_RETRY_INTERVAL_MAX_SECONDS, 60),
+  get: () => msToSeconds(hookRef.retry_interval, WEBHOOK_RETRY_INTERVAL_MAX_SECONDS, 60),
   set: (value) => {
     hookRef.retry_interval = clampInt(value, 1, WEBHOOK_RETRY_INTERVAL_MAX_SECONDS, 60) * 1000
   },
@@ -1141,7 +1148,7 @@ const retryIntervalSeconds = computed({
 // Hooks saved before the form had this field hold the column default (60000);
 // they are delivered with the 30 s cap, so that is what they show.
 const timeoutSeconds = computed({
-  get: () => clampInt(Number(hookRef.timeout) / 1000, 1, WEBHOOK_TIMEOUT_MAX_SECONDS, WEBHOOK_TIMEOUT_MAX_SECONDS),
+  get: () => msToSeconds(hookRef.timeout, WEBHOOK_TIMEOUT_MAX_SECONDS, WEBHOOK_TIMEOUT_MAX_SECONDS),
   set: (value) => {
     hookRef.timeout = clampInt(value, 1, WEBHOOK_TIMEOUT_MAX_SECONDS, WEBHOOK_TIMEOUT_MAX_SECONDS) * 1000
   },

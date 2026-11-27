@@ -62,9 +62,6 @@ export const WEBHOOK_RESPONSE_RESERVED_X_HEADERS = [
   'x-permitted-cross-domain-policies',
   'x-download-options',
   'x-powered-by',
-  'x-forwarded-for',
-  'x-forwarded-host',
-  'x-forwarded-proto',
   'x-real-ip',
 ];
 /** Reverse proxies act on these (internal redirects, file serving), so they are refused too. */
@@ -73,6 +70,7 @@ export const WEBHOOK_RESPONSE_RESERVED_X_PREFIXES = [
   'x-sendfile',
   'x-lighttpd-',
   'x-forwarded-',
+  'x-litespeed-',
 ];
 /** Cache-Control may only keep the reply out of shared caches. */
 const WEBHOOK_RESPONSE_CACHE_DIRECTIVES = [

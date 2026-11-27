@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CommentThread } from '~/composables/useRowComments'
+import type { CommentThread, CommentTypeExtended } from '~/composables/useRowComments'
 import { COLLAPSE_AFTER_REPLIES } from '~/composables/useCommentThreadList'
 
 defineProps<{
@@ -10,27 +10,34 @@ defineProps<{
   avatarOutside?: boolean
 }>()
 
-const { user, appInfo } = useGlobal()
+defineSlots<{
+  /** Above the comment text, e.g. the doc text a comment is anchored to. */
+  'before-body'?: (props: { comment: CommentTypeExtended; isRoot: boolean }) => any
+}>()
+
+const { user } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
 const {
-  deleteComment,
-  resolveComment,
-  parsedHtmlComments,
-  isCommentExtrasEnabled,
-  getReactionSummary,
-  toggleReaction,
-  pinComment,
-  isCommentUnread,
-  threadSummaries,
-  summarizeThread,
-  dismissThreadSummary,
-} = useRowCommentsOrThrow()
-
-const {
+  source: {
+    deleteComment,
+    resolveComment,
+    parsedHtmlComments,
+    isCommentExtrasEnabled,
+    isReactionsEnabled,
+    getReactionSummary,
+    toggleReaction,
+    pinComment,
+    isCommentUnread,
+    threadSummaries,
+    summarizeThread,
+    dismissThreadSummary,
+    events,
+  },
   isCommentAttachmentsEnabled,
   hasEditPermission,
+  isResolveEnabled,
   hideCopyUrl,
   hideRoleInfo,
   getUserRoleLabel,
@@ -77,6 +84,19 @@ const {
   copyComment,
   handleKeyPress,
 } = useCommentThreadListOrThrow()
+
+const { $e } = useNuxtApp()
+
+// Emitted here, not via v-e: the click re-renders the menu away before a directive listener runs.
+function onEditClick(commentItem: CommentTypeExtended) {
+  $e(events?.edit?.e ?? 'c:comment-expand:comment:edit')
+  editComment(commentItem)
+}
+
+function onDeleteClick(commentItem: CommentTypeExtended) {
+  $e(events?.delete?.e ?? 'c:row-expand:comment:delete')
+  deleteComment(commentItem.id!)
+}
 </script>
 
 <template>
@@ -239,7 +259,7 @@ const {
             data-testid="nc-comment-actions"
           >
             <SmartsheetExpandedFormSidebarCommentReactionPicker
-              v-if="isCommentExtrasEnabled && hasEditPermission"
+              v-if="isReactionsEnabled && hasEditPermission"
               :reacted="
                 getReactionSummary(commentItem.id)
                   .filter((item) => item.hasReacted)
@@ -262,7 +282,7 @@ const {
 
             <NcTooltip v-if="hasEditPermission" :title="$t('general.reply')" placement="top" class="flex">
               <NcButton
-                v-e="['c:comment:reply']"
+                v-e="[events?.reply?.e ?? 'c:comment:reply']"
                 class="!w-7 !h-7"
                 size="xsmall"
                 type="text"
@@ -274,7 +294,7 @@ const {
               </NcButton>
             </NcTooltip>
 
-            <template v-if="appInfo.ee && commentItem === thread.root">
+            <template v-if="isResolveEnabled && commentItem === thread.root">
               <NcTooltip v-if="!commentItem.resolved_by && hasEditPermission" placement="top" class="flex">
                 <NcButton
                   class="nc-resolve-comment-btn !w-7 !h-7"
@@ -337,8 +357,7 @@ const {
                   </template>
                   <NcMenuItem
                     v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
-                    v-e="['c:comment-expand:comment:edit']"
-                    @click="editComment(commentItem)"
+                    @click="onEditClick(commentItem)"
                   >
                     <div class="flex gap-2 items-center">
                       <component :is="iconMap.rename" class="cursor-pointer" />
@@ -353,7 +372,7 @@ const {
                   </NcMenuItem>
                   <template v-if="user && commentItem.created_by_email === user.email && hasEditPermission">
                     <NcDivider />
-                    <NcMenuItem v-e="['c:row-expand:comment:delete']" danger @click="deleteComment(commentItem.id!)">
+                    <NcMenuItem danger @click="onDeleteClick(commentItem)">
                       <div class="flex gap-2 items-center">
                         <GeneralIcon icon="delete" class="cursor-pointer" />
                         {{ $t('general.delete') }}
@@ -421,6 +440,7 @@ const {
             </div>
 
             <div v-else class="space-y-1.5" :class="commentItem !== thread.root ? 'pl-7' : avatarOutside ? '' : 'pl-9'">
+              <slot name="before-body" :comment="commentItem" :is-root="commentItem === thread.root" />
               <div
                 v-if="annotationRefByCommentId[commentItem.id!] && commentItem.id === annotationRefByCommentId[commentItem.id!].rootId"
                 class="nc-annotation-attachment inline-flex max-w-full items-center gap-2 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-elevated px-1.5 py-1"
@@ -472,7 +492,7 @@ const {
               </div>
 
               <SmartsheetExpandedFormSidebarCommentReactions
-                v-if="isCommentExtrasEnabled"
+                v-if="isReactionsEnabled"
                 :summary="getReactionSummary(commentItem.id)"
                 :can-react="hasEditPermission"
                 @react="toggleReaction(commentItem.id!, $event)"

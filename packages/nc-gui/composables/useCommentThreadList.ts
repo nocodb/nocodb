@@ -7,8 +7,13 @@ import {
   WorkspaceRolesToProjectRoles,
   getAttachmentAnnotationKey,
 } from 'nocodb-sdk'
-import type { ColumnType, CommentImageAnnotation, CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
-import type { CommentThread, CommentTypeExtended } from '~/composables/useRowComments'
+import type { AttachmentType, ColumnType, CommentImageAnnotation, CommentType, WorkspaceUserRoles } from 'nocodb-sdk'
+import type {
+  CommentReactionSummaryItem,
+  CommentThread,
+  CommentThreadSummary,
+  CommentTypeExtended,
+} from '~/composables/useRowComments'
 import { suggestionHandledKeyEvents } from '~/helpers/tiptap'
 
 /** Replies stay folded behind a summary line once a thread grows past this. */
@@ -21,6 +26,40 @@ export function threadComments(thread: CommentThread) {
   return [thread.root, ...thread.replies]
 }
 
+/** The comments a thread list renders: a record's (useRowComments) or another host's, such as a doc's. */
+export interface CommentThreadSource {
+  comments: Ref<CommentTypeExtended[]>
+  threads: ComputedRef<CommentThread[]>
+  parsedHtmlComments: ComputedRef<Record<string, string>>
+  primaryKey?: ComputedRef<string | null | undefined>
+  row?: Ref<Row>
+  loadComments: () => unknown
+  saveComment: (
+    comment: string,
+    attachments?: AttachmentType[],
+    commentMeta?: CommentType['meta'],
+    parentCommentId?: string,
+  ) => Promise<void>
+  updateComment: (commentId: string, comment: Partial<CommentType>) => Promise<void>
+  deleteComment: (commentId: string) => Promise<void>
+  resolveComment: (commentId: string) => Promise<void>
+  isReactionsEnabled: ComputedRef<boolean>
+  getReactionSummary: (commentId?: string) => CommentReactionSummaryItem[]
+  toggleReaction: (commentId: string, emoji: string) => Promise<void>
+  /** Pins, read state and thread summaries. */
+  isCommentExtrasEnabled: ComputedRef<boolean>
+  pinComment: (commentId: string, pinned: boolean) => Promise<void>
+  isCommentUnread: (comment: CommentTypeExtended) => boolean
+  acknowledgeUnread: () => void
+  threadSummaries: Ref<Record<string, CommentThreadSummary>>
+  summarizeThread: (rootId: string) => Promise<void>
+  dismissThreadSummary: (rootId: string) => void
+  /** Telemetry names that replace the record ones; the `e:` field keeps them visible to the tele scan. */
+  events?: Partial<Record<'reply' | 'replySave' | 'edit' | 'delete', { e: string }>>
+  /** A reply box was closed without sending. */
+  onReplyCancel?: () => void
+}
+
 interface CommentThreadListOptions {
   /** Scroll container the comment elements are looked up in. */
   containerEl: Ref<HTMLElement | undefined>
@@ -28,6 +67,10 @@ interface CommentThreadListOptions {
   hideRoleInfo?: () => boolean
   /** A search is active: collapsed replies open so matches are in the DOM. */
   isSearching?: () => boolean
+  /** Defaults to the record's comments. */
+  source?: CommentThreadSource
+  canComment?: () => boolean
+  canResolve?: () => boolean
 }
 
 /**
@@ -36,7 +79,7 @@ interface CommentThreadListOptions {
  * helpers each thread item renders with.
  */
 const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((options: CommentThreadListOptions) => {
-  const { user } = useGlobal()
+  const { user, appInfo } = useGlobal()
 
   const { t } = useI18n()
 
@@ -60,6 +103,11 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
 
   const isInterfaceSurface = inject(IsInterfaceRecordSurfaceInj, false)
 
+  // Image annotations and comment attachments exist on record comments only.
+  const isRecordSource = !options.source
+
+  const source: CommentThreadSource = options.source ?? useRowCommentsOrThrow()
+
   const {
     comments,
     loadComments,
@@ -71,20 +119,22 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
     isCommentExtrasEnabled,
     isCommentUnread,
     acknowledgeUnread,
-  } = useRowCommentsOrThrow()
+  } = source
 
   const { isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
 
   const { getFeature } = useEeConfig()
 
   // Present only inside the attachment carousel — exposes image-annotation state.
-  const imageAnnotations = useImageAnnotations()
+  const imageAnnotations = isRecordSource ? useImageAnnotations() : undefined
 
   const { request: annotationFocusRequest } = useAnnotationFocusRequest()
 
   const { getPossibleAttachmentSrc } = useAttachment()
 
-  const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
+  const hasEditPermission = computed(() => (options.canComment ? options.canComment() : isUIAllowed('commentEdit')))
+
+  const isResolveEnabled = computed(() => (options.canResolve ? options.canResolve() : !!appInfo.value.ee))
 
   const hideCopyUrl = computed(() => !!options.hideCopyUrl?.())
 
@@ -137,7 +187,7 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
   /* annotations */
 
   // Annotations are EE-only — hide the label pills entirely in CE.
-  const annotationLabels = computed(() => (isEeUI ? imageAnnotations?.labelByCommentId.value ?? {} : {}))
+  const annotationLabels = computed(() => (isEeUI && imageAnnotations ? imageAnnotations?.labelByCommentId.value ?? {} : {}))
 
   // Row attachments keyed by their annotation key — resolves a comment's stored
   // annotation back to the live cell attachment (signed URLs, thumbnails).
@@ -168,7 +218,7 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
   // inherit the anchor of their root.
   const annotationRefByCommentId = computed(() => {
     const map: Record<string, { title: string; key: string; thumbnailSrc?: string; matched: boolean; rootId: string }> = {}
-    if (!isEeUI) return map
+    if (!isEeUI || !isRecordSource) return map
 
     const annotationById: Record<string, CommentImageAnnotation> = {}
     for (const c of comments.value) {
@@ -211,10 +261,11 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
 
     // Outside — ask the owning attachment cell to open its carousel on this annotation.
     const refInfo = annotationRefByCommentId.value[commentItem.id]
-    if (!refInfo?.matched || !primaryKey.value) return
+    const rowId = primaryKey?.value
+    if (!refInfo?.matched || !rowId) return
 
     annotationFocusRequest.value = {
-      rowId: primaryKey.value,
+      rowId,
       attachmentKey: refInfo.key,
       // Replies resolve to their root annotation comment.
       commentId: refInfo.rootId,
@@ -351,7 +402,7 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
   const reply = ref('')
 
   const {
-    isCommentAttachmentsEnabled,
+    isCommentAttachmentsEnabled: isAttachmentsAvailable,
     pendingAttachments: replyAttachments,
     isUploading: isReplyAttachmentUploading,
     openFilePicker: openReplyFilePicker,
@@ -360,6 +411,8 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
     removeAttachment: removeReplyAttachment,
     clearAttachments: clearReplyAttachments,
   } = useCommentAttachments()
+
+  const isCommentAttachmentsEnabled = computed(() => isRecordSource && isAttachmentsAvailable.value)
 
   function startReply(commentItem: CommentTypeExtended) {
     const thread = findThread(commentItem.id!)
@@ -427,20 +480,24 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
 
     await saveComment(text, tempAttachments, undefined, rootId)
 
-    $e('a:comment:reply:send')
+    $e(source.events?.replySave?.e ?? 'a:comment:reply:send')
   }
 
   function onReplyEscape(e: KeyboardEvent) {
     // Runs before the editor sees the key; an Escape that closes the @mention list keeps the reply open.
     setTimeout(() => {
-      if (!suggestionHandledKeyEvents.has(e)) cancelReply()
+      if (suggestionHandledKeyEvents.has(e) || !replyThreadId.value) return
+      cancelReply()
+      source.onReplyCancel?.()
     })
   }
 
   function onReplyBlur() {
     // Leaving an empty reply box closes it; a draft stays.
     setTimeout(() => {
-      if (!reply.value.trim() && !replyAttachments.value.length && !isReplyAttachmentUploading.value) cancelReply()
+      if (!replyThreadId.value || reply.value.trim() || replyAttachments.value.length || isReplyAttachmentUploading.value) return
+      // Not a cancel: the reader clicked elsewhere.
+      cancelReply()
     }, 150)
   }
 
@@ -540,7 +597,7 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
       encodeURI(
         `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
           viewId ? `/${viewId}` : ''
-        }?rowId=${primaryKey.value}&commentId=${comment.id}${pathParam}`,
+        }?rowId=${primaryKey?.value}&commentId=${comment.id}${pathParam}`,
       ),
     )
   }
@@ -558,7 +615,9 @@ const [useProvideCommentThreadList, useCommentThreadList] = useInjectionState((o
   }
 
   return {
+    source,
     hasEditPermission,
+    isResolveEnabled,
     hideCopyUrl,
     hideRoleInfo,
     getUserRoleLabel,

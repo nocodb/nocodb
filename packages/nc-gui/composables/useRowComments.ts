@@ -746,6 +746,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     trackNotificationBell,
     setCommentNotificationPreference,
     isCommentExtrasEnabled,
+    isReactionsEnabled: isCommentExtrasEnabled,
     threads,
     reactions,
     getReactionSummary,

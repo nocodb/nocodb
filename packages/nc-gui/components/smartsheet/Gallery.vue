@@ -1333,6 +1333,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
         <template v-if="showCover" #cover>
           <a-carousel
             v-if="isMounted && !reloadAttachments && attachments(record).length"
+            :key="attachments(record).reduce((acc, curr) => acc + (curr?.path ?? curr?.url), '')"
             class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
             :style="{
               'minHeight': `${coverHeight}px`,

@@ -55,7 +55,7 @@ const index = ref(0)
 const onError = async () => {
   index.value++
   if (index.value >= srcs.value.length) {
-    const isURLExp = await isURLExpired(srcs.value[0])
+    const isURLExp = await isURLExpired(srcs.value[0], props.referrerPolicy)
     if (isURLExp.isExpired) {
       emit('error')
     }

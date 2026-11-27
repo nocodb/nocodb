@@ -195,6 +195,8 @@ const handleOperatorAndValue = (filter: FilterClauseSubType) => {
     [
       'eq',
       'neq',
+      'ieq',
+      'nieq',
       'not',
       'like',
       'nlike',
@@ -230,7 +232,7 @@ const handleOperatorAndValue = (filter: FilterClauseSubType) => {
   // for equality, replace with empty string if value is undefined
   else if (
     filter.value === undefined &&
-    ['eq', 'neq', 'gb_eq'].includes(filter.comparison_op)
+    ['eq', 'neq', 'ieq', 'nieq', 'gb_eq'].includes(filter.comparison_op)
   ) {
     filter.value = '';
   }

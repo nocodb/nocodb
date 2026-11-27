@@ -94,6 +94,18 @@ function sanitizeForHash(value: any, seen = new WeakSet()): any {
   return out;
 }
 
+function hashColumns(columns: Column[]): string {
+  try {
+    return hash(columns);
+  } catch {
+    // A column can transiently carry a lazily-loaded Promise (e.g. a relation
+    // mid-load on a shared cached instance); object-hash throws on promises.
+    // Hash a sanitized projection instead so meta operations never crash on a
+    // transient cache state.
+    return hash(sanitizeForHash(columns));
+  }
+}
+
 export default class Model implements TableType {
   copy_enabled: BoolType;
   source_id: 'db' | string;
@@ -198,16 +210,7 @@ export default class Model implements TableType {
 
   public async getColumnsHash(ncMeta = Noco.ncMeta): Promise<string> {
     const columns = await this.getColumns(ncMeta, undefined, false);
-
-    try {
-      return (this.columnsHash = hash(columns));
-    } catch {
-      // A column can transiently carry a lazily-loaded Promise (e.g. a relation
-      // mid-load on a shared cached instance); object-hash throws on promises.
-      // Hash a sanitized projection instead so meta operations never crash on a
-      // transient cache state.
-      return (this.columnsHash = hash(sanitizeForHash(columns)));
-    }
+    return (this.columnsHash = hashColumns(columns));
   }
 
   // get columns cached under the instance or fetch from db/redis cache
@@ -641,9 +644,16 @@ export default class Model implements TableType {
         includeViewType: ViewTypes.GRID,
       })?.id;
 
-      await m.getColumns(ncMeta, defaultViewId);
-
-      await m.getColumnsHash(ncMeta);
+      // One read of the columns: the hash is of the list without the view's order.
+      const columns = await m.getColumns(ncMeta, undefined, false);
+      m.columnsHash = hashColumns(columns);
+      m.columns = await Column.withDefaultViewMeta(
+        context,
+        columns,
+        defaultViewId,
+        ncMeta,
+      );
+      m.columnsById = Object.fromEntries(m.columns.map((c) => [c.id, c]));
 
       return m;
     }

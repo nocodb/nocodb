@@ -183,7 +183,7 @@ function onCellValueChange(colTitle: string | undefined) {
       }"
     >
       <div
-        class="flex-none flex items-center rounded-lg overflow-hidden"
+        class="relative flex-none flex items-center rounded-lg overflow-hidden"
         :class="{
           'w-45 lt-lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto) sm:(mx-2)': !props.forceVerticalMode,
           'w-full px-0 mb-2 h-auto': props.forceVerticalMode,
@@ -192,7 +192,7 @@ function onCellValueChange(colTitle: string | undefined) {
         <LazySmartsheetHeaderVirtualCell
           v-if="isVirtualCol(col)"
           :column="col"
-          class="nc-expanded-cell-header h-full flex-none"
+          class="nc-expanded-cell-header h-full flex-1 min-w-0"
           :is-hidden-col="isHiddenCol"
           show-lock-icon
           show-menu-mobile
@@ -200,12 +200,13 @@ function onCellValueChange(colTitle: string | undefined) {
         <LazySmartsheetHeaderCell
           v-else
           :column="col"
-          class="nc-expanded-cell-header flex-none"
+          class="nc-expanded-cell-header flex-1 min-w-0"
           :is-hidden-col="isHiddenCol"
           show-lock-icon
           show-menu-mobile
         />
         <SmartsheetExpandedFormFieldPresence v-if="isEeUI" :column-id="col.id" />
+        <SmartsheetExpandedFormFieldCommentCount :column-id="col.id" />
       </div>
 
       <a-skeleton-input

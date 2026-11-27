@@ -549,6 +549,12 @@ export class FormFilters {
                 // eslint-disable-next-line eqeqeq
                 res = val != filter.value
                 break
+              case 'ieq':
+                res = this.toString(val).toLowerCase() === this.toString(filter.value).toLowerCase()
+                break
+              case 'nieq':
+                res = this.toString(val).toLowerCase() !== this.toString(filter.value).toLowerCase()
+                break
               case 'like':
                 res = this.toString(val).toLowerCase()?.includes(filter.value?.toLowerCase())
                 break

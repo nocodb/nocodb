@@ -69,6 +69,12 @@ const { t } = useI18n()
 
 const { appInfo } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
+// Workspace scope needs `integrationManage`, base scope `baseIntegrationCreate`.
+// Base-scope edits are also creator-only; the entry points (canEditIntegration) enforce that.
+const canManageIntegration = computed(() => isUIAllowed(props.baseId ? 'baseIntegrationCreate' : 'integrationManage'))
+
 const creatingSource = ref(false)
 
 const _getDefaultConnectionConfig = (client = ClientType.MYSQL) => {
@@ -709,7 +715,7 @@ watch(
       </div>
       <div class="flex items-center gap-3">
         <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
-        <NcTooltip :disabled="!testConnectionError">
+        <NcTooltip v-if="canManageIntegration" :disabled="!testConnectionError">
           <template #title>
             {{ testConnectionError }}
           </template>
@@ -736,6 +742,7 @@ watch(
         </NcTooltip>
 
         <NcButton
+          v-if="canManageIntegration"
           size="small"
           type="primary"
           :disabled="isDisabledSubmitBtn || isLoading"
@@ -762,6 +769,7 @@ watch(
               name="external-base-create-form"
               layout="vertical"
               class="flex flex-col gap-8"
+              :class="{ 'nc-form-read-only': !canManageIntegration }"
             >
               <div class="nc-form-section">
                 <div class="nc-form-section-title">{{ $t('general.general') }}</div>
@@ -782,7 +790,10 @@ watch(
 
                   <!-- Use Connection URL -->
                   <NcDropdown
-                    v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
+                    v-if="
+                      canManageIntegration &&
+                      ![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)
+                    "
                     v-model:visible="importURLDlg"
                     placement="bottomRight"
                   >
@@ -1365,6 +1376,18 @@ watch(
 </template>
 
 <style lang="scss" scoped>
+// ant-design-vue 3 has no form-level `disabled`, so neutralise the controls here.
+.nc-form-read-only {
+  :deep(.ant-input),
+  :deep(.ant-input-affix-wrapper),
+  :deep(.ant-input-number),
+  :deep(.ant-select),
+  :deep(.ant-switch),
+  :deep(.nc-connection-json-editor) {
+    @apply pointer-events-none opacity-70;
+  }
+}
+
 :deep(.ant-collapse-header) {
   @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;
 }

@@ -10,6 +10,7 @@ onMounted(() => {
 
   options.value.includeData = true
   options.value.includeViews = true
+  options.value.includeInterfaces = true
 
   sharedBaseId.value = route.query.base as string
 

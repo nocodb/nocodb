@@ -94,6 +94,19 @@ export function buildCommentThreads(comments: CommentTypeExtended[]): CommentThr
   return threads
 }
 
+export interface CommentCountsEvent {
+  modelId: string
+  rowId: string
+  count: number
+  /** Open threads per field id */
+  cells: Record<string, number>
+}
+
+/** Carries a record's fresh comment counts to every grid showing it (the expanded record works on a copy). */
+export function useCommentCountsBus() {
+  return useEventBus<CommentCountsEvent>('nc-comment-counts')
+}
+
 const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const isCommentsLoading = ref(false)
 
@@ -150,6 +163,16 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
   const threads = computed(() => buildCommentThreads(comments.value))
 
+  /** Open threads per field id, from the loaded comments (the expanded record's field badges). */
+  const openThreadsByField = computed(() => {
+    const counts: Record<string, number> = {}
+    for (const { root } of threads.value) {
+      if (!root.fk_column_id || root.resolved_by || root.id?.startsWith('temp-')) continue
+      counts[root.fk_column_id] = (counts[root.fk_column_id] ?? 0) + 1
+    }
+    return counts
+  })
+
   const reactions = ref<Record<string, CommentReactionItem[]>>({})
 
   /** When the caller last had this record's comments open — null until they have. */
@@ -163,6 +186,45 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     if (!lastReadAt.value || !comment.created_at || comment.created_by === user.value?.id) return false
     if (comment.id?.startsWith('temp-')) return false
     return dayjs(comment.created_at).isAfter(dayjs(lastReadAt.value))
+  }
+
+  const commentCountsBus = useCommentCountsBus()
+
+  /** Field new threads are about (cell comments); null = the whole record. */
+  const commentFieldId = ref<string | null>(null)
+
+  /** Re-read this record's comment counts (total + open threads per field) into rowMeta. */
+  async function refreshCommentCounts() {
+    if (ifaceSidebar || !isUIAllowed('commentCount') || !row.value) return
+    const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
+    if (!rowId) return
+    try {
+      const res = (await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
+        fk_model_id: meta.value.id as string,
+        ids: [rowId],
+      })) as Array<{ row_id: string; count: number; cells?: Record<string, number> }>
+      const entry = res?.find((c) => `${c.row_id}` === `${rowId}`)
+      const counts = { count: +(entry?.count ?? 0), cells: entry?.cells ?? {} }
+      Object.assign(row.value, {
+        rowMeta: {
+          ...row.value.rowMeta,
+          commentCount: counts.count,
+          cellCommentCounts: counts.cells,
+        },
+      })
+      commentCountsBus.emit({ modelId: meta.value.id!, rowId: `${rowId}`, ...counts })
+    } catch {
+      // Counts are a hint; the next grid load corrects them.
+    }
+  }
+
+  /** The field a comment's thread is about — replies follow their root. */
+  function threadFieldId(comment?: CommentType | null) {
+    if (!comment) return null
+    if (comment.fk_column_id) return comment.fk_column_id
+    const root = comment.parent_comment_id ? comments.value.find((c) => c.id === comment.parent_comment_id) : null
+    return root?.fk_column_id ?? null
   }
 
   /** Row whose comments are on screen — set before the record object may be. */
@@ -445,6 +507,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           commentCount: (row.value.rowMeta.commentCount ?? 1) - 1,
         },
       })
+
+      if (threadFieldId(tempC)) refreshCommentCounts()
     } catch (e: unknown) {
       message.error(
         await extractSdkResponseErrorMsg(
@@ -487,6 +551,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           { commentId },
         )
       }
+
+      if (threadFieldId(tempC)) refreshCommentCounts()
     } catch (e: unknown) {
       comments.value = comments.value.map((c) => {
         if (c.id === commentId) {
@@ -522,6 +588,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
       if (!rowId) return
 
+      // Replies take their thread's field on the server.
+      const fieldId = parentCommentId ? null : commentFieldId.value
+
       if (ifaceSidebar) {
         await ifaceSidebar.commentRow(rowId, {
           comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
@@ -541,6 +610,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
             ...(attachments?.length ? { attachments } : {}),
             ...(commentMeta !== undefined ? { meta: commentMeta } : {}),
             ...(parentCommentId ? { parent_comment_id: parentCommentId } : {}),
+            ...(fieldId ? { fk_column_id: fieldId } : {}),
           },
         )
       }
@@ -556,6 +626,10 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       // reloadTrigger?.trigger()
 
       await loadComments()
+
+      if (fieldId || (parentCommentId && threadFieldId(comments.value.find((c) => c.id === parentCommentId)))) {
+        refreshCommentCounts()
+      }
 
       // Commenting auto-subscribes server-side (unless an explicit
       // "only @mentions" pick exists) — refresh so the bell reflects it.
@@ -731,6 +805,10 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
   return {
     comments,
+    commentFieldId,
+    threadFieldId,
+    openThreadsByField,
+    refreshCommentCounts,
     loadComments,
     saveComment,
     updateComment,

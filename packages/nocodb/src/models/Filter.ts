@@ -13,6 +13,7 @@ import Hook from '~/models/Hook';
 import View from '~/models/View';
 import ListViewLevel from '~/models/ListViewLevel';
 import Noco from '~/Noco';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -1590,6 +1591,7 @@ export default class Filter implements FilterType {
     return [];
   }
 
+  @NcCache({ key: (args) => args[1].linkColumnId })
   static async allLinkFilterList(
     context: NcContext,
     { linkColumnId }: { linkColumnId: string },

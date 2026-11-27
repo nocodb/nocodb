@@ -12,6 +12,9 @@ export const useConfigStore = defineStore('configStore', () => {
   // When set to true expanded form will auto focus on comment input and state will be set to false after focussing
   const isExpandedFormCommentMode = ref(false)
 
+  // A cell thread opened in the expanded record: its comments start filtered to this field
+  const expandedFormCommentFieldId = ref<string | null>(null)
+
   const isMobileMode = breakpoints.smaller('sm')
 
   const _activeBp = breakpoints.active()
@@ -59,6 +62,7 @@ export const useConfigStore = defineStore('configStore', () => {
     isViewPortMobile,
     projectPageTab,
     isExpandedFormCommentMode,
+    expandedFormCommentFieldId,
     hideSharedBaseBtn,
   }
 })

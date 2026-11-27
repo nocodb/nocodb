@@ -94,6 +94,8 @@ export interface AppInfo {
   hqRoadmap?: RoadmapHqMode
   /** USD value of the HQ roadmap gift card. */
   hqRoadmapRewardAmount?: number
+  /** Cloud NC_SEAT_PRICING_V2: Free counts on the v2 seat model. */
+  seatPricingV2?: boolean
 }
 
 export interface StoredState {

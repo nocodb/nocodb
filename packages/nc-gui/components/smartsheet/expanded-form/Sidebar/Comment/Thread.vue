@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
 import type { CommentThread, CommentTypeExtended } from '~/composables/useRowComments'
 import { COLLAPSE_AFTER_REPLIES } from '~/composables/useCommentThreadList'
 
@@ -8,6 +9,13 @@ defineProps<{
   showNewDivider?: boolean
   /** The host draws the root author's avatar outside the card (Discussion). */
   avatarOutside?: boolean
+  /** Tag the root comment with its field (cell comments); needs `columnById`. */
+  showField?: boolean
+  columnById?: Record<string, ColumnType>
+}>()
+
+const emit = defineEmits<{
+  (e: 'filterField', fieldId: string): void
 }>()
 
 defineSlots<{
@@ -119,16 +127,20 @@ function onDeleteClick(commentItem: CommentTypeExtended) {
     <button
       v-if="isResolvedCollapsed(thread)"
       type="button"
-      class="nc-comment-resolved-row mx-3 my-1 flex w-[calc(100%_-_24px)] items-center gap-2 rounded-lg border-1 border-nc-border-gray-light bg-nc-bg-gray-extralight px-2.5 py-1.5 text-left text-small cursor-pointer hover:bg-nc-bg-gray-light"
+      class="nc-comment-resolved-row mx-3 my-1 flex w-[calc(100%_-_24px)] items-center gap-[13px] rounded-lg border-1 border-nc-border-gray-light bg-nc-bg-gray-extralight pl-0 pr-2.5 py-1.5 text-left text-small cursor-pointer hover:bg-nc-bg-gray-light"
       :class="thread.root.id"
       data-testid="nc-comment-resolved-row"
       @click="setResolvedOpen(thread, true)"
     >
-      <GeneralIcon icon="checkFill" class="flex-none w-3.5 h-3.5 rounded-full bg-nc-fill-green-dark text-white" />
-      <span class="min-w-0 flex-1 truncate text-nc-content-gray-subtle">
+      <!-- Same width as the avatar column (24px less the 1px border), so the check centres under the avatars -->
+      <span class="flex-none w-[22px] flex justify-center">
+        <GeneralIcon icon="checkFill" class="w-3.5 h-3.5 rounded-full bg-nc-fill-green-dark text-white" />
+      </span>
+      <NcTooltip show-on-truncate-only placement="top" class="min-w-0 flex-1 truncate text-nc-content-gray-subtle">
+        <template #title>{{ commentPlainText(thread.root) }}</template>
         <span class="font-semibold text-nc-content-gray">{{ firstName(thread.root) }}:</span>
         {{ commentPlainText(thread.root) }}
-      </span>
+      </NcTooltip>
       <span class="flex-none text-xs text-nc-content-gray-muted">
         {{ $t('activity.commentThread.commentCount', { count: thread.replies.length + 1 }, thread.replies.length + 1) }}
       </span>
@@ -225,6 +237,29 @@ function onDeleteClick(commentItem: CommentTypeExtended) {
               <div class="flex-none text-xs text-nc-content-gray-muted">
                 {{ timeAgo(commentItem.created_at!) }}
               </div>
+              <!-- The field sits in the author line so a cell comment reads like any other -->
+              <component
+                :is="columnById?.[commentItem.fk_column_id!] ? 'button' : 'span'"
+                v-if="showField && columnById && commentItem === thread.root && commentItem.fk_column_id"
+                type="button"
+                class="nc-comment-field-chip inline-flex min-w-0 max-w-full items-center gap-0.5 rounded px-1 -mx-0.5 h-5 text-captionSm text-nc-content-gray-subtle"
+                :class="{
+                  'cursor-pointer hover:bg-nc-bg-gray-light': columnById[commentItem.fk_column_id!],
+                  'line-through': !columnById[commentItem.fk_column_id!],
+                }"
+                :data-testid="`nc-comment-field-chip-${commentItem.id}`"
+                @click="emit('filterField', commentItem.fk_column_id!)"
+              >
+                <SmartsheetHeaderIcon
+                  v-if="columnById[commentItem.fk_column_id!]"
+                  :column="columnById[commentItem.fk_column_id!]"
+                  class="!mx-0 !h-3 !w-3 flex-none"
+                  color="text-nc-content-gray-subtle"
+                />
+                <span class="truncate">{{
+                  columnById[commentItem.fk_column_id!]?.title ?? $t('activity.cellComments.deletedField')
+                }}</span>
+              </component>
               <span
                 v-if="isCommentUnread(commentItem)"
                 class="nc-comment-unread-dot h-1.5 w-1.5 flex-none rounded-full bg-nc-fill-red-medium"

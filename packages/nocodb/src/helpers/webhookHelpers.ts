@@ -427,6 +427,14 @@ export async function validateCondition(
             case 'neq':
               res = val != filter.value;
               break;
+            case 'ieq':
+            case 'nieq': {
+              const same =
+                (data[field]?.toString?.() ?? '').toLowerCase() ===
+                (filter.value?.toString?.() ?? '').toLowerCase();
+              res = filter.comparison_op === 'ieq' ? same : !same;
+              break;
+            }
             case 'like':
               res =
                 data[field]
@@ -820,7 +828,7 @@ export async function getAffectedColumns(
   }
   if (affectedCols.length) {
     affectedCols = [...new Set(affectedCols)];
-    const columns = await model.getColumns();
+    const columns = model.columns ?? (await model.getColumns());
     return affectedCols
       .map((title) => columns.find((col) => col.title === title)?.id)
       .filter(Boolean);

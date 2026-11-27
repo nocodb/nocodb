@@ -385,8 +385,14 @@ export const bulkAggregate =
             // it (`sanitizeQuery`) before knex re-scans it for placeholders. A
             // backslash in a value survives that round-trip as an even-numbered
             // escape and gets eaten as a placeholder, so such a bucket can't be
-            // consolidated — hand the whole request to the legacy path.
-            if (bindings.some((b) => typeof b === 'string' && b.includes('\\')))
+            // consolidated — hand the whole request to the legacy path. `eq`
+            // spells such a value as `?`-free SQL (#10249), which lands the
+            // backslash in `cond` rather than in a binding; keep declining on
+            // either, so consolidation never carries one.
+            if (
+              cond.includes('\\') ||
+              bindings.some((b) => typeof b === 'string' && b.includes('\\'))
+            )
               return decline(BulkAggDecline.BackslashBinding);
 
             buckets.push({ alias: f.alias, cond, bindings });

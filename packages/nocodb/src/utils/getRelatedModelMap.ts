@@ -9,6 +9,15 @@ import {
 } from '~/models';
 import Noco from '~/Noco';
 
+// The map's models were loaded by this walk: their columns are as fresh as a re-read.
+function loadedColumn(
+  relatedModels: Map<string, Model>,
+  modelId: string,
+  columnId: string,
+): Column | undefined {
+  return relatedModels.get(modelId)?.columnsById?.[columnId];
+}
+
 async function processColumn(
   context: NcContext,
   column: Column,
@@ -73,13 +82,23 @@ async function processColumn(
   }
   // Handle Lookup columns - traverse the entire lookup chain
   else if (column.uidt === UITypes.Lookup) {
-    const colOptions = await column.getColOptions<LookupColumn>(ncMeta);
+    const loaded = column.colOptions as LookupColumn | undefined;
+    const colOptions =
+      typeof loaded?.getRelationColumn === 'function'
+        ? loaded
+        : await column.getColOptions<LookupColumn>(ncMeta);
     if (!colOptions || colOptions.error) return;
-    const relationCol = await Column.get(
-      colOptions.context,
-      { colId: colOptions.fk_relation_column_id },
-      ncMeta,
-    );
+    const relationCol =
+      loadedColumn(
+        relatedModels,
+        column.fk_model_id,
+        colOptions.fk_relation_column_id,
+      ) ??
+      (await Column.get(
+        colOptions.context,
+        { colId: colOptions.fk_relation_column_id },
+        ncMeta,
+      ));
     const relationColOpt =
       (relationCol?.colOptions as LinkToAnotherRecordColumn) ??
       (await relationCol?.getColOptions<LinkToAnotherRecordColumn>(ncMeta));
@@ -106,11 +125,16 @@ async function processColumn(
     const { refContext } = relationColOpt.getRelContext();
     await processColumn(
       refContext,
-      await Column.get(
-        refContext,
-        { colId: colOptions.fk_lookup_column_id },
-        ncMeta,
-      ),
+      loadedColumn(
+        relatedModels,
+        relationColOpt.fk_related_model_id,
+        colOptions.fk_lookup_column_id,
+      ) ??
+        (await Column.get(
+          refContext,
+          { colId: colOptions.fk_lookup_column_id },
+          ncMeta,
+        )),
       relatedModels,
       visitedColumns,
       ncMeta,
@@ -122,10 +146,12 @@ export async function getRelatedModelMap(
   context: NcContext,
   table: Model,
   ncMeta: MetaService = Noco.ncMeta,
+  // The caller loaded `table` with its columns in this request, after its last column write.
+  { columnsCurrent = false }: { columnsCurrent?: boolean } = {},
 ): Promise<Map<string, Model>> {
   const relatedModels: Map<string, Model> = new Map();
 
-  await table.getColumns(ncMeta);
+  if (!columnsCurrent || !table.columnsById) await table.getColumns(ncMeta);
 
   relatedModels.set(table.id, table);
 

@@ -137,6 +137,8 @@ interface Row {
     new?: boolean
     selected?: boolean
     commentCount?: number
+    // Open comment threads per field id (cell comments)
+    cellCommentCounts?: Record<string, number>
     changed?: boolean
     saving?: boolean
     // Esc cancelled the edit; the next queued autosave must not re-send it.
@@ -389,7 +391,17 @@ interface SidebarTableNode extends TableType {
 }
 
 interface UsersSortType {
-  field?: 'email' | 'roles' | 'title' | 'id' | 'memberCount' | 'baseCount' | 'workspaceCount' | 'created_at' | 'billable'
+  field?:
+    | 'email'
+    | 'roles'
+    | 'title'
+    | 'id'
+    | 'memberCount'
+    | 'baseCount'
+    | 'workspaceCount'
+    | 'created_at'
+    | 'billable'
+    | 'seat_type'
   direction?: 'asc' | 'desc'
 }
 

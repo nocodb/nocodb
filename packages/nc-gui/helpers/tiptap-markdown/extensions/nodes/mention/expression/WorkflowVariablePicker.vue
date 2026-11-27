@@ -5,10 +5,12 @@ import { getWorkflowVariableKind } from 'nocodb-sdk'
 interface NodeGroup {
   nodeId: string
   nodeTitle: string
-  category: WorkflowNodeCategory
+  category?: WorkflowNodeCategory
   variables: VariableDefinition[]
   /** An Iterate step whose loop body holds the step being edited. */
   isEnclosingLoop?: boolean
+  /** The base's variables (`$vars`), listed after the steps. */
+  isBaseVariables?: boolean
 }
 
 interface Props {
@@ -147,6 +149,16 @@ const hasVariables = computed(() => filteredVariables.value.length > 0)
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
+const { isUIAllowed } = useRoles()
+
+const openBaseSettings = useBaseSettingsLink()
+
+const canCreateBaseVariable = computed(() => isUIAllowed('baseVariableCreate'))
+
+const hasStepGroups = computed(() => nodeGroups.value.some((group) => !group.isBaseVariables))
+
 const GROUP_ORDER = ['iteration', 'fields', 'meta', 'other']
 
 const variableSections = computed(() =>
@@ -165,7 +177,11 @@ const kindOf = (variable: VariableDefinition) => getWorkflowVariableKind(variabl
 // Rows that open (Record, Table, User…) are groups, not a value of a kind, so only values and
 // lists are labelled.
 const kindLabel = (variable: VariableDefinition) =>
-  variable.children?.length && kindOf(variable) !== 'list' ? '' : t(`labels.workflow.transforms.kinds.${kindOf(variable)}`)
+  variable.extra?.baseVariable?.secret
+    ? t('labels.workflow.picker.secret')
+    : variable.children?.length && kindOf(variable) !== 'list'
+    ? ''
+    : t(`labels.workflow.transforms.kinds.${kindOf(variable)}`)
 
 /** The field takes this value as it is. */
 const matchesAccepts = (variable: VariableDefinition) => !!props.accepts?.includes(kindOf(variable))
@@ -189,7 +205,10 @@ const hasAnyAccepted = computed(
 
 const acceptsLabel = computed(() => (props.accepts?.length ? t(`labels.workflow.transforms.kinds.${props.accepts[0]}`) : ''))
 
-const nodeTileClass = (node: NodeGroup) => getWorkflowNodeIconClass({ id: '', category: node.category })
+const nodeTileClass = (node: NodeGroup) =>
+  node.isBaseVariables
+    ? 'bg-nc-bg-gray-light text-nc-content-gray-subtle'
+    : getWorkflowNodeIconClass({ id: '', category: node.category })
 
 const scrollToSelected = () => {
   nextTick(() => {
@@ -247,6 +266,8 @@ const leftHandler = () => {
 
 const selectVariable = (variable: VariableDefinition) => {
   const expression = `{{ ${variable.key} }}`
+
+  if (variable.extra?.baseVariable) $e('c:workflow:variable:insert', { source: 'base-variable' })
 
   props.command({
     id: variable.key,
@@ -354,6 +375,7 @@ const getVariableIcon = (variable: VariableDefinition) => {
 }
 
 const getNodeIcon = (node: NodeGroup) => {
+  if (node.isBaseVariables) return 'ncCode'
   const firstVar = node.variables[0]
   if (firstVar?.extra?.nodeIcon) {
     return firstVar.extra.nodeIcon
@@ -408,29 +430,36 @@ defineExpose({
         class="w-[200px] flex-none p-1.5 overflow-y-auto nc-scrollbar-thin border-r-1 border-nc-border-gray-light"
       >
         <div class="px-2 pt-1 pb-1.5 text-captionSm text-nc-content-gray-muted">{{ t('labels.workflow.picker.steps') }}</div>
-        <button
-          v-for="(node, index) in nodeGroups"
-          :key="node.nodeId"
-          type="button"
-          class="w-full flex items-center gap-2 h-8 px-2 rounded-md text-left transition-colors"
-          :class="index === selectedNodeIndex ? 'bg-nc-bg-gray-light' : 'hover:bg-nc-bg-gray-extralight'"
-          :data-testid="`nc-workflow-variable-picker-step-${index}`"
-          @click="selectNode(index)"
-        >
-          <span class="w-5 h-5 flex-none rounded flex items-center justify-center" :class="nodeTileClass(node)">
-            <GeneralIcon :icon="getNodeIcon(node)" class="!w-3 !h-3 stroke-transparent" />
-          </span>
-          <NcTooltip
-            class="flex-1 min-w-0 truncate text-caption"
-            :class="index === selectedNodeIndex ? 'text-nc-content-gray-emphasis' : 'text-nc-content-gray'"
-            show-on-truncate-only
-            placement="right"
-            overlay-class-name="!z-[10002]"
+        <template v-for="(node, index) in nodeGroups" :key="node.nodeId">
+          <div
+            v-if="node.isBaseVariables && !hasStepGroups"
+            class="px-2 py-6 text-center text-captionSm text-nc-content-gray-muted"
           >
-            <template #title>{{ node.nodeTitle }}</template>
-            {{ node.nodeTitle }}
-          </NcTooltip>
-        </button>
+            {{ t('labels.workflow.picker.noSteps') }}
+          </div>
+          <div v-if="node.isBaseVariables" class="mt-1.5 mx-2 mb-1.5 border-t-1 border-nc-border-gray-light" />
+          <button
+            type="button"
+            class="w-full flex items-center gap-2 h-8 px-2 rounded-md text-left transition-colors"
+            :class="index === selectedNodeIndex ? 'bg-nc-bg-gray-light' : 'hover:bg-nc-bg-gray-extralight'"
+            :data-testid="`nc-workflow-variable-picker-step-${index}`"
+            @click="selectNode(index)"
+          >
+            <span class="w-5 h-5 flex-none rounded flex items-center justify-center" :class="nodeTileClass(node)">
+              <GeneralIcon :icon="getNodeIcon(node)" class="!w-3 !h-3 stroke-transparent" />
+            </span>
+            <NcTooltip
+              class="flex-1 min-w-0 truncate text-caption"
+              :class="index === selectedNodeIndex ? 'text-nc-content-gray-emphasis' : 'text-nc-content-gray'"
+              show-on-truncate-only
+              placement="right"
+              overlay-class-name="!z-[10002]"
+            >
+              <template #title>{{ node.nodeTitle }}</template>
+              {{ node.nodeTitle }}
+            </NcTooltip>
+          </button>
+        </template>
 
         <div v-if="nodeGroups.length === 0" class="px-2 py-6 text-center text-captionSm text-nc-content-gray-muted">
           {{ t('labels.workflow.picker.noSteps') }}
@@ -507,6 +536,14 @@ defineExpose({
                       >
                         {{ variable.extra.description }}
                       </div>
+                      <!-- Secrets never get a preview. -->
+                      <div
+                        v-else-if="variable.extra?.baseVariable?.preview"
+                        class="text-captionSm text-nc-content-gray-muted truncate"
+                        data-testid="nc-workflow-variable-picker-preview"
+                      >
+                        {{ variable.extra.baseVariable.preview }}
+                      </div>
                     </div>
                     <span v-if="kindLabel(variable)" class="flex-none text-captionSm text-nc-content-gray-muted">{{
                       kindLabel(variable)
@@ -532,6 +569,24 @@ defineExpose({
               </NcTooltip>
             </template>
           </template>
+
+          <div
+            v-else-if="selectedNode?.isBaseVariables && !searchQuery"
+            class="h-full flex flex-col items-center justify-center gap-1 text-captionSm text-nc-content-gray-muted"
+            data-testid="nc-workflow-variable-picker-no-base-variables"
+          >
+            <span>{{ t('labels.workflow.picker.noBaseVariables') }}</span>
+            <NcButton
+              v-if="canCreateBaseVariable"
+              type="link"
+              size="xsmall"
+              class="!text-captionSm"
+              data-testid="nc-workflow-variable-picker-base-variables-settings"
+              @click="openBaseSettings('variables')"
+            >
+              {{ t('labels.workflow.picker.addBaseVariables') }}
+            </NcButton>
+          </div>
 
           <div v-else class="h-full flex items-center justify-center text-captionSm text-nc-content-gray-muted">
             {{ searchQuery ? t('labels.workflow.picker.noMatches') : t('labels.workflow.picker.pickStep') }}

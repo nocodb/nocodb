@@ -6050,6 +6050,8 @@
                         "enum": [
                           "eq",
                           "neq",
+                          "ieq",
+                          "nieq",
                           "gt",
                           "gte",
                           "lt",
@@ -23136,6 +23138,11 @@
             "type": "string",
             "description": "Comment this one replies to. A reply to a reply joins the same thread.",
             "example": "cmt043cx4r30343ff"
+          },
+          "fk_column_id": {
+            "type": ["string", "null"],
+            "description": "Field the comment is about. Omit for a comment on the whole record; replies take their thread's field.",
+            "example": "cl_8iw2o4ejzvdyna"
           }
         },
         "required": [
@@ -23234,6 +23241,7 @@
                   "ge",
                   "gt",
                   "gte",
+                  "ieq",
                   "in",
                   "is",
                   "isWithin",
@@ -23246,6 +23254,7 @@
                   "nanyof",
                   "nbtw",
                   "neq",
+                  "nieq",
                   "nlike",
                   "not",
                   "notblank",
@@ -23615,6 +23624,7 @@
                   "ge",
                   "gt",
                   "gte",
+                  "ieq",
                   "in",
                   "is",
                   "isWithin",
@@ -23627,6 +23637,7 @@
                   "nanyof",
                   "nbtw",
                   "neq",
+                  "nieq",
                   "nlike",
                   "not",
                   "notblank",
@@ -30963,6 +30974,11 @@
             "$ref": "#/components/schemas/Id",
             "example": "cmt043cx4r30343ff",
             "description": "Parent Comment ID"
+          },
+          "fk_column_id": {
+            "type": ["string", "null"],
+            "example": "cl_8iw2o4ejzvdyna",
+            "description": "Field the comment is about; null = the whole record"
           },
           "source_id": {
             "$ref": "#/components/schemas/Id",

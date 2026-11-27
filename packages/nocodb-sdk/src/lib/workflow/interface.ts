@@ -95,6 +95,9 @@ interface VariableDefinition {
     // A Link field would split this value on its commas (a plain join of display values);
     // its picker hides it in favour of the quoted join.
     splitsInLinks?: boolean;
+
+    // A base variable (`$vars.KEY`). `preview` is set for text variables only.
+    baseVariable?: { secret: boolean; preview?: string };
   };
 
   // Nested variables for objects/arrays

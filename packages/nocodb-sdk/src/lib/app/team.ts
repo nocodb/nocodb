@@ -40,6 +40,8 @@ export interface AppMemberTeamRef {
   id: string;
   /** `auto` by base role, `explicit` by assignment, `team` through a workspace team on it. */
   source: 'auto' | 'explicit' | 'team';
+  /** With `team`: the workspace team that brings them. */
+  via_team?: { id: string; title: string };
 }
 
 export interface AppMemberType {
@@ -60,4 +62,15 @@ export interface AppMemberListResponse {
   pageInfo: { totalRows: number };
   /** Everyone on each team, before search and filter. */
   teamCounts: Record<string, number>;
+  /** Viewers and commenters on no team, before search, filter and paging. */
+  guestsWithoutTeam: number;
+}
+
+/** The base's app on the project members list, served to project owners and creators. */
+export interface BaseMembersListApp {
+  id: string;
+  title: string;
+  teams: AppTeamType[];
+  /** Viewers and commenters on no team, over the whole roster: `AppMemberListResponse.guestsWithoutTeam`. */
+  guests_without_team: number;
 }

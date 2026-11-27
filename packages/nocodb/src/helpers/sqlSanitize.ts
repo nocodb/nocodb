@@ -61,6 +61,47 @@ export function questionFreeLiteral(
   return `(${parts.join(client === 'mssql' ? ' + ' : ' || ')})`;
 }
 
+/**
+ * The comparison value as inline SQL text, or null when binding it is safe.
+ *
+ * `execAndParse` renders a query with `toQuery()` and then re-reads the text
+ * (`sanitizeQuery`, pg's `positionBindings`), where `\?` is an escaped `?`.
+ * A value carrying that pair loses its backslash and compares as the escaped
+ * form — `why\?` reads the `why?` rows. Spelling the value without a `?`
+ * keeps that round-trip off it (#10249).
+ */
+export function escapeSafeLiteral(
+  knex: Pick<XKnex, 'raw' | 'clientType'>,
+  value: unknown,
+): string | null {
+  if (
+    typeof value !== 'string' ||
+    !value.includes('?') ||
+    !value.includes('\\')
+  )
+    return null;
+  return questionFreeLiteral(knex, value);
+}
+
+/**
+ * A row for an insert rendered with `toQuery()` and re-run as text: values
+ * `escapeSafeLiteral` would inline go in as raw SQL, else pg stores `why\?`
+ * as `why$1`. Returns the row itself when nothing needs it.
+ */
+export function escapeSafeRow<T extends Record<string, unknown>>(
+  knex: Pick<XKnex, 'raw' | 'clientType'>,
+  row: T,
+): T {
+  let out: T | null = null;
+  for (const [key, value] of Object.entries(row)) {
+    const literal = escapeSafeLiteral(knex, value);
+    if (!literal) continue;
+    out ??= { ...row };
+    (out as Record<string, unknown>)[key] = knex.raw(literal);
+  }
+  return out ?? row;
+}
+
 export function unsanitize(v) {
   if (typeof v !== 'string') return v;
   return v?.replace(/\\[?]/g, '?');

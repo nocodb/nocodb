@@ -99,6 +99,35 @@ export async function getViewAndModelByAliasOrId(
 // a formula rollup's export column (null for plain rollups), per column object
 const rollupDisplayColumns = new WeakMap<Column, Column | null>();
 
+// Serializers that already return a joined list: their output is not one item.
+const LIST_SERIALIZED_UIDTS = new Set<string>([
+  UITypes.Lookup,
+  UITypes.Links,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Attachment,
+  UITypes.User,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+]);
+
+const CELL_ITEM_SEPARATOR = ', ';
+
+// Join per-record values into one cell. In a multi-item cell, an item holding
+// the separator or starting with `"` is quoted (`PA, "PE, Inc"`) so the cell
+// splits back into the same items; a decimal comma (`1234,57 €`) never holds it.
+function joinCellItems(items: unknown[], quote = true) {
+  const quoteItems = quote && items.length > 1;
+  return items
+    .map((item) => {
+      const text = `${item ?? ''}`;
+      return quoteItems &&
+        (text.includes(CELL_ITEM_SEPARATOR) || text.startsWith('"'))
+        ? `"${text.replace(/"/g, '""')}"`
+        : text;
+    })
+    .join(CELL_ITEM_SEPARATOR);
+}
+
 export async function serializeCellValue(
   context: NcContext,
   {
@@ -121,7 +150,8 @@ export async function serializeCellValue(
     return value;
   }
 
-  if (!value) return value;
+  // 0 and false are values: they still go through the column's formatter
+  if (value === null || value === undefined || value === '') return value;
 
   switch (column?.uidt) {
     case UITypes.Rollup: {
@@ -219,19 +249,22 @@ export async function serializeCellValue(
           lookupColumn as unknown as ColumnType,
         ) as unknown as Column;
 
-        return (
-          await Promise.all(
-            [...(Array.isArray(value) ? value : [value])].map(async (v) =>
-              serializeCellValue(refContext, {
-                value: v,
-                column: effectiveColumn,
-                siteUrl,
-                locale,
-                rawNumeric,
-              }),
-            ),
-          )
-        ).join(', ');
+        const items = await Promise.all(
+          [...(Array.isArray(value) ? value : [value])].map(async (v) =>
+            serializeCellValue(refContext, {
+              value: v,
+              column: effectiveColumn,
+              siteUrl,
+              locale,
+              rawNumeric,
+            }),
+          ),
+        );
+        // Empty linked values are dropped from the text; the API array keeps them.
+        return joinCellItems(
+          items.filter((v) => v !== null && v !== undefined && v !== ''),
+          !LIST_SERIALIZED_UIDTS.has(effectiveColumn.uidt),
+        );
       }
       break;
     case UITypes.Links:
@@ -344,14 +377,14 @@ async function linkDisplayValue(column: Column, value: any) {
       )
     : undefined;
   const displayCol = overrideCol ?? relatedModel.displayValue;
-  return (
+  return joinCellItems(
     await Promise.all(
       [...(Array.isArray(value) ? value : [value])].map((v) =>
         // a link display value is a nested record: print its leaf text
         flattenDisplayValue(v, displayCol),
       ),
-    )
-  ).join(', ');
+    ),
+  );
 }
 
 /**

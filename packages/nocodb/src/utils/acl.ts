@@ -171,6 +171,7 @@ export const permissionScopes = {
     'dataExist',
     'dataFindOne',
     'dataGroupBy',
+    'dataGroupByCount',
     'dataExport',
     'exportCsv',
     'exportExcel',
@@ -521,6 +522,7 @@ const rolePermissions:
       dataExist: true,
       dataFindOne: true,
       dataGroupBy: true,
+      dataGroupByCount: true,
 
       dataExport: true,
       exportCsv: true,
@@ -1030,6 +1032,7 @@ const permissionDescriptions: Record<string, string> = {
   dataExist: 'check if data exists',
   dataFindOne: 'find a single data record',
   dataGroupBy: 'group data by a specific field',
+  dataGroupByCount: 'count groups of data by a specific field',
   exportCsv: 'export data to CSV',
   exportExcel: 'export data to Excel',
   sortList: 'view list of sorts',

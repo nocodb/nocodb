@@ -18,6 +18,8 @@ const { isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
 
+const rowComments = useRowComments()
+
 // Default the hidden-fields section to open when this is a new row
 // and at least one hidden field is required (#13838) — saves the user
 // from hunting for the field that's blocking their save. For existing
@@ -55,6 +57,11 @@ const visibleFieldsCount = computed(() => {
   if (!isFiltering.value) return props.fields.length
   return props.fields.filter((col) => passesActiveFilters(col)).length
 })
+
+// Comments on hidden fields have no other cue while the section is collapsed.
+const hiddenFieldsOpenThreads = computed(() =>
+  props.hiddenFields.reduce((sum, col) => sum + (col.id ? rowComments?.openThreadsByField.value[col.id] ?? 0 : 0), 0),
+)
 
 const showEmptyState = computed(() => isFiltering.value && visibleFieldsCount.value === 0 && visibleHiddenFieldsCount.value === 0)
 
@@ -109,6 +116,14 @@ useHiddenFieldsCommands({
               : $t('labels.showHiddenFields', { count: hiddenFields.length }, hiddenFields.length)
           }}
         </template>
+        <span
+          v-if="hiddenFieldsOpenThreads"
+          class="nc-hidden-fields-comment-count ml-1.5 inline-flex items-center gap-0.5 h-5 px-1.5 rounded-md bg-nc-bg-brand text-nc-content-brand text-captionSm font-semibold"
+          data-testid="nc-hidden-fields-comment-count"
+        >
+          <GeneralIcon icon="ncMessageSquare" class="h-3 w-3" />
+          {{ hiddenFieldsOpenThreads }}
+        </span>
         <GeneralIcon
           v-if="!isFiltering"
           icon="chevronDown"

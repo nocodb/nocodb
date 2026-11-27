@@ -194,6 +194,72 @@ export function ncLikeEscapeClause(knex: CustomKnex): string {
 }
 
 /**
+ * A blank `ieq` / `nieq` operand. Computed-column handlers pass it unwrapped,
+ * not as `knex.raw('?')`, so `ncWhereEqualsIgnoreCase` can match blank cells.
+ */
+export function ncIsBlankIgnoreCaseEq(filter: {
+  comparison_op?: string;
+  value?: unknown;
+}) {
+  return (
+    (filter.comparison_op === 'ieq' || filter.comparison_op === 'nieq') &&
+    (ncIsNull(filter.value) ||
+      ncIsUndefined(filter.value) ||
+      filter.value === '')
+  );
+}
+
+/**
+ * `ieq` / `nieq`: equality ignoring letter case. `field` is a column identifier
+ * or a compiled expression. A blank `val` matches blank cells (NULL or '');
+ * `nieq` keeps NULL cells, as `neq` does. SQLite's LOWER folds ASCII only.
+ */
+export function ncWhereEqualsIgnoreCase(
+  knex: CustomKnex,
+  qb: Knex.QueryBuilder,
+  args: {
+    field: string | Knex.Raw | Knex.RawBuilder | Knex.QueryBuilder;
+    val: unknown;
+    negate: boolean;
+    // Oracle CLOB (LongText): `=` can't compare CLOBs
+    isClob?: boolean;
+  },
+) {
+  const { field, val, negate, isClob } = args;
+  const client = ncLikeClient(knex);
+  const fieldSql = typeof field === 'string' ? '??' : '(?)';
+  // `::text` lets a native pg enum take LOWER and compare with ''
+  const textSql = client === 'pg' ? `${fieldSql}::text` : fieldSql;
+
+  qb.where((nested) => {
+    if (ncIsNull(val) || ncIsUndefined(val) || val === '') {
+      // Oracle stores '' as NULL
+      const hasEmptyString = client !== 'oracledb';
+      if (negate) {
+        nested.whereNotNull(field as any);
+        if (hasEmptyString) nested.whereRaw(`${textSql} <> ''`, [field]);
+      } else {
+        nested.whereNull(field as any);
+        if (hasEmptyString) nested.orWhereRaw(`${textSql} = ''`, [field]);
+      }
+      return;
+    }
+
+    const operand = ncIsKnexRawOrRef(val) ? val : String(val);
+    const cmp = negate ? '<>' : '=';
+    if (isClob) {
+      nested.whereRaw(
+        `DBMS_LOB.COMPARE(LOWER(${fieldSql}), LOWER(TO_CLOB(?))) ${cmp} 0`,
+        [field, operand],
+      );
+    } else {
+      nested.whereRaw(`LOWER(${textSql}) ${cmp} LOWER(?)`, [field, operand]);
+    }
+    if (negate) nested.orWhereNull(field as any);
+  });
+}
+
+/**
  * Lookup / LTAR only: ops that must become `NOT EXISTS (positive op)` instead
  * of `EXISTS (negative op)` — otherwise a row linked to both a valued and an
  * unvalued record matches the op and its opposite, and a row with no links
@@ -202,6 +268,7 @@ export function ncLikeEscapeClause(knex: CustomKnex): string {
 export const negatedMapping = {
   nlike: { comparison_op: 'like' },
   neq: { comparison_op: 'eq' },
+  nieq: { comparison_op: 'ieq' },
   blank: { comparison_op: 'notblank' },
   null: { comparison_op: 'notnull' },
   notchecked: { comparison_op: 'checked' },

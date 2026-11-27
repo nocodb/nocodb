@@ -457,6 +457,7 @@ export class ImportService {
     }
 
     // create comments
+    const pendingCommentColumns: { commentId: string; columnId: string }[] = [];
     for (const data of param.data) {
       if (param.existingModel) break;
       if (!data?.comments) break;
@@ -492,10 +493,19 @@ export class ImportService {
             ),
             fk_model_id: table.id,
             parent_comment_id: idMap.get(commentD.parent_comment_id),
+            fk_column_id: idMap.get(commentD.fk_column_id) ?? null,
           }),
         );
 
         idMap.set(commentD.id, comment.id);
+
+        // Link and lookup fields are created later in this import.
+        if (commentD.fk_column_id && !comment.fk_column_id) {
+          pendingCommentColumns.push({
+            commentId: comment.id,
+            columnId: commentD.fk_column_id,
+          });
+        }
       }
     }
 
@@ -2190,6 +2200,13 @@ export class ImportService {
     }
 
     elapsedTime(hrTime, 'create link filters', 'importModels');
+
+    for (const { commentId, columnId } of pendingCommentColumns) {
+      const newColumnId = idMap.get(columnId);
+      if (newColumnId) {
+        await Comment.setColumn(targetContext, commentId, newColumnId);
+      }
+    }
 
     return idMap;
   }

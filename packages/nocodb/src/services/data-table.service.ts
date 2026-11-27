@@ -135,6 +135,47 @@ export class DataTableService {
     return row;
   }
 
+  /**
+   * Group-by for the internal API. The v1 data route ignores `search` by
+   * design, so the grid switches here when an all-fields search is active.
+   */
+  async dataGroupBy(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    return await this.datasService.getDataGroupBy(context, {
+      model,
+      view,
+      query: param.query,
+    });
+  }
+
+  /** See {@link dataGroupBy}: the count of groups, same args. */
+  async dataGroupByCount(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    return await this.datasService.getDataGroupByCount(context, {
+      model,
+      view,
+      query: param.query,
+    });
+  }
+
   async dataAggregate(
     context: NcContext,
     param: {

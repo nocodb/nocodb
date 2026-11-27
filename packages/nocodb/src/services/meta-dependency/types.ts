@@ -1,5 +1,6 @@
 import type { MetaEntityType, MetaEventType, NcContext } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
+import type { Column } from '~/models';
 
 export const META_DEPENDENCY_MODULE_PROVIDER_KEY = 'META_DEPENDENCY';
 
@@ -25,6 +26,8 @@ export interface MetaDependencyEventRequest {
   // Filled by handlers with every column they error-mark, so callers (trash)
   // can clear the exact same set later.
   markedDependents?: MarkedDependent[];
+  // The changed column's table columns, as the caller loaded them after the change.
+  tableColumns?: Column[];
 }
 
 export interface MetaEventHandler {

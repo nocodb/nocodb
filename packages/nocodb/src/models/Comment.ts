@@ -15,6 +15,8 @@ export default class Comment implements CommentType {
   fk_doc_id?: string;
   anchor_id?: string;
   row_id?: string;
+  /** Field the comment is about; null = the whole record. */
+  fk_column_id?: string;
   comment?: string;
   parent_comment_id?: string;
   source_id?: string;
@@ -123,6 +125,7 @@ export default class Comment implements CommentType {
     const insertObj = extractProps(comment, [
       'fk_model_id',
       'row_id',
+      'fk_column_id',
       'comment',
       'parent_comment_id',
       'created_by',
@@ -285,6 +288,22 @@ export default class Comment implements CommentType {
     }
   }
 
+  /** Re-point a copied comment at its field once that field exists. */
+  public static async setColumn(
+    context: NcContext,
+    commentId: string,
+    fk_column_id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COMMENTS,
+      { fk_column_id },
+      commentId,
+    );
+  }
+
   public static async resolve(
     context,
     commentId: string,
@@ -360,20 +379,49 @@ export default class Comment implements CommentType {
   ) {
     if (!args.ids?.length) return [];
 
-    const audits = await Noco.ncMeta
-      .knex(MetaTable.COMMENTS)
-      .count('id', { as: 'count' })
-      .select('row_id')
-      .whereIn('row_id', args.ids)
+    // A reply whose parent is deleted starts its own thread, as in the UI.
+    const groups = await Noco.ncMeta
+      .knex({ c: MetaTable.COMMENTS })
+      .leftJoin({ p: MetaTable.COMMENTS }, 'p.id', 'c.parent_comment_id')
+      .select('c.row_id', 'c.fk_column_id')
+      .count('c.id', { as: 'count' })
+      .select(
+        Noco.ncMeta.knex.raw(
+          'SUM(CASE WHEN c.resolved_by IS NULL AND (c.parent_comment_id IS NULL OR p.id IS NULL OR p.is_deleted = ?) THEN 1 ELSE 0 END) as open_count',
+          [true],
+        ),
+      )
+      .whereIn('c.row_id', args.ids)
       // Base-scoped for the same reason as `list` above.
-      .where('base_id', context.base_id)
-      .where('fk_model_id', args.fk_model_id)
+      .where('c.base_id', context.base_id)
+      .where('c.fk_model_id', args.fk_model_id)
       .where(function () {
-        this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+        this.whereNull('c.is_deleted').orWhere('c.is_deleted', '!=', true);
       })
-      .groupBy('row_id');
+      .groupBy('c.row_id', 'c.fk_column_id');
 
-    return audits?.map((a) => new Comment(a));
+    // `count` stays the record total; `cells` holds open threads per field.
+    const byRow = new Map<
+      string,
+      { row_id: string; count: number; cells?: Record<string, number> }
+    >();
+    for (const g of groups) {
+      let entry = byRow.get(g.row_id);
+      if (!entry) {
+        entry = { row_id: g.row_id, count: 0 };
+        byRow.set(g.row_id, entry);
+      }
+      entry.count += +g.count || 0;
+      const open = +g.open_count || 0;
+      if (g.fk_column_id && open) {
+        entry.cells ??= {};
+        entry.cells[g.fk_column_id] = open;
+      }
+    }
+
+    return [...byRow.values()].map((entry) =>
+      Object.assign(new Comment({ row_id: entry.row_id }), entry),
+    );
   }
 
   /**

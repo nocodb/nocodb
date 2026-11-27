@@ -25,6 +25,7 @@ import {
 import { Column, Filter } from '~/models';
 import {
   isLikeFilterOnString,
+  ncIsBlankIgnoreCaseEq,
   ncLikeEscapedOperand,
 } from '~/db/field-handler/utils/handlerUtils';
 import { setModelContext } from '~/helpers/modelContext';
@@ -180,6 +181,8 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
               ? +v
               : v,
           )
+        : ncIsBlankIgnoreCaseEq(filter)
+        ? null
         : // convert value to number if formulaDataType if numeric
         parsedTree?.dataType === FormulaDataTypes.NUMERIC &&
           !isNaN(+filter.value)

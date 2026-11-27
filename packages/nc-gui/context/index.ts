@@ -89,6 +89,8 @@ export const ReloadViewDataHookInj: InjectionKey<
     skipLoadingRowId?: string
     /** Canvas grid: refetch what's loaded without the loader; other views reload as usual */
     inPlace?: boolean
+    /** With `inPlace`: the trigger caller reports a failed refresh, so the handler rejects instead of toasting */
+    reportRefreshFailure?: boolean
     fieldAdd?: boolean
   } | void>
 > = Symbol('reload-view-data-injection')
@@ -124,6 +126,8 @@ export const CurrentCellInj: InjectionKey<Ref<Element | undefined>> = Symbol('cu
 export const IsUnderLookupInj: InjectionKey<Ref<boolean>> = Symbol('is-under-lookup-injection')
 /** The Lookup column a nested cell renders under — the field an interface page configured. */
 export const LookupColumnInj: InjectionKey<Ref<ColumnType | undefined>> = Symbol('lookup-column-injection')
+/** Set inside a Lookup dropdown: linked-record chips there open their record. */
+export const LookupChipOpensRecordInj: InjectionKey<Ref<boolean>> = Symbol('lookup-chip-opens-record-injection')
 export const IsUnderFormulaInj: InjectionKey<Ref<boolean>> = Symbol('is-under-ltar-injection')
 export const IsUnderLTARInj: InjectionKey<Ref<boolean>> = Symbol('is-under-lookup-injection')
 export const DocsLocalPageInj: InjectionKey<Ref<PageSidebarNode | undefined>> = Symbol('docs-local-page-injection')
@@ -588,6 +592,9 @@ export const InterfaceShowRowExpandInj: InjectionKey<Ref<boolean>> = Symbol('int
  */
 export const FieldListCompactInj: InjectionKey<Ref<boolean>> = Symbol('field-list-compact-injection')
 
+/** The view search shows in the top bar; the toolbar leaves it out. */
+export const SearchInTopbarInj: InjectionKey<Ref<boolean>> = Symbol('search-in-topbar-injection')
+
 /**
  * Mark filter rows whose `fk_column_id` no longer resolves to a live column as
  * "orphaned" (a greyed indicator instead of a blank field picker). Provided by
@@ -609,3 +616,6 @@ export const MarkOrphanFilterInj: InjectionKey<Ref<boolean>> = Symbol('mark-orph
 export const LookupAttachmentDownloadInj: InjectionKey<
   Ref<{ workspaceId?: string; baseId?: string; modelId: string; columnId: string; rowId: string } | null>
 > = Symbol('lookup-attachment-download-injection')
+
+/** The expanded record can show its comments panel here (a field label may open it). */
+export const ExpandedFormCommentsAvailableInj: InjectionKey<Ref<boolean>> = Symbol('expanded-form-comments-available-injection')

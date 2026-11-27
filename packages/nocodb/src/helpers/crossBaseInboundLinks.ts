@@ -27,3 +27,25 @@ export async function getCrossBaseInboundLinkColumns(
   }
   return byBase;
 }
+
+/**
+ * Bases other than `baseId` that the live link columns of `modelId` point
+ * into: one meta query instead of the table's column list and options.
+ */
+export async function getCrossBaseOutboundBaseIds(
+  context: NcContext,
+  modelId: string,
+  baseId: string,
+  ncMeta = Noco.ncMeta,
+): Promise<string[]> {
+  const rows: Array<{ fk_related_base_id: string }> = await ncMeta
+    .knex(`${MetaTable.COL_RELATIONS} as r`)
+    .join(`${MetaTable.COLUMNS} as c`, 'c.id', 'r.fk_column_id')
+    .where('r.fk_workspace_id', context.workspace_id)
+    .where('c.fk_model_id', modelId)
+    .whereNotNull('r.fk_related_base_id')
+    .whereNot('r.fk_related_base_id', baseId)
+    .where((q) => q.whereNull('c.deleted').orWhere('c.deleted', false))
+    .distinct('r.fk_related_base_id');
+  return (rows ?? []).map((r) => r.fk_related_base_id);
+}

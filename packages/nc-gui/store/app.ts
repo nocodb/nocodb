@@ -15,6 +15,8 @@ export const useAppStore = defineStore('app', () => {
 
   const activeAppId = computed(() => '')
 
+  const appTeamMembersVersion = ref(0)
+
   // Actions
   const loadApps = async (_params: any) => {
     return []
@@ -36,6 +38,8 @@ export const useAppStore = defineStore('app', () => {
 
   async function openNewAppModal(..._arg: any[]) {}
 
+  const removeAppMember = async (_p1: any, _p2: any) => false
+
   return {
     // Gate
     isAppsEnabled,
@@ -50,6 +54,7 @@ export const useAppStore = defineStore('app', () => {
     // Getters
     activeBaseApps,
     activeAppId,
+    appTeamMembersVersion,
 
     // Actions
     loadApps,
@@ -59,6 +64,7 @@ export const useAppStore = defineStore('app', () => {
     createApp,
     updateApp,
     openNewAppModal,
+    removeAppMember,
   }
 })
 

@@ -156,6 +156,13 @@ export function useUserSorts(
             return Number(!!b.billable) - Number(!!a.billable)
           }
         }
+        case 'seat_type': {
+          if (sortsConfig.direction === 'asc') {
+            return compareSeatTypes(a.seat_type, b.seat_type)
+          } else {
+            return compareSeatTypes(b.seat_type, a.seat_type)
+          }
+        }
         case 'baseCount':
         case 'workspaceCount':
         case 'memberCount': {

@@ -52,6 +52,7 @@ import { McpTokenPlaintextCleanupMigration } from '~/modules/jobs/migration-jobs
 import { AtImportFailedJobScrubMigration } from '~/modules/jobs/migration-jobs/nc_job_020_at_import_failed_job_scrub';
 import { EnvironmentChangelogSecretCleanupMigration } from '~/modules/jobs/migration-jobs/nc_job_021_environment_changelog_secret_cleanup';
 import { AuthTokenHashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_022_auth_token_hash_backfill';
+import { AppMembersPassMigration } from '~/modules/jobs/migration-jobs/nc_job_023_app_members_pass';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -129,6 +130,7 @@ export const JobsModuleMetadata = {
     AtImportFailedJobScrubMigration,
     EnvironmentChangelogSecretCleanupMigration,
     AuthTokenHashBackfillMigration,
+    AppMembersPassMigration,
   ],
   exports: [
     'JobsService',

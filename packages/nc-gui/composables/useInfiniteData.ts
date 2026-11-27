@@ -7,7 +7,6 @@ import {
   EventType,
   type FilterType,
   NcApiVersion,
-  NcErrorType,
   type PaginatedType,
   SEARCH_COUNT_CAP,
   SEARCH_STATE_FIELD,
@@ -486,6 +485,8 @@ export function useInfiniteData(args: {
     chunkId: number
     path: Array<number>
     forceFetch: boolean
+    // The requester handles the failure itself — see loadData's `rethrowOnError`
+    rethrowOnError?: boolean
     // Cache the request was queued for — see isStaleChunkRequest
     cachedRows: Ref<Map<number, Row>>
     resolve: (value: any) => void
@@ -545,6 +546,8 @@ export function useInfiniteData(args: {
             ? cached
             : entry.row
         target.rowMeta.commentCount = +commentData.count || 0
+        // Cell comments are a base-grid feature; interface pages show record counts only.
+        if (!interfaceDataApi) target.rowMeta.cellCommentCounts = commentData.cells ?? {}
       })
 
       eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
@@ -553,13 +556,13 @@ export function useInfiniteData(args: {
     }
   }
 
-  async function fetchChunkIndividually(chunkId: number, path: Array<number>) {
+  async function fetchChunkIndividually(chunkId: number, path: Array<number>, rethrowOnError = false) {
     const dataCache = getDataCache(path)
     dataCache.chunkStates.value[chunkId] = 'loading'
     const offset = chunkId * CHUNK_SIZE
 
     try {
-      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false, path)
+      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false, path, undefined, { rethrowOnError })
       if (!newItems) {
         dataCache.chunkStates.value[chunkId] = undefined
         return
@@ -571,7 +574,10 @@ export function useInfiniteData(args: {
       dataCache.chunkStates.value[chunkId] = 'loaded'
     } catch (error) {
       if (!axios.isCancel(error)) console.error('Error fetching chunk:', error)
-      dataCache.chunkStates.value[chunkId] = undefined
+      // A failed resync keeps its rows on screen: left unset, the next render would refetch
+      // the chunk through an ordinary load and toast the error the caller is reporting.
+      // A cancel still resets it, so the load that superseded it fills the chunk.
+      dataCache.chunkStates.value[chunkId] = rethrowOnError && !axios.isCancel(error) ? 'loaded' : undefined
       throw error
     }
   }
@@ -613,17 +619,13 @@ export function useInfiniteData(args: {
   // or a reload (filter, sort, Reload).
   let searchGaveUpTerm: string | undefined
   const searchGaveUp = () => !!searchQueryParams.value.search && searchGaveUpTerm === searchQueryParams.value.search
-  // A 429 from the general request throttler carries no error code: only the search slots' counts.
-  const isSearchLimitError = (error: any) =>
-    !!searchQueryParams.value.search &&
-    (error?.response?.status === 408 ||
-      (error?.response?.status === 429 && error?.response?.data?.error === NcErrorType.ERR_TOO_MANY_REQUESTS))
+  const isSearchLimitError = (error: any) => !!searchQueryParams.value.search && !!searchLimitKind(error)
   // The search box shows it; without one (no smartsheet store) the first failure of a term is toasted.
   const noteSearchLimit = async (error: any) => {
     if (searchGaveUp()) return
     searchGaveUpTerm = searchQueryParams.value.search
     if (disableSmartsheet) message.error(await extractSdkResponseErrorMsg(error))
-    else searchError.value = error?.response?.status === 408 ? 'timeout' : 'limit'
+    else searchError.value = searchLimitKind(error)
   }
   const resetSearchGaveUp = () => {
     searchGaveUpTerm = undefined
@@ -804,7 +806,7 @@ export function useInfiniteData(args: {
           return Promise.resolve()
         }
 
-        return fetchChunkIndividually(request.chunkId, request.path)
+        return fetchChunkIndividually(request.chunkId, request.path, request.rethrowOnError)
           .then(() => request.resolve(undefined))
           .catch((err) => request.reject(err))
       })
@@ -813,7 +815,7 @@ export function useInfiniteData(args: {
     }
   }
 
-  const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
+  const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false, rethrowOnError = false) => {
     const dataCache = getDataCache(path)
 
     if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
@@ -833,6 +835,9 @@ export function useInfiniteData(args: {
     )
 
     if (existingRequest && !forceFetch) {
+      // One requester wanting the error is enough: each gets its own promise below.
+      if (rethrowOnError) existingRequest.rethrowOnError = true
+
       return new Promise<void>((resolve, reject) => {
         const originalResolve = existingRequest.resolve
         const originalReject = existingRequest.reject
@@ -854,6 +859,7 @@ export function useInfiniteData(args: {
         chunkId,
         path,
         forceFetch,
+        rethrowOnError,
         cachedRows: dataCache.cachedRows,
         resolve,
         reject,
@@ -940,7 +946,9 @@ export function useInfiniteData(args: {
     ).filter((chunkId) => !(firstChunkLoaded && SEARCH_FIRST_CHUNKS.includes(chunkId)))
 
     try {
-      await Promise.all(loadedChunks.map((chunkId) => fetchChunk(chunkId, path, true)))
+      // rethrowOnError: this is a resync of rows already on screen. A failure leaves them
+      // stale, which is for the caller to report (the expanded form warns after a save).
+      await Promise.all(loadedChunks.map((chunkId) => fetchChunk(chunkId, path, true, true)))
     } finally {
       // Same tick as the rows landing: nothing renders in between.
       applyTotal?.()
@@ -984,8 +992,9 @@ export function useInfiniteData(args: {
         if (!cachedRow) return
 
         const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-        const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
-        cachedRow.rowMeta.commentCount = +count
+        const entry = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)
+        cachedRow.rowMeta.commentCount = +(entry?.count || 0)
+        if (!interfaceDataApi) cachedRow.rowMeta.cellCommentCounts = entry?.cells ?? {}
       })
 
       // Trigger re-render canvas to update the comment count
@@ -1045,6 +1054,9 @@ export function useInfiniteData(args: {
     _shouldShowLoading?: boolean,
     path: Array<number> = [],
     onPageInfo?: (pageInfo: PaginatedType | undefined) => void,
+    // A resync of rows already on screen reports the failure to whoever asked for it,
+    // instead of toasting the raw list error over a view that still shows its old rows.
+    { rethrowOnError }: { rethrowOnError?: boolean } = {},
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value && !interfaceDataApi) return []
 
@@ -1156,6 +1168,7 @@ export function useInfiniteData(args: {
       }
 
       console.error(error)
+      if (rethrowOnError) throw error
       message.error(await extractSdkResponseErrorMsg(error))
       return []
     }
@@ -3275,10 +3288,13 @@ export function useInfiniteData(args: {
             if (row) {
               if (action === 'add') {
                 row.rowMeta.commentCount = (row.rowMeta.commentCount || 0) + 1
-              } else if (action === 'update') {
-                // Handle updated comment
               } else if (action === 'delete') {
                 row.rowMeta.commentCount = Math.max((row.rowMeta.commentCount || 0) - 1, 0)
+              }
+
+              // Open-thread counts depend on resolve state and thread roots, so re-read them.
+              if (data.payload?.fk_column_id) {
+                loadAggCommentsCount([row], row.rowMeta.path ?? [])
               }
 
               callbacks?.syncVisibleData?.()
@@ -3289,6 +3305,22 @@ export function useInfiniteData(args: {
     },
     { immediate: true },
   )
+
+  // Counts re-read after this client's own comment edits (the socket skips the sender).
+  const commentCountsBus = useCommentCountsBus()
+
+  const offCommentCounts = commentCountsBus.on(({ modelId, rowId, count, cells }) => {
+    if (interfaceDataApi || modelId !== meta.value?.id) return
+    const dataCaches = isGroupBy.value ? Array.from(groupDataCache.value.values()) : [getDataCache()]
+    const row = findCachedRowByPk(dataCaches, rowId)?.cachedRow
+    if (!row) return
+    row.rowMeta.commentCount = count
+    row.rowMeta.cellCommentCounts = cells
+    callbacks?.syncVisibleData?.()
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+  })
+
+  onBeforeUnmount(offCommentCounts)
 
   // A listener outliving its grid keeps handling events against emptied caches, and a grouped one
   // then emits GROUP_BY_RELOAD on the shared bus, reloading whichever grid is open now.

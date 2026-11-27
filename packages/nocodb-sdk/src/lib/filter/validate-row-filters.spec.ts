@@ -175,6 +175,60 @@ describe('validateRowFilters', () => {
       ).toBe(false);
     });
 
+    // Mirrors the `ieq` / `nieq` cases in nocodb's filter.test.ts.
+    describe('"ieq" / "nieq"', () => {
+      const matches = (
+        comparison_op: 'ieq' | 'nieq',
+        value: string | null,
+        data: Record<string, unknown>,
+        fk_column_id = '1'
+      ) =>
+        validateRowFilters({
+          filters: [{ fk_column_id, comparison_op, value }],
+          data,
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        });
+
+      it('compares text ignoring case', () => {
+        expect(matches('ieq', 'apple', { Name: 'APPLE' })).toBe(true);
+        expect(matches('ieq', 'apple', { Name: 'Apple pie' })).toBe(false);
+        expect(matches('nieq', 'apple', { Name: 'APPLE' })).toBe(false);
+        expect(matches('nieq', 'apple', { Name: 'Banana' })).toBe(true);
+      });
+
+      it('treats null and an empty string as the same blank value', () => {
+        for (const value of [null, '']) {
+          expect(matches('ieq', value, { Name: null })).toBe(true);
+          expect(matches('ieq', value, { Name: '' })).toBe(true);
+          expect(matches('ieq', value, { Name: 'x' })).toBe(false);
+          expect(matches('nieq', value, { Name: null })).toBe(false);
+          expect(matches('nieq', value, { Name: 'x' })).toBe(true);
+        }
+      });
+
+      it('nieq keeps a blank cell', () => {
+        expect(matches('nieq', 'apple', { Name: null })).toBe(true);
+      });
+
+      it('nieq on a link needs no linked record to match', () => {
+        const linked = {
+          RelatedRecords: [{ Primary: 'Red' }, { Primary: 'blue' }],
+        };
+        expect(matches('ieq', 'red', linked, '6')).toBe(true);
+        expect(matches('nieq', 'red', linked, '6')).toBe(false);
+        expect(
+          matches(
+            'nieq',
+            'red',
+            { RelatedRecords: [{ Primary: 'Green' }] },
+            '6'
+          )
+        ).toBe(true);
+      });
+    });
+
     it('should correctly evaluate "eq" for number', () => {
       const filters: FilterType[] = [
         { fk_column_id: '2', comparison_op: 'eq', value: 30 },

@@ -80,6 +80,16 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
      */
     const interfaceDataApi = interfaceDataApiParam ?? inject(InterfacePageDataInj, undefined)
 
+    const { syncSearchedRowCount, searchOperation, handleSearchError } = useSearchedRowCount(view, meta, where, {
+      get isPublic() {
+        return isPublic
+      },
+      get hasInterfaceDataApi() {
+        return !!interfaceDataApi
+      },
+      appendHideEmptyWhere,
+    })
+
     const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
     const canSyncGroupBy = hasPersonalViewPermission('groupBySync')
 
@@ -137,7 +147,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const { sorts, nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, eventBus, searchQueryParams } = useSmartsheetStoreOrThrow()
 
     const injectedReloadHook = inject(ReloadViewDataHookInj, createEventHook())
     // Groups are rebuilt, so not in place, but without the loader
@@ -456,6 +466,17 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return load
     }
 
+    // Same predicate as useInfiniteGroups: every level non-blank, Checkbox skipped.
+    function appendHideEmptyWhere(existingWhere?: string) {
+      if (!hideEmptyGroups.value) return existingWhere
+      const hideFilter = groupBy.value
+        .filter((g) => g?.column?.title && g.column.uidt !== UITypes.Checkbox)
+        .map((g) => `(${g.column.title},notblank)`)
+        .join('~and')
+      if (!hideFilter) return existingWhere
+      return existingWhere ? `${existingWhere}~and${hideFilter}` : hideFilter
+    }
+
     async function loadGroupsNow(
       params: any = {},
       group?: Group,
@@ -477,15 +498,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         const groupby = groupBy.value[group.nestedIn.length]
 
-        const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
-        // Same predicate as useInfiniteGroups: every level non-blank, Checkbox skipped.
-        const hideEmptyWhere = hideEmptyGroups.value
-          ? groupBy.value
-              .filter((g) => g?.column?.title && g.column.uidt !== UITypes.Checkbox)
-              .map((g) => `(${g.column.title},notblank)`)
-              .join('~and')
-          : ''
-        const effectiveWhere = hideEmptyWhere ? `${nestedWhere}${nestedWhere ? '~and' : ''}${hideEmptyWhere}` : nestedWhere
+        const effectiveWhere = appendHideEmptyWhere(calculateNestedWhere(group.nestedIn, where?.value)) ?? ''
         if (!groupby || !groupby.column.title) return
 
         if (!interfaceDataApi && isPublic && !sharedView.value?.uuid) {
@@ -543,18 +556,24 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 ...(isServerSplit ? { split_values: true } : {}),
               })
             : !isPublic
-            ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-                offset,
-                limit: groupLimit,
-                ...params,
-                ...(isSplit ? { offset } : {}),
-                ...(isServerSplit ? { split_values: true } : {}),
-                ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                ...filterArrJsonFor(group.nestedIn),
-                where: `${effectiveWhere}`,
-                sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-                column_name: groupby.column.title,
-              } as any)
+            ? await (() => {
+                const groupQuery = {
+                  offset,
+                  limit: groupLimit,
+                  ...params,
+                  ...(isSplit ? { offset } : {}),
+                  ...(isServerSplit ? { split_values: true } : {}),
+                  ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+                  ...filterArrJsonFor(group.nestedIn),
+                  ...searchQueryParams.value,
+                  where: `${effectiveWhere}`,
+                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+                  column_name: groupby.column.title,
+                }
+                return groupQuery.search
+                  ? searchOperation('dataGroupBy', groupQuery)
+                  : api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, groupQuery as any)
+              })()
             : await api.public.dataGroupBy(
                 sharedView.value!.uuid!,
                 {
@@ -695,6 +714,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         }
         return true
       } catch (e) {
+        if (handleSearchError(e)) return false
         console.log(e)
         message.error(await extractSdkResponseErrorMsg(e))
         return false
@@ -727,14 +747,20 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             filtersArr: filtersFor(group.nestedIn),
           })
         : !isPublic
-        ? await api.dbViewRow.list('noco', base.value!.id!, view.value!.fk_model_id!, view.value!.id!, {
-            ...query,
-            ...params,
-            include_row_color: true,
-            ...(opts.lean ? {} : { getHiddenColumns: true }),
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-            ...filterArrJsonFor(group.nestedIn),
-          } as any)
+        ? await (() => {
+            const listQuery = {
+              ...query,
+              ...params,
+              ...searchQueryParams.value,
+              include_row_color: true,
+              ...(opts.lean ? {} : { getHiddenColumns: true }),
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...filterArrJsonFor(group.nestedIn),
+            }
+            return listQuery.search
+              ? searchOperation('dataList', listQuery)
+              : api.dbViewRow.list('noco', base.value!.id!, view.value!.fk_model_id!, view.value!.id!, listQuery as any)
+          })()
         : await fetchSharedViewData(
             { sortsArr: sorts.value, filtersArr: filtersFor(group.nestedIn), ...query },
             { isGroupBy: true },
@@ -762,6 +788,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         if (!opts.lean) await loadAggCommentsCount(group.rows)
         group.paginationData = response.pageInfo
       } catch (e) {
+        if (handleSearchError(e)) return
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }
@@ -792,6 +819,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         group.paginationData = { ...response.pageInfo, page: 1, pageSize: group.rows.length }
         return true
       } catch (e) {
+        if (handleSearchError(e)) return false
         message.error(await extractSdkResponseErrorMsg(e))
         return false
       }
@@ -1140,6 +1168,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       fieldsToGroupBy,
       groupByLimit,
       loadGroups,
+      syncSearchedRowCount,
       loadGroupData,
       loadGroupPage,
       loadMoreGroupRows,

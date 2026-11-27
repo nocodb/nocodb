@@ -18,6 +18,7 @@ import { ColumnUpdateFilterOperatorDependencyHandler } from '~/services/meta-dep
 import { ColumnUpdateKanbanGroupByDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-kanban-groupby-dependency.handler';
 import { ColumnUpdateKanbanSummaryDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-kanban-summary-dependency.handler';
 import { ColumnUpdateErrorRepairDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-error-repair-dependency.handler';
+import { ColumnUpdateTooLongRepairDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-too-long-repair-dependency.handler';
 import { ColumnUpdateRollupSourceDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-rollup-source-dependency.handler';
 import { ColumnUpdateRollupFormulaDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-rollup-formula-dependency.handler';
 import { HookDeleteButtonRefDependencyHandler } from '~/services/meta-dependency/handler/hook/hook-delete-button-ref-dependency.handler';
@@ -44,6 +45,7 @@ export const MetaDependencyServices = [
   ColumnUpdateKanbanGroupByDependencyHandler,
   ColumnUpdateKanbanSummaryDependencyHandler,
   ColumnUpdateErrorRepairDependencyHandler,
+  ColumnUpdateTooLongRepairDependencyHandler,
   ColumnUpdateRollupSourceDependencyHandler,
   ColumnUpdateRollupFormulaDependencyHandler,
   HookDeleteButtonRefDependencyHandler,

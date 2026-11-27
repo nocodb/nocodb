@@ -1037,13 +1037,19 @@ export default class View implements ViewType {
         (await Model.get(context, param.fk_model_id, false, ncMeta))?.meta,
       )?.[TABLE_META_HIDE_NEW_FIELDS];
 
-    const tableColumns = await Column.list(
+    const newColumn = await Column.get(
       context,
-      { fk_model_id: param.fk_model_id },
+      { colId: param.fk_column_id },
       ncMeta,
     );
-    // keep a map of column id to column object for easy access
-    const colIdMap = new Map(tableColumns.map((c) => [c.id, c]));
+    // The whole table is read only for a gallery or kanban view's visible count.
+    let colIdMap: Map<string, Column> | undefined;
+    const tableColumnsById = async () =>
+      (colIdMap ??= new Map(
+        (
+          await Column.list(context, { fk_model_id: param.fk_model_id }, ncMeta)
+        ).map((c) => [c.id, c]),
+      ));
 
     const viewColumnIds: Record<string, string> = {};
 
@@ -1066,7 +1072,7 @@ export default class View implements ViewType {
         source_id: view.source_id,
       };
 
-      if (colIdMap.get(param.fk_column_id)?.uidt === UITypes.Order) {
+      if (newColumn?.uidt === UITypes.Order) {
         modifiedInsertObj.show = false;
       } else if (param.column_show?.view_id === view.id) {
         modifiedInsertObj.show = true;
@@ -1084,17 +1090,19 @@ export default class View implements ViewType {
       }
       // if gallery/kanban view, show only 3 columns(excluding system columns)
       else if (view.type === ViewTypes.GALLERY) {
+        const columnsById = await tableColumnsById();
         const visibleColumnsCount = (
           await GalleryViewColumn.list(context, view.id, ncMeta)
         )?.filter(
-          (c) => c.show && !isSystemColumn(colIdMap.get(c.fk_column_id)),
+          (c) => c.show && !isSystemColumn(columnsById.get(c.fk_column_id)),
         ).length;
         modifiedInsertObj.show = visibleColumnsCount < 3;
       } else if (view.type === ViewTypes.KANBAN) {
+        const columnsById = await tableColumnsById();
         const visibleColumnsCount = (
           await KanbanViewColumn.list(context, view.id, ncMeta)
         )?.filter(
-          (c) => c.show && !isSystemColumn(colIdMap.get(c.fk_column_id)),
+          (c) => c.show && !isSystemColumn(columnsById.get(c.fk_column_id)),
         ).length;
         modifiedInsertObj.show = visibleColumnsCount < 3;
       } else if (view.type !== ViewTypes.FORM) {

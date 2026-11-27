@@ -7218,12 +7218,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return;
     }
 
-    const options = await column
-      .getColOptions<{ options: SelectOption[] }>()
-      .then(
-        (selectOptionsMeta) =>
-          selectOptionsMeta?.options?.map((opt) => opt.title) || [],
-      );
+    // Checked per row: the column's loaded options, not a re-read each time.
+    const selectOptionsMeta = (column.colOptions ??
+      (await column.getColOptions())) as { options: SelectOption[] };
+    const options = selectOptionsMeta?.options?.map((opt) => opt.title) || [];
 
     let columnValueArr: any[];
 
@@ -9014,7 +9012,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // we need to post process lookup fields based on the looked up column instead of the lookup column
     const aliasColumns = {};
 
-    if (!dependencyColumns) {
+    // Only the id-to-title substitutions below read the aliases.
+    if (
+      !dependencyColumns &&
+      (!options.skipSubstitutingColumnIds || options.bulkAggregate)
+    ) {
       const nestedColumns = this.model?.columns.filter(
         (col) => col.uidt === UITypes.Lookup,
       );
@@ -9913,7 +9915,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ? loaded
         : await column.getColOptions<LookupColumn>();
     if (colOptions?.error) return { uidt: UITypes.SingleLineText };
-    const relationCol = await colOptions.getRelationColumn();
+    const relationCol =
+      (!this._columnsChanged &&
+        column.fk_model_id === this.model?.id &&
+        this.model.columnsById?.[colOptions.fk_relation_column_id]) ||
+      (await colOptions.getRelationColumn());
     if (!relationCol) return { uidt: UITypes.SingleLineText };
     const relationColOpt = await (relationCol.colOptions ??
       relationCol.getColOptions<LinkToAnotherRecordColumn>());

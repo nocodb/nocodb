@@ -1,3 +1,4 @@
+import type { SeatModel, SeatType } from 'nocodb-sdk'
 import type { CloudFeaturesType } from '~/lib/types'
 
 const eeConfigState = createGlobalState(() => {
@@ -136,6 +137,18 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAddNewAgent = computed(() => true)
 
   const showUserMayChargeAlert = computed(() => false)
+
+  const seatModel = computed<SeatModel>(() => 'legacy')
+
+  const seatMonthlyPrices = computed(() => ({ editor: '', guest: '' }))
+
+  const seatTypeFor = (..._args: any[]) => 'free' as const
+
+  const loadSeatCounts = async (..._args: any[]) => null
+
+  const inviteSeatNotesFor = (..._args: any[]): Array<{ email: string; text: string; seat: SeatType }> => []
+
+  const inviteAppSeatCapFor = (..._args: any[]): { cap: number; used: number } | null => null
 
   const maxAttachmentsAllowedInCell = computed(() => {
     // Keeping 50 to keep backward fallback compatibility
@@ -599,6 +612,12 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseEnterpriseVaultsOrg,
     showUpgradeToUsePrivateBases,
     showUserMayChargeAlert,
+    seatModel,
+    seatMonthlyPrices,
+    seatTypeFor,
+    loadSeatCounts,
+    inviteSeatNotesFor,
+    inviteAppSeatCapFor,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
     blockDocs,

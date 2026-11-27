@@ -22,7 +22,7 @@ const expandedFormStore = useExpandedFormStoreOrThrow()
 // blocks the read; offering an empty/forbidden feed makes no sense there.
 const { isAuditEnabled } = expandedFormStore
 
-const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+const { isExpandedFormCommentMode, expandedFormCommentFieldId } = storeToRefs(useConfigStore())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -118,6 +118,16 @@ function toggleShowResolved() {
   showResolvedComments.value = !showResolvedComments.value
   $e('c:row-expand:show-resolved', { on: showResolvedComments.value })
 }
+
+// A field's comments were asked for: show a comment feed so the filter is visible.
+// Immediate: the field is often set before this sidebar mounts (e.g. a cell thread's expand)
+watch(
+  expandedFormCommentFieldId,
+  (id) => {
+    if (id && !isCommentFeed.value) tab.value = 'comments'
+  },
+  { immediate: true },
+)
 
 watch(tab, (newValue) => {
   if (newValue === 'audits') {

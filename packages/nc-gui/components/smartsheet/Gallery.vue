@@ -885,8 +885,12 @@ if (interfacePageDataApi) {
 const reloadViewDataListener = withLoading(async (params?: { inPlace?: boolean; skipLoadingRowId?: string }) => {
   if (isGroupedGallery.value) {
     const savedPk = params?.skipLoadingRowId === undefined ? undefined : `${params.skipLoadingRowId}`
+    // The search box's "N of M" counts rows across every group; the group
+    // requests only count groups.
+    const searchCounts = viewGroupBy?.syncSearchedRowCount().catch((e) => console.error('Failed to sync searched row count', e))
     if (params?.inPlace) await refreshGroup(viewGroupBy?.rootGroup.value, savedPk)
     else await loadGroupedGallery()
+    await searchCounts
     return
   }
 

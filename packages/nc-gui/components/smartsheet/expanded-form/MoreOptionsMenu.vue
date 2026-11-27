@@ -68,7 +68,19 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const expandedFormStore = useExpandedFormStoreOrThrow()
 
-const { isNew, primaryKey, displayValue, baseRoles, meta, row: _row, loadRow: _loadRow, deleteRowById } = expandedFormStore
+const {
+  isNew,
+  primaryKey,
+  displayValue,
+  baseRoles,
+  meta,
+  fields,
+  row: _row,
+  changedColumns,
+  hasLtarChanges,
+  loadRow: _loadRow,
+  deleteRowById,
+} = expandedFormStore
 
 const isRecordLinkCopied = ref(false)
 
@@ -78,12 +90,18 @@ const showDeleteRowModal = ref(false)
 
 const duplicatingRowInProgress = ref(false)
 
+const isPrintViewMounted = ref(false)
+
+// Printing in-progress edits would make them look saved on paper.
+const hasUnsavedChanges = computed(() => changedColumns.value.size > 0 || hasLtarChanges.value)
+
 const visibleMoreOptions = computed(() => {
   if (props.templateMode || props.blueprintMode) {
     return {
       reloadRecord: false,
       copyRecordUrl: false,
       sendRecord: false,
+      printRecord: false,
       duplicateRecord: false,
       deleteRecord: false,
       showDeleteDivider: false,
@@ -96,6 +114,7 @@ const visibleMoreOptions = computed(() => {
     reloadRecord: !isEeUI && !!props.rowId,
     copyRecordUrl: !isNew.value && !!props.rowId,
     sendRecord: appInfo.value.ee && !isNew.value && !!props.rowId && !isPublic.value && !isSharedBase.value,
+    printRecord: !isNew.value && !isPublic.value && !isSharedBase.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
     deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }
@@ -110,7 +129,12 @@ const visibleMoreOptions = computed(() => {
     // Only meaningful when there's a standalone copy-URL button — in compact mode
     // the dropdown is the ONLY surface for copy-URL, so it must always render.
     allHiddenExceptCopyRecordUrl:
-      !props.compact && !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.deleteRecord,
+      !props.compact &&
+      !result.reloadRecord &&
+      !result.sendRecord &&
+      !result.printRecord &&
+      !result.duplicateRecord &&
+      !result.deleteRecord,
   }
 })
 
@@ -186,6 +210,29 @@ const onDuplicateRow = async ({ notify = true }: { notify?: boolean } = {}) => {
   }, 500)
 }
 
+async function printRecord() {
+  if (hasUnsavedChanges.value) return
+
+  isPrintViewMounted.value = true
+
+  await nextTick()
+
+  window.print()
+
+  // No `afterprint` when printing never started (blocked, sandboxed): unmount on the next interaction.
+  if (isPrintViewMounted.value) {
+    const stop = useEventListener(
+      window,
+      ['pointerdown', 'keydown'],
+      () => {
+        isPrintViewMounted.value = false
+        stop()
+      },
+      { capture: true },
+    )
+  }
+}
+
 const onDeleteRowClick = () => {
   showDeleteRowModal.value = true
 }
@@ -202,6 +249,10 @@ const onConfirmDeleteRowClick = async () => {
     skipLoadingRowId: primaryKey.value || undefined,
   })
 }
+
+useEventListener(window, 'afterprint', () => {
+  isPrintViewMounted.value = false
+})
 
 useExpandedRecordCommands({
   hasRecordCommands,
@@ -291,6 +342,17 @@ useExpandedRecordCommands({
             {{ $t('activity.sendRecord') }}
           </div>
         </NcMenuItem>
+        <NcTooltip v-if="visibleMoreOptions.printRecord" :disabled="!hasUnsavedChanges" placement="left">
+          <template #title>
+            {{ $t('msg.info.saveRecordBeforePrinting') }}
+          </template>
+          <NcMenuItem :disabled="isLoading || hasUnsavedChanges" @click="printRecord()">
+            <div v-e="['c:record-expand:print']" data-testid="nc-expanded-form-print" class="flex gap-2 items-center">
+              <GeneralIcon icon="ncPrinter" class="cursor-pointer" />
+              {{ $t('labels.printRecord') }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
         <NcTooltip v-if="visibleMoreOptions.duplicateRecord && meta?.synced" placement="left">
           <template #title>
             {{ $t('msg.info.duplicateNotAvailableForSyncedTable') }}
@@ -397,6 +459,14 @@ useExpandedRecordCommands({
       </span>
     </template>
   </GeneralDeleteModal>
+
+  <SmartsheetExpandedFormPrintView
+    v-if="isPrintViewMounted"
+    :title="recordTitle"
+    :meta="meta"
+    :columns="fields"
+    :row="_row?.row ?? {}"
+  />
 
   <DlgSendRecordEmail
     v-if="visibleMoreOptions.sendRecord"

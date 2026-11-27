@@ -781,6 +781,9 @@ export class ExportService {
             parent_comment_id: comment.parent_comment_id
               ? idMap.get(comment.parent_comment_id)
               : null,
+            fk_column_id: comment.fk_column_id
+              ? idMap.get(comment.fk_column_id) ?? null
+              : null,
             created_by: comment.created_by,
             resolved_by: comment.resolved_by,
             created_by_email: comment.created_by_email,

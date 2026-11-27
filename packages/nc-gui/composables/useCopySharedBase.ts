@@ -17,17 +17,20 @@ export const useCopySharedBase = createSharedComposable(() => {
 
   const isLoading = ref(false)
 
+  // The interfaces switch shows only with appInfo.ee; elsewhere copies keep them, as before.
   const options = ref({
     includeData: true,
     includeViews: true,
+    includeInterfaces: true,
   })
 
   const optionsToExclude = computed(() => {
-    const { includeData, includeViews } = options.value
+    const { includeData, includeViews, includeInterfaces } = options.value
 
     return {
       excludeData: !includeData,
       excludeViews: !includeViews,
+      excludeInterfaces: !includeInterfaces,
     }
   })
 

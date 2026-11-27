@@ -141,6 +141,8 @@ import * as nc_202611111200_auth_token_hash from './v0/nc_202611111200_auth_toke
 import * as nc_202611141200_automation_executions_triggered_by from './v0/nc_202611141200_automation_executions_triggered_by';
 import * as nc_202611131200_gallery_view_columns_group_by from './v0/nc_202611131200_gallery_view_columns_group_by';
 import * as nc_202611151411_user_comments_notifications_preference_last_read_at from './v0/nc_202611151411_user_comments_notifications_preference_last_read_at';
+import * as nc_202611231714_comments_fk_column_id from './v0/nc_202611231714_comments_fk_column_id';
+import * as nc_202611271200_subscriptions_seat_model_v2 from './v0/nc_202611271200_subscriptions_seat_model_v2';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -293,6 +295,8 @@ export default class XcMigrationSourcev0 {
       'nc_202611141200_automation_executions_triggered_by',
       'nc_202611131200_gallery_view_columns_group_by',
       'nc_202611151411_user_comments_notifications_preference_last_read_at',
+      'nc_202611231714_comments_fk_column_id',
+      'nc_202611271200_subscriptions_seat_model_v2',
     ]);
   }
 
@@ -588,6 +592,10 @@ export default class XcMigrationSourcev0 {
         return nc_202611131200_gallery_view_columns_group_by;
       case 'nc_202611151411_user_comments_notifications_preference_last_read_at':
         return nc_202611151411_user_comments_notifications_preference_last_read_at;
+      case 'nc_202611231714_comments_fk_column_id':
+        return nc_202611231714_comments_fk_column_id;
+      case 'nc_202611271200_subscriptions_seat_model_v2':
+        return nc_202611271200_subscriptions_seat_model_v2;
     }
   }
 }

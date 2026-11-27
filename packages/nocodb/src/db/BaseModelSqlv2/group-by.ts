@@ -340,6 +340,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             is_group: true,
             logical_op: 'and',
           }),
+          ...(await getSearchFilters(baseModel, args)),
         ],
         qb,
       );

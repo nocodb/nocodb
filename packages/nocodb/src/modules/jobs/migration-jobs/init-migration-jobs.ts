@@ -31,6 +31,7 @@ import { McpTokenPlaintextCleanupMigration } from '~/modules/jobs/migration-jobs
 import { AtImportFailedJobScrubMigration } from '~/modules/jobs/migration-jobs/nc_job_020_at_import_failed_job_scrub';
 import { EnvironmentChangelogSecretCleanupMigration } from '~/modules/jobs/migration-jobs/nc_job_021_environment_changelog_secret_cleanup';
 import { AuthTokenHashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_022_auth_token_hash_backfill';
+import { AppMembersPassMigration } from '~/modules/jobs/migration-jobs/nc_job_023_app_members_pass';
 import { isEE } from '~/utils';
 
 @Injectable()
@@ -146,6 +147,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.AuthTokenHashBackfill,
       service: this.authTokenHashBackfillMigration,
     },
+    {
+      version: '23',
+      job: MigrationJobTypes.AppMembersPass,
+      service: this.appMembersPassMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -175,6 +181,7 @@ export class InitMigrationJobs {
     private readonly atImportFailedJobScrubMigration: AtImportFailedJobScrubMigration,
     private readonly environmentChangelogSecretCleanupMigration: EnvironmentChangelogSecretCleanupMigration,
     private readonly authTokenHashBackfillMigration: AuthTokenHashBackfillMigration,
+    private readonly appMembersPassMigration: AppMembersPassMigration,
   ) {}
 
   log = (...msgs: string[]) => {

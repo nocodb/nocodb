@@ -45,9 +45,11 @@ const { isUIAllowed } = useRoles()
 const { sidebarWidth, onResizeStart } = useExpandedRecordSidebarWidth()
 
 /* flags */
-const showRightSections = computed(
-  () => !props.hideSidebar && !isNew.value && commentsDrawer.value && isUIAllowed('commentList') && !isSqlView.value,
-)
+const commentsAvailable = computed(() => !props.hideSidebar && !isNew.value && isUIAllowed('commentList') && !isSqlView.value)
+
+const showRightSections = computed(() => commentsAvailable.value && commentsDrawer.value)
+
+provide(ExpandedFormCommentsAvailableInj, commentsAvailable)
 </script>
 
 <script lang="ts">

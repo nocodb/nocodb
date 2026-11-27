@@ -97,6 +97,7 @@ export const useBases = defineStore('basesStore', () => {
 
     return {
       users: response.users.list,
+      app: response.users.app,
       totalRows,
     }
   }

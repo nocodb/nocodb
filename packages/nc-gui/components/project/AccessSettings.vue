@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-import type { MetaType, PlanLimitExceededDetailsType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type {
+  AppMemberTeamRef,
+  BaseMembersListApp,
+  MetaType,
+  PlanLimitExceededDetailsType,
+  Roles,
+  SeatType,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk'
 import {
   AGENT_ASSIGNABLE_ROLES,
   OrderedProjectRoles,
@@ -40,7 +48,13 @@ const agentStore = useAgentStore()
 const { loadAgents, updateAgent } = agentStore
 const { agents } = storeToRefs(agentStore)
 
-const { orgRoles, baseRoles, loadRoles, isUIAllowed } = useRoles()
+const { orgRoles, baseRoles, loadRoles, isUIAllowed, environmentRestrictionReason } = useRoles()
+
+const appStore = useAppStore()
+
+const { removeAppMember } = appStore
+
+const { appTeamMembersVersion } = storeToRefs(appStore)
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Project')
 
@@ -53,13 +67,23 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
 
-const { $api, $eventBus } = useNuxtApp()
+const { $api, $eventBus, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
-const { isPaymentEnabled, showEEFeatures, showUserPlanLimitExceededModal, showUpgradeToUseTeams } = useEeConfig()
+const {
+  isPaymentEnabled,
+  showEEFeatures,
+  showUserPlanLimitExceededModal,
+  showUpgradeToUseTeams,
+  seatModel,
+  seatMonthlyPrices,
+  isWsOwner,
+  loadSeatCounts,
+  activePlanTitle,
+} = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -105,12 +129,28 @@ interface Collaborators {
   created_at: string
   display_name: string | null
   meta: MetaType
+  app_teams?: AppMemberTeamRef[]
 }
 
 // Todo: @rameshmane7218 - toggle this when user clicks on listed team item
 const isEditModalOpenUsingRouterPush = ref<boolean>(false)
 
 const collaborators = ref<Collaborators[]>([])
+
+const baseApp = ref<BaseMembersListApp | null>(null)
+
+// The app and its teams are served to base owners and creators only, and only when the base has an app.
+const app = computed(() =>
+  appOnBaseMembersList(baseApp.value, {
+    isAdminPanel: isAdminPanel.value,
+    pageBaseId: props.baseId ?? activeProjectId.value,
+    activeBaseId: activeProjectId.value,
+  }),
+)
+
+const isV2 = computed(() => isPaymentEnabled.value && seatModel.value === 'v2')
+
+const hasSeatData = computed(() => isV2.value && collaborators.value.some((collab: any) => !!collab.seat_type))
 const userSearchText = ref('')
 
 const isLoading = ref(false)
@@ -182,6 +222,19 @@ const roleFilter = ref<string>('all')
 
 const memberFilter = ref<string>('all')
 
+const teamFilter = ref<string>('all')
+
+const teamFilterOptions = computed(() => [
+  { value: 'all', label: t('labels.appAccess.allTeams') },
+  { value: 'any', label: t('labels.appAccess.anyTeam') },
+  ...(app.value?.teams ?? []).map((team) => ({ value: team.id, label: team.title })),
+  { value: 'none', label: t('labels.appAccess.notInTheApp') },
+])
+
+watch(teamFilter, (value) => {
+  $e('c:base:members:app-team:filter', { value: ['all', 'any', 'none'].includes(value) ? value : 'team' })
+})
+
 // Only the roles a base can actually hand out — INHERIT is a source, not a role,
 // and App User belongs to the interface surface.
 const roleFilterOptions = computed(() => [
@@ -232,6 +285,19 @@ function matchesMemberFilter(collab: any) {
   }
 }
 
+function matchesTeamFilter(collab: any) {
+  if (teamFilter.value === 'all' || !app.value) return true
+
+  if (collab.isTeam || collab.isAgent) return false
+
+  const teamIds: string[] = (collab.app_teams ?? []).map((team: { id: string }) => team.id)
+
+  if (teamFilter.value === 'any') return teamIds.length > 0
+  if (teamFilter.value === 'none') return teamIds.length === 0
+
+  return teamIds.includes(teamFilter.value)
+}
+
 const filteredCollaborators = computed(() => {
   const all = collaborators.value.concat(baseTeamsToCollaborators.value).concat(baseAgentsToCollaborators.value)
 
@@ -240,7 +306,7 @@ const filteredCollaborators = computed(() => {
 
     if (roleFilter.value !== 'all' && collab.roles !== roleFilter.value) return false
 
-    return matchesMemberFilter(collab)
+    return matchesMemberFilter(collab) && matchesTeamFilter(collab)
   })
 })
 
@@ -263,11 +329,13 @@ const loadCollaborators = async () => {
     // members list still renders its users and teams.
     loadAgents({ baseId: currentBase.value.id!, force: true }).catch(() => {})
 
-    const { users } = await getBaseUsers({
+    const { users, app: appOfBase } = await getBaseUsers({
       baseId: currentBase.value.id!,
       ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
       force: true,
     })
+
+    baseApp.value = appOfBase ?? null
 
     collaborators.value = [
       ...(users || [])
@@ -308,7 +376,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       // The agent store patches its own cached row, which `agents` — and so
       // this table — reads straight through.
       await updateAgent(currentBase.value!.id!, collab.id, { role: roles })
-      return
+      return true
     }
 
     if (collab?.isTeam) {
@@ -381,6 +449,8 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         basesUser.value.set(currentBase.value.id, currentBaseUsers)
       }
     }
+
+    return true
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
@@ -395,6 +465,8 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
     } else {
       message.error(errorInfo.message)
     }
+
+    return false
   } finally {
     if (
       currentCollaborator &&
@@ -419,6 +491,125 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
     }
   }
 }
+const roleConfirm = reactive({
+  visible: false,
+  collab: null as any,
+  role: ProjectRoles.NO_ACCESS as ProjectRoles,
+  seatLine: '',
+  hasExplicitAppTeams: false,
+  removeFromApp: true,
+  viaTeams: [] as string[],
+})
+
+function onRoleChange(collab: any, role: ProjectRoles) {
+  if (collab.isTeam || collab.isAgent) return updateCollaborator(collab, role)
+
+  const { becomesEditor, hasExplicitAppTeams, viaTeams } = planBaseMemberRoleChange({
+    isV2: isV2.value,
+    editorPrice: seatMonthlyPrices.value.editor,
+    hasApp: !!app.value,
+    role,
+    seatType: collab.seat_type,
+    appTeams: collab.app_teams ?? [],
+  })
+
+  if (!becomesEditor && !hasExplicitAppTeams && !viaTeams.length) return updateCollaborator(collab, role)
+
+  Object.assign(roleConfirm, {
+    visible: true,
+    collab,
+    role,
+    seatLine: becomesEditor
+      ? t('payment.appSeat.roleChangeToEditor', {
+          name: extractUserDisplayNameOrEmail(collab),
+          price: seatMonthlyPrices.value.editor,
+        })
+      : '',
+    hasExplicitAppTeams,
+    removeFromApp: true,
+    viaTeams,
+  })
+
+  $e('c:base:member:role-seat:confirm', { role, seat: becomesEditor, removeFromApp: hasExplicitAppTeams })
+}
+
+async function onConfirmRoleChange() {
+  const { collab, role, hasExplicitAppTeams, removeFromApp } = roleConfirm
+
+  roleConfirm.visible = false
+
+  await changeRoleThenRemoveFromApp(
+    () => updateCollaborator(collab, role),
+    async () => {
+      if (!hasExplicitAppTeams || !removeFromApp || !app.value) return
+
+      if (await removeAppMember(app.value.id, { principalType: 'user', principalId: collab.id })) loadCollaborators()
+    },
+  )
+}
+
+const passNoticeRows = computed(() =>
+  collaborators.value.map((collab: any) => ({
+    principal_type: 'user' as const,
+    principal_id: collab.id,
+    base_role: collab.roles,
+    teams: collab.app_teams ?? [],
+  })),
+)
+
+const appMembershipReason = computed(() => {
+  if (currentBase.value?.is_lane_instance) return t('tooltip.featureOnProductionOnly')
+
+  return (
+    environmentRestrictionReason('appCreateOrEdit') || (app.value?.teams.length ? null : t('labels.appAccess.createTeamFirst'))
+  )
+})
+
+const stillOnAppTeams = (record: Collaborators) =>
+  appTeamsKeptOnNoAccess(app.value, record, getInheritanceInfo(record)?.effectiveRole ?? record.roles).join(', ')
+
+const seatCounts = ref<Awaited<ReturnType<typeof loadSeatCounts>>>(null)
+
+watch(
+  [isV2, activeWorkspaceId],
+  async ([v2, workspaceId]) => {
+    seatCounts.value = v2 && workspaceId ? await loadSeatCounts(workspaceId as string) : null
+  },
+  { immediate: true },
+)
+
+function seatTooltip(seatType: SeatType) {
+  if (seatType === 'full') {
+    return seatMonthlyPrices.value.editor ? t('payment.appSeat.seatTooltipEditor', { price: seatMonthlyPrices.value.editor }) : ''
+  }
+
+  if (seatType === 'app') {
+    return seatMonthlyPrices.value.guest && seatCounts.value?.freeApp != null
+      ? t('payment.appSeat.seatTooltipGuest', {
+          price: seatMonthlyPrices.value.guest,
+          free: seatCounts.value.freeApp,
+          plan: activePlanTitle.value,
+        })
+      : ''
+  }
+
+  return t('payment.appSeat.seatTooltipFree')
+}
+
+// Billing detail is owner-only; `isWsOwner` is absent from the CE useEeConfig stub.
+const canOpenSeatDetail = computed(() => isEeUI && !!(isWsOwner?.value || isSuper.value))
+
+const seatDetailUser = ref<any>(null)
+
+const isSeatDetailModalOpen = ref(false)
+
+function openSeatDetail(record: any) {
+  if (!canOpenSeatDetail.value || record?.isTeam || record?.isAgent) return
+
+  seatDetailUser.value = record
+  isSeatDetailModalOpen.value = true
+}
+
 const showOverlay = computed(() => {
   return base.value?.default_role && !baseRoles.value?.[ProjectRoles.OWNER]
 })
@@ -544,6 +735,9 @@ watch(currentBase, () => {
   loadCollaborators()
 })
 
+// Team chips, the Team filter and the pass notice come from this list, so App teams edits reload it.
+watch(appTeamMembersVersion, useDebounceFn(loadCollaborators, 300, { maxWait: 1000 }))
+
 const orderBy = computed<Record<string, SordDirectionType>>({
   get: () => {
     return sortDirection.value
@@ -564,43 +758,48 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
-const columns = [
-  // // Enable this select row column once we introduce bulk action
-  // {
-  //   key: 'select',
-  //   title: '',
-  //   width: 70,
-  //   minWidth: 70,
-  // },
-  {
-    key: 'email',
-    title: t('labels.members'),
-    minWidth: 220,
-    dataIndex: 'email',
-    showOrderBy: true,
-  },
-  {
-    key: 'role',
-    title: t('general.role'),
-    basis: '30%',
-    minWidth: 272,
-    dataIndex: 'roles',
-    showOrderBy: true,
-  },
-  {
-    key: 'created_at',
-    title: t('title.dateJoined'),
-    basis: '20%',
-    minWidth: 200,
-  },
-  {
-    key: 'action',
-    title: '',
-    width: 110,
-    minWidth: 110,
-    justify: 'justify-end',
-  },
-] as NcTableColumnProps[]
+const columns = computed(
+  () =>
+    [
+      // // Enable this select row column once we introduce bulk action
+      // {
+      //   key: 'select',
+      //   title: '',
+      //   width: 70,
+      //   minWidth: 70,
+      // },
+      {
+        key: 'email',
+        title: t('labels.members'),
+        minWidth: 220,
+        dataIndex: 'email',
+        showOrderBy: true,
+      },
+      {
+        key: 'role',
+        title: t('general.role'),
+        basis: '30%',
+        minWidth: 272,
+        dataIndex: 'roles',
+        showOrderBy: true,
+      },
+      ...(hasSeatData.value ? [{ key: 'seat', title: t('payment.appSeat.seatColumn'), width: 130, minWidth: 130 }] : []),
+      ...(app.value ? [{ key: 'app_teams', title: t('labels.appAccess.appTeamsGroup'), basis: '25%', minWidth: 260 }] : []),
+      {
+        key: 'created_at',
+        title: t('title.dateJoined'),
+        basis: '20%',
+        minWidth: 200,
+      },
+      {
+        key: 'action',
+        title: '',
+        width: 110,
+        minWidth: 110,
+        justify: 'justify-end',
+      },
+    ] as NcTableColumnProps[],
+)
 
 const customRow = () => ({
   class: 'user-row',
@@ -783,6 +982,18 @@ onBeforeUnmount(() => {
                 </a-select-option>
               </template>
             </NcSelect>
+
+            <NcSelect
+              v-if="app"
+              v-model:value="teamFilter"
+              class="nc-base-members-filter flex-none !w-36"
+              :disabled="isLoading"
+              data-testid="nc-base-members-app-team-filter"
+            >
+              <a-select-option v-for="option in teamFilterOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </a-select-option>
+            </NcSelect>
           </div>
 
           <ShellActions>
@@ -814,6 +1025,15 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="flex-1 min-h-0 flex flex-col gap-6">
+          <SmartsheetAppMembersPassNotice
+            v-if="isEeUI && app && !userSearchText"
+            :app="app"
+            :teams="app.teams"
+            :rows="passNoticeRows"
+            :count="app.guests_without_team"
+            @show-them="teamFilter = 'none'"
+          />
+
           <NcTable
             v-model:order-by="orderBy"
             hide-on-empty
@@ -907,7 +1127,7 @@ onBeforeUnmount(() => {
                     :inherit-source="getInheritanceInfo(record)?.source"
                     :effective-role="getInheritanceInfo(record)?.effectiveRole"
                     :show-inherit="!!getInheritanceInfo(record)"
-                    :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
+                    :on-role-change="(role) => onRoleChange(record, role as ProjectRoles)"
                   />
                 </template>
                 <template v-else>
@@ -925,7 +1145,43 @@ onBeforeUnmount(() => {
                     }}</span>
                   </div>
                 </template>
+                <div
+                  v-if="isOwnerOrCreator && !record.isTeam && !record.isAgent && stillOnAppTeams(record)"
+                  class="text-xs text-nc-content-gray-muted truncate"
+                  data-testid="nc-base-member-still-on-app-team"
+                >
+                  {{ $t('labels.appAccess.stillOnAppTeam', { teams: stillOnAppTeams(record) }) }}
+                </div>
               </div>
+              <div
+                v-if="column.key === 'seat' && !record.isTeam && !record.isAgent && record.seat_type"
+                class="flex items-center"
+              >
+                <NcTooltip
+                  :disabled="!seatTooltip(record.seat_type)"
+                  :title="seatTooltip(record.seat_type)"
+                  class="flex items-center"
+                >
+                  <component
+                    :is="canOpenSeatDetail ? 'button' : 'div'"
+                    v-e="['c:workspace:member:billable-detail']"
+                    class="nc-seat-type-badge flex items-center border-none p-0 bg-transparent"
+                    :class="{ 'cursor-pointer': canOpenSeatDetail }"
+                    data-testid="nc-seat-type-badge"
+                    @click="openSeatDetail(record)"
+                  >
+                    <WorkspaceSeatTypeBadge :seat-type="record.seat_type" />
+                  </component>
+                </NcTooltip>
+              </div>
+              <ProjectAppTeamsCell
+                v-if="isEeUI && app && column.key === 'app_teams' && !record.isTeam && !record.isAgent"
+                :user="record"
+                :app="app"
+                :teams="app.teams"
+                :can-manage="!!isOwnerOrCreator"
+                :reason="appMembershipReason"
+              />
               <div v-if="column.key === 'created_at'">
                 <NcTooltip class="max-w-full">
                   <template #title>
@@ -943,6 +1199,14 @@ onBeforeUnmount(() => {
                   </NcButton>
                   <template #overlay>
                     <NcMenu variant="small">
+                      <NcMenuItem
+                        v-if="canOpenSeatDetail && !record.isTeam && !record.isAgent && (hasSeatData || app)"
+                        data-testid="nc-base-member-apps-and-seat"
+                        @click="openSeatDetail(record)"
+                      >
+                        <GeneralIcon icon="ncApp" class="h-4 w-4" />
+                        {{ $t('labels.appAccess.appsAndSeat') }}
+                      </NcMenuItem>
                       <NcMenuItemCopyId
                         :id="record.id"
                         :tooltip="
@@ -979,6 +1243,47 @@ onBeforeUnmount(() => {
       />
 
       <WorkspaceTeamsEdit v-if="isEeUI && isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />
+
+      <WorkspaceBillableDetailModal
+        v-if="isEeUI && activeWorkspaceId && seatDetailUser"
+        v-model:visible="isSeatDetailModalOpen"
+        :workspace-id="activeWorkspaceId"
+        :user="seatDetailUser"
+      />
+
+      <NcModalConfirm
+        v-model:visible="roleConfirm.visible"
+        :ok-text="$t('general.confirm')"
+        :show-icon="false"
+        :keyboard="true"
+        :mask-closable="true"
+        data-testid="nc-base-member-role-confirm"
+        @ok="onConfirmRoleChange"
+      >
+        <template #title>
+          <div class="inline-flex !align-top mr-2">
+            {{ $t('labels.appAccess.changeRoleTitle', { name: extractUserDisplayNameOrEmail(roleConfirm.collab ?? {}) }) }}
+          </div>
+          <RolesBadge :border="false" :role="roleConfirm.role" class="inline-flex text-body" />
+        </template>
+        <template #extraContent>
+          <div class="flex flex-col gap-4 text-caption text-nc-content-gray">
+            <div v-if="roleConfirm.seatLine" data-testid="nc-base-member-role-seat-line">{{ roleConfirm.seatLine }}</div>
+
+            <div v-if="roleConfirm.hasExplicitAppTeams && app" class="flex items-start gap-3">
+              <NcCheckbox v-model:checked="roleConfirm.removeFromApp" data-testid="nc-base-member-also-remove-from-app" />
+              <div class="flex flex-col gap-1">
+                <div class="font-semibold">{{ $t('labels.appAccess.alsoRemoveFromApp', { app: app.title }) }}</div>
+                <div class="text-nc-content-gray-subtle">{{ $t('labels.appAccess.removeFromAppBody') }}</div>
+              </div>
+            </div>
+
+            <div v-for="team in roleConfirm.viaTeams" :key="team" class="text-nc-content-gray-subtle">
+              {{ $t('labels.appAccess.viaTeamRemoveInApp', { team }) }}
+            </div>
+          </div>
+        </template>
+      </NcModalConfirm>
     </template>
   </div>
 </template>

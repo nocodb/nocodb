@@ -21,6 +21,7 @@ import type { CSSProperties, ComputedRef, Ref } from 'vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
 import type { CanvasGroup, GridRemoteFocus } from '../../../../lib/types'
+import type { RefreshInPlaceOptions, RefreshInPlaceResult } from '../../../../composables/useGridViewData'
 import { useCanvasTable } from './composables/useCanvasTable'
 import { RESIZE_HANDLE_WIDTH } from './composables/useColumnResize'
 import Aggregation from './context/Aggregation.vue'
@@ -49,6 +50,7 @@ import {
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import GroupContextMenu from './components/GroupHeaderMenu.vue'
+import CellComments from './components/CellComments.vue'
 import type { Row } from '#imports'
 
 const props = defineProps<{
@@ -141,8 +143,10 @@ const props = defineProps<{
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup, force?: boolean) => Promise<void>
   fetchMissingGroupAggregations: (groups: CanvasGroup[]) => void
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
-  refreshInPlace: () => Promise<void>
-  refreshPartInPlace: (refresh: (refreshRows: (paths: number[][]) => Promise<void>) => Promise<void>) => Promise<void>
+  refreshInPlace: (options?: RefreshInPlaceOptions) => Promise<RefreshInPlaceResult>
+  refreshPartInPlace: (
+    refresh: (refreshRows: (paths: number[][]) => Promise<void>) => Promise<void>,
+  ) => Promise<RefreshInPlaceResult>
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
@@ -268,7 +272,7 @@ provide(CellEventHookInj, cellEventHook)
 
 provide(CurrentCellInj, activeCellElement)
 
-const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+const { isExpandedFormCommentMode, expandedFormCommentFieldId } = storeToRefs(useConfigStore())
 
 const isExpandTableModalOpen = ref(false)
 // Injections
@@ -426,6 +430,7 @@ const {
   baseRoleLoader,
 
   findRemoteRecordMarkAt,
+  findCellCommentMarkAt,
 
   // column resize related refs
   colResizeHoveredColIds,
@@ -457,6 +462,7 @@ const {
   formatAggregationValue,
 } = useCanvasTable({
   anchorActiveCell: anchorActiveCellToSheet,
+  commentCell: (row, column, path) => openCellComments(row, column, path),
   rowHeightEnum,
   cachedRows,
   mousePosition,
@@ -616,6 +622,98 @@ const showDescriptionPopover = (region: { x: number; y: number; width: number; h
       height: region.height,
     },
   }
+}
+
+// Cell comments popover — anchored to the cell's on-screen rect; closes on scroll.
+const cellCommentsState = ref<{
+  row: Row
+  column: ColumnType
+  path: Array<number>
+  rect: { x: number; y: number; width: number; height: number }
+} | null>(null)
+const cellCommentsPopoverRef = ref<HTMLElement | null>(null)
+
+const cellCommentsTargetReference = computed(() => {
+  const r = cellCommentsState.value?.rect
+  const empty = { x: 0, y: 0, left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }
+  if (!r) return { getBoundingClientRect: () => empty }
+  return {
+    getBoundingClientRect: () => ({
+      x: r.x,
+      y: r.y,
+      left: r.x,
+      top: r.y,
+      right: r.x + r.width,
+      bottom: r.y + r.height,
+      width: r.width,
+      height: r.height,
+    }),
+  }
+})
+
+const { floatingStyles: cellCommentsFloatingStyles } = useFloating(cellCommentsTargetReference, cellCommentsPopoverRef, {
+  placement: 'bottom-start',
+  middleware: [offset(4), flip(), shift({ padding: 8 })],
+})
+
+// Clicks on the canvas are handled by its own mousedown; menus the thread opens
+// (mentions, emoji, reactions) are teleported, so they don't count as outside.
+onClickOutside(cellCommentsPopoverRef, (e) => {
+  const target = e.target as HTMLElement | null
+  if (!cellCommentsState.value || canvasRef.value?.contains(target)) return
+  if (target?.closest?.('.ant-dropdown, .tippy-box, .nc-dropdown')) return
+  closeCellComments()
+})
+
+const isCellCommentsAllowed = computed(() => isUIAllowed('commentList') && !isPublicView.value && !isMobileMode.value)
+
+/** Open the comment thread of one cell; `rect` is canvas-relative. */
+function openCellComments(
+  row: Row | undefined,
+  gridColumn: CanvasGridColumn | undefined,
+  path: Array<number>,
+  rect?: { x: number; y: number; width: number; height: number },
+) {
+  if (!row || !gridColumn?.columnObj?.id || row.rowMeta?.new || !isCellCommentsAllowed.value) return
+  const column = gridColumn.columnObj
+  const canvasRect = canvasRef.value?.getBoundingClientRect()
+  if (!canvasRect) return
+  const cellRect = rect ?? getCellPosition(gridColumn, row.rowMeta.rowIndex!, path)
+  hideTooltip()
+  // Typing belongs to the thread's composer, not to the grid's active cell.
+  editEnabled.value = null
+  activeCell.value = { row: -1, column: -1, path }
+  selection.value.clear()
+  cellCommentsState.value = {
+    row,
+    column,
+    path,
+    rect: {
+      x: cellRect.x + canvasRect.x,
+      y: cellRect.y + canvasRect.y,
+      width: cellRect.width,
+      height: cellRect.height,
+    },
+  }
+}
+
+function onCommentCellFromMenu({ row, col, path }: { row: number; col: number; path: Array<number> }) {
+  _isContextMenuOpen.value = false
+  openCellComments(getDataCache(path).cachedRows.value.get(row), columns.value[col], path)
+}
+
+function closeCellComments() {
+  cellCommentsState.value = null
+}
+
+function expandCellComments() {
+  const state = cellCommentsState.value
+  if (!state) return
+  closeCellComments()
+  // Only a composer resets this flag, and viewers get none.
+  if (isUIAllowed('commentEdit')) isExpandedFormCommentMode.value = true
+  expandedFormCommentFieldId.value = state.column.id ?? null
+  expandForm(state.row, undefined, false, state.path)
 }
 
 /** Whether the table has attachment fields and data editing is allowed — gates the file drop zone */
@@ -1524,6 +1622,20 @@ async function handleMouseDown(e: MouseEvent) {
 
   const clickType = getMouseClickType(e)
   if (!clickType) return
+
+  closeCellComments()
+
+  if (clickType === MouseClickType.SINGLE_CLICK && y > headerRowHeight.value && isCellCommentsAllowed.value) {
+    const commentMark = findCellCommentMarkAt(x, y)
+    if (commentMark) {
+      if (mouseUpListener) {
+        document.removeEventListener('mouseup', mouseUpListener)
+        mouseUpListener = null
+      }
+      openCellComments(commentMark.row, commentMark.column, commentMark.path, commentMark)
+      return
+    }
+  }
 
   // Freeze divider drag (or too-narrow reset modal) — consumes the event
   // before any cell/selection handling; its own document listeners drive the drag.
@@ -2811,6 +2923,16 @@ const handleMouseMove = (e: MouseEvent) => {
       imageLoader,
       path: groupPath,
     })
+
+    const commentMark = isCellCommentsAllowed.value ? findCellCommentMarkAt(mousePosition.x, mousePosition.y) : undefined
+    if (commentMark) {
+      cursor = 'pointer'
+      tryShowTooltip({
+        rect: { x: commentMark.x + commentMark.width - 14, y: commentMark.y, width: 14, height: 14 },
+        text: t('activity.cellComments.openThreads', { count: commentMark.count }, commentMark.count),
+        mousePosition,
+      })
+    }
   }
 
   if (cursor) setCursor(cursor)
@@ -2921,8 +3043,15 @@ const reloadViewDataHookHandler = withLoading(async (params) => {
   triggerRefreshCanvas()
 })
 
-function onReloadViewData(params?: { inPlace?: boolean; path?: Array<number> } | void) {
-  if (params?.inPlace) return refreshInPlace()
+async function onReloadViewData(params?: { inPlace?: boolean; reportRefreshFailure?: boolean; path?: Array<number> } | void) {
+  if (params?.inPlace) {
+    // Rejects only for a caller that reports the failure (the expanded form's "saved, but the
+    // view could not refresh"); for everyone else the refresh toasts it.
+    const callerReports = !!params.reportRefreshFailure
+    const { refreshed } = await refreshInPlace({ callerReports })
+    if (!refreshed && callerReports) throw new Error('The grid could not refresh its rows')
+    return
+  }
   return reloadViewDataHookHandler(params)
 }
 
@@ -2953,6 +3082,7 @@ const lastScrollState = ref<{ baseId?: string; viewId?: string; scrollTop: numbe
 
 const handleScroll = (e: { left: number; top: number }) => {
   hideDescriptionPopoverImmediate()
+  if (cellCommentsState.value) closeCellComments()
   if (rafId) cancelAnimationFrame(rafId)
 
   rafId = requestAnimationFrame(() => {
@@ -4251,6 +4381,23 @@ watch(
             </div>
           </Transition>
         </Teleport>
+        <Teleport to="body">
+          <div
+            v-if="cellCommentsState"
+            ref="cellCommentsPopoverRef"
+            class="nc-cell-comments-popover-wrapper z-1000"
+            :style="cellCommentsFloatingStyles"
+          >
+            <CellComments
+              :key="`${cellCommentsState.row.rowMeta.rowIndex}-${cellCommentsState.column.id}`"
+              :row="cellCommentsState.row"
+              :column="cellCommentsState.column"
+              @close="closeCellComments"
+              @expand="expandCellComments"
+              @counts-changed="triggerRefreshCanvas"
+            />
+          </div>
+        </Teleport>
         <NcDropdown
           v-model:visible="isContextMenuOpen"
           :trigger="['contextmenu']"
@@ -4305,6 +4452,7 @@ watch(
               @click="isContextMenuOpen = false"
               @bulk-update-dlg="bulkUpdataContext"
               @send-record="handleSendRecord"
+              @comment-cell="onCommentCellFromMenu"
             />
           </template>
         </NcDropdown>

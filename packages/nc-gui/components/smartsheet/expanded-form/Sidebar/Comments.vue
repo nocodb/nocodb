@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import tippy from 'tippy.js'
+import type { ColumnType } from 'nocodb-sdk'
 import type { CommentThread, CommentTypeExtended } from '~/composables/useRowComments'
 import { threadComments } from '~/composables/useCommentThreadList'
 
@@ -27,6 +28,8 @@ const props = defineProps<{
   showSearch?: boolean
   /** Show the record's field changes between the comments. */
   showRevisions?: boolean
+  /** Cell comments: show only this field's threads; new threads are about it. */
+  fieldId?: string | null
 }>()
 
 const emits = defineEmits<{
@@ -35,7 +38,13 @@ const emits = defineEmits<{
 
 const { user } = useGlobal()
 
-const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+const { t } = useI18n()
+
+const { $e } = useNuxtApp()
+
+const meta = inject(MetaInj, ref())
+
+const { isExpandedFormCommentMode, expandedFormCommentFieldId } = storeToRefs(useConfigStore())
 
 // Hosted inside the attachment viewer — new comments tag the open image
 // (pin-less annotation) so they count toward its badge.
@@ -52,7 +61,56 @@ const {
   isCommentExtrasEnabled,
   isCommentUnread,
   acknowledgeUnread,
+  commentFieldId,
 } = useRowCommentsOrThrow()
+
+/** Field picked from a comment's field chip (record view only). */
+const fieldFilterId = ref<string | null>(null)
+
+const activeFieldId = computed(() => props.fieldId ?? fieldFilterId.value)
+
+const columnById = computed(() => {
+  const map: Record<string, ColumnType> = {}
+  for (const col of (meta.value?.columns ?? []) as ColumnType[]) {
+    if (col.id) map[col.id] = col
+  }
+  return map
+})
+
+/** The record panel is narrowed to one field's threads (not the cell popover, which is always one field). */
+const isFieldFiltered = computed(() => !!fieldFilterId.value && !props.fieldId)
+
+// The composer names the field a new comment goes to.
+const composerPlaceholder = computed(() => {
+  const column = activeFieldId.value ? columnById.value[activeFieldId.value] : undefined
+  return column?.title
+    ? t('activity.cellComments.commentOnFieldPlaceholder', { field: column.title })
+    : `${t('general.comment')}...`
+})
+
+// New threads are about the field in focus.
+watch(
+  activeFieldId,
+  (id) => {
+    commentFieldId.value = id ?? null
+  },
+  { immediate: true },
+)
+
+// A field label badge clears the filter by clearing the shared field.
+watch(commentFieldId, (id) => {
+  if (!id && fieldFilterId.value && !props.fieldId) fieldFilterId.value = null
+})
+
+watch(primaryKey, (pk, prev) => {
+  if (prev && pk !== prev) fieldFilterId.value = null
+})
+
+function filterByField(fieldId?: string | null) {
+  if (props.fieldId || !fieldId || !columnById.value[fieldId]) return
+  fieldFilterId.value = fieldId
+  $e('c:comment:field:filter')
+}
 
 // Absent in the attachment viewer and other hosts without a record form.
 const expandedFormStore = useExpandedFormStore()
@@ -104,6 +162,11 @@ function mentionsMe(commentItem: CommentTypeExtended) {
 // keep a thread when any of its comments match. Resolved threads are hidden
 // unless the toggle is on — it is only offered for the all/record filters.
 const visibleThreads = computed(() => {
+  if (activeFieldId.value) {
+    const fieldThreads = threads.value.filter((t) => t.root.fk_column_id === activeFieldId.value)
+    return props.showResolved ? fieldThreads : fieldThreads.filter((t) => !t.root.resolved_by)
+  }
+
   const filter = props.commentFilter
   if (!filter) return threads.value
 
@@ -157,6 +220,33 @@ const pinnedComment = computed(() =>
 )
 
 const commentInputRef = ref<any>()
+
+function focusComposer() {
+  nextTick(() => commentInputRef.value?.focusEditor?.())
+}
+
+// A cell thread opens focused. The composer renders only once comments have loaded.
+if (props.fieldId) {
+  const stop = watch(commentInputRef, (el) => {
+    if (!el) return
+    stop()
+    focusComposer()
+  })
+}
+
+// A field picked elsewhere (a cell thread's expand button, a field label badge) filters this panel.
+watch(
+  expandedFormCommentFieldId,
+  (id) => {
+    if (props.fieldId || !id) return
+    expandedFormCommentFieldId.value = null
+    // A leftover from another table must never tag this record's comments
+    if (!columnById.value[id]) return
+    fieldFilterId.value = id
+    focusComposer()
+  },
+  { immediate: true },
+)
 
 const comment = ref('')
 
@@ -357,15 +447,17 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="h-full"
     :class="{
       'pb-1': !hasEditPermission,
+      'h-full': !fieldId,
+      'flex flex-col min-h-0': fieldId,
     }"
   >
-    <div v-if="isCommentsLoading" class="flex flex-col items-center justify-center w-full h-full">
+    <div v-if="isCommentsLoading" class="flex flex-col items-center justify-center w-full" :class="fieldId ? 'py-10' : 'h-full'">
       <GeneralLoader size="xlarge" />
     </div>
-    <div v-else class="flex flex-col h-full">
+    <!-- A cell thread sizes to its content; the record panel fills its column. -->
+    <div v-else class="flex flex-col" :class="fieldId ? 'min-h-0' : 'h-full'">
       <div v-if="showSearch" class="flex-none px-3 pt-2 pb-1">
         <SmartsheetExpandedFormCommentSearchBar
           v-model:query="searchQuery"
@@ -375,17 +467,18 @@ onBeforeUnmount(() => {
         />
       </div>
       <div
-        v-if="comments.length === 0 && !feedEntries.length"
-        class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin"
+        v-if="(activeFieldId ? visibleThreads.length === 0 : comments.length === 0) && !feedEntries.length"
+        class="flex flex-col my-1 text-center justify-center nc-scrollbar-thin"
+        :class="fieldId ? 'py-4' : 'h-full'"
       >
-        <div class="text-center text-3xl text-nc-content-gray-subtle opacity-40">
+        <div class="text-center text-nc-content-gray-subtle opacity-40" :class="fieldId ? 'text-xl' : 'text-3xl'">
           <GeneralIcon icon="commentHere" />
         </div>
-        <div class="text-center my-4 px-6">
+        <div class="text-center px-6" :class="fieldId ? 'mt-2' : 'my-4'">
           <div class="font-medium text-nc-content-gray-muted">
             {{ hasEditPermission ? $t('activity.startCommenting') : $t('activity.noCommentsYet') }}
           </div>
-          <div v-if="hasEditPermission" class="text-xs text-nc-content-gray-subtle2 mt-2">
+          <div v-if="hasEditPermission && !fieldId" class="text-xs text-nc-content-gray-subtle2 mt-2">
             {{ $t('activity.startCommentingDescription') }}
           </div>
         </div>
@@ -395,6 +488,7 @@ onBeforeUnmount(() => {
         v-else-if="visibleThreads.length === 0 && !feedEntries.length"
         class="flex flex-col my-1 text-center justify-center h-full nc-scrollbar-thin"
         data-testid="nc-comments-no-filter-match"
+        :class="{ 'py-4': fieldId }"
       >
         <div class="text-center text-3xl text-nc-content-gray-subtle opacity-40">
           <GeneralIcon icon="commentHere" />
@@ -419,8 +513,13 @@ onBeforeUnmount(() => {
           <GeneralIcon icon="chevronRight" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
         </button>
 
-        <div ref="commentsWrapperEl" class="relative flex flex-col h-full pt-4 pb-1 nc-scrollbar-thin">
-          <div class="mt-auto" />
+        <div
+          ref="commentsWrapperEl"
+          class="relative flex flex-col pt-4 pb-1 nc-scrollbar-thin"
+          :class="fieldId ? 'min-h-0' : 'h-full'"
+        >
+          <!-- A cell thread reads top-down; the record feed stays bottom-aligned like a chat. -->
+          <div v-if="!fieldId" class="mt-auto" />
           <template v-for="entry of feedEntries" :key="entry.key">
             <SmartsheetExpandedFormSidebarCommentActivity v-if="entry.type === 'audit'" :audit="entry.audit" />
 
@@ -428,6 +527,9 @@ onBeforeUnmount(() => {
               v-else
               :thread="entry.thread"
               :show-new-divider="entry.thread.root.id === firstUnreadRootId"
+              :show-field="!activeFieldId"
+              :column-by-id="columnById"
+              @filter-field="filterByField"
             />
           </template>
 
@@ -444,9 +546,34 @@ onBeforeUnmount(() => {
         </div>
       </template>
       <SmartsheetExpandedFormCommentTypingIndicator v-if="isEeUI && hasEditPermission" :draft="comment" />
+      <!-- Field filter, attached to the composer so it's seen while writing -->
+      <div
+        v-if="isFieldFiltered"
+        class="nc-comment-field-filter flex-none px-3 bg-nc-bg-elevated relative z-10"
+        :class="hasEditPermission ? 'pt-1' : 'py-2'"
+        data-testid="nc-comment-field-filter"
+      >
+        <div
+          class="flex items-center gap-1.5 h-8 pl-2.5 pr-1 border-1 border-nc-border-brand-medium bg-nc-bg-brand text-captionSm"
+          :class="hasEditPermission ? 'rounded-t-lg border-b-0' : 'rounded-lg'"
+        >
+          <span class="flex-none text-nc-content-gray-subtle">{{ $t('activity.cellComments.showingOnly') }}</span>
+          <span class="truncate font-medium text-nc-content-gray">{{ columnById[fieldFilterId!]?.title }}</span>
+          <div class="flex-1" />
+          <button
+            type="button"
+            class="flex-none h-6 px-1.5 rounded-md text-captionSm font-medium text-nc-content-brand hover:bg-nc-brand-100 cursor-pointer"
+            data-testid="nc-comment-field-filter-clear"
+            @click="fieldFilterId = null"
+          >
+            {{ $t('general.showAll') }}
+          </button>
+        </div>
+      </div>
       <div
         v-if="hasEditPermission"
-        class="px-3 pt-1 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex relative z-10 bg-nc-bg-elevated"
+        class="px-3 pb-3 nc-comment-input !rounded-br-2xl gap-2 flex relative z-10 bg-nc-bg-elevated"
+        :class="isFieldFiltered ? 'pt-0' : 'pt-1'"
         @paste="isCommentAttachmentsEnabled ? handleAttachmentPaste($event) : undefined"
         @dragover.prevent
         @drop="isCommentAttachmentsEnabled ? handleAttachmentDrop($event) : undefined"
@@ -456,8 +583,9 @@ onBeforeUnmount(() => {
           v-model:value="comment"
           :hide-options="false"
           :extra-save-enabled="pendingAttachments.length > 0"
-          :placeholder="`${$t('general.comment')}...`"
+          :placeholder="composerPlaceholder"
           class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg w-full bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+          :class="{ '!rounded-t-none': isFieldFiltered }"
           :autofocus="isExpandedFormCommentMode"
           data-testid="expanded-form-comment-input"
           @focus="isExpandedFormCommentMode = false"

@@ -1,6 +1,6 @@
 import debug from 'debug';
 import Redis from 'ioredis';
-import CacheMgr from './CacheMgr';
+import CacheMgr, { bootFlushMatch } from './CacheMgr';
 import { CACHE_PREFIX } from '~/utils/globals';
 
 const _log = debug('nc:cache');
@@ -23,7 +23,7 @@ export default class RedisCacheMgr extends CacheMgr {
       process.env.NC_KEEP_CACHE !== 'true'
     ) {
       // Selective, not FLUSHDB — the collab crash buffer has to outlive a restart.
-      this.ready = this.flushDisposable();
+      this.ready = this.flushDisposable(bootFlushMatch());
     }
   }
 }

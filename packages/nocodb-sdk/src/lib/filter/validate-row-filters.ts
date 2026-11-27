@@ -41,6 +41,10 @@ const ncToString = (value: any) => {
   return value?.toString?.() || '';
 };
 
+// `ieq` / `nieq`: null and '' are the same blank value, like the SQL clause.
+const ncEqualsIgnoreCase = (a: any, b: any) =>
+  ncToString(a).toLowerCase() === ncToString(b).toLowerCase();
+
 const DATE_TYPES = [
   UITypes.Date,
   UITypes.DateTime,
@@ -373,6 +377,16 @@ export class RowFilterValidator {
                   break;
                 case 'neq':
                   res = !childValues.includes(ncToString(filter.value));
+                  break;
+                case 'ieq':
+                  res = childValues.some((val) =>
+                    ncEqualsIgnoreCase(val, filter.value)
+                  );
+                  break;
+                case 'nieq':
+                  res = !childValues.some((val) =>
+                    ncEqualsIgnoreCase(val, filter.value)
+                  );
                   break;
                 case 'like':
                   res = childValues.some((val) =>
@@ -776,6 +790,12 @@ export class RowFilterValidator {
       case 'not':
         res = sameNumber === undefined ? val != filter.value : !sameNumber;
         break;
+      case 'ieq':
+        res = ncEqualsIgnoreCase(value, filter.value);
+        break;
+      case 'nieq':
+        res = !ncEqualsIgnoreCase(value, filter.value);
+        break;
       case 'like':
         res =
           ncToString(value)
@@ -1096,6 +1116,10 @@ export class RowFilterValidator {
       case 'neq':
       case 'not':
         return !childValues.includes(ncToString(filter.value));
+      case 'ieq':
+        return childValues.some((v) => ncEqualsIgnoreCase(v, filter.value));
+      case 'nieq':
+        return !childValues.some((v) => ncEqualsIgnoreCase(v, filter.value));
       case 'like':
         return childValues.some((v) =>
           v.toLowerCase().includes(ncToString(filter.value).toLowerCase())

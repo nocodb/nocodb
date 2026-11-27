@@ -4,6 +4,7 @@ import {
   NcErrorType,
   type OrgUserListItemType,
   type PlanLimitExceededDetailsType,
+  PlanLimitTypes,
   ProjectRoles,
   RoleLabels,
   type TeamV3V3Type,
@@ -105,6 +106,12 @@ const {
   showOnPremLimitExceeded,
   isPaidPlan,
   showUserMayChargeAlert,
+  seatModel,
+  loadSeatCounts,
+  inviteSeatNotesFor,
+  inviteAppSeatCapFor,
+  activePlanTitle,
+  navigateToPricing,
 } = useEeConfig()
 
 const dialogShow = computed(() => props.active)
@@ -380,12 +387,25 @@ const existingMemberWarning = computed(() => {
 /** Text still in the box that is not a sendable address yet. */
 const unsentEmail = computed(() => (pendingEmail.value && !validateEmail(pendingEmail.value) ? pendingEmail.value : ''))
 
+const inviteSeatCounts = ref<Awaited<ReturnType<typeof loadSeatCounts>>>(null)
+
+const appSeatCap = computed(() => {
+  if (props.isTeam || !props.type || props.type === 'organization') return null
+
+  return inviteAppSeatCapFor({
+    emails: validRecipients.value,
+    role: inviteData.roles,
+    inviteType: props.type,
+    counts: inviteSeatCounts.value,
+  })
+})
+
 const isInviteButtonDisabled = computed(() => {
   if (props.isTeam) {
     return !inviteData.selectedTeamIds?.length
   }
 
-  return !validRecipients.value.length
+  return !validRecipients.value.length || !!appSeatCap.value
 })
 
 /** Reads back as a sentence, so the role name agrees with the number of people. */
@@ -427,9 +447,24 @@ const fieldHint = computed(() => {
   return t('msg.info.willJoinAsRole', { count, role: role.label, can: role.can }, count)
 })
 
+const seatNotes = computed(() => {
+  if (props.isTeam || !props.type || props.type === 'organization') return []
+
+  const notes = inviteSeatNotesFor({
+    emails: validRecipients.value,
+    role: inviteData.roles,
+    inviteType: props.type,
+    counts: inviteSeatCounts.value,
+  })
+
+  // The share hub names only what costs a seat.
+  return isCompose.value ? notes.filter((note) => note.seat !== 'free') : notes
+})
+
 const showUserWillChargedWarning = computed(() => {
   return (
     isEeUI &&
+    seatModel.value !== 'v2' &&
     !appInfo.value?.isOnPrem &&
     isPaymentEnabled.value &&
     isPaidPlan.value &&
@@ -666,6 +701,11 @@ const inviteCollaborator = async () => {
   }
 }
 
+function upgradeForAppSeats() {
+  navigateToPricing({ workspaceId: props.workspaceId, limitOrFeature: PlanLimitTypes.LIMIT_APP_SEAT, triggerEvent: false })
+  emit('close')
+}
+
 const isOrgSelectMenuOpen = ref(false)
 
 // Org-user invite picker: shows org members not already in the workspace/base
@@ -772,6 +812,14 @@ watch(
     }
   },
   // a tab host can mount already-active, which a change-only watch would miss
+  { immediate: true },
+)
+
+watch(
+  dialogShow,
+  async (v) => {
+    inviteSeatCounts.value = v && seatModel.value === 'v2' ? await loadSeatCounts(props.workspaceId) : null
+  },
   { immediate: true },
 )
 
@@ -1032,6 +1080,34 @@ defineExpose({
       :description="$t('upgrade.newEditorWillBeChangedSubtitle')"
       class="mt-5"
     />
+
+    <div
+      v-if="seatNotes.length"
+      class="mt-4 flex flex-col gap-1 text-bodySm text-nc-content-gray-subtle"
+      data-testid="nc-invite-seat-notes"
+    >
+      <div v-for="note in seatNotes" :key="note.email" class="truncate">
+        <span class="font-semibold text-nc-content-gray">{{ note.email }}</span> {{ note.text }}
+      </div>
+    </div>
+
+    <div
+      v-if="appSeatCap"
+      class="mt-4 flex flex-col items-start gap-1 rounded-lg bg-nc-bg-orange-light px-3 py-2 text-bodySm text-nc-content-gray"
+      data-testid="nc-invite-app-seat-cap"
+    >
+      <span>{{ $t('payment.appSeat.inviteAtCap', { plan: activePlanTitle, cap: appSeatCap.cap, used: appSeatCap.used }) }}</span>
+      <NcButton
+        v-e="['c:invite:app-seat:upgrade']"
+        type="link"
+        size="xsmall"
+        class="!h-5 !px-0"
+        data-testid="nc-invite-app-seat-upgrade"
+        @click="upgradeForAppSeats"
+      >
+        {{ $t('payment.appSeat.upgradeForMore') }}
+      </NcButton>
+    </div>
 
     <div v-if="showFooter" class="nc-invite-footer-divider mt-6 -mx-4 md:-mx-6 border-t-1 border-nc-border-gray-medium" />
 

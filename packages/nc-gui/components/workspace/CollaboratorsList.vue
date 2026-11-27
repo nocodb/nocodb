@@ -9,6 +9,7 @@ import {
   RoleColors,
   RoleIcons,
   RoleLabels,
+  type WorkspaceUserAppRef,
   WorkspaceUserRoles,
   type WorkspaceUserType,
 } from 'nocodb-sdk'
@@ -29,6 +30,8 @@ const { user, isMobileMode, appInfo } = useGlobal()
 
 const { showInfoModal } = useNcConfirmModal()
 
+const ReservedSeatNotice = resolveComponent('PaymentReservedSeatNotice')
+
 const workspaceStore = useWorkspace()
 
 const {
@@ -43,6 +46,7 @@ const {
   workspacesList,
   isCollaboratorsLoading,
   removingCollaboratorMap,
+  teamAiApps,
   isTeamsEnabled,
   teams,
   teamsMap,
@@ -62,6 +66,10 @@ const {
   showUpgradeToManageWorkspaceMembers,
   showEEFeatures,
   isEEFeatureBlocked,
+  seatModel,
+  seatMonthlyPrices,
+  loadSeatCounts,
+  navigateToBilling,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -111,12 +119,17 @@ const workspaceTeamsToCollaborators = computed(() => {
     display_name: wt.team_title,
     roles: wt.workspace_role,
     email: wt.team_title, // just for sort table by email
+    ai_apps: teamAiApps.value?.[wt.team_id],
   }))
 })
 
 const roleFilter = ref<string>('all')
 
 const typeFilter = ref<'all' | 'members' | 'teams'>('all')
+
+const appFilter = ref<string>('all')
+
+const NOT_IN_AN_APP = 'none'
 
 // INHERIT is where a role comes from, not a role to narrow by — rows are
 // matched on the role they end up with.
@@ -136,9 +149,48 @@ const typeFilterOptions = computed(() => [
   { value: 'teams', label: t('labels.sourceTeams') },
 ])
 
+// The sources the list serves apps on: each member, and each workspace team through `team_ai_apps`.
+const hasAppsData = computed(
+  () =>
+    (collaborators.value ?? []).some((collab) => Array.isArray(collab.ai_apps)) || Object.keys(teamAiApps.value ?? {}).length > 0,
+)
+
+const showAppsColumn = computed(() => isEeUI && hasAppsData.value)
+
+const appFilterOptions = computed(() => {
+  const apps = new Map<string, string>()
+
+  const sources = [...(collaborators.value ?? []).map((collab) => collab.ai_apps), ...Object.values(teamAiApps.value ?? {})]
+
+  for (const source of sources) {
+    for (const app of source ?? []) apps.set(app.app_id, app.title)
+  }
+
+  return [
+    { value: 'all', label: t('labels.appAccess.anyApp') },
+    ...[...apps].map(([value, label]) => ({ value, label })),
+    { value: NOT_IN_AN_APP, label: t('labels.appAccess.notInAnApp') },
+  ]
+})
+
+const isUsesAppsOnly = (record: any) =>
+  !record.isTeam && (record.effective_role || record.roles) === WorkspaceUserRoles.NO_ACCESS && !!record.ai_apps?.length
+
+watch(appFilter, (value) => {
+  if (value !== 'all') $e('c:ws:members:app:filter')
+})
+
+// The picked app can leave the list, say after its last member is removed.
+watch(appFilterOptions, (options) => {
+  if (!options.some((option) => option.value === appFilter.value)) appFilter.value = 'all'
+})
+
 const filterCollaborators = computed(() => {
   const list = (collaborators.value ?? [])
-    .map((collab) => ({ ...collab, billable: !!parseProp(collab.meta).billable }))
+    .map((collab) => {
+      const billable = !!parseProp(collab.meta).billable
+      return { ...collab, billable, seat_type: memberSeatType({ ...collab, billable }) }
+    })
     .concat(workspaceTeamsToCollaborators.value)
 
   return list.filter((collab: any) => {
@@ -151,6 +203,12 @@ const filterCollaborators = computed(() => {
 
     if (typeFilter.value === 'members' && collab.isTeam) return false
     if (typeFilter.value === 'teams' && !collab.isTeam) return false
+
+    if (showAppsColumn.value && appFilter.value !== 'all') {
+      const apps: WorkspaceUserAppRef[] = collab.ai_apps ?? []
+
+      if (appFilter.value === NOT_IN_AN_APP ? apps.length : !apps.some((app) => app.app_id === appFilter.value)) return false
+    }
 
     return true
   })
@@ -176,8 +234,10 @@ const sortedCollaborators = computed(() => {
 
 const paidUsersCount = computed(() => (collaborators.value || []).filter((c) => !!parseProp(c?.meta).billable).length)
 
+// Read-only users; an app seat on v2 is not one.
 const nonPaidUsersCount = computed(() => {
-  return (collaborators.value || []).length - paidUsersCount.value
+  return (collaborators.value || []).filter((c) => memberSeatType({ ...c, billable: !!parseProp(c?.meta).billable }) === 'free')
+    .length
 })
 
 const showBanner = false
@@ -296,6 +356,48 @@ const isSuperAdmin = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const showBillableColumn = computed(() => isPaymentEnabled.value || !!appInfo.value.isOnPrem)
 
+const showSeatColumn = computed(() => seatModel.value === 'v2')
+
+const isV2 = computed(() => isPaymentEnabled.value && seatModel.value === 'v2')
+
+const seatCounts = ref<{ full: number; app: number; freeApp: number | null; appCap: number | null } | null>(null)
+
+let seatCountsSeq = 0
+
+// Reloaded with the list: a seat moves whenever someone joins or leaves an app.
+watch(
+  [isV2, () => currentWorkspace.value?.id, collaborators],
+  async ([v2, workspaceId]) => {
+    const seq = ++seatCountsSeq
+    const counts = v2 && workspaceId ? await loadSeatCounts(workspaceId as string) : null
+    // A slower, older load must not overwrite a newer one.
+    if (seq === seatCountsSeq) seatCounts.value = counts
+  },
+  { immediate: true },
+)
+
+const appSeatsAtCap = computed(() => seatCounts.value?.appCap != null && seatCounts.value.app >= seatCounts.value.appCap)
+
+const seatTooltip = (record: any) => {
+  if (!isV2.value || record.isTeam) return ''
+
+  if (record.seat_type === 'full') {
+    return seatMonthlyPrices.value.editor ? t('payment.appSeat.seatTooltipEditor', { price: seatMonthlyPrices.value.editor }) : ''
+  }
+
+  if (record.seat_type === 'app') {
+    return seatMonthlyPrices.value.guest && seatCounts.value?.freeApp != null
+      ? t('payment.appSeat.seatTooltipGuest', {
+          price: seatMonthlyPrices.value.guest,
+          free: seatCounts.value.freeApp,
+          plan: activePlanTitle.value,
+        })
+      : ''
+  }
+
+  return t('payment.appSeat.seatTooltipFree')
+}
+
 // Unlicensed on-prem has no billing — use seat wording and hide seat detail
 const showBillableLabel = computed(() => !isEEFeatureBlocked.value)
 
@@ -391,7 +493,18 @@ const columns = computed<NcTableColumnProps[]>(() => [
     dataIndex: 'roles',
     showOrderBy: true,
   },
-  ...(showBillableColumn.value
+  ...(showSeatColumn.value
+    ? [
+        {
+          key: 'seat',
+          title: t('payment.appSeat.seatColumn'),
+          width: 130,
+          minWidth: 130,
+          dataIndex: 'seat_type',
+          showOrderBy: true,
+        } as NcTableColumnProps,
+      ]
+    : showBillableColumn.value
     ? [
         {
           key: 'billable',
@@ -400,6 +513,16 @@ const columns = computed<NcTableColumnProps[]>(() => [
           minWidth: showBillableLabel.value ? 110 : 150,
           dataIndex: 'billable',
           showOrderBy: true,
+        } as NcTableColumnProps,
+      ]
+    : []),
+  ...(showAppsColumn.value
+    ? [
+        {
+          key: 'apps',
+          title: t('labels.appAccess.appsColumn'),
+          basis: '20%',
+          minWidth: 200,
         } as NcTableColumnProps,
       ]
     : []),
@@ -489,6 +612,10 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
         type: 'danger',
       },
       okText: userId === user.value?.id ? t('activity.leaveWorkspace') : t('general.remove'),
+      initialSlots:
+        userId !== user.value?.id && (record?.billable || seatModel.value === 'v2')
+          ? { extraContent: () => [h(ReservedSeatNotice, { workspaceId, ...(record?.billable ? {} : { userId }) })] }
+          : undefined,
       okCallback: async () => {
         _removeCollaborator(userId, workspaceId)
       },
@@ -588,10 +715,48 @@ watch(inviteDlg, (newVal) => {
               {{ option.label }}
             </a-select-option>
           </NcSelect>
+
+          <NcSelect
+            v-if="showAppsColumn"
+            v-model:value="appFilter"
+            class="nc-ws-members-filter flex-none !w-36"
+            :disabled="isCollaboratorsLoading"
+            data-testid="nc-ws-members-app-filter"
+            dropdown-class-name="nc-ws-members-filter-dropdown"
+          >
+            <a-select-option v-for="option in appFilterOptions" :key="option.value" :value="option.value">
+              {{ option.label }}
+            </a-select-option>
+          </NcSelect>
         </div>
         <ShellActions>
           <div class="flex items-center gap-4">
-            <template v-if="!isMobileMode && (isPaymentEnabled || appInfo.isOnPrem) && paidUsersCount && showEEFeatures">
+            <template v-if="!isMobileMode && isV2 && seatCounts && showEEFeatures">
+              <NcTooltip
+                :disabled="!appSeatsAtCap"
+                :title="$t('payment.appSeat.capReachedBody', { cap: seatCounts.appCap, plan: activePlanTitle })"
+              >
+                <button
+                  class="flex items-center gap-1 border-none p-0 bg-transparent text-sm whitespace-nowrap cursor-pointer"
+                  :class="appSeatsAtCap ? 'text-nc-content-orange-dark' : 'text-nc-content-gray-default'"
+                  data-testid="nc-ws-members-seat-strip"
+                  @click="navigateToBilling({ workspaceId: currentWorkspace?.id, triggerEvent: false })"
+                >
+                  <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4" />
+                  {{
+                    appSeatsAtCap
+                      ? $t('payment.appSeat.capUsage', { used: seatCounts.app, cap: seatCounts.appCap })
+                      : $t('payment.appSeat.stripSummary', {
+                          editors: $t('payment.appSeat.stripEditors', { count: seatCounts.full }, seatCounts.full),
+                          guests: $t('payment.appSeat.stripGuests', { count: seatCounts.app }, seatCounts.app),
+                          free: seatCounts.freeApp ?? 0,
+                        })
+                  }}
+                </button>
+              </NcTooltip>
+              <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
+            </template>
+            <template v-else-if="!isMobileMode && (isPaymentEnabled || appInfo.isOnPrem) && paidUsersCount && showEEFeatures">
               <NcTooltip
                 v-if="activePlanTitle === PlanTitles.FREE && !appInfo.isOnPrem"
                 :tooltip-style="{ width: '230px' }"
@@ -605,16 +770,18 @@ watch(inviteDlg, (newVal) => {
                 <div class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
                   <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
 
-                  {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
+                  {{ paidUsersCount }}
+                  {{ paidUsersCount === 1 ? $t('labels.editorSeat').toLowerCase() : $t('labels.editorSeats').toLowerCase() }}
                 </div>
               </NcTooltip>
               <div
-                v-else-if="appInfo.isOnPrem && !appInfo.ee"
+                v-else-if="(appInfo.isOnPrem && !appInfo.ee) || seatModel === 'v2'"
                 class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap"
               >
                 <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
 
-                {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
+                {{ paidUsersCount }}
+                {{ paidUsersCount === 1 ? $t('labels.editorSeat').toLowerCase() : $t('labels.editorSeats').toLowerCase() }}
               </div>
               <div v-else class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
                 <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
@@ -727,7 +894,7 @@ watch(inviteDlg, (newVal) => {
           <template #emptyText>
             <ShellEmpty
               :title="
-                userSearchText || roleFilter !== 'all' || typeFilter !== 'all'
+                userSearchText || roleFilter !== 'all' || typeFilter !== 'all' || appFilter !== 'all'
                   ? $t('title.noResultsMatchedYourSearch')
                   : $t('title.noMembersFound')
               "
@@ -830,6 +997,13 @@ watch(inviteDlg, (newVal) => {
                     :effective-role="record.effective_role"
                     class="cursor-pointer"
                   />
+                  <div
+                    v-if="isUsesAppsOnly(record)"
+                    class="text-xs text-nc-content-gray-muted"
+                    data-testid="nc-ws-member-uses-apps-only"
+                  >
+                    {{ $t('labels.appAccess.usesAppsOnly') }}
+                  </div>
                   <NcTooltip v-if="record.role_source?.length" placement="bottom">
                     <template #title>
                       <div class="text-xs">
@@ -849,6 +1023,13 @@ watch(inviteDlg, (newVal) => {
               <template v-else>
                 <div class="flex flex-col gap-1">
                   <RolesBadge plain :border="false" :role="record.effective_role || record.roles" class="cursor-default" />
+                  <div
+                    v-if="isUsesAppsOnly(record)"
+                    class="text-xs text-nc-content-gray-muted"
+                    data-testid="nc-ws-member-uses-apps-only"
+                  >
+                    {{ $t('labels.appAccess.usesAppsOnly') }}
+                  </div>
                   <NcTooltip v-if="record.role_source?.length" placement="bottom">
                     <template #title>
                       <div class="text-xs">
@@ -899,6 +1080,21 @@ watch(inviteDlg, (newVal) => {
                 </component>
               </NcTooltip>
             </div>
+            <div v-if="column.key === 'seat' && !record.isTeam" class="flex items-center">
+              <NcTooltip :disabled="!seatTooltip(record)" :title="seatTooltip(record)" class="flex items-center">
+                <component
+                  :is="canOpenSeatDetail ? 'button' : 'div'"
+                  v-e="['c:workspace:member:billable-detail']"
+                  class="nc-seat-type-badge flex items-center border-none p-0 bg-transparent"
+                  :class="{ 'cursor-pointer': canOpenSeatDetail }"
+                  data-testid="nc-seat-type-badge"
+                  @click="openSeatDetail(record)"
+                >
+                  <WorkspaceSeatTypeBadge :seat-type="record.seat_type" />
+                </component>
+              </NcTooltip>
+            </div>
+            <WorkspaceAppsCell v-if="column.key === 'apps'" :apps="record.ai_apps ?? []" />
             <div v-if="column.key === 'created_at'">
               <NcTooltip class="max-w-full">
                 <template #title>
@@ -942,6 +1138,14 @@ watch(inviteDlg, (newVal) => {
                       <NcMenuItem v-if="record.isTeam && teamsMap[record.id]?.is_member" @click="handleEditTeam(record)">
                         <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                         {{ $t('general.edit') }}
+                      </NcMenuItem>
+                      <NcMenuItem
+                        v-if="canOpenSeatDetail && !record.isTeam && (showSeatColumn || showAppsColumn)"
+                        data-testid="nc-workspace-member-apps-and-seat"
+                        @click="openSeatDetail(record)"
+                      >
+                        <GeneralIcon icon="ncApp" class="h-4 w-4" />
+                        {{ $t('labels.appAccess.appsAndSeat') }}
                       </NcMenuItem>
                       <NcMenuItem
                         v-if="isOwnerOrCreator && record.invite_pending"

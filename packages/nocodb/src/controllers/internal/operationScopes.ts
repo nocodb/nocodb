@@ -160,6 +160,8 @@ export const OPERATION_SCOPES = {
   commentDelete: 'base',
   commentResolve: 'base',
   dataList: 'base',
+  dataGroupBy: 'base',
+  dataGroupByCount: 'base',
   linkDataList: 'base',
   dataInsert: 'base',
   dataUpdate: 'base',

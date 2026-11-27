@@ -1,6 +1,7 @@
 import { type ColumnType, type TableType, type ViewType, isVirtualCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
+import axios from 'axios'
 import { findGroupByPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import type { CanvasGroup } from '../lib/types'
 import { isGridCacheInUse } from '../components/smartsheet/grid/canvas/utils/groupRefresh'
@@ -9,6 +10,22 @@ import { type CellRange, type Row } from '#imports'
 
 // The server's cap on the interface bulk ops
 const INTERFACE_BULK_CHUNK_SIZE = 500
+
+/** `refreshed: false` — the rows on screen are stale, the refresh couldn't replace them. */
+export interface RefreshInPlaceResult {
+  refreshed: boolean
+}
+
+export interface RefreshInPlaceOptions {
+  /** The caller reports a failure from the result, so the refresh doesn't toast it. */
+  callerReports?: boolean
+}
+
+interface RefreshRun {
+  promise: Promise<RefreshInPlaceResult>
+  resolve: (result: RefreshInPlaceResult) => void
+  callerReports: boolean
+}
 
 export function useGridViewData(
   _meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
@@ -56,6 +73,7 @@ export function useGridViewData(
     chunkStates: groupChunkStates,
     fetchMissingGroupChunks,
     refreshLoadedGroups,
+    syncSearchedRowCount,
     invalidateGroupAggregations,
     updateGroupAggregations,
     fetchMissingGroupAggregations,
@@ -298,8 +316,16 @@ export function useGridViewData(
   }
 
   let isRefreshingInPlace = false
-  let isRefreshInPlaceQueued = false
-  let refreshInPlaceStart: Promise<void> | null = null
+  // Calls made during a run: one more run once it ends, whose result they all share.
+  let queuedRefresh: RefreshRun | null = null
+  // Calls in the same tick share one run.
+  let pendingRefresh: RefreshRun | null = null
+
+  const newRefreshRun = (callerReports: boolean): RefreshRun => {
+    let resolveRun!: (result: RefreshInPlaceResult) => void
+    const promise = new Promise<RefreshInPlaceResult>((resolve) => (resolveRun = resolve))
+    return { promise, resolve: resolveRun, callerReports }
+  }
 
   /**
    * Resync after peers' changes without the loader or clearing the grid: refetch the loaded
@@ -307,72 +333,106 @@ export function useGridViewData(
    * which the next render refetches. Calls in the same tick share one run (a linked record
    * created in a cell fires both the row and the view hook); calls during a run coalesce into
    * one more run.
+   *
+   * A failure toasts, unless a caller passed `callerReports` to report it from the result.
    */
-  function refreshInPlace() {
-    refreshInPlaceStart ??= Promise.resolve().then(() => {
-      refreshInPlaceStart = null
-      return runRefreshInPlace()
+  function refreshInPlace({ callerReports = false }: RefreshInPlaceOptions = {}) {
+    if (pendingRefresh) {
+      pendingRefresh.callerReports ||= callerReports
+      return pendingRefresh.promise
+    }
+
+    const run = newRefreshRun(callerReports)
+    pendingRefresh = run
+    Promise.resolve().then(async () => {
+      pendingRefresh = null
+      run.resolve(await runRefreshInPlace(run))
     })
-    return refreshInPlaceStart
+    return run.promise
   }
 
-  async function runRefreshInPlace() {
+  function queueRefresh(callerReports: boolean) {
+    if (queuedRefresh) queuedRefresh.callerReports ||= callerReports
+    else queuedRefresh = newRefreshRun(callerReports)
+    return queuedRefresh.promise
+  }
+
+  async function runRefreshInPlace(run: Pick<RefreshRun, 'callerReports'>): Promise<RefreshInPlaceResult> {
     // Before the cache check: a run in flight has its chunks marked `loading`.
-    if (isRefreshingInPlace) {
-      isRefreshInPlaceQueued = true
-      return
-    }
+    if (isRefreshingInPlace) return queueRefresh(run.callerReports)
 
     // Nothing in these caches: the paginated table or the non-canvas group-by renders this view.
     if (!isGridCacheInUse(isGroupBy.value ? groupChunkStates.value : chunkStates.value)) {
       reloadViewDataHook?.trigger({ shouldShowLoading: false })
-      return
+      return { refreshed: true }
     }
 
-    await withRefreshLock(async () => {
+    return withRefreshLock(async () => {
       if (isGroupBy.value) await refreshGroupsInPlace()
       else await refreshLoadedRows()
-    })
+    }, run)
   }
 
   /**
    * Runs a partial refresh (group refetch, rows over given paths) under the in-place lock; while a
    * full refresh runs, queues another instead.
    */
-  function refreshPartInPlace(refresh: (refreshRows: (paths: number[][]) => Promise<void>) => Promise<void>) {
-    if (isRefreshingInPlace) {
-      isRefreshInPlaceQueued = true
-      return Promise.resolve()
-    }
-    return withRefreshLock(() =>
-      refresh(async (paths) => {
-        await Promise.all(paths.map((path) => refreshLoadedRows(path)))
-      }),
+  function refreshPartInPlace(
+    refresh: (refreshRows: (paths: number[][]) => Promise<void>) => Promise<void>,
+  ): Promise<RefreshInPlaceResult> {
+    if (isRefreshingInPlace) return queueRefresh(false)
+    return withRefreshLock(
+      () =>
+        refresh(async (paths) => {
+          await Promise.all(paths.map((path) => refreshLoadedRows(path)))
+        }),
+      { callerReports: false },
     )
   }
 
-  async function withRefreshLock(refresh: () => Promise<void>) {
+  async function withRefreshLock(
+    refresh: () => Promise<void>,
+    run: Pick<RefreshRun, 'callerReports'>,
+  ): Promise<RefreshInPlaceResult> {
     isRefreshingInPlace = true
+    let error: unknown
 
     try {
       await refresh()
     } catch (e) {
+      // Not rethrown: most refreshes are background resyncs nobody awaits.
+      error = e ?? new Error('Failed to refresh grid in place')
       console.error('Failed to refresh grid in place', e)
     } finally {
       isRefreshingInPlace = false
       syncVisibleData()
     }
 
-    if (isRefreshInPlaceQueued) {
-      isRefreshInPlaceQueued = false
-      await refreshInPlace()
+    // Not awaited: the lock is already released, so a call landing meanwhile would start a run
+    // alongside the queued one. A cancel was superseded by a newer load and isn't a failure.
+    const isCancelled = axios.isCancel(error)
+    if (error && !run.callerReports && !isCancelled) {
+      extractSdkResponseErrorMsg(error as any).then((msg) => message.error(msg))
     }
+
+    const queued = queuedRefresh
+    if (queued) {
+      queuedRefresh = null
+      queued.resolve(await runRefreshInPlace(queued))
+    }
+
+    return { refreshed: !error || isCancelled }
   }
 
   async function refreshGroupsInPlace() {
+    // Search reloads arrive here, not through syncCount: SearchData triggers the
+    // reload with `inPlace`, which onReloadViewData short-circuits. The badge's
+    // counts are independent of the group refresh, so don't hold it up.
+    const searchCounts = syncSearchedRowCount().catch((e) => console.error('Failed to sync searched row count', e))
+
     const { stalePaths, keptLeafGroups, countUpdates, aborted } = await refreshLoadedGroups()
     // A reload replaced the groups meanwhile: their row caches belong to the new grid.
-    if (aborted) return
+    if (aborted) return await searchCounts
 
     // Dropped rather than cleared, so a chunk request in flight for the old group is discarded.
     const staleKeys = stalePaths.map((path) => path.join('-'))
@@ -403,6 +463,8 @@ export function useGridViewData(
       // Groups with no rows on screen (collapsed, or parents) take theirs once the rows are in.
       for (const [group, count] of nextCount) group.count = count
     }
+
+    await searchCounts
   }
 
   /** Resolves the number of saved records deleted (0 when nothing was deleted or the delete failed). */

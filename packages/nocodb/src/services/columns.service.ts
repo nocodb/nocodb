@@ -1981,6 +1981,7 @@ export class ColumnsService implements IColumnsService {
               baseModel: baseModel,
               tree: colBody.formula,
               model: table,
+              columns: table.columns,
               column,
               validateFormula: true,
               persistError: false,
@@ -2085,6 +2086,7 @@ export class ColumnsService implements IColumnsService {
                 baseModel: baseModel,
                 tree: colBody.formula,
                 model: table,
+                columns: table.columns,
                 column: null,
                 validateFormula: true,
                 parsedTree: colBody.parsed_tree,
@@ -4684,6 +4686,8 @@ export class ColumnsService implements IColumnsService {
 
     const reuse = param.reuse || {};
 
+    // A reused table may predate another call's column writes.
+    const tableLoadedHere = !reuse.table;
     const table = await reuseOrSave('table', reuse, async () =>
       Model.getWithInfo(context, {
         id: param.tableId,
@@ -5063,6 +5067,8 @@ export class ColumnsService implements IColumnsService {
           const relatedModels: Map<string, Model> = await getRelatedModelMap(
             context,
             table,
+            undefined,
+            { columnsCurrent: tableLoadedHere },
           );
 
           const formulaColumns = table.columns.filter(
@@ -5099,6 +5105,7 @@ export class ColumnsService implements IColumnsService {
             baseModel: baseModel,
             tree: colBody.formula,
             model: table,
+            columns: table.columns,
             column: null,
             validateFormula: true,
             parsedTree: colBody.parsed_tree,
@@ -5135,6 +5142,8 @@ export class ColumnsService implements IColumnsService {
             const relatedModels: Map<string, Model> = await getRelatedModelMap(
               context,
               table,
+              undefined,
+              { columnsCurrent: tableLoadedHere },
             );
 
             const buttonFormulaColumns = table.columns.filter(
@@ -5169,6 +5178,7 @@ export class ColumnsService implements IColumnsService {
               baseModel: baseModel,
               tree: colBody.formula,
               model: table,
+              columns: table.columns,
               column: null,
               validateFormula: true,
               parsedTree: colBody.parsed_tree,
@@ -5817,6 +5827,7 @@ export class ColumnsService implements IColumnsService {
           ...param.column,
           fk_model_id: table.id,
         },
+        tableColumns: table.columns,
       },
       ncMeta,
     );
@@ -5892,6 +5903,7 @@ export class ColumnsService implements IColumnsService {
       await columnWebhookManager.addNewColumnById({
         columnId: newColumn.id,
         action: WebhookActions.INSERT,
+        columns: table.columns,
       });
     }
     if (!param.columnWebhookManager) {

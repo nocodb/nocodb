@@ -98,11 +98,13 @@ export class ColumnUpdateRollupFormulaDependencyHandler
     // other handlers' work in the shared transaction
     try {
       // Probe — only bases holding a formula rollup can be affected.
-      const columns = await Column.list(
-        context,
-        { fk_model_id: newCol.fk_model_id },
-        ncMeta,
-      );
+      const columns =
+        param.tableColumns ??
+        (await Column.list(
+          context,
+          { fk_model_id: newCol.fk_model_id },
+          ncMeta,
+        ));
       for (const ctx of await this.linkedContexts(context, columns, ncMeta)) {
         const rows = await ncMeta.metaList2(
           ctx.workspace_id,

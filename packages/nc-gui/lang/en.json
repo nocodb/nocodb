@@ -4140,6 +4140,8 @@
       "showTitle": "Add view name as title",
       "showRowNumbers": "Include row numbers",
       "wrapText": "Wrap long text onto multiple lines",
+      "showPageNumbers": "Add page numbers",
+      "pageNumber": "Page {page} of {total}",
       "records": "Records",
       "rangeFrom": "First record",
       "rangeTo": "Last record",

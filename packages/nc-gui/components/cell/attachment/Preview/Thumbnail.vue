@@ -14,6 +14,7 @@ interface Props {
   attachment: Record<string, any>
   iconWidth?: number
   iconHeight?: number
+  referrerPolicy?: ReferrerPolicy
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -79,6 +80,7 @@ const onError = async () => {
         :class="[imageClass, { '!object-contain': props.objectFit === 'contain' }]"
         class="m-auto h-full max-h-full w-auto nc-attachment-image object-cover origin-center"
         loading="lazy"
+        :referrerpolicy="referrerPolicy"
         @error="onError"
       />
 

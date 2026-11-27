@@ -180,6 +180,9 @@ const coverImageColumn: any = computed(() =>
     : {},
 )
 
+// Third-party hosts don't need to know which NocoDB page shows their image.
+const isUrlCover = computed(() => coverImageColumn.value?.uidt === UITypes.URL)
+
 const coverImageObjectFitStyle = computed(() => {
   const fk_cover_image_object_fit = parseProp(galleryData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
   if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return 'contain'
@@ -1375,6 +1378,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
                 :attachment="attachment"
                 class="nc-gallery-cover-thumb"
                 thumbnail="card_cover"
+                :referrer-policy="isUrlCover ? 'no-referrer' : undefined"
                 image-class="!w-full"
                 :object-fit="coverImageObjectFitStyle"
                 @click="expandFormClick($event, record)"
@@ -1407,6 +1411,7 @@ watch(isGroupedGallery, (grouped, wasGrouped) => {
               class="nc-gallery-poster-image !absolute !inset-0"
               image-class="!w-full !h-full"
               thumbnail="card_cover"
+              :referrer-policy="isUrlCover ? 'no-referrer' : undefined"
               :object-fit="coverImageObjectFitStyle"
             />
             <div

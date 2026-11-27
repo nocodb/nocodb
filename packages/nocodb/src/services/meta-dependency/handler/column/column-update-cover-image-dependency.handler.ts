@@ -12,8 +12,10 @@ import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
 import { viewForBroadcast } from '~/helpers/publicViewSecrets';
 
+const COVER_IMAGE_TYPES: string[] = [UITypes.Attachment, UITypes.URL];
+
 /**
- * When an Attachment column changes type to anything else, Gallery / Kanban
+ * When a cover-capable column (Attachment, URL) changes to any other type, Gallery / Kanban
  * views that pinned it as their cover image now point at an invalid column —
  * null those FKs out so the views fall back to the "select cover image"
  * prompt instead of rendering against a non-attachment column. Sorts and
@@ -39,9 +41,10 @@ export class ColumnUpdateCoverImageDependencyHandler
     const newCol = param.newEntity;
     if (!oldCol?.id || !newCol?.id) return undefined;
 
-    // Only fires when the type changes away from Attachment.
-    if (oldCol.uidt !== UITypes.Attachment) return undefined;
-    if (newCol.uidt === UITypes.Attachment) return undefined;
+    if (!COVER_IMAGE_TYPES.includes(oldCol.uidt)) return undefined;
+    // Attachment → URL leaves attachment JSON in the cells, so only → Attachment keeps it.
+    if (newCol.uidt === oldCol.uidt || newCol.uidt === UITypes.Attachment)
+      return undefined;
 
     return {};
   }

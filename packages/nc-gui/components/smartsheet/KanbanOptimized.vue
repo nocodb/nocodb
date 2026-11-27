@@ -198,6 +198,9 @@ const coverImageColumn: any = computed(() =>
     : {},
 )
 
+// Third-party hosts don't need to know which NocoDB page shows their image.
+const isUrlCover = computed(() => coverImageColumn.value?.uidt === UITypes.URL)
+
 const coverImageObjectFitStyle = computed(() => {
   const fk_cover_image_object_fit = parseProp(kanbanMetaData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
 
@@ -691,6 +694,8 @@ eventBus.on(smartsheetEventHandler)
 
 const attachments = (record: any): Attachment[] => {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
+
+  if (coverImageColumn.value.uidt === UITypes.URL) return urlToCoverAttachments(record.row[coverImageColumn.value.title])
 
   try {
     const att =
@@ -2452,7 +2457,7 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                                   <template v-if="coverImageColumn?.id" #cover>
                                     <template v-if="isMounted && !reloadAttachments && attachments(record).length">
                                       <a-carousel
-                                        :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
+                                        :key="attachments(record).reduce((acc, curr) => acc + (curr?.path ?? curr?.url), '')"
                                         class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
                                         arrows
                                       >
@@ -2488,12 +2493,16 @@ const { onCardEnter, onCardLeave } = useCardCommands({
                                           </div>
                                         </template>
 
-                                        <template v-for="attachment in attachments(record)" :key="attachment.path">
+                                        <template
+                                          v-for="attachment in attachments(record)"
+                                          :key="attachment.path ?? attachment.url"
+                                        >
                                           <LazyCellAttachmentPreviewThumbnail
                                             :attachment="attachment"
                                             class="!h-52"
                                             image-class="!w-full"
                                             thumbnail="card_cover"
+                                            :referrer-policy="isUrlCover ? 'no-referrer' : undefined"
                                             :object-fit="coverImageObjectFitStyle"
                                             @click="expandFormClick($event, record)"
                                           />

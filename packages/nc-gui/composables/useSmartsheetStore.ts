@@ -304,7 +304,10 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         false,
       )
       if (errors?.length) return []
-      return (filters ?? []).map((f) => ({
+      // `validateRowFilters` rebuilds nesting from id/fk_parent_id and wipes pre-nested
+      // `children`, so a grouped clause — an abbreviated-number search, or a grouped URL
+      // `where` — evaluates empty unless it is flattened first.
+      return flattenFiltersForEval(filters ?? []).map((f) => ({
         ...f,
         value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value,
       }))

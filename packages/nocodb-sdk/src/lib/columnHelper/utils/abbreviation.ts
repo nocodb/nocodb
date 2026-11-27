@@ -1,3 +1,6 @@
+import { ColumnType } from '~/lib/Api';
+import { parseProp } from '~/lib/helperFunctions';
+import UITypes from '~/lib/UITypes';
 import { SeparatorType } from './common';
 import {
   formatNumberWithSeparator,
@@ -107,6 +110,62 @@ export function shouldAbbreviateNumber(
   meta: Record<string, any> | undefined | null
 ): boolean {
   return resolveNumberAbbreviation(meta) !== NumberAbbreviationType.None;
+}
+
+/**
+ * Decimal places the cell is rendered with — mirrors `parseIntValue`,
+ * `parseDecimalValue` and `formatCurrencyValue`, since the search bucket below
+ * has to be the one the reader can actually see.
+ */
+function resolveDisplayPrecision(
+  col: ColumnType,
+  meta: Record<string, any>
+): number {
+  switch (col.uidt) {
+    case UITypes.Currency:
+      return Math.min(meta.precision ?? 2, 2);
+    case UITypes.Decimal:
+      return meta.precision ?? 1;
+    default:
+      return 1;
+  }
+}
+
+/**
+ * Half-width of the bucket an abbreviated search query stands for. An abbreviated
+ * cell shows a rounded value, so every number within +/- this of the expanded query
+ * renders the same string: searching `1.2M` has to find 1,234,567, not only
+ * 1,200,000. Callers pair it with the expanded value as `[n - w, n + w)`, matching
+ * the `toFixed` rounding `abbreviateNumber` applies.
+ *
+ * Null when the query carries no unit, or the column doesn't abbreviate — those
+ * searches stay exact.
+ */
+export function getAbbreviationSearchHalfWidth(
+  query: string,
+  col: ColumnType,
+  expanded?: number
+): number | null {
+  const meta = parseProp(col.meta);
+
+  if (!shouldAbbreviateNumber(meta)) return null;
+
+  const { multiplier } = extractNumberAbbreviation(query);
+
+  if (multiplier === 1) return null;
+
+  // clamped like `abbreviateNumber`, whose precision governs the rendered string
+  let precision = Math.min(Math.max(resolveDisplayPrecision(col, meta), 0), 4);
+
+  // a query more precise than the cell (`1.234M` on a 1-decimal column) narrows to its own digits
+  if (expanded !== undefined && Number.isFinite(expanded)) {
+    const typedDecimals =
+      String(Number((expanded / multiplier).toPrecision(15))).split('.')[1]
+        ?.length ?? 0;
+    precision = Math.max(precision, typedDecimals);
+  }
+
+  return (0.5 * multiplier) / Math.pow(10, precision);
 }
 
 /**

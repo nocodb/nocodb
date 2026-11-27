@@ -254,12 +254,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         { getWhereQueryAs: 'object' },
       )
 
-      if (!validSearchQuery) {
+      if (!Array.isArray(validSearchQuery) || !validSearchQuery.length) {
         searchQuery.isValidFieldQuery = false
         return
       }
 
-      return validSearchQuery as ValidSearchQueryForColumnReturnType
+      return validSearchQuery
     })
 
     const pageDate = ref<dayjs.Dayjs>(timezoneDayjs.dayjsTz())
@@ -763,17 +763,17 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }
       }
 
-      if (displayField.value && ncIsObject(validSearchQueryForDisplayField.value)) {
+      if (displayField.value && validSearchQueryForDisplayField.value?.length) {
         if (combinedFilters.length > 0) {
           combinedFilters = [
             {
               is_group: true,
               logical_op: 'and',
-              children: [...combinedFilters, validSearchQueryForDisplayField.value],
+              children: [...combinedFilters, ...validSearchQueryForDisplayField.value],
             },
           ]
         } else {
-          combinedFilters.push(validSearchQueryForDisplayField.value)
+          combinedFilters.push(...validSearchQueryForDisplayField.value)
         }
       }
 

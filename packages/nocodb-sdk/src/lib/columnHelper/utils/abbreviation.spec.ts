@@ -3,10 +3,12 @@ import {
   applyNumberAbbreviation,
   extractNumberAbbreviation,
   formatCurrencyValue,
+  getAbbreviationSearchHalfWidth,
   NumberAbbreviationType,
   resolveNumberAbbreviation,
   shouldAbbreviateNumber,
 } from './abbreviation';
+import UITypes from '~/lib/UITypes';
 import { parseCurrencyValue, parseDecimalValue, parseIntValue } from './parser';
 import {
   serializeCurrencyValue,
@@ -362,9 +364,9 @@ describe('serializer expands abbreviated input', () => {
       precision: 1,
     });
     expect(parseDecimalValue(1234567.89, col)).toBe('1,234.6K');
-    expect(
-      serializeDecimalValue('1,234.6K', undefined, { col } as any)
-    ).toBe(1234600);
+    expect(serializeDecimalValue('1,234.6K', undefined, { col } as any)).toBe(
+      1234600
+    );
   });
 
   it('expands through currency locale parsing', () => {
@@ -372,20 +374,24 @@ describe('serializer expands abbreviated input', () => {
     expect(serializeCurrencyValue('$1.23M', { col: usd } as any)).toBe(1230000);
 
     const eur = abbreviated({ currency_code: 'EUR', currency_locale: 'de-DE' });
-    expect(serializeCurrencyValue('1,23M €', { col: eur } as any)).toBe(1230000);
+    expect(serializeCurrencyValue('1,23M €', { col: eur } as any)).toBe(
+      1230000
+    );
   });
 
   it('accepts the legacy boolean meta', () => {
     expect(
-      serializeIntValue('1.2M', { col: abbreviated({ abbreviate: true }) } as any)
+      serializeIntValue('1.2M', {
+        col: abbreviated({ abbreviate: true }),
+      } as any)
     ).toBe(1200000);
   });
 
   it('leaves a column without abbreviation on its old behaviour', () => {
     expect(serializeIntValue('1.2M', { col: plain } as any)).toBe(1);
-    expect(serializeDecimalValue('1.2M', undefined, { col: plain } as any)).toBe(
-      1.2
-    );
+    expect(
+      serializeDecimalValue('1.2M', undefined, { col: plain } as any)
+    ).toBe(1.2);
   });
 
   it('still parses an unabbreviated value', () => {
@@ -394,5 +400,117 @@ describe('serializer expands abbreviated input', () => {
         col: abbreviated(),
       } as any)
     ).toBe(1234567.89);
+  });
+});
+
+describe('getAbbreviationSearchHalfWidth', () => {
+  const col = (uidt: UITypes, meta: Record<string, any> = {}) =>
+    ({
+      uidt,
+      meta: JSON.stringify({
+        abbreviate: NumberAbbreviationType.Auto,
+        ...meta,
+      }),
+    } as any);
+
+  it('is half an ulp of the displayed precision, scaled by the typed unit', () => {
+    // Number renders at precision 1, so `1.2M` covers +/- 0.05M
+    expect(getAbbreviationSearchHalfWidth('1.2M', col(UITypes.Number))).toBe(
+      50000
+    );
+    expect(getAbbreviationSearchHalfWidth('900K', col(UITypes.Number))).toBe(
+      50
+    );
+    expect(getAbbreviationSearchHalfWidth('2.5B', col(UITypes.Number))).toBe(
+      5e7
+    );
+    expect(getAbbreviationSearchHalfWidth('1T', col(UITypes.Number))).toBe(
+      5e10
+    );
+  });
+
+  it('follows the column precision for Decimal', () => {
+    expect(
+      getAbbreviationSearchHalfWidth(
+        '1.23M',
+        col(UITypes.Decimal, { precision: 2 })
+      )
+    ).toBe(5000);
+    // default when the column carries no precision
+    expect(getAbbreviationSearchHalfWidth('1.2M', col(UITypes.Decimal))).toBe(
+      50000
+    );
+  });
+
+  it('caps Currency at the 2 fraction digits it renders', () => {
+    expect(
+      getAbbreviationSearchHalfWidth(
+        '1.23M',
+        col(UITypes.Currency, { precision: 2 })
+      )
+    ).toBe(5000);
+    // precision 8 still renders 2 digits abbreviated, so the bucket matches
+    expect(
+      getAbbreviationSearchHalfWidth(
+        '1.23M',
+        col(UITypes.Currency, { precision: 8 })
+      )
+    ).toBe(5000);
+  });
+
+  it('is null without a unit, so a plain query stays an exact match', () => {
+    expect(getAbbreviationSearchHalfWidth('1200000', col(UITypes.Number))).toBe(
+      null
+    );
+    expect(getAbbreviationSearchHalfWidth('1,234.5', col(UITypes.Number))).toBe(
+      null
+    );
+  });
+
+  it('is null when the column does not abbreviate', () => {
+    expect(
+      getAbbreviationSearchHalfWidth('1.2M', {
+        uidt: UITypes.Number,
+        meta: JSON.stringify({ separator: SeparatorType.CommaPeriod }),
+      } as any)
+    ).toBe(null);
+  });
+
+  it('brackets exactly the values that render the searched string', () => {
+    const number = col(UITypes.Number);
+    const width = getAbbreviationSearchHalfWidth('1.2M', number)!;
+    const lower = 1200000 - width;
+    const upper = 1200000 + width;
+
+    // the value from the original report renders `1.2M` and falls inside
+    expect(
+      abbreviateNumber(1234567, { abbreviate: NumberAbbreviationType.Auto })
+    ).toBe('1.2M');
+    expect(1234567 >= lower && 1234567 < upper).toBe(true);
+
+    // a neighbour that renders differently falls outside
+    expect(
+      abbreviateNumber(1260000, { abbreviate: NumberAbbreviationType.Auto })
+    ).toBe('1.3M');
+    expect(1260000 >= lower && 1260000 < upper).toBe(false);
+  });
+
+  it('brackets negatives symmetrically', () => {
+    const width = getAbbreviationSearchHalfWidth('-1.2M', col(UITypes.Number))!;
+    const lower = -1200000 - width;
+    const upper = -1200000 + width;
+
+    expect(
+      abbreviateNumber(-1234567, { abbreviate: NumberAbbreviationType.Auto })
+    ).toBe('-1.2M');
+    expect(-1234567 >= lower && -1234567 < upper).toBe(true);
+  });
+
+  it('narrows to the typed digits when finer than the display', () => {
+    const number = col(UITypes.Number);
+    expect(getAbbreviationSearchHalfWidth('1.234M', number, 1234000)).toBe(500);
+    // coarser or equal typed precision keeps the display bucket
+    expect(getAbbreviationSearchHalfWidth('1M', number, 1000000)).toBe(50000);
+    expect(getAbbreviationSearchHalfWidth('1.2M', number, 1200000)).toBe(50000);
   });
 });

@@ -6,6 +6,7 @@ import {
   SqlUiFactory,
   type TableType,
   UITypes,
+  getAbbreviationSearchHalfWidth,
   getRollupResultUidt,
   isNumericCol,
   isVirtualCol,
@@ -47,8 +48,8 @@ export function createFieldQueryScope(): FieldQueryScope {
 
 export interface ValidSearchQueryForColumnReturnType {
   fk_column_id: string
-  comparison_op: 'like' | 'eq'
-  value: string
+  comparison_op: 'like' | 'eq' | 'ge' | 'lt'
+  value: string | number
 }
 
 export function useFieldQuery() {
@@ -106,7 +107,7 @@ export function useFieldQuery() {
     query?: string,
     tableMeta?: TableType,
     params: { getWhereQueryAs?: 'string' | 'object'; serializeLinkRecordSearchQuery?: boolean } = {},
-  ): string | ValidSearchQueryForColumnReturnType => {
+  ): string | ValidSearchQueryForColumnReturnType[] => {
     if (!isValidValue(query)) return ''
 
     // A single-record link (e.g. as a display value) is searched by its leaf text
@@ -115,7 +116,7 @@ export function useFieldQuery() {
         meta: tableMeta,
         metas: metas.value,
       })
-      if (linkClause !== undefined) return linkClause
+      if (linkClause !== undefined) return typeof linkClause === 'object' ? [linkClause] : linkClause
     }
 
     let searchQuery = query
@@ -179,11 +180,13 @@ export function useFieldQuery() {
           col.dt !== 'bigint'
     ) {
       if (params.getWhereQueryAs === 'object') {
-        return {
-          fk_column_id: col.id!,
-          comparison_op: 'like',
-          value: searchQuery ?? '',
-        }
+        return [
+          {
+            fk_column_id: col.id!,
+            comparison_op: 'like',
+            value: searchQuery ?? '',
+          },
+        ]
       }
 
       return `(${col.title},like,%${searchQuery}%)`
@@ -196,12 +199,36 @@ export function useFieldQuery() {
 
     if (isNumericSearchTarget && ncIsNaN(searchQuery)) return ''
 
-    if (params.getWhereQueryAs === 'object') {
-      return {
-        fk_column_id: col.id!,
-        comparison_op: 'eq',
-        value: searchQuery ?? '',
+    // An abbreviating column renders a rounded value, so `1.2M` on screen is anything in
+    // [1150000, 1250000). Match that bucket rather than the single value the suffix expands
+    // to, or a row stays invisible to the very string it displays.
+    const expanded = Number(searchQuery)
+    const abbreviationHalfWidth = isNumericSearchTarget ? getAbbreviationSearchHalfWidth(query!, col, expanded) : null
+
+    if (abbreviationHalfWidth) {
+      // toPrecision drops float drift: 1234.5 - 0.05 is 1234.4499999999998
+      const lower = Number((expanded - abbreviationHalfWidth).toPrecision(15))
+      const upper = Number((expanded + abbreviationHalfWidth).toPrecision(15))
+
+      if (params.getWhereQueryAs === 'object') {
+        return [
+          { fk_column_id: col.id!, comparison_op: 'ge', value: lower },
+          { fk_column_id: col.id!, comparison_op: 'lt', value: upper },
+        ]
       }
+
+      // grouped, so the pair stays intact where callers join clauses with `~or`
+      return `((${col.title},ge,${lower})~and(${col.title},lt,${upper}))`
+    }
+
+    if (params.getWhereQueryAs === 'object') {
+      return [
+        {
+          fk_column_id: col.id!,
+          comparison_op: 'eq',
+          value: searchQuery ?? '',
+        },
+      ]
     }
 
     return `(${col.title},eq,${searchQuery})`

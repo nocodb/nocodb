@@ -145,14 +145,27 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     }
   }
 
-  const onReorder = async (base: NcProject, newOrder: number) => {
-    try {
-      updateBaseInWorkspace(base, { order: newOrder })
-      await $api.base.update(base.id!, { order: newOrder })
+  const saveUserOrder = (base: NcProject, order: number) =>
+    $api.base.userMetaUpdate(base.id!, { order }, { baseURL: getBaseUrl(base.fk_workspace_id!) ?? undefined })
+
+  // Each user orders their own list; the order is built from where the base is dropped.
+  const onReorder = async (base: NcProject, neighbours: { before?: NcProject; after?: NcProject }) => {
+    const workspaceBases = isEeUI ? workspaceBasesMap.value.get(base.fk_workspace_id!) : bases.value
+    const changes = computeBaseReorder([...(workspaceBases?.values() ?? [])], base, neighbours)
+    const previous = new Map(changes.map(({ base: b }) => [b.id!, b.order]))
+
+    changes.forEach(({ base: b, order }) => updateBaseInWorkspace(b, { order }))
+    const results = await Promise.allSettled(changes.map(({ base: b, order }) => saveUserOrder(b, order)))
+
+    // revert only what wasn't stored, so the list matches the server
+    const failed = changes.filter((_, i) => results[i]?.status === 'rejected')
+    failed.forEach(({ base: b }) => updateBaseInWorkspace(b, { order: previous.get(b.id!) }))
+
+    if (failed.length) {
+      const reason = (results.find((r) => r.status === 'rejected') as PromiseRejectedResult).reason
+      message.error(await extractSdkResponseErrorMsg(reason))
+    } else {
       $e('a:base:reorder')
-    } catch (e: any) {
-      updateBaseInWorkspace(base, { order: base.order })
-      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 

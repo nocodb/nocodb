@@ -64,9 +64,9 @@ export type HookPayloadType = Omit<HookType, 'operation'> & {
   operation: string;
 };
 
-// Limits the saved hook delivery settings are clamped to. The timeout cap
-// stays at 30 s while the form doesn't expose timeout: every hook row holds
-// the column default of 60000, which nobody chose.
+// Limits the saved hook delivery settings are clamped to (the webhook form
+// uses the same). The timeout cap stays at 30 s: hooks saved before the form
+// exposed timeout hold the column default of 60000, which nobody chose.
 export const WEBHOOK_TIMEOUT_DEFAULT_MS = 30_000;
 export const WEBHOOK_TIMEOUT_MIN_MS = 1_000;
 export const WEBHOOK_TIMEOUT_MAX_MS = 30_000;

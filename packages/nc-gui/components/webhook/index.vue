@@ -1113,6 +1113,40 @@ async function reloadFromRemote() {
   }
 }
 
+// Same limits the backend clamps delivery to (`getWebhookDeliveryPolicy`).
+const WEBHOOK_MAX_RETRIES = 10
+const WEBHOOK_RETRY_INTERVAL_MAX_SECONDS = 3600
+const WEBHOOK_TIMEOUT_MAX_SECONDS = 30
+
+const clampInt = (value: unknown, min: number, max: number, fallback: number) => {
+  const n = Number(value)
+  if (value === null || value === undefined || value === '' || !Number.isFinite(n)) return fallback
+  return Math.min(max, Math.max(min, Math.floor(n)))
+}
+
+const retriesValue = computed({
+  get: () => clampInt(hookRef.retries, 0, WEBHOOK_MAX_RETRIES, 0),
+  set: (value) => {
+    hookRef.retries = clampInt(value, 0, WEBHOOK_MAX_RETRIES, 0)
+  },
+})
+
+const retryIntervalSeconds = computed({
+  get: () => clampInt(Number(hookRef.retry_interval) / 1000, 1, WEBHOOK_RETRY_INTERVAL_MAX_SECONDS, 60),
+  set: (value) => {
+    hookRef.retry_interval = clampInt(value, 1, WEBHOOK_RETRY_INTERVAL_MAX_SECONDS, 60) * 1000
+  },
+})
+
+// Hooks saved before the form had this field hold the column default (60000);
+// they are delivered with the 30 s cap, so that is what they show.
+const timeoutSeconds = computed({
+  get: () => clampInt(Number(hookRef.timeout) / 1000, 1, WEBHOOK_TIMEOUT_MAX_SECONDS, WEBHOOK_TIMEOUT_MAX_SECONDS),
+  set: (value) => {
+    hookRef.timeout = clampInt(value, 1, WEBHOOK_TIMEOUT_MAX_SECONDS, WEBHOOK_TIMEOUT_MAX_SECONDS) * 1000
+  },
+})
+
 const toggleIncludeUser = async () => {
   hookRef.notification.include_user = !hookRef.notification.include_user
   await loadSampleData()
@@ -1796,6 +1830,62 @@ const webhookV2AndV3Diff = computed(() => {
                       </template>
                       <GeneralIcon icon="info" class="text-nc-content-gray-disabled ml-1" />
                     </NcTooltip>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="hookRef.notification.type === 'URL'" class="flex flex-col" data-testid="nc-webhook-delivery">
+                <div class="text-nc-content-gray text-base font-bold leading-6">
+                  {{ $t('labels.webhookDelivery') }}
+                </div>
+                <div class="mt-3 p-4 border-1 border-nc-border-gray-medium rounded-2xl flex flex-col gap-4">
+                  <div class="flex items-center gap-3">
+                    <div class="flex-1 flex items-center text-nc-content-gray-subtle">
+                      {{ $t('labels.webhookRetries') }}
+                      <NcTooltip class="flex">
+                        <template #title>
+                          {{ $t('tooltip.webhookRetriesHint') }}
+                        </template>
+                        <GeneralIcon icon="info" class="text-nc-content-gray-disabled ml-1" />
+                      </NcTooltip>
+                    </div>
+                    <a-input-number
+                      v-model:value="retriesValue"
+                      :min="0"
+                      :max="WEBHOOK_MAX_RETRIES"
+                      :precision="0"
+                      class="!w-28 !rounded-lg nc-input-shadow nc-webhook-retries"
+                    />
+                  </div>
+                  <div v-if="retriesValue > 0" class="flex items-center gap-3">
+                    <div class="flex-1 text-nc-content-gray-subtle">
+                      {{ $t('labels.webhookRetryInterval') }}
+                    </div>
+                    <a-input-number
+                      v-model:value="retryIntervalSeconds"
+                      :min="1"
+                      :max="WEBHOOK_RETRY_INTERVAL_MAX_SECONDS"
+                      :precision="0"
+                      class="!w-28 !rounded-lg nc-input-shadow nc-webhook-retry-interval"
+                    />
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="flex-1 flex items-center text-nc-content-gray-subtle">
+                      {{ $t('labels.webhookTimeout') }}
+                      <NcTooltip class="flex">
+                        <template #title>
+                          {{ $t('tooltip.webhookTimeoutHint') }}
+                        </template>
+                        <GeneralIcon icon="info" class="text-nc-content-gray-disabled ml-1" />
+                      </NcTooltip>
+                    </div>
+                    <a-input-number
+                      v-model:value="timeoutSeconds"
+                      :min="1"
+                      :max="WEBHOOK_TIMEOUT_MAX_SECONDS"
+                      :precision="0"
+                      class="!w-28 !rounded-lg nc-input-shadow nc-webhook-timeout"
+                    />
                   </div>
                 </div>
               </div>

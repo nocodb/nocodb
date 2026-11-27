@@ -9529,6 +9529,7 @@
       "duplicateTableName": "Duplicate table name",
       "importError": "Import Error",
       "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
+      "updateRecordOrderFailed": "Failed to update record order",
       "paymentFailed": "Payment Failed",
       "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support.",
       "priceNotFound": "Price not found for the selected plan",

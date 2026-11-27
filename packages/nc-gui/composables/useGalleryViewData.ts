@@ -39,6 +39,7 @@ export function useGalleryViewData(
     isFirstRow,
     isLastRow,
     updateOrSaveRow,
+    updateRecordOrder,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -68,5 +69,6 @@ export function useGalleryViewData(
     isFirstRow,
     isLastRow,
     updateOrSaveRow,
+    updateRecordOrder,
   }
 }

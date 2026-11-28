@@ -33,7 +33,7 @@ const name = computed(() => extractUserDisplayNameOrEmail(props.user))
       </div>
     </div>
     <div
-      class="flex items-center justify-between gap-2 px-3 py-1.5 bg-nc-bg-gray-extralight border-t-1 border-nc-border-gray-light rounded-b-lg"
+      class="flex items-center justify-between gap-2 px-3 py-1.5 bg-nc-bg-gray-extralight border-t-1 border-nc-border-gray-light"
     >
       <span class="text-bodySm text-nc-content-gray-subtle2">{{ $t('labels.noBaseAccess') }}</span>
       <NcButton

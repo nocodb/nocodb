@@ -832,8 +832,11 @@ onMounted(() => {
 
 <style lang="scss">
 .nc-user-no-access-tooltip {
+  // Ant caps tooltips at 250px; the card sets its own width.
+  @apply !max-w-none;
+
   .ant-tooltip-inner {
-    @apply !p-0 !rounded-lg !bg-nc-bg-default border-1 border-nc-border-gray-medium shadow-lg;
+    @apply !p-0 !rounded-lg overflow-hidden !bg-nc-bg-default border-1 border-nc-border-gray-medium shadow-lg;
   }
 }
 

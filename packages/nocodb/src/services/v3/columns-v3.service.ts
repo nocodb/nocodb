@@ -999,6 +999,8 @@ export class ColumnsV3Service {
       columnId: string;
       // Set by direct field reads to add a link's record-selection filter.
       linkFilterFor?: { user: NcRequest['user']; viaApiToken?: boolean };
+      // The table's current columns, when the caller has them.
+      columns?: Column[];
     },
   ) {
     const column = await Column.get(context, { colId: param.columnId });
@@ -1009,7 +1011,8 @@ export class ColumnsV3Service {
       [UITypes.Formula, UITypes.Button].includes(column.uidt as UITypes)
         ? withCurrentFormulaNames(
             column,
-            await Column.list(context, { fk_model_id: column.fk_model_id }),
+            param.columns ??
+              (await Column.list(context, { fk_model_id: column.fk_model_id })),
           )
         : column,
     ) as {

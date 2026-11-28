@@ -15,6 +15,7 @@ import {
   View,
 } from '~/models';
 import Column from '~/models/Column';
+import { getCrossBaseOutboundBaseIds } from '~/helpers/crossBaseInboundLinks';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
@@ -134,23 +135,17 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
     }
 
     // Cross-base dependents.
-    const columns = await Column.list(context, {
-      fk_model_id: deletedColumn.fk_model_id,
-    });
-    for (const column of columns) {
-      if (!isLinksOrLTAR(column.uidt)) continue;
-      const colOptions = await column.getColOptions<any>(ncMeta);
-      if (
-        !colOptions?.fk_related_base_id ||
-        colOptions.fk_related_base_id === deletedColumn.base_id
-      ) {
-        continue;
-      }
+    for (const relatedBaseId of await getCrossBaseOutboundBaseIds(
+      context,
+      deletedColumn.fk_model_id,
+      deletedColumn.base_id,
+      ncMeta,
+    )) {
       for (const [table, fkField] of DEPENDENT_QUERIES) {
         if (fkField.includes('qr') || fkField.includes('barcode')) continue;
         const rows = await ncMeta.metaList2(
           context.workspace_id,
-          colOptions.fk_related_base_id,
+          relatedBaseId,
           table,
           { condition: { [fkField]: id } },
         );
@@ -243,24 +238,17 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
     }
 
     // Cross-base dependents.
-    const columns = await Column.list(context, {
-      fk_model_id: deletedColumn.fk_model_id,
-    });
-    for (const column of columns) {
-      if (!isLinksOrLTAR(column.uidt)) continue;
-      const colOptions = await column.getColOptions<any>(ncMeta);
-      if (
-        !colOptions?.fk_related_base_id ||
-        colOptions.fk_related_base_id === deletedColumn.base_id
-      ) {
-        continue;
-      }
-
-      const crossCtx = { ...context, base_id: colOptions.fk_related_base_id };
+    for (const relatedBaseId of await getCrossBaseOutboundBaseIds(
+      context,
+      deletedColumn.fk_model_id,
+      deletedColumn.base_id,
+      ncMeta,
+    )) {
+      const crossCtx = { ...context, base_id: relatedBaseId };
 
       for (const row of await ncMeta.metaList2(
         context.workspace_id,
-        colOptions.fk_related_base_id,
+        relatedBaseId,
         MetaTable.COL_LOOKUP,
         { condition: { fk_lookup_column_id: id } },
       )) {
@@ -269,7 +257,7 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
 
       for (const row of await ncMeta.metaList2(
         context.workspace_id,
-        colOptions.fk_related_base_id,
+        relatedBaseId,
         MetaTable.COL_ROLLUP,
         { condition: { fk_rollup_column_id: id } },
       )) {
@@ -336,25 +324,16 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
           });
         }
 
-        const tableColumns = await Column.list(
+        for (const relatedBaseId of await getCrossBaseOutboundBaseIds(
           ctx,
-          { fk_model_id: affectedCol.fk_model_id },
+          affectedCol.fk_model_id,
+          ctx.base_id,
           ncMeta,
-        );
-        for (const col of tableColumns) {
-          if (!isLinksOrLTAR(col.uidt)) continue;
-          const opts = await col.getColOptions<any>(ncMeta);
-          if (
-            !opts?.fk_related_base_id ||
-            opts.fk_related_base_id === ctx.base_id
-          ) {
-            continue;
-          }
-
-          const crossCtx = { ...ctx, base_id: opts.fk_related_base_id };
+        )) {
+          const crossCtx = { ...ctx, base_id: relatedBaseId };
           for (const row of await ncMeta.metaList2(
             ctx.workspace_id,
-            opts.fk_related_base_id,
+            relatedBaseId,
             MetaTable.COL_LOOKUP,
             { condition: { fk_lookup_column_id: affected.fk_column_id } },
           )) {
@@ -362,7 +341,7 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
           }
           for (const row of await ncMeta.metaList2(
             ctx.workspace_id,
-            opts.fk_related_base_id,
+            relatedBaseId,
             MetaTable.COL_ROLLUP,
             { condition: { fk_rollup_column_id: affected.fk_column_id } },
           )) {

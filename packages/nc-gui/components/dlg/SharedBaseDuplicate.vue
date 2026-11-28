@@ -9,6 +9,10 @@ const emit = defineEmits(['update:modelValue'])
 
 const { workspacesList } = storeToRefs(useWorkspace())
 
+const { appInfo } = useGlobal()
+
+const isEeActive = computed(() => !!appInfo.value?.ee)
+
 const { duplicateSharedBase, isLoading, options, selectedWorkspace, isUseThisTemplate, templateName } = useCopySharedBase()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
@@ -73,6 +77,15 @@ const filterWorkspace = (workspace: NcWorkspace) => {
           <a-checkbox v-model:checked="options.includeViews">{{ $t('labels.includeView') }}</a-checkbox>
         </div>
       </template>
+
+      <div
+        v-if="isEeActive"
+        class="mt-4 flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+        @click="options.includeInterfaces = !options.includeInterfaces"
+      >
+        <NcSwitch :checked="options.includeInterfaces" />
+        {{ $t('labels.includeInterfaces') }}
+      </div>
     </div>
     <div
       class="flex flex-row gap-x-2 pt-2.5 justify-end"

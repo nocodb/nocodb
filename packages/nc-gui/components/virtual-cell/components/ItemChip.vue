@@ -41,6 +41,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const active = inject(ActiveCellInj, ref(false))
 
+const opensFromLookupDropdown = inject(LookupChipOpensRecordInj, ref(false))
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
@@ -85,7 +87,12 @@ const interfaceExpandEnabled = computed(
 const isClickDisabled = computed(() => {
   if (interfacePageDataApi && !isBlueprint.value) return !interfaceExpandEnabled.value
 
-  return (!active.value && !isExpandedForm.value) || isPublic.value || isForm.value || readonlyProp.value
+  return (
+    (!active.value && !isExpandedForm.value && !opensFromLookupDropdown.value) ||
+    isPublic.value ||
+    isForm.value ||
+    readonlyProp.value
+  )
 })
 
 const { open } = useExpandedFormDetached()

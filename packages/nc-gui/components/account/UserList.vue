@@ -65,8 +65,8 @@ const searchText = ref<string>('')
 // in CE, where the billable column & seat count are hidden.
 const hasBillableData = ref(false)
 
-// Unlicensed on-prem counts editor seats but bills for none — say "editor
-// seat" there, matching the workspace members list.
+// Unlicensed on-prem counts workspace seats but bills for none — say
+// "workspace seat" there, matching the workspace members list.
 const showBillableLabel = computed(() => !isEEFeatureBlocked.value)
 
 const orgId = computed(() => appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID)
@@ -343,7 +343,11 @@ const columns = computed(() => {
                     </template>
                     <template v-else>
                       {{ pagination.billableCount }}
-                      {{ pagination.billableCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
+                      {{
+                        pagination.billableCount === 1
+                          ? $t('labels.editorSeat').toLowerCase()
+                          : $t('labels.editorSeats').toLowerCase()
+                      }}
                     </template>
                   </div>
                 </NcTooltip>

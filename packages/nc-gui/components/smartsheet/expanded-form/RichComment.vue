@@ -71,7 +71,8 @@ const tiptapExtensions = [
   EmojiSuggestion.configure({ onInsert: (source) => $e('c:comment:emoji:insert', { source }) }),
   Placeholder.configure({
     emptyEditorClass: 'is-editor-empty',
-    placeholder: props.placeholder,
+    // A function, so a changed prop shows on the next redraw
+    placeholder: () => props.placeholder ?? '',
   }),
   Markdown.configure({ breaks: true, transformPastedText: false }),
 ]
@@ -150,6 +151,15 @@ const editor = useEditor({
     },
   },
 })
+
+// The placeholder decoration only redraws on a transaction
+watch(
+  () => props.placeholder,
+  () => {
+    const view = editor.value?.view
+    if (view && !editor.value?.isDestroyed) view.dispatch(view.state.tr)
+  },
+)
 
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   if (!editor.value) return

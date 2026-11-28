@@ -63,7 +63,13 @@ const props = defineProps<{
 }>()
 
 // Emits
-const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks', 'sendRecord'])
+const emits = defineEmits([
+  'bulkUpdateDlg',
+  'update:selectedAllRecords',
+  'update:selectedAllRecordsSkipPks',
+  'sendRecord',
+  'commentCell',
+])
 
 const {
   bulkDeleteAll,
@@ -307,6 +313,8 @@ async function interfaceCopyRecordUrl() {
   await copy(`${origin}#${hashPath}?${params.toString()}`)
   message.toast(t('msg.info.copiedToClipboard'))
 }
+
+const cellCommentShortcut = `${isMac() ? '⌥' : 'Alt+'}M`
 
 const commentRow = (rowId: number, path: Array<number>) => {
   try {
@@ -994,10 +1002,23 @@ const execBulkAction = async (path: Array<number>) => {
           "
         >
           <NcDivider />
+          <NcMenuItem
+            v-if="columns[contextMenuCol]?.columnObj?.id"
+            key="comment-cell"
+            class="nc-base-menu-item"
+            data-testid="nc-grid-context-menu-comment-cell"
+            @click="emits('commentCell', { row: contextMenuRow, col: contextMenuCol, path: contextMenuPath })"
+          >
+            <div v-e="['c:comment:cell:add']" class="flex gap-2 items-center">
+              <GeneralIcon icon="ncMessageSquare" class="h-4 w-4" />
+              <span class="flex-1">{{ $t('activity.cellComments.commentOnCell') }}</span>
+              <span class="text-captionSm text-nc-content-gray-muted">{{ cellCommentShortcut }}</span>
+            </div>
+          </NcMenuItem>
           <NcMenuItem key="add-comment" class="nc-base-menu-item" @click="commentRow(contextMenuRow, contextMenuPath)">
             <div v-e="['a:row:comment']" class="flex gap-2 items-center">
               <MdiMessageOutline class="h-4 w-4" />
-              {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
+              {{ $t('activity.cellComments.commentOnRecord') }}
             </div>
           </NcMenuItem>
           <NcMenuItem

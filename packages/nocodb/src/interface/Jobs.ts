@@ -44,6 +44,7 @@ export enum MigrationJobTypes {
   AtImportFailedJobScrub = 'at-import-failed-job-scrub',
   EnvironmentChangelogSecretCleanup = 'environment-changelog-secret-cleanup',
   AuthTokenHashBackfill = 'auth-token-hash-backfill',
+  AppMembersPass = 'app-members-pass',
 }
 
 export enum JobTypes {
@@ -84,6 +85,11 @@ export enum JobTypes {
   AttachmentUrlUpload = 'attachment-url-upload',
   ExecuteAction = 'execute-action',
   ReseatSubscription = 'reseat-subscription',
+  SeatModelPlan = 'seat-model-plan',
+  SeatModelApply = 'seat-model-apply',
+  SeatModelNotify = 'seat-model-notify',
+  SeatModelSwitchWatch = 'seat-model-switch-watch',
+  SeatReserveReconcile = 'seat-reserve-reconcile',
   ExecuteWorkflow = 'execute-workflow',
   WorkflowCronSchedule = 'workflow-cron-schedule',
   WorkflowResumeSchedule = 'workflow-resume-schedule',
@@ -137,6 +143,11 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.SyncModuleSchedule,
   JobTypes.SnapshotSchedule,
   JobTypes.ReseatSubscription,
+  JobTypes.SeatModelPlan,
+  JobTypes.SeatModelApply,
+  JobTypes.SeatModelNotify,
+  JobTypes.SeatModelSwitchWatch,
+  JobTypes.SeatReserveReconcile,
   JobTypes.WorkflowCronSchedule,
   JobTypes.WorkflowResumeSchedule,
   JobTypes.WorkflowExecutionRecovery,

@@ -5,6 +5,8 @@ import { SEARCH_COUNT_CAP, isSystemColumn } from 'nocodb-sdk'
 const props = defineProps<{
   // Render the box in the toolbar instead of a body-teleported popup, for hosts that scroll inside the page.
   inline?: boolean
+  // Always-open box in the view top bar.
+  topbar?: boolean
 }>()
 
 const isSearchExpanded = defineModel<boolean>('searchExpanded', { default: false })
@@ -70,7 +72,10 @@ function getTableTitle(tableId?: string) {
 
 const isDropdownOpen = ref(false)
 
-const isInlineBox = computed(() => isMobileMode.value || !!props.inline)
+// The field picker was opened by typing "@" in the empty box.
+let isPickerFromAt = false
+
+const isInlineBox = computed(() => isMobileMode.value || !!props.inline || !!props.topbar)
 
 // Compact hosts (interface toolbar): the selected-field chip shows the label only.
 const isFieldListCompact = inject(FieldListCompactInj, ref(false))
@@ -123,6 +128,8 @@ const shouldCollapseSearch = computed(
 )
 
 const isSearchButtonVisible = computed(() => {
+  if (props.topbar) return false
+
   // Toolbar too narrow: keep the search collapsed to its icon unless the user explicitly expands it —
   // even with an active query (the icon shows an indicator dot instead of expanding over the toolbar).
   if (shouldCollapseSearch.value) {
@@ -137,7 +144,7 @@ const isValidSearchQuery = computed(() => {
 })
 
 const isSearchResultVisible = computed(() => {
-  return search.value.query?.trim() && !isInlineBox.value && (isGrid.value || isGallery.value) && !isGroupBy.value
+  return search.value.query?.trim() && (!isInlineBox.value || props.topbar) && (isGrid.value || isGallery.value)
 })
 
 const columns = computed(() => {
@@ -152,8 +159,7 @@ const columns = computed(() => {
   return (meta.value as TableType)?.columns?.filter((column) => isSearchableField(column)) ?? []
 })
 
-// Grouped grids load rows per group and keep single-field search for now.
-const isAllFieldsSearchAvailable = computed(() => isAllFieldsSearchSupported.value && !isGroupBy.value)
+const isAllFieldsSearchAvailable = computed(() => isAllFieldsSearchSupported.value)
 
 const isAllFieldsSelected = computed(() => isAllFieldsSearchAvailable.value && search.value.field === ALL_FIELDS_SEARCH_FIELD)
 
@@ -186,14 +192,35 @@ const searchErrorMessage = computed(() =>
   searchError.value === 'timeout' ? t('msg.error.searchTimedOut') : t('msg.error.searchTooMany'),
 )
 
+// Grouped: matches can sit inside collapsed groups, so stepping through them
+// needs expansion driven by the cursor. Groups already narrow to matches.
 const isSearchNavigationShown = computed(
   () => isAllFieldsSelected.value && isSearchResultVisible.value && isGrid.value && !isGroupBy.value,
 )
 
+// Set once a count for a non-empty query has landed. Until then the count is the unfiltered total, so the
+// first search after an empty box shows no count or arrows; later edits keep the last count until the next one.
+const hasSearchCount = ref(false)
+
+let pendingSearchTerm = ''
+
+// A request for an earlier term can finish after a new one is typed: the count lands only once nothing
+// is pending and the box still holds the term the last search ran for (set in onPressEnter).
+watch(searchCountPending, (count) => {
+  const term = search.value.query?.trim() ?? ''
+  if (count === 0 && term && term === pendingSearchTerm) hasSearchCount.value = true
+})
+
+const isSearchCountStale = computed(() => !hasSearchCount.value)
+
 // Next/previous steps through the grid's rows, which are all matches (all-fields search only).
 // Off while an error shows, so Enter retries instead of stepping through the previous term's count.
 const isSearchNavigationVisible = computed(
-  () => isSearchNavigationShown.value && !isSearchErrorVisible.value && totalRowsWithSearchQuery.value > 0,
+  () =>
+    isSearchNavigationShown.value &&
+    !isSearchErrorVisible.value &&
+    !isSearchCountStale.value &&
+    totalRowsWithSearchQuery.value > 0,
 )
 
 // Shown only once a search has run past SEARCH_BUSY_DELAY_MS, so quick ones don't flicker.
@@ -231,6 +258,8 @@ watch(
 
       lastClosedQuery.value = ''
       loadFieldQuery(activeView.value?.id, reset)
+      // A restored query loads with the view's data.
+      hasSearchCount.value = !!search.value.query?.trim()
     }
   },
   { immediate: true },
@@ -245,6 +274,13 @@ watch(
   },
 )
 
+watch(
+  () => !search.value.query?.trim(),
+  (isEmpty) => {
+    if (isEmpty) hasSearchCount.value = false
+  },
+)
+
 if (isList.value && listViewStore) {
   watch(
     () => listViewStore!.selectedLevelId.value,
@@ -256,6 +292,7 @@ if (isList.value && listViewStore) {
 }
 
 function onPressEnter() {
+  pendingSearchTerm = search.value.query?.trim() ?? ''
   lastSearchedKey.value = searchKey()
   $e('a:view:search')
   reloadData.trigger({ shouldShowLoading: false, offset: 0, inPlace: true })
@@ -346,11 +383,10 @@ const displayColumnLabel = computed(() => {
   return isAllFieldsSelected.value ? t('labels.allFields') : displayColumn.value?.title
 })
 
-const searchPlaceholder = computed(() =>
-  isAllFieldsSelected.value
-    ? t('placeholder.searchAllFields')
-    : t('placeholder.searchField', { field: displayColumn.value?.title ?? '' }),
-)
+const searchPlaceholder = computed(() => {
+  if (!isAllFieldsSelected.value) return t('placeholder.searchField', { field: displayColumn.value?.title ?? '' })
+  return props.topbar ? t('placeholder.searchInView') : t('placeholder.searchAllFields')
+})
 
 const searchShortcutLabel = `${renderCmdOrCtrlKey(true)} F`
 
@@ -373,6 +409,7 @@ watchDebounced(
 )
 
 const onSelectOption = (column: ColumnType) => {
+  isPickerFromAt = false
   search.value.field = column.id as string
   search.value.allFieldsPicked = column.id === ALL_FIELDS_SEARCH_FIELD
   search.value.planLimitFallback = false
@@ -386,6 +423,36 @@ const onSelectOption = (column: ColumnType) => {
     globalSearchRef.value?.focus()
   })
 }
+
+// Top bar: a picked field shows as a chip; ✕ goes back to all fields where that is available.
+const isFieldChipVisible = computed(() => !!props.topbar && !isAllFieldsSelected.value && !!displayColumn.value)
+
+function clearFieldPick() {
+  onSelectOption(allFieldsOption.value)
+}
+
+// In an empty top-bar box, "@" opens the field picker and Backspace removes the field chip.
+function onSearchKeydown(e: KeyboardEvent) {
+  if (!props.topbar || search.value.query) return
+  if (e.key === '@') {
+    e.preventDefault()
+    isPickerFromAt = true
+    isDropdownOpen.value = true
+  } else if (e.key === 'Backspace' && isFieldChipVisible.value && isAllFieldsSearchAvailable.value) {
+    e.preventDefault()
+    clearFieldPick()
+  }
+}
+
+// Opened by "@" and closed without a pick (Escape, outside click): the "@" was meant as text, so it goes
+// into the box and a search that starts with "@" can still be typed.
+watch(isDropdownOpen, (isOpen) => {
+  if (isOpen || !isPickerFromAt) return
+  isPickerFromAt = false
+  if (search.value.query) return
+  search.value.query = '@'
+  nextTick(() => globalSearchRef.value?.focus())
+})
 
 // Closing the picker from the box goes back to typing.
 function toggleFieldPicker() {
@@ -402,26 +469,31 @@ const handleShowSearchInput = () => {
   // The input is focused below; don't flash the shortcut hint until then.
   isSearchInputFocused.value = true
 
-  setTimeout(() => {
-    nextTick(() => {
-      if (isSearchButtonVisible.value) return
+  setTimeout(
+    () => {
+      nextTick(() => {
+        if (isSearchButtonVisible.value) return
 
-      globalSearchRef.value?.focus()
-      globalSearchRef.value?.select()
-    })
-  }, 300)
+        globalSearchRef.value?.focus()
+        globalSearchRef.value?.select()
+      })
+    },
+    props.topbar ? 0 : 300,
+  )
 }
 
 const handleEscapeKey = (e: KeyboardEvent) => {
   if (isDropdownOpen.value) return
 
-  // Outside the box, the first Escape belongs to an in-progress cell edit.
+  // Outside the box, the first Escape belongs to an in-progress cell edit. The top-bar box stays open,
+  // so there it clears only from inside the box: closing a record or leaving a cell keeps the search.
   const isFromSearchBox = !!globalSearchWrapperRef.value?.contains(e.target as Node)
-  if (!isFromSearchBox && gridEditEnabled.value) return
+  if (!isFromSearchBox && (gridEditEnabled.value || props.topbar)) return
 
   if (search.value.query) lastClosedQuery.value = search.value.query
   search.value.query = ''
   showSearchBox.value = false
+  if (props.topbar && isFromSearchBox) globalSearchRef.value?.blur()
 }
 
 // Inline boxes (mobile has no Escape key): an empty search box closes on an outside tap.
@@ -518,7 +590,11 @@ useSearchCommands({
 </script>
 
 <template>
-  <div ref="globalSearchWrapperRef" class="nc-global-search-wrapper relative" :class="{ 'min-w-0': props.inline }">
+  <div
+    ref="globalSearchWrapperRef"
+    class="nc-global-search-wrapper relative"
+    :class="{ 'min-w-0': props.inline, 'w-full min-w-0': props.topbar }"
+  >
     <NcTooltip v-if="isSearchButtonVisible" placement="bottom">
       <template #title>
         <div class="flex items-center gap-2">
@@ -544,7 +620,12 @@ useSearchCommands({
         />
       </NcButton>
     </NcTooltip>
-    <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true" :inline="props.inline" :realign-tick="realignTick">
+    <LazySmartsheetToolbarSearchDataWrapperDropdown
+      v-else
+      :visible="true"
+      :inline="props.inline || props.topbar"
+      :realign-tick="realignTick"
+    >
       <div
         class="overflow-hidden"
         :class="{
@@ -569,22 +650,25 @@ useSearchCommands({
           </div>
         </div>
         <div class="flex flex-row relative" :class="props.inline && !isMobileMode ? 'h-6' : 'h-8'">
+          <div class="flex items-center pl-2" :class="{ 'pr-2': props.topbar }">
+            <div
+              v-if="isSearchBusy"
+              class="h-3.5 w-3.5 flex items-center justify-center text-nc-content-brand"
+              role="status"
+              :aria-label="$t('general.loading')"
+              data-testid="nc-search-loading"
+            >
+              <GeneralLoader :size="14" />
+            </div>
+            <GeneralIcon v-else icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+          </div>
           <NcDropdown
+            v-if="!props.topbar"
             v-model:visible="isDropdownOpen"
             :trigger="['click']"
             overlay-class-name="nc-dropdown-toolbar-search-field-option"
           >
-            <div class="flex items-center gap-2 group px-2 cursor-pointer" @mousedown.prevent @click="toggleFieldPicker">
-              <div
-                v-if="isSearchBusy"
-                class="h-3.5 w-3.5 flex items-center justify-center text-nc-content-brand"
-                role="status"
-                :aria-label="$t('general.loading')"
-                data-testid="nc-search-loading"
-              >
-                <GeneralLoader :size="14" />
-              </div>
-              <GeneralIcon v-else icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+            <div class="flex items-center group px-2 cursor-pointer" @mousedown.prevent @click="toggleFieldPicker">
               <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
                 <template v-if="!isFieldListCompact">
                   <GeneralIcon v-if="isAllFieldsSelected" icon="fields" class="!w-3.5 !h-3.5 flex-none" />
@@ -616,22 +700,46 @@ useSearchCommands({
               />
             </template>
           </NcDropdown>
+          <div v-if="isFieldChipVisible" class="flex-none flex items-center pr-2">
+            <span
+              class="h-5 flex items-center gap-0.5 pl-1.5 pr-0.5 rounded-md text-bodySm text-nc-content-brand bg-nc-bg-brand-inverted select-none"
+              data-testid="nc-search-field-chip"
+            >
+              <NcTooltip show-on-truncate-only class="max-w-24 truncate">
+                <template #title>{{ $t('labels.searchInField', { field: displayColumn?.title ?? '' }) }}</template>
+                {{ $t('labels.searchInField', { field: displayColumn?.title ?? '' }) }}
+              </NcTooltip>
+              <NcButton
+                v-if="isAllFieldsSearchAvailable"
+                size="xxsmall"
+                type="text"
+                class="!h-4 !w-4 !min-w-4 !p-0 !text-current"
+                :aria-label="$t('placeholder.searchAllFields')"
+                data-testid="nc-search-field-chip-clear"
+                @mousedown.prevent
+                @click="clearFieldPick"
+              >
+                <GeneralIcon icon="close" class="h-3 w-3" />
+              </NcButton>
+            </span>
+          </div>
 
           <form class="p-0 flex-1 flex" @submit.prevent>
             <a-input
-              v-if="search.query || showSearchBox"
+              v-if="search.query || showSearchBox || props.topbar"
               ref="globalSearchRef"
               v-model:value="search.query"
               :inputmode="searchInputMode"
               name="globalSearchQuery"
               size="small"
               class="!text-bodyDefaultSm flex-1 h-full nc-view-search-data !pl-0"
-              :class="isSearchResultVisible ? 'md:!w-28' : 'md:!w-40'"
+              :class="props.topbar ? 'min-w-0' : isSearchResultVisible ? 'md:!w-28' : 'md:!w-40'"
               :placeholder="searchPlaceholder"
               :bordered="false"
               autocomplete="off"
               data-testid="search-data-input"
               @press-enter="onSearchEnter"
+              @keydown="onSearchKeydown"
               @focus="isSearchInputFocused = true"
               @blur="isSearchInputFocused = false"
             >
@@ -641,7 +749,7 @@ useSearchCommands({
             <span class="nc-search-shortcut-chip">{{ searchShortcutLabel }}</span>
           </div>
           <div
-            v-else-if="!isValidSearchQuery || isSearchErrorVisible || isSearchResultVisible"
+            v-else-if="!isValidSearchQuery || isSearchErrorVisible || (isSearchResultVisible && !isSearchCountStale)"
             class="nc-search-result flex-none flex items-center gap-0.5 my-1.5 pl-1.5 pr-1 border-l-1 border-nc-border-gray-medium"
             data-testid="nc-search-result"
           >
@@ -685,7 +793,8 @@ useSearchCommands({
                   class="px-1 text-bodySm whitespace-nowrap tabular-nums text-nc-content-gray-muted"
                   data-testid="nc-search-count"
                 >
-                  <template v-if="!totalRowsWithSearchQuery">{{ searchCountPending ? '' : $t('labels.noResults') }}</template>
+                  <template v-if="isSearchCountStale" />
+                  <template v-else-if="!totalRowsWithSearchQuery">{{ $t('labels.noResults') }}</template>
                   <span v-else-if="searchPositionLabel" class="text-nc-content-gray font-semibold">{{
                     searchPositionLabel
                   }}</span>
@@ -728,6 +837,41 @@ useSearchCommands({
               </div>
             </template>
           </div>
+          <NcDropdown
+            v-if="props.topbar && !isShortcutHintVisible"
+            v-model:visible="isDropdownOpen"
+            :trigger="['click']"
+            placement="bottomRight"
+            overlay-class-name="nc-dropdown-toolbar-search-field-option"
+          >
+            <div class="flex-none flex items-center pr-1">
+              <NcTooltip :title="`${$t('labels.chooseSearchField')} (@)`" placement="bottom" :disabled="isDropdownOpen">
+                <NcButton
+                  size="xxsmall"
+                  type="text"
+                  class="!h-6 !w-6 !min-w-6 !px-0 !bg-nc-bg-gray-light"
+                  :aria-label="$t('labels.chooseSearchField')"
+                  :aria-expanded="isDropdownOpen"
+                  data-testid="nc-search-field-picker-btn"
+                  @mousedown.prevent
+                >
+                  <GeneralIcon icon="ncFilter" class="h-3.5 w-3.5 text-nc-content-gray" />
+                </NcButton>
+              </NcTooltip>
+            </div>
+            <template #overlay>
+              <SmartsheetToolbarFieldListWithSearch
+                :is-parent-open="isDropdownOpen"
+                :selected-option-id="search.field"
+                show-selected-option
+                :options="columns"
+                :input-bordered="false"
+                :search-input-placeholder="$t('placeholder.searchFields')"
+                toolbar-menu="globalSearch"
+                @selected="onSelectOption"
+              />
+            </template>
+          </NcDropdown>
         </div>
       </div>
     </LazySmartsheetToolbarSearchDataWrapperDropdown>

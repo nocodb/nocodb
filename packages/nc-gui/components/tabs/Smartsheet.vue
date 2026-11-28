@@ -22,7 +22,7 @@ const { isRtl } = useRtl()
 
 const { getMeta, getMetaByKey } = useMetas()
 
-const { ncNavigateTo } = useGlobal()
+const { ncNavigateTo, isMobileMode } = useGlobal()
 
 const route = useRoute()
 
@@ -265,6 +265,12 @@ const onDrop = async (event: DragEvent) => {
 }
 
 const { leftSidebarWidth, windowSize, isFullScreen } = storeToRefs(useSidebarStore())
+
+// Full screen hides the top bar, and mobile keeps search in the toolbar.
+provide(
+  SearchInTopbarInj,
+  computed(() => !isFullScreen.value && !isMobileMode.value),
+)
 
 const { isPanelExpanded, extensionPanelSize } = useExtensions()
 

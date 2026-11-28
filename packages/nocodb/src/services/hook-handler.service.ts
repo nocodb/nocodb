@@ -176,17 +176,24 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    const hooks = await Hook.list(context, {
+    let hooks = await Hook.list(context, {
       fk_model_id: modelId,
       event: event as HookType['event'],
       operation: operation as HookType['operation'][0],
-      affectedColumns: await getAffectedColumns(context, {
-        hookName,
-        newData,
-        prevData,
-        model,
-      }),
     });
+    // The diff loads the table's columns: only a trigger-field hook needs it.
+    if (hooks.some((hook) => hook.trigger_field)) {
+      hooks = Hook.filterByAffectedColumns(
+        hooks,
+        operation as HookType['operation'][0],
+        await getAffectedColumns(context, {
+          hookName,
+          newData,
+          prevData,
+          model,
+        }),
+      );
+    }
     for (const hook of hooks) {
       if (hook.active) {
         try {

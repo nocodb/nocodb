@@ -5,7 +5,7 @@ import {
   EventType,
   ncIsObject,
 } from 'nocodb-sdk';
-import { Base, Model, Source } from '../models';
+import { Base, Column, Model, Source } from '../models';
 import type {
   AttachmentType,
   CommentReqType,
@@ -131,8 +131,15 @@ export class CommentsService {
       row_id: param.body.row_id,
     });
 
+    const fk_column_id = await this.resolveCommentColumnId(context, {
+      parentCommentId,
+      fk_column_id: param.body.fk_column_id,
+      fk_model_id: model.id,
+    });
+
     const res = await Comment.insert(context, {
       ...param.body,
+      fk_column_id,
       ...(param.body.meta !== undefined
         ? { meta: mergeCommentMeta(param.body.meta) }
         : {}),
@@ -207,6 +214,30 @@ export class CommentsService {
     // A reply whose thread root was deleted starts its own thread.
     const root = await Comment.get(context, parent.parent_comment_id);
     return root && !root.is_deleted ? root.id : parent.id;
+  }
+
+  // A reply stays on its thread's field; a new thread's field must belong to
+  // the commented table.
+  protected async resolveCommentColumnId(
+    context: NcContext,
+    param: {
+      parentCommentId?: string;
+      fk_column_id?: string | null;
+      fk_model_id: string;
+    },
+  ): Promise<string | null> {
+    if (param.parentCommentId) {
+      const root = await Comment.get(context, param.parentCommentId);
+      return root?.fk_column_id ?? null;
+    }
+
+    if (!param.fk_column_id) return null;
+
+    const column = await Column.get(context, { colId: param.fk_column_id });
+    if (!column || column.fk_model_id !== param.fk_model_id) {
+      NcError.get(context).fieldNotFound(param.fk_column_id);
+    }
+    return column.id;
   }
 
   async commentDelete(

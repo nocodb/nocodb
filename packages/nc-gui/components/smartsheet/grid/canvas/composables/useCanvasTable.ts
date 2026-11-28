@@ -67,6 +67,7 @@ import { type BulkLtarOp, useCopyPaste } from './useCopyPaste'
 
 export function useCanvasTable({
   anchorActiveCell,
+  commentCell,
   rowHeightEnum,
   cachedRows,
   clearCache,
@@ -132,6 +133,8 @@ export function useCanvasTable({
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   /** Interface pages: select the record-sheet's row when nothing is selected (see useKeyboardNavigation). */
   anchorActiveCell?: () => void
+  /** Open a cell's comment thread (keyboard shortcut). */
+  commentCell?: (row: Row, column: CanvasGridColumn, path: Array<number>) => void
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
@@ -1488,7 +1491,7 @@ export function useCanvasTable({
     scrollToLeftEdge,
   })
 
-  const { canvasRef, renderCanvas, colResizeHoveredColIds, findRemoteRecordMarkAt } = useCanvasRender({
+  const { canvasRef, renderCanvas, colResizeHoveredColIds, findRemoteRecordMarkAt, findCellCommentMarkAt } = useCanvasRender({
     width,
     interfaceActiveHeaderFieldId,
     mousePosition,
@@ -1962,6 +1965,7 @@ export function useCanvasTable({
     handleCellKeyDown,
     removeInlineAddRecord,
     maxSelectionLimit,
+    commentCell,
   })
 
   const {
@@ -2444,6 +2448,7 @@ export function useCanvasTable({
 
     // Functions
     findRemoteRecordMarkAt,
+    findCellCommentMarkAt,
     fetchChunk,
     updateVisibleRows,
     findColumnIndex,

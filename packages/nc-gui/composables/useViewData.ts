@@ -74,6 +74,7 @@ export function useViewData(
     fetchTotalRowsWithSearchQuery,
     totalRowsWithSearchQuery,
     totalRowsWithoutSearchQuery,
+    searchCountPending,
     isLocked,
   } = useSmartsheetStoreOrThrow()
 
@@ -247,7 +248,18 @@ export function useViewData(
 
   const controller = ref()
 
+  // The search box waits for this count before showing it, as it does for the grid's.
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, shouldShowLoading = true) {
+    const isSearchCount = !!fetchTotalRowsWithSearchQuery.value
+    if (isSearchCount) searchCountPending.value++
+    try {
+      return await loadPage(params, shouldShowLoading)
+    } finally {
+      if (isSearchCount) searchCountPending.value--
+    }
+  }
+
+  async function loadPage(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, shouldShowLoading = true) {
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
 
     if (controller.value) {

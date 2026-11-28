@@ -27,6 +27,8 @@ const READ_POST_PATH = /\/(bulk\/(dataList|aggregate)|summary)$/;
 const SEARCH_OPERATIONS = new Set([
   'dataList',
   'dataAggregate',
+  'dataGroupBy',
+  'dataGroupByCount',
   'bulkDataList',
   'bulkAggregate',
   'baseRecordSearch',

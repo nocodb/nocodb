@@ -31,6 +31,7 @@ export default class Mailer implements IEmailAdapter {
       emailParams.setCc(toRecipients(mail.cc, 'CC', MAX_CC_BCC_RECIPIENTS));
     if (mail.bcc)
       emailParams.setBcc(toRecipients(mail.bcc, 'BCC', MAX_CC_BCC_RECIPIENTS));
+    if (mail.replyTo) emailParams.setReplyTo(mail.replyTo);
 
     // The SDK predates inline parts; the API reads `id` (bare, ≤256 chars) as the `cid:` Content-ID.
     const attachments = (mail.attachments ?? []).map((attachment) => {

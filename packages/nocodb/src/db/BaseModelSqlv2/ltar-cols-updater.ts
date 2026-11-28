@@ -122,6 +122,7 @@ export const LTARColsUpdater = (param: {
     for (const col of baseModel.model.columns) {
       // skip if not LTAR or Links
       if (!isLinksOrLTAR(col)) continue;
+      if (datas.every((d) => getLinkValue(d, col) == null)) continue;
 
       // Linked records carry the related table's PK, which can be named
       // differently from this table's (`actor_id` / `film_id`)

@@ -29,6 +29,17 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 const { isEEFeatureBlocked, blockWorkflows } = useEeConfig()
 
 const isSharedBase = computed(() => route.params.typeOrId === 'base')
+
+const isSearchInTopbar = inject(SearchInTopbarInj, ref(false))
+
+const smartsheetStore = useSmartsheetStore()
+
+const isViewSearchVisible = computed(() => {
+  if (!isSearchInTopbar.value || !smartsheetStore) return false
+  if (activeScriptId.value || activeDashboardId.value || activeWorkflowId.value || activeAgentId.value) return false
+  const { isGrid, isGallery, isKanban, isList } = smartsheetStore
+  return isGrid.value || isGallery.value || isKanban.value || isList.value
+})
 </script>
 
 <template>
@@ -44,7 +55,10 @@ const isSharedBase = computed(() => route.params.typeOrId === 'base')
     </template>
     <template v-else>
       <!-- Takes the space the right-hand buttons leave and shrinks first, so long names truncate instead of overlapping. -->
-      <div class="nc-topbar-breadcrumb flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
+      <div
+        class="nc-topbar-breadcrumb flex items-center gap-3 flex-1 overflow-hidden"
+        :class="isViewSearchVisible ? 'min-w-40' : 'min-w-0'"
+      >
         <GeneralOpenLeftSidebarBtn />
         <SmartsheetTopbarSidebarReturn v-if="!isPublic && !isSharedBase" />
         <LazySmartsheetToolbarViewInfo
@@ -60,7 +74,12 @@ const isSharedBase = computed(() => route.params.typeOrId === 'base')
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-2 flex-none">
+      <!-- Both sides grow equally so the box stays centred while they have room; the box shrinks first. -->
+      <div v-if="isViewSearchVisible" class="nc-topbar-search flex items-center min-w-40 max-w-90 flex-[0_100_360px]">
+        <SmartsheetToolbarSearchData topbar />
+      </div>
+
+      <div class="flex items-center justify-end gap-2" :class="isViewSearchVisible ? 'flex-1' : 'flex-none'">
         <GeneralApiLoader v-if="!isMobileMode && !activeScriptId && !activeDashboardId" />
 
         <!-- Variable Setup Warning -->

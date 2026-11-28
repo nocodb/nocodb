@@ -51,6 +51,7 @@ import type {
   TAliasToColumnParam,
 } from './formula-query-builder.types';
 import { DBQueryClient } from '~/dbQueryClient';
+import { FORMULA_TOO_LONG_MARKER } from '~/helpers/formulaHelpers';
 import {
   isExternalSourceError,
   isTransientError,
@@ -975,9 +976,16 @@ export default async function formulaQueryBuilderv2({
         error_type: 'FORMULA_TOO_LONG_ERROR',
         message: `Generated query too long for ${columnInfo.title}${columnInfo.id}`,
       });
-      NcError.get(context).formulaError(
-        `The generated query for ${columnInfo.title} exceeds the maximum allowed length. Try simplifying the formula by reducing the number of referenced fields, lookup chains, or nested formula references.`,
-      );
+      const message = `The generated query for ${columnInfo.title} ${FORMULA_TOO_LONG_MARKER}. Try simplifying the formula by reducing the number of referenced fields, lookup chains, or nested formula references.`;
+      // Stored so later reads skip the build: it costs seconds of CPU and fails the same way each time.
+      if (column?.id && persistError && !validateFormula) {
+        await persistFormulaColumnError(context, column, message).catch((e) =>
+          logger.warn(
+            `Failed to store the too-long error on column ${column.id}: ${e?.message}`,
+          ),
+        );
+      }
+      NcError.get(context).formulaError(message);
     }
 
     // Cap the rendered length of string-typed formula output at the database
@@ -1032,6 +1040,16 @@ export default async function formulaQueryBuilderv2({
       knex.raw(`?? as ??`, [qb.builder, DRY_RUN_ALIAS]),
     );
     if (dryRunLimit) dryRunQb.limit(dryRunLimit, { skipBinding: true });
+    // Parsing the result loads the model's columns when it has none. A new
+    // formula's caller passes the table's current columns: lend them.
+    if (
+      !column &&
+      !dryRunLimit &&
+      !baseModelSqlv2.model.columns &&
+      baseModelSqlv2.model.id === model.id
+    ) {
+      baseModelSqlv2.model.columns = columns;
+    }
     await baseModelSqlv2.execAndParse(dryRunQb.as('dry-run-only'), null, {
       raw: true,
     });

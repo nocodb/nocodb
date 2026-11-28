@@ -19,6 +19,7 @@ import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { Column, Filter } from '~/models';
 import {
   isLikeFilterOnString,
+  ncIsBlankIgnoreCaseEq,
   ncLikeEscapedOperand,
 } from '~/db/field-handler/utils/handlerUtils';
 import { setModelContext } from '~/helpers/modelContext';
@@ -91,6 +92,7 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
     if (isError || filter.value === NC_ERROR_SENTINEL) {
       const negated = [
         'neq',
+        'nieq',
         'not',
         'notblank',
         'notempty',
@@ -178,6 +180,8 @@ export class RollupGeneralHandler extends ComputedFieldHandler {
             // an empty like/nlike matches on '' (a NULL pattern matches nothing)
             value: ['in', 'btw', 'nbtw'].includes(filter.comparison_op)
               ? filter.value
+              : ncIsBlankIgnoreCaseEq(filter)
+              ? null
               : knex.raw('?', [
                   filter.value ??
                     (['like', 'nlike'].includes(filter.comparison_op)

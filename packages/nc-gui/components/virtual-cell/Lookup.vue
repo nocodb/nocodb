@@ -298,6 +298,9 @@ provide(IsUnderLookupInj, ref(true))
 
 provide(LookupColumnInj, column)
 
+// Only the dropdown's chips open their record (LookupChipScope), not nested lookups' cells.
+provide(LookupChipOpensRecordInj, ref(false))
+
 provide(CellUrlDisableOverlayInj, ref(true))
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
@@ -463,6 +466,20 @@ function closeOnRecordChipClick(e: MouseEvent) {
   if ((e.target as HTMLElement | null)?.closest('.chip.cursor-pointer')) dropdownVisible.value = false
 }
 
+// bt/oo lookups render one cell per value; mm/hm render one cell for the whole array.
+const isSingleRecordLinkLookup = computed(() => {
+  const col = lookupColumn.value
+  if (col?.uidt !== UITypes.LinkToAnotherRecord) return false
+
+  return (
+    isBtLikeV2Junction(col) ||
+    (!isMMOrMMLike(col) &&
+      [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+        (col.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
+      ))
+  )
+})
+
 const badgedVirtualColumns = [UITypes.Rollup, UITypes.Formula]
 const isBadgedVirtualColumn = computed(() => badgedVirtualColumns.includes(lookupColumn.value?.uidt as UITypes))
 
@@ -545,15 +562,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
             class="flex h-full virtual-lookup-cells"
           >
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
-            <template
-              v-if="
-                lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
-                (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
-                  (isBtLikeV2Junction(lookupColumn) ||
-                    (!isMMOrMMLike(lookupColumn) &&
-                      [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))))
-              "
-            >
+            <template v-if="lookupColumn.uidt !== UITypes.LinkToAnotherRecord || isSingleRecordLinkLookup">
               <LazySmartsheetVirtualCell
                 v-for="(v, i) of arrValue"
                 :key="i"
@@ -687,17 +696,11 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
           >
             <LazySmartsheetCell :model-value="arrValue" :column="lookupLeafColumn" :edit-enabled="false" :read-only="true" />
           </div>
-          <template v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn && !hasDisplayOverride">
+          <VirtualCellComponentsLookupChipScope
+            v-else-if="isVirtualCol(lookupColumn) && !isBadgedVirtualColumn && !hasDisplayOverride"
+          >
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
-            <template
-              v-if="
-                lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
-                (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
-                  (isBtLikeV2Junction(lookupColumn) ||
-                    (!isMMOrMMLike(lookupColumn) &&
-                      [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))))
-              "
-            >
+            <template v-if="lookupColumn.uidt !== UITypes.LinkToAnotherRecord || isSingleRecordLinkLookup">
               <LazySmartsheetVirtualCell
                 v-for="(v, i) of filteredArrValues"
                 :key="i"
@@ -715,7 +718,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
               :model-value="filteredArrValues"
               :column="lookupColumn"
             />
-          </template>
+          </VirtualCellComponentsLookupChipScope>
           <template v-else>
             <div
               v-if="isAttachment(lookupColumn) && arrValue[0] && ncIsObject(arrValue[0])"

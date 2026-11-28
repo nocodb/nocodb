@@ -9,6 +9,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const collaborators = ref<any[] | null>()
 
+  const teamAiApps = ref<Record<string, any[]>>({})
+
   const collaboratorsMap = computed(() => {
     return {}
   })
@@ -397,6 +399,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     updateCollaborator,
     resendCollaboratorInvite,
     collaborators,
+    teamAiApps,
     collaboratorsMap,
     allCollaborators,
     isInvitingCollaborators,

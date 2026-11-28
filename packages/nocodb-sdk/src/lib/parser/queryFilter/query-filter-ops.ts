@@ -10,6 +10,8 @@ export const GROUPBY_COMPARISON_OPS = <const>[
 export const COMPARISON_OPS = <const>[
   'eq',
   'neq',
+  'ieq',
+  'nieq',
   'not',
   'like',
   'nlike',

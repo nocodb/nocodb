@@ -921,6 +921,32 @@ export default class Column<T = any> implements ColumnType {
     return this.model;
   }
 
+  /** `columns`, listed without a default view, as `list` returns them with `defaultViewId`. */
+  public static async withDefaultViewMeta(
+    context: NcContext,
+    columns: Column[],
+    defaultViewId: string | undefined,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Column[]> {
+    const viewColumns = defaultViewId
+      ? await View.getColumns(context, defaultViewId, ncMeta)
+      : [];
+    if (!viewColumns.length) return columns;
+    const viewColumnById = new Map(viewColumns.map((c) => [c.fk_column_id, c]));
+    return columns.map((c) => {
+      const column = new Column({
+        ...c,
+        meta: {
+          ...parseMetaProp(c),
+          defaultViewColOrder: viewColumnById.get(c.id)?.order,
+          defaultViewColVisibility: viewColumnById.get(c.id)?.show,
+        },
+      });
+      setModelContext(column, context);
+      return column;
+    });
+  }
+
   @NcCache({
     key: (args) =>
       `${args[1].fk_model_id}:${args[1].fk_default_view_id ?? 'default'}:${

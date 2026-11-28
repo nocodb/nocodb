@@ -91,6 +91,13 @@ export class DuplicateService {
     }
     const targetWorkspaceId =
       body.base?.fk_workspace_id ?? context.workspace_id;
+
+    await this.checkDuplicateLimits({
+      sourceBase: base,
+      targetWorkspaceId,
+      options: body.options,
+    });
+
     const bases = await Base.list(targetWorkspaceId);
 
     const targetBaseTitle = body.base?.title ?? base.title;
@@ -301,4 +308,10 @@ export class DuplicateService {
   }) {
     NcError.notImplemented();
   }
+
+  protected async checkDuplicateLimits(_params: {
+    sourceBase: Base;
+    targetWorkspaceId: string;
+    options?: { excludeInterfaces?: boolean };
+  }) {}
 }

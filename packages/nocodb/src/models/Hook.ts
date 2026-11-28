@@ -220,23 +220,33 @@ export default class Hook implements HookType {
           : h.operation?.toLowerCase() ===
             (param.operation as unknown as string)?.toLowerCase(),
       );
-      if (
-        param.operation === 'update' ||
-        (param.operation as any) === 'bulkUpdate'
-      ) {
-        hooks = hooks.filter((hook) => {
-          return (
-            !hook.trigger_field ||
-            // `undefined` = diff unknown; `[]` = nothing changed, so skip.
-            param.affectedColumns === undefined ||
-            hook.trigger_fields?.some((field) =>
-              param.affectedColumns?.includes(field),
-            )
-          );
-        });
-      }
+      hooks = Hook.filterByAffectedColumns(
+        hooks,
+        param.operation,
+        param.affectedColumns,
+      );
     }
     return hooks?.map((h) => setModelContext(new Hook(h), context));
+  }
+
+  /** On an update, drop the trigger-field hooks whose fields the write didn't change. */
+  static filterByAffectedColumns<
+    T extends { trigger_field?: boolean; trigger_fields?: string[] },
+  >(
+    hooks: T[],
+    operation: HookType['operation'][0] | undefined,
+    affectedColumns: string[] | undefined,
+  ): T[] {
+    if (operation !== 'update' && (operation as any) !== 'bulkUpdate') {
+      return hooks;
+    }
+    return hooks.filter(
+      (hook) =>
+        !hook.trigger_field ||
+        // `undefined` = diff unknown; `[]` = nothing changed, so skip.
+        affectedColumns === undefined ||
+        hook.trigger_fields?.some((field) => affectedColumns.includes(field)),
+    );
   }
 
   public static async insert(

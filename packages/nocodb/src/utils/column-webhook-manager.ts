@@ -2,7 +2,7 @@ import { WebhookActions } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { IColumnsV3Service } from 'src/services/v3/columns-v3.types';
 import type { MetaService } from '~/meta/meta.service';
-import type { Model } from '~/models';
+import type { Column, Model } from '~/models';
 import type { ModelWebhookManager } from '~/utils/model-webhook-manager';
 import Noco from '~/Noco';
 
@@ -134,6 +134,7 @@ export class ColumnWebhookManager {
   async addNewColumnById(_param: {
     columnId: string;
     action?: WebhookActions;
+    columns?: Column[];
     context?: {
       workspace_id: string;
       base_id: string;

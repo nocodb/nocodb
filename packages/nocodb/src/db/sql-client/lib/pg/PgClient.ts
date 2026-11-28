@@ -900,6 +900,10 @@ class PGClient extends KnexClient {
         },
       );
 
+      if (!response.rows.length) {
+        response.rows = await this.materializedViewColumnRows(args);
+      }
+
       const columns = [];
 
       for (let i = 0; i < response.rows.length; ++i) {
@@ -997,6 +1001,86 @@ class PGClient extends KnexClient {
     log.api(`${_func}: result`, result);
 
     return result;
+  }
+
+  /**
+   * information_schema.columns has no rows for materialized views, so read them
+   * from pg_catalog in the same row shape columnList maps.
+   */
+  protected async materializedViewColumnRows(args: any = {}) {
+    const { rows } = await this.sqlClient.raw(
+      `select
+          c.relname as tn,
+          a.attname as cn,
+          case
+            when t.typtype = 'd' then
+              case
+                when bt.typelem <> 0 and bt.typlen = -1 then 'ARRAY'
+                when nbt.nspname = 'pg_catalog' then format_type(t.typbasetype, null)
+                else 'USER-DEFINED'
+              end
+            else
+              case
+                when t.typelem <> 0 and t.typlen = -1 then 'ARRAY'
+                when nt.nspname = 'pg_catalog' then format_type(a.atttypid, null)
+                else 'USER-DEFINED'
+              end
+          end as dt,
+          false as au,
+          information_schema._pg_char_max_length(information_schema._pg_truetypid(a.*, t.*), information_schema._pg_truetypmod(a.*, t.*)) as clen,
+          information_schema._pg_numeric_precision(information_schema._pg_truetypid(a.*, t.*), information_schema._pg_truetypmod(a.*, t.*)) as np,
+          information_schema._pg_numeric_scale(information_schema._pg_truetypid(a.*, t.*), information_schema._pg_truetypmod(a.*, t.*)) as ns,
+          information_schema._pg_datetime_precision(information_schema._pg_truetypid(a.*, t.*), information_schema._pg_truetypmod(a.*, t.*)) as dp,
+          a.attnum as cop,
+          case when a.attnotnull then 'NO' else 'YES' end as nrqd,
+          null as cdf,
+          null as generation_expression,
+          null as csn,
+          null as pk_constraint_name,
+          null as pk_constraint_name1,
+          coalesce(bt.typname, t.typname) as udt_name,
+          coalesce(nbt.nspname, nt.nspname) as udt_schema,
+          'NO' as ii,
+          0 as is_unique,
+          (select string_agg(e.enumlabel, ',' order by e.enumsortorder)
+             from pg_enum e
+            where e.enumtypid = coalesce(bt.oid, t.oid)) as enum_values,
+          coalesce(bt.typtype, t.typtype) as udt_typtype
+        from pg_attribute a
+          join pg_class c on c.oid = a.attrelid
+          join pg_namespace n on n.oid = c.relnamespace
+          join pg_type t on t.oid = a.atttypid
+          join pg_namespace nt on nt.oid = t.typnamespace
+          left join (pg_type bt join pg_namespace nbt on nbt.oid = bt.typnamespace)
+            on t.typtype = 'd' and t.typbasetype = bt.oid
+        where c.relkind = 'm'
+          and n.nspname = :schema
+          and c.relname = :table
+          and a.attnum > 0
+          and not a.attisdropped
+        order by a.attnum`,
+      { schema: this.getEffectiveSchema(args), table: args.tn },
+    );
+    return rows;
+  }
+
+  /**
+   * Materialized views are not in information_schema.views.
+   */
+  protected async materializedViewList(schema: string) {
+    const { rows } = await this.sqlClient.raw(
+      `select
+          m.matviewname as table_name,
+          m.schemaname as table_schema,
+          m.definition as view_definition,
+          true as is_materialized
+        from pg_matviews m
+        where m.schemaname = :schema
+          and has_table_privilege(format('%I.%I', m.schemaname, m.matviewname), 'SELECT')
+        order by m.matviewname`,
+      { schema },
+    );
+    return rows;
   }
 
   /**
@@ -1660,6 +1744,10 @@ class PGClient extends KnexClient {
            from INFORMATION_SCHEMA.views
            WHERE table_schema = ?;`,
         [this.getEffectiveSchema(args)],
+      );
+
+      rows.push(
+        ...(await this.materializedViewList(this.getEffectiveSchema(args))),
       );
 
       for (let i = 0; i < rows.length; ++i) {

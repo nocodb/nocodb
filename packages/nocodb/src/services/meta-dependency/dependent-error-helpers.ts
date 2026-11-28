@@ -28,7 +28,10 @@ import {
   Source,
 } from '~/models';
 import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';
-import { getFormulaColumnRefs } from '~/helpers/formulaHelpers';
+import {
+  FORMULA_TOO_LONG_MARKER,
+  getFormulaColumnRefs,
+} from '~/helpers/formulaHelpers';
 import { invalidateSingleQueryCacheForModels } from '~/helpers/metaCacheInvalidator';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import NocoSocket from '~/socket/NocoSocket';
@@ -781,6 +784,41 @@ export async function clearDownstreamErrors(
   await clearErroredEntries(
     ctx,
     await downstreamOf(ctx, repaired, ncMeta, true),
+    ncMeta,
+    REPAIR_CLEAR,
+  );
+}
+
+/** True if a formula/button in the base stores a too-long error: the repair below is skipped otherwise. */
+export async function hasTooLongFormulaErrors(
+  ctx: NcContext,
+  ncMeta: MetaService = Noco.ncMeta,
+): Promise<boolean> {
+  for (const table of [MetaTable.COL_FORMULA, MetaTable.COL_BUTTON]) {
+    const row = await ncMeta
+      .knex(table)
+      .where('base_id', ctx.base_id)
+      .where('error', 'like', `%${FORMULA_TOO_LONG_MARKER}%`)
+      .first('id');
+    if (row) return true;
+  }
+  return false;
+}
+
+/** Clear the too-long errors downstream of `edited`; a read stores one again if it is still over. */
+export async function clearDownstreamTooLongErrors(
+  ctx: NcContext,
+  edited: Pick<Dependent, 'id' | 'base_id'>,
+  ncMeta: MetaService = Noco.ncMeta,
+) {
+  const entries = await downstreamOf(ctx, edited, ncMeta, true);
+  await clearErroredEntries(
+    ctx,
+    entries.filter((e) =>
+      (e.col.colOptions as { error?: string })?.error?.includes(
+        FORMULA_TOO_LONG_MARKER,
+      ),
+    ),
     ncMeta,
     REPAIR_CLEAR,
   );

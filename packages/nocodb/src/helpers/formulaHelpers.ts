@@ -14,6 +14,9 @@ import Column from '~/models/Column';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
+// In a stored formula error: the SQL is over the length cap, which a referenced field's edit can change.
+export const FORMULA_TOO_LONG_MARKER = 'exceeds the maximum allowed length';
+
 /**
  * Whether a parsed formula references any of `refs` — as a plain `{Field}` or
  * as any hop of a `{Link}.{Field}` path. Function names never match.

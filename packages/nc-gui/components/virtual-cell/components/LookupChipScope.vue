@@ -1,7 +1,7 @@
 <script setup lang="ts">
-defineProps<{ baseId: string }>()
+provide(LookupChipOpensRecordInj, ref(true))
 </script>
 
 <template>
-  <NcSpanHidden />
+  <slot />
 </template>

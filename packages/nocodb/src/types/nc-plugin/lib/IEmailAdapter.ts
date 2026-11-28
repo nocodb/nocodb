@@ -36,6 +36,7 @@ interface XcEmail {
    * configured sender). Used by white-labelling to brand the sender name.
    */
   fromName?: string;
+  replyTo?: string;
   to: string;
   subject: string;
   html?: string;

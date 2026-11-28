@@ -57,8 +57,11 @@ export function useKeyboardNavigation({
   maxSelectionLimit,
   anchorActiveCell,
   hostEl,
+  commentCell,
 }: {
   isGroupBy: ComputedRef<boolean>
+  /** Open the selected cell's comment thread (Alt+M). */
+  commentCell?: (row: Row, column: CanvasGridColumn, path: Array<number>) => void
   activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
   triggerReRender: () => void
   columns: ComputedRef<CanvasGridColumn[]>
@@ -151,6 +154,8 @@ export function useKeyboardNavigation({
     }
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
+    // Alt+R/C/M are grid shortcuts; keep them from reaching cell handlers that start editing on any character.
+    const isAltShortcut = altOrOptionKey && [67, 77, 82].includes(e.keyCode)
 
     let groupPath: Array<number> = []
     let group: CanvasGroup
@@ -196,7 +201,13 @@ export function useKeyboardNavigation({
       }
     }
 
-    if (activeCell.value.row !== -1 && activeCell.value.column !== -1 && selection.value.isSingleCell() && !cmdOrCtrl) {
+    if (
+      activeCell.value.row !== -1 &&
+      activeCell.value.column !== -1 &&
+      selection.value.isSingleCell() &&
+      !cmdOrCtrl &&
+      !isAltShortcut
+    ) {
       const column = columns.value[activeCell.value.column]
       const row = cachedRows.value.get(activeCell.value.row)
       if (row && column?.columnObj && !editEnabled.value) {
@@ -259,6 +270,17 @@ export function useKeyboardNavigation({
           // ALT + C
           addNewColumn()
           break
+        }
+        case 77: {
+          // ALT + M
+          const row = cachedRows.value.get(activeCell.value.row)
+          const column = columns.value[activeCell.value.column]
+          if (commentCell && row && column?.columnObj?.id && selection.value.isSingleCell()) {
+            e.preventDefault()
+            $e('c:shortcut', { key: 'ALT + M' })
+            commentCell(row, column, groupPath)
+          }
+          return
         }
       }
     }

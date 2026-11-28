@@ -27,6 +27,14 @@ const logger = new Logger('CacheMgr');
  */
 const DURABLE_SCOPES = [CacheScope.COLLAB_STATE, CacheScope.LICENSE_ACTIVITY];
 
+// A configured NC_CACHE_PREFIX means the Redis may be shared: flush only this instance's keys.
+export function bootFlushMatch(
+  cachePrefix: string | undefined = process.env.NC_CACHE_PREFIX,
+): string {
+  if (!cachePrefix?.trim()) return '*';
+  return `${cachePrefix.replace(/[*?[\]\\]/g, '\\$&')}:*`;
+}
+
 export default abstract class CacheMgr {
   client: IORedis;
   prefix: string;
@@ -43,13 +51,13 @@ export default abstract class CacheMgr {
    * Costs a full SCAN rather than an O(1) FLUSHDB. Only deployments that flush
    * on boot pay it — Cloud does not flush at all.
    */
-  async flushDisposable(): Promise<void> {
+  async flushDisposable(match = '*'): Promise<void> {
     const doomed: string[] = [];
 
     // Accumulate synchronously: scanStream does not await its `data` handler,
     // so anything async here can lose keys to an early `end`.
     await new Promise<void>((resolve, reject) => {
-      const stream = this.client.scanStream({ match: '*', count: 1000 });
+      const stream = this.client.scanStream({ match, count: 1000 });
       stream.on('data', (keys: string[]) => {
         for (const key of keys) {
           if (!DURABLE_SCOPES.some((scope) => key.includes(`:${scope}:`))) {

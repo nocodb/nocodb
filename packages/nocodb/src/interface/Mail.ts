@@ -74,6 +74,8 @@ enum MailEvent {
   ON_PREM_SUBSCRIPTION_CANCELED = 'ON_PREM_SUBSCRIPTION_CANCELED',
   // HQ roadmap (cloud): status changes, merges, replies and assignments on a followed request.
   ROADMAP_UPDATE = 'ROADMAP_UPDATE',
+  // Seat pricing v2 move (cloud): announce, renewal and switch reminders.
+  SEAT_PRICING_NOTICE = 'SEAT_PRICING_NOTICE',
 }
 
 interface CommentPayload {

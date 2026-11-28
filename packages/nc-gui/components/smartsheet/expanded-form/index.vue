@@ -413,7 +413,7 @@ const save = async () => {
 
     if (!props.skipReload) {
       // The form already holds the saved row, so its own view-data listener skips it
-      const reloadParams = { inPlace: true, skipLoadingRowId: primaryKey.value || undefined }
+      const reloadParams = { inPlace: true, reportRefreshFailure: true, skipLoadingRowId: primaryKey.value || undefined }
       try {
         // The grid provides one hook for both
         if (reloadTrigger !== reloadViewDataTrigger) await reloadTrigger?.trigger(reloadParams)

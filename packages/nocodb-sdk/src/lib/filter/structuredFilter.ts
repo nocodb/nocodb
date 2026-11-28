@@ -20,6 +20,8 @@ import {
 export const STRUCTURED_FILTER_OPERATORS = [
   'eq',
   'neq',
+  'ieq',
+  'nieq',
   'like',
   'nlike',
   'in',

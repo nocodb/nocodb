@@ -213,10 +213,17 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     // narrowing for the realtime gate below.
     const interfacePageDataApi = inject(InterfacePageDataInj, undefined)
 
-    // Server-side search over every visible field: Postgres grid (ungrouped) and gallery views,
-    // unless global search is off on the server. Elsewhere the box searches one field, built
+    // Server-side search over every visible field: Postgres grid and gallery views (grouped or
+    // not), unless global search is off on the server. Elsewhere the box searches one field, built
     // into `xWhere` below. A plan without global search gets it too, read live up to its own
     // record limit (`plan_limit` past that). CE reads text fields live on any database.
+    //
+    // Shared views and interface pages stay out deliberately, not for lack of
+    // backend support: the server already applies the search to their group
+    // queries. Anonymous shared-view traffic would spend the per-base search
+    // slots (NC_SEARCH_MAX_CONCURRENT) that members share, and an interface
+    // page's viewer scope is an ephemeral per-viewer narrowing that the search
+    // predicate would have to AND with correctly. Both need their own design.
     const isAllFieldsSearchSupported = computed(
       () =>
         (!isEeUI || (!!appInfo.value.globalSearchEnabled && baseStore.isPg((meta.value as TableType)?.source_id))) &&

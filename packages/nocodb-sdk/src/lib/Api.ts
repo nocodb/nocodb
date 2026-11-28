@@ -723,6 +723,11 @@ export interface CommentCreateRequestV3Type {
    * @example This is a comment
    */
   comment: string;
+  /**
+   * Field the comment is about. Omit to comment on the whole record.
+   * @example cl_8iw2o4ejzvdyna
+   */
+  field_id?: string;
 }
 
 /**
@@ -764,6 +769,11 @@ export interface CommentV3Type {
    * @example null
    */
   parent_comment_id?: string | null;
+  /**
+   * Field the comment is about (null when it is about the whole record).
+   * @example null
+   */
+  field_id?: string | null;
   /**
    * Creation timestamp.
    * @format date-time
@@ -6217,6 +6227,11 @@ export interface CommentReqType {
    * @example cmt043cx4r30343ff
    */
   parent_comment_id?: string;
+  /**
+   * Field the comment is about. Omit for a comment on the whole record; replies take their thread's field.
+   * @example cl_8iw2o4ejzvdyna
+   */
+  fk_column_id?: string | null;
 }
 
 /**
@@ -6259,6 +6274,7 @@ export interface FilterType {
     | 'ge'
     | 'gt'
     | 'gte'
+    | 'ieq'
     | 'in'
     | 'is'
     | 'isWithin'
@@ -6271,6 +6287,7 @@ export interface FilterType {
     | 'nanyof'
     | 'nbtw'
     | 'neq'
+    | 'nieq'
     | 'nlike'
     | 'not'
     | 'notblank'
@@ -6290,6 +6307,7 @@ export interface FilterType {
         | 'ge'
         | 'gt'
         | 'gte'
+        | 'ieq'
         | 'in'
         | 'is'
         | 'isWithin'
@@ -6302,6 +6320,7 @@ export interface FilterType {
         | 'nanyof'
         | 'nbtw'
         | 'neq'
+        | 'nieq'
         | 'nlike'
         | 'not'
         | 'notblank'
@@ -6448,6 +6467,7 @@ export interface FilterReqType {
     | 'ge'
     | 'gt'
     | 'gte'
+    | 'ieq'
     | 'in'
     | 'is'
     | 'isWithin'
@@ -6460,6 +6480,7 @@ export interface FilterReqType {
     | 'nanyof'
     | 'nbtw'
     | 'neq'
+    | 'nieq'
     | 'nlike'
     | 'not'
     | 'notblank'
@@ -6479,6 +6500,7 @@ export interface FilterReqType {
         | 'ge'
         | 'gt'
         | 'gte'
+        | 'ieq'
         | 'in'
         | 'is'
         | 'isWithin'
@@ -6491,6 +6513,7 @@ export interface FilterReqType {
         | 'nanyof'
         | 'nbtw'
         | 'neq'
+        | 'nieq'
         | 'nlike'
         | 'not'
         | 'notblank'
@@ -9159,6 +9182,11 @@ export interface CommentType {
    * @example cmt043cx4r30343ff
    */
   parent_comment_id?: IdType;
+  /**
+   * Field the comment is about; null = the whole record
+   * @example cl_8iw2o4ejzvdyna
+   */
+  fk_column_id?: string | null;
   /**
    * Source ID
    * @example src0Adp9PMG9o7uJy
@@ -13256,6 +13284,8 @@ export class Api<
           comparison_op:
             | 'eq'
             | 'neq'
+            | 'ieq'
+            | 'nieq'
             | 'gt'
             | 'gte'
             | 'lt'

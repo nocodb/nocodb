@@ -8,6 +8,7 @@ import {
   UITypes,
   type ViewType,
 } from 'nocodb-sdk'
+import axios from 'axios'
 import { createGroupUniqueIdentifier, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import { mergeRefetchedGroups } from '../components/smartsheet/grid/canvas/utils/groupRefresh'
 import { GROUP_CHUNK_SIZE } from '../components/smartsheet/grid/canvas/utils/constants'
@@ -38,7 +39,7 @@ export const useInfiniteGroups = (
   const { $api } = useNuxtApp()
   const { getMeta, getPartialMeta, metas } = useMetas()
   const { appInfo } = useGlobal()
-  const { nestedFilters, sorts } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, sorts, searchQueryParams } = useSmartsheetStoreOrThrow()
   const { fetchBulkAggregatedData, sharedView } = useSharedView()
   const router = useRouter()
   const isPublic = inject(IsPublicInj, ref(false))
@@ -51,7 +52,27 @@ export const useInfiniteGroups = (
    */
   const interfaceDataApi = inject(InterfacePageDataInj, undefined)
 
+  const { syncSearchedRowCount, searchOperation, handleSearchError } = useSearchedRowCount(view, meta, where, {
+    get isPublic() {
+      return isPublic.value
+    },
+    get hasInterfaceDataApi() {
+      return !!interfaceDataApi
+    },
+    appendHideEmptyWhere,
+  })
+
   const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
+
+  function fetchGroupByData(query: Record<string, any>) {
+    if (query.search) return searchOperation('dataGroupBy', query)
+    return $api.dbViewRow.groupBy('noco', base.value.id!, view.value!.fk_model_id!, view.value!.id!, query as any)
+  }
+
+  function fetchGroupByCountData(query: Record<string, any>) {
+    if (query.search) return searchOperation('dataGroupByCount', query)
+    return $api.dbViewRow.groupByCount('noco', base.value.id!, view.value!.fk_model_id!, view.value!.id!, query as any)
+  }
 
   const columnsById = computed(() => {
     if (!meta.value?.columns?.length) return {}
@@ -75,7 +96,7 @@ export const useInfiniteGroups = (
 
   // Every level must be non-blank, or a parent counts rows its hidden (Empty) sub-groups hold.
   // Checkbox is skipped: blank groups as Unchecked, so it has no empty group to hide.
-  const appendHideEmptyWhere = (existingWhere?: string) => {
+  function appendHideEmptyWhere(existingWhere?: string) {
     if (!hideEmptyGroups?.value) return existingWhere
     const hideFilter = groupByColumns.value
       .filter((g) => g?.column?.title && g.column.uidt !== UITypes.Checkbox)
@@ -216,11 +237,12 @@ export const useInfiniteGroups = (
                   },
                 },
               )
-            : await $api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+            : await fetchGroupByData({
                 offset,
                 limit: GROUP_CHUNK_SIZE,
                 where: effectiveWhere,
-                sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
+                ...searchQueryParams.value,
+                sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}`,
                 column_name: groupCol.column.title,
                 sortArrJson: JSON.stringify(sorts.value),
                 filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...nestedGrpWhereArr]),
@@ -228,7 +250,8 @@ export const useInfiniteGroups = (
               })
           break
         } catch (err) {
-          if (attempt === GROUPBY_MAX_RETRIES) throw err
+          // A superseded or rate-limited search isn't retried: that only adds to the load.
+          if (attempt === GROUPBY_MAX_RETRIES || axios.isCancel(err) || searchLimitKind(err)) throw err
           await new Promise((resolve) => setTimeout(resolve, GROUPBY_RETRY_DELAY_MS))
         }
       }
@@ -431,7 +454,12 @@ export const useInfiniteGroups = (
         targetChunkStates[chunkId] = 'loaded'
       }
     } catch (error) {
-      console.error(`Error fetching group chunk at level ${level}:`, error)
+      // Superseded by a newer term, whose refresh asks for the chunk again.
+      if (axios.isCancel(error)) {
+        targetChunkStates[chunkId] = undefined
+        return
+      }
+      if (!handleSearchError(error)) console.error(`Error fetching group chunk at level ${level}:`, error)
       const nextCount = (chunkFailureCounts.get(chunkKey) ?? 0) + 1
       chunkFailureCounts.set(chunkKey, nextCount)
       targetChunkStates[chunkId] = nextCount >= CANVAS_MAX_CHUNK_FETCH_ATTEMPTS ? 'failed' : undefined
@@ -676,10 +704,14 @@ export const useInfiniteGroups = (
                 },
               },
             )
-          : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
+          : await fetchGroupByCountData({
               where: effectiveWhere,
+              ...searchQueryParams.value,
               column_name: groupCol.column.title,
             })
+
+        // Not awaited: first paint shouldn't wait on it, and its failure isn't a load failure.
+        syncSearchedRowCount().catch((e) => console.error('Failed to sync searched row count', e))
       } else {
         const groupCol = groupByColumns.value?.[group.nestedIn.length]
 
@@ -714,17 +746,23 @@ export const useInfiniteGroups = (
                 },
               },
             )
-          : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
+          : await fetchGroupByCountData({
               where: effectiveWhere,
+              ...searchQueryParams.value,
               column_name: groupCol.column.title,
               filterArrJson: JSON.stringify(groupFilterArr),
             })
       }
     } catch (e: any) {
+      // Superseded by a newer term: its count is already stale.
+      if (axios.isCancel(e)) return
+
+      const isSearchLimit = handleSearchError(e)
+
       // Interface page deleted mid-flight — see useInfiniteData.syncCount.
       const isStaleInterfacePage = !!interfaceDataApi && e?.response?.status === 404
 
-      if (showToastMessage && !isStaleInterfacePage) {
+      if (showToastMessage && !isStaleInterfacePage && !isSearchLimit) {
         const errorMessage = await extractSdkResponseErrorMsg(e)
         message.error(`Failed to sync count: ${errorMessage}`)
       }
@@ -820,6 +858,8 @@ export const useInfiniteGroups = (
                 viewId: view.value!.id,
                 baseId: meta.value!.base_id!,
                 aggregation,
+                // bulk-aggregate reads `search` from the top-level args, not per bucket.
+                ...searchQueryParams.value,
                 filterArrJson: JSON.stringify(nestedFilters.value),
               },
               aggregationParams,
@@ -1042,6 +1082,7 @@ export const useInfiniteGroups = (
     syncCount,
     fetchMissingGroupChunks,
     refreshLoadedGroups,
+    syncSearchedRowCount,
     invalidateGroupAggregations,
     clearGroupCache,
     toggleExpand,

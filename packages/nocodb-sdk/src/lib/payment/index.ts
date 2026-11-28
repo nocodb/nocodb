@@ -2,6 +2,8 @@ export enum PlanLimitTypes {
   LIMIT_FREE_WORKSPACE = 'limit_free_workspace',
   LIMIT_EDITOR = 'limit_editor',
   LIMIT_COMMENTER = 'limit_commenter',
+  LIMIT_APP_SEAT = 'limit_app_seat',
+  LIMIT_FREE_APP_SEAT = 'limit_free_app_seat',
 
   LIMIT_API_PER_SECOND = 'limit_api_per_second',
   LIMIT_AI_TOKEN = 'limit_ai_token',
@@ -255,6 +257,28 @@ export enum PlanPriceLookupKeys {
   SCALE_YEARLY = 'scale_yearly',
 }
 
+export enum V2PlanPriceLookupKeys {
+  PLUS_MONTHLY = 'v2_plus_monthly',
+  PLUS_YEARLY = 'v2_plus_yearly',
+  BUSINESS_MONTHLY = 'v2_business_monthly',
+  BUSINESS_YEARLY = 'v2_business_yearly',
+  SCALE_MONTHLY = 'v2_scale_monthly',
+  SCALE_YEARLY = 'v2_scale_yearly',
+}
+
+export enum AppSeatPriceLookupKeys {
+  PLUS_MONTHLY = 'plus_app_seat_monthly',
+  PLUS_YEARLY = 'plus_app_seat_yearly',
+  BUSINESS_MONTHLY = 'business_app_seat_monthly',
+  BUSINESS_YEARLY = 'business_app_seat_yearly',
+  SCALE_MONTHLY = 'scale_app_seat_monthly',
+  SCALE_YEARLY = 'scale_app_seat_yearly',
+  ENTERPRISE_YEARLY = 'private_enterprise_app_seat_yearly',
+}
+
+export const SEAT_MODEL_METADATA_KEY = 'nc_seat_model';
+export const SEAT_TYPE_METADATA_KEY = 'nc_seat_type';
+
 export const LoyaltyPriceLookupKeyMap = {
   [PlanPriceLookupKeys.PLUS_MONTHLY]: 'loyalty_plus_monthly',
   [PlanPriceLookupKeys.PLUS_YEARLY]: 'loyalty_plus_yearly',
@@ -407,21 +431,102 @@ export const LegacySeatPriceCap: Partial<Record<PlanTitles, number>> = {
 export const getSeatPriceCap = (title?: PlanTitles | string): number | null =>
   LegacySeatPriceCap[title as PlanTitles] ?? null;
 
+export type SeatModel = 'legacy' | 'v2';
+export type SeatType = 'full' | 'app' | 'free';
+
+export const SEAT_PRICING_V2_CUTOFF = '2027-03-01T00:00:00.000Z';
+
+export type SeatPricingNoticeKind =
+  | 'announce'
+  | 'renewal_reminder'
+  | 'switch_reminder';
+
+export interface SeatPricingNotice {
+  switch_at: string;
+  plan_title: string;
+  period: 'month' | 'year';
+  current_monthly_cents: number;
+  new_monthly_cents: number;
+  delta_monthly_cents: number;
+  variant: 'increase' | 'info';
+  docs_url: string;
+}
+export const APP_SEAT_BUNDLE_SIZE = 3;
+
+const SEAT_PLAN_SLUGS: Record<string, string> = {
+  [PlanTitles.PLUS]: 'plus',
+  [PlanTitles.BUSINESS]: 'business',
+  [PlanTitles.SCALE]: 'scale',
+};
+
+export function seatPriceLookupKeys(
+  title: PlanTitles | string,
+  period: 'month' | 'year',
+  model: SeatModel
+): { base: string; appBundle: string | null } | null {
+  const slug = SEAT_PLAN_SLUGS[title];
+  if (!slug) return null;
+  const suffix = period === 'year' ? 'yearly' : 'monthly';
+  return model === 'v2'
+    ? { base: `v2_${slug}_${suffix}`, appBundle: `${slug}_app_seat_${suffix}` }
+    : { base: `${slug}_${suffix}`, appBundle: null };
+}
+
+type PlanLimitMeta = Partial<Record<PlanLimitTypes, number>>;
+
 // Final chargeable seats: floor at the plan minimum, then cap only if the
-// plan still carries a legacy cap. Uncapped plans charge every seat.
+// plan still carries a legacy cap (v2 has no cap). Uncapped plans charge every seat.
 export const getChargeableSeats = (
   title: PlanTitles | string,
-  rawSeats: number | undefined
+  rawSeats: number | undefined,
+  model: SeatModel = 'legacy'
 ): number => {
   const seats = Math.max(rawSeats ?? 0, getMinSeats(title));
-  const cap = getSeatPriceCap(title);
+  const cap = model === 'v2' ? null : getSeatPriceCap(title);
   return cap == null ? seats : Math.min(seats, cap);
 };
 
+export const getBillableAppSeats = (
+  planMeta: PlanLimitMeta | undefined,
+  rawAppSeats: number
+): number => {
+  const free = planMeta?.[PlanLimitTypes.LIMIT_FREE_APP_SEAT] ?? 0;
+  if (free === -1) return 0;
+  return Math.max(rawAppSeats - free, 0);
+};
+
+export const getAppSeatBundles = (billableAppSeats: number): number =>
+  Math.ceil(billableAppSeats / APP_SEAT_BUNDLE_SIZE);
+
+export const isAppSeatCapExceeded = (
+  planMeta: PlanLimitMeta | undefined,
+  rawAppSeats: number
+): boolean => {
+  const cap = planMeta?.[PlanLimitTypes.LIMIT_APP_SEAT] ?? -1;
+  return cap !== -1 && rawAppSeats > cap;
+};
+
+export interface SeatCountResponse {
+  count: number;
+  app_seat_count: number;
+  billable_app_seat_count: number | null;
+  app_seat_bundles: number | null;
+  free_app_seats: number | null;
+  app_seat_cap: number | null;
+  seat_model: SeatModel;
+  change_seat_model: SeatModel;
+  // What Stripe bills this period; set only while paid seats are reserved until renewal (v2).
+  paid_seat_count: number | null;
+  paid_app_bundles: number | null;
+  renews_at: string | null;
+}
+
 export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 'to add more workspaces.',
-  [PlanLimitTypes.LIMIT_EDITOR]: 'to add more editors.',
-  [PlanLimitTypes.LIMIT_COMMENTER]: 'to add more commenters.',
+  [PlanLimitTypes.LIMIT_EDITOR]: 'to add more workspace seats.',
+  [PlanLimitTypes.LIMIT_COMMENTER]: 'to add more read-only users.',
+  [PlanLimitTypes.LIMIT_APP_SEAT]: 'to add more app seats.',
+  [PlanLimitTypes.LIMIT_FREE_APP_SEAT]: 'to get more free app seats.',
   [PlanLimitTypes.LIMIT_API_PER_SECOND]:
     'due to reaching the API per second limit.',
   [PlanLimitTypes.LIMIT_AI_TOKEN]: 'due to reaching the AI token usage limit.',
@@ -738,6 +843,19 @@ export const isChargeableStripeCustomer = (
   stripeCustomerId?: string | null
 ): boolean =>
   !!stripeCustomerId && stripeCustomerId !== INTERNAL_STRIPE_CUSTOMER_ID;
+
+/** One AI App a workspace member or team is in, with the app teams that put them there. */
+export interface WorkspaceUserAppRef {
+  app_id: string;
+  base_id: string;
+  /** The app's own title, or its base's when it has none. */
+  title: string;
+  teams: {
+    id: string;
+    title: string;
+    via_team?: { id: string; title: string };
+  }[];
+}
 
 // Last, so CJS builds define the enums above before licenseTelemetry (which imports them) runs.
 export * from './licenseTelemetry';

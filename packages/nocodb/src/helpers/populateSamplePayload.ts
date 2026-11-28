@@ -535,6 +535,8 @@ export async function populateSampleCommentPayload(
       updated_at: now,
     },
     parent_comment_id: null,
+    // A cell comment names its field; a comment on the whole record sends null.
+    field: pvColumn ? { id: pvColumn.id, title: pvColumn.title } : null,
     record: {
       id: 1,
       display_value: displayValue,

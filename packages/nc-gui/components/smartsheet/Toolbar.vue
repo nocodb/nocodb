@@ -7,6 +7,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const isSearchInTopbar = inject(SearchInTopbarInj, ref(false))
+
 const activeView = inject(ActiveViewInj, ref())
 
 const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters, isTimeline } =
@@ -187,7 +189,7 @@ function triggerToolbarControl(selector: string) {
       <SmartsheetToolbarCalendarActiveView v-if="isCalendar" />
 
       <SmartsheetToolbarSearchData
-        v-if="isGrid || isGallery || isKanban || isList"
+        v-if="(isGrid || isGallery || isKanban || isList) && !isSearchInTopbar"
         v-model:search-expanded="isSearchExpanded"
         :class="isMobileSearchActive ? 'flex-1 min-w-0' : 'shrink'"
       />

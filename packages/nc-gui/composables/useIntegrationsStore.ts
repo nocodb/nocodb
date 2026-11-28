@@ -426,6 +426,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
     try {
       const integrationWithConfig = await getIntegration(integration, { includeConfig: true })
+      // getIntegration already toasted the failure
+      if (!integrationWithConfig) return
+
       activeIntegration.value = integrationWithConfig
 
       const integrationItem = allIntegrations.find(
@@ -449,7 +452,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       pageMode.value = IntegrationsPageMode.EDIT
 
       $e('c:integration:edit')
-    } catch {}
+    } catch (e) {
+      await message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   const saveIntegrationRequest = async (msg: string) => {

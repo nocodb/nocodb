@@ -23,6 +23,8 @@ interface NodeGroup {
   /** Real step title when `nodeTitle` is a display label. */
   stepTitle?: string
   variables: VariableDefinition[]
+  /** `$vars`, not a step: completed through its `$vars.` members instead. */
+  isBaseVariables?: boolean
 }
 
 interface Props {
@@ -276,7 +278,7 @@ function stepCompletions(partial: string, from: number): CompletionResult {
     from,
     filter: false,
     options: props.groupedVariables
-      .filter((group) => group.nodeTitle.toLowerCase().includes(partial.toLowerCase()))
+      .filter((group) => !group.isBaseVariables && group.nodeTitle.toLowerCase().includes(partial.toLowerCase()))
       .map((group) => ({
         label: group.nodeTitle,
         apply: `$('${group.stepTitle ?? group.nodeTitle}')`,

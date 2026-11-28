@@ -12,7 +12,12 @@ import type { FilterOperationResult } from './field-handler/field-handler.interf
 import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { BarcodeColumn, QrCodeColumn, RollupColumn } from '~/models';
+import type {
+  BarcodeColumn,
+  FormulaColumn,
+  QrCodeColumn,
+  RollupColumn,
+} from '~/models';
 import { Column, Model } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
@@ -22,7 +27,11 @@ import {
   getAliasedSoftDeleteFilter,
   getColumnName,
 } from '~/helpers/dbHelpers';
-import { rawFromBuilder, sanitize } from '~/helpers/sqlSanitize';
+import {
+  escapeSafeLiteral,
+  rawFromBuilder,
+  sanitize,
+} from '~/helpers/sqlSanitize';
 import {
   isLinkedRecordColumn,
   resolveLinkedRecordDynamicFilter,
@@ -48,6 +57,7 @@ import {
   ncLikePatternForRef,
   ncSplitFilterValue,
   ncTextFilterValue,
+  ncWhereEqualsIgnoreCase,
 } from '~/db/field-handler/utils/handlerUtils';
 
 export default async function conditionV2(
@@ -282,12 +292,21 @@ const BLANK_MATCHING_OPS = new Set<string>([
   'empty',
   'notchecked',
   'neq',
+  'nieq',
   'not',
   'nlike',
   'nallof',
   'nanyof',
   'isnot',
   'nbtw',
+]);
+
+// Legacy-path types that take `ieq` / `nieq` (plus text Formula / Rollup).
+const IGNORE_CASE_EQ_LEGACY_UIDTS = new Set<UITypes>([
+  UITypes.SingleLineText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
 ]);
 
 // Text types an app action's caller-supplied eq/neq may compare ignoring case.
@@ -593,32 +612,19 @@ const parseConditionV2 = async (
       const field = alias
         ? `${alias}.${column.column_name}`
         : column.column_name;
-      // `::text` lets a native pg enum (SingleSelect) take LOWER; an Oracle
-      // LongText is a CLOB, which `=` cannot compare, so it is compared as
-      // CLOBs (a VARCHAR2 cut overflows on multibyte text and matches prefixes).
-      const isOracleClob =
+      // an Oracle LongText is a CLOB, which `=` cannot compare
+      const isClob =
         knex.clientType() === 'oracledb' && column.uidt === UITypes.LongText;
-      const eqSql = isOracleClob
-        ? 'DBMS_LOB.COMPARE(LOWER(??), LOWER(TO_CLOB(?))) = 0'
-        : knex.clientType() === 'pg'
-        ? 'LOWER(??::text) = LOWER(?)'
-        : 'LOWER(??) = LOWER(?)';
-      const neqSql = isOracleClob
-        ? 'DBMS_LOB.COMPARE(LOWER(??), LOWER(TO_CLOB(?))) <> 0'
-        : knex.clientType() === 'pg'
-        ? 'LOWER(??::text) <> LOWER(?)'
-        : 'LOWER(??) <> LOWER(?)';
       const value = filter.value;
-      const isEq = filter.comparison_op === 'eq';
+      const negate = filter.comparison_op === 'neq';
       return {
         rootApply: undefined,
         clause: (qb: Knex.QueryBuilder) => {
-          qb.where((nestedQb) => {
-            if (isEq) {
-              nestedQb.whereRaw(eqSql, [field, value]);
-            } else {
-              nestedQb.whereRaw(neqSql, [field, value]).orWhereNull(field);
-            }
+          ncWhereEqualsIgnoreCase(knex, qb, {
+            field,
+            val: value,
+            negate,
+            isClob,
           });
         },
       };
@@ -780,6 +786,21 @@ const parseConditionV2 = async (
           colOptions: await column.getColOptions<RollupColumn>(),
         }) === UITypes.SingleLineText;
 
+      const isIgnoreCaseEq =
+        filter.comparison_op === 'ieq' || filter.comparison_op === 'nieq';
+      if (
+        isIgnoreCaseEq &&
+        !(
+          IGNORE_CASE_EQ_LEGACY_UIDTS.has(column.uidt) ||
+          isTextRollup ||
+          (column.uidt === UITypes.Formula &&
+            (await column.getColOptions<FormulaColumn>())?.getParsedTree()
+              ?.dataType === FormulaDataTypes.STRING)
+        )
+      ) {
+        NcError.get(context).unsupportedFilterOperation(filter.comparison_op);
+      }
+
       return {
         rootApply: undefined,
         clause: (qb: Knex.QueryBuilder) => {
@@ -807,7 +828,7 @@ const parseConditionV2 = async (
           }
 
           switch (filter.comparison_op) {
-            case 'eq':
+            case 'eq': {
               // Date/DateTime/CreatedTime/LastModifiedTime + Formula-with-
               // DateTime-equivalent (when customWhereClause is set) all
               // route through FieldHandler above. MySQL's `column.ct` date
@@ -815,17 +836,32 @@ const parseConditionV2 = async (
               //   - MySQL string columns → BINARY for case-sensitive compare
               //   - Rollup / Links with customWhereClause → plain eq
               //   - Everything else → generic plain eq
-              if (
-                knex.clientType() === 'mysql2' ||
-                knex.clientType() === 'mysql'
-              ) {
-                if (
+              const isMysqlClient =
+                knex.clientType() === 'mysql2' || knex.clientType() === 'mysql';
+              // mysql compares strings case-insensitively; BINARY keeps `eq`
+              // case-sensitive, as the binding form below does
+              const binaryEq =
+                isMysqlClient &&
+                !(
                   [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
                   !isTextRollup
-                ) {
+                );
+              // A value holding `\` before `?` loses the backslash to the
+              // escape round-trip in execAndParse, comparing as the escaped
+              // form — inline it as `?`-free SQL instead (#10249).
+              const literal = escapeSafeLiteral(knex, val);
+              if (literal) {
+                qb = qb.where(
+                  knex.raw(`${binaryEq ? 'BINARY ' : ''}?? = ${literal}`, [
+                    field,
+                  ]),
+                );
+                break;
+              }
+              if (isMysqlClient) {
+                if (!binaryEq) {
                   qb = qb.where(field, val);
                 } else {
-                  // mysql is case-insensitive for strings, turn to case-sensitive
                   qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
                 }
               } else if (knex.clientType() === 'oracledb') {
@@ -839,6 +875,7 @@ const parseConditionV2 = async (
                 qb = qb.where(field, val);
               }
               break;
+            }
             case 'neq':
             case 'not':
               // JSON / Rating / Number / Decimal / Percent / User /
@@ -874,6 +911,20 @@ const parseConditionV2 = async (
                     nestedQb.orWhereNull(customWhereClause ? _val : _field);
                 });
               }
+              break;
+            case 'ieq':
+            case 'nieq':
+              // on the computed-column pass `val` is the expression and
+              // `genVal` the literal
+              ncWhereEqualsIgnoreCase(knex, qb, {
+                field: customWhereClause
+                  ? knex.clientType() === 'oracledb'
+                    ? oracleNarrowFormulaClobForCompare(knex, column, val)
+                    : val
+                  : field,
+                val: customWhereClause ? genVal : val,
+                negate: filter.comparison_op === 'nieq',
+              });
               break;
             case 'like':
               // JSON / Attachment route to FieldHandler above. The two operand

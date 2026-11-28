@@ -73,6 +73,8 @@ export class UiGetOperations
     'commentList' as const,
     'commentCount' as const,
     'dataList' as const,
+    'dataGroupBy' as const,
+    'dataGroupByCount' as const,
     'linkDataList' as const,
     'syncSourceList' as const,
     'extensionList' as const,
@@ -265,6 +267,22 @@ export class UiGetOperations
           includeSortAndFilterColumns:
             req.query.includeSortAndFilterColumns === 'true',
           user: req.user,
+        });
+      case 'dataGroupBy':
+        context.cache = true;
+        return await this.dataTableService.dataGroupBy(context, {
+          query: req.query,
+          modelId: req.query.tableId as string,
+          viewId: req.query.viewId as string,
+          baseId: req.query.baseId as string,
+        });
+      case 'dataGroupByCount':
+        context.cache = true;
+        return await this.dataTableService.dataGroupByCount(context, {
+          query: req.query,
+          modelId: req.query.tableId as string,
+          viewId: req.query.viewId as string,
+          baseId: req.query.baseId as string,
         });
       case 'linkDataList':
         context.cache = true;

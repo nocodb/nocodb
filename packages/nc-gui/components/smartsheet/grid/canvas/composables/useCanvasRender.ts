@@ -1289,6 +1289,63 @@ export function useCanvasRender({
     ctx.fill()
   }
 
+  interface CellCommentMark {
+    x: number
+    y: number
+    width: number
+    height: number
+    row: Row
+    rowIdx: number
+    colIdx: number
+    column: CanvasGridColumn
+    count: number
+    path: Array<number>
+  }
+
+  // Cells drawn this frame that carry open comment threads (hit-tested on hover/click).
+  const cellCommentMarks: CellCommentMark[] = []
+
+  const CELL_COMMENT_MARK_SIZE = 8
+  // Larger than the triangle so it is easy to hit
+  const CELL_COMMENT_HIT_SIZE = 14
+
+  // Corner triangle on a cell with open comment threads. An unsaved-offline mark wins the corner.
+  function renderCellCommentMark(
+    ctx: CanvasRenderingContext2D,
+    mark: Omit<CellCommentMark, 'width' | 'height'> & { cellWidth: number; cellHeight: number },
+  ) {
+    const { x, y, cellWidth, cellHeight, column, row } = mark
+    // Threads don't open on phones, so no marker either (the row badge hides there too)
+    if (isMobileMode.value) return
+    // Hidden under the frozen columns
+    if (!column.fixed && x + cellWidth - CELL_COMMENT_HIT_SIZE < fixedColsWidth.value) return
+
+    cellCommentMarks.push({ ...mark, width: cellWidth, height: cellHeight })
+
+    if (row.rowMeta?.unsavedOffline?.[column.title!]) return
+
+    const size = CELL_COMMENT_MARK_SIZE
+    ctx.fillStyle = getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'])
+    ctx.beginPath()
+    ctx.moveTo(x + cellWidth - size, y + 1)
+    ctx.lineTo(x + cellWidth - 1, y + 1)
+    ctx.lineTo(x + cellWidth - 1, y + size)
+    ctx.closePath()
+    ctx.fill()
+  }
+
+  /** The commented cell whose corner is under (x, y) — frozen cells win over scrolled ones. */
+  function findCellCommentMarkAt(x: number, y: number) {
+    for (let i = cellCommentMarks.length - 1; i >= 0; i--) {
+      const mark = cellCommentMarks[i]!
+      const right = mark.x + mark.width
+      if (x <= right && x >= right - CELL_COMMENT_HIT_SIZE && y >= mark.y && y <= mark.y + CELL_COMMENT_HIT_SIZE) {
+        return mark
+      }
+    }
+    return undefined
+  }
+
   const renderRowMeta = (
     ctx: CanvasRenderingContext2D,
     row: Row,
@@ -2209,6 +2266,22 @@ export function useCanvasRender({
           renderUnsavedOfflineMark(ctx, xOffset - _scrollLeft, yOffset, width)
         }
 
+        const cellCommentCount = column.columnObj?.id ? row.rowMeta?.cellCommentCounts?.[column.columnObj.id] : 0
+        if (cellCommentCount) {
+          renderCellCommentMark(ctx, {
+            x: xOffset - _scrollLeft,
+            y: yOffset,
+            cellWidth: width,
+            cellHeight: _rowH,
+            row,
+            rowIdx,
+            colIdx: absoluteColIdx,
+            column,
+            count: cellCommentCount,
+            path: groupPath ?? [],
+          })
+        }
+
         xOffset += width
       })
 
@@ -2343,6 +2416,22 @@ export function useCanvasRender({
 
             if (row.rowMeta?.unsavedOffline?.[column.title]) {
               renderUnsavedOfflineMark(ctx, xOffset, yOffset, width)
+            }
+
+            const fixedCellCommentCount = column.columnObj?.id ? row.rowMeta?.cellCommentCounts?.[column.columnObj.id] : 0
+            if (fixedCellCommentCount) {
+              renderCellCommentMark(ctx, {
+                x: xOffset,
+                y: yOffset,
+                cellWidth: width,
+                cellHeight: _rowH,
+                row,
+                rowIdx,
+                colIdx,
+                column,
+                count: fixedCellCommentCount,
+                path: groupPath ?? [],
+              })
             }
           }
 
@@ -4565,6 +4654,7 @@ export function useCanvasRender({
       elementMap.clear()
       remoteFocusBoxes.length = 0
       remoteRecordMarks.length = 0
+      cellCommentMarks.length = 0
       let postRenderCbk
 
       const _headerRowHeight = headerRowHeight.value
@@ -4644,5 +4734,6 @@ export function useCanvasRender({
     renderCanvas,
     colResizeHoveredColIds,
     findRemoteRecordMarkAt,
+    findCellCommentMarkAt,
   }
 }

@@ -470,7 +470,7 @@ export async function populatePk(
   model: Model,
   insertObj: any,
 ) {
-  await model.getColumns();
+  await model.getCachedColumns();
   for (const pkCol of model.primaryKeys) {
     if (!pkCol.meta?.ag || insertObj[pkCol.title]) continue;
     insertObj[pkCol.title] =

@@ -63,6 +63,17 @@ export function isDateType(uidt: UITypes) {
   ].includes(uidt);
 }
 
+// Text types that offer `ieq` / `nieq` (case-insensitive equality). A filter
+// keys a string formula as Formula; other formulas resolve to their result type.
+export const CASE_INSENSITIVE_EQ_UITYPES = [
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
+  UITypes.Formula,
+];
+
 const getEqText = (fieldUiType: UITypes): ComparisonOpLabel => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return { text: '=' };
@@ -276,6 +287,26 @@ export const comparisonOpList = (
     semanticType: 'inequality',
     typeSpecificSemantic: (fieldUiType) =>
       getTypeSpecificSemantic('inequality', fieldUiType),
+  },
+  {
+    text: 'is equal (ignore case)',
+    i18nKey: 'filterOperation.isEqualIgnoreCase',
+    value: 'ieq',
+    ignoreVal: false,
+    includedTypes: CASE_INSENSITIVE_EQ_UITYPES,
+    semanticType: 'equality_ignore_case',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('equality_ignore_case', fieldUiType),
+  },
+  {
+    text: 'is not equal (ignore case)',
+    i18nKey: 'filterOperation.isNotEqualIgnoreCase',
+    value: 'nieq',
+    ignoreVal: false,
+    includedTypes: CASE_INSENSITIVE_EQ_UITYPES,
+    semanticType: 'inequality_ignore_case',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('inequality_ignore_case', fieldUiType),
   },
   {
     ...getLikeText(fieldUiType),
@@ -932,7 +963,7 @@ export const getPlaceholderNewRow = (
     if (eachFilter.is_group) continue;
 
     if (
-      ['checked', 'notchecked', 'allof', 'eq'].includes(
+      ['checked', 'notchecked', 'allof', 'eq', 'ieq'].includes(
         eachFilter.comparison_op as any
       )
     ) {

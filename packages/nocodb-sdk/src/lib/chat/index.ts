@@ -821,6 +821,18 @@ export const isBuildScope = (value: unknown): value is BuildScope =>
   typeof value === 'string' &&
   (BUILD_SCOPES as readonly string[]).includes(value);
 
+/**
+ * What a message on the app screen changes: the open app, or the base under it.
+ * Without it the router guesses, and "make me a dashboard" builds a base dashboard.
+ */
+export const CHAT_TARGETS = ['app', 'base'] as const;
+
+export type ChatTarget = (typeof CHAT_TARGETS)[number];
+
+export const isChatTarget = (value: unknown): value is ChatTarget =>
+  typeof value === 'string' &&
+  (CHAT_TARGETS as readonly string[]).includes(value);
+
 /** UI navigation context sent with each chat message. */
 export interface ChatUIContext {
   tableId?: string;
@@ -832,6 +844,8 @@ export interface ChatUIContext {
   /** The app whose canvas the user is currently viewing — biases build-turn routing. */
   appId?: string;
   appTitle?: string;
+  /** Set on the app screen by its scope chip; `app` holds build requests to `appId`. */
+  target?: ChatTarget;
   /** The interface open in the UI, and the page of it the user is on. */
   interfaceId?: string;
   interfacePageId?: string;

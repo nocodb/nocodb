@@ -21,10 +21,11 @@ import {
   ncLikeEscapeClause,
   ncLikePatternForRef,
   ncSplitFilterValue,
+  ncWhereEqualsIgnoreCase,
   unsupportedFilter,
 } from '~/db/field-handler/utils/handlerUtils';
 import { getAs, getColumnName } from '~/helpers/dbHelpers';
-import { sanitize } from '~/helpers/sqlSanitize';
+import { escapeSafeLiteral, sanitize } from '~/helpers/sqlSanitize';
 
 // Empty-string comparisons (`= ''` / `!= ''`) only make sense for text-like
 // columns. Numeric / date / time columns can't be compared to '' — PG raises a
@@ -48,6 +49,16 @@ const isEmptyStringIncompatible = (uidt: UITypes): boolean =>
 // IS NULL / IS NOT NULL.
 const emptyStringIsNull = (knex: CustomKnex): boolean =>
   knex?.clientType?.() === 'oracledb';
+
+// Field types `ieq` / `nieq` compare; other types reject them.
+const IGNORE_CASE_EQ_UIDTS: UITypes[] = [
+  UITypes.SingleLineText,
+  UITypes.LongText,
+  UITypes.Email,
+  UITypes.URL,
+  UITypes.PhoneNumber,
+  UITypes.SingleSelect,
+];
 
 export class GenericFieldHandler
   implements FieldHandlerInterface, FilterOperationHandlers
@@ -137,6 +148,14 @@ export class GenericFieldHandler
 
       case 'not':
         filterOperation = this.filterNot;
+        break;
+
+      case 'ieq':
+        filterOperation = this.filterIeq;
+        break;
+
+      case 'nieq':
+        filterOperation = this.filterNieq;
         break;
 
       case 'like':
@@ -266,7 +285,14 @@ export class GenericFieldHandler
             nestedQb.whereNull(sourceField as any);
           });
         } else {
-          qb.where(knex.raw('?? = ?', [sourceField, val]));
+          // `\` before `?` in a value is eaten by the escape round-trip in
+          // execAndParse — inline such a value as `?`-free SQL (#10249).
+          const literal = escapeSafeLiteral(knex, val);
+          qb.where(
+            literal
+              ? knex.raw(`?? = ${literal}`, [sourceField])
+              : knex.raw('?? = ?', [sourceField, val]),
+          );
         }
       },
     };
@@ -312,6 +338,73 @@ export class GenericFieldHandler
               .orWhereNull(sourceField as any);
           });
         }
+      },
+    };
+  }
+
+  async filterIeq(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    options: FilterOptions,
+  ) {
+    return this.equalsIgnoreCase(args, rootArgs, options, false);
+  }
+
+  async filterNieq(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    options: FilterOptions,
+  ) {
+    return this.equalsIgnoreCase(args, rootArgs, options, true);
+  }
+
+  protected async equalsIgnoreCase(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    options: FilterOptions,
+    negate: boolean,
+  ): Promise<FilterOperationResult> {
+    const { val, sourceField } = args;
+    const { knex, column } = rootArgs;
+    if (!IGNORE_CASE_EQ_UIDTS.includes(column?.uidt as UITypes)) {
+      return unsupportedFilter(args, rootArgs, options);
+    }
+    // an AI Prompt field arrives as a JSON-extract expression, not the CLOB
+    const isClob =
+      knex.clientType() === 'oracledb' &&
+      column.uidt === UITypes.LongText &&
+      typeof sourceField === 'string';
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        ncWhereEqualsIgnoreCase(knex, qb, {
+          field: sourceField,
+          val,
+          negate,
+          isClob,
+        });
       },
     };
   }

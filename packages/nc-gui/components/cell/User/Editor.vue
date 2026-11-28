@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
-import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type UserFieldRecordType, type UserType } from 'nocodb-sdk'
 import { extractUserKeys, getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -85,6 +85,10 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isPublic = inject(IsPublicInj, ref(false))
+
+const isInterfaceUi = useIsInterfaceUi()
+
 const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi: boolean; notify: boolean })?.is_multi)
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
@@ -153,6 +157,31 @@ const optionsMap = computed(() => {
 const hasEditRoles = computed(() => isUIAllowed('dataEdit'))
 
 const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && active.value)
+
+// Inviting is a collaborator action: never from forms, filters, field settings, public or interface pages.
+const canInvite = computed(
+  () =>
+    !!meta.value?.base_id &&
+    hasEditRoles.value &&
+    !readOnly.value &&
+    !isForm.value &&
+    !isInFilter.value &&
+    !isEditColumn.value &&
+    !isPublic.value &&
+    !isInterfaceUi.value &&
+    isUIAllowed('userInvite'),
+)
+
+// Mounted at app level: the cell editor can unmount while the dialog is open.
+const InviteDlg = resolveComponent('CellUserInviteDlg')
+
+// Bumped to remount (close) the hover card once its invite dialog opens.
+const noAccessCardKey = ref(0)
+
+const searchedEmail = computed(() => {
+  const value = searchVal.value?.trim() ?? ''
+  return validateEmail(value) ? value : ''
+})
 
 const vModel = computed({
   get: () => {
@@ -331,6 +360,41 @@ const filterOption = (input: string, option: any): boolean => {
   if (!opt) return false
 
   return searchCompare([opt.display_name, opt.email], input)
+}
+
+function openInviteDlg(email = '', addToRecord = false) {
+  const baseId = meta.value?.base_id
+  if (!baseId) return
+
+  isOpen.value = false
+  noAccessCardKey.value++
+
+  const isDlgOpen = ref(true)
+
+  const { close } = useDialog(InviteDlg, {
+    'modelValue': isDlgOpen,
+    'onUpdate:modelValue': () => {
+      isDlgOpen.value = false
+      close(1000)
+    },
+    baseId,
+    email,
+    addToRecord,
+    'onInvited': (users: UserType[]) => {
+      if (addToRecord) addUsersToRecord(users)
+    },
+  })
+}
+
+function addUsersToRecord(users: UserType[]) {
+  const ids = users.map((user) => user.id).filter((id): id is string => !!id)
+  if (!ids.length) return
+
+  if (isMultiple.value) {
+    emit('update:modelValue', [...new Set([...extractUserKeys(modelValue), ...ids])].join(','))
+  } else {
+    emit('update:modelValue', ids[0])
+  }
 }
 
 // check if user is part of the base
@@ -523,6 +587,21 @@ onMounted(() => {
       <template #notFoundContent>
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noUsersFound')" class="!my-0" />
       </template>
+      <template v-if="canInvite" #dropdownRender="{ menuNode: menu }">
+        <component :is="menu" />
+        <NcDivider class="!my-1" />
+        <!-- mousedown.prevent keeps the select open until the click lands -->
+        <div
+          v-e="['c:base:invite:cell:open', { source: 'picker' }]"
+          class="nc-user-select-invite-btn mx-1 mb-1 px-2 py-2 flex items-center gap-2 rounded-md cursor-pointer text-bodyDefaultSm text-nc-content-gray-subtle hover:bg-nc-bg-gray-light"
+          data-testid="nc-user-cell-invite-new-user"
+          @mousedown.prevent
+          @click.stop="openInviteDlg(searchedEmail, true)"
+        >
+          <GeneralIcon icon="ncUserPlus" class="flex-none h-4 w-4" />
+          <span class="truncate">{{ $t('activity.inviteNewUser') }}</span>
+        </div>
+      </template>
       <template v-for="op of options" :key="op.id || op.email">
         <a-select-option
           v-if="!op.deleted"
@@ -597,56 +676,75 @@ onMounted(() => {
       </template>
 
       <template #tagRender="{ label, value: val, onClose }">
-        <a-tag
+        <NcTooltip
           v-if="options.find((el) => el.id === val)"
-          class="rounded-tag nc-selected-option !pl-0"
-          :class="{
-            '!my-0': !rowHeight || rowHeight === 1,
-          }"
-          :style="{ display: 'flex', alignItems: 'center' }"
-          :color="
-            val === CURRENT_USER_TOKEN ? themeV4Colors.brand[50] : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
-          "
-          :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
-          :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
-          @click="onTagClick($event, onClose)"
-          @close="onClose"
+          :key="`${val}-${noAccessCardKey}`"
+          :disabled="isCollaborator(val) || val === CURRENT_USER_TOKEN || isInFilter || isEditColumn || isPublic"
+          color="light"
+          placement="top"
+          :arrow="false"
+          overlay-class-name="nc-user-no-access-tooltip"
+          class="flex"
         >
-          <span
-            :style="{
-              color: getSelectTypeOptionTextColor(getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'), getColor),
+          <template #title>
+            <CellUserNoAccessCard
+              :user="optionsMap[val] ?? { email: label }"
+              :can-invite="canInvite"
+              @invite="openInviteDlg(optionsMap[val]?.email ?? '', false)"
+            />
+          </template>
+          <a-tag
+            class="rounded-tag nc-selected-option !pl-0"
+            :class="{
+              '!my-0': !rowHeight || rowHeight === 1,
             }"
-            class="flex items-stretch gap-2"
-            :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
+            :style="{ display: 'flex', alignItems: 'center' }"
+            :color="
+              val === CURRENT_USER_TOKEN
+                ? themeV4Colors.brand[50]
+                : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
+            "
+            :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
+            :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
+            @click="onTagClick($event, onClose)"
+            @close="onClose"
           >
-            <div>
-              <GeneralUserIcon
-                size="auto"
-                :user="{
-                  display_name: !label?.includes('@') ? label.trim() : '',
-                  email: label,
-                  meta: options.find((el) => el.id === val)?.meta,
-                }"
-                class="!text-[0.5rem] !h-[16.8px]"
-                :class="{
-                  '!bg-nc-bg-default': val === CURRENT_USER_TOKEN,
-                }"
-                :is-deleted="!isCollaborator(val)"
-                :disabled="!isCollaborator(val)"
-                :show-placeholder-icon="val === CURRENT_USER_TOKEN"
-              />
-            </div>
             <span
-              :class="{
-                'text-nc-content-gray-muted': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
-                'text-nc-content-brand': val === CURRENT_USER_TOKEN,
-                'font-600': isInFilter || isEditColumn,
+              :style="{
+                color: getSelectTypeOptionTextColor(getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'), getColor),
               }"
+              class="flex items-stretch gap-2"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
-              {{ tagLabel(val, label) }}
+              <div>
+                <GeneralUserIcon
+                  size="auto"
+                  :user="{
+                    display_name: !label?.includes('@') ? label.trim() : '',
+                    email: label,
+                    meta: options.find((el) => el.id === val)?.meta,
+                  }"
+                  class="!text-[0.5rem] !h-[16.8px]"
+                  :class="{
+                    '!bg-nc-bg-default': val === CURRENT_USER_TOKEN,
+                  }"
+                  :is-deleted="!isCollaborator(val)"
+                  :disabled="!isCollaborator(val)"
+                  :show-placeholder-icon="val === CURRENT_USER_TOKEN"
+                />
+              </div>
+              <span
+                :class="{
+                  'text-nc-content-gray-muted': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
+                  'text-nc-content-brand': val === CURRENT_USER_TOKEN,
+                  'font-600': isInFilter || isEditColumn,
+                }"
+              >
+                {{ tagLabel(val, label) }}
+              </span>
             </span>
-          </span>
-        </a-tag>
+          </a-tag>
+        </NcTooltip>
       </template>
     </a-select>
   </div>
@@ -726,6 +824,12 @@ onMounted(() => {
 </style>
 
 <style lang="scss">
+.nc-user-no-access-tooltip {
+  .ant-tooltip-inner {
+    @apply !p-0 !rounded-lg !bg-nc-bg-default border-1 border-nc-border-gray-medium shadow-lg;
+  }
+}
+
 .ant-select-dropdown.nc-dropdown-user-select-cell {
   .ant-select-item-option-content {
     @apply w-full;

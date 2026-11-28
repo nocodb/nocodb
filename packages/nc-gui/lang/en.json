@@ -7401,6 +7401,8 @@
     "teamsAdded": "Teams added successfully",
     "enterEmail": "Enter emails, comma separated",
     "inviteToBase": "Invite to Project",
+    "inviteNewUser": "Invite a new user",
+    "inviteAndAddToRecord": "Invite and add to record",
     "invitePeople": "Invite people",
     "inviteCollaborators": "Invite collaborators",
     "shareToWeb": "Share to web",

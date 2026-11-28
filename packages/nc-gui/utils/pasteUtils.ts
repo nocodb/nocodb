@@ -5,10 +5,13 @@ import {
   getRollupFormulaTextColumn,
   handleTZ,
   isLinksOrLTAR,
+  ncIsArray,
+  ncIsObject,
+  ncIsString,
   parseProp,
   renderValue,
 } from 'nocodb-sdk'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType, UserFieldRecordType } from 'nocodb-sdk'
 
 /**
  * Whether one value may be pasted down a range of a link column. Belongs-to and many-to-many
@@ -83,6 +86,43 @@ export const formatFormulaUrlForClipboard = (
   return { html: anchor.outerHTML, plain }
 }
 
+const USER_UIDTS = [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy]
+
+/**
+ * Removed members come back as a bare id; fill their email from the column's user map
+ * (canvas grid sets it, resolved users included) so a copy can be pasted back.
+ */
+export const fillRemovedUserDetails = (
+  value: unknown,
+  columnObj: ColumnType & { extra?: { optionsMap?: Record<string, UserFieldRecordType> } },
+) => {
+  const optionsMap = columnObj.extra?.optionsMap
+  if (!optionsMap || !USER_UIDTS.includes(columnObj.uidt as UITypes)) return value
+
+  let users = value
+  if (ncIsString(users)) {
+    try {
+      users = JSON.parse(users)
+    } catch {
+      return value
+    }
+  }
+
+  if (!ncIsArray(users) && !ncIsObject(users)) return value
+
+  const fill = (user: unknown) => {
+    if (!ncIsObject(user)) return user
+
+    const { id, email, display_name } = user as UserFieldRecordType
+    const known = !email && id ? optionsMap[id] : undefined
+    if (!known?.email) return user
+
+    return { ...user, email: known.email, display_name: display_name ?? known.display_name }
+  }
+
+  return ncIsArray(users) ? users.map(fill) : fill(users)
+}
+
 export const valueToCopy = (
   rowObj: Row,
   columnObj: ColumnType,
@@ -125,7 +165,7 @@ export const valueToCopy = (
     clipboardContent: {},
   }
 
-  const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) ?? ''
+  const textToCopy = fillRemovedUserDetails((columnObj.title && rowObj.row[columnObj.title]) ?? '', columnObj)
 
   result.textToCopy = textToCopy
   result.cellValue = textToCopy

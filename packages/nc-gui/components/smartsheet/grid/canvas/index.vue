@@ -3908,6 +3908,8 @@ onClickOutside(
       // Interface builder: interacting with a field's config pane must not
       // count as an outside-click deselect (it would close the pane mid-edit).
       '.nc-interface-properties-panel',
+      // User cell hover card ("Invite to project") lives outside the grid.
+      '.nc-user-no-access-tooltip',
     ],
   },
 )

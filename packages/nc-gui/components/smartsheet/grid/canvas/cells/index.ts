@@ -53,7 +53,7 @@ import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
 import { getLinkTargetGridViewId } from '~/utils/linkViewUtils'
-import { AISelectCellRenderer } from './AISelect'
+import { FieldAgentCellRenderer } from './FieldAgentCell'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -379,7 +379,12 @@ export function useGridCellHandler(params: {
     const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
 
     // Skip "Updating ..." overlay for AI-driven columns — they show their own loading state
-    if (actionManager?.isCellUpdating(pk, column.id!) && !isAIPromptCol(column) && !isButton(column) && !isFieldAgentCol(column)) {
+    if (
+      actionManager?.isCellUpdating(pk, column.id!) &&
+      !isAIPromptCol(column) &&
+      !isButton(column) &&
+      !isFieldAgentCol(column)
+    ) {
       return renderSingleLineText(ctx, {
         x: x + padding,
         y,
@@ -394,7 +399,7 @@ export function useGridCellHandler(params: {
 
     // Field agent columns: show "Run Agent" button for empty cells + "Running..." for loading cells
     if (isFieldAgentCol(column) && (actionManager?.isLoading(pk, column.id!) || !isValidValue(value))) {
-      return AISelectCellRenderer.render(ctx, {
+      return FieldAgentCellRenderer.render(ctx, {
         x,
         y,
         width,
@@ -586,10 +591,13 @@ export function useGridCellHandler(params: {
       getColor,
     }
 
-    // Field Agent: delegate to AISelectCellRenderer for empty cells (button click)
+    // Field Agent: delegate to FieldAgentCellRenderer for empty cells (button click)
     // and for any loading cells (prevents normal cell interaction during generation)
-    if (isFieldAgentCol(ctx.column.columnObj) && (!isValidValue(ctx.value) || actionManager?.isLoading(ctx.pk, ctx.column.columnObj.id!))) {
-      return await AISelectCellRenderer.handleClick!(clickProps)
+    if (
+      isFieldAgentCol(ctx.column.columnObj) &&
+      (!isValidValue(ctx.value) || actionManager?.isLoading(ctx.pk, ctx.column.columnObj.id!))
+    ) {
+      return await FieldAgentCellRenderer.handleClick!(clickProps)
     }
 
     if (cellHandler?.handleClick) {
@@ -617,11 +625,7 @@ export function useGridCellHandler(params: {
     canvasCellEvents.event = ctx.e
 
     // Field Agent: Enter key on an empty field-agent cell triggers AI generation
-    if (
-      ctx.e.key === 'Enter' &&
-      isFieldAgentCol(ctx.column.columnObj!) &&
-      !isValidValue(ctx.value)
-    ) {
+    if (ctx.e.key === 'Enter' && isFieldAgentCol(ctx.column.columnObj!) && !isValidValue(ctx.value)) {
       actionManager.executeButtonAction([ctx.pk], ctx.column, { row: [ctx.row], isAiPromptCol: true, path: ctx.path ?? [] })
       return true
     }

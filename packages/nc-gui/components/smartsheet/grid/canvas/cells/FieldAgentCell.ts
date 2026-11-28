@@ -176,6 +176,8 @@ const renderFieldAgentButton = (
   ctx.font = BUTTON_FONT
   ctx.fillStyle = contentColor
   ctx.textBaseline = 'middle'
+  // Neighbouring renderers (e.g. Number) leave textAlign = 'right' behind
+  ctx.textAlign = 'left'
   ctx.fillText(dims.truncatedLabel, contentX, bounds.y + dims.buttonHeight / 2)
 
   if (disabled) {
@@ -192,7 +194,7 @@ const renderFieldAgentButton = (
   }
 }
 
-export const AISelectCellRenderer: CellRenderer = {
+export const FieldAgentCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props) => {
     const { x, y, width, disabled, mousePosition, actionManager, pk, column, setCursor, readonly, getColor } = props
 

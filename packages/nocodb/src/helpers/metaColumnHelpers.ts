@@ -1,4 +1,4 @@
-import type { Column, Model, Source } from '~/models';
+import type { Column, Model } from '~/models';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type { NcContext } from '~/interface/config';
@@ -21,10 +21,9 @@ export function prepareAgentRunAtStampQuery(_: {
   return;
 }
 
-export async function ensureMetaColumn(
+export async function resolveMetaColumn(
   _context: NcContext,
   _model: Model,
-  _source: Source,
 ): Promise<Column | null> {
   return null;
 }

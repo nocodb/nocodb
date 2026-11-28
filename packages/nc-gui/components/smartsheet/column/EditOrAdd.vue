@@ -489,12 +489,8 @@ const isAgentMode = computed(
     parseProp(formState.value.meta)?.[SelectFieldAgentMetaProp]?.enabled === true,
 )
 
-// Which options row the agent panel shows: none for text types, whose options conflict with an agent
-const agentOptionsKind = computed<'format' | 'options' | null>(() => {
-  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(formState.value.uidt)) return 'options'
-  if ([UITypes.Number, UITypes.Decimal, UITypes.Percent, UITypes.Currency].includes(formState.value.uidt)) return 'format'
-  return null
-})
+// Whether the agent panel shows an Options / Format row for this type
+const hasAgentOptions = computed(() => !!getFieldAgentOptionsKind(formState.value.uidt))
 
 function onAgentTypeChange(uidt: UITypes) {
   const agent = parseProp(formState.value.meta)?.[SelectFieldAgentMetaProp] ?? {}
@@ -1434,8 +1430,8 @@ const unique = computed({
 
       <!-- Agent mode groups these rows on one rhythm; otherwise the wrapper is layout-transparent -->
       <div :class="isAgentMode ? 'flex flex-col gap-2' : 'contents'">
-        <SmartsheetColumnOptionsFlyout :enabled="isAgentMode && !!agentOptionsKind" :value="formState">
-          <template v-if="!readOnly && formState.uidt && (!isAgentMode || agentOptionsKind)">
+        <SmartsheetColumnOptionsFlyout :enabled="isAgentMode && hasAgentOptions" :value="formState">
+          <template v-if="!readOnly && formState.uidt && (!isAgentMode || hasAgentOptions)">
             <SmartsheetColumnFormulaOptions
               v-if="formState.uidt === UITypes.Formula"
               v-model:value="formState"

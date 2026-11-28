@@ -16,7 +16,7 @@ const { t } = useI18n()
 
 const isOpen = ref(false)
 
-const isSelect = computed(() => [UITypes.SingleSelect, UITypes.MultiSelect].includes(props.value.uidt as UITypes))
+const isSelect = computed(() => getFieldAgentOptionsKind(props.value.uidt) === 'options')
 
 const title = computed(() => (isSelect.value ? t('general.options') : t('general.format')))
 

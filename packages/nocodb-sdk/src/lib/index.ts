@@ -168,3 +168,4 @@ export * from '~/lib/skill';
 export * from '~/lib/inviteLink';
 export * from '~/lib/abuseReport';
 export * from '~/lib/templateCard';
+export * from '~/lib/fieldAgent';

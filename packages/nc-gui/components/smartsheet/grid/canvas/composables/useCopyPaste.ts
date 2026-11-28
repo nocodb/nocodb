@@ -441,9 +441,13 @@ export function useCopyPaste({
         // This ensures that empty cells from numeric fields don't appear as "null" text
         clipboardMatrix = clipboardMatrix.map((row) => row.map((cell) => (cell === 'null' ? '' : cell)))
 
+        // Interface pages write the paste as one request, capped by the server
+        const maxRows = interfaceDataApi?.bulkUpsertRows
+          ? Math.min(MAX_ROWS, appInfo.value.ncGridMaxSelectionLimit || 1000)
+          : MAX_ROWS
         let isTruncated = false
-        if (clipboardMatrix.length > MAX_ROWS) {
-          clipboardMatrix = clipboardMatrix.slice(0, MAX_ROWS)
+        if (clipboardMatrix.length > maxRows) {
+          clipboardMatrix = clipboardMatrix.slice(0, maxRows)
           isTruncated = true
         }
 
@@ -828,7 +832,7 @@ export function useCopyPaste({
         if (refreshAfterPaste) reloadViewDataHook?.trigger({ inPlace: true })
 
         if (isTruncated) {
-          message.warning(t('tooltip.pasteOperationLimitedToMaxRows', { max: MAX_ROWS }))
+          message.warning(t('tooltip.pasteOperationLimitedToMaxRows', { max: maxRows }))
         }
       } else {
         if (selection.value.isSingleCell()) {

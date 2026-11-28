@@ -149,6 +149,7 @@ export const OperationName = {
   interfaceRecordDelete: 'interfaceRecordDelete',
   interfaceRecordBulkDelete: 'interfaceRecordBulkDelete',
   interfaceRecordBulkUpdate: 'interfaceRecordBulkUpdate',
+  interfaceRecordBulkUpsert: 'interfaceRecordBulkUpsert',
   interfaceRecordLinkAdd: 'interfaceRecordLinkAdd',
   interfaceRecordLinkRemove: 'interfaceRecordLinkRemove',
   interfaceRecordLinkSwap: 'interfaceRecordLinkSwap',

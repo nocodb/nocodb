@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
-import { CURRENT_USER_TOKEN, type UserFieldRecordType, type UserType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
 import { extractUserKeys, getOptions, getSelectedUsers, getSystemUserFilterOptions } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -380,14 +380,21 @@ function openInviteDlg(email = '', addToRecord = false) {
     baseId,
     email,
     addToRecord,
-    'onInvited': (users: UserType[]) => {
-      if (addToRecord) addUsersToRecord(users)
+    'onInvited': async (emails: string[]) => {
+      // Refresh first: it turns invited chips active and resolves new emails to ids.
+      await basesStore.getBaseUsers({ baseId, force: true })
+      if (addToRecord) addUsersToRecord(baseId, emails)
     },
   })
 }
 
-function addUsersToRecord(users: UserType[]) {
-  const ids = users.map((user) => user.id).filter((id): id is string => !!id)
+function addUsersToRecord(baseId: string, emails: string[]) {
+  const byEmail = new Map(
+    (basesUser.value.get(baseId) || []).filter((user) => user.email).map((user) => [user.email!.toLowerCase(), user]),
+  )
+
+  // Invite order, so a single-user cell keeps the last one invited.
+  const ids = emails.map((email) => byEmail.get(email.trim().toLowerCase())?.id).filter((id): id is string => !!id)
   if (!ids.length) return
 
   if (isMultiple.value) {

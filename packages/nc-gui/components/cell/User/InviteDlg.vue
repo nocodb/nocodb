@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { UserType } from 'nocodb-sdk'
-
 interface Props {
   modelValue: boolean
   baseId: string
@@ -13,7 +11,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
-  (e: 'invited', users: UserType[]): void
+  (e: 'invited', emails: string[]): void
 }>()
 
 const { t } = useI18n()
@@ -30,20 +28,9 @@ const emails = computed(() => (props.email ? [props.email] : undefined))
 
 const submitLabel = computed(() => (props.addToRecord ? t('activity.inviteAndAddToRecord') : t('activity.inviteToBase')))
 
-async function onSuccess(invitedEmails: string[]) {
-  if (!invitedEmails?.length) return
-
-  await basesStore.getBaseUsers({ baseId: props.baseId, force: true })
-
-  const byEmail = new Map(
-    (basesUser.value.get(props.baseId) || []).filter((user) => user.email).map((user) => [user.email!.toLowerCase(), user]),
-  )
-
-  // Invite order, so a single-user cell keeps the last one invited.
-  emit(
-    'invited',
-    invitedEmails.map((email) => byEmail.get(email.trim().toLowerCase())).filter((user): user is UserType => !!user),
-  )
+// Sync: the form closes right after `success`, and the dialog unmounts soon after.
+function onSuccess(invitedEmails: string[]) {
+  if (invitedEmails?.length) emit('invited', invitedEmails)
 }
 </script>
 

@@ -1,56 +1,106 @@
 import { defaultOffscreen2DContext, isBoxHovered, renderSpinner, truncateText } from '../utils/canvas'
-import { getButtonColors } from '~/utils/buttonUtils'
+import { getI18n } from '~/plugins/a.i18n'
 
-const BUTTON_LABEL = 'Run Agent'
-const BUTTON_LABEL_LOADING = 'Running...'
+/** Resolved per call — the i18n plugin is not ready at module evaluation time. */
+const buttonLabel = (isLoading?: boolean) => {
+  const { t } = getI18n().global
+
+  return isLoading ? t('general.generating') : t('labels.fieldAgent.runAgent')
+}
+
+const BUTTON_FONT = '500 12px Inter'
 
 const getFieldAgentButtonDimensions = ({
   ctx,
   width,
-  label = BUTTON_LABEL,
-  hasIcon,
+  label = buttonLabel(),
 }: {
   ctx?: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
   width: number
   label?: string
-  hasIcon?: boolean
 }) => {
   if (!ctx) {
     ctx = defaultOffscreen2DContext
   }
 
-  const horizontalPadding = 12
+  const horizontalPadding = 8
   const buttonHeight = 24
-  const buttonMinWidth = 32
-  const iconSize = 14
+  const iconSize = 12
   const iconSpacing = 6
-  const maxButtonWidth = width - 8
+  const maxButtonWidth = width
 
-  let contentWidth = 0
-
-  ctx.font = '500 13px Inter'
-  const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
+  ctx.font = BUTTON_FONT
+  const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - iconSize - iconSpacing
   const truncatedInfo = truncateText(ctx, label, maxTextWidth, true)
-  const truncatedLabel = truncatedInfo.text
-  const labelWidth = truncatedInfo.width
-  contentWidth += labelWidth
 
-  if (hasIcon) {
-    contentWidth += iconSize
-    contentWidth += iconSpacing
-  }
-
-  const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
+  const contentWidth = iconSize + iconSpacing + truncatedInfo.width
+  const buttonWidth = Math.min(maxButtonWidth, contentWidth + horizontalPadding * 2)
 
   return {
     buttonWidth,
     buttonHeight,
     contentWidth,
-    truncatedLabel,
+    truncatedLabel: truncatedInfo.text,
     iconSize,
     iconSpacing,
     horizontalPadding,
   }
+}
+
+/**
+ * Where the Run Agent button sits inside a cell. Both the renderer and the click
+ * handler go through this, so the hit box can never drift from what is drawn —
+ * the label width feeds into it, and the label changes while running.
+ */
+const getFieldAgentButtonBounds = ({
+  ctx,
+  x,
+  y,
+  width,
+  isLoading,
+}: {
+  ctx?: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
+  x: number
+  y: number
+  width: number
+  isLoading?: boolean
+}) => {
+  // Left-aligned so the icon lines up with text in neighbouring cells
+  const inset = 4
+
+  const dims = getFieldAgentButtonDimensions({
+    ctx,
+    width: width - inset * 2,
+    label: buttonLabel(isLoading),
+  })
+
+  return {
+    x: x + inset,
+    y: y + 4,
+    width: dims.buttonWidth,
+    height: dims.buttonHeight,
+    dims,
+  }
+}
+
+/** Solid play triangle, drawn directly — the sprite's play icons are outline-only. */
+const renderPlayIcon = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) => {
+  const w = size * 0.75
+  const left = x + (size - w) / 2
+
+  ctx.save()
+  ctx.fillStyle = color
+  ctx.strokeStyle = color
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.moveTo(left, y + 1)
+  ctx.lineTo(left + w, y + size / 2)
+  ctx.lineTo(left, y + size - 1)
+  ctx.closePath()
+  ctx.fill()
+  ctx.stroke()
+  ctx.restore()
 }
 
 const renderFieldAgentButton = (
@@ -61,11 +111,9 @@ const renderFieldAgentButton = (
     width,
     disabled,
     mousePosition,
-    spriteLoader,
     loadingStartTime,
     isLoading,
     setCursor,
-    isDark,
     getColor,
   }: {
     x: number
@@ -74,74 +122,61 @@ const renderFieldAgentButton = (
     isLoading?: boolean
     disabled?: boolean
     mousePosition?: { x: number; y: number }
-    spriteLoader?: any
     loadingStartTime?: number
     setCursor: SetCursorType
-    isDark?: boolean
-    getColor?: GetColorType
+    getColor: GetColorType
   },
 ) => {
-  const dims = getFieldAgentButtonDimensions({
-    ctx,
-    width,
-    hasIcon: true,
-    label: isLoading ? BUTTON_LABEL_LOADING : BUTTON_LABEL,
-  })
-  const startX = x + (width - dims.buttonWidth) / 2
-  const startY = y + 4
+  const bounds = getFieldAgentButtonBounds({ ctx, x, y, width, isLoading })
+  const { dims } = bounds
 
   disabled = disabled || isLoading
 
-  const isHovered =
-    !disabled &&
-    mousePosition &&
-    mousePosition.x >= startX &&
-    mousePosition.x <= startX + dims.buttonWidth &&
-    mousePosition.y >= startY &&
-    mousePosition.y <= startY + dims.buttonHeight
+  const isHovered = !disabled && !!mousePosition && isBoxHovered(bounds, mousePosition)
 
   if (isHovered) setCursor('pointer')
 
-  ctx.font = '500 13px Inter'
+  // Hover: white raised card, AI-purple content (nc-content-purple-dark)
+  const contentColor = isHovered ? getColor(themeV4Colors.purple['700']) : getColor(themeV4Colors.gray['800'])
 
   if (disabled) {
     ctx.globalAlpha = 0.5
   }
 
-  const colors = isDark
-    ? {
-        background: isHovered && !disabled ? 'rgba(125, 38, 205, 0.15)' : 'transparent',
-        text: disabled ? '#6A7184' : '#B583E0',
-        loader: '#B583E0',
-      }
-    : getButtonColors('light', 'purple', !!isHovered, !!disabled, getColor!)
+  // Plain text at rest; a raised card on hover
+  if (isHovered) {
+    ctx.save()
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)'
+    ctx.shadowBlur = 3
+    ctx.shadowOffsetY = 1
+    ctx.beginPath()
+    ctx.roundRect(bounds.x, bounds.y, bounds.width, bounds.height, 6)
+    ctx.fillStyle = getColor(themeV4Colors.base.white)
+    ctx.fill()
+    ctx.restore()
 
-  // Draw button background
-  ctx.beginPath()
-  ctx.roundRect(startX, startY, dims.buttonWidth, dims.buttonHeight, 6)
-  ctx.fillStyle = colors.background
-  ctx.fill()
-
-  let contentX = startX + (dims.buttonWidth - dims.contentWidth) / 2
-  const contentY = startY + (dims.buttonHeight - dims.iconSize) / 2
-
-  if (isLoading && loadingStartTime) {
-    renderSpinner(ctx, contentX, contentY, dims.iconSize, colors.loader, loadingStartTime, 1.5)
-    contentX += dims.iconSize + dims.iconSpacing
-  } else if (spriteLoader) {
-    spriteLoader.renderIcon(ctx, {
-      icon: 'ncAutoAwesome',
-      size: dims.iconSize,
-      x: contentX,
-      y: contentY,
-      color: colors.text,
-    })
-    contentX += dims.iconSize + dims.iconSpacing
+    ctx.beginPath()
+    ctx.roundRect(bounds.x + 0.5, bounds.y + 0.5, bounds.width - 1, bounds.height - 1, 6)
+    ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
+    ctx.lineWidth = 1
+    ctx.stroke()
   }
 
-  ctx.fillStyle = colors.text
+  let contentX = bounds.x + dims.horizontalPadding
+  const iconY = bounds.y + (dims.buttonHeight - dims.iconSize) / 2
+
+  if (isLoading && loadingStartTime) {
+    renderSpinner(ctx, contentX, iconY, dims.iconSize, contentColor, loadingStartTime, 1.5)
+  } else {
+    const glyph = dims.iconSize - 2
+    renderPlayIcon(ctx, contentX + 1, iconY + 1, glyph, contentColor)
+  }
+  contentX += dims.iconSize + dims.iconSpacing
+
+  ctx.font = BUTTON_FONT
+  ctx.fillStyle = contentColor
   ctx.textBaseline = 'middle'
-  ctx.fillText(dims.truncatedLabel, contentX, startY + 13)
+  ctx.fillText(dims.truncatedLabel, contentX, bounds.y + dims.buttonHeight / 2)
 
   if (disabled) {
     ctx.globalAlpha = 1
@@ -149,39 +184,34 @@ const renderFieldAgentButton = (
 
   return {
     buttonBounds: {
-      x: startX,
-      y: startY,
-      width: dims.buttonWidth,
-      height: dims.buttonHeight,
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
     },
   }
 }
 
 export const AISelectCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props) => {
-    const { x, y, width, spriteLoader, disabled, mousePosition, actionManager, pk, column, setCursor, readonly, isDark, getColor } = props
+    const { x, y, width, disabled, mousePosition, actionManager, pk, column, setCursor, readonly, getColor } = props
 
-    const horizontalPadding = 12
     const isReadonlyCol = !!(readonly || column.readonly)
 
     const buttonDisabled = disabled?.isInvalid || isReadonlyCol
-
-    const btnWidth = width - horizontalPadding * 2
 
     const isLoading = actionManager.isLoading(pk, column.id!)
     const startTime = actionManager.getLoadingStartTime(pk, column.id!)
 
     const { buttonBounds } = renderFieldAgentButton(ctx, {
-      x: x + (width - btnWidth) / 2,
+      x,
       y,
-      width: btnWidth,
+      width,
       disabled: buttonDisabled,
       mousePosition,
-      spriteLoader,
       isLoading,
       loadingStartTime: startTime!,
       setCursor,
-      isDark,
       getColor,
     })
 
@@ -202,19 +232,17 @@ export const AISelectCellRenderer: CellRenderer = {
     const isReadOnlyCol = !!(column.readonly || column.columnObj?.readonly)
     if (isReadOnlyCol) return true
 
-    const { buttonWidth } = getFieldAgentButtonDimensions({
+    const buttonBounds = getFieldAgentButtonBounds({
+      x,
+      y,
       width,
-      hasIcon: true,
+      isLoading: actionManager.isLoading(pk, column.id),
     })
 
-    const buttonBounds = {
-      x: x + (width - buttonWidth) / 2,
-      y: y + 4,
-      width: buttonWidth,
-      height: 24,
-    }
-
     if (isBoxHovered(buttonBounds, mousePosition)) {
+      // Gated users would otherwise click a button that silently does nothing
+      if (actionManager.showFieldAgentUpgradeIfBlocked()) return true
+
       await actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
       return true
     }
@@ -226,7 +254,9 @@ export const AISelectCellRenderer: CellRenderer = {
     if (column.readonly || column?.columnObj?.readonly) return false
 
     if (e.key === 'Enter') {
-      actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
+      if (actionManager.showFieldAgentUpgradeIfBlocked()) return true
+
+      await actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
       return true
     }
 

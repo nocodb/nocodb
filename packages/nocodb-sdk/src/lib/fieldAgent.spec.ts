@@ -6,6 +6,7 @@ import UITypes, {
 describe('FIELD_AGENT_SUPPORTED_TYPES', () => {
   it('contains exactly the expected types', () => {
     expect(FIELD_AGENT_SUPPORTED_TYPES).toEqual([
+      UITypes.LongText,
       UITypes.SingleSelect,
       UITypes.MultiSelect,
       UITypes.SingleLineText,
@@ -17,14 +18,23 @@ describe('FIELD_AGENT_SUPPORTED_TYPES', () => {
     ]);
   });
 
-  it('has length 8', () => {
-    expect(FIELD_AGENT_SUPPORTED_TYPES).toHaveLength(8);
+  it('has length 9', () => {
+    expect(FIELD_AGENT_SUPPORTED_TYPES).toHaveLength(9);
   });
 });
 
 describe('isFieldAgentCol', () => {
   const enabledMeta = { field_agent: { enabled: true } };
   const disabledMeta = { field_agent: { enabled: false } };
+
+  it('treats a Long text agent as an agent, distinct from an AI Text column', () => {
+    expect(
+      isFieldAgentCol({ uidt: UITypes.LongText, meta: enabledMeta } as any),
+    ).toBe(true);
+    expect(
+      isFieldAgentCol({ uidt: UITypes.LongText, meta: { ai: true } } as any),
+    ).toBe(false);
+  });
 
   it('returns false for unsupported UIType even with enabled meta', () => {
     const col = { uidt: UITypes.Checkbox, meta: enabledMeta } as any;

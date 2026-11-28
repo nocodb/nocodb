@@ -1,4 +1,6 @@
+import { SelectFieldAgentMetaProp } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
+import { DlgFieldAgentSummary } from '#components'
 
 export type FieldAgentRunMode = 'all' | 'unmodified' | 'modified'
 
@@ -18,6 +20,11 @@ export interface FieldAgentBulkStats {
 // same running state — a run started from one surface shows as running in the others.
 const runningColumns = ref<Set<string>>(new Set())
 
+// Upper bound on how long a column stays marked as running. The poller normally
+// clears it, but a dropped subscription or a worker that dies without reporting
+// would otherwise leave the menu disabled until a page reload.
+const MAX_RUN_DURATION = 10 * 60 * 1000
+
 /**
  * Shared bulk-run flow for AI Field Agents: dispatches the backend job, keeps a
  * keyed progress toast alive while it runs, and opens the summary dialog on
@@ -36,6 +43,16 @@ export function useFieldAgentBulkRun() {
   const { showUpgradeToUseFieldAgent } = useEeConfig()
 
   const isColumnRunning = (colId?: string | null) => (colId ? runningColumns.value.has(colId) : false)
+
+  /** The integration this column runs on, not merely the first one configured. */
+  function resolveProviderTitle(column: ColumnType) {
+    const integrationId = parseProp(column.meta)?.[SelectFieldAgentMetaProp]?.fk_integration_id
+
+    return (
+      (integrationId ? aiIntegrations.value?.find((i) => i.id === integrationId)?.title : undefined) ??
+      aiIntegrations.value?.[0]?.title
+    )
+  }
 
   function progressToastKey(colId: string) {
     return `nc-field-agent-progress-${colId}`
@@ -57,7 +74,7 @@ export function useFieldAgentBulkRun() {
   function openSummaryModal(stats: FieldAgentBulkStats) {
     const isOpen = ref(true)
 
-    const { close } = useDialog(resolveComponent('DlgFieldAgentSummary') as any, {
+    const { close } = useDialog(DlgFieldAgentSummary, {
       'visible': isOpen,
       'stats': stats,
       'onUpdate:visible': (val: boolean) => {
@@ -97,12 +114,24 @@ export function useFieldAgentBulkRun() {
 
     const colId = column.id
     const colTitle = column.title
+    const providerTitle = resolveProviderTitle(column)
 
     runningColumns.value.add(colId)
 
     const startTime = Date.now()
 
+    let settled = false
+
+    const watchdog = setTimeout(() => {
+      runningColumns.value.delete(colId)
+      message.destroy(progressToastKey(colId))
+    }, MAX_RUN_DURATION)
+
     const finishRun = (stats: FieldAgentBulkStats) => {
+      if (settled) return
+      settled = true
+
+      clearTimeout(watchdog)
       runningColumns.value.delete(colId)
       message.destroy(progressToastKey(colId))
       openSummaryModal(stats)
@@ -117,6 +146,8 @@ export function useFieldAgentBulkRun() {
       })
 
       if (!jobData?.id) {
+        settled = true
+        clearTimeout(watchdog)
         runningColumns.value.delete(colId)
         return
       }
@@ -153,7 +184,7 @@ export function useFieldAgentBulkRun() {
               rowsFailed: failed,
               durationMs: Date.now() - startTime,
               status: failed > 0 ? (processed > 0 ? 'partial' : 'error') : 'success',
-              llmProvider: aiIntegrations.value?.[0]?.title,
+              llmProvider: providerTitle,
             })
           } else if (data.status === JobStatus.FAILED) {
             finishRun({
@@ -165,7 +196,7 @@ export function useFieldAgentBulkRun() {
               durationMs: Date.now() - startTime,
               status: 'error',
               errorMessage: data.data?.error?.message || t('msg.error.fieldAgentJobFailed'),
-              llmProvider: aiIntegrations.value?.[0]?.title,
+              llmProvider: providerTitle,
             })
           } else if (data.data?.message) {
             // Progress updates — the job sends JSON log messages
@@ -190,7 +221,7 @@ export function useFieldAgentBulkRun() {
         durationMs: Date.now() - startTime,
         status: 'error',
         errorMessage: await extractSdkResponseErrorMsg(e),
-        llmProvider: aiIntegrations.value?.[0]?.title,
+        llmProvider: providerTitle,
       })
     }
   }

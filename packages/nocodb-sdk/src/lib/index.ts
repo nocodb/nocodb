@@ -49,6 +49,7 @@ export {
   FORM_HIDDEN_UI_TYPES,
   isFormHiddenColumn,
   isFieldAgentCol,
+  type FieldAgentMeta,
   FIELD_AGENT_SUPPORTED_TYPES,
   isNumericCol,
   isVirtualCol,

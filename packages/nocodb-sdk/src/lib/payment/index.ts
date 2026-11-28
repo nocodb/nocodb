@@ -676,7 +676,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to run sandboxes on your own servers with nc-compute-lite.',
   [PlanFeatureTypes.FEATURE_GLOBAL_SEARCH]:
     'to search all fields in tables of any size, and records across a base.',
-  [PlanFeatureTypes.FEATURE_FIELD_AGENT]: 'to use AI field agents.',
+  [PlanFeatureTypes.FEATURE_FIELD_AGENT]: 'to use custom agents.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

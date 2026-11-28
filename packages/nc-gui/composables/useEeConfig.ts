@@ -405,8 +405,6 @@ export const useEeConfig = createSharedComposable(() => {
   const blockFieldAgent = computed(() => true)
 
   const showUpgradeToUseFieldAgent = (..._args: any[]) => {}
-
-  const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseListView = (..._args: any[]) => {}
 
   const showUpgradeToUseGlobalSearch = (..._args: any[]) => {}

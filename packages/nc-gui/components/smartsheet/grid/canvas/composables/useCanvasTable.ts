@@ -373,10 +373,8 @@ export function useCanvasTable({
   // `baseUsers` alone does not invalidate the canvas — the cell would stay blank
   // until some unrelated redraw (scroll, resize) happened to repaint it. Same
   // pattern the image/sprite loaders use for their async completions.
-  watch(
-    () => resolvedUsers.value,
-    () => triggerRefreshCanvas(),
-  )
+  // Same for a member list refresh, e.g. re-inviting a removed user from a cell.
+  watch([() => resolvedUsers.value, baseCollaborators], () => triggerRefreshCanvas())
 
   const { hideTooltip } = tooltipStore
 

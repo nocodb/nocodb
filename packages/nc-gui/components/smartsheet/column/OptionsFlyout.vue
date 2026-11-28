@@ -106,11 +106,56 @@ const summary = computed(() => {
 }
 
 .nc-options-flyout-content {
-  @apply flex flex-col gap-3 w-[380px] px-4 pt-3 pb-4 overflow-y-auto nc-scrollbar-thin;
+  @apply flex flex-col w-[380px] px-4 pt-3 pb-4 overflow-y-auto nc-scrollbar-thin;
   max-height: min(560px, 70vh);
+
+  // Height-capped scrolling column: children must scroll, not shrink to fit
+  > * {
+    @apply flex-none;
+  }
+
+  // The option editors are antd horizontal form items: short labels sit inline, long ones
+  // wrap their control underneath, and each carries a ~24px bottom margin. Give every
+  // item the same shape here — label on top, full-width control, one 12px rhythm.
+  .ant-form-item {
+    @apply !mb-3;
+
+    &:last-child {
+      @apply !mb-0;
+    }
+  }
+
+  .ant-form-item-row {
+    @apply !flex-col !items-stretch;
+  }
+
+  .ant-form-item-label {
+    @apply !p-0 !pb-1.5 !text-left !leading-5;
+    flex: none !important;
+    max-width: none !important;
+
+    > label {
+      @apply !h-auto !text-sm !text-nc-content-gray;
+
+      // antd's trailing ':'
+      &::after {
+        @apply !hidden;
+      }
+    }
+  }
+
+  .ant-form-item-control {
+    @apply !w-full;
+    flex: none !important;
+    max-width: none !important;
+  }
+
+  .ant-select {
+    @apply !w-full;
+  }
 }
 
 .nc-options-flyout-title {
-  @apply text-sm font-semibold text-nc-content-gray pb-3 border-b-1 border-nc-border-gray-light;
+  @apply mb-3 pb-3 text-sm font-semibold text-nc-content-gray border-b-1 border-nc-border-gray-light;
 }
 </style>

@@ -120,7 +120,11 @@ export const fillRemovedUserDetails = (
     return { ...user, email: known.email, display_name: display_name ?? known.display_name }
   }
 
-  return ncIsArray(users) ? users.map(fill) : fill(users)
+  const list = ncIsArray(users) ? users : [users]
+  const filled = list.map(fill)
+  if (filled.every((user, i) => user === list[i])) return value
+
+  return ncIsArray(users) ? filled : filled[0]
 }
 
 export const valueToCopy = (

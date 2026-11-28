@@ -35,11 +35,14 @@ async function onSuccess(invitedEmails: string[]) {
 
   await basesStore.getBaseUsers({ baseId: props.baseId, force: true })
 
-  const invited = new Set(invitedEmails.map((email) => email.trim().toLowerCase()))
+  const byEmail = new Map(
+    (basesUser.value.get(props.baseId) || []).filter((user) => user.email).map((user) => [user.email!.toLowerCase(), user]),
+  )
 
+  // Invite order, so a single-user cell keeps the last one invited.
   emit(
     'invited',
-    (basesUser.value.get(props.baseId) || []).filter((user) => user.email && invited.has(user.email.toLowerCase())),
+    invitedEmails.map((email) => byEmail.get(email.trim().toLowerCase())).filter((user): user is UserType => !!user),
   )
 }
 </script>

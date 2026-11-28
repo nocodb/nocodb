@@ -393,7 +393,7 @@ function addUsersToRecord(users: UserType[]) {
   if (isMultiple.value) {
     emit('update:modelValue', [...new Set([...extractUserKeys(modelValue), ...ids])].join(','))
   } else {
-    emit('update:modelValue', ids[0])
+    emit('update:modelValue', ids[ids.length - 1])
   }
 }
 

@@ -48,6 +48,8 @@ export {
   isAIPromptCol,
   FORM_HIDDEN_UI_TYPES,
   isFormHiddenColumn,
+  isFieldAgentCol,
+  FIELD_AGENT_SUPPORTED_TYPES,
   isNumericCol,
   isVirtualCol,
   isLinksOrLTAR,

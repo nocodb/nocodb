@@ -165,6 +165,9 @@ function triggerToolbarControl(selector: string) {
 
       <template v-if="!isCalendar">
         <SmartsheetToolbarExport v-if="!isViewOperationsAllowed || showPublicDownload" is-in-toolbar />
+
+        <SmartsheetToolbarFieldAgentMenu v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isViewOperationsAllowed" />
+
         <SmartsheetToolbarOpenedViewAction
           v-if="!isMobileSearchActive && !isPublic"
           :show-only-copy-id="!isViewOperationsAllowed"

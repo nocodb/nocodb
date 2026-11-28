@@ -1,4 +1,5 @@
 import { isBoxHovered, renderTag } from '../utils/canvas'
+
 export const CheckboxCellRenderer: CellRenderer = {
   render: (
     ctx,
@@ -19,6 +20,7 @@ export const CheckboxCellRenderer: CellRenderer = {
       isRowHovered,
       getColor,
       isDark,
+      ...props
     },
   ) => {
     const isCellHovered = isBoxHovered({ x, y, width, height }, mousePosition)
@@ -117,7 +119,8 @@ export const CheckboxCellRenderer: CellRenderer = {
     return false
   },
   async handleClick(ctx) {
-    const { row, column, updateOrSaveRow, getCellPosition, mousePosition, selected, readonly, formula } = ctx
+    const { row, column, updateOrSaveRow, getCellPosition, mousePosition, selected, readonly, formula, value } = ctx
+
     if (column.readonly || readonly || formula || !column?.isCellEditable || column.isSyncedColumn) return false
 
     if (selected) {

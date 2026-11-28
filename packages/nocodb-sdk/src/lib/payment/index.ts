@@ -218,6 +218,8 @@ export enum PlanFeatureTypes {
 
   /** Search across every field of a table, and across a workspace's records in ⌘K. */
   FEATURE_GLOBAL_SEARCH = 'feature_global_search',
+  /** AI field agents — generated cell values for select/text/number columns. */
+  FEATURE_FIELD_AGENT = 'feature_field_agent',
 }
 
 export enum PlanAddonTypes {
@@ -674,6 +676,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to run sandboxes on your own servers with nc-compute-lite.',
   [PlanFeatureTypes.FEATURE_GLOBAL_SEARCH]:
     'to search all fields in tables of any size, and records across a base.',
+  [PlanFeatureTypes.FEATURE_FIELD_AGENT]: 'to use AI field agents.',
 };
 
 // Add-on-only features — no plan tier grants these, so "upgrade your plan"

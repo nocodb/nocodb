@@ -44,6 +44,9 @@ export function useGridViewData(
 
   const isBulkOperationInProgress = ref(false)
 
+  // Field agent dirty tracking: mark rows stale after bulk paste/update
+  const { onFieldAgentCellUpdate } = useNocoAi()
+
   const {
     cachedGroups,
     totalGroups,
@@ -64,6 +67,9 @@ export function useGridViewData(
   } = useInfiniteGroups(viewMeta, meta, where, {
     syncVisibleData,
   })
+
+  // Deferred callback: set by useCanvasTable once ActionManager is ready
+  const onAgentStatus = ref<((columnId: string, status: 'generating' | 'idle', rowIds: string[]) => void) | undefined>()
 
   const {
     insertRow,
@@ -122,6 +128,9 @@ export function useGridViewData(
           return
         }
         if (invalidateGroupAggregations(changedFields)) syncVisibleData()
+      },
+      onAgentStatus: (columnId, status, rowIds) => {
+        onAgentStatus.value?.(columnId, status, rowIds)
       },
     },
     groupByColumns,
@@ -547,6 +556,15 @@ export function useGridViewData(
 
       triggerAggregateReload({ fields: props.map((p) => ({ title: p })), path })
 
+      // Track dirty rows for field agents that depend on updated columns
+      for (const { pk } of pksIndex) {
+        if (pk) {
+          for (const prop of props) {
+            onFieldAgentCellUpdate(prop, pk, meta.value?.id)
+          }
+        }
+      }
+
       newRows.forEach((newRow: Record<string, any>) => {
         const pk = extractPkFromRow(newRow, metaValue?.columns as ColumnType[])
         const rowIndex = pksIndex.find((pkIndex) => pkIndex.pk === pk)?.rowIndex
@@ -704,6 +722,16 @@ export function useGridViewData(
           })
         }
       })
+
+      // Track dirty rows for field agents that depend on updated columns
+      for (const row of updateRows) {
+        const pk = getPk(row)
+        if (pk) {
+          for (const prop of props) {
+            onFieldAgentCellUpdate(prop, String(pk), meta.value?.id)
+          }
+        }
+      }
 
       dataCache.totalRows.value += insertedRows.length
 
@@ -1021,6 +1049,7 @@ export function useGridViewData(
     getRows,
     getDataCache,
     groupDataCache,
+    onAgentStatus,
     // Groupby
     cachedGroups,
     totalGroups,

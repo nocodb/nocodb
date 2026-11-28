@@ -15,6 +15,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
       getColor,
       selected,
       setCursor,
+      column,
     } = props
 
     const text = value?.toString() ?? ''
@@ -71,7 +72,9 @@ export const PhoneNumberCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ value, row, column, selected, isDoubleClick, getCellPosition, mousePosition }) {
+  async handleClick(props) {
+    const { value, row, column, selected, isDoubleClick, getCellPosition, mousePosition } = props
+
     if (!row || !column || (!selected && !isDoubleClick)) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)

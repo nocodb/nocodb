@@ -46,6 +46,8 @@ export const AIButton = 'AIButton'
 
 export const AIPrompt = 'AIPrompt'
 
+export const AIFieldAgent = 'AIFieldAgent'
+
 export const LongTextAiMetaProp = _LongTextAiMetaProp
 
 /**
@@ -63,6 +65,12 @@ export const isTextOrNumberColumn = (column?: ColumnType | null): boolean => {
 }
 
 const uiTypes: UiTypesType[] = [
+  {
+    name: AIFieldAgent,
+    icon: iconMap.ncAutoAwesome,
+    isNew: 1,
+    deprecated: 0,
+  },
   {
     name: AIButton,
     icon: iconMap.cellAiButton,
@@ -492,8 +500,8 @@ function extractRatingIcon(meta: string | Record<string, any> = null) {
   return icon
 }
 
-// AIButton / AIPrompt are picker-only types; real columns are matched by isFormHiddenColumn
-const formViewHiddenColTypes = [...FORM_HIDDEN_UI_TYPES, AIButton, AIPrompt]
+// AIButton / AIPrompt / AIFieldAgent are picker-only types; real columns are matched by isFormHiddenColumn
+const formViewHiddenColTypes = [...FORM_HIDDEN_UI_TYPES, AIButton, AIPrompt, AIFieldAgent]
 
 const isFormViewHiddenCol = (col: ColumnType | UITypes): boolean => {
   if (typeof col === 'object') {

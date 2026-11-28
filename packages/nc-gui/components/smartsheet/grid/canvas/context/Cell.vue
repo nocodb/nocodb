@@ -5,6 +5,7 @@ import {
   type TableType,
   type ViewType,
   isAIPromptCol,
+  isFieldAgentCol,
   isLinksOrLTAR,
   isSingleRecordLinkColumn,
   ncHasProperties,
@@ -97,7 +98,8 @@ const isDeleteAllRecordsModalOpen = ref(false)
 
 // Composables
 const { isDataReadOnly, isUIAllowed } = useRoles()
-const { aiIntegrations } = useNocoAi()
+const { showUpgradeToUseFieldAgent } = useEeConfig()
+const { aiIntegrations, isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
 const { isAiRecordContextEnabled, setAiRecordContext } = useAiRecordContext()
 const { appInfo, isMobileMode } = useGlobal()
 const { paste } = usePaste()
@@ -379,6 +381,61 @@ const execBulkAction = async (path: Array<number>) => {
       isAiPromptCol: isAIPromptCol(column?.columnObj),
       path: contextMenuPath.value,
     },
+  )
+}
+
+// Field Agent: enabled only when all selected cells are in the same column AND it's a field agent column
+const isSelectionFieldAgent = computed(() => {
+  if (!selection.value || contextMenuCol.value === null) return false
+
+  // All selected cells must be in the same column
+  if (selection.value.start.col !== selection.value.end.col) return false
+
+  const col = columns.value[selection.value.start.col]?.columnObj
+  if (!col) return false
+
+  return isFieldAgentCol(col)
+})
+
+const showRunFieldAgent = computed(() => {
+  return (
+    isAiFeaturesEnabled.value &&
+    aiIntegrationAvailable.value &&
+    isSelectionFieldAgent.value &&
+    contextMenuCol.value !== null &&
+    contextMenuRow.value !== null &&
+    contextMenuPath.value !== null &&
+    hasEditPermission.value &&
+    !isDataReadOnly.value
+  )
+})
+
+const execFieldAgent = async (path: Array<number>) => {
+  if (showUpgradeToUseFieldAgent()) return
+
+  const column = columns.value[selection.value.start.col]
+  const colObj = column?.columnObj
+
+  if (!colObj || !colObj.id) return
+
+  const rows = await getRows(selection.value.start.row, selection.value.end.row, path)
+
+  if (!rows || rows.length === 0) return
+
+  const pks = rows
+    .map((row) => ({
+      pk: extractPkFromRow(row.row, meta.value?.columns),
+      row,
+    }))
+    .filter((r) => r.pk !== null)
+
+  if (!pks.length) return
+
+  await actionManager.value.executeBulkAiGeneration(
+    colObj.id,
+    pks.map((r) => r.pk!),
+    pks.map((r) => r.row),
+    path,
   )
 }
 </script>
@@ -855,6 +912,19 @@ const execBulkAction = async (path: Array<number>) => {
           </div>
         </NcMenuItem>
 
+        <NcMenuItem
+          v-if="showRunFieldAgent"
+          key="run-field-agent"
+          class="nc-base-menu-item"
+          data-testid="context-menu-item-run-field-agent"
+          theme="ai"
+          @click="execFieldAgent(contextMenuPath || [])"
+        >
+          <div v-e="['a:field-agent:cell:generate', { source: 'context-menu' }]" class="flex gap-2 items-center">
+            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+            {{ $t('labels.fieldAgent.runAiAgent') }}
+          </div>
+        </NcMenuItem>
         <NcMenuItem
           v-if="contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null"
           key="cell-copy"

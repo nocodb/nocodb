@@ -118,6 +118,7 @@ export enum JobTypes {
   SearchIndexFlush = 'search-index-flush',
   SearchIndexFieldSync = 'search-index-field-sync',
   SearchIndexReconcile = 'search-index-reconcile',
+  FieldAgentGenerate = 'field-agent-generate',
 }
 
 // hourly; the processor deletes exports once their signed links (3h) have expired
@@ -165,6 +166,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.SearchIndexFlush,
   JobTypes.SearchIndexFieldSync,
   JobTypes.SearchIndexReconcile,
+  JobTypes.FieldAgentGenerate,
 ];
 
 // No client is handed these job ids, so nothing polls them on /jobs/listen.
@@ -682,4 +684,12 @@ export interface DataImportJobData extends JobData {
   req: NcRequest;
   /** Set by an interface page import: only these columns are written (no links, no new fields). */
   scope?: { allowedColumnIds: string[] };
+}
+
+export interface FieldAgentGenerateJobData extends JobData {
+  modelId: string;
+  columnId: string;
+  mode: 'all' | 'unmodified' | 'modified';
+  viewId?: string;
+  req: NcRequest;
 }

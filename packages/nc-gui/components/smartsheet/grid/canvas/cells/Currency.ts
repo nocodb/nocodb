@@ -56,6 +56,9 @@ export const CurrencyRenderer: CellRenderer = {
       }
     }
   },
+  async handleClick(props) {
+    return false
+  },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
     if (column.readonly || column.columnObj?.readonly) return false

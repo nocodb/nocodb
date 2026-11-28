@@ -17,6 +17,13 @@ const { isMobileMode } = useGlobal()
 
 const { isRtl } = useRtl()
 
+// a-sub-menu without a vnode key force-renders its popup portal on menu mount
+// (ant-design-vue SubMenu `forceRender = !hasKey`), which crashes vc-dropdown's
+// `getPopupContainer` when the hosting dropdown mounts already visible — the
+// portal reads the dropdown's triggerRef before it is bound. A stable
+// per-instance key keeps the popup lazily rendered instead.
+const subMenuKey = `nc-sub-menu-${getCurrentInstance()?.uid}`
+
 const responsiveVariant = computed(() => {
   if (isMobileMode.value && ['small', 'medium'].includes(props.variant)) {
     return 'large'
@@ -30,6 +37,7 @@ const chevronIcon = computed(() => (isRtl.value ? 'ncChevronLeft' : 'ncChevronRi
 
 <template>
   <a-sub-menu
+    :key="subMenuKey"
     :popup-offset="props.popupOffset"
     class="nc-sub-menu"
     :class="`nc-variant-${responsiveVariant}`"

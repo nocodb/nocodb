@@ -3,7 +3,7 @@ import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTa
 
 export const YearCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { selected, value, x, y, width, height, pv, padding, readonly, textColor = themeV4Colors.gray['600'], getColor } = props
+    const { selected, value, x, y, width, height, pv, padding, readonly, textColor = themeV4Colors.gray['600'], getColor, column } = props
 
     let text = ''
 
@@ -52,6 +52,7 @@ export const YearCellRenderer: CellRenderer = {
   },
   async handleClick(ctx) {
     const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
+
     if (!selected || !row?.rowMeta?.rowIndex) return false
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8

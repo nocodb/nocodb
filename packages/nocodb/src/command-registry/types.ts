@@ -410,6 +410,9 @@ export interface CaptureBag {
       }
     | { kind: 'insert'; pk: string | number }
   >;
+  /** Pks an interface expanding paste inserted, in insert order; its redo
+   *  re-inserts under them when the undo hard-deleted the rows. */
+  insertedPks: ReadonlyArray<string>;
 }
 
 /** One add-or-remove operation against a single LTAR column on a single

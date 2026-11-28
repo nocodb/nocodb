@@ -284,8 +284,14 @@ export interface InterfacePageDataApi {
    * outside the viz's allow-list survive the copy. Optional on older adapters.
    */
   duplicateRow?(rowId: string, opts?: { before?: string }): Promise<Record<string, any>>
-  /** Expanding paste — multi-row twin of `insertRow`. Resolves to the inserted pks, in insert order. */
-  bulkInsertRows?(rows: Array<Record<string, any>>): Promise<Record<string, any>[]>
+  /**
+   * Expanding paste as one write and one undo step — edits `updateRows`, adds
+   * `insertRows`. Resolves to the inserted pks, in insert order.
+   */
+  bulkUpsertRows?(params: {
+    insertRows: Array<Record<string, any>>
+    updateRows: Array<{ rowId: string; data: Record<string, any> }>
+  }): Promise<Record<string, any>[]>
   updateRow(rowId: string, data: Record<string, any>): Promise<Record<string, any>>
   /** Bulk inline cell edits (range paste) — multi-row twin of `updateRow`. */
   bulkUpdateRows?(rows: Array<{ rowId: string; data: Record<string, any> }>): Promise<boolean>

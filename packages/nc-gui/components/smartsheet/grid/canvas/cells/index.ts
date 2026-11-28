@@ -7,8 +7,8 @@ import {
   type ViewType,
   isAIPromptCol,
   isBtLikeV2Junction,
-  isLinksOrLTAR,
   isFieldAgentCol,
+  isLinksOrLTAR,
   isValidValue,
 } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
@@ -52,8 +52,8 @@ import { UUIDCellRenderer } from './UUID'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
-import { getLinkTargetGridViewId } from '~/utils/linkViewUtils'
 import { FieldAgentCellRenderer } from './FieldAgentCell'
+import { getLinkTargetGridViewId } from '~/utils/linkViewUtils'
 
 const CLEANUP_INTERVAL = 1000
 

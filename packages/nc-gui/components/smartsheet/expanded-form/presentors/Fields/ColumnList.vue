@@ -43,7 +43,7 @@ const COMPACT_ALWAYS_SKIP_UIDTS = new Set<string>([UITypes.Attachment, UITypes.R
 
 const { t } = useI18n()
 
-const { changedColumns, localOnlyChanges, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 

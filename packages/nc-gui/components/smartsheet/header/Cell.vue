@@ -227,11 +227,7 @@ const onClick = (e: Event) => {
           }"
         />
       </template>
-      <GeneralIcon
-        v-if="isFieldAgent"
-        icon="ncAutoAwesome"
-        class="flex-none h-3 w-3 text-nc-content-purple-dark"
-      />
+      <GeneralIcon v-if="isFieldAgent" icon="ncAutoAwesome" class="flex-none h-3 w-3 text-nc-content-purple-dark" />
       <NcTooltip
         v-if="column"
         :class="{

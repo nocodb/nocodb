@@ -41,7 +41,7 @@ const name = computed(() => extractUserDisplayNameOrEmail(props.user))
         v-e="['c:base:invite:cell:open', { source: 'removed-user' }]"
         size="xsmall"
         type="text"
-        class="nc-user-no-access-invite-btn !text-nc-content-brand"
+        class="nc-user-no-access-invite-btn -mr-1.5 !px-1.5 !text-bodySmBold !text-nc-content-brand"
         data-testid="nc-user-cell-invite-to-base"
         @click="emit('invite')"
       >

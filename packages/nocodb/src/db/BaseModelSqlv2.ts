@@ -10990,6 +10990,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return false;
   }
 
+  // Ids of former workspace members among `userIds`; none in CE.
+  protected async filterFormerMemberIds(
+    _userIds: string[],
+  ): Promise<Set<string>> {
+    return new Set();
+  }
+
   // A `path`, or a `url` on our own storage host, must be one the caller owns
   // (uploaded or already stored in this base). A foreign url is an external
   // link and is never signed or read.
@@ -11457,6 +11464,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // Copy paths carry values across: keep any user that exists on this instance.
           const skipMembershipValidation = !!extra?.skipPermissionCheck;
 
+          // Removed members are not in baseUsers; keep them, e.g. pasted from another cell.
+          const formerMemberId = async (idOrEmail: string) => {
+            const id = idOrEmail.includes('@')
+              ? (await User.getByEmail(idOrEmail))?.id
+              : idOrEmail;
+            if (!id) return null;
+            return (await this.filterFormerMemberIds([id])).has(id) ? id : null;
+          };
+
           if (
             typeof data[column.column_name] === 'string' &&
             /^\s*[{[]/.test(data[column.column_name])
@@ -11493,6 +11509,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       if ((await User.get(user.id))?.id) userIds.push(user.id);
                       continue;
                     }
+                    const formerId = await formerMemberId(user.id);
+                    if (formerId) {
+                      userIds.push(formerId);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with id '${user.id}' is not part of this workspace`,
                     );
@@ -11512,6 +11533,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       // copy; drop it only if no such user exists at all
                       const globalUser = await User.getByEmail(user.email);
                       if (globalUser?.id) userIds.push(globalUser.id);
+                      continue;
+                    }
+                    const formerId = await formerMemberId(user.email);
+                    if (formerId) {
+                      userIds.push(formerId);
                       continue;
                     }
                     NcError.get(this.context).unprocessableEntity(
@@ -11545,6 +11571,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       if (globalUser?.id) userIds.push(globalUser.id);
                       continue;
                     }
+                    const formerId = await formerMemberId(user);
+                    if (formerId) {
+                      userIds.push(formerId);
+                      continue;
+                    }
                     NcError.get(this.context).unprocessableEntity(
                       `User with email '${user}' is not part of this workspace`,
                     );
@@ -11556,6 +11587,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     if (skipMembershipValidation) {
                       // keep the id only if the user exists on this instance
                       if ((await User.get(user))?.id) userIds.push(user);
+                      continue;
+                    }
+                    const formerId = await formerMemberId(user);
+                    if (formerId) {
+                      userIds.push(formerId);
                       continue;
                     }
                     NcError.get(this.context).unprocessableEntity(
